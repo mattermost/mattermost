@@ -37,6 +37,12 @@ type Props = {
     // merely disabled).
     hideAddResource?: boolean;
 
+    // Resource types the picker still offers but cannot add right now, mapped
+    // to a short reason shown under the option. Offered-and-disabled rather
+    // than hidden: an option that silently vanishes is indistinguishable from
+    // one this server does not have.
+    blockedTypes?: Partial<Record<ResourceObjectType, string>>;
+
     // Explains WHY existing rows' toggle is disabled, when the reason isn't
     // the transient `saving` state -- threaded straight through to each row's
     // AttributeAppliesToItemProps.lockedTooltip. Undefined renders no tooltip.
@@ -91,6 +97,7 @@ function AttributeAppliesTo({
     appliesTo,
     disabled = false,
     hideAddResource = false,
+    blockedTypes,
     lockedTooltip,
     onAdd,
     onRemove,
@@ -132,13 +139,20 @@ function AttributeAppliesTo({
             }}
         >
             {availableTypes.map((type) => {
+                const blockedReason = blockedTypes?.[type];
                 return (
                     <Menu.Item
                         id={`${triggerId}-${type}`}
                         key={type}
+                        disabled={Boolean(blockedReason)}
                         leadingElement={<ResourceTypeIcon type={type}/>}
-                        onClick={() => onAdd(type)}
-                        labels={<FormattedMessage {...resourceTypeLabels[type]}/>}
+                        onClick={blockedReason ? undefined : () => onAdd(type)}
+                        labels={(
+                            <>
+                                <span><FormattedMessage {...resourceTypeLabels[type]}/></span>
+                                {blockedReason && <span>{blockedReason}</span>}
+                            </>
+                        )}
                     />
                 );
             })}

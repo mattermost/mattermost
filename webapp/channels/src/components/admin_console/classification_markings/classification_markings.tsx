@@ -17,6 +17,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {setNavigationBlocked} from 'actions/admin_actions';
 
 import BooleanSetting from 'components/admin_console/boolean_setting';
+import {findNameConflicts} from 'components/admin_console/global_attributes/utils';
 import Setting from 'components/admin_console/setting';
 import ConfirmModal from 'components/confirm_modal';
 import DropdownInput from 'components/dropdown_input';
@@ -38,6 +39,7 @@ import ClassificationLevelsTable from './components/classification_levels_table'
 import GlobalClassificationIndicators from './components/global_classification_indicators';
 import type {GlobalBannerConfig} from './utils';
 import {
+    CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
     CLEARANCE_FIELD_DISPLAY_NAME,
     CLEARANCE_FIELD_NAME,
     DEFAULT_GLOBAL_BANNER,
@@ -48,6 +50,7 @@ import {
     fetchLinkedClassificationField,
     fetchSystemClassificationValue,
     fetchUserLinkedFields,
+    listLiveFields,
     processClassificationField,
     saveCreateChannelLinkedField,
     saveCreateField,
@@ -78,7 +81,7 @@ const msg = defineMessages({
     presetDescription: {id: 'admin.classification_markings.preset.description', defaultMessage: 'Select a classification preset from the dropdown menu based on your country affiliation. This will help tailor the options to your specific needs. You can also create custom classification levels.'},
     clearanceTitle: {id: 'admin.classification_markings.enforcement.clearance.title', defaultMessage: 'Clearance attribute'},
     clearanceCheckbox: {id: 'admin.classification_markings.enforcement.clearance.checkbox', defaultMessage: 'Enable clearance attribute'},
-    clearanceHelp: {id: 'admin.classification_markings.enforcement.clearance.help', defaultMessage: 'Creates a ranked "Clearance" user attribute linked to these classification levels. Channel membership can then be managed with a corresponding <link>membership policy</link>.'},
+    clearanceHelp: {id: 'admin.classification_markings.enforcement.clearance.help', defaultMessage: 'Creates a ranked "Classification clearance" user attribute linked to these classification levels. Channel membership can then be managed with a corresponding <link>membership policy</link>.'},
     levelsTitle: {id: 'admin.classification_markings.levels.title', defaultMessage: 'Classification levels'},
     levelsDescription: {id: 'admin.classification_markings.levels.description', defaultMessage: 'Text and colors for different classification levels that will be used in the system'},
     informationalNoticeTitle: {id: 'admin.classification_markings.notice.title', defaultMessage: 'Classification markings are informational only'},
@@ -102,6 +105,8 @@ const msg = defineMessages({
     conflictChannelField: {id: 'admin.classification_markings.conflict.channel_field', defaultMessage: 'A channel attribute named "{name}" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management, then reload this page.'},
     conflictClearanceTitle: {id: 'admin.classification_markings.conflict.clearance_title', defaultMessage: 'Clearance attribute cannot be created'},
     conflictClearance: {id: 'admin.classification_markings.conflict.clearance', defaultMessage: 'A user attribute named "{name}" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management to enable the clearance attribute.'},
+    clearanceTemplateWarningTitle: {id: 'admin.classification_markings.conflict.clearance_template_title', defaultMessage: 'Another attribute already uses this name'},
+    clearanceTemplateWarning: {id: 'admin.classification_markings.conflict.clearance_template', defaultMessage: 'An attribute named "{name}" already exists in Attribute Management. Enabling this creates a separate "clearance" user attribute that uses the classification levels, not that attribute\'s options.'},
 });
 
 type FieldConflict = {
@@ -140,6 +145,11 @@ export default function ClassificationMarkings({disabled}: Props) {
 
     // Scoped to the clearance section: the rest of the page still works.
     const [clearanceConflict, setClearanceConflict] = useState<PropertyField | null>(null);
+
+    // An unrelated attribute in Attribute Management already called `clearance`.
+    // Not blocking: the user field this page creates is a different object type,
+    // so the server accepts it. It is only indistinguishable to an admin.
+    const [clearanceTemplateConflict, setClearanceTemplateConflict] = useState<PropertyField | null>(null);
 
     const [enabled, setEnabled] = useState(false);
     const [clearanceEnabled, setClearanceEnabled] = useState(false);
@@ -238,6 +248,12 @@ export default function ClassificationMarkings({disabled}: Props) {
                     }
                     hasClearance = clearance.fields.length > 0;
                     setClearanceConflict(clearance.conflict ?? null);
+
+                    const templates = await listLiveFields(CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE);
+                    if (cancelled) {
+                        return;
+                    }
+                    setClearanceTemplateConflict(findNameConflicts(CLEARANCE_FIELD_NAME, templates, templateId)[0] ?? null);
                 }
 
                 if (field) {
@@ -765,6 +781,18 @@ export default function ClassificationMarkings({disabled}: Props) {
                                         type='danger'
                                         title={<FormattedMessage {...msg.conflictClearanceTitle}/>}
                                         text={formatMessage(msg.conflictClearance, {name: clearanceConflict.name})}
+                                    />
+                                </InformationNoticeWrapper>
+                            )}
+                            {/* Suppressed while the blocking conflict above is showing: the
+                                checkbox is disabled then, so nothing would be created and
+                                this notice would describe an outcome that cannot happen. */}
+                            {!clearanceConflict && clearanceTemplateConflict && (
+                                <InformationNoticeWrapper>
+                                    <SectionNotice
+                                        type='warning'
+                                        title={<FormattedMessage {...msg.clearanceTemplateWarningTitle}/>}
+                                        text={formatMessage(msg.clearanceTemplateWarning, {name: clearanceTemplateConflict.name})}
                                     />
                                 </InformationNoticeWrapper>
                             )}

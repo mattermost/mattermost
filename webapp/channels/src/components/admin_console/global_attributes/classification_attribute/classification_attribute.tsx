@@ -36,8 +36,10 @@ import {useChannelResourceRemove} from './remove_channel_resource_modal';
 import AppliesToCard from '../applies_to/applies_to_card';
 import {buildChannelFieldPatch, buildChannelFieldPayload, parseChannelFieldConfig} from '../applies_to/channels';
 import type {ChannelResourceConfig} from '../applies_to/channels';
+import type {ResourceObjectType} from '../attribute_details/attribute_applies_to_constants';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE} from '../constants';
-import {formatAttributeHeadingName} from '../utils';
+import useAllowedResourceTypes from '../use_allowed_resource_types';
+import {fetchLinkedFieldsForTemplate, formatAttributeHeadingName, isResourceObjectType} from '../utils';
 
 import './classification_attribute.scss';
 
@@ -72,6 +74,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const {promptRemove} = useChannelResourceRemove();
+    const allowedResourceTypes = useAllowedResourceTypes();
 
     const [loadState, setLoadState] = useState<LoadState>('loading');
     const [template, setTemplate] = useState<PropertyField | null>(null);
@@ -86,6 +89,12 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
 
     // null means classification does not apply to channels.
     const [channelResource, setChannelResource] = useState<ChannelResourceConfig | null>(null);
+
+    // The template's other linked fields. Classification Markings applies the
+    // template to Users under a different name (`clearance`), and Attribute
+    // Management lists no row for a linked field, so this page is the only
+    // place that name can be found.
+    const [otherLinkedResources, setOtherLinkedResources] = useState<Array<{type: ResourceObjectType; name: string}>>([]);
 
     const [saving, setSaving] = useState(false);
     const [saveFailed, setSaveFailed] = useState(false);
@@ -132,10 +141,22 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                     return;
                 }
 
+                const linkedFields = (await fetchLinkedFieldsForTemplate(templateField.id, allowedResourceTypes).catch(rethrowUnlessNotFound)) ?? [];
+                if (!isMountedRef.current) {
+                    return;
+                }
+                const otherResources: Array<{type: ResourceObjectType; name: string}> = [];
+                for (const linked of linkedFields) {
+                    if (linked.object_type !== CHANNEL_OBJECT_TYPE && isResourceObjectType(linked.object_type)) {
+                        otherResources.push({type: linked.object_type, name: linked.name});
+                    }
+                }
+
                 const existingChannelField = channelLookup.field;
                 setTemplate(templateField);
                 setChannelField(existingChannelField ?? null);
                 setChannelResource(existingChannelField ? parseChannelFieldConfig(existingChannelField) : null);
+                setOtherLinkedResources(otherResources);
                 setLoadState('ready');
             } catch (error) {
                 // Logged as well as shown: the canned copy cannot say which call failed.
@@ -146,7 +167,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                 }
             }
         })();
-    }, []);
+    }, [allowedResourceTypes]);
 
     const levels = useMemo(() => {
         const options = (template?.attrs?.options ?? []) as PropertyFieldOption[];
@@ -460,6 +481,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                             </Card>
                             <AppliesToCard
                                 ordered={true}
+                                readOnlyResources={otherLinkedResources}
                                 channelResource={channelResource}
                                 onChannelResourceChange={handleChannelResourceChange}
                                 onChannelResourceRemove={handleChannelResourceRemove}

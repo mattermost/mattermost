@@ -51,6 +51,7 @@ import type {ChannelResourceConfig} from '../applies_to/channels';
 import {ATTRIBUTE_TYPE_DESCRIPTOR, getAttributeTypeDescriptor, toServerFieldType} from '../attribute_type';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from '../constants';
 import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField} from '../global_attributes_table';
+import {findNameConflict, messages as nameConflictMessages, nameConflictText} from '../name_conflict';
 import useAllowedResourceTypes from '../use_allowed_resource_types';
 import type {AttributeFieldType, AttributeTypeId, UpdateAttributeFieldPatch} from '../utils';
 import {
@@ -63,6 +64,7 @@ import {
     formatAttributeHeadingName,
     isAttributeFieldType,
     linkedFieldsByResourceType,
+    listPropertyFields,
     patchLinkedAttributeField,
     updateAttributeField,
 } from '../utils';
@@ -574,6 +576,35 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         };
     }, [fieldId, allowedResourceTypes]);
 
+    // Live user fields (what a CEL rule can collide with) and templates (to name
+    // the owner of a colliding linked field). Loaded independently of the field
+    // being edited, because the create form needs them too. A failure here only
+    // costs the warning: the save path still reports the server's own 409.
+    const [conflictUserFields, setConflictUserFields] = useState<PropertyField[]>([]);
+    const [conflictTemplates, setConflictTemplates] = useState<PropertyField[]>([]);
+    useEffect(() => {
+        let cancelled = false;
+
+        (async () => {
+            try {
+                const [userFields, templates] = await Promise.all([
+                    listPropertyFields('user'),
+                    listPropertyFields(GLOBAL_ATTRIBUTES_OBJECT_TYPE),
+                ]);
+                if (!cancelled) {
+                    setConflictUserFields(userFields);
+                    setConflictTemplates(templates);
+                }
+            } catch (error) {
+                console.error('AttributeDetails-load-name-conflicts: ', error); // eslint-disable-line no-console
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
     const autoSlugDisplay = useMemo(() => computeAutoSlugDisplay(displayName), [displayName]);
     const currentName = (isEditingName || isNameManuallyEdited) ? manualName : (autoSlugDisplay ?? '');
     const nameUnchanged = isEditMode && currentName === originalNameRef.current;
@@ -583,6 +614,20 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // handleDoneClick's dep array -- the error object is rebuilt on every
     // render while invalid, which would churn the callback identity needlessly.
     const hasNameError = Boolean(nameValidationError);
+
+    // A user attribute already carrying this name. Not an error: a template
+    // applied only to Channels becomes resource.attributes.<name>, which CEL
+    // keeps separate from user.attributes.<name>. It is a warning, because the
+    // two are indistinguishable in this listing.
+    const nameConflict = useMemo(
+        () => (currentName ? findNameConflict(currentName, conflictUserFields, conflictTemplates, fieldId) : undefined),
+        [conflictTemplates, conflictUserFields, currentName, fieldId],
+    );
+
+    // Only an exact match would collide on the server, which compares names
+    // case-sensitively. Applying to Users under that name creates a second user
+    // field with it, which the server rejects with a 409.
+    const usersBlockedByNameConflict = Boolean(nameConflict?.exact);
 
     // Display name was typed but auto-derivation produced nothing usable (e.g.
     // a non-Latin-script or symbol-only Display name normalizes to slugifyForCEL's
@@ -895,7 +940,13 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             !hasBlankTrimmedOptionName(options) &&
             !hasCaseInsensitiveDuplicateNames(options);
     }, [isHierarchical, options]);
-    const canSave = !effectiveDisabled && Boolean(displayName.trim()) && Boolean(currentName) && !nameValidationError && !saving && optionsIssue === null && graphOptionsValid && (!isEditMode || isDirty);
+
+    // Applying to Users under a name a user field already holds is the one
+    // combination the server refuses. Saving it would create the template, fail
+    // on the linked field, and roll the template back again, so Save waits for
+    // Users to be dropped or the name changed. Every other resource still saves.
+    const usersSaveBlocked = usersBlockedByNameConflict && appliesTo.includes('user');
+    const canSave = !effectiveDisabled && Boolean(displayName.trim()) && Boolean(currentName) && !nameValidationError && !usersSaveBlocked && !saving && optionsIssue === null && graphOptionsValid && (!isEditMode || isDirty);
 
     const confirmRemoveAppliesTo = useConfirmRemoveAppliesTo();
 
@@ -1562,6 +1613,22 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                 <FormattedMessage {...messages.couldNotGenerateName}/>
                                             </div>
                                         )}
+                                        {nameConflict && (
+                                            <div
+                                                className='AttributeDetails__nameConflict'
+
+                                                // Polite, not an alert: this updates on every
+                                                // keystroke while the admin is still typing a name.
+                                                role='status'
+                                                data-testid='attributeNameConflictWarning'
+                                            >
+                                                <i className='icon icon-alert-outline'/>
+                                                <span>
+                                                    {nameConflictText(nameConflict, formatMessage)}
+                                                    {usersBlockedByNameConflict && ` ${formatMessage(nameConflictMessages.usersBlocked, {name: nameConflict.field.name})}`}
+                                                </span>
+                                            </div>
+                                        )}
                                         <p className='AttributeDetails__helperText'>
                                             <FormattedMessage {...messages.helperText}/>
                                         </p>
@@ -1626,6 +1693,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         allowedTypes={allowedResourceTypes}
                         disabled={saving || effectiveDisabled || isNonTemplate}
                         hideAddResource={isPluginOwned || isNonTemplate}
+                        blockedTypes={usersBlockedByNameConflict ? {user: formatMessage(nameConflictMessages.usersBlockedMenuLabel)} : undefined}
                         lockedTooltip={appliesToLockedTooltip}
                         onAdd={handleAdd}
                         onRemove={handleRemove}

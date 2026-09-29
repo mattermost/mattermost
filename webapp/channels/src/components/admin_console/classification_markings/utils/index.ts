@@ -215,6 +215,40 @@ async function findLiveFieldByName(objectType: string, name: string): Promise<Pr
     return undefined;
 }
 
+/**
+ * Every live field in an object type. Unlike findLiveFieldByName, which stops at
+ * the first match because names are unique, this pages to the end: a caller
+ * looking for a name this feature does not own has to see all of them.
+ */
+export async function listLiveFields(objectType: string): Promise<PropertyField[]> {
+    const maxItems = 500;
+    let fetched = 0;
+    let cursorId: string | undefined;
+    let cursorCreateAt: number | undefined;
+    const live: PropertyField[] = [];
+
+    while (fetched < maxItems) {
+        const fields = await Client4.getPropertyFields( // eslint-disable-line no-await-in-loop
+            ACCESS_CONTROL_PROPERTY_GROUP,
+            objectType,
+            CLASSIFICATIONS_FIELD_TARGET_TYPE,
+            CLASSIFICATIONS_FIELD_TARGET_ID,
+            {cursorId, cursorCreateAt},
+        );
+        if (fields.length === 0) {
+            break;
+        }
+        live.push(...fields.filter((field: PropertyField) => field.delete_at === 0));
+
+        fetched += fields.length;
+        const last = fields[fields.length - 1];
+        cursorId = last.id;
+        cursorCreateAt = last.create_at;
+    }
+
+    return live;
+}
+
 // --- Template field API ---
 
 export async function fetchClassificationField(): Promise<ClassificationFieldLookup> {
@@ -352,8 +386,12 @@ export const CLASSIFICATIONS_USER_OBJECT_TYPE = 'user';
 // renaming it would break existing rules. It is lowercase like
 // CLASSIFICATIONS_CHANNEL_FIELD_NAME; the display name is the label the System
 // Console and profile popovers show.
+//
+// The display name says which clearance this is, because an unrelated attribute
+// called "Clearance" is exactly what an admin confuses it with. Only new fields
+// get it: an existing one keeps whatever label it was created with.
 export const CLEARANCE_FIELD_NAME = 'clearance';
-export const CLEARANCE_FIELD_DISPLAY_NAME = 'Clearance';
+export const CLEARANCE_FIELD_DISPLAY_NAME = 'Classification clearance';
 
 export type ClearanceFieldLookup = {
 

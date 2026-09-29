@@ -206,6 +206,21 @@
     font-size: 12px;
 }
 
+.AttributeDetails__nameConflict {
+    display: flex;
+    margin-top: 4px;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-size: 12px;
+    gap: 4px;
+    line-height: 16px;
+
+    .icon {
+        color: var(--away-indicator);
+        font-size: 14px;
+        line-height: 16px;
+    }
+}
+
 .AttributeDetails__helperText {
     margin: 8px 0 0;
     color: rgba(var(--center-channel-color-rgb), 0.64);
