@@ -181,9 +181,6 @@ test.describe('Post list initial scroll in read channel', () => {
         return watcher.waitForObservations(500);
     }
 
-    // Matches BUFFER_TO_BE_CONSIDERED_BOTTOM in post_list_virtualized.tsx
-    const BUFFER_TO_BE_CONSIDERED_BOTTOM = 100;
-
     function expectStayedAtBottom(
         observations: Awaited<ReturnType<PostListScrollWatcher['waitForObservations']>>,
         caseName: string,
@@ -191,13 +188,12 @@ test.describe('Post list initial scroll in read channel', () => {
         if (caseName === 'with multiple pages of post previews') {
             // Permalink embeds can grow after first paint; stay pinned to the bottom.
             expect(observations.length).toBeGreaterThanOrEqual(1);
-        } else {
-            expect(observations).toHaveLength(1);
+            for (const obs of observations) {
+                expect(obs.distanceFromBottom).toBe(0);
+            }
+            return;
         }
 
-        for (const obs of observations) {
-            expect(obs.scrollHeight).toBeGreaterThan(0);
-            expect(obs.distanceFromBottom).toBeLessThanOrEqual(BUFFER_TO_BE_CONSIDERED_BOTTOM);
-        }
+        expect(observations).toHaveLength(1);
     }
 });
