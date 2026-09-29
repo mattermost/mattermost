@@ -182,18 +182,23 @@ function DraftRow({
     }, [dispatch, channelId, rootId]);
 
     const afterSubmit = useCallback((response: SubmitPostReturnType) => {
-        // if draft was being scheduled, delete the draft after it's been scheduled
-        if (isBeingScheduled.current && response.created && !response.error) {
-            handleOnDelete();
-            isBeingScheduled.current = false;
+        if (!response.created || response.error) {
+            return;
         }
 
         // if scheduled posts was being sent, delete the scheduled post after it's been sent
-        if (isScheduledPostBeingSent.current && response.created && !response.error) {
+        if (isScheduledPostBeingSent.current) {
             const scheduledPost = item as ScheduledPost;
             dispatch(deleteScheduledPost(scheduledPost.user_id, scheduledPost.id, connectionId));
             isScheduledPostBeingSent.current = false;
+            return;
         }
+
+        // Sending or scheduling a draft consumes it. createPost only clears the locally
+        // stored copy, so delete the draft outright or the surviving server copy syncs
+        // back in on the next fetch.
+        isBeingScheduled.current = false;
+        handleOnDelete();
     }, [connectionId, dispatch, handleOnDelete, item]);
 
     // TODO LOL verify the types and handled it better
