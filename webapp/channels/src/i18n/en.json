@@ -1692,6 +1692,7 @@
   "admin.global_attributes.table.actions.delete": "Delete attribute",
   "admin.global_attributes.table.actions.edit": "Edit attribute",
   "admin.global_attributes.table.actions.menu_label": "Select an action",
+  "admin.global_attributes.table.actions.owner_managed": "Managed by {owners}",
   "admin.global_attributes.table.actions.plugin_managed": "Plugin-managed",
   "admin.global_attributes.table.actions.tooltip": "More actions",
   "admin.global_attributes.table.actions.view": "View attribute",

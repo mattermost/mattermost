@@ -7,6 +7,7 @@ import React from 'react';
 import {ClientError} from '@mattermost/client';
 import {ChevronDownCircleOutlineIcon, FormatListBulletedIcon, LinkVariantIcon, MenuVariantIcon, PoundIcon, PowerPlugOutlineIcon, SitemapIcon, SortAscendingIcon, SyncIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField} from '@mattermost/types/properties';
+import type {PropertyFieldOwner} from '@mattermost/types/properties_user';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';
@@ -1625,6 +1626,134 @@ describe('GlobalAttributesTable', () => {
             expect(del!).toHaveTextContent('Plugin-managed');
 
             getPluginStatuses.mockRestore();
+        });
+
+        describe('owned attributes', () => {
+            const owner = (id: string, type: PropertyFieldOwner['type'] = 'plugin'): PropertyFieldOwner => ({id, type, scopes: []});
+
+            function mockOwnedTemplate(owners: PropertyFieldOwner[]) {
+                const template = makeField({id: 'template-1', name: 'department'});
+                getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
+                    if (opts?.cursorId) {
+                        return Promise.resolve([]);
+                    }
+                    if (objectType === 'template') {
+                        return Promise.resolve([template]);
+                    }
+                    if (objectType === 'user') {
+                        return Promise.resolve([makeField({id: 'user-1', object_type: 'user', linked_field_id: template.id, attrs: {owners}})]);
+                    }
+                    return Promise.resolve([]);
+                });
+            }
+
+            function renderOwned(installedPluginId?: string) {
+                const state = getAllScopesState();
+                if (installedPluginId) {
+                    state.entities!.admin = {pluginStatuses: {[installedPluginId]: {id: installedPluginId}}} as EntitiesPartial['admin'];
+                }
+                renderWithContext(
+                    <>
+                        <GlobalAttributesTable/>
+                        <ModalController/>
+                    </>,
+                    state,
+                );
+            }
+
+            async function clickActionsAndFindDelete(fieldId: string) {
+                await userEvent.click(await screen.findByTestId(`global-attribute-actions-${fieldId}`));
+                return (await screen.findAllByRole('menuitem')).find((el) => el.textContent?.includes('Delete attribute'))!;
+            }
+
+            // Plugin owners trigger the inventory fetch, which remounts an open menu.
+            async function findDeleteOnSettledTemplate() {
+                await waitFor(() => expect(screen.getByTestId('global-attribute-source')).toHaveTextContent('Managed by'));
+                await waitFor(() => expect(Client4.getPluginStatuses).toHaveBeenCalled());
+                await act(async () => {
+                    await new Promise((resolve) => setTimeout(resolve, 0));
+                });
+                return clickActionsAndFindDelete('template-1');
+            }
+
+            async function expectInertDisabledDelete(del: HTMLElement, reason: string) {
+                expect(del).toHaveAttribute('aria-disabled', 'true');
+                expect(del).toHaveTextContent(reason);
+                await userEvent.click(del, {pointerEventsCheck: 0});
+                expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+                expect(deletePropertyField).not.toHaveBeenCalled();
+            }
+
+            it('disables Delete with the owner named on a template row whose owner plugin is installed', async () => {
+                mockOwnedTemplate([owner('com.acme.scim')]);
+                renderOwned('com.acme.scim');
+
+                const del = await findDeleteOnSettledTemplate();
+                await expectInertDisabledDelete(del, 'Managed by com.acme.scim');
+            });
+
+            it('disables Delete on a standalone user attribute owned by a service', async () => {
+                getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
+                    if (opts?.cursorId || objectType !== 'user') {
+                        return Promise.resolve([]);
+                    }
+                    return Promise.resolve([makeField({id: 'user-1', name: 'standalone', object_type: 'user', attrs: {owners: [owner('svc-sync', 'service')]}})]);
+                });
+                renderOwned();
+
+                await expectInertDisabledDelete(await clickActionsAndFindDelete('user-1'), 'Managed by svc-sync');
+            });
+
+            it('enables Delete once every owner plugin is uninstalled and confirms naming them', async () => {
+                deletePropertyField.mockResolvedValue({status: 'OK'});
+                mockOwnedTemplate([owner('com.acme.one'), owner('com.acme.two')]);
+                renderOwned();
+
+                const del = await findDeleteOnSettledTemplate();
+                expect(del).not.toHaveAttribute('aria-disabled', 'true');
+                await userEvent.click(del);
+
+                expect(await screen.findByText(/no longer installed/i)).toHaveTextContent('com.acme.one and com.acme.two');
+
+                await userEvent.click(await screen.findByRole('button', {name: /^delete$/i}));
+                await waitFor(() => {
+                    expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'template', 'template-1');
+                });
+            });
+
+            it('keeps Delete disabled when an uninstalled plugin shares ownership with a service', async () => {
+                mockOwnedTemplate([owner('com.acme.gone'), owner('svc-sync', 'service')]);
+                renderOwned();
+
+                const del = await findDeleteOnSettledTemplate();
+                await expectInertDisabledDelete(del, 'Managed by');
+            });
+
+            it('keeps Delete disabled on an owned row while the plugin inventory is still in flight', async () => {
+                const getPluginStatuses = jest.spyOn(Client4, 'getPluginStatuses').mockImplementation(() => new Promise(() => {}));
+                mockOwnedTemplate([owner('com.acme.gone')]);
+                renderOwned();
+
+                await waitFor(() => expect(screen.getByTestId('global-attribute-source')).toHaveTextContent('Managed by com.acme.gone'));
+                expect(await clickActionsAndFindDelete('template-1')).toHaveAttribute('aria-disabled', 'true');
+
+                getPluginStatuses.mockRestore();
+            });
+
+            it('keeps Delete disabled on a template row while the user fields have not loaded', async () => {
+                getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
+                    if (opts?.cursorId) {
+                        return Promise.resolve([]);
+                    }
+                    if (objectType === 'template') {
+                        return Promise.resolve([makeField({id: 'template-1', name: 'department'})]);
+                    }
+                    return objectType === 'user' ? new Promise(() => {}) : Promise.resolve([]);
+                });
+                renderOwned();
+
+                expect(await clickActionsAndFindDelete('template-1')).toHaveAttribute('aria-disabled', 'true');
+            });
         });
 
         it('omits the plugin explanation for an ordinary attribute', async () => {

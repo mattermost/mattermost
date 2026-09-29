@@ -33,13 +33,14 @@ import {
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
 } from 'components/admin_console/classification_markings/utils';
 import AlertBanner from 'components/alert_banner';
-import {useIsFieldOrphaned, usePluginInventoryLoaded} from 'components/common/hooks/use_field_orphaned';
+import {useInstalledPluginIds, useIsFieldOrphaned, usePluginInventoryLoaded} from 'components/common/hooks/use_field_orphaned';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {getHistory} from 'utils/browser_history';
 import {LicenseSkus} from 'utils/constants';
+import {allOwnersAreUninstalledPlugins} from 'utils/properties';
 
 import type {GlobalState} from 'types/store';
 
@@ -278,12 +279,14 @@ function AttributeCell({field, isClassificationRow}: ClassificationAwareCellProp
 
 type ActionsCellProps = ClassificationAwareCellProps & {
     isMobileView: boolean;
+    owners: PropertyFieldOwner[];
+    resourcesLoaded: boolean;
     pluginInventoryLoaded: boolean;
     onDeleteError: (message: string | null) => void;
     onDeleteModalExited: () => void;
 };
 
-function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryLoaded, onDeleteError, onDeleteModalExited}: ActionsCellProps) {
+function ActionsCell({field, isClassificationRow, isMobileView, owners, resourcesLoaded, pluginInventoryLoaded, onDeleteError, onDeleteModalExited}: ActionsCellProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const promptDelete = useGlobalAttributeFieldDelete();
@@ -299,6 +302,24 @@ function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryL
     const isPluginOwned = getSourceKind(field) === 'plugin';
     const isOrphaned = pluginInventoryLoaded && fieldLooksOrphaned;
     const isPluginManaged = isPluginOwned && !isOrphaned;
+
+    // Deleting an attribute deletes its owned Users field, so an owned attribute
+    // is deletable only once every owner is an uninstalled plugin. Until the
+    // Users fields and plugin inventory settle, ownership is not known yet.
+    const installedPluginIds = useInstalledPluginIds();
+    const ownersLabel = useOwnersLabel(owners);
+    const isOwned = owners.length > 0;
+    const ownersGone = pluginInventoryLoaded && allOwnersAreUninstalledPlugins(owners, installedPluginIds);
+    const isResolving = !resourcesLoaded && field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE;
+    const isOwnerManaged = isOwned && !ownersGone;
+    const deleteDisabled = isPluginManaged || isResolving || isOwnerManaged;
+
+    let orphanInfo: {ownerPluginIds: string[]} | {sourcePluginId?: string} | undefined;
+    if (isOwned) {
+        orphanInfo = {ownerPluginIds: owners.map((owner) => owner.id)};
+    } else if (isOrphaned) {
+        orphanInfo = {sourcePluginId: field.attrs?.source_plugin_id as string | undefined};
+    }
 
     const handleConfirmed = useCallback(async () => {
         onDeleteError(null);
@@ -364,19 +385,27 @@ function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryL
             />
             <Menu.Item
                 id={`${menuId}-delete`}
-                disabled={isPluginManaged}
+                disabled={deleteDisabled}
                 isDestructive={true}
                 leadingElement={<TrashCanOutlineIcon size={18}/>}
-                onClick={isPluginManaged ? undefined : () => promptDelete(
+                onClick={deleteDisabled ? undefined : () => promptDelete(
                     getDisplayName(field),
                     handleConfirmed,
-                    isOrphaned ? {sourcePluginId: field.attrs?.source_plugin_id as string | undefined} : undefined,
+                    orphanInfo,
                     onDeleteModalExited,
                 )}
                 labels={(
                     <>
                         <span><FormattedMessage {...actionsLabels.delete}/></span>
                         {isPluginManaged && <span><FormattedMessage {...actionsLabels.pluginManaged}/></span>}
+                        {!isPluginManaged && isOwnerManaged && (
+                            <span>
+                                <FormattedMessage
+                                    {...actionsLabels.ownerManaged}
+                                    values={{owners: ownersLabel}}
+                                />
+                            </span>
+                        )}
                     </>
                 )}
             />
@@ -703,6 +732,8 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                             field={row.original}
                             isClassificationRow={isClassificationRow(row.original)}
                             isMobileView={isMobileView}
+                            owners={ownersFor(row.original)}
+                            resourcesLoaded={resourcesLoaded}
                             pluginInventoryLoaded={pluginInventoryLoadedRef.current}
                             onDeleteError={setDeleteError}
                             onDeleteModalExited={handleDeleteModalExited}
@@ -851,6 +882,7 @@ export const actionsLabels = defineMessages({
     view: {id: 'admin.global_attributes.table.actions.view', defaultMessage: 'View attribute'},
     delete: {id: 'admin.global_attributes.table.actions.delete', defaultMessage: 'Delete attribute'},
     pluginManaged: {id: 'admin.global_attributes.table.actions.plugin_managed', defaultMessage: 'Plugin-managed'},
+    ownerManaged: {id: 'admin.global_attributes.table.actions.owner_managed', defaultMessage: 'Managed by {owners}'},
     deleteErrorHasDependents: {
         id: 'admin.global_attributes.confirm.delete.error.has_dependents',
         defaultMessage: "This attribute can't be deleted because other attributes are still linked to it. Remove those links first, then try again.",
