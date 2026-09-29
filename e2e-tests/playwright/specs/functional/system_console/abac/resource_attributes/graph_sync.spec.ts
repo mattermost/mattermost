@@ -75,7 +75,7 @@ test.describe('ABAC resource.attributes - graph hierarchy sync', {tag: ['@abac',
         await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
 
         const {adminClient, team} = await pw.initSetup();
-        await skipIfNoGraphFields(adminClient);
+        await skipIfNoGraphFields(pw);
         await enableUserManagedAttributes(adminClient);
         await adminClient.patchConfig({
             AccessControlSettings: {EnableAttributeBasedAccessControl: true},
@@ -164,7 +164,7 @@ test.describe('ABAC resource.attributes - graph hierarchy sync', {tag: ['@abac',
         await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
 
         const {adminClient, team} = await pw.initSetup();
-        await skipIfNoGraphFields(adminClient);
+        await skipIfNoGraphFields(pw);
         await enableUserManagedAttributes(adminClient);
         await adminClient.patchConfig({
             AccessControlSettings: {EnableAttributeBasedAccessControl: true},

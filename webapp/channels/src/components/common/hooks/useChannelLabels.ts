@@ -2,15 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {useMemo} from 'react';
-import {useSelector} from 'react-redux';
-
-import type {GlobalState} from '@mattermost/types/store';
 
 import {DISPLAY_LABEL_HEADER, DISPLAY_LABEL_INFO} from 'mattermost-redux/constants/properties';
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
-import {makeGetResolvedChannelAttributes} from 'mattermost-redux/selectors/entities/properties';
 
-import useChannelAttributes from './useChannelAttributes';
+import useResolvedChannelAttributes from './useResolvedChannelAttributes';
 
 export type ChannelLabelSurface = 'header' | 'info';
 
@@ -33,15 +29,13 @@ export default function useChannelLabels(
     channelId: string,
     surface: ChannelLabelSurface | ChannelLabelSurface[],
 ): ResolvedChannelAttribute[] {
-    const {enabled} = useChannelAttributes();
-    const getResolvedChannelAttributes = useMemo(() => makeGetResolvedChannelAttributes(), []);
-    const resolved = useSelector((state: GlobalState) => getResolvedChannelAttributes(state, channelId));
+    const resolved = useResolvedChannelAttributes(channelId);
 
     // Join so an inline `['info', 'header']` from a class parent is a stable dep.
     const surfacesKey = Array.isArray(surface) ? surface.join(',') : surface;
 
     return useMemo(() => {
-        if (!enabled || !channelId) {
+        if (resolved.length === 0) {
             return EMPTY;
         }
         const actions = new Set(
@@ -55,5 +49,5 @@ export default function useChannelLabels(
             return Array.isArray(fieldActions) && fieldActions.some((action) => actions.has(action));
         });
         return labels.length === 0 ? EMPTY : labels;
-    }, [enabled, channelId, resolved, surfacesKey]);
+    }, [resolved, surfacesKey]);
 }

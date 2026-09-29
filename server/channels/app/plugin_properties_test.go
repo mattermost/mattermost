@@ -20,7 +20,7 @@ func cleanupCPAFields(t *testing.T, th *TestHelper) {
 	require.Nil(t, groupErr)
 	cpaID := cpaGroup.ID
 
-	fields, searchErr := th.App.Srv().Store().PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+	fields, searchErr := th.App.Srv().Store().PropertyField().SearchPropertyFields(request.TestContext(t), model.PropertyFieldSearchOpts{
 		GroupID: cpaID,
 		PerPage: 100,
 	})

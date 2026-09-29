@@ -8,6 +8,8 @@ import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
 
 import {handlePropertyFieldCreatedOrUpdated} from 'actions/websocket_actions';
 
+import {clearGraphOptionNameCache, commitGraphOptionNames, getGraphOptionNames} from 'components/property_fields/graph/use_graph_option_names';
+
 import mockStore from 'tests/test_store';
 
 jest.mock('mattermost-redux/actions/properties', () => ({
@@ -121,5 +123,46 @@ describe('property_field_updated withheld option lists', () => {
 
         expect(receivedField(actions).name).toBe('Renamed');
         expect(receivedField(actions).attrs.options).toEqual(CACHED_OPTIONS);
+    });
+});
+
+describe('property_field_updated graph option names', () => {
+    beforeEach(() => {
+        clearGraphOptionNameCache();
+    });
+
+    test('a graph field carrying options replaces the cached names', () => {
+        commitGraphOptionNames(FIELD_ID, {option_id_1: 'AURORA', option_id_gone: 'REMOVED'});
+
+        const eventField = storedField({
+            type: 'graph',
+            attrs: {options: [{id: 'option_id_1', name: 'BOREALIS'}, {id: 'option_id_2', name: 'CIRRUS'}]},
+        });
+        dispatchEvent(eventField);
+
+        expect(getGraphOptionNames(FIELD_ID)).toEqual({
+            names: {option_id_1: 'BOREALIS', option_id_2: 'CIRRUS'},
+            didResolve: true,
+        });
+    });
+
+    test('a graph field with a withheld option list leaves the field unresolved', () => {
+        commitGraphOptionNames(FIELD_ID, {option_id_1: 'AURORA'});
+
+        const eventField = storedField({type: 'graph', attrs: {options_omitted: true}});
+        dispatchEvent(eventField, {cachedField: storedField({type: 'graph'})});
+
+        expect(getGraphOptionNames(FIELD_ID)).toEqual({names: {}, didResolve: false});
+    });
+
+    test('a non-graph field leaves the cached names untouched', () => {
+        commitGraphOptionNames(FIELD_ID, {option_id_1: 'AURORA'});
+
+        dispatchEvent(storedField());
+
+        expect(getGraphOptionNames(FIELD_ID)).toEqual({
+            names: {option_id_1: 'AURORA'},
+            didResolve: true,
+        });
     });
 });

@@ -243,6 +243,7 @@ func channelAttributeValuesForCreate(c *Context, channel *model.Channel, license
 
 	channelAttributesAvailable := c.App.Config().FeatureFlags.ChannelAttributes && model.MinimumEnterpriseAdvancedLicense(license)
 	classificationAvailable := c.App.Config().FeatureFlags.ClassificationMarkings && model.MinimumEnterpriseLicense(license)
+	requiredAttributesEnforced := c.App.Config().FeatureFlags.IsChannelAttributesRequiredEnabled()
 
 	if !channelAttributesAvailable && !classificationAvailable {
 		if len(items) > 0 {
@@ -309,6 +310,9 @@ func channelAttributeValuesForCreate(c *Context, channel *model.Channel, license
 			continue
 		}
 		if !channelAttributeFieldAvailable(field, channelAttributesAvailable, classificationAvailable) {
+			continue
+		}
+		if !requiredAttributesEnforced {
 			continue
 		}
 		if value, ok := supplied[field.ID]; !ok || model.IsEmptyPropertyValue(value) {
@@ -1290,7 +1294,7 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clientPostList := c.App.PreparePostListForClient(c.AppContext, posts)
+	clientPostList := c.App.PreparePostListForClient(c.AppContext, posts, nil)
 	clientPostList, isMemberForAllPreviews, err := c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err

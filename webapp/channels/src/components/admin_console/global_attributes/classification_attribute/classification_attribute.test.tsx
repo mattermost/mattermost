@@ -68,6 +68,7 @@ function render() {
             <ClassificationAttribute/>
             <ModalController/>
         </>,
+        {entities: {general: {config: {FeatureFlagChannelAttributes: 'true', FeatureFlagChannelAttributesRequired: 'true'}}}},
     );
 }
 

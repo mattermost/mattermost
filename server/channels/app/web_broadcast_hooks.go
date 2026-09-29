@@ -230,6 +230,22 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 		}
 	}
 
+	// The previewed post is broadcast verbatim, so its channel mentions have to be filtered
+	// for this recipient as well. Clone before mutating for the same reason as above.
+	if embedData.Post != nil {
+		if mentions, ok := embedData.Post.GetProp(model.PostPropsChannelMentions).(map[string]any); ok {
+			postCopy := embedData.Post.Clone()
+			if filtered := filterChannelMentionsForWebConn(rctx, webConn, mentions); len(filtered) > 0 {
+				postCopy.AddProp(model.PostPropsChannelMentions, filtered)
+			} else {
+				postCopy.DelProp(model.PostPropsChannelMentions)
+			}
+			previewCopy := *embedData
+			previewCopy.Post = postCopy
+			embedData = &previewCopy
+		}
+	}
+
 	post.AddProp(model.PostPropsPreviewedPost, previewProp)
 	post.Metadata.Embeds = append(post.Metadata.Embeds, &model.PostEmbed{Type: model.PostEmbedPermalink, Data: embedData})
 
@@ -251,6 +267,35 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 	}
 
 	return nil
+}
+
+// filterChannelMentionsForWebConn keeps only the channel mentions whose channel the recipient
+// may resolve. Mentions without a usable channel id can't be checked, so they are dropped.
+func filterChannelMentionsForWebConn(rctx request.CTX, webConn *platform.WebConn, channelMentions map[string]any) map[string]any {
+	filteredMentions := make(map[string]any, len(channelMentions))
+
+	for channelName, channelInfo := range channelMentions {
+		channelInfoMap, ok := channelInfo.(map[string]any)
+		if !ok {
+			continue
+		}
+
+		channelID, ok := channelInfoMap["id"].(string)
+		if !ok || channelID == "" {
+			continue
+		}
+
+		channel, err := webConn.Platform.Store.Channel().Get(channelID, true)
+		if err != nil {
+			continue
+		}
+
+		if webConn.Suite.HasPermissionToResolveChannelMention(rctx, webConn.UserId, channel) {
+			filteredMentions[channelName] = channelInfo
+		}
+	}
+
+	return filteredMentions
 }
 
 func useChannelMentionsHook(message *model.WebSocketEvent, channelMentions map[string]any) {
@@ -283,31 +328,7 @@ func (h *channelMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEven
 
 	// Filter channel mentions based on recipient's permissions
 	rctx := request.EmptyContext(webConn.Platform.Log())
-	filteredMentions := make(map[string]any)
-
-	for channelName, channelInfo := range channelMentions {
-		// Extract channel ID from the channel info map
-		channelInfoMap, ok := channelInfo.(map[string]any)
-		if !ok {
-			continue
-		}
-
-		channelID, ok := channelInfoMap["id"].(string)
-		if !ok || channelID == "" {
-			continue
-		}
-
-		// Resolve the mention if the recipient may see the channel's name/link.
-		channel, appErr := webConn.Platform.Store.Channel().Get(channelID, true)
-		if appErr != nil {
-			// If we can't get the channel, don't include the mention
-			continue
-		}
-
-		if webConn.Suite.HasPermissionToResolveChannelMention(rctx, webConn.UserId, channel) {
-			filteredMentions[channelName] = channelInfo
-		}
-	}
+	filteredMentions := filterChannelMentionsForWebConn(rctx, webConn, channelMentions)
 
 	// Update the post with filtered channel mentions
 	if len(filteredMentions) > 0 {

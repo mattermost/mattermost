@@ -247,6 +247,32 @@ const UserPropertyValues = ({
         );
     }
 
+    if (isGraph && field.attrs?.options_omitted) {
+        const omittedCount = (
+            <span
+                className='user-property-field-values'
+                data-testid='user-property-field-values__options-omitted'
+            >
+                <FormattedMessage
+                    id='admin.system_properties.user_properties.table.values.options_count'
+                    defaultMessage='{count, plural, one {# option} other {# options}}'
+                    values={{count: field.attrs.options_count ?? 0}}
+                />
+            </span>
+        );
+        if (syncedBadge) {
+            return (
+                <div className='user-property-field-values user-property-field-values--with-owners'>
+                    {syncedBadge}
+                    <div className='user-property-field-values__options'>
+                        {omittedCount}
+                    </div>
+                </div>
+            );
+        }
+        return omittedCount;
+    }
+
     // Linked fields inherit their options from the template they link to; the
     // server rejects an options change on them.
     const isDisabled = field.delete_at !== 0 || isProtected || isLinkedField(field) || isGraph;

@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, type Page} from '@playwright/test';
+import {expect, type Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
+
+import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
 /**
  * Helpers for exercising resource.attributes.* (channel custom profile
@@ -69,6 +71,10 @@ type ParentPolicyOptions = {
  * Create a parent membership policy via the REST API. A parent is the reusable
  * rule-carrier: assign channels to it (assignChannelsToPolicy) to put those
  * channels under its rules. Returns the created policy id.
+ *
+ * Auto-add is switched on so the sync job's add pass pulls matching team
+ * members into assigned channels; a child created by assignment seeds its own
+ * auto-add setting from the parent.
  */
 export async function createParentPolicyViaAPI(adminClient: Client4, opts: ParentPolicyOptions): Promise<string> {
     // The version sent here is advisory: CreateOrUpdateAccessControlPolicy
@@ -81,8 +87,7 @@ export async function createParentPolicyViaAPI(adminClient: Client4, opts: Paren
         type: 'parent',
         version: opts.version ?? 'v0.3',
         revision: 0,
-        active: true,
-        rules: [{expression: opts.expression, actions: ['membership']}],
+        rules: [{expression: opts.expression, actions: ['membership'], metadata: {auto_add: 'always'}}],
     });
     return policy.id;
 }
@@ -190,22 +195,12 @@ export async function createLinkedMultiselectScale(
 }
 
 /**
- * Skip when the server does not have the graph property field type enabled.
- *
- * The type is gated on a feature flag that is off by default, and a feature flag
- * cannot be set through the config API — it is read-only there — so a spec cannot
- * turn it on for itself the way it can with a config setting. Without it the first
- * field POST below is refused, so the alternative to skipping is a suite that goes
- * red on every server that has not opted in. Set MM_FEATUREFLAGS_PROPERTYFIELDGRAPH
- * on the server to run these.
+ * Enable PropertyFieldGraph (or skip) the same way other flag-gated specs do.
+ * Feature flags cannot be flipped through the config API; ensureFeatureFlag
+ * restarts the testcontainers server with the boot-time env var when needed.
  */
-export async function skipIfNoGraphFields(adminClient: Client4): Promise<void> {
-    const config: any = await adminClient.getConfig();
-    const enabled = config?.FeatureFlags?.PropertyFieldGraph;
-    test.skip(
-        enabled !== true && enabled !== 'true',
-        'Skipping test - PropertyFieldGraph feature flag is not enabled on the server',
-    );
+export async function skipIfNoGraphFields(pw: PlaywrightExtended): Promise<void> {
+    await pw.ensureFeatureFlag('PropertyFieldGraph', true);
 }
 
 export type GraphOptionSpec = {
