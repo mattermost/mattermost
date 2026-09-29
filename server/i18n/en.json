@@ -3770,7 +3770,8 @@
   },
   {
     "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
-    "translation": "You do not have permission to send burn-on-read messages in this channel."
+    "translation": "You do not have permission to send burn-on-read messages in this channel.",
+    "description": "API error when a user does not have permission to send a burn-on-read message in a channel due to an attribute-based-access-control (ABAC) permission policy."
   },
   {
     "id": "api.post.create_post.burn_on_read.app_error",
