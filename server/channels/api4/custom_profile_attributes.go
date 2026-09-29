@@ -294,6 +294,10 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	// If this user field is linked to a template, route schema changes to the
 	// template first. Linked user fields cannot have their Type or options
 	// changed directly — those are inherited from the template.
+	var (
+		updatedField *model.PropertyField
+		clearedIDs   []string
+	)
 	if existingField.LinkedFieldID != nil && *existingField.LinkedFieldID != "" {
 		typeIsChanging := patch.Type != nil && *patch.Type != existingField.Type
 
@@ -367,16 +371,33 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 			// Type is inherited from the template; do not attempt to set it on the
 			// linked field (it would conflict with the stored value until a refresh).
 			patch.Type = nil
+
+			// If the patch has nothing left to apply to the user field (all attrs
+			// were schema-only and there is no name change), skip UpdatePropertyField
+			// to avoid the linked-field options-change guard firing on the stale
+			// existingField snapshot (syncPropertyFieldOptions already propagated
+			// the template's new options to the user field's rows above).
+			if patch.Attrs == nil && patch.Name == nil {
+				refetched, fetchErr := c.App.GetPropertyField(rctx, group.ID, existingField.ID)
+				if fetchErr != nil {
+					c.Err = fetchErr
+					return
+				}
+				updatedField = refetched
+			}
 		}
 	}
 
-	existingField.Patch(patch, true)
-	existingField.UpdatedBy = c.AppContext.Session().UserId
+	if updatedField == nil {
+		existingField.Patch(patch, true)
+		existingField.UpdatedBy = c.AppContext.Session().UserId
 
-	updatedField, clearedIDs, updateErr := c.App.UpdatePropertyField(rctx, group.ID, existingField, false, connectionID)
-	if updateErr != nil {
-		c.Err = updateErr
-		return
+		var updateErr *model.AppError
+		updatedField, clearedIDs, updateErr = c.App.UpdatePropertyField(rctx, group.ID, existingField, false, connectionID)
+		if updateErr != nil {
+			c.Err = updateErr
+			return
+		}
 	}
 
 	cpaField, convErr := model.NewCPAFieldFromPropertyField(updatedField)
