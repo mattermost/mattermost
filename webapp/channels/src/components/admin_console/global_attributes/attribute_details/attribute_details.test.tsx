@@ -2907,6 +2907,39 @@ describe('AttributeDetails', () => {
                 expect(screen.queryByTestId('attributeOwnersSource')).not.toBeInTheDocument();
                 expect(screen.queryByTestId('attributeExternalSource')).not.toBeInTheDocument();
             });
+
+            it('locks Who can set the value on an owned template while Profile display stays editable', async () => {
+                mockScimStatus(true);
+                mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field', {attrs: {display_name: 'Department', visibility: 'always', managed: 'admin', owners: [scimOwner]}})]);
+
+                renderEdit();
+                await waitForForm();
+                await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+                expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeChecked();
+                expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeDisabled();
+                expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-member')).toBeDisabled();
+                expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-lockWrap')).toBeInTheDocument();
+
+                const hidden = screen.getByTestId('attributeAppliesToUserProfileDisplay-hidden');
+                expect(hidden).toBeEnabled();
+                expect(screen.getByTestId('saveSetting')).toBeDisabled();
+                await userEvent.click(hidden);
+                expect(hidden).toHaveAttribute('aria-pressed', 'true');
+                expect(screen.getByTestId('saveSetting')).toBeEnabled();
+            });
+
+            it('leaves Who can set the value editable when the linked Users field has no owners', async () => {
+                mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field', {attrs: {display_name: 'Department', visibility: 'always', managed: 'admin'}})]);
+
+                renderEdit();
+                await waitForForm();
+                await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+                expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeEnabled();
+                expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-member')).toBeEnabled();
+                expect(screen.queryByTestId('attributeAppliesToUserWhoCanSet-lockWrap')).not.toBeInTheDocument();
+            });
         });
 
         it('redirects to the listing when the field is Classification Markings', async () => {

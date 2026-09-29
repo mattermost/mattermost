@@ -1656,6 +1656,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         userManaged={userManaged}
                         onUserManagedChange={handleUserManagedChange}
                         externalSource={managedByExternalSource}
+                        userWhoCanSetLockedTooltip={isOwned ? formatMessage(messages.ownedLockedTooltip, {owners: ownersLabel}) : undefined}
                         channelResource={channelResource}
                         onChannelResourceChange={handleChannelResourceChange}
                         ordered={fieldType === 'rank'}
@@ -1807,6 +1808,10 @@ const messages = defineMessages({
     appliesToLockedSingleResourceTooltip: {
         id: 'admin.global_attributes.attribute_details.applies_to.locked_single_resource_tooltip',
         defaultMessage: 'This resource cannot be changed — this attribute applies to only one resource.',
+    },
+    ownedLockedTooltip: {
+        id: 'admin.global_attributes.attribute_details.applies_to.owned_locked_tooltip',
+        defaultMessage: 'This attribute is managed by {owners}.',
     },
     optionsLabel: {id: 'admin.global_attributes.attribute_details.options.label', defaultMessage: 'Options'},
     optionsHelp: {
