@@ -482,12 +482,12 @@
   {
     "id": "api.channel.create_channel.attribute_no_permission.app_error",
     "translation": "You do not have permission to set one of the submitted channel attributes.",
-    "description": ""
+    "description": "API error (403) when a user creating a channel supplies a value for a channel attribute (e.g. a classification marking) they are not allowed to set. The message deliberately does not name the attribute."
   },
   {
     "id": "api.channel.create_channel.attributes_feature_disabled.app_error",
     "translation": "Channel attributes are not enabled on this server.",
-    "description": ""
+    "description": "API error when a channel-creation request includes channel attribute values but the channel attributes / classification markings feature is not enabled or licensed on this server."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -507,7 +507,7 @@
   {
     "id": "api.channel.create_channel.invalid_attribute.app_error",
     "translation": "One of the submitted channel attributes is not valid for this channel.",
-    "description": ""
+    "description": "API error when a channel-creation request includes an attribute value that is malformed, duplicated, unknown, or sent for a direct/group message. The message deliberately does not name the attribute."
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
@@ -522,7 +522,7 @@
   {
     "id": "api.channel.create_channel.missing_required_attributes.app_error",
     "translation": "This channel is missing required attributes.",
-    "description": ""
+    "description": "API error when a user creates a channel without a value for one or more attributes an admin has marked required (e.g. a classification marking)."
   },
   {
     "id": "api.channel.create_channel.missing_team_id.error",
@@ -4147,7 +4147,7 @@
   {
     "id": "api.property.channel_attributes.license.app_error",
     "translation": "Channel attributes require an Enterprise Advanced license.",
-    "description": ""
+    "description": "API error when managing channel attribute fields (custom fields defined for channels by admins) on a server without the required license. 'Enterprise Advanced' is a Mattermost license tier name; keep it in English."
   },
   {
     "id": "api.property.session_attributes.license.app_error",
@@ -4162,7 +4162,7 @@
   {
     "id": "api.property_field.create.creator_cannot_edit.app_error",
     "translation": "You cannot create a property field with permission levels that would prevent you from editing it.",
-    "description": ""
+    "description": "API error when a user or admin creates a custom property field (e.g. a user or channel attribute) whose permission settings would leave the creator unable to edit or delete it afterwards."
   },
   {
     "id": "api.property_field.create.invalid_target_type.app_error",
@@ -4227,27 +4227,27 @@
   {
     "id": "api.property_field.options.empty_body.app_error",
     "translation": "No property field options were provided.",
-    "description": ""
+    "description": "API error when a request to add, update or delete the selectable options of a custom property field (e.g. a select-type attribute) contains no options."
   },
   {
     "id": "api.property_field.options.invalid_cursor.app_error",
     "translation": "A property field option cursor must give both cursor_id and cursor_create_at.",
-    "description": ""
+    "description": "API error when paging through a property field's options with an incomplete cursor. 'cursor_id' and 'cursor_create_at' are literal query parameter names; keep them in English."
   },
   {
     "id": "api.property_field.options.legacy_field.app_error",
     "translation": "The options of this property field cannot be managed individually.",
-    "description": ""
+    "description": "API error when an integration tries to add, update or delete individual options on an older (legacy) property field whose options can only be edited as part of the whole field."
   },
   {
     "id": "api.property_field.options.no_permission.app_error",
     "translation": "You do not have permission to manage options for this property field.",
-    "description": ""
+    "description": "API error (403) when the user lacks permission to add, change or remove the selectable options of a custom property field."
   },
   {
     "id": "api.property_field.options.too_many_items.request_error",
     "translation": "Unable to change that many property field options. Only {{.Max}} options can be changed at once.",
-    "description": ""
+    "description": "API error when a single request tries to add, update or delete more property field options than allowed. {{.Max}} is the maximum number of options per request."
   },
   {
     "id": "api.property_field.patch.legacy_field.app_error",
@@ -4257,12 +4257,12 @@
   {
     "id": "api.property_field.patch.permission_values_invalid.app_error",
     "translation": "permission_values must be either member or sysadmin.",
-    "description": ""
+    "description": "API error when updating a property field with an unsupported permission level for who may set its values. 'permission_values', 'member' and 'sysadmin' are literal API field/value names; keep them in English."
   },
   {
     "id": "api.property_field.patch.permission_values_not_linked.app_error",
     "translation": "permission_values can only be set on a field linked to a template.",
-    "description": ""
+    "description": "API error when trying to change who may set values on a property field that is not linked to a shared template field. 'permission_values' is a literal API field name; keep it in English."
   },
   {
     "id": "api.property_field.update.no_field_permission.app_error",
@@ -6927,7 +6927,7 @@
   {
     "id": "app.bot.createbot.reserved_username.app_error",
     "translation": "This username is reserved for a system-owned bot.",
-    "description": ""
+    "description": "API error when an admin or integration tries to create a bot with a username reserved for a built-in, system-owned bot (e.g. the system or feedback bots)."
   },
   {
     "id": "app.bot.get_disable_bot_sysadmin_message",
@@ -6957,7 +6957,7 @@
   {
     "id": "app.bot.patchbot.reserved_username.app_error",
     "translation": "This username is reserved for a system-owned bot.",
-    "description": ""
+    "description": "API error when an admin or integration tries to rename an existing bot to a username reserved for a built-in, system-owned bot."
   },
   {
     "id": "app.bot.permanent_delete.internal_error",
@@ -7182,7 +7182,7 @@
   {
     "id": "app.channel.get_by_name.app_error",
     "translation": "Unable to find the channel by name.",
-    "description": ""
+    "description": "Error from a bulk export (mmctl/export job) when looking up a requested channel by its name fails with a database error."
   },
   {
     "id": "app.channel.get_by_name.existing.app_error",
@@ -7297,7 +7297,7 @@
   {
     "id": "app.channel.get_member_ids.app_error",
     "translation": "Unable to get channel member IDs.",
-    "description": ""
+    "description": "Error from a bulk export (mmctl/export job) when reading the list of members of a channel being exported fails."
   },
   {
     "id": "app.channel.get_members.app_error",
@@ -8057,12 +8057,12 @@
   {
     "id": "app.data_spillage.report.attachments_omitted.file_text",
     "translation": "The attachments on this message were omitted from this report because you do not comply with the channel's file download policy.",
-    "description": ""
+    "description": "Text of a notice file placed inside the ZIP report a content reviewer downloads for a flagged (quarantined) message, explaining why the message's files are missing from it."
   },
   {
     "id": "app.data_spillage.report.attachments_omitted.notification",
     "translation": "The report you generated did not include the quarantined message's file attachments, because you do not comply with the channel's file download policy.",
-    "description": ""
+    "description": "Message posted by the system bot to a content reviewer in the flagged-content review thread after they generated a report on a quarantined message whose attachments were left out."
   },
   {
     "id": "app.data_spillage.report.cleared",
@@ -8273,7 +8273,7 @@
   {
     "id": "app.data_spillage.report.write_attachments_omitted.app_error",
     "translation": "Failed to write the omitted attachments notice to the flagged post report.",
-    "description": ""
+    "description": "API error when generating a content-flagging report for a flagged message fails while writing the notice file about omitted attachments into the report ZIP."
   },
   {
     "id": "app.data_spillage.report.write_edit_yaml.app_error",
@@ -8518,22 +8518,22 @@
   {
     "id": "app.export.channel_requires_team.error",
     "translation": "A channel name requires a team name to be specified.",
-    "description": ""
+    "description": "Bulk export error (mmctl or export job) when a channel filter is given without a team filter; channel names are only unique within a team."
   },
   {
     "id": "app.export.export_all_channels.channel_not_found.error",
     "translation": "The specified channel was not found in any of the specified teams.",
-    "description": ""
+    "description": "Bulk export error (mmctl or export job) when a channel name passed as an export filter does not exist in any of the teams passed as filters."
   },
   {
     "id": "app.export.export_all_teams.team_deleted.error",
     "translation": "The specified team has been deleted.",
-    "description": ""
+    "description": "Bulk export error (mmctl or export job) when a team passed as an export filter has been deleted/archived."
   },
   {
     "id": "app.export.export_all_teams.team_not_found.error",
     "translation": "The specified team was not found.",
-    "description": ""
+    "description": "Bulk export error (mmctl or export job) when a team name passed as an export filter does not exist."
   },
   {
     "id": "app.export.export_attachment.copy_file.error",
@@ -8568,7 +8568,7 @@
   {
     "id": "app.export.export_version.scope_marshal.error",
     "translation": "Failed to write the team and channel scope into the export. Aborting rather than producing an archive that would import as a full-instance restore.",
-    "description": ""
+    "description": "Bulk export error (mmctl or export job) when a team- or channel-scoped export cannot record its scope; the export stops instead of producing an archive that would be imported as a restore of the whole server."
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
@@ -8773,22 +8773,22 @@
   {
     "id": "app.health_finding.mute.app_error",
     "translation": "Unable to mute health finding.",
-    "description": ""
+    "description": "Admin API error when muting (silencing) a server health-check finding in the System Console fails with a server error."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
     "translation": "Health finding not found.",
-    "description": ""
+    "description": "Admin API error (404) when trying to mute a server health-check finding that no longer exists."
   },
   {
     "id": "app.health_finding.unmute.app_error",
     "translation": "Unable to unmute health finding.",
-    "description": ""
+    "description": "Admin API error when unmuting a previously silenced server health-check finding in the System Console fails with a server error."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
     "translation": "Health finding not found.",
-    "description": ""
+    "description": "Admin API error (404) when trying to unmute a server health-check finding that no longer exists."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -8813,22 +8813,22 @@
   {
     "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",
     "translation": "--destination-channel-name requires a channel-scoped export.",
-    "description": ""
+    "description": "Bulk import error shown to the admin running mmctl import. '--destination-channel-name' is a literal command-line flag; keep it in English. A 'channel-scoped export' is an export created for specific channels only."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_single_channel_scope.error",
     "translation": "--destination-channel-name requires a single-channel export; this export contains multiple channels.",
-    "description": ""
+    "description": "Bulk import error shown to the admin running mmctl import, when renaming the imported channel is requested but the export covers several channels. '--destination-channel-name' is a literal command-line flag; keep it in English."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_single_team_scope.error",
     "translation": "--destination-channel-name requires an export scoped to exactly one team, otherwise the channel name is ambiguous.",
-    "description": ""
+    "description": "Bulk import error shown to the admin running mmctl import, when a channel rename is requested but the export does not cover exactly one team. '--destination-channel-name' is a literal command-line flag; keep it in English."
   },
   {
     "id": "app.import.bulk_import.destination_team_requires_single_team_scope.error",
     "translation": "--destination-team-name requires a single-team export; this export contains multiple teams.",
-    "description": ""
+    "description": "Bulk import error shown to the admin running mmctl import, when importing into a different team is requested but the export contains several teams. '--destination-team-name' is a literal command-line flag; keep it in English."
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
@@ -8838,7 +8838,7 @@
   {
     "id": "app.import.bulk_import.imported_users_choice_required.error",
     "translation": "This is a scoped export, so --imported-users must be set to either \"active\" or \"inactive\"; there is no safe default. Use --imported-users=active when importing into a new instance that these users are moving to, so they can sign in — otherwise every account the import creates is deactivated and nobody, including SSO users, can log in until an administrator reactivates them one by one. Use --imported-users=inactive when importing into an existing instance that already holds other people's content, so accounts created from weak username or email matches stay deactivated until an administrator reviews them. Either way, users who were deactivated on the source server stay deactivated, and accounts that already exist on the destination are matched rather than created and so are not affected by this choice.",
-    "description": ""
+    "description": "Bulk import error shown to the admin running mmctl import on a team- or channel-scoped export without choosing how newly created accounts are handled. '--imported-users', '--imported-users=active', '--imported-users=inactive', \"active\" and \"inactive\" are literal command-line flags/values; keep them in English. 'SSO' is Single Sign-On."
   },
   {
     "id": "app.import.bulk_import.json_decode.error",
@@ -8928,7 +8928,7 @@
   {
     "id": "app.import.import_direct_channel.get_ever_members.error",
     "translation": "Failed to get the history of members who have ever belonged to the direct channel",
-    "description": ""
+    "description": "Bulk import error when reading the list of everyone who has ever been a member of a direct message channel being imported fails with a database error."
   },
   {
     "id": "app.import.import_direct_channel.no_members.error",
@@ -9078,12 +9078,12 @@
   {
     "id": "app.import.pre_create_sso_user.missing_fields.app_error",
     "translation": "SSO user import data is missing required fields (username or email).",
-    "description": ""
+    "description": "Bulk import error when a single sign-on (SSO) user record in the import file lacks the data needed to create the account ahead of the main import."
   },
   {
     "id": "app.import.preflight.auth_provider_not_configured.error",
     "translation": "The {{.Service}} auth provider is not configured on this server: {{.Detail}}",
-    "description": ""
+    "description": "Bulk import pre-check error when the export contains users of a sign-in method that is not set up on this server. {{.Service}} is the internal auth service ID (e.g. ldap, saml, gitlab, google, office365, openid); {{.Detail}} is an untranslated English explanation."
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
@@ -9943,12 +9943,12 @@
   {
     "id": "app.notify_expiring_access_tokens.bot_dm",
     "translation": "The personal access token \"{{.Description}}\" for bot account @{{.BotUsername}} will expire in {{.Days}} days or less. Open **Integrations > Bot Accounts** to regenerate it before it stops working.",
-    "description": ""
+    "description": "Direct message from the system bot to a bot's owner warning that one of the bot's personal access tokens expires soon. {{.Description}} is the token's description, {{.BotUsername}} the bot's username, {{.Days}} the number of days (7 or 3). 'Integrations > Bot Accounts' is a menu path; match the translated UI labels. Keep the Markdown ** markers."
   },
   {
     "id": "app.notify_expiring_access_tokens.bot_dm_final",
     "translation": "The personal access token \"{{.Description}}\" for bot account @{{.BotUsername}} will expire within 24 hours. Open **Integrations > Bot Accounts** to regenerate it before it stops working.",
-    "description": ""
+    "description": "Direct message from the system bot to a bot's owner warning that one of the bot's personal access tokens expires within a day. {{.Description}} is the token's description, {{.BotUsername}} the bot's username. 'Integrations > Bot Accounts' is a menu path; match the translated UI labels. Keep the Markdown ** markers."
   },
   {
     "id": "app.notify_expiring_access_tokens.dm",
@@ -10178,7 +10178,7 @@
   {
     "id": "app.pap.masking.graph_value_unmarshal.app_error",
     "translation": "Could not read the caller's graph field value.",
-    "description": ""
+    "description": "Server error when evaluating attribute-based access control and the requesting user's own value for a hierarchical (graph-type) attribute cannot be read. 'Caller' means the user making the request."
   },
   {
     "id": "app.pap.masking.unknown_object_type.app_error",
@@ -10368,7 +10368,7 @@
   {
     "id": "app.plugin.addon_not_licensed.app_error",
     "translation": "This plugin requires the {{.AddOn}} add-on, which your license does not include.",
-    "description": ""
+    "description": "Error shown to an admin trying to enable a plugin that requires a separately purchased license add-on. {{.AddOn}} is the add-on's internal name from the license; it is not translated."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -10668,12 +10668,12 @@
   {
     "id": "app.post.get_author_ids_for_channel.app_error",
     "translation": "Unable to get post author IDs for the channel.",
-    "description": ""
+    "description": "Error from a bulk export (mmctl/export job) when reading which users posted in a channel being exported fails."
   },
   {
     "id": "app.post.get_author_ids_for_team.app_error",
     "translation": "Unable to get post author IDs for the team.",
-    "description": ""
+    "description": "Error from a bulk export (mmctl/export job) when reading which users posted in a team being exported fails."
   },
   {
     "id": "app.post.get_direct_posts.app_error",
@@ -10803,12 +10803,12 @@
   {
     "id": "app.post.property_values.field_bound_exceeded.app_error",
     "translation": "The number of attributes that apply to this post exceeds the supported limit.",
-    "description": ""
+    "description": "Server error when loading posts whose channel has more post attributes (custom fields attached to messages) than the server can handle, so their values are not returned."
   },
   {
     "id": "app.post.property_values.value_bound_exceeded.app_error",
     "translation": "The number of attribute values for these posts exceeds the supported limit.",
-    "description": ""
+    "description": "Server error when loading a page of posts that carry more attribute values in total than the server can handle, so the values are not returned."
   },
   {
     "id": "app.post.restore_post_version.get_single.app_error",
@@ -10958,7 +10958,7 @@
   {
     "id": "app.property.invalid_input.app_error",
     "translation": "The property change was rejected.",
-    "description": ""
+    "description": "API error when a change to a custom property field, option or value is rejected because the request is malformed (e.g. an option refers to another field or to itself)."
   },
   {
     "id": "app.property.license_error",
@@ -11048,7 +11048,7 @@
   {
     "id": "app.property_field.create.target_limit_reached.app_error",
     "translation": "The maximum number of property fields for this target has been reached.",
-    "description": ""
+    "description": "API error when creating a custom property field fails because the object it belongs to (the target, e.g. a team or channel) already has the maximum number of fields."
   },
   {
     "id": "app.property_field.create.template_cannot_be_linked.app_error",
@@ -11103,7 +11103,7 @@
   {
     "id": "app.property_field.graph_disabled.app_error",
     "translation": "Graph property fields are not enabled.",
-    "description": ""
+    "description": "API error when creating or changing a property field of the 'graph' type (hierarchical options) while that feature is turned off. 'graph' is the internal field type name."
   },
   {
     "id": "app.property_field.invalid_attrs.app_error",
@@ -11128,32 +11128,32 @@
   {
     "id": "app.property_field.options.create.app_error",
     "translation": "Unable to add the property field options.",
-    "description": ""
+    "description": "Server error when adding new selectable options to a custom property field fails in the database."
   },
   {
     "id": "app.property_field.options.delete.app_error",
     "translation": "Unable to delete the property field options.",
-    "description": ""
+    "description": "Server error when deleting selectable options from a custom property field fails in the database."
   },
   {
     "id": "app.property_field.options.get.app_error",
     "translation": "Unable to get the property field options.",
-    "description": ""
+    "description": "Server error when reading the selectable options of a custom property field fails in the database."
   },
   {
     "id": "app.property_field.options.invalid.app_error",
     "translation": "The property field options were rejected: {{.Reason}}.",
-    "description": ""
+    "description": "API error when a request to change a property field's options is rejected as a whole. {{.Reason}} is an untranslated English explanation (e.g. 'field X has been deleted')."
   },
   {
     "id": "app.property_field.options.invalid_item.app_error",
     "translation": "The property field option at index {{.Index}} {{.Reason}}.",
-    "description": ""
+    "description": "API error when one option in a request to change a property field's options is rejected. {{.Index}} is the zero-based position of that option in the request; {{.Reason}} is an untranslated English verb phrase (e.g. 'names option \"Red\", which field X already has')."
   },
   {
     "id": "app.property_field.options.update.app_error",
     "translation": "Unable to update the property field options.",
-    "description": ""
+    "description": "Server error when updating existing selectable options of a custom property field fails in the database."
   },
   {
     "id": "app.property_field.rank_disabled.app_error",
@@ -11163,7 +11163,7 @@
   {
     "id": "app.property_field.required_disabled.app_error",
     "translation": "This attribute cannot be marked required while required-attribute enforcement is disabled.",
-    "description": ""
+    "description": "API error when an admin tries to mark a channel attribute as required while the server feature that enforces required attributes is turned off."
   },
   {
     "id": "app.property_field.search.app_error",
@@ -11198,7 +11198,7 @@
   {
     "id": "app.property_field.update.graph_type_change.app_error",
     "translation": "Cannot convert a property field to or from the graph type. Create a field of the type you need instead.",
-    "description": ""
+    "description": "API error when an admin tries to change an existing property field's type to or from 'graph' (hierarchical options). 'graph' is the internal field type name."
   },
   {
     "id": "app.property_field.update.linked_options_change.app_error",
@@ -11218,7 +11218,7 @@
   {
     "id": "app.property_field.update.options_withheld.app_error",
     "translation": "This property has more than {{.Max}} options, so its option list was not loaded and cannot be replaced. Edit its options individually instead.",
-    "description": ""
+    "description": "API error when a request tries to replace the whole option list of a property field that has too many options to be loaded at once. {{.Max}} is that option count limit."
   },
   {
     "id": "app.property_field.update.protected.app_error",
@@ -11248,17 +11248,17 @@
   {
     "id": "app.property_value.change_policy.lower_only.app_error",
     "translation": "This attribute can only be lowered, never raised.",
-    "description": ""
+    "description": "API error (403) when a user tries to set a ranked attribute (e.g. a classification level) to a higher value, but the field only allows lowering it."
   },
   {
     "id": "app.property_value.change_policy.never.app_error",
     "translation": "This attribute cannot be changed after it is set.",
-    "description": ""
+    "description": "API error (403) when a user tries to change an attribute value whose field locks it once it has been set."
   },
   {
     "id": "app.property_value.change_policy.raise_only.app_error",
     "translation": "This attribute can only be raised, never lowered.",
-    "description": ""
+    "description": "API error (403) when a user tries to set a ranked attribute (e.g. a classification level) to a lower value, but the field only allows raising it."
   },
   {
     "id": "app.property_value.create.app_error",
@@ -11288,7 +11288,7 @@
   {
     "id": "app.property_value.direct_channel.app_error",
     "translation": "Attributes on direct and group messages cannot be set directly.",
-    "description": ""
+    "description": "API error (403) when someone tries to set a channel attribute on a direct or group message; those values are computed from the participants."
   },
   {
     "id": "app.property_value.get.app_error",
@@ -11308,7 +11308,7 @@
   {
     "id": "app.property_value.required.app_error",
     "translation": "This attribute is required and cannot be left empty.",
-    "description": ""
+    "description": "API error when a user tries to clear or leave blank the value of an attribute an admin has marked required."
   },
   {
     "id": "app.property_value.resolve_broadcast_params.unknown_object_type.app_error",
@@ -11383,7 +11383,7 @@
   {
     "id": "app.reaction.get_author_ids_for_channel.app_error",
     "translation": "Unable to get reaction author IDs for the channel.",
-    "description": ""
+    "description": "Error from a bulk export (mmctl/export job) when reading which users reacted to posts in a channel being exported fails."
   },
   {
     "id": "app.reaction.get_for_post.app_error",
@@ -12364,7 +12364,7 @@
   {
     "id": "app.thread.get_follower_ids_for_channel.app_error",
     "translation": "Unable to get thread follower IDs for the channel.",
-    "description": ""
+    "description": "Error from a bulk export (mmctl/export job) when reading which users follow threads in a channel being exported fails."
   },
   {
     "id": "app.thread.get_threadmembers_for_export.app_error",
@@ -12559,7 +12559,7 @@
   {
     "id": "app.user.get_by_auth.app_error",
     "translation": "Unable to find the user by authentication data.",
-    "description": ""
+    "description": "Bulk import error when looking up an existing user by their single sign-on (SSO/LDAP) identifier fails with a database error."
   },
   {
     "id": "app.user.get_by_auth.missing_account.app_error",
@@ -12729,7 +12729,7 @@
   {
     "id": "app.user.update.reserved_username.app_error",
     "translation": "This username is reserved for a system-owned bot.",
-    "description": ""
+    "description": "API error when someone tries to rename a bot account to a username reserved for a built-in, system-owned bot."
   },
   {
     "id": "app.user.update_active.license_user_limit.exceeded",
@@ -12794,7 +12794,7 @@
   {
     "id": "app.user_access_token.bot_expired_deleted_notification",
     "translation": "The personal access token \"{{.Description}}\" for bot account @{{.BotUsername}} has expired and been removed. Open **Integrations > Bot Accounts** to create a new token.",
-    "description": ""
+    "description": "Direct message from the system bot to a bot's owner saying one of the bot's personal access tokens has expired and was deleted. {{.Description}} is the token's description, {{.BotUsername}} the bot's username. 'Integrations > Bot Accounts' is a menu path; match the translated UI labels. Keep the Markdown ** markers."
   },
   {
     "id": "app.user_access_token.count_non_compliant.app_error",
@@ -13879,7 +13879,7 @@
   {
     "id": "ent.ldap.validate_group_filter.app_error",
     "translation": "Invalid AD/LDAP Group Filter.",
-    "description": ""
+    "description": "Error when saving AD/LDAP settings in the System Console if the Group Filter setting is not a valid LDAP filter expression. 'Group Filter' is the name of that setting."
   },
   {
     "id": "ent.ldap.validate_guest_filter.app_error",
@@ -14484,27 +14484,27 @@
   {
     "id": "model.access_policy.is_valid.rule_expression.app_error",
     "translation": "Only a membership rule may omit its expression.",
-    "description": ""
+    "description": "API error when saving an attribute-based access policy that has a rule with no condition expression; only the membership rule may be empty."
   },
   {
     "id": "model.access_policy.is_valid.rule_metadata_auto_add.app_error",
     "translation": "Automatically adding members can only be set on the policy's membership rule.",
-    "description": ""
+    "description": "API error when saving an attribute-based access policy that turns on automatic member adding for a rule other than its membership rule."
   },
   {
     "id": "model.access_policy.is_valid.rule_metadata_auto_add_mode.app_error",
     "translation": "\"{{.Mode}}\" is not a supported way of automatically adding members.",
-    "description": ""
+    "description": "API error when saving attribute-based access policies with an unknown automatic member adding mode. {{.Mode}} is the invalid mode value as sent by the client, left as-is."
   },
   {
     "id": "model.access_policy.is_valid.rule_metadata_auto_add_type.app_error",
     "translation": "The way members are automatically added must be given as text.",
-    "description": ""
+    "description": "API error when saving an attribute-based access policy whose automatic member adding setting is not sent as a text value."
   },
   {
     "id": "model.access_policy.is_valid.rule_metadata_key.app_error",
     "translation": "Rule metadata contains an unrecognized key.",
-    "description": ""
+    "description": "API error when saving an attribute-based access policy whose rule contains an unknown extra setting (metadata key)."
   },
   {
     "id": "model.access_policy.is_valid.rule_name.app_error",
@@ -15324,7 +15324,7 @@
   {
     "id": "model.config.is_valid.cluster_gossip_port.app_error",
     "translation": "ClusterSettings.GossipPort must be a valid port number.",
-    "description": ""
+    "description": "Configuration validation error shown when saving the System Console or starting the server with an invalid cluster gossip port. 'ClusterSettings.GossipPort' is a config setting name; keep it in English."
   },
   {
     "id": "model.config.is_valid.collapsed_threads.app_error",
@@ -15339,7 +15339,7 @@
   {
     "id": "model.config.is_valid.connected_workspaces.batch_size.app_error",
     "translation": "{{.Setting}} must be a positive number.",
-    "description": ""
+    "description": "Configuration validation error for a Connected Workspaces (shared channels) sync size setting. {{.Setting}} is the config setting name, e.g. ConnectedWorkspacesSettings.MaxPostsPerSync; it is not translated."
   },
   {
     "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
@@ -15474,12 +15474,12 @@
   {
     "id": "model.config.is_valid.elastic_search.index_replicas.app_error",
     "translation": "{{.Setting}} must be greater than or equal to 0.",
-    "description": ""
+    "description": "Configuration validation error for an Elasticsearch index replica count. {{.Setting}} is the config setting name, e.g. ElasticsearchSettings.PostIndexReplicas; it is not translated."
   },
   {
     "id": "model.config.is_valid.elastic_search.index_shards.app_error",
     "translation": "{{.Setting}} must be greater than or equal to 1.",
-    "description": ""
+    "description": "Configuration validation error for an Elasticsearch index shard count. {{.Setting}} is the config setting name, e.g. ElasticsearchSettings.PostIndexShards; it is not translated."
   },
   {
     "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
@@ -15504,7 +15504,7 @@
   {
     "id": "model.config.is_valid.email_address.app_error",
     "translation": "{{.Setting}} must be a valid email address.",
-    "description": ""
+    "description": "Configuration validation error when an email address setting is invalid. {{.Setting}} is the config setting name, e.g. SupportSettings.SupportEmail or EmailSettings.FeedbackEmail; it is not translated."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -15524,7 +15524,7 @@
   {
     "id": "model.config.is_valid.email_push_notification_buffer.app_error",
     "translation": "Invalid push notification buffer size for email settings. Must be a positive number.",
-    "description": ""
+    "description": "Configuration validation error shown when saving the System Console or starting the server with a zero or negative value for EmailSettings.PushNotificationBuffer."
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
@@ -15569,7 +15569,7 @@
   {
     "id": "model.config.is_valid.export_file_driver.app_error",
     "translation": "Invalid export driver name for file settings. Must be 'local', 'amazons3', or 'azureblob'.",
-    "description": ""
+    "description": "Configuration validation error for the storage type used for export files (FileSettings.ExportDriverName). 'local', 'amazons3' and 'azureblob' are literal config values; keep them in English."
   },
   {
     "id": "model.config.is_valid.extract_content_timeout.app_error",
@@ -15759,7 +15759,7 @@
   {
     "id": "model.config.is_valid.log_level.app_error",
     "translation": "Invalid log level {{.Value}} for {{.Setting}}.",
-    "description": ""
+    "description": "Configuration validation error for an unknown log level. {{.Value}} is the value entered; {{.Setting}} is the config setting name (LogSettings.ConsoleLevel or LogSettings.FileLevel); neither is translated."
   },
   {
     "id": "model.config.is_valid.login_attempts.app_error",
@@ -15859,7 +15859,7 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.custom_smtp_port.app_error",
     "translation": "Message export job GlobalRelaySettings.CustomSMTPPort must be a valid port number.",
-    "description": ""
+    "description": "Configuration validation error for compliance message export to Global Relay with a custom SMTP server. 'Global Relay' is a vendor name and 'GlobalRelaySettings.CustomSMTPPort' a config setting name; keep both in English."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
@@ -15879,7 +15879,7 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.sender_address.app_error",
     "translation": "Message export GlobalRelaySettings.SenderAddress must be empty or a valid email address.",
-    "description": ""
+    "description": "Configuration validation error for compliance message export to Global Relay when the sender address is not a valid email. 'GlobalRelaySettings.SenderAddress' is a config setting name; keep it in English."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
@@ -15934,7 +15934,7 @@
   {
     "id": "model.config.is_valid.non_negative_number.app_error",
     "translation": "{{.Setting}} must be a non-negative number.",
-    "description": ""
+    "description": "Configuration validation error shown when saving the System Console or starting the server with a negative value. {{.Setting}} is the config setting name, e.g. LogSettings.MaxFieldSize; it is not translated."
   },
   {
     "id": "model.config.is_valid.notification_settings.invalid_event",
@@ -15979,12 +15979,12 @@
   {
     "id": "model.config.is_valid.port.app_error",
     "translation": "{{.Setting}} must be a valid port.",
-    "description": ""
+    "description": "Configuration validation error for a port number outside the valid range. {{.Setting}} is the config setting name, e.g. EmailSettings.SMTPPort or LdapSettings.LdapPort; it is not translated."
   },
   {
     "id": "model.config.is_valid.positive_number.app_error",
     "translation": "{{.Setting}} must be a positive number.",
-    "description": ""
+    "description": "Configuration validation error for a setting that must be greater than zero. {{.Setting}} is the config setting name, e.g. ServiceSettings.IdleTimeout; it is not translated."
   },
   {
     "id": "model.config.is_valid.rate_mem.app_error",
@@ -16029,7 +16029,7 @@
   {
     "id": "model.config.is_valid.s3_upload_part_size.app_error",
     "translation": "{{.Setting}} must be at least {{.Min}} bytes.",
-    "description": ""
+    "description": "Configuration validation error when the Amazon S3 multipart upload chunk size is too small. {{.Setting}} is the config setting name (e.g. FileSettings.AmazonS3UploadPartSizeBytes), not translated; {{.Min}} is the minimum size in bytes."
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
@@ -16099,27 +16099,27 @@
   {
     "id": "model.config.is_valid.service_settings.burn_on_read_duration_seconds.app_error",
     "translation": "BurnOnReadDurationSeconds must be a positive number.",
-    "description": ""
+    "description": "Configuration validation error for the burn-on-read (self-deleting messages) duration. 'BurnOnReadDurationSeconds' is a config setting name; keep it in English."
   },
   {
     "id": "model.config.is_valid.service_settings.burn_on_read_maximum_time_to_live_seconds.app_error",
     "translation": "BurnOnReadMaximumTimeToLiveSeconds must be a positive number.",
-    "description": ""
+    "description": "Configuration validation error for the maximum lifetime of burn-on-read (self-deleting) messages. 'BurnOnReadMaximumTimeToLiveSeconds' is a config setting name; keep it in English."
   },
   {
     "id": "model.config.is_valid.service_settings.burn_on_read_scheduler_frequency_seconds.app_error",
     "translation": "BurnOnReadSchedulerFrequencySeconds must be a positive number.",
-    "description": ""
+    "description": "Configuration validation error for how often the server deletes expired burn-on-read messages. 'BurnOnReadSchedulerFrequencySeconds' is a config setting name; keep it in English."
   },
   {
     "id": "model.config.is_valid.service_settings.feature_flag_sync_interval.app_error",
     "translation": "FeatureFlagSyncIntervalSeconds must be a positive number.",
-    "description": ""
+    "description": "Configuration validation error for how often feature flags are refreshed. 'FeatureFlagSyncIntervalSeconds' is a config setting name; keep it in English."
   },
   {
     "id": "model.config.is_valid.service_settings.refresh_post_stats_run_time.app_error",
     "translation": "RefreshPostStatsRunTime must be a time in the format \"hh:mm\".",
-    "description": ""
+    "description": "Configuration validation error for the daily time the post statistics job runs. 'RefreshPostStatsRunTime' is a config setting name and \"hh:mm\" is the literal 24-hour time format; keep both as-is."
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
@@ -16174,7 +16174,7 @@
   {
     "id": "model.config.is_valid.sql_migrations_statement_timeout_seconds.app_error",
     "translation": "Invalid migrations statement timeout for SQL settings. Must be a non-negative number.",
-    "description": ""
+    "description": "Configuration validation error shown when saving the System Console or starting the server with a negative SqlSettings.MigrationsStatementTimeoutSeconds (database migration timeout)."
   },
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
@@ -16184,7 +16184,7 @@
   {
     "id": "model.config.is_valid.sql_replica_monitor_interval_seconds.app_error",
     "translation": "Invalid replica monitor interval for SQL settings. Must be a positive number.",
-    "description": ""
+    "description": "Configuration validation error shown when saving the System Console or starting the server with a zero or negative SqlSettings.ReplicaMonitorIntervalSeconds (database replica health check interval)."
   },
   {
     "id": "model.config.is_valid.storage_class.app_error",
@@ -16214,7 +16214,7 @@
   {
     "id": "model.config.is_valid.tls_min_ver.app_error",
     "translation": "Invalid TLS minimum version {{.Value}}. Must be '1.0', '1.1', '1.2', or '1.3'.",
-    "description": ""
+    "description": "Configuration validation error for the minimum TLS version (ServiceSettings.TLSMinVer). {{.Value}} is the value entered; '1.0' to '1.3' are literal config values."
   },
   {
     "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
@@ -16229,7 +16229,7 @@
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
     "translation": "Invalid webserver mode {{.Value}}. Must be 'gzip', 'nogzip', or 'disabled'.",
-    "description": ""
+    "description": "Configuration validation error for the web server compression mode (ServiceSettings.WebserverMode). {{.Value}} is the value entered; 'gzip', 'nogzip' and 'disabled' are literal config values; keep them in English."
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",

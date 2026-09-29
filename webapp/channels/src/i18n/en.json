@@ -1801,11 +1801,11 @@
   },
   "admin.access_control.table_editor.operator.covers_all": {
     "defaultMessage": "covers all of",
-    "description": ""
+    "description": "Operator option in the rule table of the System Console access control policy editor, offered only for hierarchical attributes. Means every value the user holds is at or above each listed target value in the hierarchy; it is followed by the list of selected values, so keep it lowercase and sentence-continuing."
   },
   "admin.access_control.table_editor.operator.covers_any": {
     "defaultMessage": "covers any of",
-    "description": ""
+    "description": "Operator option in the rule table of the System Console access control policy editor, offered only for hierarchical attributes. Means the user's values are at or above at least one of the listed target values in the hierarchy; it is followed by the list of selected values."
   },
   "admin.access_control.table_editor.operator.ends_with": {
     "defaultMessage": "ends with",
@@ -1881,11 +1881,11 @@
   },
   "admin.access_control.table_editor.operator.within_all": {
     "defaultMessage": "is within all of",
-    "description": ""
+    "description": "Operator option in the rule table of the System Console access control policy editor, offered only for hierarchical attributes. Means the user's values sit at or below every listed value in the hierarchy (the opposite direction of 'covers'); it is followed by the list of selected values."
   },
   "admin.access_control.table_editor.operator.within_any": {
     "defaultMessage": "is within any of",
-    "description": ""
+    "description": "Operator option in the rule table of the System Console access control policy editor, offered only for hierarchical attributes. Means the user's values sit at or below at least one of the listed values in the hierarchy; it is followed by the list of selected values."
   },
   "admin.access_control.table_editor.operator.younger_than": {
     "defaultMessage": "younger than (days)",
@@ -3917,15 +3917,15 @@
   },
   "admin.complianceExport.globalRelaySenderAddress.description": {
     "defaultMessage": "Optional fixed From address used for every exported EML and as the SMTP envelope sender. Leave blank to use the first channel participant by username. Participant emails remain in the To header.",
-    "description": ""
+    "description": "Help text under the Sender Address field in System Console > Compliance > Compliance Export, shown when the export format is GlobalRelay. 'From', 'To' and 'SMTP envelope sender' are email header/protocol terms; EML is the exported email file format."
   },
   "admin.complianceExport.globalRelaySenderAddress.example": {
     "defaultMessage": "E.g.: \"compliance-export@mattermost.com\"",
-    "description": ""
+    "description": "Placeholder in the GlobalRelay Sender Address input in System Console > Compliance > Compliance Export. 'E.g.:' introduces a sample value; the email address inside the quotes is literal and must not be translated."
   },
   "admin.complianceExport.globalRelaySenderAddress.title": {
     "defaultMessage": "Sender Address:",
-    "description": ""
+    "description": "Label of the optional GlobalRelay setting in System Console > Compliance > Compliance Export that sets the fixed From email address used for exported messages. Keep the trailing colon."
   },
   "admin.complianceExport.globalRelaySMTPPassword.description": {
     "defaultMessage": "The password that is used to authenticate against the GlobalRelay SMTP server.",
@@ -5841,131 +5841,131 @@
   },
   "admin.global_attributes.applies_to.add_resource": {
     "defaultMessage": "Add resource",
-    "description": ""
+    "description": "Button (verb phrase) in the 'Applies to' card on the Classification attribute page in the System Console, shown when the attribute is not yet applied to any resource; adds the Channels resource. 'Resource' means an object type such as channels."
   },
   "admin.global_attributes.applies_to.channels.change_policy.any": {
     "defaultMessage": "Can be changed at any time",
-    "description": ""
+    "description": "Menu option and selected-value label for the 'Changing the value' setting in an attribute's Channels settings (System Console attribute pages). Means channel admins can change the channel's attribute value freely after it is set."
   },
   "admin.global_attributes.applies_to.channels.change_policy.aria_label": {
     "defaultMessage": "Changing the value, currently {value}",
-    "description": ""
+    "description": "Screen-reader label for the 'Changing the value' dropdown button in an attribute's Channels settings in the System Console. {value} is the currently selected policy label, e.g. 'Can be changed at any time'."
   },
   "admin.global_attributes.applies_to.channels.change_policy.label": {
     "defaultMessage": "Changing the value",
-    "description": ""
+    "description": "Field label (noun phrase, i.e. 'how the value may be changed') for the dropdown that sets whether a channel's value for this attribute can later be changed, raised, or lowered. Shown in the Channels settings of an attribute in the System Console."
   },
   "admin.global_attributes.applies_to.channels.change_policy.lower_only": {
     "defaultMessage": "Can only be lowered, never raised",
-    "description": ""
+    "description": "Menu option for the 'Changing the value' setting in an attribute's Channels settings in the System Console. Only offered for Rank attributes, whose values are ordered: once set, a channel's value may move down the ranking but never up."
   },
   "admin.global_attributes.applies_to.channels.change_policy.never": {
     "defaultMessage": "Cannot be changed once set",
-    "description": ""
+    "description": "Menu option for the 'Changing the value' setting in an attribute's Channels settings in the System Console: the channel's value is locked once it has been set."
   },
   "admin.global_attributes.applies_to.channels.change_policy.raise_only": {
     "defaultMessage": "Can only be raised, never lowered",
-    "description": ""
+    "description": "Menu option for the 'Changing the value' setting in an attribute's Channels settings in the System Console. Only offered for Rank attributes, whose values are ordered: once set, a channel's value may move up the ranking but never down."
   },
   "admin.global_attributes.applies_to.channels.change_policy.unordered_help": {
     "defaultMessage": "Raising and lowering need ranked values, so they are only offered on a Rank attribute.",
-    "description": ""
+    "description": "Help text under the 'Changing the value' dropdown in an attribute's Channels settings, shown for non-Rank attributes to explain why the raise-only/lower-only options are missing. 'Rank' is the name of an attribute type; translate it consistently with the type selector."
   },
   "admin.global_attributes.applies_to.channels.collapse": {
     "defaultMessage": "Collapse channel settings",
-    "description": ""
+    "description": "Screen-reader label for the chevron button that collapses the Channels row in an attribute's 'Applies to' card in the System Console."
   },
   "admin.global_attributes.applies_to.channels.display.help": {
     "defaultMessage": "Multiple locations can be selected. Uncheck all to keep it off the header and banner — Channel Info always shows the value.",
-    "description": ""
+    "description": "Help text under the 'Display location' checkboxes in an attribute's Channels settings in the System Console. 'header', 'banner' and 'Channel Info' refer to the Header, Banner and Channel Info checkbox options; 'it' is the attribute value. Use the same translations as those option labels."
   },
   "admin.global_attributes.applies_to.channels.display.label": {
     "defaultMessage": "Display location",
-    "description": ""
+    "description": "Field label for a group of checkboxes (Header, Channel Info, Banner) that choose where a channel's value for this attribute is shown to users. Shown in an attribute's Channels settings in the System Console."
   },
   "admin.global_attributes.applies_to.channels.expand": {
     "defaultMessage": "Expand channel settings",
-    "description": ""
+    "description": "Screen-reader label for the chevron button that expands the Channels row in an attribute's 'Applies to' card in the System Console."
   },
   "admin.global_attributes.applies_to.channels.location.banner": {
     "defaultMessage": "Banner",
-    "description": ""
+    "description": "Checkbox option under 'Display location' in an attribute's Channels settings, and a segment of the collapsed row summary: shows the attribute value in the banner at the top of the channel."
   },
   "admin.global_attributes.applies_to.channels.location.header": {
     "defaultMessage": "Header",
-    "description": ""
+    "description": "Checkbox option under 'Display location' in an attribute's Channels settings, and a segment of the collapsed row summary: shows the attribute value in the channel header."
   },
   "admin.global_attributes.applies_to.channels.location.info": {
     "defaultMessage": "Channel Info",
-    "description": ""
+    "description": "Checkbox option under 'Display location' in an attribute's Channels settings, and a segment of the collapsed row summary. Refers to the Channel Info side panel in the channel view; it is a localized UI name, so match the translation used for that panel."
   },
   "admin.global_attributes.applies_to.channels.remove": {
     "defaultMessage": "Remove resource",
-    "description": ""
+    "description": "Destructive button in the expanded Channels row of an attribute's 'Applies to' card in the System Console; stops the attribute from applying to channels."
   },
   "admin.global_attributes.applies_to.channels.required.help_off": {
     "defaultMessage": "Optional — this attribute can still be added to a channel after it is created.",
-    "description": ""
+    "description": "Help text under the Required toggle in an attribute's Channels settings, shown when the toggle is off. The leading word restates the state (optional) and is followed by an explanation."
   },
   "admin.global_attributes.applies_to.channels.required.help_on": {
     "defaultMessage": "Required — the channel must have a value for this attribute before it can be created.",
-    "description": ""
+    "description": "Help text under the Required toggle in an attribute's Channels settings, shown when the toggle is on. The leading word restates the state and is followed by an explanation of what it enforces on channel creation."
   },
   "admin.global_attributes.applies_to.channels.required.label": {
     "defaultMessage": "Required",
-    "description": ""
+    "description": "Field label (adjective) for the toggle that makes a value for this attribute mandatory when creating a channel, in an attribute's Channels settings in the System Console. Also used as the toggle's screen-reader label."
   },
   "admin.global_attributes.applies_to.channels.summary.display": {
     "defaultMessage": "Display: {locations}",
-    "description": ""
+    "description": "Segment of the one-line summary on the collapsed/header Channels row of an attribute's 'Applies to' settings, e.g. 'Optional · Display: Header + Channel Info'. {locations} is the already-translated display location names joined with ' + '."
   },
   "admin.global_attributes.applies_to.channels.summary.hidden": {
     "defaultMessage": "Channel Info only",
-    "description": ""
+    "description": "Segment of the one-line summary on the Channels row of an attribute's 'Applies to' settings, shown when no display location is checked: the value appears only in the Channel Info side panel (localized panel name)."
   },
   "admin.global_attributes.applies_to.channels.summary.lower_only": {
     "defaultMessage": "Lower only",
-    "description": ""
+    "description": "Short segment of the one-line summary on the Channels row of an attribute's 'Applies to' settings, meaning the change policy is 'can only be lowered, never raised' (Rank attributes). Keep it brief."
   },
   "admin.global_attributes.applies_to.channels.summary.never": {
     "defaultMessage": "Locked once set",
-    "description": ""
+    "description": "Short segment of the one-line summary on the Channels row of an attribute's 'Applies to' settings, meaning the channel's value cannot be changed after it is first set. Keep it brief."
   },
   "admin.global_attributes.applies_to.channels.summary.optional": {
     "defaultMessage": "Optional",
-    "description": ""
+    "description": "First segment (adjective) of the one-line summary on the Channels row of an attribute's 'Applies to' settings, meaning a value for this attribute is not required when creating a channel."
   },
   "admin.global_attributes.applies_to.channels.summary.raise_only": {
     "defaultMessage": "Raise only",
-    "description": ""
+    "description": "Short segment of the one-line summary on the Channels row of an attribute's 'Applies to' settings, meaning the change policy is 'can only be raised, never lowered' (Rank attributes). Keep it brief."
   },
   "admin.global_attributes.applies_to.channels.summary.required": {
     "defaultMessage": "Required",
-    "description": ""
+    "description": "First segment (adjective) of the one-line summary on the Channels row of an attribute's 'Applies to' settings, meaning channels must have a value for this attribute when created."
   },
   "admin.global_attributes.applies_to.channels.title": {
     "defaultMessage": "Channels",
-    "description": ""
+    "description": "Heading of the Channels row in an attribute's 'Applies to' card in the System Console; names the resource type (channels) the attribute applies to."
   },
   "admin.global_attributes.applies_to.channels.toggle.off": {
     "defaultMessage": "Off",
-    "description": ""
+    "description": "State text shown next to the Required toggle switch in an attribute's Channels settings when the switch is off."
   },
   "admin.global_attributes.applies_to.channels.toggle.on": {
     "defaultMessage": "On",
-    "description": ""
+    "description": "State text shown next to the Required toggle switch in an attribute's Channels settings when the switch is on."
   },
   "admin.global_attributes.applies_to.empty": {
     "defaultMessage": "This attribute does not apply to any resource yet.",
-    "description": ""
+    "description": "Empty-state message in the 'Applies to' card on the Classification attribute page in the System Console, shown when the attribute is not applied to channels or any other resource type."
   },
   "admin.global_attributes.applies_to.subtitle": {
     "defaultMessage": "Resources this attribute applies to, and how it behaves on each.",
-    "description": ""
+    "description": "Subtitle under the 'Applies to' card heading on the Classification attribute page in the System Console. 'Resources' means object types such as channels."
   },
   "admin.global_attributes.applies_to.title": {
     "defaultMessage": "Applies to",
-    "description": ""
+    "description": "Heading of the card on the Classification attribute page in the System Console that lists which resource types (such as channels) the attribute applies to."
   },
   "admin.global_attributes.attribute_details.applies_to.add_resource_header": {
     "defaultMessage": "Add resource",
@@ -6005,47 +6005,47 @@
   },
   "admin.global_attributes.attribute_details.applies_to.item.user.managed_by.aria_label": {
     "defaultMessage": "Managed by: {value}. Values are synced from an external source and cannot be changed here.",
-    "description": ""
+    "description": "Screen-reader label for the locked 'Managed by' field in the Users row of an attribute's 'Applies to' section (System Console > Attribute Management > attribute details). {value} is the external source name, e.g. 'AD/LDAP' or 'SAML'."
   },
   "admin.global_attributes.attribute_details.applies_to.item.user.managed_by.help": {
     "defaultMessage": "Not editable in Mattermost.",
-    "description": ""
+    "description": "Help text under the locked 'Managed by' field in the Users row of an attribute's 'Applies to' section, shown when user values are synced from AD/LDAP or SAML. 'Mattermost' is the product name and is not translated."
   },
   "admin.global_attributes.attribute_details.applies_to.item.user.managed_by.label": {
     "defaultMessage": "Managed by",
-    "description": ""
+    "description": "Field label in the Users row of an attribute's 'Applies to' section (System Console > Attribute Management > attribute details), next to a locked field naming the external sync source (e.g. AD/LDAP)."
   },
   "admin.global_attributes.attribute_details.applies_to.item.user.profile_display.always.label": {
     "defaultMessage": "Always",
-    "description": ""
+    "description": "Segmented-button option for 'Profile display' in the Users row of an attribute's 'Applies to' section: the attribute is always shown on user profiles, even when empty."
   },
   "admin.global_attributes.attribute_details.applies_to.item.user.profile_display.hidden.label": {
     "defaultMessage": "Hidden",
-    "description": ""
+    "description": "Segmented-button option for 'Profile display' in the Users row of an attribute's 'Applies to' section: the attribute is never shown on user profiles."
   },
   "admin.global_attributes.attribute_details.applies_to.item.user.profile_display.label": {
     "defaultMessage": "Profile display",
-    "description": ""
+    "description": "Field label (noun phrase) for the segmented control (Always / When set / Hidden) that controls whether the attribute is shown on user profiles. In the Users row of an attribute's 'Applies to' section in the System Console."
   },
   "admin.global_attributes.attribute_details.applies_to.item.user.profile_display.when_set.label": {
     "defaultMessage": "When set",
-    "description": ""
+    "description": "Segmented-button option for 'Profile display' in the Users row of an attribute's 'Applies to' section: the attribute is shown on a user's profile only if that user has a value."
   },
   "admin.global_attributes.attribute_details.applies_to.item.user.who_can_set.admin.label": {
     "defaultMessage": "System Administrator",
-    "description": ""
+    "description": "Radio option under 'Who can set the value' in the Users row of an attribute's 'Applies to' section: only system admins can set users' values. Refers to the System Administrator role; use the standard translation of that role name."
   },
   "admin.global_attributes.attribute_details.applies_to.item.user.who_can_set.help": {
     "defaultMessage": "Choose Member or System Administrator.",
-    "description": ""
+    "description": "Help text under the 'Who can set the value' radio options in the Users row of an attribute's 'Applies to' section. 'Member' and 'System Administrator' are the two option labels; use the same translations."
   },
   "admin.global_attributes.attribute_details.applies_to.item.user.who_can_set.label": {
     "defaultMessage": "Who can set the value",
-    "description": ""
+    "description": "Field label for the radio group that chooses whether users edit their own value for this attribute or only system admins can. In the Users row of an attribute's 'Applies to' section in the System Console."
   },
   "admin.global_attributes.attribute_details.applies_to.item.user.who_can_set.member.label": {
     "defaultMessage": "Member",
-    "description": ""
+    "description": "Radio option under 'Who can set the value' in the Users row of an attribute's 'Applies to' section: each user (a regular member) can set their own value. Noun, singular."
   },
   "admin.global_attributes.attribute_details.applies_to.locked_plugin_orphaned_tooltip": {
     "defaultMessage": "This resource cannot be changed — this attribute was managed by a plugin that's no longer installed.",
@@ -6057,7 +6057,7 @@
   },
   "admin.global_attributes.attribute_details.applies_to.locked_single_resource_tooltip": {
     "defaultMessage": "This resource cannot be changed — this attribute applies to only one resource.",
-    "description": ""
+    "description": "Tooltip on the disabled row in an attribute's 'Applies to' list (System Console > Attribute Management > attribute details), explaining that the only resource type (e.g. Users) cannot be removed or changed because it is the attribute's sole one."
   },
   "admin.global_attributes.attribute_details.applies_to.resource_type.channel": {
     "defaultMessage": "Channels",
@@ -6169,39 +6169,39 @@
   },
   "admin.global_attributes.attribute_details.graph.delete.blocked.go_to": {
     "defaultMessage": "Go to {name}",
-    "description": ""
+    "description": "Confirm button in the 'Can't delete' dialog for a value of a hierarchical attribute in the System Console. {name} is the name of the first child value that would be left without a parent; clicking jumps to it in the list."
   },
   "admin.global_attributes.attribute_details.graph.delete.blocked.lead": {
     "defaultMessage": "{count, plural, one {Child values need a parent. {name} is the only parent of 1 child value, so it can't be deleted until that child is moved or deleted.} other {Child values need a parent. {name} is the only parent of {count} child values, so it can't be deleted until those children are moved or deleted.}}",
-    "description": ""
+    "description": "Body of the dialog shown when an admin tries to delete a value of a hierarchical attribute that is the only parent of other values. {name} is the value being deleted (shown in bold); {count} is how many child values would be left without a parent."
   },
   "admin.global_attributes.attribute_details.graph.delete.blocked.title": {
     "defaultMessage": "Can't delete {name}",
-    "description": ""
+    "description": "Title of the dialog shown when a value of a hierarchical attribute cannot be deleted because some child values have no other parent. {name} is the admin-defined value name."
   },
   "admin.global_attributes.attribute_details.graph.delete.safe.confirm": {
     "defaultMessage": "Delete",
-    "description": ""
+    "description": "Destructive confirm button (verb) in the 'Delete value?' dialog for a value of a hierarchical attribute in the System Console."
   },
   "admin.global_attributes.attribute_details.graph.delete.safe.lead": {
     "defaultMessage": "{count, plural, one {1 child ({children}) of this value has other parent values, so it will not be removed. Are you sure you want to delete {name}?} other {{count} children ({children}) of this value have other parent values, so they will not be removed. Are you sure you want to delete {name}?}}",
-    "description": ""
+    "description": "Body of the confirmation dialog when deleting a value of a hierarchical attribute whose children also have other parents. {count} is the number of direct child values; {children} is their names joined as a list; {name} is the value being deleted (bold)."
   },
   "admin.global_attributes.attribute_details.graph.delete.safe.title": {
     "defaultMessage": "Delete {name}?",
-    "description": ""
+    "description": "Title of the confirmation dialog for deleting a value of a hierarchical attribute in the System Console. {name} is the admin-defined value name."
   },
   "admin.global_attributes.attribute_details.graph.grant_confirm.confirm": {
     "defaultMessage": "Add",
-    "description": ""
+    "description": "Confirm button (verb) in the dialog that confirms adding a parent to a value of a hierarchical attribute in the System Console."
   },
   "admin.global_attributes.attribute_details.graph.grant_confirm.lead": {
     "defaultMessage": "{child} and all of its child values will also sit under {parent}. Are you sure you want to add this parent?",
-    "description": ""
+    "description": "Body of the confirmation dialog shown when adding a parent to a value of a hierarchical attribute would bring more values under that parent. {child} is the value gaining the parent; {parent} is the new parent value (both admin-defined names, shown bold)."
   },
   "admin.global_attributes.attribute_details.graph.grant_confirm.title": {
     "defaultMessage": "Add {parent} as a parent?",
-    "description": ""
+    "description": "Title of the confirmation dialog shown when an admin adds a parent to a value of a hierarchical attribute. {parent} is the admin-defined name of the value that would become the parent."
   },
   "admin.global_attributes.attribute_details.name_error.invalid_charset": {
     "defaultMessage": "Name must start with a letter or underscore, and contain only letters, numbers, and underscores.",
@@ -6225,183 +6225,183 @@
   },
   "admin.global_attributes.attribute_details.options.graph.add": {
     "defaultMessage": "Add",
-    "description": ""
+    "description": "Button (verb) that saves a new child value typed into the inline form under a row in the value hierarchy editor of an attribute details page in the System Console."
   },
   "admin.global_attributes.attribute_details.options.graph.add_child_aria": {
     "defaultMessage": "Add a value under {name}",
-    "description": ""
+    "description": "Tooltip and screen-reader label for the plus icon button on a row of the value hierarchy editor; adds a new child value. {name} is the row's value name."
   },
   "admin.global_attributes.attribute_details.options.graph.add_top_level": {
     "defaultMessage": "Add a top-level value",
-    "description": ""
+    "description": "Placeholder and label of the input at the bottom of the value hierarchy editor for adding a new value with no parent (at the root of the hierarchy)."
   },
   "admin.global_attributes.attribute_details.options.graph.add_value": {
     "defaultMessage": "Add value",
-    "description": ""
+    "description": "Button (verb phrase) next to the new-value input in the value hierarchy editor of an attribute details page; adds the typed value at the top level."
   },
   "admin.global_attributes.attribute_details.options.graph.cancel": {
     "defaultMessage": "Cancel",
-    "description": ""
+    "description": "Button (verb) that closes the inline new-child-value form in the value hierarchy editor without adding anything."
   },
   "admin.global_attributes.attribute_details.options.graph.child_name_aria": {
     "defaultMessage": "New value granted by {name}",
-    "description": ""
+    "description": "Screen-reader label for the inline input that names a new child value in the value hierarchy editor. {name} is the parent value; 'granted by' means the new value sits under that parent."
   },
   "admin.global_attributes.attribute_details.options.graph.child_name_placeholder": {
     "defaultMessage": "Name the new value",
-    "description": ""
+    "description": "Placeholder of the inline input for naming a new child value under a row in the value hierarchy editor (imperative)."
   },
   "admin.global_attributes.attribute_details.options.graph.collapse": {
     "defaultMessage": "Collapse {name}",
-    "description": ""
+    "description": "Screen-reader label for the chevron button that hides the child values of a row in the value hierarchy editor. {name} is the row's value name."
   },
   "admin.global_attributes.attribute_details.options.graph.delete_aria": {
     "defaultMessage": "Delete {name}",
-    "description": ""
+    "description": "Tooltip and screen-reader label for the trash icon button on a row of the value hierarchy editor. {name} is the value to delete."
   },
   "admin.global_attributes.attribute_details.options.graph.delete_this_value": {
     "defaultMessage": "Delete this value",
-    "description": ""
+    "description": "Destructive item in the per-value menu of the value hierarchy editor (opened from a row) that deletes the value."
   },
   "admin.global_attributes.attribute_details.options.graph.drag_handle_hint": {
     "defaultMessage": "Drop on a row to nest it under that value. Order in the list carries no meaning.",
-    "description": ""
+    "description": "Hint for the drag handle on each row of the value hierarchy editor, explaining that dropping a value onto another row makes it a child of that row, and that list order is not significant."
   },
   "admin.global_attributes.attribute_details.options.graph.drag_handle_tooltip": {
     "defaultMessage": "Drag to move {name}",
-    "description": ""
+    "description": "Tooltip on the drag handle of a row in the value hierarchy editor. {name} is the value being dragged."
   },
   "admin.global_attributes.attribute_details.options.graph.duplicate_name": {
     "defaultMessage": "\"{name}\" already exists in this field.",
-    "description": ""
+    "description": "Inline error in the value hierarchy editor when a typed value name matches an existing value of this attribute. {name} is the typed name; 'field' means this attribute."
   },
   "admin.global_attributes.attribute_details.options.graph.edit_value": {
     "defaultMessage": "Edit {name}",
-    "description": ""
+    "description": "Label for the action that renames or edits a value on a row of the value hierarchy editor. {name} is the row's value name."
   },
   "admin.global_attributes.attribute_details.options.graph.empty.body": {
     "defaultMessage": "Start with a top-level value. You can add parents and children from its row.",
-    "description": ""
+    "description": "Body text of the empty state of the value hierarchy editor (hierarchical attribute with no values yet), above the first-value input."
   },
   "admin.global_attributes.attribute_details.options.graph.empty.heading": {
     "defaultMessage": "Add the first value",
-    "description": ""
+    "description": "Heading of the empty state of the value hierarchy editor, shown when a hierarchical attribute has no values yet (imperative)."
   },
   "admin.global_attributes.attribute_details.options.graph.expand": {
     "defaultMessage": "Expand {name}",
-    "description": ""
+    "description": "Screen-reader label for the chevron button that shows the child values of a row in the value hierarchy editor. {name} is the row's value name."
   },
   "admin.global_attributes.attribute_details.options.graph.footer": {
     "defaultMessage": "Up to 100 parents per value, 100 levels deep.",
-    "description": ""
+    "description": "Footer note under the value hierarchy editor stating the limits: each value can have at most 100 parents and the hierarchy can be at most 100 levels deep."
   },
   "admin.global_attributes.attribute_details.options.graph.helper": {
     "defaultMessage": "Each value can have parents and children.",
-    "description": ""
+    "description": "Helper text above the value hierarchy editor for a hierarchical attribute on its System Console details page."
   },
   "admin.global_attributes.attribute_details.options.graph.name_placeholder": {
     "defaultMessage": "Value name",
-    "description": ""
+    "description": "Placeholder of the input for the first value when the value hierarchy editor is empty."
   },
   "admin.global_attributes.attribute_details.options.graph.parent_edge.cycle": {
     "defaultMessage": "{parent} can't be a parent of {child} — {child} already grants {parent}, so this would loop back on itself.",
-    "description": ""
+    "description": "Error shown in the value hierarchy editor when an admin tries to make {parent} a parent of {child} although {child} is already an ancestor of {parent}. Both are admin-defined value names; 'grants' means 'is above in the hierarchy'."
   },
   "admin.global_attributes.attribute_details.options.graph.parent_edge.depth": {
     "defaultMessage": "Adding this parent pushes \"{name}\" to depth {n}; the limit is 100.",
-    "description": ""
+    "description": "Error shown in the value hierarchy editor when adding a parent would make the hierarchy too deep. {name} is the affected value; {n} is the depth (number of levels) it would reach."
   },
   "admin.global_attributes.attribute_details.options.graph.parent_edge.max_parents": {
     "defaultMessage": "An option can have at most 100 parents.",
-    "description": ""
+    "description": "Error shown in the value hierarchy editor when an admin tries to give a value more than 100 parents. 'Option' means a value of the attribute."
   },
   "admin.global_attributes.attribute_details.options.graph.parents_action_tooltip": {
     "defaultMessage": "Parents — who this value is granted by",
-    "description": ""
+    "description": "Tooltip on the icon button on a row of the value hierarchy editor that opens the list of parents for that value, i.e. the values above it."
   },
   "admin.global_attributes.attribute_details.options.graph.parents_aria": {
     "defaultMessage": "Parents of {name}",
-    "description": ""
+    "description": "Screen-reader label for the icon button on a row of the value hierarchy editor that opens its parents list. {name} is the row's value name."
   },
   "admin.global_attributes.attribute_details.options.graph.parents_badge": {
     "defaultMessage": "{n} parents",
-    "description": ""
+    "description": "Badge on a row of the value hierarchy editor, shown only when the value has two or more parents. {n} is the parent count (always 2 or more)."
   },
   "admin.global_attributes.attribute_details.options.graph.parents_badge_tooltip": {
     "defaultMessage": "Under {names}",
-    "description": ""
+    "description": "Tooltip on the parent-count badge of a row in the value hierarchy editor. {names} is the list of parent value names, already joined into a list (e.g. 'A, B, and C')."
   },
   "admin.global_attributes.attribute_details.options.graph.parents_pane.add_child": {
     "defaultMessage": "Add a child, or type a new name…",
-    "description": ""
+    "description": "Placeholder of the search input in a value's Children panel (hierarchy editor menu); picks an existing value or creates a new one as a child."
   },
   "admin.global_attributes.attribute_details.options.graph.parents_pane.add_child_aria": {
     "defaultMessage": "Add a value granted by {name}",
-    "description": ""
+    "description": "Screen-reader label for the search input in a value's Children panel. {name} is the value that will become the parent of the added value."
   },
   "admin.global_attributes.attribute_details.options.graph.parents_pane.add_parent": {
     "defaultMessage": "Add a parent, or type a new name…",
-    "description": ""
+    "description": "Placeholder of the search input in a value's Parents panel (hierarchy editor menu); picks an existing value or creates a new one as a parent."
   },
   "admin.global_attributes.attribute_details.options.graph.parents_pane.add_parent_aria": {
     "defaultMessage": "Add a parent of {name}",
-    "description": ""
+    "description": "Screen-reader label for the search input in a value's Parents panel. {name} is the value that will receive the new parent."
   },
   "admin.global_attributes.attribute_details.options.graph.parents_pane.back": {
     "defaultMessage": "Parents of {name}",
-    "description": ""
+    "description": "Back button heading the Parents panel in a value's menu in the value hierarchy editor. {name} is the value whose parents are listed."
   },
   "admin.global_attributes.attribute_details.options.graph.parents_pane.children": {
     "defaultMessage": "Children",
-    "description": ""
+    "description": "Menu item (noun, plural) in a value's menu in the value hierarchy editor that opens the list of its child values; the count or 'None' is shown beside it."
   },
   "admin.global_attributes.attribute_details.options.graph.parents_pane.children_back": {
     "defaultMessage": "Children of {name}",
-    "description": ""
+    "description": "Back button heading the Children panel in a value's menu in the value hierarchy editor. {name} is the value whose children are listed."
   },
   "admin.global_attributes.attribute_details.options.graph.parents_pane.create_parent": {
     "defaultMessage": "Create \"{name}\"",
-    "description": ""
+    "description": "Suggestion button in the Parents or Children search list of the value hierarchy editor, offered when the typed name does not exist; creates a new value with that name. {name} is the typed text."
   },
   "admin.global_attributes.attribute_details.options.graph.parents_pane.no_children": {
     "defaultMessage": "No children yet.",
-    "description": ""
+    "description": "Empty-state text in a value's Children panel of the value hierarchy editor."
   },
   "admin.global_attributes.attribute_details.options.graph.parents_pane.no_parents": {
     "defaultMessage": "No parents yet.",
-    "description": ""
+    "description": "Empty-state text in a value's Parents panel of the value hierarchy editor."
   },
   "admin.global_attributes.attribute_details.options.graph.parents_pane.none": {
     "defaultMessage": "None",
-    "description": ""
+    "description": "Count shown beside the Children item in a value's menu in the value hierarchy editor when the value has no children (stands in for zero)."
   },
   "admin.global_attributes.attribute_details.options.graph.parents_pane.parent_count": {
     "defaultMessage": "{n, plural, one {# parent} other {# parents}}",
-    "description": ""
+    "description": "Count shown beside the Parents item in a value's menu in the value hierarchy editor. {n} is the number of parent values (1 or more)."
   },
   "admin.global_attributes.attribute_details.options.graph.parents_pane.parents": {
     "defaultMessage": "Parents",
-    "description": ""
+    "description": "Menu item (noun, plural) in a value's menu in the value hierarchy editor that opens the list of its parent values; the count or 'Top level' is shown beside it."
   },
   "admin.global_attributes.attribute_details.options.graph.parents_pane.remove_child": {
     "defaultMessage": "Remove {child} as a child of {parent}",
-    "description": ""
+    "description": "Screen-reader label for the remove button next to a child in a value's Children panel. {child} is the child value; {parent} is the value whose panel is open."
   },
   "admin.global_attributes.attribute_details.options.graph.parents_pane.remove_parent": {
     "defaultMessage": "Remove {parent} as a parent of {child}",
-    "description": ""
+    "description": "Screen-reader label for the remove button next to a parent in a value's Parents panel. {parent} is the parent value; {child} is the value whose panel is open."
   },
   "admin.global_attributes.attribute_details.options.graph.parents_pane.remove_parent_tooltip": {
     "defaultMessage": "Remove Parent",
-    "description": ""
+    "description": "Tooltip on the remove (X) icon next to each parent in the Parents list of a hierarchical attribute's value editor, in System Console > System Attributes > Attribute Management. 'Remove' is a verb; 'Parent' means a parent value in the hierarchy."
   },
   "admin.global_attributes.attribute_details.options.graph.parents_pane.top_level": {
     "defaultMessage": "Top level",
-    "description": ""
+    "description": "Shown in the Parents row of a hierarchical attribute's value editor (System Console > Attribute Management) when the selected value has no parents, meaning it sits at the root of the hierarchy. Replaces the parent count."
   },
   "admin.global_attributes.attribute_details.options.graph.parents_pane.value_name": {
     "defaultMessage": "Value name",
-    "description": ""
+    "description": "Screen-reader label for the text input where an admin renames the selected value of a hierarchical attribute, in System Console > Attribute Management. 'Name' is a noun."
   },
   "admin.global_attributes.attribute_details.options.help": {
     "defaultMessage": "Text attributes have no preset values — a value is typed in per resource.",
@@ -6469,11 +6469,11 @@
   },
   "admin.global_attributes.attribute_details.save_error.applies_to_config_save_failed": {
     "defaultMessage": "The attribute was saved, but its {resources} settings (Profile display, Who can set the value) couldn't be updated. Please try again.",
-    "description": ""
+    "description": "Error banner on the attribute edit page in System Console > Attribute Management, shown when the attribute saved but its per-resource settings did not. {resources} is a localized list of resource types such as 'Users' or 'Channels'. 'Profile display' and 'Who can set the value' are setting labels on the same page and must match their translations."
   },
   "admin.global_attributes.attribute_details.save_error.applies_to_display_name_save_failed": {
     "defaultMessage": "The attribute was saved, but its {resources} display name couldn't be updated. Please try again.",
-    "description": ""
+    "description": "Error banner on the attribute edit page in System Console > Attribute Management, shown when the attribute saved but its display name for a resource type did not update. {resources} is a localized list of resource types such as 'Users' or 'Channels'."
   },
   "admin.global_attributes.attribute_details.save_error.applies_to_failed": {
     "defaultMessage": "Couldn't apply this attribute to {resources}. Nothing was saved — please try again.",
@@ -6509,7 +6509,7 @@
   },
   "admin.global_attributes.attribute_details.save_error.channel_resource": {
     "defaultMessage": "The attribute was created, but it could not be applied to channels. Its definition can no longer be changed here; select Save to try applying it again, or remove the Channels resource to finish without it.",
-    "description": ""
+    "description": "Error banner on the new-attribute page in System Console > Attribute Management, shown when the attribute was created but applying it to channels failed. 'Save' is the page's Save button and 'Channels' is the resource-type label on the same page; both should match their translations."
   },
   "admin.global_attributes.attribute_details.save_error.generic": {
     "defaultMessage": "Something went wrong while saving this attribute. Please try again.",
@@ -6561,7 +6561,7 @@
   },
   "admin.global_attributes.attribute_details.type.field_locked_graph_aria_label": {
     "defaultMessage": "Type: {value}. Locked because a hierarchical attribute cannot be converted to another type.",
-    "description": ""
+    "description": "Screen-reader label for the disabled Type field on the attribute edit page in System Console > Attribute Management. {value} is the localized type name (for example 'Hierarchical'). Explains why a hierarchical attribute's type cannot be changed."
   },
   "admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label": {
     "defaultMessage": "Type: {value}. Locked because this attribute is managed by a plugin.",
@@ -6585,7 +6585,7 @@
   },
   "admin.global_attributes.attribute_details.type.locked_graph_tooltip": {
     "defaultMessage": "Type cannot be changed — a hierarchical attribute cannot be converted to another type. Create a new attribute of the type you need instead.",
-    "description": ""
+    "description": "Tooltip on the disabled Type field on the attribute edit page in System Console > Attribute Management, shown for hierarchical attributes. Explains why the type is locked and what the admin should do instead."
   },
   "admin.global_attributes.attribute_details.type.locked_plugin_orphaned_tooltip": {
     "defaultMessage": "Type cannot be changed — this attribute was managed by a plugin that's no longer installed.",
@@ -6653,59 +6653,59 @@
   },
   "admin.global_attributes.classification.back_link": {
     "defaultMessage": "Back to Attribute Management",
-    "description": ""
+    "description": "Screen-reader label for the back-arrow link at the top of the Classification attribute page in the System Console. 'Attribute Management' is the name of the System Console page it returns to and should match that page's translated title."
   },
   "admin.global_attributes.classification.cancel": {
     "defaultMessage": "Cancel",
-    "description": ""
+    "description": "Button in the footer of the Classification attribute page in the System Console that discards unsaved changes."
   },
   "admin.global_attributes.classification.load_failed": {
     "defaultMessage": "Something went wrong while loading classification. Please try again.",
-    "description": ""
+    "description": "Error shown in place of the Classification attribute page in the System Console when its settings fail to load. 'classification' refers to the classification markings feature."
   },
   "admin.global_attributes.classification.markings_footer": {
     "defaultMessage": "Presets and marking colors are configured on Classification Markings.",
-    "description": ""
+    "description": "Note under the list of classification levels on the Classification attribute page in the System Console, followed by an 'Open' link. 'Classification Markings' is the name of another System Console page and should match its translated title."
   },
   "admin.global_attributes.classification.markings_page_name": {
     "defaultMessage": "Classification Markings",
-    "description": ""
+    "description": "Link text naming the Classification Markings page of the System Console. It fills the {link} slot in the 'Classification is not set up yet' notice. Must match the translation of the System Console sidebar item of the same name."
   },
   "admin.global_attributes.classification.name_fallback": {
     "defaultMessage": "Classification",
-    "description": ""
+    "description": "Fallback name of the classification attribute. It is inserted into the page heading 'Edit {name} Attribute' in the System Console when the attribute has no display name."
   },
   "admin.global_attributes.classification.not_configured": {
     "defaultMessage": "Classification is not set up yet. Enable it on the {link} page first.",
-    "description": ""
+    "description": "Notice on the Classification attribute page in the System Console when classification markings are not enabled yet. {link} is a link whose text is the localized page name 'Classification Markings'."
   },
   "admin.global_attributes.classification.open_markings": {
     "defaultMessage": "Open",
-    "description": ""
+    "description": "Link button (with an open-in-new icon) after the classification levels note on the Classification attribute page in the System Console. Opens the Classification Markings page. 'Open' is a verb."
   },
   "admin.global_attributes.classification.remove_channels.body": {
     "defaultMessage": "This deletes the classification value on every channel that has one. It cannot be undone from Mattermost.",
-    "description": ""
+    "description": "Body of the confirmation dialog shown when an admin removes Channels from the resources the Classification attribute applies to, in the System Console. Warns that every channel's classification value will be deleted permanently."
   },
   "admin.global_attributes.classification.remove_channels.confirm": {
     "defaultMessage": "Remove and delete values",
-    "description": ""
+    "description": "Destructive confirm button in the dialog that stops applying Classification to channels, in the System Console. It removes the Channels resource and deletes the stored channel values."
   },
   "admin.global_attributes.classification.remove_channels.title": {
     "defaultMessage": "Stop applying Classification to channels?",
-    "description": ""
+    "description": "Title of the confirmation dialog shown when an admin removes Channels from the resources the Classification attribute applies to, in the System Console. 'Classification' is the attribute's name."
   },
   "admin.global_attributes.classification.save": {
     "defaultMessage": "Save",
-    "description": ""
+    "description": "Button in the footer of the Classification attribute page in the System Console that saves changes."
   },
   "admin.global_attributes.classification.save_failed": {
     "defaultMessage": "Something went wrong while saving. Please try again.",
-    "description": ""
+    "description": "Error shown next to the Save button on the Classification attribute page in the System Console when saving fails."
   },
   "admin.global_attributes.classification.subtitle": {
     "defaultMessage": "Choose the resources this attribute applies to, and how it behaves on each.",
-    "description": ""
+    "description": "Subtitle under the 'Edit Classification Attribute' heading in the System Console. 'Resources' are the object types an attribute can apply to, such as Users and Channels."
   },
   "admin.global_attributes.confirm.delete.body": {
     "defaultMessage": "Deleting this attribute will permanently remove its definition. This action cannot be undone.",
@@ -6745,7 +6745,7 @@
   },
   "admin.global_attributes.search.placeholder": {
     "defaultMessage": "Search attributes",
-    "description": ""
+    "description": "Placeholder in the search box above the attributes table in System Console > System Attributes > Attribute Management. 'Search' is a verb."
   },
   "admin.global_attributes.subtitle": {
     "defaultMessage": "Define an attribute once, then choose which resources can use it.",
@@ -6797,7 +6797,7 @@
   },
   "admin.global_attributes.table.empty_search": {
     "defaultMessage": "No attributes match your search.",
-    "description": ""
+    "description": "Empty-state message in the attributes table in System Console > Attribute Management, shown when the search text matches no attributes."
   },
   "admin.global_attributes.table.load_error": {
     "defaultMessage": "There was an error while loading attributes.",
@@ -6845,7 +6845,7 @@
   },
   "admin.global_attributes.table.type.email": {
     "defaultMessage": "Email",
-    "description": ""
+    "description": "Attribute type name shown in the Type column of the attributes table and in the type picker in System Console > Attribute Management. The type holds an email address."
   },
   "admin.global_attributes.table.type.fallback": {
     "defaultMessage": "Other",
@@ -6853,7 +6853,7 @@
   },
   "admin.global_attributes.table.type.graph": {
     "defaultMessage": "Hierarchical",
-    "description": ""
+    "description": "Attribute type name shown in the Type column and type field in System Console > Attribute Management, for attributes whose values form a parent/child hierarchy. The same type is labeled 'Graph' on the User Attributes page."
   },
   "admin.global_attributes.table.type.multiselect": {
     "defaultMessage": "Multiselect",
@@ -6861,7 +6861,7 @@
   },
   "admin.global_attributes.table.type.phone": {
     "defaultMessage": "Phone",
-    "description": ""
+    "description": "Attribute type name shown in the Type column and type picker in System Console > Attribute Management. The type holds a phone number."
   },
   "admin.global_attributes.table.type.rank": {
     "defaultMessage": "Ranked",
@@ -6877,7 +6877,7 @@
   },
   "admin.global_attributes.table.type.url": {
     "defaultMessage": "URL",
-    "description": ""
+    "description": "Attribute type name shown in the Type column and type picker in System Console > Attribute Management. The type holds a web address."
   },
   "admin.global_attributes.title": {
     "defaultMessage": "Attribute Management",
@@ -9653,7 +9653,7 @@
   },
   "admin.nav.switchTeams": {
     "defaultMessage": "Switch teams",
-    "description": ""
+    "description": "Submenu label, and that submenu's screen-reader label, in the System Console's top-left navigation dropdown. Opens a list of teams to leave the console for. Shown when the admin belongs to more than one team."
   },
   "admin.nav.troubleshootingForum": {
     "defaultMessage": "Troubleshooting Forum",
@@ -11813,11 +11813,11 @@
   },
   "admin.plugin.addOn.notLicensed": {
     "defaultMessage": "Not included in your license",
-    "description": ""
+    "description": "Replaces the Enable/Disable button for a plugin in System Console > Plugins > Plugin Management when the plugin is a paid add-on that the current license does not cover."
   },
   "admin.plugin.addOn.notLicensedWarning": {
     "defaultMessage": "This plugin is a licensed add-on. Your license does not include it, so it cannot be enabled. Contact your Mattermost account team to purchase it.",
-    "description": ""
+    "description": "Warning banner shown instead of the settings on a plugin's System Console settings page when the plugin is a licensed add-on that the current license does not include."
   },
   "admin.plugin.backToPlugins": {
     "defaultMessage": "Go back to the Plugins",
@@ -15261,7 +15261,7 @@
   },
   "admin.system_properties.user_properties.table.select_type.graph": {
     "defaultMessage": "Graph",
-    "description": ""
+    "description": "Type name shown for a hierarchical attribute on System Console > User Attributes. Admins cannot pick it from the type menu; it only labels fields created through the API. The same type is called 'Hierarchical' on the Attribute Management page."
   },
   "admin.system_properties.user_properties.table.select_type.multi_select": {
     "defaultMessage": "Multi-select",
@@ -15337,7 +15337,7 @@
   },
   "admin.system_properties.user_properties.table.values.options_count": {
     "defaultMessage": "{count, plural, one {# option} other {# options}}",
-    "description": ""
+    "description": "Shown in the Values column of the User Attributes table in the System Console for a hierarchical attribute with too many options to list. # is the total number of options."
   },
   "admin.system_properties.user_properties.table.values.owner.scoped": {
     "defaultMessage": "{provenance}: {scopes}",
@@ -16801,7 +16801,7 @@
   },
   "admin.userManagement.userDetail.field_options_omitted": {
     "defaultMessage": "This field has too many options to be edited here.",
-    "description": ""
+    "description": "Note shown for a user attribute on the user detail page in System Console > Users when the attribute has too many options to edit on this page."
   },
   "admin.userManagement.userDetail.firstName": {
     "defaultMessage": "First Name",
@@ -16861,27 +16861,27 @@
   },
   "admin.userManagement.userDetail.picture.edit": {
     "defaultMessage": "Edit profile picture",
-    "description": ""
+    "description": "Screen-reader label for the camera button on the user's profile picture on the user detail page in System Console > Users. It opens a menu of picture options."
   },
   "admin.userManagement.userDetail.picture.menu": {
     "defaultMessage": "Profile picture options",
-    "description": ""
+    "description": "Screen-reader label for the menu that the camera button opens on a user's profile picture on the user detail page in System Console > Users."
   },
   "admin.userManagement.userDetail.picture.remove": {
     "defaultMessage": "Remove Picture",
-    "description": ""
+    "description": "Destructive menu item in the profile picture menu on the user detail page in System Console > Users. It resets the user's picture to the default."
   },
   "admin.userManagement.userDetail.picture.tooLarge": {
     "defaultMessage": "Unable to upload profile image. File is too large. Maximum file size: {max}",
-    "description": ""
+    "description": "Error shown on the user detail page in System Console > Users when an admin uploads a profile picture above the size limit. {max} is the formatted maximum size, for example '50MB'."
   },
   "admin.userManagement.userDetail.picture.upload": {
     "defaultMessage": "Upload Picture",
-    "description": ""
+    "description": "Menu item in the profile picture menu on the user detail page in System Console > Users. It opens a file picker for a new picture."
   },
   "admin.userManagement.userDetail.picture.wrongType": {
     "defaultMessage": "Only BMP, JPG, JPEG, or PNG images are supported.",
-    "description": ""
+    "description": "Error shown on the user detail page in System Console > Users when an admin picks a profile picture file that is not an accepted image type. The format names are file extensions and should stay as written."
   },
   "admin.userManagement.userDetail.saml": {
     "defaultMessage": "SAML: {propertyName}",
@@ -17021,7 +17021,7 @@
   },
   "advanced_create_post.outOfOfficeWarning": {
     "defaultMessage": "{displayName} is Out of Office.",
-    "description": ""
+    "description": "Warning shown above the message box in a direct message when the other person's status is out of office (automatic replies on). {displayName} is that person's display name. 'Out of Office' is the status name; match the translation of the 'Out of office' status in the account menu."
   },
   "advanced_text_editor.help_link": {
     "defaultMessage": "Help",
@@ -18077,11 +18077,11 @@
   },
   "bot.add.default_token.expiry": {
     "defaultMessage": "Default token expires",
-    "description": ""
+    "description": "Label for the expiry picker in the 'Default access token' section of the Add Bot Account page (Integrations > Bot Accounts). It sets when the bot's first token expires. 'Expires' is a verb."
   },
   "bot.add.default_token.title": {
     "defaultMessage": "Default access token",
-    "description": ""
+    "description": "Bold section heading on the Add Bot Account page (Integrations > Bot Accounts) for the access token created automatically with a new bot."
   },
   "bot.add.description": {
     "defaultMessage": "Description",
@@ -18457,27 +18457,27 @@
   },
   "channel_attributes.banner.insert_attribute": {
     "defaultMessage": "Attributes",
-    "description": ""
+    "description": "Button text (after a + icon) under the Banner text editor in Channel Settings > Configuration. It opens a menu for inserting a channel attribute placeholder into the banner. Plural noun."
   },
   "channel_attributes.banner.insert_attribute_aria": {
     "defaultMessage": "Insert an attribute into the banner text",
-    "description": ""
+    "description": "Screen-reader label for the 'Attributes' button under the Banner text editor in Channel Settings > Configuration. It inserts a channel attribute placeholder into the banner text."
   },
   "channel_attributes.banner.insert_attribute_menu": {
     "defaultMessage": "Channel attributes",
-    "description": ""
+    "description": "Screen-reader label for the menu that lists the channel attributes available for the banner text, in Channel Settings > Configuration."
   },
   "channel_attributes.banner.remove_attribute": {
     "defaultMessage": "Remove {label}",
-    "description": ""
+    "description": "Screen-reader label for the small X on an attribute chip inside the Banner text editor in Channel Settings > Configuration. {label} is the attribute's display name, as defined by an admin."
   },
   "channel_attributes.banner.renders_as_empty": {
     "defaultMessage": "nothing yet — no values are set",
-    "description": ""
+    "description": "Shown in the banner Preview area in Channel Settings > Configuration when the banner text contains only attribute placeholders and none of them has a value, so the banner would be blank."
   },
   "channel_attributes.chip.label_prefix": {
     "defaultMessage": "{label}: ",
-    "description": ""
+    "description": "Screen-reader-only prefix before an attribute value chip, so the chip is read as 'attribute: value'. {label} is the attribute's display name, as defined by an admin. Keep the trailing colon and space, or adapt the punctuation for your locale."
   },
   "channel_attributes.description": {
     "defaultMessage": "Configure attributes and values for this channel.",
@@ -18489,51 +18489,51 @@
   },
   "channel_attributes.info.add": {
     "defaultMessage": "Add attribute",
-    "description": ""
+    "description": "Button (with a + icon), and its menu's screen-reader label, at the bottom of the Channel Attributes section in the channel info right-hand panel. Opens a list of attributes that can still be set on the channel."
   },
   "channel_attributes.info.clear": {
     "defaultMessage": "Clear {label}",
-    "description": ""
+    "description": "Menu item or button in the value picker of a channel attribute in the channel info right-hand panel. It removes the attribute's value. {label} is the attribute's display name. 'Clear' is a verb."
   },
   "channel_attributes.info.edit": {
     "defaultMessage": "Edit {label}",
-    "description": ""
+    "description": "Screen-reader label for the button that edits a channel attribute's value in the channel info right-hand panel. {label} is the attribute's display name. 'Edit' is a verb."
   },
   "channel_attributes.info.heading": {
     "defaultMessage": "Channel Attributes",
-    "description": ""
+    "description": "Section heading in the channel info right-hand panel above the list of the channel's attributes, such as classification."
   },
   "channel_attributes.info.locked": {
     "defaultMessage": "This attribute cannot be changed after it is set",
-    "description": ""
+    "description": "Screen-reader label for the lock icon next to a channel attribute in the channel info panel, when the attribute's value is set and can never be changed."
   },
   "channel_attributes.info.locked_lower_only": {
     "defaultMessage": "This attribute can only be lowered, never raised",
-    "description": ""
+    "description": "Screen-reader label for the lock icon next to a ranked channel attribute in the channel info panel, such as a classification level. The value can only move to a lower rank."
   },
   "channel_attributes.info.locked_raise_only": {
     "defaultMessage": "This attribute can only be raised, never lowered",
-    "description": ""
+    "description": "Screen-reader label for the lock icon next to a ranked channel attribute in the channel info panel, such as a classification level. The value can only move to a higher rank."
   },
   "channel_attributes.info.not_set": {
     "defaultMessage": "Not set",
-    "description": ""
+    "description": "Placeholder shown in place of the value of a channel attribute that has no value, in the channel info right-hand panel. Describes an attribute value, not a person."
   },
   "channel_attributes.info.save_failed": {
     "defaultMessage": "Couldn't save {label}. Try again.",
-    "description": ""
+    "description": "Inline error under a channel attribute in the channel info right-hand panel when saving its new value fails. {label} is the attribute's display name."
   },
   "channel_attributes.labels.overflow": {
     "defaultMessage": "+{count}",
-    "description": ""
+    "description": "Compact button after the row of channel attribute chips in the channel header and thread headers, when some chips do not fit. {count} is the number of hidden chips. Opens a popover that lists them."
   },
   "channel_attributes.labels.overflow_aria": {
     "defaultMessage": "{count, plural, one {# more attribute} other {# more attributes}}",
-    "description": ""
+    "description": "Screen-reader label for the '+N' button after the channel attribute chips in the channel header. # is the number of attributes hidden from the row."
   },
   "channel_attributes.labels.view_all": {
     "defaultMessage": "View all attributes",
-    "description": ""
+    "description": "Link at the bottom of the overflow popover of channel attribute chips. Opens the channel info panel, which lists every attribute."
   },
   "channel_attributes.select_value": {
     "defaultMessage": "Select a value",
@@ -18553,7 +18553,7 @@
   },
   "channel_banner.banner_preview.label": {
     "defaultMessage": "Preview",
-    "description": ""
+    "description": "Label above the live preview of the channel banner in Channel Settings > Configuration, under the Banner text and Banner color settings. Noun."
   },
   "channel_banner.banner_text.label": {
     "defaultMessage": "Banner text",
@@ -18877,7 +18877,7 @@
   },
   "channel_header.userHelpGuide.menuAriaLabel": {
     "defaultMessage": "Help menu",
-    "description": ""
+    "description": "Screen-reader label for the dropdown menu that opens from the Help (?) icon in the global header."
   },
   "channel_info_rhs.about_area_handle": {
     "defaultMessage": "Channel handle:",
@@ -19753,11 +19753,11 @@
   },
   "channel_settings.join_leave_messages.label.name": {
     "defaultMessage": "Join/Leave System Messages",
-    "description": ""
+    "description": "Title of a toggle setting in Channel Settings > Configuration. It controls whether messages like 'X joined the channel' appear in this channel."
   },
   "channel_settings.join_leave_messages.label.subtext": {
     "defaultMessage": "When enabled, join and leave system messages are shown in this channel for all users. When disabled, they are hidden regardless of account-wide Advanced settings. Stored messages reappear if you turn this back on.",
-    "description": ""
+    "description": "Help text for the join/leave messages toggle in Channel Settings > Configuration. 'Advanced settings' refers to the Advanced tab of the user's Settings dialog, where each user has their own join/leave preference."
   },
   "channel_settings.modal.archiveTitle": {
     "defaultMessage": "Archive channel?",
@@ -23025,63 +23025,63 @@
   },
   "globalHeader.productSwitcherMenu.aboutMenuItem.label": {
     "defaultMessage": "About {appTitle}",
-    "description": ""
+    "description": "Menu item in the product menu (grid icon at the top left of the global header). It opens the About dialog. {appTitle} is the configured site name, or 'Mattermost' if none is set."
   },
   "globalHeader.productSwitcherMenu.ariaLabel": {
     "defaultMessage": "Product menu",
-    "description": ""
+    "description": "Screen-reader label for the product menu that opens from the grid icon and product name at the top left of the global header."
   },
   "globalHeader.productSwitcherMenu.cloudLimitsFooter.infoButtonAriaLabel": {
     "defaultMessage": "View limits",
-    "description": ""
+    "description": "Screen-reader label for the info icon button in the usage-limits footer of the product menu, on Cloud workspaces. It opens a dialog with workspace usage limits. 'View' is a verb."
   },
   "globalHeader.productSwitcherMenu.downloadMenuItem.label": {
     "defaultMessage": "Download Apps",
-    "description": ""
+    "description": "Menu item in the product menu at the top left of the global header. It opens the download page for the desktop and mobile apps. Hidden in the desktop app."
   },
   "globalHeader.productSwitcherMenu.editionMenuitem.entry": {
     "defaultMessage": "Entry offers Enterprise Advanced capabilities <b>with limits</b> designed to support evaluation. Learn more.",
-    "description": ""
+    "description": "Clickable item at the bottom of the product menu on servers with an Entry license, next to an 'ENTRY EDITION' badge. The whole item opens a page about Entry's limits; 'Learn more.' is not a separate link. 'Entry' and 'Enterprise Advanced' are edition names. <b> marks bold text."
   },
   "globalHeader.productSwitcherMenu.editionMenuitem.unsupported": {
     "defaultMessage": "This is the free <b>unsupported</b> edition of Mattermost. See pricing.",
-    "description": ""
+    "description": "Clickable item at the bottom of the product menu on unlicensed (Team Edition) servers, next to a 'TEAM EDITION' badge. The whole item opens the pricing page; 'See pricing.' is not a separate link. <b> marks bold text."
   },
   "globalHeader.productSwitcherMenu.integrationsMenuItem.label": {
     "defaultMessage": "Integrations",
-    "description": ""
+    "description": "Menu item in the product menu at the top left of the global header. It opens the team's Integrations page (webhooks, slash commands, bots). Plural noun."
   },
   "globalHeader.productSwitcherMenu.marketplaceMenuItem.label": {
     "defaultMessage": "App Marketplace",
-    "description": ""
+    "description": "Menu item in the product menu at the top left of the global header, shown only to admins who can manage plugins. It opens the plugin Marketplace dialog. Product feature name."
   },
   "globalHeader.productSwitcherMenu.menuButtonLabel": {
     "defaultMessage": "Open product menu",
-    "description": ""
+    "description": "Screen-reader label and hover tooltip for the grid icon and product name at the top left of the global header. It opens the product menu."
   },
   "globalHeader.productSwitcherMenu.systemConsoleMenuItem.label": {
     "defaultMessage": "System Console",
-    "description": ""
+    "description": "Menu item in the product menu at the top left of the global header, shown to admins. It opens the System Console. Use the product's standard translation of 'System Console'."
   },
   "globalHeader.productSwitcherMenu.trialMenuItem.isFreeTrial.primaryLabel": {
     "defaultMessage": "Enterprise Advanced Trial",
-    "description": ""
+    "description": "First line of a product menu item on Cloud workspaces during a free trial. 'Enterprise Advanced' is the edition name being trialed."
   },
   "globalHeader.productSwitcherMenu.trialMenuItem.isFreeTrial.secondaryLabel": {
     "defaultMessage": "Your trial is active until {trialEndDay}. Discover our top Enterprise features.",
-    "description": ""
+    "description": "Second line of the trial item in the product menu on Cloud workspaces during a free trial. {trialEndDay} is the trial end date formatted in the user's locale, for example 'March 05, 2026'. Clicking opens trial benefits (admins) or pricing (others)."
   },
   "globalHeader.productSwitcherMenu.trialMenuItem.noFreeTrial.primaryLabel": {
     "defaultMessage": "Interested in a limitless plan with high-security features?",
-    "description": ""
+    "description": "First line of a product menu item shown to admins of Cloud workspaces on the free plan, promoting an upgrade."
   },
   "globalHeader.productSwitcherMenu.trialMenuItem.noFreeTrial.secondaryLabel": {
     "defaultMessage": "See plans",
-    "description": ""
+    "description": "Second line of the upgrade item in the product menu for Cloud free-plan admins. Clicking the item opens the pricing dialog. 'See' is an imperative verb."
   },
   "globalHeader.productSwitcherMenu.userGroupsMenuItem.label": {
     "defaultMessage": "User Groups",
-    "description": ""
+    "description": "Menu item in the product menu at the top left of the global header. It opens the User Groups dialog for custom groups of users that can be mentioned. Feature name."
   },
   "globalThreads.heading": {
     "defaultMessage": "Followed threads",
@@ -24249,11 +24249,11 @@
   },
   "interactive_dialog.error.invalid_format": {
     "defaultMessage": "Invalid matrix selection format",
-    "description": ""
+    "description": "Validation error under a checkbox matrix (grid of checkboxes) in an interactive dialog or app form from an integration, when the submitted selection is malformed or references unknown rows or columns."
   },
   "interactive_dialog.error.invalid_list": {
     "defaultMessage": "Must be a list of options",
-    "description": ""
+    "description": "Validation error under a checkbox group field in an interactive dialog or app form from an integration, when the value is not a list of selected options."
   },
   "interactive_dialog.error.invalid_option": {
     "defaultMessage": "Must be a valid option",
@@ -24273,7 +24273,7 @@
   },
   "interactive_dialog.radio.clear": {
     "defaultMessage": "Clear selection",
-    "description": ""
+    "description": "Small button under an optional radio button field in an app form or interactive dialog from an integration. It clears the chosen option. 'Clear' is a verb."
   },
   "interactive_dialog.refresh_failed": {
     "defaultMessage": "Field refresh failed",
@@ -24669,7 +24669,7 @@
   },
   "invite.members.user-is-not-guest-no-permission": {
     "defaultMessage": "This person is already a member of the workspace and cannot be invited as a guest. Please contact your system administrator to invite them as a member.",
-    "description": ""
+    "description": "Reason shown in the invitation results when someone tries to invite an existing team member as a guest and lacks permission to add members. 'Workspace' means this Mattermost server."
   },
   "invite.rate-limit-exceeded": {
     "defaultMessage": "Invite emails rate limit exceeded.",
@@ -24997,7 +24997,7 @@
   },
   "link_preview.hide_image_preview": {
     "defaultMessage": "Hide image preview",
-    "description": ""
+    "description": "Screen-reader label for the collapse toggle on the image of a link preview under a message. Pairs with 'Show image preview'."
   },
   "link_preview.image_preview": {
     "defaultMessage": "Show image preview",
@@ -27437,59 +27437,59 @@
   },
   "property_fields.hierarchical_value_menu.also_under": {
     "defaultMessage": "Also under {names}",
-    "description": ""
+    "description": "Hint under a value in the hierarchical value picker when the value also appears under other parents in the hierarchy. {names} is a localized list of the other parent values' names. Used in profile settings, System Console user details, and channel attributes."
   },
   "property_fields.hierarchical_value_menu.empty": {
     "defaultMessage": "This attribute has no values yet.",
-    "description": ""
+    "description": "Status line inside the hierarchical value picker when the attribute has no values defined yet."
   },
   "property_fields.hierarchical_value_menu.error": {
     "defaultMessage": "These values could not be loaded.",
-    "description": ""
+    "description": "Status line inside the hierarchical value picker when loading the attribute's values fails, shown with a Retry button."
   },
   "property_fields.hierarchical_value_menu.loading": {
     "defaultMessage": "Loading values…",
-    "description": ""
+    "description": "Status line with a spinner inside the hierarchical value picker while the attribute's values load."
   },
   "property_fields.hierarchical_value_menu.n_selected": {
     "defaultMessage": "{count} selected",
-    "description": ""
+    "description": "Count shown on a parent row in the hierarchical value picker, giving how many values beneath that parent are selected. {count} is a number."
   },
   "property_fields.hierarchical_value_menu.no_results": {
     "defaultMessage": "No values match.",
-    "description": ""
+    "description": "Status line inside the hierarchical value picker when the search text matches no values."
   },
   "property_fields.hierarchical_value_menu.remove_unnamed_value": {
     "defaultMessage": "Remove value",
-    "description": ""
+    "description": "Screen-reader label for the X on a selected-value chip in the hierarchical value picker, when the value's name cannot be shown (not loaded or unavailable)."
   },
   "property_fields.hierarchical_value_menu.remove_value": {
     "defaultMessage": "Remove {name}",
-    "description": ""
+    "description": "Screen-reader label for the X on a selected-value chip in the hierarchical value picker. {name} is the value's name, as defined by an admin."
   },
   "property_fields.hierarchical_value_menu.retry": {
     "defaultMessage": "Retry",
-    "description": ""
+    "description": "Button in the hierarchical value picker, shown after loading values fails. It tries the load again."
   },
   "property_fields.hierarchical_value_menu.search": {
     "defaultMessage": "Search values",
-    "description": ""
+    "description": "Placeholder of the search box at the top of the hierarchical value picker menu. 'Search' is a verb."
   },
   "property_fields.hierarchical_value_menu.search_truncated": {
     "defaultMessage": "Showing the first {count} matches. Type more to narrow the list.",
-    "description": ""
+    "description": "Notice at the bottom of the hierarchical value picker search results when there are too many matches to show. {count} is the maximum number of results shown."
   },
   "property_fields.hierarchical_value_menu.select_values": {
     "defaultMessage": "Select values...",
-    "description": ""
+    "description": "Default placeholder and screen-reader label of the hierarchical value picker button when no value is selected. 'Select' is an imperative verb."
   },
   "property_fields.hierarchical_value_menu.unavailable_value": {
     "defaultMessage": "Value unavailable",
-    "description": ""
+    "description": "Stands in for the name of a selected hierarchical attribute value whose name could not be loaded. Shown in value chips and in the System Console user detail list."
   },
   "property_fields.hierarchical_value_menu.withheld": {
     "defaultMessage": "The values for this attribute are not available to you here.",
-    "description": ""
+    "description": "Status line inside the hierarchical value picker when the server does not send this attribute's values to the current user, for example because the user lacks permission."
   },
   "property_option.color.blue": {
     "defaultMessage": "Blue",
@@ -30325,7 +30325,7 @@
   },
   "tag.default.imported_inactive": {
     "defaultMessage": "IMPORTED - INACTIVE",
-    "description": ""
+    "description": "Uppercase badge next to a user's name in profiles and @mention suggestions, marking an account that was imported from another system and is not active yet. Displayed in uppercase."
   },
   "team_channel_settings.group.group_user_row.numberOfGroups": {
     "defaultMessage": "{amount, number} {amount, plural, one {Group} other {Groups}}",
@@ -32181,7 +32181,7 @@
   },
   "user.settings.general.field_options_omitted": {
     "defaultMessage": "This field has too many options to be edited here.",
-    "description": ""
+    "description": "Note shown for a user attribute in Settings > Profile when the attribute has too many options to be edited in the profile settings."
   },
   "user.settings.general.firstName": {
     "defaultMessage": "First Name",
@@ -32193,7 +32193,7 @@
   },
   "user.settings.general.graphValuesSelected": {
     "defaultMessage": "{count, plural, one {# value selected} other {# values selected}}",
-    "description": ""
+    "description": "Summary of a hierarchical user attribute in Settings > Profile and in the profile popover, shown when some selected values' names cannot be displayed. # is the number of selected values."
   },
   "user.settings.general.imageTooLarge": {
     "defaultMessage": "Unable to upload profile image. File is too large.",
