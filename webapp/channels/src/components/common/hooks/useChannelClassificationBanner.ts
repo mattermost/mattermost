@@ -257,6 +257,9 @@ export default function useChannelClassificationBanner(channelId: string): Chann
             let bannerText: string;
             if (authoredText) {
                 bannerText = renderBannerTemplate(authoredText, templateAttributes);
+            } else if (channelBannerInfo?.enabled === false && typeof authoredText === 'string') {
+                // Empty string + explicitly disabled banner = intentional authored suppression.
+                return {...noBanner, classificationIsBannerDesignated};
             } else if (contributions.length === 0) {
                 return {...noBanner, classificationIsBannerDesignated};
             } else {
