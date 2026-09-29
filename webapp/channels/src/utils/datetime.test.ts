@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import moment from 'moment-timezone';
+
 import {
     getDiff,
     getMillisUntilNextDay,
@@ -161,6 +163,7 @@ describe('getMillisUntilNextDay', () => {
         expect(getMillisUntilNextDay(new Date('2019-05-03T23:59:50Z'), 'UTC')).toBe(10 * 1000);
     });
 
+    // A zero here would schedule a setTimeout(0) that immediately reschedules itself.
     test('exactly at midnight', () => {
         expect(getMillisUntilNextDay(new Date('2019-05-04T00:00:00Z'), 'UTC')).toBe(24 * HOUR);
     });
@@ -178,5 +181,47 @@ describe('getMillisUntilNextDay', () => {
     test('day lengthened by the end of daylight saving time', () => {
         // Midnight on the day New York falls back, which has 25 hours.
         expect(getMillisUntilNextDay(new Date('2019-11-03T04:00:00Z'), 'America/New_York')).toBe(25 * HOUR);
+    });
+
+    test('day that starts an hour late because its midnight never happens', () => {
+        // Santiago springs forward at 00:00, so 2019-09-08 begins at 01:00 local time. From
+        // 10:00 on the 7th that is 14 hours away rather than the nominal 15.
+        expect(getMillisUntilNextDay(new Date('2019-09-07T14:00:00Z'), 'America/Santiago')).toBe(14 * HOUR);
+    });
+
+    test('lands on the start of a later local day in every timezone', () => {
+        const from = Date.UTC(2019, 0, 1);
+        const until = Date.UTC(2031, 0, 1);
+        const violations: string[] = [];
+
+        for (const name of moment.tz.names()) {
+            const zone = moment.tz.zone(name);
+
+            if (!zone) {
+                continue;
+            }
+
+            const instants = [from, Date.UTC(2025, 6, 1)];
+
+            // Probe either side of every offset change, which is where the arithmetic can slip.
+            for (const transition of zone.untils) {
+                if (transition > from && transition < until) {
+                    instants.push(transition - 1000, transition, transition + 1000);
+                }
+            }
+
+            for (const instant of instants) {
+                const delay = getMillisUntilNextDay(new Date(instant), name);
+                const landing = moment.tz(instant + delay, name);
+
+                if (delay <= 0 || delay > 26 * HOUR) {
+                    violations.push(`${name} at ${new Date(instant).toISOString()}: delay of ${delay}ms`);
+                } else if (landing.valueOf() !== landing.clone().startOf('day').valueOf()) {
+                    violations.push(`${name} at ${new Date(instant).toISOString()}: landed on ${landing.format()}`);
+                }
+            }
+        }
+
+        expect(violations.slice(0, 10)).toEqual([]);
     });
 });

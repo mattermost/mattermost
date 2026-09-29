@@ -8,7 +8,7 @@ import {act, renderWithContext, screen} from 'tests/react_testing_utils';
 import DateSeparator from './date_separator';
 
 describe('components/post_view/DateSeparator', () => {
-    const initialState = {
+    const stateForTimezone = (manualTimezone: string) => ({
         entities: {
             general: {
                 config: {},
@@ -23,14 +23,16 @@ describe('components/post_view/DateSeparator', () => {
                         id: 'user1',
                         timezone: {
                             useAutomaticTimezone: 'false',
-                            manualTimezone: 'UTC',
+                            manualTimezone,
                             automaticTimezone: '',
                         },
                     },
                 },
             },
         },
-    } as any;
+    } as any);
+
+    const initialState = stateForTimezone('UTC');
     test('should render Timestamp inside of a BasicSeparator and pass date/value to it', () => {
         const value = new Date('Fri Jan 12 2018 20:15:13 GMT+1200 (+12)');
         renderWithContext(
@@ -105,6 +107,30 @@ describe('components/post_view/DateSeparator', () => {
             );
 
             expect(screen.getAllByText('Today')).toHaveLength(1);
+            expect(screen.getByText('Yesterday')).toBeInTheDocument();
+        });
+
+        test('should roll over at midnight in the timezone the user selected', () => {
+            renderWithContext(
+                <DateSeparator
+                    date={new Date('2019-05-03T20:00:00Z')}
+                />, stateForTimezone('Asia/Tokyo'),
+            );
+
+            expect(screen.getByText('Today')).toBeInTheDocument();
+
+            // Midnight passes in UTC, but it is still the same day in Tokyo.
+            act(() => {
+                jest.advanceTimersByTime(11 * 1000);
+            });
+
+            expect(screen.getByText('Today')).toBeInTheDocument();
+
+            // Midnight in Tokyo.
+            act(() => {
+                jest.advanceTimersByTime(15 * 60 * 60 * 1000);
+            });
+
             expect(screen.getByText('Yesterday')).toBeInTheDocument();
         });
     });

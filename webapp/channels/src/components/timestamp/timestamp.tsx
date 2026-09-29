@@ -68,6 +68,14 @@ const defaultRefreshIntervals = new Map<Intl.RelativeTimeFormatUnit, number /* s
     ['second', 1],
 ]);
 
+// Units that are compared as whole calendar periods, so the label they produce goes out of
+// date as soon as the local day rolls over.
+const CALENDAR_UNITS = new Set<Intl.RelativeTimeFormatUnit>(['day', 'week', 'month', 'quarter', 'year']);
+
+function isCalendarUnit(unit?: Intl.RelativeTimeFormatUnit): boolean {
+    return unit != null && CALENDAR_UNITS.has(unit);
+}
+
 type UnitDescriptor = [Intl.RelativeTimeFormatUnit, number?, boolean?];
 
 function isUnitDescriptor(unit: unknown): unit is UnitDescriptor {
@@ -89,8 +97,8 @@ export type RangeDescriptor = Breakpoint & DisplayAs;
 
 type ResolvedRange = DisplayAs & {
 
-    // Set when the range was selected by comparing calendar days, so the choice stops
-    // being valid once the local day changes.
+    // Set when the range was selected by comparing whole calendar periods, so the choice
+    // stops being valid once the local day changes.
     dependsOnCurrentDay?: boolean;
 };
 
@@ -309,13 +317,12 @@ class Timestamp extends PureComponent<Props, State> {
             };
         }
 
-        const [breakpointUnit] = range.equals ?? range.within ?? [];
+        const {equals, within, ...displayAs} = range;
+        const [breakpointUnit] = equals ?? within ?? [];
 
         return {
-            display: range.display,
-            updateIntervalInSeconds: range.updateIntervalInSeconds,
-            capitalize: range.capitalize,
-            dependsOnCurrentDay: breakpointUnit === 'day',
+            ...displayAs,
+            dependsOnCurrentDay: isCalendarUnit(breakpointUnit),
         };
     }
 
@@ -354,7 +361,7 @@ class Timestamp extends PureComponent<Props, State> {
                             numeric,
                             style,
                             updateIntervalInSeconds: updateIntervalInSeconds ?? defaultRefreshIntervals.get(unit),
-                            updateAtNextDay: dependsOnCurrentDay || unit === 'day',
+                            updateAtNextDay: dependsOnCurrentDay || isCalendarUnit(unit),
                             capitalize,
                         };
                     }
@@ -410,8 +417,8 @@ class Timestamp extends PureComponent<Props, State> {
             return relative.updateIntervalInSeconds * 1000;
         }
 
-        // Labels like "Today" and formats picked by how many days ago the value was both stop
-        // being accurate once the local day rolls over, so refresh them at the day boundary.
+        // Labels like "Today" and the date formats picked by how many days ago the value was
+        // both stop being accurate once the local day rolls over, so refresh them then.
         if (relative ? relative.updateAtNextDay : Boolean(date)) {
             return getMillisUntilNextDay(this.state.now, this.props.timeZone);
         }

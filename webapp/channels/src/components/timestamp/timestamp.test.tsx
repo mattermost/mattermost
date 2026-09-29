@@ -400,6 +400,28 @@ describe('components/timestamp/Timestamp day rollover', () => {
         expect(container.textContent).toEqual('4 days ago');
     });
 
+    test('should recount whole weeks for a week-relative timestamp', () => {
+        // The last moment of a Saturday, so the next day boundary is also a week boundary.
+        jest.setSystemTime(new Date('2019-05-04T23:59:50Z'));
+
+        const {container} = renderWithContext(
+            <Timestamp
+                value={new Date('2019-05-01T12:00:00Z')}
+                timeZone='UTC'
+                useTime={false}
+                units={['week']}
+            />,
+        );
+
+        expect(container.textContent).toEqual('this week');
+
+        advanceBy(11 * 1000);
+
+        expect(container.textContent).toEqual('last week');
+    });
+
+    // The only coverage of the branch that refreshes an absolute date format rather than a
+    // relative label, so deleting it silently drops that branch.
     test('should drop the weekday format once the value is more than six days old', () => {
         const {container} = renderWithContext(
             <Timestamp
@@ -439,7 +461,11 @@ describe('components/timestamp/Timestamp day rollover', () => {
         expect(container.textContent).toEqual('Yesterday');
     });
 
+    // Every post in a channel renders one of these, so a time-only timestamp must not take a
+    // timer just because the component now knows how to schedule one.
     test('should not schedule an update when only a time is rendered', () => {
+        const before = jest.getTimerCount();
+
         renderWithContext(
             <Timestamp
                 value={EARLIER_THAT_EVENING}
@@ -448,32 +474,38 @@ describe('components/timestamp/Timestamp day rollover', () => {
             />,
         );
 
-        expect(jest.getTimerCount()).toBe(0);
+        expect(jest.getTimerCount()).toBe(before);
     });
 
-    test('should keep a single pending update across re-renders', () => {
-        const {rerender} = renderWithContext(
+    test('should leave no pending update behind after re-renders and unmount', () => {
+        const before = jest.getTimerCount();
+
+        const {rerender, unmount} = renderWithContext(
             <Timestamp
                 value={EARLIER_THAT_EVENING}
                 timeZone='UTC'
                 useTime={false}
-                className='before'
+                className='first'
                 ranges={TODAY_YESTERDAY_RANGES}
             />,
         );
 
-        expect(jest.getTimerCount()).toBe(1);
+        expect(jest.getTimerCount()).toBe(before + 1);
 
-        rerender(
-            <Timestamp
-                value={EARLIER_THAT_EVENING}
-                timeZone='UTC'
-                useTime={false}
-                className='after'
-                ranges={TODAY_YESTERDAY_RANGES}
-            />,
-        );
+        for (const className of ['second', 'third']) {
+            rerender(
+                <Timestamp
+                    value={EARLIER_THAT_EVENING}
+                    timeZone='UTC'
+                    useTime={false}
+                    className={className}
+                    ranges={TODAY_YESTERDAY_RANGES}
+                />,
+            );
+        }
 
-        expect(jest.getTimerCount()).toBe(1);
+        unmount();
+
+        expect(jest.getTimerCount()).toBe(before);
     });
 });
