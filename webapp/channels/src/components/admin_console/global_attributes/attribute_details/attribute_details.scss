@@ -213,58 +213,6 @@
     line-height: 16px;
 }
 
-// Matches permission_policy_details.scss's .pp-role-dropdown-button, per design
-// spec parity between the two admin-console single-select dropdowns.
-.AttributeDetails__typeButton {
-    display: flex;
-    width: 350px;
-    max-width: 100%;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 16px;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    border-radius: 4px;
-    background: var(--center-channel-bg);
-    color: var(--center-channel-color);
-    cursor: pointer;
-    font-size: 14px;
-
-    &:hover {
-        border-color: rgba(var(--center-channel-color-rgb), 0.32);
-    }
-
-    &:focus {
-        border-color: var(--button-bg);
-        box-shadow: 0 0 0 2px rgba(var(--button-bg-rgb), 0.3);
-        outline: none;
-    }
-
-    .icon {
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-size: 18px;
-    }
-
-    &:disabled {
-        background-color: rgba(var(--center-channel-color-rgb), 0.04);
-        cursor: not-allowed;
-
-        .AttributeDetails__typeButtonInner,
-        .icon {
-            opacity: 0.6;
-        }
-
-        &:hover {
-            border-color: rgba(var(--center-channel-color-rgb), 0.16);
-        }
-    }
-}
-
-.AttributeDetails__typeButtonInner {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
 .AttributeDetails__optionsHelp {
     margin: 0;
     color: rgba(var(--center-channel-color-rgb), 0.64);
