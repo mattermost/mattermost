@@ -64,6 +64,7 @@ jest.mock('actions/post_actions', () => ({
     submitReaction: (...args: any[]) => ({type: 'MOCK_SUBMIT_REACTION', args}),
     addReaction: (...args: any[]) => ({type: 'MOCK_ADD_REACTION', args}),
     createPost: jest.fn(() => ({type: 'MOCK_CREATE_POST'})),
+    createSchedulePostFromDraft: jest.fn(() => ({type: 'MOCK_CREATE_SCHEDULE_POST_FROM_DRAFT'})),
     setEditingPost: (...args: any[]) => ({type: 'MOCK_SET_EDITING_POST', args}),
 }));
 
@@ -210,6 +211,35 @@ describe('rhs view actions', () => {
             );
 
             expect(lastCall(jest.mocked(PostActions.createPost).mock.calls)[1]).toBe(draft.fileInfos);
+        });
+
+        test('it forwards options.propertyValues onto the created post as metadata.property_values', async () => {
+            const propertyValues = [{field_id: 'field1', value: 'value1'}];
+
+            await store.dispatch(submitPost(channelId, rootId, draft, undefined, undefined, {propertyValues}));
+
+            const [createdPost] = lastCall(jest.mocked(PostActions.createPost).mock.calls);
+            expect((createdPost as any).metadata.property_values).toEqual(propertyValues);
+        });
+
+        test('it does not set metadata.property_values when nothing is staged', async () => {
+            await store.dispatch(submitPost(channelId, rootId, draft));
+
+            const [createdPost] = lastCall(jest.mocked(PostActions.createPost).mock.calls);
+            expect((createdPost as any).metadata.property_values).toBeUndefined();
+        });
+
+        test('it drops propertyValues from a scheduled post, even if staged', async () => {
+            const propertyValues = [{field_id: 'field1', value: 'value1'}];
+            const schedulingInfo = {scheduled_at: 12345};
+
+            await store.dispatch(submitPost(channelId, rootId, draft, undefined, schedulingInfo, {propertyValues}));
+
+            expect(PostActions.createSchedulePostFromDraft).toHaveBeenCalled();
+            expect(PostActions.createPost).not.toHaveBeenCalled();
+
+            const [scheduledPost] = lastCall(jest.mocked(PostActions.createSchedulePostFromDraft).mock.calls);
+            expect((scheduledPost as any).metadata?.property_values).toBeUndefined();
         });
 
         test('it does not call PostActions.createPost when hooks fail', async () => {

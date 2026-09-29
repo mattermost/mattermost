@@ -5,10 +5,12 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Permissions} from 'mattermost-redux/constants';
 
+import {onSubmit} from 'actions/views/create_comment';
 import {openModal} from 'actions/views/modals';
 
 import {renderHookWithContext} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -270,5 +272,88 @@ describe('useSubmit', () => {
             modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
         }));
     });
-});
 
+    it('should forward propertyValues onto the submit options for a top-level post', async () => {
+        // rootId is empty here, so this only exercises the non-reply path. The reply path is
+        // covered separately below, since it goes through the isRootDeleted lookup first.
+        const propertyValues = [{field_id: 'field_id', value: 'value'}];
+        const {result} = renderHookWithContext(() => useSubmit(
+            mockDraft,
+            mockPostError,
+            'channel_id',
+            '',
+            mockServerError,
+            mockLastBlurAt,
+            mockFocusTextbox,
+            mockSetServerError,
+            mockSetShowPreview,
+            mockHandleDraftChange,
+            mockPrioritySubmitCheck,
+            mockAfterOptimisticSubmit,
+            mockAfterSubmit,
+            false,
+            false,
+            'post_id',
+            propertyValues,
+        ), getBaseState());
+        expect(result.current[0]).toBeDefined();
+
+        const [handleSubmit] = result.current;
+
+        await handleSubmit();
+
+        expect(onSubmit).toHaveBeenCalledWith(
+            'channel_id',
+            '',
+            expect.anything(),
+            expect.objectContaining({propertyValues}),
+            undefined,
+        );
+    });
+
+    it('should forward propertyValues onto the submit options for a reply', async () => {
+        // A reply's rootId must resolve to a non-deleted post in the store, or doSubmit's
+        // isRootDeleted guard returns before the options object (and propertyValues) is built.
+        const rootPost = TestHelper.getPostMock({id: 'root_id', channel_id: 'channel_id'});
+        const baseState = getBaseState();
+        baseState.entities!.posts = {
+            posts: {
+                root_id: rootPost,
+            },
+        };
+
+        const propertyValues = [{field_id: 'field_id', value: 'value'}];
+        const {result} = renderHookWithContext(() => useSubmit(
+            mockDraft,
+            mockPostError,
+            'channel_id',
+            'root_id',
+            mockServerError,
+            mockLastBlurAt,
+            mockFocusTextbox,
+            mockSetServerError,
+            mockSetShowPreview,
+            mockHandleDraftChange,
+            mockPrioritySubmitCheck,
+            mockAfterOptimisticSubmit,
+            mockAfterSubmit,
+            false,
+            false,
+            'post_id',
+            propertyValues,
+        ), baseState);
+        expect(result.current[0]).toBeDefined();
+
+        const [handleSubmit] = result.current;
+
+        await handleSubmit();
+
+        expect(onSubmit).toHaveBeenCalledWith(
+            'channel_id',
+            'root_id',
+            expect.anything(),
+            expect.objectContaining({propertyValues}),
+            undefined,
+        );
+    });
+});
