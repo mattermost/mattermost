@@ -28,7 +28,6 @@ import AdLdap from '@/ui/components/system_console/sections/authentication/ad_ld
 import PasswordSettings from '@/ui/components/system_console/sections/authentication/password';
 import MfaSettings from '@/ui/components/system_console/sections/authentication/mfa';
 import PublicLinks from '@/ui/components/system_console/sections/site_configuration/public_links';
-import {testConfig} from '@/test_config';
 
 export default class SystemConsolePage {
     readonly page: Page;
@@ -137,56 +136,56 @@ export default class SystemConsolePage {
     }
 
     async goto() {
-        await this.page.goto(new URL('/admin_console', testConfig.baseURL).href);
+        await this.page.goto('/admin_console');
     }
 
     /** Notifications settings URL is environment/notifications (sidebar groups under Site Configuration). */
     async gotoNotificationsSettings() {
-        await this.page.goto(new URL('/admin_console/environment/notifications', testConfig.baseURL).href);
+        await this.page.goto('/admin_console/environment/notifications');
     }
 
     async gotoPluginManagement() {
-        await this.page.goto(new URL('/admin_console/plugins/plugin_management', testConfig.baseURL).href);
+        await this.page.goto('/admin_console/plugins/plugin_management');
         await this.pluginManagement.toBeVisible();
     }
 
     async gotoEditionAndLicense() {
-        await this.page.goto(new URL('/admin_console/about/license', testConfig.baseURL).href);
+        await this.page.goto('/admin_console/about/license');
         await this.editionAndLicense.toBeVisible();
     }
 
     async gotoOpenIdConnect() {
-        await this.page.goto(new URL('/admin_console/authentication/openid', testConfig.baseURL).href);
+        await this.page.goto('/admin_console/authentication/openid');
         await this.openIdConnect.toBeVisible();
     }
 
     async gotoUser(userId: string) {
-        await this.page.goto(new URL(`/admin_console/user_management/user/${userId}`, testConfig.baseURL).href);
+        await this.page.goto(`/admin_console/user_management/user/${userId}`);
         await this.users.userDetail.toBeVisible();
     }
 
     async gotoUsers() {
-        await this.page.goto(new URL('/admin_console/user_management/users', testConfig.baseURL).href);
+        await this.page.goto('/admin_console/user_management/users');
         await this.users.toBeVisible();
     }
 
     async gotoAdLdap() {
-        await this.page.goto(new URL('/admin_console/authentication/ldap', testConfig.baseURL).href);
+        await this.page.goto('/admin_console/authentication/ldap');
         await this.adLdap.toBeVisible();
     }
 
     async gotoPasswordSettings() {
-        await this.page.goto(new URL('/admin_console/authentication/password', testConfig.baseURL).href);
+        await this.page.goto('/admin_console/authentication/password');
         await this.passwordSettings.toBeVisible();
     }
 
     async gotoMfaSettings() {
-        await this.page.goto(new URL('/admin_console/authentication/mfa', testConfig.baseURL).href);
+        await this.page.goto('/admin_console/authentication/mfa');
         await this.mfaSettings.toBeVisible();
     }
 
     async gotoPublicLinks() {
-        await this.page.goto(new URL('/admin_console/site_config/public_links', testConfig.baseURL).href);
+        await this.page.goto('/admin_console/site_config/public_links');
         await this.publicLinks.toBeVisible();
     }
 

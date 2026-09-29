@@ -27,6 +27,7 @@ jobs:
       report_type: "${{ steps.vars.outputs.report_type }}"
       ref_branch: "${{ steps.vars.outputs.ref_branch }}"
       fips_supported: "${{ steps.vars.outputs.fips_supported }}"
+      should_run_subpath: "${{ steps.vars.outputs.should_run_subpath }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -68,6 +69,20 @@ jobs:
             exit 1
           fi
 
+          # Subpath: run the full suite against a server booted under a subpath when this commit
+          # changed subpath-specific server code or test specs.
+          CHANGED_FILES=$(git diff --name-only "${COMMIT_SHA}^" "${COMMIT_SHA}")
+          SHOULD_RUN_SUBPATH="false"
+          if echo "$CHANGED_FILES" | grep -qE '^server/channels/utils/subpath\.go$'; then
+            echo "Found server subpath.go changes"
+            SHOULD_RUN_SUBPATH="true"
+          elif echo "$CHANGED_FILES" | grep -qE '^e2e-tests/playwright/specs/functional/subpath/'; then
+            echo "Found subpath spec changes"
+            SHOULD_RUN_SUBPATH="true"
+          fi
+          echo "should_run_subpath=${SHOULD_RUN_SUBPATH}" >> $GITHUB_OUTPUT
+          echo "Should run subpath E2E tests: ${SHOULD_RUN_SUBPATH}"
+
   # Enterprise Edition
   e2e-cypress:
     needs: generate-build-variables
@@ -108,6 +123,30 @@ jobs:
       enable_reporting: true
       report_type: ${{ needs.generate-build-variables.outputs.report_type }}
       ref_branch: ${{ needs.generate-build-variables.outputs.ref_branch }}
+    secrets:
+      MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
+      REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+
+  # Full Playwright suite against a server booted under a subpath (PW_SERVER_DEPLOY=subpath).
+  # Only when subpath-specific server code or test specs changed in this commit.
+  e2e-playwright-subpath:
+    needs: generate-build-variables
+    if: needs.generate-build-variables.outputs.should_run_subpath == 'true'
+    permissions:
+      contents: read
+      statuses: write
+      id-token: write
+      pull-requests: write
+    uses: ./.github/workflows/e2e-tests-playwright.yml
+    with:
+      commit_sha: ${{ inputs.commit_sha }}
+      server_image_tag: ${{ inputs.server_image_tag }}
+      server: onprem
+      enable_reporting: true
+      report_type: ${{ needs.generate-build-variables.outputs.report_type }}
+      ref_branch: ${{ needs.generate-build-variables.outputs.ref_branch }}
+      server_deploy: subpath
+      playwright_project: subpath
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"

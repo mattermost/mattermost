@@ -7,6 +7,7 @@ import {startAzuriteContainer} from './azurite_container';
 import {startElasticsearchContainer} from './elasticsearch_container';
 import {startKeycloakContainer} from './keycloak_container';
 import {startMinioContainer} from './minio_container';
+import {startNginxContainer} from './nginx_container';
 import {startOpenldapContainer} from './openldap_container';
 import {startOpensearchContainer} from './opensearch_container';
 
@@ -24,4 +25,5 @@ export const ADDITIONAL_SERVICE_STARTERS: Record<
     opensearch: startOpensearchContainer,
     minio: startMinioContainer,
     azurite: startAzuriteContainer,
+    nginx: startNginxContainer,
 };
