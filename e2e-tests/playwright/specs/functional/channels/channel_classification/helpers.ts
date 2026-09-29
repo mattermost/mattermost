@@ -3,14 +3,19 @@
 
 import type {Client4} from '@mattermost/client';
 
+// Canonical values: webapp/channels/src/components/admin_console/classification_markings/utils/index.ts
+// (cross-package import not feasible between e2e-tests and webapp)
 const PROPERTY_GROUP = 'access_control';
 const TEMPLATE_OBJECT_TYPE = 'template';
 const CHANNEL_OBJECT_TYPE = 'channel';
 const TARGET_TYPE = 'system';
 const CLASSIFICATION_FIELD_NAME = 'classification';
 const CHANNEL_LINKED_FIELD_NAME = 'classification';
-// Must match CLASSIFICATIONS_FIELD_TYPE in the webapp utils. A select-typed
-// field with this name is treated as a foreign attribute, not adopted.
+// Classification levels are an ordered scale, so only a rank-typed field by this
+// name belongs to the feature. One of any other type is a different attribute that
+// happens to share the name, and the admin pages report it as a conflict rather
+// than adopting it — so seeding the wrong type here lands the test on that error
+// screen instead of the editor.
 const CLASSIFICATIONS_FIELD_TYPE = 'rank';
 
 export const TEST_LEVELS = [

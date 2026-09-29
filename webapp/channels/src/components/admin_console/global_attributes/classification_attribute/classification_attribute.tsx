@@ -307,6 +307,13 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                             />
                         </p>
                     )}
+                    {/* The name is not reserved, so Attribute Management can create an
+                        attribute called `classification` that this page does not own.
+                        Two ways in: a template of any type other than rank (the listing
+                        no longer links here for one, but the URL still resolves), or a
+                        channel attribute of that name linked to a different template,
+                        whose options the Applies-to card below would otherwise edit.
+                        Both are cleared by renaming or deleting the attribute. */}
                     {loadState === 'conflict' && conflictField && (
                         <p
                             className='ClassificationAttribute__notice'

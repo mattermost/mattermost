@@ -12,8 +12,11 @@ const TARGET_TYPE = 'system';
 const SYSTEM_FIELD_TARGET_ID = ''; // target_type 'system' requires empty target_id on the field
 const CLASSIFICATION_FIELD_NAME = 'classification';
 const LINKED_CLASSIFICATION_FIELD_NAME = 'classification';
-// Must match CLASSIFICATIONS_FIELD_TYPE in the webapp utils. A select-typed
-// field with this name is treated as a foreign attribute, not adopted.
+// Classification levels are an ordered scale, so only a rank-typed field by this
+// name belongs to the feature. One of any other type is a different attribute that
+// happens to share the name, and the admin pages report it as a conflict rather
+// than adopting it — so seeding the wrong type here lands the test on that error
+// screen instead of the editor.
 const CLASSIFICATIONS_FIELD_TYPE = 'rank';
 const DISPLAY_BANNER_TOP = 'display_banner_top';
 const DISPLAY_BANNER_BOTTOM = 'display_banner_bottom';
