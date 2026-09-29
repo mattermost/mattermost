@@ -548,12 +548,10 @@ func TestSendPersistentNotificationsFileMetadataABAC(t *testing.T) {
 	runCase := func(t *testing.T, allowed bool) *model.Post {
 		t.Helper()
 
-		th := Setup(t).InitBasic(t)
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
+		th := SetupConfig(t, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
-		})
+		}).InitBasic(t)
 
 		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
 		require.Nil(t, appErr)
@@ -656,12 +654,10 @@ func TestSendPersistentNotificationsFileHintsABAC(t *testing.T) {
 	runCase := func(t *testing.T, allowed bool) *model.WebSocketEvent {
 		t.Helper()
 
-		th := Setup(t).InitBasic(t)
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
+		th := SetupConfig(t, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
-		})
+		}).InitBasic(t)
 
 		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
 		require.Nil(t, appErr)

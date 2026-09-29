@@ -635,12 +635,10 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 
 func TestChannelBookmarkBroadcastsFileInfoABAC(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
+	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
 		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
-	})
+	}).InitBasic(t)
 
 	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
 	require.Nil(t, appErr)
