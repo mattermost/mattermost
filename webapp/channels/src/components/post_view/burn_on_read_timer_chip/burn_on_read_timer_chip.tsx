@@ -7,6 +7,7 @@ import {useIntl} from 'react-intl';
 import {FireIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
+import {useBurnOnReadScreenshotDetection} from 'hooks/useBurnOnReadScreenshotDetection';
 import {useBurnOnReadTimer} from 'hooks/useBurnOnReadTimer';
 import {getAriaAnnouncementInterval, formatAriaAnnouncement} from 'utils/burn_on_read_timer_utils';
 import Constants from 'utils/constants';
@@ -17,15 +18,18 @@ import './burn_on_read_timer_chip.scss';
 interface Props {
     expireAt?: number;
     onClick: () => void;
+    isRecipient?: boolean;
 }
 
-const BurnOnReadTimerChip = ({expireAt, onClick}: Props) => {
+const BurnOnReadTimerChip = ({expireAt, onClick, isRecipient = false}: Props) => {
     const {formatMessage} = useIntl();
     const [lastAnnouncement, setLastAnnouncement] = useState<number>(0);
 
     const {displayText, remainingMs, isWarning, isExpired} = useBurnOnReadTimer({
         expireAt: expireAt || Date.now(),
     });
+
+    useBurnOnReadScreenshotDetection(isRecipient);
 
     const handleClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
