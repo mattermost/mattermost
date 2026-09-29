@@ -564,10 +564,6 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
         [fields, unlinkedFields, suppressedScopes, resourcesLoaded],
     );
 
-    // The Source column resolves plugin-owned rows to a plugin display name, but
-    // server-only plugins are absent from the webapp manifest registry — their names
-    // live in the admin plugin statuses, which nothing else on this page loads.
-    // Fetched once, and only when a plugin-owned row is actually present.
     const ownersFor = useCallback((field: PropertyField): PropertyFieldOwner[] => {
         if (field.object_type === 'user') {
             return getFieldOwners(field);
@@ -575,6 +571,10 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
         return ownersByTemplateId[field.id] ?? NO_OWNERS;
     }, [ownersByTemplateId]);
 
+    // The Source column resolves plugin-created and plugin-owned rows to a plugin
+    // display name, but server-only plugins are absent from the webapp manifest
+    // registry — their names live in the admin plugin statuses, which nothing else
+    // on this page loads. Fetched once, and only when such a row is actually present.
     const hasPluginOwnedFields = useMemo(() => allRows.some((field) => (
         Boolean(field.attrs?.source_plugin_id) || ownersFor(field).some((owner) => owner.type === 'plugin')
     )), [allRows, ownersFor]);
