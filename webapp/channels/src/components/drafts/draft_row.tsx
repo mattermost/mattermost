@@ -158,7 +158,6 @@ function DraftRow({
         history.push(channelUrl);
     }, [channelUrl, dispatch, history, rootId, rootPostDeleted, isEditing]);
 
-    const isBeingScheduled = useRef(false);
     const isScheduledPostBeingSent = useRef(false);
 
     const thread = useSelector((state: GlobalState) => {
@@ -197,7 +196,6 @@ function DraftRow({
         // Sending or scheduling a draft consumes it. createPost only clears the locally
         // stored copy, so delete the draft outright or the surviving server copy syncs
         // back in on the next fetch.
-        isBeingScheduled.current = false;
         handleOnDelete();
     }, [connectionId, dispatch, handleOnDelete, item]);
 
@@ -221,7 +219,6 @@ function DraftRow({
     );
 
     const onScheduleDraft = useCallback(async (schedulingInfo: SchedulingInfo): Promise<{error?: string}> => {
-        isBeingScheduled.current = true;
         await handleOnSend(item as PostDraft, schedulingInfo);
         return Promise.resolve({});
     }, [item, handleOnSend]);

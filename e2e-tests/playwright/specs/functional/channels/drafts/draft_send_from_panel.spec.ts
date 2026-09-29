@@ -78,15 +78,14 @@ test.describe('sending a draft from the Drafts panel', () => {
 
     /**
      * @objective Verify a thread draft sent from the global Drafts panel is deleted
-     * server-side under its root id rather than only locally, so neither the panel nor
-     * a full page reload shows it again.
+     * server-side under its root id, not just cleared from local storage.
      */
-    test('thread draft does not come back after a reload', {tag: '@messaging'}, async ({pw}) => {
+    test('thread draft is deleted server-side under its root id', {tag: '@messaging'}, async ({pw}) => {
         const rootMessage = `thread-root-${pw.random.id()}`;
         const replyDraft = `thread-reply-draft-${pw.random.id()}`;
 
         const {user, team, userClient} = await pw.initSetup();
-        const {channelsPage, draftsPage, page} = await pw.testBrowser.login(user);
+        const {channelsPage, draftsPage} = await pw.testBrowser.login(user);
 
         await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
@@ -114,16 +113,9 @@ test.describe('sending a draft from the Drafts panel', () => {
         await draftsPage.expectDraftCount(0);
         await expect(draftsCountBadge(channelsPage)).not.toBeAttached();
 
-        // * The server copy is gone, keyed under the thread's root id
+        // * The server copy is gone, keyed under the thread's root id. This is the
+        // assertion that fails without the fix: the panel and the LHS badge are driven by
+        // local storage, which the optimistic clear in createPost empties either way.
         await expect.poll(async () => (await userClient.getUserDrafts(team.id))?.length ?? 0).toBe(0);
-
-        // # Reload the page, which refetches drafts from the server
-        await page.reload();
-        await draftsPage.toBeVisible();
-
-        // * The sent thread draft did not reappear
-        await expect(draftsPage.noDrafts).toBeVisible();
-        await draftsPage.expectDraftCount(0);
-        await expect(draftsCountBadge(channelsPage)).not.toBeAttached();
     });
 });
