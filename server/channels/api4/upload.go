@@ -70,6 +70,10 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionUploadFile)
 			return
 		}
+		if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, us.ChannelId, model.AccessControlPolicyActionUploadFileAttachment) {
+			c.Err = model.NewAppError("createUpload", "api.file.upload_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+			return
+		}
 		us.Type = model.UploadTypeAttachment
 	}
 

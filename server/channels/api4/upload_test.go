@@ -17,7 +17,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 func TestCreateUpload(t *testing.T) {
@@ -232,6 +234,105 @@ func TestCreateUpload(t *testing.T) {
 			),
 			rus.Path,
 		)
+	})
+}
+
+func TestCreateUploadABACEnforcement(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+	}).InitBasic(t)
+
+	// The channel permission check runs before ABAC, so the user must already be able to upload
+	// for this to reach the gate under test.
+	mockUploadDecision := func(t *testing.T, allowed bool) {
+		t.Helper()
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionUploadFileAttachment
+		})).Return(model.AccessDecision{Decision: allowed}, (*model.AppError)(nil))
+
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().Channels().AccessControl = original
+		})
+	}
+
+	t.Run("createUpload is rejected when the policy denies the upload action", func(t *testing.T) {
+		mockUploadDecision(t, false)
+
+		us := &model.UploadSession{
+			ChannelId: th.BasicChannel.Id,
+			Filename:  "upload",
+			FileSize:  1024,
+		}
+		u, resp, err := th.Client.CreateUpload(context.Background(), us)
+		require.Error(t, err)
+		require.Nil(t, u)
+		CheckErrorID(t, err, "api.file.upload_file.abac_denied.app_error")
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("createUpload succeeds when the policy allows the upload action", func(t *testing.T) {
+		mockUploadDecision(t, true)
+
+		us := &model.UploadSession{
+			ChannelId: th.BasicChannel.Id,
+			Filename:  "upload",
+			FileSize:  1024,
+		}
+		u, resp, err := th.Client.CreateUpload(context.Background(), us)
+		require.NoError(t, err)
+		require.NotNil(t, u)
+		require.Equal(t, http.StatusCreated, resp.StatusCode)
+	})
+
+	t.Run("createUpload is unaffected when ABAC is disabled (regression)", func(t *testing.T) {
+		mockUploadDecision(t, false)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			})
+		})
+
+		us := &model.UploadSession{
+			ChannelId: th.BasicChannel.Id,
+			Filename:  "upload",
+			FileSize:  1024,
+		}
+		u, resp, err := th.Client.CreateUpload(context.Background(), us)
+		require.NoError(t, err)
+		require.NotNil(t, u)
+		require.Equal(t, http.StatusCreated, resp.StatusCode)
+	})
+
+	t.Run("import uploads are not gated by the upload_file_attachment ABAC check", func(t *testing.T) {
+		mockUploadDecision(t, false)
+
+		testsDir, _ := fileutils.FindDir("tests")
+		importFile, err := os.Open(testsDir + "/import_test.zip")
+		require.NoError(t, err)
+		defer importFile.Close()
+
+		info, err := importFile.Stat()
+		require.NoError(t, err)
+
+		us := &model.UploadSession{
+			Filename: info.Name(),
+			FileSize: info.Size(),
+			Type:     model.UploadTypeImport,
+		}
+		u, resp, err := th.SystemAdminClient.CreateUpload(context.Background(), us)
+		require.NoError(t, err)
+		require.NotNil(t, u)
+		require.Equal(t, http.StatusCreated, resp.StatusCode)
 	})
 }
 
