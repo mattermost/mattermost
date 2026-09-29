@@ -12428,27 +12428,33 @@
   },
   {
     "id": "app.team_load.channel_history.error",
-    "translation": "Unable to get the channels the user has left in this team since the given time."
+    "translation": "Unable to get the channels the user has left in this team since the given time.",
+    "description": ""
   },
   {
     "id": "app.team_load.fanout.error",
-    "translation": "Unable to load the data for the team."
+    "translation": "Unable to load the data for the team.",
+    "description": ""
   },
   {
     "id": "app.team_load.membership_deleted.app_error",
-    "translation": "The user's membership in this team has been removed."
+    "translation": "The user's membership in this team has been removed.",
+    "description": ""
   },
   {
     "id": "app.team_load.not_member.app_error",
-    "translation": "The user is not a member of this team."
+    "translation": "The user is not a member of this team.",
+    "description": ""
   },
   {
     "id": "app.team_load.team_deleted.app_error",
-    "translation": "This team has been deleted."
+    "translation": "This team has been deleted.",
+    "description": ""
   },
   {
     "id": "app.team_load.team_not_found.app_error",
-    "translation": "Unable to find the existing team."
+    "translation": "Unable to find the existing team.",
+    "description": ""
   },
   {
     "id": "app.teams.analytics_teams_count.app_error",
