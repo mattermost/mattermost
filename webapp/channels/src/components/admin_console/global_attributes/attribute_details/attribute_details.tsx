@@ -21,7 +21,7 @@ import {setNavigationBlocked} from 'actions/admin_actions';
 import BlockableLink from 'components/admin_console/blockable_link';
 import {findRankCollision, isValidRank} from 'components/admin_console/system_properties/rank_utils';
 import Card from 'components/card/card';
-import {useIsFieldOrphaned, usePluginInventoryLoaded} from 'components/common/hooks/use_field_orphaned';
+import {useInstalledPluginIds, useIsFieldOrphaned, usePluginInventoryLoaded} from 'components/common/hooks/use_field_orphaned';
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import LoadingScreen from 'components/loading_screen';
 import {pageAllAccessControlFieldOptions} from 'components/property_fields/graph/page_all_access_control_field_options';
@@ -31,7 +31,7 @@ import Input from 'components/widgets/inputs/input/input';
 
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
-import {CPA_FIELD_NAME_MAX_RUNES, filterCELIdentifier, slugifyForCEL, validateCPAFieldName} from 'utils/properties';
+import {allOwnersAreUninstalledPlugins, CPA_FIELD_NAME_MAX_RUNES, filterCELIdentifier, slugifyForCEL, validateCPAFieldName} from 'utils/properties';
 import type {CPAFieldNameValidationError} from 'utils/properties';
 
 import AttributeAppliesTo from './attribute_applies_to';
@@ -630,11 +630,18 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
     const ownedLockedTooltip = isOwned ? formatMessage(messages.ownedLockedTooltip, {owners: ownersLabel}) : undefined;
 
+    // Once every owner is an uninstalled plugin, nothing is left to take the
+    // Users field away from, so it can be removed like Delete on the list allows.
+    const installedPluginIds = useInstalledPluginIds();
+    const ownersGone = pluginInventoryLoaded && allOwnersAreUninstalledPlugins(owners, installedPluginIds);
+    const userRemoveLocked = isOwned && !ownersGone;
+    const ownedRemoveLockedTooltip = userRemoveLocked ? ownedLockedTooltip : undefined;
+
     let removeLockedTooltips: Partial<Record<ResourceObjectType, ReactNode>> | undefined;
     if (isNonTemplate) {
-        removeLockedTooltips = {[objectType]: ownedLockedTooltip ?? formatMessage(messages.appliesToLockedSingleResourceTooltip)};
-    } else if (ownedLockedTooltip) {
-        removeLockedTooltips = {user: ownedLockedTooltip};
+        removeLockedTooltips = {[objectType]: ownedRemoveLockedTooltip ?? formatMessage(messages.appliesToLockedSingleResourceTooltip)};
+    } else if (ownedRemoveLockedTooltip) {
+        removeLockedTooltips = {user: ownedRemoveLockedTooltip};
     }
 
     const markDirty = useCallback(() => {
@@ -1023,7 +1030,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             }
 
             const persisted = persistedLinkedFieldsRef.current;
-            const toDelete = (Object.keys(persisted) as ResourceObjectType[]).filter((type) => !appliesTo.includes(type) && !(isOwned && type === 'user'));
+            const toDelete = (Object.keys(persisted) as ResourceObjectType[]).filter((type) => !appliesTo.includes(type) && !(userRemoveLocked && type === 'user'));
             const toCreate = appliesTo.filter((type) => !persisted[type]);
 
             // Removing a resource deletes every value stored under its linked
@@ -1279,7 +1286,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         }
 
         finalizeSave(outcome);
-    }, [canSave, isEditMode, fieldId, objectType, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, channelResource, finalizeSave, confirmRemoveAppliesTo, userVisibility, userManaged, isOwned]);
+    }, [canSave, isEditMode, fieldId, objectType, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, channelResource, finalizeSave, confirmRemoveAppliesTo, userVisibility, userManaged, userRemoveLocked]);
 
     const handleChannelResourceChange = useCallback((next: ChannelResourceConfig) => {
         setChannelResource(next);

@@ -3104,6 +3104,25 @@ describe('AttributeDetails', () => {
                     expect(screen.getByTestId('attributeAppliesToRow-channel-remove')).toBeEnabled();
                 });
 
+                it('unlocks Remove and deletes the Users field on save once the owner plugin is uninstalled', async () => {
+                    mockScimStatus(false);
+                    mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field', {attrs: ownedAttrs})]);
+                    jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeTemplate());
+                    const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
+
+                    renderEdit();
+                    await waitForForm();
+
+                    await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+                    await waitFor(() => expect(screen.getByTestId('attributeAppliesToRow-user-remove')).toBeEnabled());
+                    await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
+                    await userEvent.click(screen.getByTestId('saveSetting'));
+                    await userEvent.click(await screen.findByRole('button', {name: /remove and save/i}));
+
+                    await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+                    expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'user', 'user-field');
+                });
+
                 it('leaves Remove enabled on an unowned Users row', async () => {
                     mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
 
