@@ -543,7 +543,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 setSamlAttr(typeof field.attrs?.saml === 'string' ? field.attrs.saml : '');
 
                 // A non-template field has no linked children: Applies-to is its
-                // own object type, and AttributeAppliesTo locks it via isNonTemplate.
+                // own object type, so there is no other resource to add or remove.
                 setAppliesTo(
                     field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE ?
                         ALL_RESOURCE_TYPES.filter((type) => Boolean(linkedByType[type])) :
@@ -565,8 +565,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
                 // A non-template channel field is itself the channel field, so its
                 // row settings parse from it directly; a template seeds them from
-                // its linked channel child instead. Without this the locked Channels
-                // row would show the default config, misrepresenting the field.
+                // its linked channel child instead. Save writes every channel setting,
+                // so without this seed a rename would overwrite them with defaults.
                 const channelConfigSource = field.object_type === 'channel' ? field : linkedByType.channel;
                 if (channelConfigSource) {
                     setChannelResource(parseChannelFieldConfig(channelConfigSource));
@@ -1018,8 +1018,6 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     });
                     return;
                 }
-                originalUserVisibilityRef.current = userVisibility;
-                originalUserManagedRef.current = userManaged;
                 finalizeSave({success: true});
                 return;
             }
