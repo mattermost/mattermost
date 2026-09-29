@@ -79,7 +79,7 @@ jobs:
           elif echo "$CHANGED_FILES" | grep -qE '^e2e-tests/playwright/specs/functional/subpath/'; then
             echo "Found subpath spec changes"
             SHOULD_RUN_SUBPATH="true"
-          elif echo "$CHANGED_FILES" | grep -qE '^(\.github/workflows/e2e-tests-playwright(-template)?\.yml|e2e-tests/playwright/(playwright\.config\.ts|lib/src/(flag\.ts|test_config\.ts|server/server_env\.ts|containers/(nginx_container\.ts|mattermost_container\.ts|stack\.ts|constants\.ts|default_images\.ts|requirements\.ts))))$'; then
+          elif echo "$CHANGED_FILES" | grep -qE '^(\.github/workflows/e2e-tests-playwright(-template)?\.yml|e2e-tests/playwright/(playwright\.config\.ts|lib/src/(flag\.ts|test_config\.ts|browser_context\.ts|test_fixture\.ts|server/server_env\.ts|containers/(nginx_container\.ts|mattermost_container\.ts|stack\.ts|constants\.ts|default_images\.ts|requirements\.ts))))$'; then
             echo "Found subpath deployment implementation changes"
             SHOULD_RUN_SUBPATH="true"
           fi
