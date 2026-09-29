@@ -2757,6 +2757,114 @@ describe('AttributeDetails', () => {
             });
         });
 
+        describe('owned field', () => {
+            const SCIM_ID = 'com.mattermost.scim';
+            const scimOwner = {id: SCIM_ID, type: 'plugin', scopes: []};
+
+            function mockScimStatus(installed: boolean) {
+                return jest.spyOn(Client4, 'getPluginStatuses').mockResolvedValue(installed ? [{
+                    plugin_id: SCIM_ID,
+                    name: 'SCIM',
+                    description: '',
+                    version: '1.0.0',
+                    cluster_id: '',
+                    plugin_path: '',
+                    state: 1,
+                }] : []);
+            }
+
+            it('locks Type and Unique Name on an owned template, naming the owner instead of "applies to a resource"', async () => {
+                const getPluginStatuses = mockScimStatus(true);
+                mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field', {attrs: {display_name: 'Department', owners: [scimOwner]}})]);
+
+                renderEdit();
+                await waitForForm();
+
+                const typeButton = screen.getByTestId('attributeTypeMenuButton');
+                const nameLink = screen.getByTestId('attributeNameEditLink');
+                await waitFor(() => expect(typeButton).toHaveAccessibleName(/managed by SCIM/));
+                expect(typeButton).toBeDisabled();
+                expect(nameLink).toBeDisabled();
+                expect(nameLink).toHaveAccessibleName(/managed by SCIM/);
+                expect(typeButton).not.toHaveAccessibleName(/applies to a resource/);
+                expect(nameLink).not.toHaveAccessibleName(/applies to a resource/);
+                expect(getPluginStatuses).toHaveBeenCalled();
+            });
+
+            it('locks Type and Unique Name on an owned standalone user field', async () => {
+                mockScimStatus(true);
+                mockLoadedNonTemplateField(makeNonTemplate('user', {attrs: {display_name: 'Department', owners: [scimOwner]}}));
+
+                renderEdit();
+                await waitForForm();
+
+                await waitFor(() => expect(screen.getByTestId('attributeTypeMenuButton')).toHaveAccessibleName(/managed by SCIM/));
+                expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
+                expect(screen.getByTestId('attributeNameEditLink')).toBeDisabled();
+                expect(screen.getByTestId('attributeNameEditLink')).toHaveAccessibleName(/managed by SCIM/);
+            });
+
+            it('stays locked and names the plugin ID when the owner plugin is not installed', async () => {
+                mockScimStatus(false);
+                mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field', {attrs: {display_name: 'Department', owners: [scimOwner]}})]);
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
+                expect(screen.getByTestId('attributeTypeMenuButton')).toHaveAccessibleName(new RegExp(`managed by ${SCIM_ID}`));
+                expect(screen.getByTestId('attributeNameEditLink')).toHaveAccessibleName(new RegExp(`managed by ${SCIM_ID}`));
+            });
+
+            it('names a service owner by its ID', async () => {
+                mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field', {attrs: {display_name: 'Department', owners: [{id: 'svc-sync', type: 'service', scopes: []}]}})]);
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeTypeMenuButton')).toHaveAccessibleName(/managed by svc-sync/);
+                expect(screen.getByTestId('attributeNameEditLink')).toHaveAccessibleName(/managed by svc-sync/);
+            });
+
+            it('keeps display name and options editable, and lets a display name change enable Save', async () => {
+                mockScimStatus(true);
+                mockLoadedField(makeTemplate({
+                    type: 'select',
+                    attrs: {display_name: 'Department', options: [{id: 'opt-1', name: 'Engineering'}]},
+                }), [makeLinked('user', 'user-field', {type: 'select', attrs: {display_name: 'Department', options: [{id: 'opt-1', name: 'Engineering'}], owners: [scimOwner]}})]);
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeDisplayNameInput')).toBeEnabled();
+                expect(screen.getByTestId('attributeOptionsValues__addInput')).toBeEnabled();
+
+                await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' Renamed');
+                expect(screen.getByTestId('saveSetting')).toBeEnabled();
+            });
+
+            it('keeps the plugin-created reasons when the linked Users field also has owners', async () => {
+                mockScimStatus(true);
+                mockLoadedField(makePluginOwnedTemplate(), [makeLinked('user', 'user-field', {attrs: {display_name: 'Plugin field', owners: [scimOwner]}})]);
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeTypeMenuButton')).toHaveAccessibleName(/managed by a plugin/);
+                expect(screen.getByTestId('attributeNameEditLink')).toHaveAccessibleName(/managed by a plugin/);
+            });
+
+            it('keeps the applies-to reasons when the linked Users field has no owners', async () => {
+                mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeTypeMenuButton')).toHaveAccessibleName(/applies to a resource/);
+                expect(screen.getByTestId('attributeNameEditLink')).toHaveAccessibleName(/applies to a resource/);
+            });
+        });
+
         it('redirects to the listing when the field is Classification Markings', async () => {
             mockLoadedField(makeTemplate({name: 'classification'}));
             renderEdit();
