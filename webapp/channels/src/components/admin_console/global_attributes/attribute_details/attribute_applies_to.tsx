@@ -51,6 +51,7 @@ type Props = {
     onUserVisibilityChange?: (visibility: FieldVisibility) => void;
     userManaged?: UserManagedValue;
     onUserManagedChange?: (managed: UserManagedValue) => void;
+    userWhoCanSetLockedTooltip?: ReactNode;
 
     // Set when the attribute's values are synced from AD/LDAP or SAML, which
     // the Users row surfaces as a read-only "Managed by" indicator.
@@ -99,6 +100,7 @@ function AttributeAppliesTo({
     userManaged,
     onUserManagedChange,
     externalSource,
+    userWhoCanSetLockedTooltip,
     channelResource,
     onChannelResourceChange,
     ordered,
@@ -213,6 +215,7 @@ function AttributeAppliesTo({
                                         managed: userManaged,
                                         onManagedChange: onUserManagedChange,
                                         externalSource,
+                                        whoCanSetLockedTooltip: userWhoCanSetLockedTooltip,
                                     } : {};
                                     return (
                                         <Item

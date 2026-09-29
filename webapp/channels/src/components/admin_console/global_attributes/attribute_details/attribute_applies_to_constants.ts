@@ -54,6 +54,10 @@ export type AttributeAppliesToItemProps = {
     // The external system this attribute's values are synced from, when there
     // is one. Undefined for attributes managed in Mattermost or by a plugin.
     externalSource?: ExternalSource;
+
+    // Locks only "Who can set the value" at its stored value and explains why;
+    // Profile display and Remove keep following `disabled`.
+    whoCanSetLockedTooltip?: ReactNode;
 };
 
 // Channels is the one resource with settings of its own, so its row takes the

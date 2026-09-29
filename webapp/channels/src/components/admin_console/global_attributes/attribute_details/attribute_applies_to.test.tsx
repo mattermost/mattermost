@@ -130,6 +130,15 @@ describe('AttributeAppliesTo', () => {
         });
     });
 
+    describe('userWhoCanSetLockedTooltip on the Users row', () => {
+        it('locks Who can set the value once the Users row is expanded', async () => {
+            renderComponent({appliesTo: ['user'], userWhoCanSetLockedTooltip: 'Managed by SCIM'});
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+            expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-lockWrap')).toBeInTheDocument();
+        });
+    });
+
     describe('lockedTooltip on the Channels row', () => {
         it('wraps the toggle in the lock tooltip when lockedTooltip is given', () => {
             renderComponent({appliesTo: ['channel'], lockedTooltip: 'Locked'});

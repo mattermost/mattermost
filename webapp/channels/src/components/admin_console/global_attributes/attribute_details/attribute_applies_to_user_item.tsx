@@ -47,6 +47,7 @@ function AttributeAppliesToUserItem({
     managed = '',
     onManagedChange,
     externalSource,
+    whoCanSetLockedTooltip,
 }: AttributeAppliesToItemProps): JSX.Element {
     const {formatMessage} = useIntl();
     const [isOpen, setIsOpen] = useState(false);
@@ -74,6 +75,34 @@ function AttributeAppliesToUserItem({
                 <span className='AttributeAppliesToItem__label'>{label}</span>
             </span>
         </button>
+    );
+
+    const whoCanSetDisabled = disabled || Boolean(whoCanSetLockedTooltip);
+    const whoCanSetRadioList = (
+        <div className='AttributeAppliesToItem__radioList'>
+            <label className='AttributeAppliesToItem__radioOption'>
+                <input
+                    type='radio'
+                    name='attribute-applies-to-user-who-can-set'
+                    checked={managed === ''}
+                    disabled={whoCanSetDisabled}
+                    onChange={() => onManagedChange?.('')}
+                    data-testid='attributeAppliesToUserWhoCanSet-member'
+                />
+                <FormattedMessage {...messages.whoCanSetMemberLabel}/>
+            </label>
+            <label className='AttributeAppliesToItem__radioOption'>
+                <input
+                    type='radio'
+                    name='attribute-applies-to-user-who-can-set'
+                    checked={managed === 'admin'}
+                    disabled={whoCanSetDisabled}
+                    onChange={() => onManagedChange?.('admin')}
+                    data-testid='attributeAppliesToUserWhoCanSet-admin'
+                />
+                <FormattedMessage {...messages.whoCanSetAdminLabel}/>
+            </label>
+        </div>
     );
 
     return (
@@ -166,30 +195,17 @@ function AttributeAppliesToUserItem({
                             <FormattedMessage {...messages.whoCanSetLabel}/>
                         </span>
                         <div className='AttributeAppliesToItem__whoCanSet'>
-                            <div className='AttributeAppliesToItem__radioList'>
-                                <label className='AttributeAppliesToItem__radioOption'>
-                                    <input
-                                        type='radio'
-                                        name='attribute-applies-to-user-who-can-set'
-                                        checked={managed === ''}
-                                        disabled={disabled}
-                                        onChange={() => onManagedChange?.('')}
-                                        data-testid='attributeAppliesToUserWhoCanSet-member'
-                                    />
-                                    <FormattedMessage {...messages.whoCanSetMemberLabel}/>
-                                </label>
-                                <label className='AttributeAppliesToItem__radioOption'>
-                                    <input
-                                        type='radio'
-                                        name='attribute-applies-to-user-who-can-set'
-                                        checked={managed === 'admin'}
-                                        disabled={disabled}
-                                        onChange={() => onManagedChange?.('admin')}
-                                        data-testid='attributeAppliesToUserWhoCanSet-admin'
-                                    />
-                                    <FormattedMessage {...messages.whoCanSetAdminLabel}/>
-                                </label>
-                            </div>
+                            {whoCanSetLockedTooltip ? (
+                                <WithTooltip title={whoCanSetLockedTooltip}>
+                                    <span
+                                        // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled radios are unreachable by keyboard, so the tooltip explaining the lock is mouse-only
+                                        tabIndex={0}
+                                        data-testid='attributeAppliesToUserWhoCanSet-lockWrap'
+                                    >
+                                        {whoCanSetRadioList}
+                                    </span>
+                                </WithTooltip>
+                            ) : whoCanSetRadioList}
                             <div className='AttributeAppliesToItem__helpText'>
                                 <FormattedMessage {...messages.whoCanSetHelp}/>
                             </div>
