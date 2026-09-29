@@ -193,6 +193,105 @@ describe('rhs view actions', () => {
                 expect(store.getActions()[0]).toEqual(action);
             });
         });
+
+        describe('it also highlights the post when highlightPost is set', () => {
+            beforeEach(() => {
+                jest.useFakeTimers();
+                jest.setSystemTime(POST_CREATED_TIME);
+            });
+
+            afterEach(() => {
+                jest.useRealTimers();
+            });
+
+            it('dispatches the select and highlight actions, then clears the highlight', async () => {
+                store = mockStore({
+                    ...initialState,
+                    views: {
+                        rhs: {
+                            rhsState: RHSStates.FLAG,
+                            filesSearchExtFilter: [] as string[],
+                        },
+                    } as ViewsState,
+                });
+
+                await store.dispatch(selectPostFromRightHandSideSearch(post, true));
+
+                expect(store.getActions()).toEqual([{
+                    meta: {batch: true},
+                    payload: [{
+                        type: ActionTypes.SELECT_POST,
+                        postId: post.root_id,
+                        channelId: post.channel_id,
+                        previousRhsState: RHSStates.FLAG,
+                        timestamp: POST_CREATED_TIME,
+                    }, {
+                        type: ActionTypes.HIGHLIGHT_REPLY,
+                        postId: post.id,
+                    }],
+                    type: 'BATCHING_REDUCER.BATCH',
+                }]);
+
+                jest.advanceTimersByTime(Constants.PERMALINK_FADEOUT);
+
+                expect(store.getActions()[1]).toEqual({type: ActionTypes.CLEAR_HIGHLIGHT_REPLY});
+            });
+        });
+
+        describe('clearing a leftover highlight', () => {
+            const otherPost = {
+                id: 'post456',
+                channel_id: 'channel123',
+                root_id: 'root456',
+            } as Post;
+
+            beforeEach(() => {
+                jest.useFakeTimers();
+                jest.setSystemTime(POST_CREATED_TIME);
+            });
+
+            afterEach(() => {
+                jest.useRealTimers();
+            });
+
+            it('clears a still-pending highlight when the next selection does not highlight', async () => {
+                store = mockStore({
+                    ...initialState,
+                    views: {
+                        rhs: {
+                            rhsState: RHSStates.FLAG,
+                            highlightedPostId: post.id,
+                            filesSearchExtFilter: [] as string[],
+                        },
+                    } as ViewsState,
+                });
+
+                await store.dispatch(selectPostFromRightHandSideSearch(post, true));
+
+                expect(jest.getTimerCount()).toBe(1);
+
+                await store.dispatch(selectPostFromRightHandSideSearch(otherPost));
+
+                expect(jest.getTimerCount()).toBe(0);
+                expect(store.getActions()[1]).toEqual({
+                    meta: {batch: true},
+                    payload: [{
+                        type: ActionTypes.CLEAR_HIGHLIGHT_REPLY,
+                    }, {
+                        type: ActionTypes.SELECT_POST,
+                        postId: otherPost.root_id,
+                        channelId: otherPost.channel_id,
+                        previousRhsState: RHSStates.FLAG,
+                        timestamp: POST_CREATED_TIME,
+                    }],
+                    type: 'BATCHING_REDUCER.BATCH',
+                });
+
+                jest.advanceTimersByTime(Constants.PERMALINK_FADEOUT);
+
+                expect(store.getActions()).toHaveLength(2);
+            });
+        });
     });
 
     describe('updateSearchTerms', () => {
