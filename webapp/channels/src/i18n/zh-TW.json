@@ -4516,7 +4516,6 @@
   "save_button.saving": "儲存中",
   "schedule_post.custom_time_modal.cancel_button_text": "取消",
   "schedule_post.custom_time_modal.confirm_button_text": "排程",
-  "schedule_post.custom_time_modal.dm_user_time": "{dmUserTime} 給 {dmUserName}",
   "schedule_post.custom_time_modal.title": "排程訊息",
   "schedule_post.tab.heading": "排程",
   "scheduled_post.action.delete": "刪除排程訊息",

@@ -6264,7 +6264,6 @@
   "save_button.saving": "Zapisywanie",
   "schedule_post.custom_time_modal.cancel_button_text": "Anuluj",
   "schedule_post.custom_time_modal.confirm_button_text": "Zaplanuj",
-  "schedule_post.custom_time_modal.dm_user_time": "{dmUserTime} dla {dmUserName}",
   "schedule_post.custom_time_modal.title": "Zaplanuj wiadomość",
   "schedule_post.tab.heading": "Zaplanowane",
   "scheduledPosts.title": "{prefix}Zaplanowane - {displayName} {siteName}",

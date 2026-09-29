@@ -4880,7 +4880,6 @@
   "save_button.saving": "Збереження",
   "schedule_post.custom_time_modal.cancel_button_text": "Скасувати",
   "schedule_post.custom_time_modal.confirm_button_text": "Розклад",
-  "schedule_post.custom_time_modal.dm_user_time": "{dmUserTime} для {dmUserName}",
   "schedule_post.custom_time_modal.title": "Заплановане повідомлення",
   "schedule_post.tab.heading": "Запланований",
   "scheduledPosts.title": "{prefix}Заплановано - {displayName} {siteName}",

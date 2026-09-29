@@ -5851,7 +5851,6 @@
   "save_button.saving": "Opslaan",
   "schedule_post.custom_time_modal.cancel_button_text": "Annuleren",
   "schedule_post.custom_time_modal.confirm_button_text": "Plannen",
-  "schedule_post.custom_time_modal.dm_user_time": "{dmUserTime} voor {dmUserName}",
   "schedule_post.custom_time_modal.title": "Bericht plannen",
   "schedule_post.tab.heading": "Gepland",
   "scheduledPosts.title": "{prefix}Gepland - {displayName} {siteName}",

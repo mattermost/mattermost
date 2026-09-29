@@ -5317,7 +5317,6 @@
   "save_button.saving": "Sparar",
   "schedule_post.custom_time_modal.cancel_button_text": "Avbryt",
   "schedule_post.custom_time_modal.confirm_button_text": "Schema",
-  "schedule_post.custom_time_modal.dm_user_time": "{dmUserTime} för {dmUserName}",
   "schedule_post.custom_time_modal.title": "Schemalägg meddelande",
   "schedule_post.tab.heading": "Schemalagt",
   "scheduledPosts.title": "{prefix}Schemalagd - {displayName} {siteName}",

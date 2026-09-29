@@ -5608,7 +5608,6 @@
   "save_button.saving": "Saving",
   "schedule_post.custom_time_modal.cancel_button_text": "Cancel",
   "schedule_post.custom_time_modal.confirm_button_text": "Schedule",
-  "schedule_post.custom_time_modal.dm_user_time": "{dmUserTime} for {dmUserName}",
   "schedule_post.custom_time_modal.title": "Schedule message",
   "schedule_post.tab.heading": "Scheduled",
   "scheduledPosts.title": "{prefix}Scheduled - {displayName} {siteName}",

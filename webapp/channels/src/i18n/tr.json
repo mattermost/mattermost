@@ -5429,7 +5429,6 @@
   "save_button.saving": "Kaydediliyor",
   "schedule_post.custom_time_modal.cancel_button_text": "İptal",
   "schedule_post.custom_time_modal.confirm_button_text": "Zamanla",
-  "schedule_post.custom_time_modal.dm_user_time": "{dmUserName} için {dmUserTime}",
   "schedule_post.custom_time_modal.title": "Zamanlanmış ileti",
   "schedule_post.tab.heading": "Zamanlanmış",
   "scheduledPosts.title": "{prefix}Zamanlanmış - {displayName} {siteName}",
