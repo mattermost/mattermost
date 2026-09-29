@@ -218,14 +218,17 @@ func GetLogRootPath() string {
 	return absPath
 }
 
-// resolveSymlinkPath resolves the symlinks in path.
+// evalSymlinksAllowMissing resolves symlinks in path even when the final path does not exist.
 //
 // A log file, or even its parent directory, often does not exist yet, and filepath.EvalSymlinks
 // cannot resolve a path that is not there. So the deepest existing ancestor is resolved and the
 // remaining components are re-appended. That keeps an existing file and a not-yet-created one
 // under the same root resolving consistently, and it still catches a symlinked parent directory
 // pointing out of the root.
-func resolveSymlinkPath(path string) (string, error) {
+//
+// This is not a drop-in replacement for filepath.EvalSymlinks; use it only when the path may be
+// missing and ancestor resolution is required.
+func evalSymlinksAllowMissing(path string) (string, error) {
 	var remaining string
 	current := path
 
@@ -268,12 +271,12 @@ func ValidateLogFilePath(filePath string, loggingRoot string) error {
 	// Resolve symlinks to prevent bypass via symlink attacks. Both sides must be resolved the
 	// same way, otherwise a root holding a symlinked component (/var -> /private/var on macOS,
 	// a symlinked mount point) would reject every path inside it.
-	absPath, err = resolveSymlinkPath(absPath)
+	absPath, err = evalSymlinksAllowMissing(absPath)
 	if err != nil {
 		return fmt.Errorf("cannot resolve symlinks for %s: %w", filePath, err)
 	}
 
-	absRoot, err = resolveSymlinkPath(absRoot)
+	absRoot, err = evalSymlinksAllowMissing(absRoot)
 	if err != nil {
 		return fmt.Errorf("cannot resolve symlinks for logging root %s: %w", loggingRoot, err)
 	}
