@@ -302,6 +302,9 @@ describe('components/drafts/drafts_row', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Send draft'}));
             await waitFor(() => expect(deleteDraftSpy).toHaveBeenCalledTimes(1));
 
+            // * The send reached the server's copy, not just the local one
+            expect(serverDrafts.map((draft) => draft.message)).toEqual(['draft in another channel']);
+
             // # Refetch the team's drafts, as switching teams or reloading the page does
             await store.dispatch(getDraftsForTeam(teamId));
 
@@ -388,7 +391,8 @@ describe('components/drafts/drafts_row', () => {
             const createScheduledPostSpy = jest.spyOn(Client4, 'createScheduledPost').
                 mockResolvedValue({data: scheduledPost} as ClientResponse<ScheduledPost>);
 
-            renderWithContext(
+            const getDrafts = makeGetDrafts(false);
+            const {store} = renderWithContext(
                 <DraftRow
                     {...baseProps}
                 />,
@@ -401,6 +405,12 @@ describe('components/drafts/drafts_row', () => {
             await waitFor(() => expect(deleteDraftSpy).toHaveBeenCalledTimes(1));
             expect(deleteDraftSpy).toHaveBeenCalledWith(channelId, '', connectionId);
             expect(createPostSpy).not.toHaveBeenCalled();
+
+            // Scheduling never reaches createPost, so handleOnDelete is the only thing that
+            // clears the local copy and the row would otherwise stay in the panel.
+            await waitFor(() => expect(getDrafts(store.getState()).map((draft) => draft.value.message)).toEqual(
+                ['draft in another channel'],
+            ));
         });
 
         // Scheduling is the one send path that reports failure through afterSubmit, so it is
