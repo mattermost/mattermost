@@ -1602,41 +1602,40 @@ describe('GlobalAttributesTable', () => {
             expect(screen.queryByTestId('global-attribute-actions-field-1')).not.toBeInTheDocument();
         });
 
-        it('renders the ordinary dot-menu and the generic "Managed here" source when the field matches but the destination is not reachable (flag off / sub-Enterprise)', async () => {
+        it('hides the Classification row when the destination is not reachable (flag off / no license)', async () => {
             getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
 
             // getBaseState() has no license/FeatureFlags set, so the reachability check is false.
             renderWithContext(<GlobalAttributesTable/>, getBaseState());
 
-            const trigger = await screen.findByTestId('global-attribute-actions-field-1');
-            expect(trigger).toBeInTheDocument();
-
+            await waitFor(() => expect(getPropertyFields).toHaveBeenCalled());
+            expect(screen.queryByTestId('global-attribute-name')).not.toBeInTheDocument();
             expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
-            expect(screen.getByTestId('global-attribute-source')).toHaveTextContent('Managed here');
+            expect(screen.queryByTestId('global-attribute-actions-field-1')).not.toBeInTheDocument();
         });
 
-        it('renders the ordinary dot-menu when the license is sufficient but the ClassificationMarkings flag is off', async () => {
+        it('hides the Classification row when the license is Advanced but the ClassificationMarkings flag is off', async () => {
             getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
 
             renderWithContext(<GlobalAttributesTable/>, getReachableState({classificationMarkingsFlagOn: false}));
 
-            const trigger = await screen.findByTestId('global-attribute-actions-field-1');
-            expect(trigger).toBeInTheDocument();
-
+            await waitFor(() => expect(getPropertyFields).toHaveBeenCalled());
+            expect(screen.queryByTestId('global-attribute-name')).not.toBeInTheDocument();
             expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('global-attribute-actions-field-1')).not.toBeInTheDocument();
         });
 
-        it('renders the ordinary dot-menu when the ClassificationMarkings flag is on but the license is below Enterprise Advanced', async () => {
+        it('hides the Classification row when ClassificationMarkings is on but the license is below Enterprise Advanced', async () => {
             getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
 
-            // Enterprise (not Advanced) is enough for Attribute Management but not for
-            // Classification Markings — the row must not pretend that page is reachable.
+            // Enterprise (not Advanced) can open Attribute Management but not Classification
+            // Markings — hide the row rather than offering an ordinary Edit/Delete menu.
             renderWithContext(<GlobalAttributesTable/>, getReachableState({licenseSku: 'enterprise'}));
 
-            const trigger = await screen.findByTestId('global-attribute-actions-field-1');
-            expect(trigger).toBeInTheDocument();
-
+            await waitFor(() => expect(getPropertyFields).toHaveBeenCalled());
+            expect(screen.queryByTestId('global-attribute-name')).not.toBeInTheDocument();
             expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('global-attribute-actions-field-1')).not.toBeInTheDocument();
         });
 
         it('renders the open-in-new link on mobile with its tooltip disabled', async () => {

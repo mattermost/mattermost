@@ -510,14 +510,21 @@ export default function GlobalAttributesTable({searchQuery = '', disabled = fals
     // keep the table in lockstep with what this page actually fetched. Unlinked
     // rows also wait on resourcesLoaded so they do not flash before suppressedScopes
     // is known.
+    // Hide the Classification template when Classification Markings is not reachable
+    // (below Enterprise Advanced, or flag off). Showing it as an ordinary editable row
+    // would offer Edit/Delete for a system field whose real home page is hidden.
     const allRows = useMemo(
         () => [
             ...fields,
             ...(resourcesLoaded ? unlinkedFields.filter((field) => !suppressedScopes.has(field.object_type as ResourceObjectType)) : []),
-        ].sort(
-            (a, b) => getDisplayName(a).localeCompare(getDisplayName(b)),
-        ),
-        [fields, unlinkedFields, suppressedScopes, resourcesLoaded],
+        ].
+            filter((field) =>
+                !isClassificationMarkingsField(field, groupId) || classificationMarkingsReachable,
+            ).
+            sort(
+                (a, b) => getDisplayName(a).localeCompare(getDisplayName(b)),
+            ),
+        [classificationMarkingsReachable, fields, groupId, unlinkedFields, suppressedScopes, resourcesLoaded],
     );
 
     // The Source column resolves plugin-owned rows to a plugin display name, but
