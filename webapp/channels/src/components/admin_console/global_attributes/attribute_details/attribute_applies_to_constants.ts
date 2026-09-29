@@ -41,8 +41,7 @@ export type AttributeAppliesToItemProps = {
     // case) renders no tooltip, matching today's existing behavior.
     lockedTooltip?: ReactNode;
 
-    // Locks only Remove and explains why; the row still expands and its
-    // settings keep following `disabled`.
+    // Locks only Remove and explains why; the rest of the row follows `disabled`.
     removeLockedTooltip?: ReactNode;
     onRemove: () => void;
 
@@ -60,7 +59,7 @@ export type AttributeAppliesToItemProps = {
     externalSource?: ExternalSource;
 
     // Locks only "Who can set the value" at its stored value and explains why;
-    // Profile display and Remove keep following `disabled`.
+    // Profile display keeps following `disabled`; Remove has its own lock.
     whoCanSetLockedTooltip?: ReactNode;
 };
 

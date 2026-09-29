@@ -42,8 +42,8 @@ type Props = {
     // AttributeAppliesToItemProps.lockedTooltip. Undefined renders no tooltip.
     lockedTooltip?: ReactNode;
 
-    // Locks Remove on the rows of the given types and explains why; those rows
-    // still expand and their settings stay editable.
+    // Locks Remove on the rows of the given types and explains why; the rest of
+    // each row follows `disabled`.
     removeLockedTooltips?: Partial<Record<ResourceObjectType, ReactNode>>;
     onAdd: (type: ResourceObjectType) => void;
     onRemove: (type: ResourceObjectType) => void;
