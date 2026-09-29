@@ -335,6 +335,25 @@ func TestMuteHealthFinding(t *testing.T) {
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
+
+	t.Run("internal-surface finding", func(t *testing.T) {
+		internal := newHealthFinding("SITE_URL_EMPTY", healthcheck.SurfaceInternal)
+		storeHealthFindings(t, th, internal)
+
+		resp, err := th.SystemAdminClient.MuteHealthFinding(context.Background(), internal.Fingerprint)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+
+		require.NoError(t, th.App.Srv().Store().HealthFinding().Mute(internal.Fingerprint, th.SystemAdminUser.Id, model.GetMillis()))
+		resp, err = th.SystemAdminClient.UnmuteHealthFinding(context.Background(), internal.Fingerprint)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+
+		stored, err := th.App.Srv().Store().HealthFinding().GetByFingerprints([]string{internal.Fingerprint})
+		require.NoError(t, err)
+		require.Len(t, stored, 1)
+		assert.True(t, stored[0].IsMuted())
+	})
 }
 
 func TestMuteHealthFindingAudit(t *testing.T) {

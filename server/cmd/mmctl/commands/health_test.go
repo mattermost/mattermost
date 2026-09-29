@@ -284,7 +284,7 @@ Notifications
 
 		printHealthFindings(healthTestFindings(lastSeen), false, lastSeen.Add(2*time.Hour))
 
-		s.NotContains(s.printedHealthFindings(), "evaluation appears to have stopped")
+		s.NotContains(s.printedHealthFindings(), "Evaluation appears to have stopped")
 	})
 
 	s.Run("json output with no stored findings is an empty list", func() {
