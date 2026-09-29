@@ -33,9 +33,9 @@ test(
 
         // * Help text names Attribute Management and points at manage_attributes
         // (scoped to the setting's help-text — the sidebar also links Attribute Management)
-        const helpLink = page.
-            getByTestId('AccessControlSettings.EnableAttributeBasedAccessControlhelp-text').
-            getByRole('link', {name: 'Attribute Management', exact: true});
+        const helpLink = page
+            .getByTestId('AccessControlSettings.EnableAttributeBasedAccessControlhelp-text')
+            .getByRole('link', {name: 'Attribute Management', exact: true});
         await expect(helpLink).toBeVisible();
         await expect(helpLink).toHaveAttribute('href', '../system_attributes/manage_attributes');
 
