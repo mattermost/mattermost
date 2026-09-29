@@ -1,134 +1,193 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX} from 'react';
-import {injectIntl} from 'react-intl';
-import type {IntlShape} from 'react-intl';
+import React, {useCallback, useMemo} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 
-import type {Team} from '@mattermost/types/teams';
+import {ChevronRightIcon} from '@mattermost/compass-icons/components';
 
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
+
+import {deferNavigation} from 'actions/admin_actions';
 import * as GlobalActions from 'actions/global_actions';
+import {openModal} from 'actions/views/modals';
+import {getCurrentLocale} from 'selectors/i18n';
+import {getNavigationBlocked} from 'selectors/views/admin';
 
 import AboutBuildModal from 'components/about_build_modal';
 import CommercialSupportModal from 'components/commercial_support_modal';
-import Menu from 'components/widgets/menu/menu';
+import * as Menu from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
 import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 
-import MenuItemBlockableLink from './menu_item_blockable_link';
+import type {GlobalState} from 'types/store';
 
-type Props = {
-    intl: IntlShape;
-    locale: string;
-    siteName?: string;
-    navigationBlocked?: boolean;
-    teams: Team[];
-    actions: {
-        deferNavigation: (onNavigationConfirmed: any) => any;
-    };
-    isLicensed: boolean;
-    isCloud: boolean;
-};
+import './admin_navbar_dropdown.scss';
 
-class AdminNavbarDropdown extends React.PureComponent<Props> {
-    private handleLogout = (e: React.MouseEvent<HTMLButtonElement>) => {
-        if (this.props.navigationBlocked) {
+const AdminNavbarDropdown = (firstItemFocusProps: Menu.FirstMenuItemProps) => {
+    const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
+
+    const locale = useSelector(getCurrentLocale);
+    const teams = useSelector(getMyTeams);
+    const siteName = useSelector((state: GlobalState) => getConfig(state).SiteName);
+    const navigationBlocked = useSelector(getNavigationBlocked);
+    const license = useSelector(getLicense);
+    const isLicensed = license.IsLicensed === 'true';
+    const isCloud = license.Cloud === 'true';
+
+    const sortedTeams = useMemo(
+        () => filterAndSortTeamsByDisplayName(teams, locale),
+        [teams, locale],
+    );
+
+    const handleLogout = useCallback((e: React.MouseEvent | React.KeyboardEvent) => {
+        if (navigationBlocked) {
             e.preventDefault();
-            this.props.actions.deferNavigation(GlobalActions.emitUserLoggedOutEvent);
+            dispatch(deferNavigation(GlobalActions.emitUserLoggedOutEvent));
         } else {
             GlobalActions.emitUserLoggedOutEvent();
         }
-    };
+    }, [dispatch, navigationBlocked]);
 
-    render(): JSX.Element {
-        const {locale, teams, siteName, isLicensed, isCloud} = this.props;
-        const {formatMessage} = this.props.intl;
-        const teamToRender = []; // Array of team components
-        let switchTeams;
-        if (teams && teams.length > 0) {
-            const teamsArray = filterAndSortTeamsByDisplayName(teams, locale);
+    const handleCommercialSupport = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.COMMERCIAL_SUPPORT,
+            dialogType: CommercialSupportModal,
+        }));
+    }, [dispatch]);
 
-            for (const team of teamsArray) {
-                teamToRender.push(
-                    <MenuItemBlockableLink
-                        key={'team_' + team.name}
-                        to={'/' + team.name}
-                        text={formatMessage({id: 'navbar_dropdown.switchTo', defaultMessage: 'Switch to '}) + ' ' + team.display_name}
-                    />,
-                );
-            }
-        } else {
-            switchTeams = (
-                <MenuItemBlockableLink
-                    to={'/select_team'}
-                    icon={
-                        <i
-                            className='fa fa-exchange'
-                            title={formatMessage({
-                                id: 'select_team.icon',
-                                defaultMessage: 'Select Team Icon',
-                            })}
-                        />
-                    }
-                    text={formatMessage({id: 'admin.nav.switch', defaultMessage: 'Team Selection'})}
-                />
-            );
-        }
+    const handleAbout = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.ABOUT,
+            dialogType: AboutBuildModal,
+        }));
+    }, [dispatch]);
 
-        let commercialSupport = (
-            <Menu.ItemExternalLink
-                url='https://mattermost.com/support/'
-                text={formatMessage({id: 'admin.nav.commercialSupport', defaultMessage: 'Commercial Support'})}
+    const adminGuideLink = isCloud ?
+        'https://docs.mattermost.com/guides/administration.html#cloud-workspace-management' :
+        'https://docs.mattermost.com/guides/administration.html';
+
+    const commercialSupportLabels = (
+        <FormattedMessage
+            id='admin.nav.commercialSupport'
+            defaultMessage='Commercial Support'
+        />
+    );
+
+    let switchTeamsMenuItem = null;
+    if (sortedTeams.length === 0) {
+        switchTeamsMenuItem = (
+            <Menu.LinkItem
+                {...firstItemFocusProps}
+                id='adminConsoleSwitchTeams'
+                to='/select_team'
+                labels={
+                    <FormattedMessage
+                        id='admin.nav.switch'
+                        defaultMessage='Team Selection'
+                    />
+                }
             />
         );
-
-        if (isLicensed) {
-            commercialSupport = (
-                <Menu.ItemToggleModalRedux
-                    modalId={ModalIdentifiers.COMMERCIAL_SUPPORT}
-                    dialogType={CommercialSupportModal}
-                    text={formatMessage({id: 'admin.nav.commercialSupport', defaultMessage: 'Commercial Support'})}
-                />
-            );
-        }
-
-        let adminGuideLink = 'https://docs.mattermost.com/guides/administration.html';
-        if (isCloud) {
-            adminGuideLink = 'https://docs.mattermost.com/guides/administration.html#cloud-workspace-management';
-        }
-
-        return (
-            <Menu ariaLabel={formatMessage({id: 'admin.nav.menuAriaLabel', defaultMessage: 'Admin Console Menu'})}>
-                <Menu.Group>
-                    {teamToRender}
-                    {switchTeams}
-                </Menu.Group>
-                <Menu.Group>
-                    <Menu.ItemExternalLink
-                        url={adminGuideLink}
-                        text={formatMessage({id: 'admin.nav.administratorsGuide', defaultMessage: "Administrator's Guide"})}
+    } else if (sortedTeams.length > 1) {
+        switchTeamsMenuItem = (
+            <Menu.SubMenu
+                {...firstItemFocusProps}
+                id='adminConsoleSwitchTeams'
+                labels={
+                    <FormattedMessage
+                        id='admin.nav.switchTeams'
+                        defaultMessage='Switch teams'
                     />
-                    <Menu.ItemExternalLink
-                        url={'https://forum.mattermost.com/t/how-to-use-the-troubleshooting-forum/150'}
-                        text={formatMessage({id: 'admin.nav.troubleshootingForum', defaultMessage: 'Troubleshooting Forum'})}
+                }
+                trailingElements={<ChevronRightIcon size={16}/>}
+                menuId='adminConsoleSwitchTeamsMenu'
+                menuAriaLabel={formatMessage({id: 'admin.nav.switchTeams', defaultMessage: 'Switch teams'})}
+            >
+                {sortedTeams.map((team) => (
+                    <Menu.LinkItem
+                        key={'team_' + team.name}
+                        id={'switchTo_' + team.name}
+                        to={'/' + team.name}
+                        labels={<span className='overflow--ellipsis whitespace--nowrap'>{team.display_name}</span>}
                     />
-                    {commercialSupport}
-                    <Menu.ItemToggleModalRedux
-                        modalId={ModalIdentifiers.ABOUT}
-                        dialogType={AboutBuildModal}
-                        text={formatMessage({id: 'navbar_dropdown.about', defaultMessage: 'About {appTitle}'}, {appTitle: siteName || 'Mattermost'})}
-                    />
-                </Menu.Group>
-                <Menu.Group>
-                    <Menu.ItemAction
-                        onClick={this.handleLogout}
-                        text={formatMessage({id: 'navbar_dropdown.logout', defaultMessage: 'Log Out'})}
-                    />
-                </Menu.Group>
-            </Menu>
+                ))}
+            </Menu.SubMenu>
         );
     }
-}
 
-export default injectIntl(AdminNavbarDropdown);
+    return (
+        <>
+            {switchTeamsMenuItem}
+            {switchTeamsMenuItem && <Menu.Separator/>}
+            <Menu.ItemExternalLink
+                {...(switchTeamsMenuItem ? {} : firstItemFocusProps)}
+                id='adminConsoleAdministratorsGuide'
+                href={adminGuideLink}
+                location='admin_navbar_dropdown'
+                showOpenInNewIcon={true}
+                labels={
+                    <FormattedMessage
+                        id='admin.nav.administratorsGuide'
+                        defaultMessage="Administrator's Guide"
+                    />
+                }
+            />
+            <Menu.ItemExternalLink
+                id='adminConsoleTroubleshootingForum'
+                href='https://forum.mattermost.com/t/how-to-use-the-troubleshooting-forum/150'
+                location='admin_navbar_dropdown'
+                showOpenInNewIcon={true}
+                labels={
+                    <FormattedMessage
+                        id='admin.nav.troubleshootingForum'
+                        defaultMessage='Troubleshooting Forum'
+                    />
+                }
+            />
+            {isLicensed ? (
+                <Menu.Item
+                    id='adminConsoleCommercialSupport'
+                    onClick={handleCommercialSupport}
+                    labels={commercialSupportLabels}
+                />
+            ) : (
+                <Menu.ItemExternalLink
+                    id='adminConsoleCommercialSupport'
+                    href='https://mattermost.com/support/'
+                    location='admin_navbar_dropdown'
+                    showOpenInNewIcon={true}
+                    labels={commercialSupportLabels}
+                />
+            )}
+            <Menu.Item
+                id='adminConsoleAbout'
+                onClick={handleAbout}
+                labels={
+                    <FormattedMessage
+                        id='navbar_dropdown.about'
+                        defaultMessage='About {appTitle}'
+                        values={{appTitle: siteName || 'Mattermost'}}
+                    />
+                }
+            />
+            <Menu.Separator/>
+            <Menu.Item
+                id='adminConsoleLogout'
+                onClick={handleLogout}
+                labels={
+                    <FormattedMessage
+                        id='navbar_dropdown.logout'
+                        defaultMessage='Log Out'
+                    />
+                }
+            />
+        </>
+    );
+};
+
+export default AdminNavbarDropdown;
