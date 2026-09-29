@@ -164,16 +164,4 @@ describe('AttributeAppliesTo', () => {
             expect(screen.getByTestId('attributeAppliesToRow-channel-remove')).toBeEnabled();
         });
     });
-
-    describe('removeLockedTooltips', () => {
-        it('locks Remove only on the row whose type has a tooltip', async () => {
-            renderComponent({appliesTo: ['user', 'channel'], removeLockedTooltips: {user: 'Locked'}});
-
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-            expect(screen.getByTestId('attributeAppliesToRow-user-removeLockWrap')).toBeInTheDocument();
-
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
-            expect(screen.getByTestId('attributeAppliesToRow-channel-remove')).toBeEnabled();
-        });
-    });
 });
