@@ -8,6 +8,12 @@ import "time"
 const (
 	CurrentSupportPacketVersion = 2
 	SupportPacketErrorFile      = "warning.txt"
+
+	SupportPacketDiagnosticsFileName = "diagnostics.yaml"
+	SupportPacketConfigFileName      = "sanitized_config.json"
+	SupportPacketStatsFileName       = "stats.yaml"
+	SupportPacketJobsFileName        = "jobs.yaml"
+	SupportPacketPluginsFileName     = "plugins.json"
 )
 
 type SupportPacketDiagnostics struct {
@@ -20,6 +26,7 @@ type SupportPacketDiagnostics struct {
 		IsTrial         bool   `yaml:"is_trial,omitempty"`
 		IsGovSKU        bool   `yaml:"is_gov_sku,omitempty"`
 		IsNonProduction bool   `yaml:"is_non_production,omitempty"`
+		IsCloud         bool   `yaml:"is_cloud,omitempty"`
 	} `yaml:"license"`
 
 	Server struct {
@@ -99,6 +106,7 @@ type SupportPacketDiagnostics struct {
 	Cluster struct {
 		ID            string `yaml:"id"`
 		NumberOfNodes int    `yaml:"number_of_nodes"`
+		IsLeader      bool   `yaml:"is_leader,omitempty"`
 	} `yaml:"cluster"`
 
 	Notifications struct {
