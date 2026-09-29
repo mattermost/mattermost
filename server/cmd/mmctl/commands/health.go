@@ -83,7 +83,7 @@ func printHealthFindings(findings []*model.HealthFinding, includeResolved bool, 
 
 func formatHealthFindings(fetched, shown []*model.HealthFinding, now time.Time) string {
 	if len(fetched) == 0 {
-		return "Not evaluated yet — the first check runs within an hour of enabling the feature."
+		return "Not evaluated yet. The first check runs within an hour of enabling the feature."
 	}
 
 	slices.SortStableFunc(shown, compareHealthFindings)
@@ -150,7 +150,7 @@ func formatHealthEvaluationTime(findings []*model.HealthFinding, now time.Time) 
 
 	header := fmt.Sprintf("Last evaluated %s (%d %s ago)", evaluatedAt.Format("2006-01-02 15:04"), minutes, unit)
 	if age > healthEvaluationStaleAfter {
-		header += " — evaluation appears to have stopped"
+		header += ". Evaluation appears to have stopped."
 	}
 	return header
 }
