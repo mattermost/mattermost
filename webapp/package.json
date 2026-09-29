@@ -24,7 +24,7 @@
     "check-external-links": "node scripts/check-external-links.mjs"
   },
   "dependencies": {
-    "@mattermost/compass-icons": "0.1.61",
+    "@mattermost/compass-icons": "0.1.63",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-intl": "7.1.14",

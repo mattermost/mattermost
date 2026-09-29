@@ -66,8 +66,11 @@ jobs:
           echo "docusaurus pid $!"
 
       - name: render/wait-for-server
+        # Poll with curl instead of `npx wait-on` — the runner already
+        # ships curl, so this avoids fetching a wait-on tarball (and its
+        # ~20 transitive deps) from npm at run time.
         run: |
-          npx --yes wait-on --timeout 600000 --httpTimeout 5000 http://localhost:3000
+          timeout 600 bash -c 'until curl -sSf --max-time 5 http://localhost:3000 > /dev/null; do sleep 2; done'
 
       - name: render/render-ime
         working-directory: docs/site
