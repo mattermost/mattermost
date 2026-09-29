@@ -3647,7 +3647,7 @@
   "admin.webserverModeTitle": "Tryb Webserwera:",
   "admin.webserverModeUncompressed": "Nieskompresowany",
   "admin.webserverModeUncompressedDescription": "Serwer Mattermost będzie serwował nieskompresowane statyczne pliki.",
-  "adminConsole.list.table.exactTime": "{date, date, long} na {date, time, medium}",
+  "adminConsole.list.table.exactTime": "{date, date, long} o {date, time, medium}",
   "adminConsole.list.table.genericError": "Wystąpił błąd podczas ładowania danych, spróbuj ponownie",
   "adminConsole.list.table.genericLoading": "Wczytywanie",
   "adminConsole.list.table.genericNoData": "Brak danych",

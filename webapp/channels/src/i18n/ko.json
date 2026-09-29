@@ -2981,7 +2981,7 @@
   "admin.webserverModeTitle": "웹 서버 모드:",
   "admin.webserverModeUncompressed": "비압축",
   "admin.webserverModeUncompressedDescription": "Mattermost 서버는 정적 파일을 압축하지 않은 상태로 제공합니다.",
-  "adminConsole.list.table.exactTime": "{date, date, long} 에 {date, time, medium}",
+  "adminConsole.list.table.exactTime": "{date, date, long}에 {date, time, medium}",
   "adminConsole.list.table.genericError": "데이터를 로드하는 동안 오류가 발생했습니다. 다시 시도하세요.",
   "adminConsole.list.table.genericLoading": "불러오는 중",
   "adminConsole.list.table.genericNoData": "데이터 없음",
