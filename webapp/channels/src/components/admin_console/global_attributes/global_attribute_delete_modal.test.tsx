@@ -59,6 +59,34 @@ describe('GlobalAttributeDeleteModal', () => {
             expect(screen.getByText(/was created by the plugin "unknown"/i)).toBeInTheDocument();
         });
 
+        it('names a single uninstalled owner plugin', () => {
+            renderModal({isOrphaned: true, ownerPluginIds: ['com.acme.scim']});
+
+            expect(screen.getByText(/was managed by com\.acme\.scim, which is no longer installed/i)).toBeInTheDocument();
+            expect(screen.queryByText(/was created by the plugin/i)).not.toBeInTheDocument();
+            expect(screen.getByText(/permanently remove its definition/i)).toBeInTheDocument();
+        });
+
+        it('names every uninstalled owner plugin', () => {
+            renderModal({isOrphaned: true, ownerPluginIds: ['com.acme.scim', 'com.acme.sync']});
+
+            expect(screen.getByText(/was managed by com\.acme\.scim and com\.acme\.sync, which are no longer installed/i)).toBeInTheDocument();
+        });
+
+        it('names a single uninstalled owner plugin', () => {
+            renderModal({isOrphaned: true, ownerPluginIds: ['com.acme.scim']});
+
+            expect(screen.getByText(/was managed by com\.acme\.scim, which is no longer installed/i)).toBeInTheDocument();
+            expect(screen.queryByText(/was created by the plugin/i)).not.toBeInTheDocument();
+            expect(screen.getByText(/permanently remove its definition/i)).toBeInTheDocument();
+        });
+
+        it('names every uninstalled owner plugin', () => {
+            renderModal({isOrphaned: true, ownerPluginIds: ['com.acme.scim', 'com.acme.sync']});
+
+            expect(screen.getByText(/was managed by com\.acme\.scim and com\.acme\.sync, which are no longer installed/i)).toBeInTheDocument();
+        });
+
         it('says nothing about plugins for an ordinary attribute', () => {
             renderModal();
 

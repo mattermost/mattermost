@@ -1680,6 +1680,8 @@
   "admin.global_attributes.confirm.delete.error.generic": "An error occurred while deleting this attribute. Please try again.",
   "admin.global_attributes.confirm.delete.error.has_dependents": "This attribute can't be deleted because other attributes are still linked to it. Remove those links first, then try again.",
   "admin.global_attributes.confirm.delete.orphaned_body": "This attribute was created by the plugin \"{pluginId}\", which is no longer installed.",
+  "admin.global_attributes.confirm.delete.orphaned_owners_body": "This attribute was managed by {pluginIds}, which {count, plural, one {is} other {are}} no longer installed.",
+  "admin.global_attributes.confirm.delete.orphaned_owners_body": "This attribute was managed by {pluginIds}, which {count, plural, one {is} other {are}} no longer installed.",
   "admin.global_attributes.confirm.delete.title": "Delete {name} attribute",
   "admin.global_attributes.confirm.remove_applies_to.body": "This will permanently delete every value stored for this attribute on {resources}. This action cannot be undone.",
   "admin.global_attributes.confirm.remove_applies_to.button": "Remove and save",
