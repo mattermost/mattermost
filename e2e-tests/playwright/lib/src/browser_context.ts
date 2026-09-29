@@ -5,7 +5,7 @@ import {writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import fs from 'node:fs';
 
-import type {Browser, BrowserContext} from '@playwright/test';
+import type {Browser, BrowserContext, Page} from '@playwright/test';
 import {request} from '@playwright/test';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -22,7 +22,7 @@ export class TestBrowser {
     }
 
     async login(user: UserProfile) {
-        const options = {storageState: ''};
+        const options = {storageState: '', ignoreHTTPSErrors: true};
         if (user) {
             // Log in via API request and save user storage
             const storagePath = await loginByAPI(user.username, user.password);
@@ -33,6 +33,7 @@ export class TestBrowser {
         const context = await this.browser.newContext(options);
         await routeInternalBaseUrlToHost(context);
         const page = await context.newPage();
+        patchGotoToUseBaseUrl(page);
 
         const channelsPage = new pages.ChannelsPage(page);
         const systemConsolePage = new pages.SystemConsolePage(page);
@@ -55,6 +56,18 @@ export class TestBrowser {
             threadsPage,
             contentReviewPage,
         };
+    }
+
+    /** Unauthenticated context/page for specs that need custom context options (e.g. userAgent). */
+    async newPage(options: Parameters<Browser['newContext']>[0] = {}) {
+        const context = await this.browser.newContext(options);
+        await routeInternalBaseUrlToHost(context);
+        const page = await context.newPage();
+        patchGotoToUseBaseUrl(page);
+
+        this.contexts.push(context);
+
+        return {context, page};
     }
 
     /**
@@ -92,8 +105,35 @@ async function routeInternalBaseUrlToHost(context: BrowserContext) {
     });
 }
 
+/**
+ * Playwright's own baseURL merging (`new URL(url, baseURL)`, used when `page.goto()` gets a path
+ * instead of a full URL) replaces baseURL's pathname rather than appending to it, silently dropping
+ * any path segment baseURL has — e.g. a subpath deployment's prefix. It's also frozen to whatever
+ * testConfig.baseURL was at config-load time. This makes goto() resolve against the current
+ * testConfig.baseURL instead, preserving its path segment, for every navigation given a path rather
+ * than an already-absolute URL (external logins, permalinks, about:blank, etc. pass through as-is).
+ */
+export function patchGotoToUseBaseUrl(page: Page): void {
+    const originalGoto = page.goto.bind(page);
+    page.goto = ((url: string, options?: Parameters<Page['goto']>[1]) =>
+        originalGoto(resolveAgainstBaseUrl(url), options)) as Page['goto'];
+}
+
+function resolveAgainstBaseUrl(target: string): string {
+    if (/^[a-z][a-z0-9+.-]*:/i.test(target)) {
+        return target;
+    }
+
+    const given = new URL(target, 'http://placeholder.invalid');
+    const url = new URL(testConfig.baseURL);
+    url.pathname = `${url.pathname.replace(/\/+$/, '')}${given.pathname.startsWith('/') ? given.pathname : `/${given.pathname}`}`;
+    url.search = given.search;
+    url.hash = given.hash;
+    return url.href;
+}
+
 export async function loginByAPI(loginId: string, password: string, token = '', ldapOnly = false) {
-    const requestContext = await request.newContext();
+    const requestContext = await request.newContext({ignoreHTTPSErrors: true});
 
     const data: any = {
         login_id: loginId,
