@@ -91,7 +91,7 @@ const RESOURCE_TYPE_ITEM_COMPONENTS: Record<Exclude<ResourceObjectType, 'channel
 // PostItem -- rather than one generic item parameterized by resourceType).
 // Holds no selection state of its own -- "available" picker options are
 // derived purely from props on every render. Makes no data-mutating dispatch
-// calls, no Client4/API calls (see R6 -- the page owns all of that).
+// calls, no Client4/API calls (the page owns all of that).
 function AttributeAppliesTo({
     appliesTo,
     disabled = false,
