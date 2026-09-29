@@ -33,7 +33,7 @@ type ExtractSettings struct {
 	ArchiveRecursion bool
 	MaxFileSize      int64
 	// MaxArchiveDepth limits how many levels deep recursive archive extraction
-	// will descend. 0 uses defaultMaxArchiveDepth.
+	// will descend. A value <= 0 uses defaultMaxArchiveDepth.
 	MaxArchiveDepth int
 	MMPreviewURL    string
 	MMPreviewSecret string
