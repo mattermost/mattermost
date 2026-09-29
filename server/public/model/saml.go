@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/xml"
-	"time"
 )
 
 const (
@@ -127,8 +126,6 @@ type KeyDescriptor struct {
 type RoleDescriptor struct {
 	XMLName                    xml.Name
 	ID                         string          `xml:",attr,omitempty"`
-	ValidUntil                 time.Time       `xml:"validUntil,attr,omitempty"`
-	CacheDuration              time.Duration   `xml:"cacheDuration,attr,omitempty"`
 	ProtocolSupportEnumeration string          `xml:"protocolSupportEnumeration,attr"`
 	ErrorURL                   string          `xml:"errorURL,attr,omitempty"`
 	KeyDescriptors             []KeyDescriptor `xml:"KeyDescriptor,omitempty"`
@@ -167,8 +164,6 @@ type EntityDescriptor struct {
 	XMLName           xml.Name           `xml:"urn:oasis:names:tc:SAML:2.0:metadata EntityDescriptor"`
 	EntityID          string             `xml:"entityID,attr"`
 	ID                string             `xml:",attr,omitempty"`
-	ValidUntil        time.Time          `xml:"validUntil,attr,omitempty"`
-	CacheDuration     time.Duration      `xml:"cacheDuration,attr,omitempty"`
 	RoleDescriptors   []RoleDescriptor   `xml:"RoleDescriptor"`
 	IDPSSODescriptors []IDPSSODescriptor `xml:"IDPSSODescriptor"`
 	Organization      Organization       `xml:"Organization"`
