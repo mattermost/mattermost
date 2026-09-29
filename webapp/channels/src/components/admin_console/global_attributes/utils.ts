@@ -216,6 +216,8 @@ export type UpdateAttributeFieldPatch = {
     options: PropertyFieldOption[];
     ldapAttr: string;
     samlAttr: string;
+    resourceAttrs?: Record<string, unknown>;
+    permissionValues?: PropertyPermissionLevel;
 };
 
 // Attrs are merge-patched (mergeAttrs=true on the server): ldap/saml send
@@ -239,7 +241,9 @@ export function updateAttributeField(
             ldap: patch.ldapAttr || null,
             saml: patch.samlAttr || null,
             value_type: valueType || null,
+            ...patch.resourceAttrs,
         },
+        ...(patch.permissionValues ? {permission_values: patch.permissionValues} : {}),
     });
 }
 

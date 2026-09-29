@@ -1977,8 +1977,31 @@ describe('AttributeDetails', () => {
                 type: 'text',
                 attrs: expect.objectContaining({display_name: 'Department 2'}),
             }));
+            expect(patchPropertyField.mock.calls[0][3].attrs).not.toHaveProperty('visibility');
+            expect(patchPropertyField.mock.calls[0][3].attrs).not.toHaveProperty('managed');
+            expect(patchPropertyField.mock.calls[0][3]).not.toHaveProperty('permission_values');
             expect(createPropertyField).not.toHaveBeenCalled();
             expect(deletePropertyField).not.toHaveBeenCalled();
+        });
+
+        it('saves a standalone user field\'s Users row settings in the same PATCH as the definition', async () => {
+            mockLoadedNonTemplateField(makeNonTemplate('user'));
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeNonTemplate('user'));
+
+            renderEdit();
+            await waitForForm();
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+            await userEvent.click(screen.getByTestId('attributeAppliesToUserProfileDisplay-hidden'));
+            await userEvent.click(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin'));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
+            expect(patchPropertyField).toHaveBeenCalledTimes(1);
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', FIELD_ID, expect.objectContaining({
+                attrs: expect.objectContaining({visibility: 'hidden', managed: 'admin'}),
+                permission_values: 'sysadmin',
+            }));
         });
 
         it('surfaces a rejected PATCH for a non-template field and leaves Save usable', async () => {
@@ -2033,8 +2056,37 @@ describe('AttributeDetails', () => {
                 expect(screen.getByTestId('attributeAppliesToRow-channel-summary')).toHaveTextContent('Required');
             });
 
-            it('disables the row\'s toggle behind an explanatory lock tooltip', async () => {
+            it('leaves a standalone user field\'s row toggle, Profile display and Who can set the value enabled, with Remove locked', async () => {
                 mockLoadedNonTemplateField(makeNonTemplate('user'));
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeAppliesToRow-user-toggle')).toBeEnabled();
+                expect(screen.queryByTestId('attributeAppliesToRow-user-toggleLockWrap')).not.toBeInTheDocument();
+
+                await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+                expect(screen.getByTestId('attributeAppliesToRow-user-remove')).toBeDisabled();
+                expect(screen.getByTestId('attributeAppliesToRow-user-removeLockWrap')).toBeInTheDocument();
+                expect(screen.getByTestId('attributeAppliesToUserProfileDisplay-hidden')).toBeEnabled();
+                expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeEnabled();
+                expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-member')).toBeEnabled();
+            });
+
+            it.each(['channel', 'post'] as const)('keeps a standalone %s field\'s row toggle disabled behind an explanatory lock tooltip', async (objectType) => {
+                mockLoadedNonTemplateField(makeNonTemplate(objectType));
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId(`attributeAppliesToRow-${objectType}-toggle`)).toBeDisabled();
+                expect(screen.getByTestId(`attributeAppliesToRow-${objectType}-toggleLockWrap`)).toBeInTheDocument();
+            });
+
+            it('keeps a plugin-created standalone user field\'s row toggle disabled', async () => {
+                mockLoadedNonTemplateField(makeNonTemplate('user', {
+                    attrs: {display_name: 'Plugin field', source_plugin_id: 'com.example.plugin', protected: true},
+                }));
 
                 renderEdit();
                 await waitForForm();
@@ -2874,6 +2926,23 @@ describe('AttributeDetails', () => {
                 await waitFor(() => expect(screen.getByTestId('attributeOwnersSourceManagedBy')).toHaveTextContent('Managed by SCIM'));
                 expect(screen.getByTestId('attributeExternalSource')).toBeInTheDocument();
                 expect(screen.queryByTestId('attributePluginSource')).not.toBeInTheDocument();
+            });
+
+            it('locks Who can set the value and names the owners on Remove for an owned standalone user field', async () => {
+                mockScimStatus(true);
+                mockLoadedNonTemplateField(makeNonTemplate('user', {attrs: {display_name: 'Department', owners: [scimOwner], managed: 'admin'}}));
+
+                renderEdit();
+                await waitForForm();
+                await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+                expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeDisabled();
+                expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-member')).toBeDisabled();
+                expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-lockWrap')).toBeInTheDocument();
+                expect(screen.getByTestId('attributeAppliesToRow-user-remove')).toBeDisabled();
+
+                await userEvent.hover(screen.getByTestId('attributeAppliesToRow-user-removeLockWrap'));
+                expect(await screen.findByText(/managed by SCIM/)).toBeInTheDocument();
             });
 
             it('shows the owners note beside the external-source editor on an owned standalone user field', async () => {

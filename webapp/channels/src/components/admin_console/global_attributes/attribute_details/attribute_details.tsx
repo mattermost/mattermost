@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useEffect, useMemo, useRef, useState, type JSX} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState, type JSX, type ReactNode} from 'react';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
@@ -345,6 +345,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // isEditMode check.
     const isNonTemplate = objectType !== GLOBAL_ATTRIBUTES_OBJECT_TYPE;
 
+    // A standalone user attribute's row is editable; channel and post rows stay shut.
+    const standaloneRowLocked = isNonTemplate && objectType !== 'user';
+
     // Substituted for the bare `disabled` prop everywhere else on this page --
     // one boolean, not a second parallel disabled path. Keeps the pre-existing
     // non-sysadmin `disabled` prop (schema-wired via isDisabled: it.not
@@ -621,11 +624,18 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     let appliesToLockedTooltip: string | undefined;
     if (isPluginOwned) {
         appliesToLockedTooltip = formatMessage(isOrphaned ? messages.appliesToLockedPluginOrphanedTooltip : messages.appliesToLockedPluginTooltip);
-    } else if (isNonTemplate) {
+    } else if (standaloneRowLocked) {
         appliesToLockedTooltip = formatMessage(messages.appliesToLockedSingleResourceTooltip);
     }
 
     const ownedLockedTooltip = isOwned ? formatMessage(messages.ownedLockedTooltip, {owners: ownersLabel}) : undefined;
+
+    let removeLockedTooltips: Partial<Record<ResourceObjectType, ReactNode>> | undefined;
+    if (isNonTemplate) {
+        removeLockedTooltips = {[objectType]: ownedLockedTooltip ?? formatMessage(messages.appliesToLockedSingleResourceTooltip)};
+    } else if (ownedLockedTooltip) {
+        removeLockedTooltips = {user: ownedLockedTooltip};
+    }
 
     const markDirty = useCallback(() => {
         setIsDirty(true);
@@ -990,6 +1000,11 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             // to that object type, skipping the template create-plus-link path
             // below entirely.
             if (objectType !== GLOBAL_ATTRIBUTES_OBJECT_TYPE) {
+                const userConfigChanged = userVisibility !== originalUserVisibilityRef.current || userManaged !== originalUserManagedRef.current;
+                if (objectType === 'user' && userConfigChanged) {
+                    patch.resourceAttrs = userConfigAttrs;
+                    patch.permissionValues = userConfigPermissionValues;
+                }
                 try {
                     await updateAttributeField(objectType, fieldId, patch);
                 } catch (error) {
@@ -1001,6 +1016,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     });
                     return;
                 }
+                originalUserVisibilityRef.current = userVisibility;
+                originalUserManagedRef.current = userManaged;
                 finalizeSave({success: true});
                 return;
             }
@@ -1648,7 +1665,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     <AttributeAppliesTo
                         appliesTo={appliesTo}
                         allowedTypes={allowedResourceTypes}
-                        disabled={saving || effectiveDisabled || isNonTemplate}
+                        disabled={saving || effectiveDisabled || standaloneRowLocked}
                         hideAddResource={isPluginOwned || isNonTemplate}
                         lockedTooltip={appliesToLockedTooltip}
                         onAdd={handleAdd}
@@ -1659,7 +1676,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         onUserManagedChange={handleUserManagedChange}
                         externalSource={managedByExternalSource}
                         userWhoCanSetLockedTooltip={ownedLockedTooltip}
-                        removeLockedTooltips={ownedLockedTooltip ? {user: ownedLockedTooltip} : undefined}
+                        removeLockedTooltips={removeLockedTooltips}
                         channelResource={channelResource}
                         onChannelResourceChange={handleChannelResourceChange}
                         ordered={fieldType === 'rank'}
