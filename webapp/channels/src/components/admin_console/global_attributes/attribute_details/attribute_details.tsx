@@ -345,7 +345,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // isEditMode check.
     const isNonTemplate = objectType !== GLOBAL_ATTRIBUTES_OBJECT_TYPE;
 
-    // A standalone user or channel attribute's row is editable; a post field has no row settings.
+    // Only a post field's row stays fully locked; user and channel rows are editable.
     const standaloneRowLocked = isNonTemplate && objectType === 'post';
 
     // Substituted for the bare `disabled` prop everywhere else on this page --
@@ -619,7 +619,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         nameDescribedBy = 'attribute-save-error';
     }
 
-    // Plugin ownership wins over non-template: it disables the whole page,
+    // Plugin ownership wins over the post-field lock: it disables the whole page,
     // so it is the more specific reason to show.
     let appliesToLockedTooltip: string | undefined;
     if (isPluginOwned) {
