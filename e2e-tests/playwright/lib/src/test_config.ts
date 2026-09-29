@@ -233,8 +233,12 @@ export class TestConfig {
         this.smtpURL = process.env.PW_SMTP_URL || 'http://localhost:9001';
         this.webhookBaseUrl = process.env.PW_WEBHOOK_BASE_URL || 'http://localhost:3000';
         // Fixed Docker network aliases, not derived from any started container object — stable
-        // across a restartMattermostContainer() call, unlike baseURL's host-mapped port.
-        this.internalBaseURL = this.useTestContainers ? `http://${MATTERMOST_ALIAS}:${MATTERMOST_PORT}` : this.baseURL;
+        // across a restartMattermostContainer() call, unlike baseURL's host-mapped port. Carries
+        // the subpath prefix too: in subpath mode the server 302-redirects any API call missing
+        // it, which drops the body/method on most HTTP clients (e.g. the webhook sidecar's POSTs).
+        this.internalBaseURL = this.useTestContainers
+            ? `http://${MATTERMOST_ALIAS}:${MATTERMOST_PORT}${this.subpathMode ? SUBPATH_DEFAULT : ''}`
+            : this.baseURL;
         this.webhookInternalUrl = this.useTestContainers
             ? `http://${WEBHOOK_ALIAS}:${WEBHOOK_PORT}`
             : this.webhookBaseUrl;

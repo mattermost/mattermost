@@ -92,14 +92,18 @@ function mattermostWaitStrategy() {
 }
 
 // Frees MATTERMOST_FIXED_HOST_PORT — withReuse() never auto-removes a container whose wait
-// strategy timed out, which would otherwise block retries.
+// strategy timed out, which would otherwise block retries. Scoped to this stack's own label so an
+// unrelated container that happens to publish the same host port is never touched.
 async function removeContainersHoldingFixedPort(): Promise<void> {
     try {
+        const [labelKey, labelValue] = Object.entries(TESTCONTAINERS_LABELS)[0];
         const {stdout} = await execFileAsync('docker', [
             'ps',
             '-q',
             '--filter',
             `publish=${MATTERMOST_FIXED_HOST_PORT}`,
+            '--filter',
+            `label=${labelKey}=${labelValue}`,
         ]);
         const ids = stdout
             .split('\n')
