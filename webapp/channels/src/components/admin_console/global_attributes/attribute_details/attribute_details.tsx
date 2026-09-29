@@ -630,8 +630,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
     const ownedLockedTooltip = isOwned ? formatMessage(messages.ownedLockedTooltip, {owners: ownersLabel}) : undefined;
 
-    // Once every owner is an uninstalled plugin, nothing is left to take the
-    // Users field away from, so it can be removed like Delete on the list allows.
+    // An uninstalled plugin can't manage the Users field, so once every owner is one,
+    // Remove unlocks, matching the Delete action in the attributes table.
     const installedPluginIds = useInstalledPluginIds();
     const ownersGone = pluginInventoryLoaded && allOwnersAreUninstalledPlugins(owners, installedPluginIds);
     const userRemoveLocked = isOwned && !ownersGone;
