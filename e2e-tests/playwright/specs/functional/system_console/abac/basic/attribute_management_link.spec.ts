@@ -11,6 +11,14 @@ import {expect, test, licenseTier} from '@mattermost/playwright-lib';
 
 import {GLOBAL_ATTRIBUTES_ADMIN_PATH} from '../../global_attributes/global_attributes_helpers';
 
+/**
+ * @objective Ensure the Attribute-Based Access enable-toggle help text links to
+ * Attribute Management (`manage_attributes`), not the legacy `user_attributes`
+ * path that only redirects.
+ *
+ * @precondition Enterprise Advanced (or equivalent SkuShortName ≥ 30) license so
+ * the Attribute-Based Access console section is available.
+ */
 test(
     'ABAC enable help link goes to Attribute Management, not the legacy User Attributes redirect',
     {tag: '@system_console'},
