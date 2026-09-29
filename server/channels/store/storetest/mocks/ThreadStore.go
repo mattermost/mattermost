@@ -692,6 +692,24 @@ func (_m *ThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolicies
 	return r0, r1, r2
 }
 
+// PermanentDeleteMembershipsByUser provides a mock function with given fields: userID
+func (_m *ThreadStore) PermanentDeleteMembershipsByUser(userID string) error {
+	ret := _m.Called(userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeleteMembershipsByUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SaveMultipleMemberships provides a mock function with given fields: memberships
 func (_m *ThreadStore) SaveMultipleMemberships(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error) {
 	ret := _m.Called(memberships)

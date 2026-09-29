@@ -38,23 +38,26 @@ export default class ScheduleMessageModal {
     async selectDate(dayFromToday: number = 0) {
         await this.dateButton.click();
 
-        const pacificDate = new Date();
         const originDate = new Date();
+        const targetDate = new Date();
 
         if (dayFromToday) {
-            pacificDate.setDate(pacificDate.getDate() + dayFromToday);
+            targetDate.setDate(targetDate.getDate() + dayFromToday);
         }
 
-        const day = pacificDate.getDate();
-        const month = pacificDate.toLocaleString('default', {month: 'long'});
+        const day = targetDate.getDate();
+        const month = targetDate.toLocaleString('default', {month: 'long'});
 
-        const dateLocator = this.dateLocator(day);
-
-        const isMonthChanged = pacificDate.getMonth() !== originDate.getMonth();
-        if (!(await dateLocator.isVisible()) && isMonthChanged) {
+        // Past days in the current month stay visible but disabled. When the
+        // target is in the next month, day N of this month is still in the
+        // calendar (e.g. Sep 1 when targeting Oct 1), so isVisible() is not
+        // enough to decide whether to advance.
+        if (targetDate.getMonth() !== originDate.getMonth() || targetDate.getFullYear() !== originDate.getFullYear()) {
             await this.container.getByLabel('Go to next month').click();
         }
 
+        const dateLocator = this.dateLocator(day);
+        await expect(dateLocator).toBeEnabled();
         await dateLocator.click();
 
         // Wait for the date-picker calendar to fully close before returning.

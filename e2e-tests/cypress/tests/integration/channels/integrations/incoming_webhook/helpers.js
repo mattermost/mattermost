@@ -7,34 +7,55 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
 export function enableUsernameAndIconOverride(enable) {
     enableUsernameAndIconOverrideInt(enable, enable);
 }
 
 export function enableUsernameAndIconOverrideInt(enableUsername, enableIcon) {
-    // # Visit integration management at system console and change override values
-    cy.visit('/admin_console/integrations/integration_management');
+    // Patch only these two flags via PUT of the current config. The admin-console
+    // Save control stays disabled when the radios already match, and apiUpdateConfig
+    // also resets e2e defaults. Wait until both flags are visible to the API so a
+    // webhook is not posted with a stale EnablePostIconOverride.
+    const flagsMatch = (config) => (
+        config.ServiceSettings.EnablePostUsernameOverride === enableUsername &&
+        config.ServiceSettings.EnablePostIconOverride === enableIcon
+    );
 
-    // Each option is a radio pair (testid suffixed 'true'/'false'). Only click the ones not
-    // already in the desired state: a sibling spec can leave this setting already matching,
-    // and clicking an already-checked radio doesn't mark the form dirty, so unconditionally
-    // waiting for Save to become enabled would time out.
-    checkIfNotAlreadyChecked('ServiceSettings.EnablePostUsernameOverride' + enableUsername);
-    checkIfNotAlreadyChecked('ServiceSettings.EnablePostIconOverride' + enableIcon);
-
-    // # Save the settings only if something actually changed
-    cy.get('body').then(($body) => {
-        if ($body.find('#saveSetting:not(:disabled)').length > 0) {
-            cy.get('#saveSetting').click({force: true});
-            cy.get('#saveSetting').should('be.disabled');
+    cy.apiGetConfig().then(({config}) => {
+        if (flagsMatch(config)) {
+            return;
         }
-    });
-}
 
-function checkIfNotAlreadyChecked(testId) {
-    cy.findByTestId(testId).then(($el) => {
-        if (!$el.prop('checked')) {
-            cy.wrap($el).check({force: true});
-        }
+        const nextConfig = {
+            ...config,
+            ServiceSettings: {
+                ...config.ServiceSettings,
+                EnablePostUsernameOverride: enableUsername,
+                EnablePostIconOverride: enableIcon,
+            },
+        };
+
+        cy.getCookie('MMCSRF').then((csrfCookie) => {
+            const headers = {};
+            if (csrfCookie?.value) {
+                headers['X-CSRF-Token'] = csrfCookie.value;
+            }
+
+            cy.request({
+                url: '/api/v4/config',
+                method: 'PUT',
+                body: nextConfig,
+                headers,
+            }).then((response) => {
+                expect(response.status).to.equal(200);
+            });
+        });
     });
+
+    cy.waitUntil(
+        () => cy.apiGetConfig().then(({config}) => flagsMatch(config)),
+        {timeout: TIMEOUTS.HALF_MIN, interval: TIMEOUTS.HALF_SEC},
+    );
 }

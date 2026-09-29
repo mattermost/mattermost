@@ -22,6 +22,13 @@ import (
 
 var mainHelper *testlib.MainHelper
 
+// serverWidePostCountOptions is the only combination LocalCachePostStore.AnalyticsPostCount
+// caches, under a single server-wide key.
+var (
+	serverWidePostCountOptions = model.PostCountOptions{AllowFromCache: true, UsersPostsOnly: true, ExcludeDeleted: true}
+	singleUserPostCountOptions = model.PostCountOptions{AllowFromCache: true, UsersPostsOnly: true, ExcludeDeleted: true, UserId: "userId"}
+)
+
 func getMockCacheProvider() cache.Provider {
 	mockCacheProvider := cachemocks.Provider{}
 	// Each NewCache call returns a fresh LRU so that caches are isolated
@@ -166,6 +173,8 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockPostStore.On("GetEtag", "channelId", false, false, true).Return(mockPostStoreEtagResult)
 	mockPostStore.On("GetPostsSince", mock.AnythingOfType("*request.Context"), mockPostStoreOptions, true, map[string]bool{}).Return(model.NewPostList(), nil)
 	mockPostStore.On("GetPostsSince", mock.AnythingOfType("*request.Context"), mockPostStoreOptions, false, map[string]bool{}).Return(model.NewPostList(), nil)
+	mockPostStore.On("AnalyticsPostCount", &serverWidePostCountOptions).Return(int64(7), nil)
+	mockPostStore.On("AnalyticsPostCount", &singleUserPostCountOptions).Return(int64(2), nil)
 	mockStore.On("Post").Return(&mockPostStore)
 
 	fakeTermsOfService := model.TermsOfService{Id: "123", CreateAt: 11111, UserId: "321", Text: "Terms of service test"}

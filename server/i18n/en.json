@@ -7420,6 +7420,10 @@
     "description": "Internal error when removing a user's channel memberships fails during permanent account deletion."
   },
   {
+    "id": "app.channel.permanent_delete_sidebar_by_user.app_error",
+    "translation": "Unable to delete sidebar categories for user."
+  },
+  {
     "id": "app.channel.pinned_posts.app_error",
     "translation": "Unable to find the pinned posts.",
     "description": "API error returned when fetching the pinned posts of a channel fails."
@@ -7605,6 +7609,10 @@
     "description": "Internal API error when the server fails to close out a user's join record in the channel member history (used for compliance exports)."
   },
   {
+    "id": "app.channel_member_history.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete channel member history for user."
+  },
+  {
     "id": "app.cloud.preview_modal_bucket_url_not_configured",
     "translation": "Preview bucket URL is not configured",
     "description": "API error returned when the Cloud preview modal content cannot be loaded because its storage bucket URL is not set; mainly seen by admins/developers."
@@ -7728,6 +7736,10 @@
     "id": "app.command_webhook.try_use.invalid",
     "translation": "Invalid webhook.",
     "description": "API error when a slash-command response webhook is expired or has exceeded its usage limit."
+  },
+  {
+    "id": "app.command_webhooks.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete command webhooks for user."
   },
   {
     "id": "app.compile_csv_chunks.header_error",
@@ -8419,6 +8431,10 @@
     "id": "app.desktop_token.validate.no_user",
     "translation": "Cannot find a user for this token",
     "description": "API error in the desktop app browser-login flow when the login token is not associated with any user account."
+  },
+  {
+    "id": "app.desktop_tokens.delete_by_user.app_error",
+    "translation": "Unable to delete desktop tokens for user."
   },
   {
     "id": "app.draft.delete.app_error",
@@ -9931,6 +9947,10 @@
     "description": "Body of the test notification message sent to a user (as a DM from the system bot) to verify their notification settings work."
   },
   {
+    "id": "app.notify_admin.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete admin notification requests for user."
+  },
+  {
     "id": "app.notify_admin.save.app_error",
     "translation": "Unable to save notify data.",
     "description": "Internal API error when persisting a user's 'notify admin to upgrade' request fails."
@@ -10621,6 +10641,10 @@
     "description": "API error when writing a plugin's key-value entry fails."
   },
   {
+    "id": "app.post.analytics_post_count.app_error",
+    "translation": "Unable to count the posts for the user."
+  },
+  {
     "id": "app.post.analytics_posts_count.app_error",
     "translation": "Unable to get post counts.",
     "description": "Internal API error when the statistics query counting posts (messages) fails; surfaces in admin analytics/usage endpoints."
@@ -10801,6 +10825,10 @@
     "description": "Internal/admin error when permanently (hard) deleting a post from the database fails."
   },
   {
+    "id": "app.post.permanent_delete_post_reminders_by_user.app_error",
+    "translation": "Unable to delete post reminders for user."
+  },
+  {
     "id": "app.post.property_values.field_bound_exceeded.app_error",
     "translation": "The number of attributes that apply to this post exceeds the supported limit.",
     "description": "Server error when loading posts whose channel has more post attributes (custom fields attached to messages) than the server can handle, so their values are not returned."
@@ -10876,6 +10904,10 @@
     "description": "API error when saving edits to a post ('Post' = chat message) fails."
   },
   {
+    "id": "app.post_acknowledgement.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete post acknowledgements for user."
+  },
+  {
     "id": "app.post_persistent_notification.delete_by_channel.app_error",
     "translation": "Unable to delete the persistent notifications by channel.",
     "description": "API error returned when deleting the persistent (repeating priority) notifications belonging to a channel fails."
@@ -10944,6 +10976,10 @@
     "id": "app.prepackged-plugin.invalid_version.app_error",
     "translation": "Prepackged plugin version could not be parsed.",
     "description": "Internal/log error when the version of a plugin prepackaged with the server cannot be parsed."
+  },
+  {
+    "id": "app.product_notices.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete product notice view state for user."
   },
   {
     "id": "app.property.access_denied.app_error",
@@ -11404,6 +11440,10 @@
     "id": "app.reaction.save.save.too_many_reactions",
     "translation": "Reaction limit has been reached for this post.",
     "description": "API error shown when a user tries to add an emoji reaction to a post that already has the maximum allowed number of reactions."
+  },
+  {
+    "id": "app.read_receipt.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete read receipts for user."
   },
   {
     "id": "app.recap.cooldown_active.app_error",
@@ -11987,6 +12027,10 @@
     "description": "API error when trying to create/delete session attribute fields or change disallowed properties; 'enabled', 'ttl_seconds' and 'grace_period_seconds' are literal API field names and should stay untranslated."
   },
   {
+    "id": "app.shared_channel.permanent_delete_users_by_user.app_error",
+    "translation": "Unable to delete shared channel users for user."
+  },
+  {
     "id": "app.status.get.app_error",
     "translation": "Encountered an error retrieving the status.",
     "description": "API error when fetching a user's availability status (online/away/etc.) fails; 'status' means user presence, not HTTP status."
@@ -11995,6 +12039,10 @@
     "id": "app.status.get.missing.app_error",
     "translation": "No entry for that status exists.",
     "description": "API error when no availability status record exists for the requested user; 'status' means user presence."
+  },
+  {
+    "id": "app.status.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete the status for user."
   },
   {
     "id": "app.submit_interactive_dialog.decode_json_error",
@@ -12377,6 +12425,10 @@
     "description": "API error returned when marking all followed threads in the given channels as read fails; 'threads' are reply threads on posts."
   },
   {
+    "id": "app.thread.permanent_delete_memberships_by_user.app_error",
+    "translation": "Unable to delete thread memberships for user."
+  },
+  {
     "id": "app.toast.send_toast_message.message.app_error",
     "translation": "Message is required",
     "description": "API validation error when a toast (brief in-app popup notification) request omits the message text."
@@ -12500,6 +12552,10 @@
     "id": "app.upload.upload_data.update.app_error",
     "translation": "Failed to update the upload session.",
     "description": "API error when updating the upload session's progress in the database fails."
+  },
+  {
+    "id": "app.upload_session.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete upload sessions for user."
   },
   {
     "id": "app.usage.get_storage_usage.app_error",
@@ -12650,6 +12706,10 @@
     "id": "app.user.permanent_delete.app_error",
     "translation": "Unable to delete the existing account.",
     "description": "Internal error when permanently deleting a user account from the database fails; admin-facing."
+  },
+  {
+    "id": "app.user.permanent_delete.too_many_posts.app_error",
+    "translation": "This user has {{.Count}} posts, which is more than the {{.Max}} post limit for permanently deleting a user. Delete some of the user's posts and try again."
   },
   {
     "id": "app.user.permanentdeleteuser.internal_error",
@@ -12905,6 +12965,10 @@
     "id": "app.user_terms_of_service.get_by_user.no_rows.app_error",
     "translation": "No terms of service found.",
     "description": "API error returned when a user's terms-of-service acceptance record cannot be found; 'terms of service' is the legal agreement document."
+  },
+  {
+    "id": "app.user_terms_of_service.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete the terms of service record for user."
   },
   {
     "id": "app.user_terms_of_service.save.app_error",

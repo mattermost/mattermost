@@ -248,6 +248,24 @@ func (_m *PostAcknowledgementStore) GetSingle(userID string, postID string, remo
 	return r0, r1
 }
 
+// PermanentDeleteByUser provides a mock function with given fields: userID
+func (_m *PostAcknowledgementStore) PermanentDeleteByUser(userID string) error {
+	ret := _m.Called(userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeleteByUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SaveWithModel provides a mock function with given fields: acknowledgement
 func (_m *PostAcknowledgementStore) SaveWithModel(acknowledgement *model.PostAcknowledgement) (*model.PostAcknowledgement, error) {
 	ret := _m.Called(acknowledgement)

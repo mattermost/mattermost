@@ -1008,6 +1008,17 @@ func (s SqlChannelStore) ClearSidebarOnTeamLeave(userId, teamId string) error {
 	return nil
 }
 
+// PermanentDeleteSidebarByUser removes the user's sidebar categories and channels across all teams.
+func (s SqlChannelStore) PermanentDeleteSidebarByUser(userId string) error {
+	if _, err := s.GetMaster().Exec("DELETE FROM SidebarChannels WHERE UserId = ?", userId); err != nil {
+		return errors.Wrapf(err, "failed to delete SidebarChannels with userId=%s", userId)
+	}
+	if _, err := s.GetMaster().Exec("DELETE FROM SidebarCategories WHERE UserId = ?", userId); err != nil {
+		return errors.Wrapf(err, "failed to delete SidebarCategories with userId=%s", userId)
+	}
+	return nil
+}
+
 // DeleteSidebarCategory removes a custom category and moves any channels into it into the Channels and Direct Messages
 // categories respectively. Assumes that the provided user ID and team ID match the given category ID.
 func (s SqlChannelStore) DeleteSidebarCategory(categoryId string) (err error) {

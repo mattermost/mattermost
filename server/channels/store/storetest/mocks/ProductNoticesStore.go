@@ -80,6 +80,24 @@ func (_m *ProductNoticesStore) GetViews(userID string) ([]model.ProductNoticeVie
 	return r0, r1
 }
 
+// PermanentDeleteByUser provides a mock function with given fields: userID
+func (_m *ProductNoticesStore) PermanentDeleteByUser(userID string) error {
+	ret := _m.Called(userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeleteByUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // View provides a mock function with given fields: userID, notices
 func (_m *ProductNoticesStore) View(userID string, notices []string) error {
 	ret := _m.Called(userID, notices)

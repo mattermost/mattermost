@@ -101,6 +101,13 @@ func (s SqlNotifyAdminStore) DeleteBefore(trial bool, now int64) error {
 	return nil
 }
 
+func (s SqlNotifyAdminStore) PermanentDeleteByUser(userId string) error {
+	if _, err := s.GetMaster().Exec("DELETE FROM NotifyAdmin WHERE UserId = ?", userId); err != nil {
+		return errors.Wrapf(err, "failed to remove all notification data with userId=%s", userId)
+	}
+	return nil
+}
+
 func (s SqlNotifyAdminStore) Update(userId string, requiredPlan string, requiredFeature model.MattermostFeature, now int64) error {
 	if _, err := s.GetMaster().Exec("UPDATE NotifyAdmin SET SentAt = ? WHERE UserId = ? AND RequiredPlan = ? AND RequiredFeature = ?", now, userId, requiredPlan, requiredFeature); err != nil {
 		return errors.Wrapf(err, "failed to update SentAt for userId=%s and requiredPlan=%s", userId, requiredPlan)
