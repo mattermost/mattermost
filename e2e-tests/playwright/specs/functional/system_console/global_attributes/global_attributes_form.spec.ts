@@ -721,6 +721,95 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         });
 
         /**
+         * @objective Ensure changing a template's AD/LDAP sync source on Save also updates the
+         * already-linked Users field. LDAP sync reads attrs.ldap on the Users field (copied only
+         * at create), so a template-only edit would otherwise leave sync on the stale mapping.
+         */
+        test('cascades an edited AD/LDAP sync source onto an already-linked Users field on Save', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_sync_cascade_${timestamp}`;
+            const displayName = `Playwright Sync Cascade ${timestamp}`;
+
+            try {
+                const template = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName, ldap: 'oldDept'},
+                });
+                await createLinkedDependentField(adminClient, name, template.id, 'text', 'user', {
+                    display_name: displayName,
+                });
+
+                // * Create copied ldap onto the Users field (the sync mapping LDAP actually reads)
+                let linkedFields = await fetchLinkedFieldsForTemplate(adminClient, template.id);
+                let userField = linkedFields.find((f) => f.object_type === 'user');
+                expect(userField?.attrs?.ldap).toBe('oldDept');
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}/attribute_details/${template.id}`);
+
+                // # Edit the AD/LDAP chip to a new directory attribute and save
+                await page.getByTestId('attributeExternalSourceChip-ldap-edit').click();
+                const input = page.getByPlaceholder('department');
+                await expect(input).toHaveValue('oldDept');
+                await input.fill('newDept');
+                await page.getByRole('button', {name: 'Save'}).click();
+                await expect(page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText('AD/LDAP: newDept');
+
+                await page.getByTestId('saveSetting').click();
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                // * The linked Users field's attrs.ldap moved with the template — not left at oldDept
+                linkedFields = await fetchLinkedFieldsForTemplate(adminClient, template.id);
+                userField = linkedFields.find((f) => f.object_type === 'user');
+                expect(userField?.attrs?.ldap).toBe('newDept');
+            } finally {
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective Ensure clearing a template's AD/LDAP sync source on Save also clears it on
+         * the already-linked Users field, so LDAP sync stops writing that field.
+         */
+        test('clears ldap on an already-linked Users field when the template sync source is removed', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_sync_clear_${timestamp}`;
+            const displayName = `Playwright Sync Clear ${timestamp}`;
+
+            try {
+                const template = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName, ldap: 'oldDept'},
+                });
+                await createLinkedDependentField(adminClient, name, template.id, 'text', 'user', {
+                    display_name: displayName,
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}/attribute_details/${template.id}`);
+
+                // # Remove the AD/LDAP link and save
+                await page.getByTestId('attributeExternalSourceChip-ldap-remove').click();
+                await expect(page.getByTestId('attributeExternalSourceChip-ldap')).toHaveCount(0);
+                await page.getByTestId('saveSetting').click();
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                // * Users field no longer carries attrs.ldap (empty/absent — sync will skip it)
+                const linkedFields = await fetchLinkedFieldsForTemplate(adminClient, template.id);
+                const userField = linkedFields.find((f) => f.object_type === 'user');
+                expect(userField?.attrs?.ldap || '').toBe('');
+            } finally {
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
+            }
+        });
+
+        /**
          * @objective Ensure a linked chip's edit action reopens the modal pre-filled and commits
          * a changed value, and that its remove action clears the link immediately with no modal.
          */
