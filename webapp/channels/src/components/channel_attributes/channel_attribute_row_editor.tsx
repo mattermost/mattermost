@@ -108,6 +108,7 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                 className='ChannelInfoAttributes__textInput'
                 type='text'
                 value={text}
+                size={Math.max(text.length, 1)}
                 maxLength={PROPERTY_TEXT_VALUE_MAX_LENGTH}
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={handleTextKeyDown}

@@ -139,14 +139,19 @@
     }
 
     &__textInput {
-        width: 100%;
+        // Match resting textValue + valueTrigger so entering edit does not
+        // stretch to full row width or shift the text.
+        width: auto;
+        max-width: 100%;
+        min-width: 1ch;
         min-height: 28px;
         box-sizing: border-box;
-        padding: 4px 2px;
+        padding: 0 6px;
         border: none;
         border-radius: 4px;
-        background: rgba(var(--center-channel-color-rgb), 0.08);
+        background: rgba(var(--center-channel-color-rgb), 0.04);
         color: var(--center-channel-color);
+        field-sizing: content;
         font-family: inherit;
         font-size: 12px;
         font-weight: 600;
@@ -154,7 +159,7 @@
         outline: none;
 
         &:focus {
-            background: rgba(var(--center-channel-color-rgb), 0.08);
+            background: rgba(var(--center-channel-color-rgb), 0.04);
         }
 
         &:disabled {
