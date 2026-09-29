@@ -2150,6 +2150,18 @@ describe('AttributeDetails', () => {
                 expect(screen.getByTestId('attributeAppliesToRow-user-toggleLockWrap')).toBeInTheDocument();
             });
 
+            it('keeps a plugin-created standalone channel field\'s row toggle disabled', async () => {
+                mockLoadedNonTemplateField(makeNonTemplate('channel', {
+                    attrs: {display_name: 'Plugin field', source_plugin_id: 'com.example.plugin', protected: true},
+                }));
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeAppliesToRow-channel-toggle')).toBeDisabled();
+                expect(screen.getByTestId('attributeAppliesToRow-channel-toggleLockWrap')).toBeInTheDocument();
+            });
+
             it('leaves Type editable -- the single-resource lock must not regress the earlier applies-to-stays-editable guard', async () => {
                 mockLoadedNonTemplateField(makeNonTemplate('user'));
 
