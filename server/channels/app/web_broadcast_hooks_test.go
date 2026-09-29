@@ -1284,7 +1284,7 @@ func TestAbacBookmarksBroadcastHook_Process(t *testing.T) {
 	makeWebConn := func(t *testing.T, allowed bool) *platform.WebConn {
 		t.Helper()
 		mockSuite := &platform_mocks.SuiteIFace{}
-		mockSuite.On("HasPermissionToChannelction", mock.Anything, userID, mock.AnythingOfType("string"), channelID, model.AccessControlPolicyActionDownloadFileAttachment).Return(allowed)
+		mockSuite.On("HasPermissionToChannelAction", mock.Anything, userID, mock.AnythingOfType("string"), channelID, model.AccessControlPolicyActionDownloadFileAttachment).Return(allowed)
 		wc := &platform.WebConn{
 			UserId:   userID,
 			Platform: &platform.PlatformService{},
