@@ -165,12 +165,16 @@ Disable the policy for the channel by selecting **Remove Policy**. You can then 
 
 From Mattermost v11.7, System Admins can define attribute-based **permission policies** that restrict specific user actions in addition to channel membership. Permission policies use the same attribute-based rules as access policies, but they apply to user actions rather than channel access.
 
-Permission policies can be used to restrict the following actions based on user attributes:
+Permission policies are managed in **System Console \> System Attributes \> Permission Policies**, and can be used to restrict the following actions based on user attributes:
 
 - **File upload**: Prevent users who don't match the defined attribute rules from uploading file attachments.
 - **File download**: Prevent users who don't match the defined attribute rules from downloading file attachments.
+- **Channel read access**: From Mattermost v12.1, prevent users who don't match the defined attribute rules from reading a channel and its content. See [Channel read and write access actions](/administration-guide/manage/admin/abac-channel-read-write-access).
+- **Channel write access**: From Mattermost v12.1, prevent users who don't match the defined attribute rules from posting in a channel or changing its content. See [Channel read and write access actions](/administration-guide/manage/admin/abac-channel-read-write-access).
 
 When a permission policy applies, users who don't match the configured attribute values can't perform the restricted action. Users may see file attachments as unavailable or redacted in messages they would otherwise have access to. See [Restricted file attachments](/end-user-guide/collaborate/share-files-in-messages#restricted-file-attachments) for the end-user-facing behavior.
+
+Unlike membership policies, which are applied when channel membership is synchronized, permission policies are evaluated on every request. Rules can also reference session attributes such as IP address and user agent, so the same user can be allowed an action from one session and denied it from another.
 
 Permission policies follow the same unique-name requirement as access policies: each parent permission policy must have a unique name, and Mattermost surfaces a user-friendly error if a duplicate name is entered.
 
