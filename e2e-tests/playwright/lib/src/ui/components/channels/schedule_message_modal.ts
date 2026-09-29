@@ -4,7 +4,7 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-import {getDayPickerDayCell} from '../day_picker';
+import {getDayPickerDayCell, goToDayPickerMonth} from '../day_picker';
 
 export default class ScheduleMessageModal {
     readonly container: Locator;
@@ -39,7 +39,6 @@ export default class ScheduleMessageModal {
         await this.dateButton.click();
 
         const pacificDate = new Date();
-        const originDate = new Date();
 
         if (dayFromToday) {
             pacificDate.setDate(pacificDate.getDate() + dayFromToday);
@@ -50,11 +49,7 @@ export default class ScheduleMessageModal {
 
         const dateLocator = this.dateLocator(day);
 
-        const isMonthChanged = pacificDate.getMonth() !== originDate.getMonth();
-        if (!(await dateLocator.isVisible()) && isMonthChanged) {
-            await this.container.getByLabel('Go to next month').click();
-        }
-
+        await goToDayPickerMonth(this.container, pacificDate);
         await dateLocator.click();
 
         // Wait for the date-picker calendar to fully close before returning.
