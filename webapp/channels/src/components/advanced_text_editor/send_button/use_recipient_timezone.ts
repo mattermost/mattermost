@@ -23,6 +23,40 @@ export function formatUTCOffset(timezone: string): string {
     return DateTime.now().setZone(timezone).toFormat("'UTC'ZZ");
 }
 
+const DAYS_TO_COMPARE = 366;
+const timezonesDifferCache = new Map<string, boolean>();
+
+/**
+ * Whether two timezones show a different time on any day within the next year.
+ *
+ * Differently named zones can share a clock all year (e.g. America/New_York and America/Toronto),
+ * while zones with the same offset today can still diverge once only one of them changes its
+ * clocks for daylight saving, which matters for messages scheduled further ahead.
+ */
+export function timezonesDiffer(timezoneA: string, timezoneB: string): boolean {
+    if (timezoneA === timezoneB) {
+        return false;
+    }
+
+    const start = DateTime.utc().startOf('day');
+    const key = `${timezoneA}|${timezoneB}|${start.toISODate()}`;
+    const cached = timezonesDifferCache.get(key);
+    if (cached !== undefined) {
+        return cached;
+    }
+
+    let differ = false;
+    if (start.setZone(timezoneA).isValid && start.setZone(timezoneB).isValid) {
+        for (let day = 0; day < DAYS_TO_COMPARE && !differ; day++) {
+            const date = start.plus({days: day});
+            differ = date.setZone(timezoneA).offset !== date.setZone(timezoneB).offset;
+        }
+    }
+
+    timezonesDifferCache.set(key, differ);
+    return differ;
+}
+
 /**
  * Lets the user schedule a message in a DM using the recipient's timezone instead of their own.
  * The choice is stored as a preference so it is shared by the schedule menu and the custom time modal.
@@ -44,7 +78,7 @@ export default function useRecipientTimezone(channelId: string) {
             return false;
         }
 
-        return DateTime.now().setZone(recipientTimezone).offset !== DateTime.now().setZone(userTimezone).offset;
+        return timezonesDiffer(recipientTimezone, userTimezone);
     }, [teammate, currentUserId, recipientTimezone, userTimezone]);
 
     const isUsingRecipientTimezone = canUseRecipientTimezone && enabled;

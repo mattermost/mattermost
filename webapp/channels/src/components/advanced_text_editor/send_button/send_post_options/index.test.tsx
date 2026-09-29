@@ -328,6 +328,14 @@ describe('SendPostOptions', () => {
             expect(recipientTimezoneCheckbox()).not.toBeInTheDocument();
         });
 
+        it('does not offer the recipient timezone when both timezones always share a clock', () => {
+            renderComponent(stateForDM({teammateTz: 'America/Toronto'}), {channelId: 'dmChannelId'});
+
+            openMenu();
+
+            expect(screen.queryByRole('menuitemcheckbox')).not.toBeInTheDocument();
+        });
+
         it('does not offer the recipient timezone in a DM with a bot', () => {
             renderComponent(stateForDM({isBot: true, myPreferences: useRecipientTimezonePreference}), {channelId: 'dmChannelId'});
 
