@@ -9944,7 +9944,7 @@
     "description": "Destructive menu item in a policy's actions menu that deletes the permission policy."
   },
   "admin.permission_policies.description": {
-    "defaultMessage": "Create policies to control file upload and download permissions based on user attributes.",
+    "defaultMessage": "Create policies to control channel action permissions based on user attributes.",
     "description": "Description under the page title on the System Console > Permission Policies page."
   },
   "admin.permission_policies.edit": {
