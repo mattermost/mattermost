@@ -183,7 +183,10 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	createdUserField, appErr := c.App.CreatePropertyField(rctx, userField, false, connectionID)
 	if appErr != nil {
 		// Best-effort rollback: remove the orphaned template.
-		_ = c.App.DeletePropertyField(rctx, group.ID, createdTmpl.ID, false, connectionID)
+		if rbErr := c.App.DeletePropertyField(rctx, group.ID, createdTmpl.ID, false, connectionID); rbErr != nil {
+			c.Logger.Warn("Failed to roll back CPA template after user field creation failed",
+				mlog.String("template_id", createdTmpl.ID), mlog.Err(rbErr))
+		}
 		c.Err = appErr
 		return
 	}
@@ -316,7 +319,10 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			existingField.LinkedFieldID = nil
 
-			_ = c.App.DeletePropertyField(rctx, group.ID, templateID, false, connectionID)
+			if tmplDelErr := c.App.DeletePropertyField(rctx, group.ID, templateID, false, connectionID); tmplDelErr != nil {
+				c.Logger.Warn("Failed to delete CPA template after unlinking for type change",
+					mlog.String("template_id", templateID), mlog.Err(tmplDelErr))
+			}
 			// Fall through: patch (including Type) is now applied to the unlinked user field.
 		} else {
 			tmpl, tmplErr := c.App.GetPropertyField(rctx, group.ID, *existingField.LinkedFieldID)
@@ -348,13 +354,10 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
-			// Strip options from the user-field patch: the linked field inherits
-			// options from the template and cannot carry its own.
+			// Strip schema attrs from the user-field patch: options, ldap, saml,
+			// etc. belong on the template only; the linked user field inherits them.
 			if patch.Attrs != nil {
-				displayOnly := maps.Clone(*patch.Attrs)
-				delete(displayOnly, model.PropertyFieldAttributeOptions)
-				delete(displayOnly, model.PropertyFieldAttributeOptionsCount)
-				delete(displayOnly, model.PropertyFieldAttributeOptionsOmitted)
+				_, displayOnly := splitCPAAttrs(*patch.Attrs)
 				if len(displayOnly) > 0 {
 					patch.Attrs = &displayOnly
 				} else {
