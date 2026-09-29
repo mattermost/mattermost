@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	cmocks "github.com/mattermost/mattermost/server/v8/platform/services/cache/mocks"
@@ -518,6 +519,72 @@ func TestChannelStoreGetByNamesCache(t *testing.T) {
 		assert.ElementsMatch(t, []*model.Channel{&fakeChannel, &fakeChannel2}, channels)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetByNames", 2)
 	})
+}
+
+func TestChannelStoreChannelMemberRolesForUserCache(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+	expectedMemberRoles := map[string]store.ChannelMemberRoles{
+		"channel1": {Roles: "custom_role channel_user channel_admin", SchemeUser: true, SchemeAdmin: true},
+	}
+
+	newCachedStore := func(t *testing.T) (LocalCacheStore, *mocks.ChannelStore) {
+		mockStore := getMockStore(t)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, getMockCacheProvider(), logger)
+		require.NoError(t, err)
+		return cachedStore, mockStore.Channel().(*mocks.ChannelStore)
+	}
+
+	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
+		cachedStore, mockChannelStore := newCachedStore(t)
+
+		memberRoles, err := cachedStore.Channel().GetAllChannelMemberRolesForUser(request.TestContext(t), "user1", true)
+		require.NoError(t, err)
+		assert.Equal(t, expectedMemberRoles, memberRoles)
+		memberRoles, err = cachedStore.Channel().GetAllChannelMemberRolesForUser(request.TestContext(t), "user1", true)
+		require.NoError(t, err)
+		assert.Equal(t, expectedMemberRoles, memberRoles)
+		mockChannelStore.AssertNumberOfCalls(t, "GetAllChannelMemberRolesForUser", 1)
+	})
+
+	t.Run("first call not cached, second force not cached", func(t *testing.T) {
+		cachedStore, mockChannelStore := newCachedStore(t)
+
+		_, err := cachedStore.Channel().GetAllChannelMemberRolesForUser(request.TestContext(t), "user1", true)
+		require.NoError(t, err)
+		_, err = cachedStore.Channel().GetAllChannelMemberRolesForUser(request.TestContext(t), "user1", false)
+		require.NoError(t, err)
+		mockChannelStore.AssertNumberOfCalls(t, "GetAllChannelMemberRolesForUser", 2)
+	})
+
+	invalidations := map[string]func(cachedStore LocalCacheStore){
+		"invalidating the user's channel members": func(cachedStore LocalCacheStore) {
+			cachedStore.Channel().InvalidateAllChannelMembersForUser("user1")
+		},
+		"clearing the members-for-user cache": func(cachedStore LocalCacheStore) {
+			cachedStore.Channel().ClearMembersForUserCache()
+		},
+		"clearing the channel caches": func(cachedStore LocalCacheStore) {
+			cachedStore.Channel().ClearCaches()
+		},
+		"a cluster invalidation for the user": func(cachedStore LocalCacheStore) {
+			cachedStore.channel.handleClusterInvalidateChannelMemberRolesForUser(&model.ClusterMessage{Data: []byte("user1")})
+		},
+		"a cluster purge": func(cachedStore LocalCacheStore) {
+			cachedStore.channel.handleClusterInvalidateChannelMemberRolesForUser(&model.ClusterMessage{Data: clearCacheMessageData})
+		},
+	}
+	for name, invalidate := range invalidations {
+		t.Run(name+" drops the cached roles", func(t *testing.T) {
+			cachedStore, mockChannelStore := newCachedStore(t)
+
+			_, err := cachedStore.Channel().GetAllChannelMemberRolesForUser(request.TestContext(t), "user1", true)
+			require.NoError(t, err)
+			invalidate(cachedStore)
+			_, err = cachedStore.Channel().GetAllChannelMemberRolesForUser(request.TestContext(t), "user1", true)
+			require.NoError(t, err)
+			mockChannelStore.AssertNumberOfCalls(t, "GetAllChannelMemberRolesForUser", 2)
+		})
+	}
 }
 
 func TestChannelStoreGetAllChannelMembersForUser(t *testing.T) {

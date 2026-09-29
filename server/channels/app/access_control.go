@@ -2824,9 +2824,12 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 // the given channel.
 //
 // Resolution order:
-//  1. Look up ChannelMember; map SchemeAdmin → channel_admin, SchemeUser → channel_user,
+//  1. Look up the membership's role fields; map SchemeAdmin → channel_admin, SchemeUser → channel_user,
 //     SchemeGuest → channel_guest.
 //  2. Inspect the Roles tokens on the channel member for the channel role names.
+//
+// The role fields come from the user's cached channel memberships rather than a ChannelMember
+// read, because this runs for every recipient of every channel-scoped websocket event.
 //
 // Returns ("", nil) when no channel role can be determined — either
 // because the user is not a member of the channel, or because the
@@ -2837,21 +2840,21 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 // a fabricated role. Inconsistent-row cases are logged at WARN with the
 // row's flags and Roles for operator triage.
 func (a *App) GetSubjectChannelRole(rctx request.CTX, userID, channelID string) (string, *model.AppError) {
-	cm, err := a.Srv().Store().Channel().GetMember(rctx, channelID, userID)
+	memberRoles, err := a.Srv().Store().Channel().GetAllChannelMemberRolesForUser(rctx, userID, true)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
-			// Not a member: return an empty role and let the caller
-			// decide what "no resource role" means for them. We used
-			// to fabricate a role from the user's system roles here,
-			// but that synthesised channel-scope information from
-			// data the user has no actual channel membership behind —
-			// callers (e.g. attachChannelScopedRole in file.go) now
-			// gate on the empty string and skip the channel scope
-			// rather than evaluating against a guess.
-			return "", nil
-		}
 		return "", model.NewAppError("GetSubjectChannelRole", "app.access_control.get_channel_role.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	cm, ok := memberRoles[channelID]
+	if !ok {
+		// Not a member: return an empty role and let the caller
+		// decide what "no resource role" means for them. We used
+		// to fabricate a role from the user's system roles here,
+		// but that synthesised channel-scope information from
+		// data the user has no actual channel membership behind —
+		// callers (e.g. attachChannelScopedRole in file.go) now
+		// gate on the empty string and skip the channel scope
+		// rather than evaluating against a guess.
+		return "", nil
 	}
 
 	switch {

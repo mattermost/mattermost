@@ -132,6 +132,11 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockChannelStore.On("GetMany", []string{fakeChannel2.Id}, true).Return(model.ChannelList{&fakeChannel2}, nil)
 	mockChannelStore.On("GetByNames", "team1", []string{fakeChannel1.Name}, true).Return([]*model.Channel{&fakeChannel1}, nil)
 	mockChannelStore.On("GetByNames", "team1", []string{fakeChannel2.Name}, true).Return([]*model.Channel{&fakeChannel2}, nil)
+	mockMemberRoles := map[string]store.ChannelMemberRoles{
+		channelId: {Roles: "custom_role channel_user channel_admin", SchemeUser: true, SchemeAdmin: true},
+	}
+	mockChannelStore.On("GetAllChannelMemberRolesForUser", mock.IsType(&request.Context{}), "user1", true).Return(mockMemberRoles, nil)
+	mockChannelStore.On("GetAllChannelMemberRolesForUser", mock.IsType(&request.Context{}), "user1", false).Return(mockMemberRoles, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
 
 	mockChannelsMemberCount := map[string]int64{
