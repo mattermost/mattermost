@@ -2940,6 +2940,85 @@ describe('AttributeDetails', () => {
                 expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-member')).toBeEnabled();
                 expect(screen.queryByTestId('attributeAppliesToUserWhoCanSet-lockWrap')).not.toBeInTheDocument();
             });
+
+            describe('Remove lock and save', () => {
+                const ownedAttrs = {display_name: 'Department', owners: [scimOwner], managed: 'admin', visibility: 'always'};
+
+                function mockPatch() {
+                    return jest.spyOn(Client4, 'patchPropertyField').mockImplementation((_group, objectType) => (
+                        Promise.resolve(objectType === 'user' ? makeLinked('user', 'user-field', {attrs: ownedAttrs}) : makeTemplate())
+                    ));
+                }
+
+                it('locks Remove on the Users row only, keeping Remove on other rows', async () => {
+                    mockScimStatus(true);
+                    mockLoadedField(makeTemplate(), [
+                        makeLinked('user', 'user-field', {attrs: ownedAttrs}),
+                        makeLinked('channel', 'channel-field'),
+                    ]);
+
+                    renderEdit();
+                    await waitForForm();
+
+                    await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+                    expect(screen.getByTestId('attributeAppliesToRow-user-remove')).toBeDisabled();
+                    expect(screen.getByTestId('attributeAppliesToRow-user-removeLockWrap')).toBeInTheDocument();
+
+                    await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
+                    expect(screen.getByTestId('attributeAppliesToRow-channel-remove')).toBeEnabled();
+                });
+
+                it('leaves Remove enabled on an unowned Users row', async () => {
+                    mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
+
+                    renderEdit();
+                    await waitForForm();
+
+                    await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+                    expect(screen.getByTestId('attributeAppliesToRow-user-remove')).toBeEnabled();
+                    expect(screen.queryByTestId('attributeAppliesToRow-user-removeLockWrap')).not.toBeInTheDocument();
+                });
+
+                it('saves a Profile display change without sending owners or deleting the Users field', async () => {
+                    mockScimStatus(true);
+                    mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field', {attrs: ownedAttrs})]);
+                    const patchPropertyField = mockPatch();
+                    const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField');
+
+                    renderEdit();
+                    await waitForForm();
+
+                    await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+                    await userEvent.click(screen.getByTestId('attributeAppliesToUserProfileDisplay-hidden'));
+                    await userEvent.click(screen.getByTestId('saveSetting'));
+
+                    await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
+                    expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'user-field', {
+                        attrs: {visibility: 'hidden', managed: 'admin'},
+                        permission_values: 'sysadmin',
+                    });
+                    expect(deletePropertyField).not.toHaveBeenCalled();
+                });
+
+                it('saves a display name change without sending owners or managed', async () => {
+                    mockScimStatus(true);
+                    mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field', {attrs: ownedAttrs})]);
+                    const patchPropertyField = mockPatch();
+                    const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField');
+
+                    renderEdit();
+                    await waitForForm();
+
+                    await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' 2');
+                    await userEvent.click(screen.getByTestId('saveSetting'));
+
+                    await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+                    expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'user-field', {
+                        attrs: {display_name: 'Department 2'},
+                    });
+                    expect(deletePropertyField).not.toHaveBeenCalled();
+                });
+            });
         });
 
         it('redirects to the listing when the field is Classification Markings', async () => {

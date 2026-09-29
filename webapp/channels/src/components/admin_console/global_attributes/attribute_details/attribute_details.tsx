@@ -625,6 +625,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         appliesToLockedTooltip = formatMessage(messages.appliesToLockedSingleResourceTooltip);
     }
 
+    const ownedLockedTooltip = isOwned ? formatMessage(messages.ownedLockedTooltip, {owners: ownersLabel}) : undefined;
+
     const markDirty = useCallback(() => {
         setIsDirty(true);
         dispatch(setNavigationBlocked(true));
@@ -1004,7 +1006,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             }
 
             const persisted = persistedLinkedFieldsRef.current;
-            const toDelete = (Object.keys(persisted) as ResourceObjectType[]).filter((type) => !appliesTo.includes(type));
+            const toDelete = (Object.keys(persisted) as ResourceObjectType[]).filter((type) => !appliesTo.includes(type) && !(isOwned && type === 'user'));
             const toCreate = appliesTo.filter((type) => !persisted[type]);
 
             // Removing a resource deletes every value stored under its linked
@@ -1260,7 +1262,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         }
 
         finalizeSave(outcome);
-    }, [canSave, isEditMode, fieldId, objectType, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, channelResource, finalizeSave, confirmRemoveAppliesTo, userVisibility, userManaged]);
+    }, [canSave, isEditMode, fieldId, objectType, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, channelResource, finalizeSave, confirmRemoveAppliesTo, userVisibility, userManaged, isOwned]);
 
     const handleChannelResourceChange = useCallback((next: ChannelResourceConfig) => {
         setChannelResource(next);
@@ -1656,7 +1658,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         userManaged={userManaged}
                         onUserManagedChange={handleUserManagedChange}
                         externalSource={managedByExternalSource}
-                        userWhoCanSetLockedTooltip={isOwned ? formatMessage(messages.ownedLockedTooltip, {owners: ownersLabel}) : undefined}
+                        userWhoCanSetLockedTooltip={ownedLockedTooltip}
+                        removeLockedTooltips={ownedLockedTooltip ? {user: ownedLockedTooltip} : undefined}
                         channelResource={channelResource}
                         onChannelResourceChange={handleChannelResourceChange}
                         ordered={fieldType === 'rank'}
