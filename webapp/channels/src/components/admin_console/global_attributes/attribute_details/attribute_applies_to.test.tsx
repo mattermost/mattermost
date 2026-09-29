@@ -130,6 +130,44 @@ describe('AttributeAppliesTo', () => {
         });
     });
 
+    describe('blockedTypes', () => {
+        it('offers a blocked type as a disabled option carrying its reason, and adds nothing when it is clicked', async () => {
+            renderComponent({blockedTypes: {user: 'Name already in use'}});
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+
+            const users = screen.getByRole('menuitem', {name: /^Users/});
+            expect(users).toHaveAttribute('aria-disabled', 'true');
+            expect(users).toHaveTextContent('Name already in use');
+
+            // pointerEventsCheck off so the click really reaches the item: a
+            // disabled MUI item is pointer-events: none, and letting userEvent
+            // refuse the interaction would prove only that CSS, not that the
+            // component drops the click.
+            await userEvent.click(users, {pointerEventsCheck: 0});
+
+            // A live Menu.Item defers its onClick until the menu has finished
+            // closing, so close the menu before concluding nothing was added.
+            await userEvent.keyboard('{Escape}');
+            await waitFor(() => expect(screen.queryByRole('menuitem')).not.toBeInTheDocument());
+            expect(onAdd).not.toHaveBeenCalled();
+        });
+
+        it('leaves a type with no entry enabled, and still adds it', async () => {
+            renderComponent({blockedTypes: {user: 'Name already in use'}});
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+
+            const channels = screen.getByRole('menuitem', {name: 'Channels'});
+            expect(channels).not.toHaveAttribute('aria-disabled', 'true');
+            expect(channels).not.toHaveTextContent('Name already in use');
+
+            await userEvent.click(channels);
+
+            await waitFor(() => expect(onAdd).toHaveBeenCalledWith('channel'));
+        });
+    });
+
     describe('lockedTooltip on the Channels row', () => {
         it('wraps the toggle in the lock tooltip when lockedTooltip is given', () => {
             renderComponent({appliesTo: ['channel'], lockedTooltip: 'Locked'});

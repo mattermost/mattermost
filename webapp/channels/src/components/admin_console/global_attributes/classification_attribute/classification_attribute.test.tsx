@@ -10,7 +10,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import ModalController from 'components/modal_controller';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 
 import ClassificationAttribute from './classification_attribute';
 
@@ -52,11 +52,29 @@ function channelField(attrs: Record<string, unknown> = {}): PropertyField {
     } as unknown as PropertyField;
 }
 
-// The page loads the template and the channel field with one paged call each.
-function mockLoad(existingChannelField?: PropertyField) {
+// The `clearance` user field Classification Markings links to the template. Its
+// name is not the template's, which is the only reason this page has to show it.
+function userField(overrides: Partial<PropertyField> = {}): PropertyField {
+    return {
+        ...TEMPLATE,
+        id: 'user_field_id_123456789012',
+        name: 'clearance',
+        object_type: 'user',
+        linked_field_id: TEMPLATE.id,
+        attrs: {},
+        ...overrides,
+    } as unknown as PropertyField;
+}
+
+// The page loads the template, the channel field, and the template's other linked
+// fields with one paged call per object type.
+function mockLoad(existingChannelField?: PropertyField, linkedUserFields: PropertyField[] = []) {
     return jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
         if (objectType === 'template') {
             return [TEMPLATE];
+        }
+        if (objectType === 'user') {
+            return linkedUserFields;
         }
         return existingChannelField ? [existingChannelField] : [];
     });
@@ -233,6 +251,64 @@ describe('ClassificationAttribute', () => {
 
         expect(await screen.findByTestId('appliesToAddResource')).toBeInTheDocument();
         expect(screen.queryByTestId('channelsResourceRow')).not.toBeInTheDocument();
+    });
+
+    it('gives the linked user field a home under the name it actually carries', async () => {
+        // Attribute Management lists no row for a linked field, so the `clearance`
+        // name Classification Markings created is otherwise nowhere to be found.
+        mockLoad(undefined, [userField()]);
+
+        render();
+
+        const rows = within(await screen.findByTestId('appliesToReadOnlyResources')).getAllByRole('listitem');
+        expect(rows).toHaveLength(1);
+        expect(rows[0]).toHaveTextContent('Applied to Users as clearance');
+
+        // Not the template's own name: the two differ, which is the point of the row.
+        expect(rows[0]).not.toHaveTextContent('classification');
+    });
+
+    it('lists no read-only resource when the template only applies to channels', async () => {
+        mockLoad(channelField({required: true, actions: ['display_label_header']}));
+
+        render();
+
+        expect(await screen.findByTestId('channelsResourceRow')).toBeInTheDocument();
+        expect(screen.queryByTestId('appliesToReadOnlyResources')).not.toBeInTheDocument();
+    });
+
+    it('keeps the empty state when the template applies to nothing yet', async () => {
+        mockLoad();
+
+        render();
+
+        expect(await screen.findByTestId('appliesToEmpty')).toBeInTheDocument();
+        expect(screen.queryByTestId('appliesToReadOnlyResources')).not.toBeInTheDocument();
+    });
+
+    it('treats a 404 from the linked-field listing as nothing linked', async () => {
+        // Same convention as the two lookups above: 404 is how the property routes
+        // say "no such field", not that the page is broken.
+        const notFound = new ClientError('https://example.com', {
+            message: 'Not found',
+            status_code: 404,
+            url: '/api/v4/properties/groups/access_control/user/fields',
+        });
+        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
+            if (objectType === 'template') {
+                return [TEMPLATE];
+            }
+            if (objectType === 'user') {
+                throw notFound;
+            }
+            return [];
+        });
+
+        render();
+
+        expect(await screen.findByTestId('appliesToEmpty')).toBeInTheDocument();
+        expect(screen.queryByTestId('appliesToReadOnlyResources')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('classificationAttributeLoadError')).not.toBeInTheDocument();
     });
 
     it('creates the channel field when the resource is added and saved', async () => {

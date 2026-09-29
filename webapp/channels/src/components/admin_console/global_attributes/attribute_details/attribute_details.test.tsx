@@ -15,7 +15,7 @@ import {DISPLAY_LABEL_HEADER} from 'mattermost-redux/constants/properties';
 import ModalController from 'components/modal_controller';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
+import {renderWithContext, runPostRenderAct, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 
 import AttributeDetails from './attribute_details';
 
@@ -1559,6 +1559,191 @@ describe('AttributeDetails', () => {
         });
     });
 
+    // A user attribute can already carry the name being typed without showing up
+    // anywhere in Attribute Management -- a template's linked user field is
+    // hidden behind its template's row. Creating a template under that name is
+    // legal (a Channels-only template becomes resource.attributes.<name>, which
+    // CEL keeps apart from user.attributes.<name>), so the page warns. The one
+    // combination the server refuses is applying to Users under a name an
+    // existing user field holds exactly.
+    describe('unique name already held by another attribute\'s user field', () => {
+        const OWNER_TEMPLATE_ID = 'markingstemplateid0123456789ab';
+
+        function makeUserField(name: string, overrides: Partial<PropertyField> = {}): PropertyField {
+            return {
+                id: `user-field-${name}`,
+                name,
+                type: 'text',
+                group_id: 'accesscontrolgroupuuid001',
+                object_type: 'user',
+                target_id: '',
+                target_type: 'system',
+                create_at: 1,
+                update_at: 1,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+                attrs: {display_name: name},
+                ...overrides,
+            } as PropertyField;
+        }
+
+        function makeOwnerTemplate(): PropertyField {
+            return {
+                id: OWNER_TEMPLATE_ID,
+                name: 'markings',
+                type: 'rank',
+                group_id: 'accesscontrolgroupuuid001',
+                object_type: 'template',
+                target_id: '',
+                target_type: 'system',
+                create_at: 1,
+                update_at: 1,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+                attrs: {display_name: 'Security Markings'},
+            } as PropertyField;
+        }
+
+        // The page lists user fields (what a name can collide with) and templates
+        // (to name the owner of a linked one) on mount. listPropertyFields walks
+        // pages with a cursor, so a cursor-bearing call has to come back empty or
+        // the walk never terminates.
+        function mockConflictFields(userFields: PropertyField[], templates: PropertyField[] = []) {
+            return jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType, _targetType, _targetId, options) => {
+                if (options?.cursorId) {
+                    return Promise.resolve([]);
+                }
+                if (objectType === 'user') {
+                    return Promise.resolve(userFields);
+                }
+                if (objectType === 'template') {
+                    return Promise.resolve(templates);
+                }
+                return Promise.resolve([]);
+            });
+        }
+
+        // Both listings land after first paint. Waiting them out keeps a "no
+        // warning" assertion a statement about loaded data rather than about the
+        // empty lists the page starts with.
+        const renderCreate = async () => {
+            renderComponent();
+
+            await waitFor(() => {
+                expect(Client4.getPropertyFields).toHaveBeenCalledWith('access_control', 'user', 'system', undefined, expect.anything());
+                expect(Client4.getPropertyFields).toHaveBeenCalledWith('access_control', 'template', 'system', undefined, expect.anything());
+            });
+            await runPostRenderAct(3);
+        };
+
+        it('warns while the name is still being typed, naming the template that owns the colliding user field', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField');
+            mockConflictFields(
+                [makeUserField('clearance', {linked_field_id: OWNER_TEMPLATE_ID})],
+                [makeOwnerTemplate()],
+            );
+
+            await renderCreate();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Clearance');
+
+            const warning = await screen.findByTestId('attributeNameConflictWarning');
+            expect(warning).toHaveTextContent('A user attribute named "clearance" already exists and is linked to Security Markings.');
+            expect(warning).toHaveTextContent('Applying this attribute to Users would need a second user attribute named "clearance", which the server does not allow.');
+            expect(createPropertyField).not.toHaveBeenCalled();
+        });
+
+        it('shows no warning for a name no user field holds, and clears it again when a conflicting name is changed', async () => {
+            mockConflictFields([makeUserField('clearance')]);
+
+            await renderCreate();
+
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Cost Centre');
+            expect(screen.queryByTestId('attributeNameConflictWarning')).not.toBeInTheDocument();
+
+            await userEvent.clear(screen.getByTestId('attributeDisplayNameInput'));
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Clearance');
+            expect(await screen.findByTestId('attributeNameConflictWarning')).toBeVisible();
+
+            // The warning tracks the name currently in the form, rather than
+            // latching on the first collision seen.
+            await userEvent.clear(screen.getByTestId('attributeDisplayNameInput'));
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Clearance Level');
+            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('clearance_level');
+            expect(screen.queryByTestId('attributeNameConflictWarning')).not.toBeInTheDocument();
+        });
+
+        it('warns on a case-only difference but leaves Users addable, since only an exact match collides on the server', async () => {
+            mockConflictFields([makeUserField('clearance')]);
+
+            await renderCreate();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Clearance Level');
+            await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+            const nameInput = screen.getByTestId('attributeNameInput');
+            await userEvent.clear(nameInput);
+            await userEvent.type(nameInput, 'Clearance');
+            await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('Clearance');
+
+            const warning = await screen.findByTestId('attributeNameConflictWarning');
+            expect(warning).toHaveTextContent('A standalone user attribute named "clearance" already exists.');
+            expect(warning).not.toHaveTextContent('Applying this attribute to Users');
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            const users = screen.getByRole('menuitem', {name: /^Users/});
+            expect(users).not.toHaveAttribute('aria-disabled', 'true');
+            expect(users).not.toHaveTextContent('Name already in use');
+        });
+
+        it('offers Users as a disabled Add-resource option on an exact match, and adds no row when it is clicked', async () => {
+            mockConflictFields([makeUserField('clearance')]);
+
+            await renderCreate();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Clearance');
+            await screen.findByTestId('attributeNameConflictWarning');
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            const users = screen.getByRole('menuitem', {name: /^Users/});
+            expect(users).toHaveAttribute('aria-disabled', 'true');
+            expect(users).toHaveTextContent('Name already in use');
+
+            // pointerEventsCheck off so the click really reaches the item: a
+            // disabled MUI item is pointer-events: none, and letting userEvent
+            // refuse the interaction would prove only that CSS. Closing the menu
+            // afterwards gives Menu.Item's deferred onClick its chance to fire.
+            await userEvent.click(users, {pointerEventsCheck: 0});
+            await userEvent.keyboard('{Escape}');
+            await waitFor(() => expect(screen.queryByRole('menuitem')).not.toBeInTheDocument());
+            expect(screen.queryByTestId('attributeAppliesToRow-user')).not.toBeInTheDocument();
+        });
+
+        it('disables Save once an exact-match name is combined with Users in Applies to', async () => {
+            mockConflictFields([makeUserField('clearance')]);
+
+            await renderCreate();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Clearance Level');
+            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Users'}));
+            await waitFor(() => expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument());
+
+            // Everything else the form needs is already in place under a name
+            // nothing holds, so the rename below is the only thing that changes.
+            expect(screen.getByTestId('saveSetting')).toBeEnabled();
+
+            await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+            const nameInput = screen.getByTestId('attributeNameInput');
+            await userEvent.clear(nameInput);
+            await userEvent.type(nameInput, 'clearance');
+            await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+
+            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('clearance');
+            expect(await screen.findByTestId('attributeNameConflictWarning')).toBeVisible();
+            expect(screen.queryByTestId('attributeUniqueNameError')).not.toBeInTheDocument();
+            expect(screen.getByTestId('saveSetting')).toBeDisabled();
+        });
+    });
+
     describe('edit attribute', () => {
         const FIELD_ID = 'abcdefghijklmnopqrstuvwxyz';
 
@@ -2755,6 +2940,21 @@ describe('AttributeDetails', () => {
                 await userEvent.click(toggle);
                 expect(screen.queryByTestId('attributeAppliesToRow-user-remove')).not.toBeInTheDocument();
             });
+        });
+
+        it('does not warn about the template\'s own linked user field, which shares its name by design', async () => {
+            mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
+
+            renderEdit();
+            await waitForForm();
+
+            // The conflict lookup is a mount effect of its own, separate from the
+            // field load -- let it settle before concluding nothing was flagged.
+            await runPostRenderAct(3);
+
+            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('department');
+            expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument();
+            expect(screen.queryByTestId('attributeNameConflictWarning')).not.toBeInTheDocument();
         });
 
         it('redirects to the listing when the field is Classification Markings', async () => {

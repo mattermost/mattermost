@@ -1680,6 +1680,156 @@ describe('GlobalAttributesTable', () => {
             expect(items).toEqual(['Edit attribute', 'Delete attribute']);
         });
     });
+
+    describe('Name conflict warning', () => {
+        // Keyed on the requested object type (and empty for any paged call) for the
+        // same reason as the other multi-scope mocks here: the template scope is
+        // fetched first and the resource scopes after it, each paging until it sees
+        // an empty page.
+        function mockTemplatesAndUserFields(templates: PropertyField[], userFields: PropertyField[]) {
+            getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
+                if (opts?.cursorId) {
+                    return Promise.resolve([]);
+                }
+                if (objectType === 'template') {
+                    return Promise.resolve(templates);
+                }
+                if (objectType === 'user') {
+                    return Promise.resolve(userFields);
+                }
+                return Promise.resolve([]);
+            });
+        }
+
+        const CONFLICT_TESTID = /^global-attribute-name-conflict-/;
+
+        // Rows carry no accessible name of their own, so each assertion is scoped to
+        // the <tr> the named Attribute cell sits in — a warning rendered on a
+        // neighbouring row cannot then satisfy one of these.
+        //
+        // Template rows paint before the user scope lands, and the warning is
+        // resolved against that scope, so every lookup waits that out first: "no
+        // warning" would otherwise hold for a fetch that had not arrived yet, and a
+        // row captured before it does is detached by the time it has (resolving the
+        // scopes rebuilds the column definitions, and a rebuilt cell renderer is a
+        // new component type to React, which remounts every cell). The Applies-to
+        // spinners are the rendered signal to wait on: they show for exactly as long
+        // as resourcesLoaded is false.
+        async function findRowByName(displayName: string): Promise<HTMLElement> {
+            await screen.findAllByTestId('global-attribute-name');
+            await waitFor(() => {
+                expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
+            });
+
+            const cell = screen.getAllByTestId('global-attribute-name').find((candidate) => candidate.textContent === displayName);
+            expect(cell).toBeDefined();
+            return cell!.closest('tr')!;
+        }
+
+        // The template an admin creates without knowing that Classification already
+        // owns a user field carrying that name. Only the case differs, which is why
+        // the server accepted both (its uniqueness check is case-sensitive).
+        const clearanceTemplate = makeField({id: 'template-clearance', name: 'Clearance', attrs: {display_name: 'Clearance'}});
+        const classificationTemplate = makeField({id: 'template-classification', name: 'classification', attrs: {display_name: 'Classification'}});
+
+        function makeClearanceUserField(overrides: Partial<PropertyField> = {}): PropertyField {
+            return makeField({id: 'user-clearance', name: 'clearance', object_type: 'user', ...overrides});
+        }
+
+        it('warns on the row whose name a user field belonging to another template already carries', async () => {
+            mockTemplatesAndUserFields(
+                [clearanceTemplate, classificationTemplate],
+                [makeClearanceUserField({linked_field_id: classificationTemplate.id})],
+            );
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            const clearanceRow = await findRowByName('Clearance');
+            const warning = within(clearanceRow).getByTestId(`global-attribute-name-conflict-${clearanceTemplate.id}`);
+
+            // * Both halves of what this row hides: the unique name an admin would
+            // write in a CEL rule, and the attribute that name actually resolves to.
+            // Neither is inferable from the row itself, and losing the owner lookup
+            // leaves the second one unnamed.
+            expect(warning).toHaveAccessibleName(/"clearance"/);
+            expect(warning).toHaveAccessibleName(/linked to Classification/);
+
+            // * The owner's own row is not the ambiguous one — its linked child is
+            // exactly the field the warning points at, so flagging it too would say
+            // the attribute conflicts with itself.
+            const classificationRow = await findRowByName('Classification');
+            expect(within(classificationRow).queryAllByTestId(CONFLICT_TESTID)).toHaveLength(0);
+        });
+
+        it('leaves every row unwarned when no user field collides, even one hidden as another template\'s child', async () => {
+            // Same shape as the conflicting case above — a template-owned user field
+            // that the listing hides — differing only in the name it carries.
+            mockTemplatesAndUserFields(
+                [clearanceTemplate, classificationTemplate],
+                [makeField({id: 'user-department', name: 'department', object_type: 'user', linked_field_id: classificationTemplate.id})],
+            );
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            await findRowByName('Clearance');
+
+            expect(screen.queryAllByTestId(CONFLICT_TESTID)).toHaveLength(0);
+        });
+
+        it('does not warn on a template whose own linked user field carries the name', async () => {
+            // The ordinary case: every template applied to Users has a linked user
+            // field of the same name, so matching on the name alone would put a
+            // warning on nearly every row in the table.
+            mockTemplatesAndUserFields(
+                [clearanceTemplate, classificationTemplate],
+                [makeClearanceUserField({linked_field_id: clearanceTemplate.id})],
+            );
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            const clearanceRow = await findRowByName('Clearance');
+
+            // * The link really did load — without this the absence below would also
+            // hold for a user scope that never arrived.
+            expect(within(clearanceRow).getByTestId('global-attribute-applies-to')).toHaveTextContent('Users');
+            expect(screen.queryAllByTestId(CONFLICT_TESTID)).toHaveLength(0);
+        });
+
+        it('does not warn about a soft-deleted colliding user field, since the name it held is free', async () => {
+            // Identical to the conflicting case apart from delete_at. Two layers have
+            // to agree for a tombstone to stay silent — the scope refetch drops
+            // deleted fields from the store, and the conflict lookup filters them
+            // again — so this pins the outcome rather than either one of them.
+            mockTemplatesAndUserFields(
+                [clearanceTemplate, classificationTemplate],
+                [makeClearanceUserField({linked_field_id: classificationTemplate.id, delete_at: 1700000000001})],
+            );
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            await findRowByName('Clearance');
+
+            expect(screen.queryAllByTestId(CONFLICT_TESTID)).toHaveLength(0);
+        });
+
+        it('names no owner when the colliding user field is standalone', async () => {
+            mockTemplatesAndUserFields([clearanceTemplate], [makeClearanceUserField()]);
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            const clearanceRow = await findRowByName('Clearance');
+            const warning = within(clearanceRow).getByTestId(`global-attribute-name-conflict-${clearanceTemplate.id}`);
+
+            expect(warning).toHaveAccessibleName(/standalone user attribute named "clearance"/);
+            expect(warning).not.toHaveAccessibleName(/linked to/);
+
+            // * A standalone user field gets its own row here, and it is the field
+            // the warning above describes — warning on it as well would have it
+            // conflict with itself.
+            const userFieldRow = await findRowByName('clearance');
+            expect(within(userFieldRow).queryAllByTestId(CONFLICT_TESTID)).toHaveLength(0);
+        });
+    });
 });
 
 describe('getDisplayName', () => {

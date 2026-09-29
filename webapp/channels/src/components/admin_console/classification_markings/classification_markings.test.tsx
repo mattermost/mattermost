@@ -9,7 +9,7 @@ import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermos
 import {Client4} from 'mattermost-redux/client';
 import {ACCESS_CONTROL_PROPERTY_GROUP, DISPLAY_BANNER_BOTTOM, DISPLAY_BANNER_TOP} from 'mattermost-redux/constants/properties';
 
-import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 
 import ClassificationMarkings from './classification_markings';
 import * as Utils from './utils';
@@ -32,7 +32,6 @@ import {
     CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
     CLASSIFICATIONS_USER_OBJECT_TYPE,
-    CLEARANCE_FIELD_DISPLAY_NAME,
     CLEARANCE_FIELD_NAME,
 } from './utils';
 import type {ClassificationLevel} from './utils/presets';
@@ -105,6 +104,22 @@ function makeChannelLinkedField(overrides: Partial<PropertyField> = {}): Propert
         updated_by: 'user1',
         ...overrides,
     };
+}
+
+// An unrelated attribute in Attribute Management that happens to be called
+// `clearance`. A template, not a user field, so the server's own uniqueness check
+// never sees it as a collision with the user field this page creates — only an
+// admin does.
+function makeForeignClearanceTemplate(overrides: Partial<PropertyField> = {}): PropertyField {
+    return makePropertyField({
+        id: 'foreign_clearance_template',
+        name: 'Clearance',
+        type: 'select',
+        attrs: {options: [{id: 'opt1', name: 'Yes'}]},
+        create_at: 6000,
+        update_at: 6000,
+        ...overrides,
+    });
 }
 
 // A "Clearance" user field linked to the classification template ('field1').
@@ -1606,7 +1621,13 @@ describe('Channel classification linked field branches', () => {
                     name: CLEARANCE_FIELD_NAME,
                     type: 'rank',
                     linked_field_id: field.id,
-                    attrs: expect.objectContaining({managed: 'admin', display_name: CLEARANCE_FIELD_DISPLAY_NAME}),
+
+                    // Spelled out rather than read from the constant production
+                    // uses: an expectation built from that constant passes
+                    // whatever it says. The label names which clearance this is,
+                    // because an unrelated attribute called "Clearance" is what
+                    // an admin confuses it with.
+                    attrs: expect.objectContaining({managed: 'admin', display_name: 'Classification clearance'}),
                 }),
             );
         });
@@ -2176,6 +2197,78 @@ describe('Conflicting same-named fields', () => {
         expect(screen.getByRole('textbox', {name: /Classification level name/i})).not.toHaveAttribute('readonly');
         expect(screen.getByText('Add level')).toBeInTheDocument();
         expect(screen.queryByRole('heading', {name: 'Classification markings cannot be configured'})).not.toBeInTheDocument();
+    });
+});
+
+// Attribute Management can hold a template called `clearance` while this page owns
+// a user field of the same name: different object types, so the server accepts
+// both, and an admin sees one attribute with two sets of values.
+describe('Clearance name shared with another attribute', () => {
+    beforeEach(resetPropertyFieldMocks);
+
+    const configuredTemplate = makePropertyField({
+        attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
+    });
+
+    async function renderClearanceSection() {
+        renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
+        await screen.findByTestId('clearanceAttributeCheckbox');
+        return within(screen.getByTestId('clearanceAttribute'));
+    }
+
+    test('should name the other attribute without disabling the clearance checkbox', async () => {
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [configuredTemplate, makeForeignClearanceTemplate()],
+        });
+
+        const section = await renderClearanceSection();
+
+        expect(section.getByRole('heading', {name: 'Another attribute already uses this name'})).toBeInTheDocument();
+        expect(section.getByText(/An attribute named "Clearance" already exists in Attribute Management/)).toBeInTheDocument();
+
+        // The half that matters: this one warns, it does not block. The server
+        // accepts the user field this page creates, so the admin is still allowed
+        // to create it — unlike the same-named user field below.
+        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
+        expect(section.queryByRole('heading', {name: 'Clearance attribute cannot be created'})).not.toBeInTheDocument();
+    });
+
+    test('should catch the name in a casing the server would not call a conflict', async () => {
+        // The server compares names exactly, so `CLEARANCE` and `clearance` coexist
+        // happily. An admin reading a policy still cannot tell which one it means.
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [configuredTemplate, makeForeignClearanceTemplate({name: 'CLEARANCE'})],
+        });
+
+        const section = await renderClearanceSection();
+
+        expect(section.getByRole('heading', {name: 'Another attribute already uses this name'})).toBeInTheDocument();
+        expect(section.getByText(/An attribute named "CLEARANCE" already exists in Attribute Management/)).toBeInTheDocument();
+        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
+    });
+
+    test('should stay quiet when no other attribute holds the name', async () => {
+        mockFieldsByObjectType({[CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [configuredTemplate]});
+
+        const section = await renderClearanceSection();
+
+        expect(section.queryByRole('heading', {name: 'Another attribute already uses this name'})).not.toBeInTheDocument();
+        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
+    });
+
+    test('should drop the warning while the blocking user-field conflict is showing', async () => {
+        // The blocking conflict disables the checkbox, so nothing can be created and
+        // the warning would describe an outcome that cannot happen.
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [configuredTemplate, makeForeignClearanceTemplate()],
+            [CLASSIFICATIONS_USER_OBJECT_TYPE]: [makeUserLinkedField({id: 'foreign_clearance', linked_field_id: 'some_other_template'})],
+        });
+
+        const section = await renderClearanceSection();
+
+        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeDisabled();
+        expect(section.getByRole('heading', {name: 'Clearance attribute cannot be created'})).toBeInTheDocument();
+        expect(section.queryByRole('heading', {name: 'Another attribute already uses this name'})).not.toBeInTheDocument();
     });
 });
 
