@@ -2130,3 +2130,249 @@ func TestSysadminManagesCPAFieldOwners(t *testing.T) {
 		require.Error(t, err)
 	})
 }
+
+// TestCPATemplateSystem verifies the internal two-field (template + linked user
+// field) architecture that underpins the template-aware CPA API.
+func TestCPATemplateSystem(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	rctx := request.TestContext(t)
+
+	// Helper: fetch the CPA property group directly from the app layer.
+	getGroup := func(t *testing.T) *model.PropertyGroup {
+		t.Helper()
+		group, appErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+		require.Nil(t, appErr)
+		return group
+	}
+
+	t.Run("create internally creates a linked template field", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsVisibility: "always",
+			},
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+
+		// Returned field must be the user-type field.
+		require.Equal(t, model.PropertyFieldObjectTypeUser, created.ObjectType)
+
+		// The user field must carry a LinkedFieldID.
+		require.NotNil(t, created.LinkedFieldID, "created user field must have a LinkedFieldID")
+		require.NotEmpty(t, *created.LinkedFieldID)
+
+		// Fetch the template field directly from the app layer.
+		group := getGroup(t)
+		tmpl, appErr := th.App.GetPropertyField(rctx, group.ID, *created.LinkedFieldID)
+		require.Nil(t, appErr, "linked template field must exist")
+		require.Equal(t, model.PropertyFieldObjectTypeTemplate, tmpl.ObjectType)
+		require.Equal(t, created.Name, tmpl.Name)
+		require.Equal(t, created.Type, tmpl.Type)
+	})
+
+	t.Run("list returns only user fields — template fields never appear", func(t *testing.T) {
+		// Create a field (which internally creates template + user pair).
+		field := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, created.LinkedFieldID)
+
+		listed, resp, err := th.Client.ListCPAFields(context.Background())
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		templateID := *created.LinkedFieldID
+		for _, f := range listed {
+			require.NotEqual(t, templateID, f.ID, "template field must not appear in ListCPAFields response")
+			require.Equal(t, model.PropertyFieldObjectTypeUser, f.ObjectType, "every listed field must be ObjectType=user")
+		}
+	})
+
+	t.Run("schema attrs (options) are written to the template field on patch", func(t *testing.T) {
+		selectField := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Alpha", "color": "#111111"},
+				},
+			},
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), selectField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, created.LinkedFieldID)
+		templateID := *created.LinkedFieldID
+
+		// Patch to add an option.
+		createdCPA, convErr := model.NewCPAFieldFromPropertyField(created)
+		require.NoError(t, convErr)
+		existingID := createdCPA.Attrs.Options[0].ID
+
+		patch := &model.PropertyFieldPatch{
+			Attrs: model.NewPointer(model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": existingID, "name": "Alpha", "color": "#111111"},
+					map[string]any{"name": "Beta", "color": "#222222"},
+				},
+			}),
+		}
+		patched, resp, err := th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, patch)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		// Options must appear on the returned user field (inherited from template).
+		patchedCPA, convErr := model.NewCPAFieldFromPropertyField(patched)
+		require.NoError(t, convErr)
+		require.Len(t, patchedCPA.Attrs.Options, 2)
+
+		// Options must be stored on the template field, not the user field.
+		group := getGroup(t)
+		tmpl, appErr := th.App.GetPropertyField(rctx, group.ID, templateID)
+		require.Nil(t, appErr)
+		tmplCPA, convErr := model.NewCPAFieldFromPropertyField(tmpl)
+		require.NoError(t, convErr)
+		require.Len(t, tmplCPA.Attrs.Options, 2, "options must be stored on the template field")
+	})
+
+	t.Run("display attrs (visibility, managed) stay on the user field", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, created.LinkedFieldID)
+		templateID := *created.LinkedFieldID
+
+		patch := &model.PropertyFieldPatch{
+			Attrs: model.NewPointer(model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsManaged:    "admin",
+				model.CustomProfileAttributesPropertyAttrsVisibility: "always",
+			}),
+		}
+		patched, resp, err := th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, patch)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.Equal(t, "admin", patched.Attrs[model.CustomProfileAttributesPropertyAttrsManaged])
+		require.Equal(t, "always", patched.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
+
+		// These display attrs must NOT appear on the template.
+		group := getGroup(t)
+		tmpl, appErr := th.App.GetPropertyField(rctx, group.ID, templateID)
+		require.Nil(t, appErr)
+		require.Empty(t, tmpl.Attrs[model.CustomProfileAttributesPropertyAttrsManaged], "managed must not be on the template")
+		require.Empty(t, tmpl.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility], "visibility must not be on the template")
+	})
+
+	t.Run("deleting a CPA field also deletes its linked template", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, created.LinkedFieldID)
+		templateID := *created.LinkedFieldID
+
+		// Sanity: template exists before delete.
+		group := getGroup(t)
+		_, appErr := th.App.GetPropertyField(rctx, group.ID, templateID)
+		require.Nil(t, appErr)
+
+		resp, err = th.SystemAdminClient.DeleteCPAField(context.Background(), created.ID)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		// Template must now be soft-deleted (non-zero DeleteAt).
+		tmpl, appErr := th.App.GetPropertyField(rctx, group.ID, templateID)
+		require.Nil(t, appErr, "GetPropertyField should still return the soft-deleted template")
+		require.NotZero(t, tmpl.DeleteAt, "template DeleteAt must be set after the user field is deleted")
+	})
+
+	t.Run("type-change unlinks the user field and removes the template", func(t *testing.T) {
+		selectField := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Option 1", "color": "#FF0000"},
+				},
+			},
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), selectField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, created.LinkedFieldID)
+		templateID := *created.LinkedFieldID
+
+		// Change type from select → text.
+		typePatch := &model.PropertyFieldPatch{Type: model.NewPointer(model.PropertyFieldTypeText)}
+		patched, resp, err := th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, typePatch)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		// Returned field must reflect the new type.
+		require.Equal(t, model.PropertyFieldTypeText, patched.Type)
+
+		// The user field's LinkedFieldID must be cleared (unlinked).
+		group := getGroup(t)
+		userField, appErr := th.App.GetPropertyField(rctx, group.ID, created.ID)
+		require.Nil(t, appErr)
+		linkedIsEmpty := userField.LinkedFieldID == nil || *userField.LinkedFieldID == ""
+		require.True(t, linkedIsEmpty, "LinkedFieldID must be cleared after a type change")
+
+		// The old template must be soft-deleted.
+		tmpl, appErr := th.App.GetPropertyField(rctx, group.ID, templateID)
+		require.Nil(t, appErr)
+		require.NotZero(t, tmpl.DeleteAt, "orphaned template must be soft-deleted after a type change")
+	})
+
+	t.Run("schema attrs on the template survive a display-only patch on the user field", func(t *testing.T) {
+		selectField := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "X", "color": "#AABBCC"},
+				},
+			},
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), selectField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, created.LinkedFieldID)
+		templateID := *created.LinkedFieldID
+
+		// Patch only display attrs — no options change.
+		displayPatch := &model.PropertyFieldPatch{
+			Attrs: model.NewPointer(model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsVisibility: "always",
+			}),
+		}
+		_, resp, err = th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, displayPatch)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		// Template's options must be unchanged.
+		group := getGroup(t)
+		tmpl, appErr := th.App.GetPropertyField(rctx, group.ID, templateID)
+		require.Nil(t, appErr)
+		tmplCPA, convErr := model.NewCPAFieldFromPropertyField(tmpl)
+		require.NoError(t, convErr)
+		require.Len(t, tmplCPA.Attrs.Options, 1, "template options must be preserved after a display-only patch")
+		require.Equal(t, "X", tmplCPA.Attrs.Options[0].Name)
+	})
+}
