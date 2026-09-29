@@ -11,6 +11,7 @@ import UserAccountMenu from './user_account_menu';
 import BrowseChannelsModal from './channels/browse_channels_modal';
 import ChannelsAppBar from './channels/app_bar';
 import ChannelsCenterView from './channels/center_view';
+import {ChannelAttributeLabels} from './channels/channel_attributes';
 import CreateTeamForm from './channels/create_team_form';
 import ChannelsHeader from './channels/header';
 import ChannelsPost from './channels/post';
@@ -100,6 +101,7 @@ const components = {
     UserAccountMenu,
 
     // Channels
+    ChannelAttributeLabels,
     ChannelsAppBar,
     ChannelsCenterView,
     CreateTeamForm,
@@ -195,6 +197,7 @@ export {
     UserAccountMenu,
 
     // Channels Page
+    ChannelAttributeLabels,
     ChannelsAppBar,
     ChannelsCenterView,
     CreateTeamForm,
