@@ -356,6 +356,17 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 					c.Err = tmplUpdateErr
 					return
 				}
+				// Re-fetch so existingField reflects the template-propagated state
+				// (e.g. options synced by syncPropertyFieldOptions). Without this, a
+				// mixed patch that also changes a display attr or name would hand a
+				// stale options snapshot to UpdatePropertyField, triggering the
+				// linked-field options-change guard.
+				refetched, fetchErr := c.App.GetPropertyField(rctx, group.ID, existingField.ID)
+				if fetchErr != nil {
+					c.Err = fetchErr
+					return
+				}
+				existingField = refetched
 			}
 
 			// Strip schema attrs from the user-field patch: options, ldap, saml,
@@ -372,18 +383,11 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 			// linked field (it would conflict with the stored value until a refresh).
 			patch.Type = nil
 
-			// If the patch has nothing left to apply to the user field (all attrs
-			// were schema-only and there is no name change), skip UpdatePropertyField
-			// to avoid the linked-field options-change guard firing on the stale
-			// existingField snapshot (syncPropertyFieldOptions already propagated
-			// the template's new options to the user field's rows above).
+			// If the patch has nothing left to apply to the user field, skip
+			// UpdatePropertyField entirely — use the already-fresh existingField
+			// (re-fetched above) as the response.
 			if patch.Attrs == nil && patch.Name == nil {
-				refetched, fetchErr := c.App.GetPropertyField(rctx, group.ID, existingField.ID)
-				if fetchErr != nil {
-					c.Err = fetchErr
-					return
-				}
-				updatedField = refetched
+				updatedField = existingField
 			}
 		}
 	}
