@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"slices"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -891,6 +892,8 @@ func TestChannelScopedEventsCarryTheReadAccessHook(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			h := setupChannelReadAccessTest(t)
 			mockACS := h.mockACS(t)
+			// The hook is only attached where read access is governed.
+			governed(mockACS)
 			if tc.expectACS != nil {
 				tc.expectACS(mockACS)
 			}
@@ -988,7 +991,7 @@ func TestChannelJoinLeaveEventsCarryTheReadAccessHook(t *testing.T) {
 
 	t.Run("add user to channel", func(t *testing.T) {
 		h := setupChannelReadAccessTest(t)
-		h.mockACS(t)
+		governed(h.mockACS(t))
 
 		addUser := func(t *testing.T) (*model.Channel, []*model.WebSocketEvent) {
 			channel := h.th.CreateChannel(t, h.th.BasicTeam)
@@ -1010,7 +1013,7 @@ func TestChannelJoinLeaveEventsCarryTheReadAccessHook(t *testing.T) {
 
 	t.Run("remove user from channel", func(t *testing.T) {
 		h := setupChannelReadAccessTest(t)
-		h.mockACS(t)
+		governed(h.mockACS(t))
 
 		removeUser := func(t *testing.T) (*model.Channel, []*model.WebSocketEvent) {
 			channel := h.th.CreateChannel(t, h.th.BasicTeam)
@@ -1032,7 +1035,7 @@ func TestChannelJoinLeaveEventsCarryTheReadAccessHook(t *testing.T) {
 
 	t.Run("join default channels", func(t *testing.T) {
 		h := setupChannelReadAccessTest(t)
-		h.mockACS(t)
+		governed(h.mockACS(t))
 
 		townSquare, appErr := h.th.App.GetChannelByName(h.th.Context, model.DefaultChannelName, h.th.BasicTeam.Id, false)
 		require.Nil(t, appErr)
@@ -1048,5 +1051,73 @@ func TestChannelJoinLeaveEventsCarryTheReadAccessHook(t *testing.T) {
 
 		disableABAC(h)
 		requireNotHooked(t, find(t, joinTeam(t), model.WebsocketEventUserAdded, townSquare.Id, true))
+	})
+}
+
+func TestChannelReadAccessHookOnlyWhereAccessCanBeDenied(t *testing.T) {
+	hooked := func(t *testing.T, h *channelReadAccessHarness, channelID string) bool {
+		t.Helper()
+		message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", channelID, "", nil, "")
+		h.th.App.setupBroadcastHookForChannelReadAccess(channelID, message)
+		return slices.Contains(message.GetBroadcast().BroadcastHooks, broadcastChannelReadAccess)
+	}
+	ungoverned := func(mockACS *eMocks.AccessControlServiceInterface) {
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
+			Return(false, nil)
+	}
+
+	t.Run("not when read access is ungoverned and the channel has no policy", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		ungoverned(h.mockACS(t))
+		require.False(t, hooked(t, h, h.th.BasicChannel.Id))
+	})
+
+	t.Run("when a permission policy governs read access", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		governed(h.mockACS(t))
+		require.True(t, hooked(t, h, h.th.BasicChannel.Id))
+	})
+
+	t.Run("when the channel has its own policy", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		ungoverned(h.mockACS(t))
+		channel := h.th.CreateChannel(t, h.th.BasicTeam)
+		_, err := h.th.App.Srv().Store().AccessControlPolicy().Save(h.rctx, &model.AccessControlPolicy{
+			ID:       channel.Id,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Name:     "policy-" + channel.Id,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: "true"},
+			},
+		})
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = h.th.App.Srv().Store().AccessControlPolicy().Delete(h.rctx, channel.Id) })
+		h.th.App.Srv().Store().Channel().InvalidateChannel(channel.Id)
+
+		require.True(t, hooked(t, h, channel.Id))
+	})
+
+	t.Run("when the governance check fails", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		h.mockACS(t).On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
+			Return(false, model.NewAppError("ActionHasPermissionPolicy", "boom", nil, "", http.StatusInternalServerError))
+		require.True(t, hooked(t, h, h.th.BasicChannel.Id))
+	})
+
+	t.Run("when the channel can't be loaded", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		// No expectations: the check must not reach the access control service.
+		h.mockACS(t)
+		require.True(t, hooked(t, h, model.NewId()))
+	})
+
+	t.Run("not for a direct message channel", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		governed(h.mockACS(t))
+		require.False(t, hooked(t, h, h.th.CreateDmChannel(t, h.th.BasicUser2).Id))
 	})
 }

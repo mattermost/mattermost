@@ -215,9 +215,18 @@ func (a *App) channelAccessEnforcementActive() bool {
 }
 
 // setupBroadcastHookForChannelReadAccess registers channelReadAccessBroadcastHook so each
-// recipient's channel_read_access policy is evaluated before the event reaches them.
+// recipient's channel_read_access policy is evaluated before the event reaches them. The hook is
+// left off when that evaluation would allow every recipient.
 func (a *App) setupBroadcastHookForChannelReadAccess(channelID string, message *model.WebSocketEvent) {
 	if channelID == "" || !a.channelAccessEnforcementActive() {
+		return
+	}
+
+	rctx := request.EmptyContext(a.Log())
+	// A channel that can't be loaded here keeps the hook, which loads it again per recipient.
+	channel, appErr := a.Srv().getChannel(rctx, channelID)
+	if appErr == nil && (channelAccessExempt(channel) ||
+		!a.channelAccessGoverned(rctx, channel, model.AccessControlPolicyActionChannelReadAccess)) {
 		return
 	}
 
@@ -352,21 +361,29 @@ func (a *App) hasChannelAccess(rctx request.CTX, userID string, channel *model.C
 	return allowed
 }
 
-func (a *App) evaluateChannelAccess(rctx request.CTX, userID string, channel *model.Channel, action string) bool {
-	acs := a.Srv().Channels().AccessControl
+func (a *App) channelAccessGoverned(rctx request.CTX, channel *model.Channel, action string) bool {
+	if channel.PolicyEnforced {
+		return true
+	}
 
-	governed, appErr := acs.ActionHasPermissionPolicy(rctx, action)
+	governed, appErr := a.Srv().Channels().AccessControl.ActionHasPermissionPolicy(rctx, action)
 	if appErr != nil {
 		// Evaluate rather than short-circuit: a failed governance check says nothing
 		// about whether a policy applies, and every other failure here denies.
-		governed = true
 		rctx.Logger().Debug("Failed to check whether permission policies govern the channel-access action; evaluating anyway",
 			mlog.String("action", action),
 			mlog.String("channel_id", channel.Id),
 			mlog.Err(appErr),
 		)
+		return true
 	}
-	if !governed && !channel.PolicyEnforced {
+	return governed
+}
+
+func (a *App) evaluateChannelAccess(rctx request.CTX, userID string, channel *model.Channel, action string) bool {
+	acs := a.Srv().Channels().AccessControl
+
+	if !a.channelAccessGoverned(rctx, channel, action) {
 		return true
 	}
 
