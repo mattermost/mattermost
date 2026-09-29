@@ -19,6 +19,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {
     DMUserTimezone,
 } from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/dm_user_timezone';
+import useRecipientTimezone, {formatUTCOffset} from 'components/advanced_text_editor/send_button/use_recipient_timezone';
 import DateTimePickerModal from 'components/date_time_picker_modal/date_time_picker_modal';
 
 import {scheduledPosts} from 'utils/constants';
@@ -52,19 +53,25 @@ export default function ScheduledPostCustomTimeModal({
     const recurringEnabled = useSelector(isRecurringScheduledPostsEnabled);
     const [repeatWeeklyChecked, setRepeatWeeklyChecked] = useState(initialRepeatWeekly);
     const offerRecurring = recurringEnabled && allowRecurring;
+    const {
+        canUseRecipientTimezone,
+        isUsingRecipientTimezone,
+        setUseRecipientTimezone,
+        recipientTimezone,
+        schedulingTimezone,
+    } = useRecipientTimezone(channelId);
 
     // While the checkbox can't be offered, keep whatever recurrence the post already has instead
     // of silently clearing it; the job keeps sending existing series while the feature is off.
     const repeatWeekly = offerRecurring ? repeatWeeklyChecked : initialRepeatWeekly;
-    const now = moment().tz(userTimezone);
     const currentUserId = useSelector(getCurrentUserId);
     const dispatch = useDispatch();
     const [selectedDateTime, setSelectedDateTime] = useState<Moment>(() => {
         if (initialTime) {
-            return initialTime;
+            return initialTime.clone().tz(schedulingTimezone);
         }
 
-        return now.add(1, 'days').set({hour: 9, minute: 0, second: 0, millisecond: 0});
+        return moment().tz(schedulingTimezone).add(1, 'days').set({hour: 9, minute: 0, second: 0, millisecond: 0});
     });
 
     const userTimezoneLabel = useMemo(() => generateCurrentTimezoneLabel(userTimezone), [userTimezone]);
@@ -74,7 +81,7 @@ export default function ScheduledPostCustomTimeModal({
         const schedulingInfo: SchedulingInfo = {
             scheduled_at: selectedTime,
             repeat_type: repeatWeekly ? 'weekly' : '',
-            repeat_timezone: repeatWeekly ? userTimezone : '',
+            repeat_timezone: repeatWeekly ? schedulingTimezone : '',
         };
         const response = await onConfirm(schedulingInfo);
 
@@ -95,7 +102,7 @@ export default function ScheduledPostCustomTimeModal({
         } else {
             onExited();
         }
-    }, [onConfirm, onExited, repeatWeekly, userTimezone, dispatch, currentUserId]);
+    }, [onConfirm, onExited, repeatWeekly, schedulingTimezone, userTimezone, dispatch, currentUserId]);
 
     const bodySuffix = useMemo(() => {
         const repeatRow = (
@@ -118,6 +125,11 @@ export default function ScheduledPostCustomTimeModal({
 
         return (
             <>
+                <DMUserTimezone
+                    channelId={channelId}
+                    selectedTime={selectedDateTime?.toDate()}
+                    showCurrentUserTime={isUsingRecipientTimezone}
+                />
                 {recurringEnabled && allowRecurring && repeatRow}
                 {recurringEnabled && !allowRecurring && (
                     <WithTooltip
@@ -129,13 +141,33 @@ export default function ScheduledPostCustomTimeModal({
                         {repeatRow}
                     </WithTooltip>
                 )}
-                <DMUserTimezone
-                    channelId={channelId}
-                    selectedTime={selectedDateTime?.toDate()}
-                />
             </>
         );
-    }, [channelId, selectedDateTime, recurringEnabled, allowRecurring, repeatWeekly, formatMessage]);
+    }, [channelId, selectedDateTime, recurringEnabled, allowRecurring, repeatWeekly, formatMessage, isUsingRecipientTimezone]);
+
+    const subheading = useMemo(() => {
+        if (!canUseRecipientTimezone) {
+            return userTimezoneLabel;
+        }
+
+        return (
+            <div className='ScheduledPostCustomTimeModal__recipientTimezone'>
+                <input
+                    id='scheduled_post_use_recipient_timezone'
+                    type='checkbox'
+                    checked={isUsingRecipientTimezone}
+                    onChange={(e) => setUseRecipientTimezone(e.target.checked)}
+                />
+                <label htmlFor='scheduled_post_use_recipient_timezone'>
+                    <FormattedMessage
+                        id='schedule_post.custom_time_modal.use_recipient_timezone'
+                        defaultMessage='Use recipient’s timezone ({offset})'
+                        values={{offset: formatUTCOffset(recipientTimezone)}}
+                    />
+                </label>
+            </div>
+        );
+    }, [canUseRecipientTimezone, isUsingRecipientTimezone, recipientTimezone, setUseRecipientTimezone, userTimezoneLabel]);
 
     const label = formatMessage({id: 'schedule_post.custom_time_modal.title', defaultMessage: 'Schedule message'});
 
@@ -151,7 +183,7 @@ export default function ScheduledPostCustomTimeModal({
                     defaultMessage='Schedule message'
                 />
             }
-            subheading={userTimezoneLabel}
+            subheading={subheading}
             confirmButtonText={
                 <FormattedMessage
                     id='schedule_post.custom_time_modal.confirm_button_text'
@@ -173,6 +205,7 @@ export default function ScheduledPostCustomTimeModal({
             onCancel={onExited}
             errorText={errorMessage}
             timePickerInterval={timePickerInterval}
+            timezone={schedulingTimezone}
         />
     );
 }

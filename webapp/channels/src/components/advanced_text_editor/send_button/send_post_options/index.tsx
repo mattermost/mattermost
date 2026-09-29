@@ -17,6 +17,7 @@ import * as Menu from 'components/menu';
 import {ModalIdentifiers} from 'utils/constants';
 
 import ScheduledPostCustomTimeModal from '../scheduled_post_custom_time_modal/scheduled_post_custom_time_modal';
+import useRecipientTimezone, {formatUTCOffset} from '../use_recipient_timezone';
 
 import './style.scss';
 
@@ -30,6 +31,16 @@ type Props = {
 export function SendPostOptions({disabled, onSelect, channelId, allowRecurring}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
+    const {
+        canUseRecipientTimezone,
+        isUsingRecipientTimezone,
+        setUseRecipientTimezone,
+        recipientTimezone,
+    } = useRecipientTimezone(channelId);
+
+    const handleToggleRecipientTimezone = useCallback(() => {
+        setUseRecipientTimezone(!isUsingRecipientTimezone);
+    }, [setUseRecipientTimezone, isUsingRecipientTimezone]);
 
     const handleOnSelect = useCallback((e: React.FormEvent, scheduledAt: number) => {
         // Not stopping propagation is load-bearing: in mobile view the menu is a modal that
@@ -101,9 +112,36 @@ export function SendPostOptions({disabled, onSelect, channelId, allowRecurring}:
                 }
             />
 
+            {canUseRecipientTimezone && (
+                <Menu.Item
+                    id='schedule_post_use_recipient_timezone'
+                    role='menuitemcheckbox'
+                    aria-checked={isUsingRecipientTimezone}
+                    className='use-recipient-timezone'
+                    onClick={handleToggleRecipientTimezone}
+                    leadingElement={
+                        <i
+                            className={classNames('icon', {
+                                'icon-checkbox-marked': isUsingRecipientTimezone,
+                                'icon-checkbox-blank-outline': !isUsingRecipientTimezone,
+                            })}
+                        />
+                    }
+                    labels={
+                        <FormattedMessage
+                            id='create_post_button.option.schedule_message.options.use_recipient_timezone'
+                            defaultMessage='Use recipient’s timezone ({offset})'
+                            values={{offset: formatUTCOffset(recipientTimezone)}}
+                        />
+                    }
+                />
+            )}
+            {canUseRecipientTimezone && <Menu.Separator/>}
+
             <CoreMenuOptions
                 handleOnSelect={handleOnSelect}
                 channelId={channelId}
+                isUsingRecipientTimezone={isUsingRecipientTimezone}
             />
 
             <Menu.Separator/>

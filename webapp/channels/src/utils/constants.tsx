@@ -2233,6 +2233,7 @@ export const SCHEDULED_POST_URL_SUFFIX = 'scheduled_posts';
 
 export const scheduledPosts = {
     RECENTLY_USED_CUSTOM_TIME: 'recently_used_custom_time',
+    USE_RECIPIENT_TIMEZONE: 'use_recipient_timezone',
     SCHEDULED_POSTS: 'scheduled_posts',
 };
 
