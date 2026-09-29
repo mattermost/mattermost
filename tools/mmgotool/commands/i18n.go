@@ -29,9 +29,13 @@ import (
 const enterpriseKeyPrefix = "ent."
 const untranslatedKey = "<untranslated>"
 
+// Translation is an entry in a translation file. Description explains where the
+// string appears and how it is used; it is context for translators and is never
+// loaded by the server, which reads only id and translation.
 type Translation struct {
 	Id          string `json:"id"`
 	Translation any    `json:"translation"`
+	Description string `json:"description"`
 }
 
 type Item struct {
