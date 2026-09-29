@@ -193,9 +193,9 @@ function DraftRow({
             return;
         }
 
-        // Sending or scheduling a draft consumes it. createPost only clears the locally
-        // stored copy, so delete the draft outright or the surviving server copy syncs
-        // back in on the next fetch.
+        // createPost only clears the local copy of the draft, through storeDraft's
+        // setGlobalItem, so the draft has to be removed here or the surviving server copy
+        // syncs back in on the next fetch.
         handleOnDelete();
     }, [connectionId, dispatch, handleOnDelete, item]);
 

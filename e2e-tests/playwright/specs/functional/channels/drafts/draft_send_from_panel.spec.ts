@@ -4,7 +4,8 @@
 import type {ChannelsPage} from '@mattermost/playwright-lib';
 import {expect, test} from '@mattermost/playwright-lib';
 
-// The pencil badge on the LHS Drafts entry renders only while the draft count is above zero.
+// The LHS Drafts entry itself stays rendered for as long as the /drafts URL matches, so only
+// its count badge can show that the last draft is gone.
 const draftsCountBadge = (channelsPage: ChannelsPage) => channelsPage.sidebarLeft.draftsLink().getByTestId('draftIcon');
 
 test.describe('sending a draft from the Drafts panel', () => {
@@ -53,8 +54,8 @@ test.describe('sending a draft from the Drafts panel', () => {
         await channelsPage.centerView.waitUntilLastPostContains(draftMessage);
         await channelsPage.sidebarLeft.draftsNotVisible();
 
-        // * The server copy is gone, which is what a team switch or reload would restore.
-        // The endpoint answers null rather than [] once the user has no drafts left.
+        // * No draft is left on the server for a team switch or a reload to restore
+        // (the endpoint answers null, not [], once the user has no drafts)
         await expect.poll(async () => (await userClient.getUserDrafts(team1.id))?.length ?? 0).toBe(0);
 
         // # Switch to the other team and back, which refetches drafts from the server
@@ -105,17 +106,16 @@ test.describe('sending a draft from the Drafts panel', () => {
         await draftsPage.expectDraftCount(1);
         await draftsPage.sendDraft(await draftsPage.getLastPost());
 
-        // * The reply was posted into the thread, which opens in the RHS. Sending a thread
-        // draft keeps the Drafts page open, and its LHS entry is kept by the URL match, so
-        // the draft count badge is what shows the draft is gone.
+        // * The reply was posted into the thread, which opens in the RHS, and the draft is
+        // gone from the Drafts page that sending it left open
         await expect(channelsPage.sidebarRight.container).toContainText(replyDraft);
         await expect(draftsPage.noDrafts).toBeVisible();
         await draftsPage.expectDraftCount(0);
         await expect(draftsCountBadge(channelsPage)).not.toBeAttached();
 
-        // * The server copy is gone, keyed under the thread's root id. This is the
-        // assertion that fails without the fix: the panel and the LHS badge are driven by
-        // local storage, which the optimistic clear in createPost empties either way.
+        // * No draft is left on the server under the thread's root id. Only this can catch
+        // the bug: the panel and the badge above read local storage, which createPost clears
+        // optimistically whether or not the server copy was deleted.
         await expect.poll(async () => (await userClient.getUserDrafts(team.id))?.length ?? 0).toBe(0);
     });
 });

@@ -41,9 +41,8 @@ type ScheduledPostActionProps = {
 
 jest.mock('components/advanced_text_editor/use_priority', () => () => ({onSubmitCheck: () => false}));
 
-// Interactive fakes: DraftRow's own send/schedule wiring is what is under test here, so the
-// action rows are reduced to buttons that invoke the real callbacks DraftRow passes down.
-// The real action rows invoke these callbacks with no arguments, so the fakes must too.
+// The real action rows call these callbacks with no arguments, so the fakes must too:
+// forwarding the click event into onSend breaks the submit path.
 jest.mock('components/drafts/draft_actions', () => (props: DraftActionProps) => (
     <div>
         <button onClick={() => props.onSend()}>{'Send draft'}</button>
@@ -270,19 +269,16 @@ describe('components/drafts/drafts_row', () => {
         });
 
         it('does not resurrect the sent draft when drafts are refetched', async () => {
-            // Stands in for the server's draft table: deleteDraft removes from it, and
-            // getUserDrafts serves it back the way a team switch or a reload would.
-            const serverDrafts = [
+            // Stands in for the server's draft table, so the refetch below sees what a team
+            // switch or a page reload would.
+            let serverDrafts = [
                 serverDraft({channel_id: channelId, message: 'draft message', update_at: 2}),
                 serverDraft({channel_id: 'other_channel_id', message: 'draft in another channel', update_at: 1}),
             ];
             deleteDraftSpy.mockImplementation((deletedChannelId: string, deletedRootId: string) => {
-                const index = serverDrafts.findIndex(
-                    (draft) => draft.channel_id === deletedChannelId && draft.root_id === deletedRootId,
+                serverDrafts = serverDrafts.filter(
+                    (draft) => draft.channel_id !== deletedChannelId || draft.root_id !== deletedRootId,
                 );
-                if (index !== -1) {
-                    serverDrafts.splice(index, 1);
-                }
                 return Promise.resolve(null);
             });
             jest.spyOn(Client4, 'getUserDrafts').mockImplementation(() => Promise.resolve([...serverDrafts]));
@@ -302,13 +298,10 @@ describe('components/drafts/drafts_row', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Send draft'}));
             await waitFor(() => expect(deleteDraftSpy).toHaveBeenCalledTimes(1));
 
-            // * The send reached the server's copy, not just the local one
             expect(serverDrafts.map((draft) => draft.message)).toEqual(['draft in another channel']);
 
-            // # Refetch the team's drafts, as switching teams or reloading the page does
             await store.dispatch(getDraftsForTeam(teamId));
 
-            // * The sent draft did not come back, and the bystander draft is untouched
             expect(getDrafts(store.getState()).map((draft) => draft.value.message)).toEqual(
                 ['draft in another channel'],
             );
@@ -357,9 +350,9 @@ describe('components/drafts/drafts_row', () => {
             expect(deleteDraftSpy).toHaveBeenCalledWith(channelId, rootId, connectionId);
         });
 
-        // A rejected createPost never reaches afterSubmit at all, so what this pins is that
-        // the delete waits for the created post instead of firing when the row is clicked.
         it('does not delete the server draft until the post is created', async () => {
+            // createPost is resolved by hand because a rejection never reaches afterSubmit at
+            // all, so a failing request could not tell the two orderings apart.
             let resolveCreatePost: (post: Post) => void = () => {};
             createPostSpy.mockImplementation(() => new Promise<Post>((resolve) => {
                 resolveCreatePost = resolve;
@@ -374,13 +367,11 @@ describe('components/drafts/drafts_row', () => {
 
             await userEvent.click(screen.getByRole('button', {name: 'Send draft'}));
 
-            // * The request is in flight and the draft has not been deleted yet
             await waitFor(() => expect(createPostSpy).toHaveBeenCalledTimes(1));
             expect(deleteDraftSpy).not.toHaveBeenCalled();
 
             resolveCreatePost(TestHelper.getPostMock({id: 'created_post_id', channel_id: channelId}));
 
-            // * Only once the post exists is the draft deleted
             await waitFor(() => expect(deleteDraftSpy).toHaveBeenCalledWith(channelId, '', connectionId));
         });
     });
@@ -406,15 +397,14 @@ describe('components/drafts/drafts_row', () => {
             expect(deleteDraftSpy).toHaveBeenCalledWith(channelId, '', connectionId);
             expect(createPostSpy).not.toHaveBeenCalled();
 
-            // Scheduling never reaches createPost, so handleOnDelete is the only thing that
-            // clears the local copy and the row would otherwise stay in the panel.
+            // Scheduling returns before createPost, so handleOnDelete is the only thing that
+            // clears the local copy; without it the row stays in the panel.
             await waitFor(() => expect(getDrafts(store.getState()).map((draft) => draft.value.message)).toEqual(
                 ['draft in another channel'],
             ));
         });
 
-        // Scheduling is the one send path that reports failure through afterSubmit, so it is
-        // what proves the draft survives a response that carries an error.
+        // Scheduling is the one send path that reports failure through afterSubmit.
         it('keeps the draft when scheduling fails', async () => {
             const createScheduledPostSpy = jest.spyOn(Client4, 'createScheduledPost').mockRejectedValue({message: 'could not schedule'});
 
@@ -429,7 +419,6 @@ describe('components/drafts/drafts_row', () => {
 
             await waitFor(() => expect(createScheduledPostSpy).toHaveBeenCalledTimes(1));
 
-            // The error surfaces on the row instead of the draft being consumed.
             await waitFor(() => expect(screen.getByText('could not schedule')).toBeInTheDocument());
             expect(deleteDraftSpy).not.toHaveBeenCalled();
         });
@@ -451,13 +440,13 @@ describe('components/drafts/drafts_row', () => {
             await waitFor(() => expect(createPostSpy).toHaveBeenCalledTimes(1));
             await waitFor(() => expect(deleteScheduledPost).toHaveBeenCalledWith(userId, scheduledPost.id, connectionId));
 
-            // * The live draft in the same channel is neither deleted server-side nor cleared
             expect(deleteDraftSpy).not.toHaveBeenCalled();
             expect(getDrafts(store.getState()).map((draft) => draft.value.message)).toEqual(
                 ['draft message', 'draft in another channel'],
             );
 
-            // * A second send still targets the scheduled post, not the channel draft
+            // afterSubmit clears isScheduledPostBeingSent, so a second send must not fall
+            // through to the channel draft branch.
             await userEvent.click(screen.getByRole('button', {name: 'Send scheduled post'}));
 
             await waitFor(() => expect(createPostSpy).toHaveBeenCalledTimes(2));

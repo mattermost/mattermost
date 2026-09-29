@@ -72,9 +72,6 @@ export default class DraftsPage {
         return new components.DraftPost(draft);
     }
 
-    /**
-     * Sends the given draft through its row's send action, confirming the dialog.
-     */
     async sendDraft(draft: DraftPost) {
         await draft.hover();
         await expect(draft.sendButton).toBeVisible();
