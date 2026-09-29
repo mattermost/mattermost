@@ -155,12 +155,13 @@ func cpaFieldCreateCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 	name := args[0]
 	fieldType := args[1]
 
-	// Build PropertyField object
+	// Build PropertyField object. TargetType is omitted here because the
+	// server stamps it authoritatively; the CPA create endpoint now creates
+	// both a template and a linked user field internally.
 	field := &model.PropertyField{
-		Name:       name,
-		Type:       model.PropertyFieldType(fieldType),
-		TargetType: "user", // CPA fields target users
-		Attrs:      make(model.StringInterface),
+		Name:  name,
+		Type:  model.PropertyFieldType(fieldType),
+		Attrs: make(model.StringInterface),
 	}
 
 	// Build attrs from flags
