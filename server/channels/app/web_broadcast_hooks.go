@@ -584,7 +584,7 @@ func (h *abacBookmarksBroadcastHook) Process(msg *platform.HookedWebSocketEvent,
 	session := webConn.GetSession()
 	if session != nil {
 		rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
-		if webConn.Suite.HasPermissionToFileAction(rctx, webConn.UserId, session.Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment) {
+		if webConn.Suite.HasPermissionToChannelAction(rctx, webConn.UserId, session.Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment) {
 			return nil
 		}
 	}
