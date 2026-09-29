@@ -62,6 +62,11 @@ export interface Props {
      * Whether to allow configuration of the default post icon.
      */
     enablePostIconOverride: boolean;
+
+    /**
+     * Whether the user can reassign the webhook to a different owner.
+     */
+    canManageOthersWebhooks?: boolean;
 }
 
 interface State {
@@ -188,6 +193,7 @@ export default class EditOutgoingWebhook extends React.PureComponent<Props, Stat
                 initialHook={this.props.hook}
                 enablePostUsernameOverride={this.props.enablePostUsernameOverride}
                 enablePostIconOverride={this.props.enablePostIconOverride}
+                canManageOthersWebhooks={this.props.canManageOthersWebhooks}
             />
         );
     }

@@ -66,6 +66,11 @@ type Props = {
      */
     canBypassChannelLock?: boolean;
 
+    /**
+     * Whether the user can reassign the webhook to a different owner.
+     */
+    canManageOthersWebhooks?: boolean;
+
     actions: {
 
         /**
@@ -145,6 +150,7 @@ export default class EditIncomingWebhook extends React.PureComponent<Props, Stat
                 enablePostUsernameOverride={this.props.enablePostUsernameOverride}
                 enablePostIconOverride={this.props.enablePostIconOverride}
                 canBypassChannelLock={this.props.canBypassChannelLock}
+                canManageOthersWebhooks={this.props.canManageOthersWebhooks}
                 action={this.editIncomingHook}
                 serverError={this.state.serverError}
                 initialHook={this.props.hook}
