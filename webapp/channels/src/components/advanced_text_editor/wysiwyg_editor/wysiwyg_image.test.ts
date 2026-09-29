@@ -64,6 +64,24 @@ describe('WysiwygImage', () => {
         expect(serializeToMarkdown(editor)).toBe('![a kitten](https://example.com/cat.png "Fluffy")');
     });
 
+    it('escapes brackets in the alt and quotes in the title', () => {
+        editor = createEditor();
+        editor.commands.setContent({
+            type: 'doc',
+            content: [{
+                type: 'paragraph',
+                content: [{type: 'image', attrs: {src: 'https://example.com/cat.png', alt: 'a [big] cat', title: 'say "hi"'}}],
+            }],
+        });
+
+        const markdown = serializeToMarkdown(editor);
+        expect(markdown).toBe('![a \\[big\\] cat](https://example.com/cat.png "say \\"hi\\"")');
+
+        editor.commands.setContent(markdown, {contentType: 'markdown'});
+        expect(editor.view.dom.querySelector('img')?.getAttribute('alt')).toBe('a [big] cat');
+        expect(editor.view.dom.querySelector('img')?.getAttribute('title')).toBe('say "hi"');
+    });
+
     it('renders the src through the image proxy when it is enabled', () => {
         editor = createEditor(true);
         editor.commands.setContent('![a kitten](https://example.com/cat.png)', {contentType: 'markdown'});

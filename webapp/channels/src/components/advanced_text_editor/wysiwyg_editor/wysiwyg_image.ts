@@ -62,7 +62,9 @@ const WysiwygImage = Node.create<WysiwygImageOptions>({
 
     renderMarkdown: (node) => {
         const {src = '', alt = '', title} = node.attrs ?? {};
-        return `![${alt}](${src}${title ? ` "${title}"` : ''})`;
+        const escapedAlt = String(alt).replace(/[\\[\]]/g, '\\$&');
+        const escapedTitle = title ? ` "${String(title).replace(/["\\]/g, '\\$&')}"` : '';
+        return `![${escapedAlt}](${src}${escapedTitle})`;
     },
 
     addInputRules() {

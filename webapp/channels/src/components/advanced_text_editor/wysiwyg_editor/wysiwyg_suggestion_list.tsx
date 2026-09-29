@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Editor} from '@tiptap/react';
+import isEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -152,13 +153,6 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
 
     const matchedPretextRef = useRef('');
 
-    const alignedTriggerPosRef = useRef<number | null>(null);
-
-    const resetAlignment = useCallback(() => {
-        alignedTriggerPosRef.current = null;
-        setSuggestionBoxAlgn(undefined);
-    }, []);
-
     const providers = useMemo(() => {
         return [
             new CommandProvider({
@@ -198,18 +192,15 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
 
             const ed = editorInstanceRef.current;
             if (ed && !ed.isDestroyed) {
-                const triggerPos = getTriggerPos(ed, matchedPretext);
-                if (alignedTriggerPosRef.current !== triggerPos) {
-                    alignedTriggerPosRef.current = triggerPos;
-                    setSuggestionBoxAlgn(getCaretAlignment(ed, matchedPretext, triggerPos));
-                }
+                const next = getCaretAlignment(ed, matchedPretext, getTriggerPos(ed, matchedPretext));
+                setSuggestionBoxAlgn((prev) => (isEqual(prev, next) ? prev : next));
             }
             setIsOpen(true);
         } else {
             setIsOpen(false);
-            resetAlignment();
+            setSuggestionBoxAlgn(undefined);
         }
-    }, [resetAlignment]);
+    }, []);
 
     useEffect(() => {
         if (!editor || editor.isDestroyed) {
@@ -229,7 +220,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
             if (!handled) {
                 setIsOpen(false);
                 setResults(EMPTY_RESULTS);
-                resetAlignment();
+                setSuggestionBoxAlgn(undefined);
             }
         };
 
@@ -240,13 +231,13 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
             editor.off('selectionUpdate', handleUpdate);
             editor.off('update', handleUpdate);
         };
-    }, [editor, providers, handleReceivedSuggestions, resetAlignment]);
+    }, [editor, providers, handleReceivedSuggestions]);
 
     const closeSuggestions = useCallback(() => {
         setIsOpen(false);
         setResults(EMPTY_RESULTS);
-        resetAlignment();
-    }, [resetAlignment]);
+        setSuggestionBoxAlgn(undefined);
+    }, []);
 
     const handleCompleteWord = useCallback((term: string, matchedPretext: string) => {
         if (!editor || editor.isDestroyed) {
@@ -366,7 +357,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
                 event.preventDefault();
                 event.stopPropagation();
                 setIsOpen(false);
-                resetAlignment();
+                setSuggestionBoxAlgn(undefined);
             }
         };
 
@@ -375,7 +366,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
         return () => {
             editorElement.removeEventListener('keydown', handleKeyDown, true);
         };
-    }, [editor, handleCompleteWord, resetAlignment]);
+    }, [editor, handleCompleteWord]);
 
     if (!isOpen || !editor) {
         return null;

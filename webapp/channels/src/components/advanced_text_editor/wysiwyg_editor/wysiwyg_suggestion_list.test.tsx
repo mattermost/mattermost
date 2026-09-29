@@ -205,6 +205,20 @@ describe('WysiwygSuggestionList', () => {
         expect(second.pixelsToMoveX).toBeLessThan(first.pixelsToMoveX);
     });
 
+    test('realigns when the trigger wraps onto the next line', () => {
+        let top = 40;
+        const {type} = setup(['@sysadmin'], () => ({left: 200, top}));
+
+        type('hello @sys');
+        const first = JSON.parse(screen.getByTestId('suggestion-list').dataset.algn!);
+
+        top = 60;
+        type('hello @sysa');
+        const second = JSON.parse(screen.getByTestId('suggestion-list').dataset.algn!);
+
+        expect(second.pixelsToMoveY).toBeGreaterThan(first.pixelsToMoveY);
+    });
+
     test('omits the alignment when the caret cannot be measured', () => {
         const {type} = setup(['/jira instance install cloud-oauth']);
 
