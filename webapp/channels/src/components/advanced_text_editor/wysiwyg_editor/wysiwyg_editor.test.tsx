@@ -67,6 +67,11 @@ jest.mock('@tiptap/react', () => {
             const hasMarkdownExt = (config?.extensions ?? []).some((e: any) => (e.name || e.config?.name) === 'markdown');
             if (hasMarkdownExt) {
                 base.getMarkdown = () => 'hi';
+                base.schema = {nodes: {}};
+                base.markdown = {
+                    parse: (md: string) => ({type: 'doc', content: [{type: 'paragraph', content: [{type: 'text', text: md}]}]}),
+                    serialize: () => 'hi',
+                };
             }
 
             // Tiptap emits contentError synchronously inside the Editor
@@ -409,6 +414,28 @@ describe('WysiwygEditor', () => {
 
         const result = mockCapturedConfig.current?.editorProps?.handlePaste?.({} as any, mkEvent());
         expect(result).toBe(true);
+    });
+
+    describe('handlePaste and the text/html flavour', () => {
+        const paste = (text: string, html: string) => {
+            renderWithContext(<WysiwygEditor {...baseProps}/>);
+            return mockCapturedConfig.current?.editorProps?.handlePaste?.({} as any, {
+                preventDefault: jest.fn(),
+                clipboardData: {getData: (type: string) => (type === 'text/plain' ? text : html)},
+            } as any);
+        };
+
+        test('parses markdown even when the clipboard also carries HTML', () => {
+            expect(paste('# heading', '<meta charset="utf-8"><span># heading</span>')).toBe(true);
+        });
+
+        test('defers to ProseMirror when the HTML came from another editor', () => {
+            expect(paste('# heading', '<div data-pm-slice="1 1 []"><h1>heading</h1></div>')).toBe(false);
+        });
+
+        test('defers to ProseMirror when the text is not markdown', () => {
+            expect(paste('just words', '<b>just words</b>')).toBe(false);
+        });
     });
 
     test('getEditor() on the handle returns the underlying Tiptap Editor instance', () => {

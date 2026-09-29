@@ -33,6 +33,7 @@ import type {ProviderResults, SuggestionResults} from 'components/suggestion/sug
 import {normalizeResultsFromProvider, countResults} from 'components/suggestion/suggestion_results';
 
 import Constants from 'utils/constants';
+import {getPxToSubstract} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -70,6 +71,40 @@ function getAllTerms(results: SuggestionResults): string[] {
     return [];
 }
 
+type SuggestionBoxAlgn = {
+    lineHeight?: number;
+    pixelsToMoveX?: number;
+    pixelsToMoveY?: number;
+};
+
+function getTriggerPos(editor: Editor, matchedPretext: string): number {
+    return Math.max(0, editor.state.selection.from - matchedPretext.length);
+}
+
+function getCaretAlignment(editor: Editor, matchedPretext: string, triggerPos: number): SuggestionBoxAlgn | undefined {
+    const {view} = editor;
+
+    let coords;
+    try {
+        coords = view.coordsAtPos(triggerPos);
+    } catch {
+        return undefined;
+    }
+
+    const container = (view.dom.offsetParent ?? view.dom) as HTMLElement;
+    const containerRect = container.getBoundingClientRect();
+
+    const listWidth = Math.min(containerRect.width, Constants.SUGGESTION_LIST_MAXWIDTH);
+    const maxOffsetX = Math.max(0, containerRect.width - listWidth);
+    const offsetX = coords.left - containerRect.left - getPxToSubstract(matchedPretext[0]);
+
+    return {
+        lineHeight: parseInt(getComputedStyle(view.dom).lineHeight, 10) || 0,
+        pixelsToMoveX: Math.round(Math.min(Math.max(0, offsetX), maxOffsetX)),
+        pixelsToMoveY: Math.round(coords.top - containerRect.top),
+    };
+}
+
 function getTextBeforeCursor(editor: Editor): string {
     const {state} = editor;
     const {from} = state.selection;
@@ -86,9 +121,12 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
     const [pretext, setPretext] = useState('');
     const [selection, setSelection] = useState('');
     const [isOpen, setIsOpen] = useState(false);
+    const [suggestionBoxAlgn, setSuggestionBoxAlgn] = useState<SuggestionBoxAlgn | undefined>(undefined);
 
     const editorDomRef = useRef<HTMLDivElement | null>(null);
+    const editorInstanceRef = useRef<Editor | null>(null);
     useEffect(() => {
+        editorInstanceRef.current = editor;
         if (editor && !editor.isDestroyed) {
             editorDomRef.current = editor.view.dom as HTMLDivElement;
         }
@@ -113,6 +151,13 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
     const delayChannelAutocomplete = config.DelayChannelAutocomplete === 'true';
 
     const matchedPretextRef = useRef('');
+
+    const alignedTriggerPosRef = useRef<number | null>(null);
+
+    const resetAlignment = useCallback(() => {
+        alignedTriggerPosRef.current = null;
+        setSuggestionBoxAlgn(undefined);
+    }, []);
 
     const providers = useMemo(() => {
         return [
@@ -142,18 +187,29 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
     const handleReceivedSuggestions = useCallback((suggestions: ProviderResults) => {
         const normalized = normalizeResultsFromProvider(suggestions);
         const terms = getAllTerms(normalized);
+        const matchedPretext = suggestions.matchedPretext || '';
 
         setResults(normalized);
-        setPretext(suggestions.matchedPretext || '');
-        matchedPretextRef.current = suggestions.matchedPretext || '';
+        setPretext(matchedPretext);
+        matchedPretextRef.current = matchedPretext;
 
         if (countResults(normalized) > 0 && terms.length > 0) {
             setSelection(terms[0]);
+
+            const ed = editorInstanceRef.current;
+            if (ed && !ed.isDestroyed) {
+                const triggerPos = getTriggerPos(ed, matchedPretext);
+                if (alignedTriggerPosRef.current !== triggerPos) {
+                    alignedTriggerPosRef.current = triggerPos;
+                    setSuggestionBoxAlgn(getCaretAlignment(ed, matchedPretext, triggerPos));
+                }
+            }
             setIsOpen(true);
         } else {
             setIsOpen(false);
+            resetAlignment();
         }
-    }, []);
+    }, [resetAlignment]);
 
     useEffect(() => {
         if (!editor || editor.isDestroyed) {
@@ -173,6 +229,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
             if (!handled) {
                 setIsOpen(false);
                 setResults(EMPTY_RESULTS);
+                resetAlignment();
             }
         };
 
@@ -183,12 +240,13 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
             editor.off('selectionUpdate', handleUpdate);
             editor.off('update', handleUpdate);
         };
-    }, [editor, providers, handleReceivedSuggestions]);
+    }, [editor, providers, handleReceivedSuggestions, resetAlignment]);
 
     const closeSuggestions = useCallback(() => {
         setIsOpen(false);
         setResults(EMPTY_RESULTS);
-    }, []);
+        resetAlignment();
+    }, [resetAlignment]);
 
     const handleCompleteWord = useCallback((term: string, matchedPretext: string) => {
         if (!editor || editor.isDestroyed) {
@@ -308,6 +366,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
                 event.preventDefault();
                 event.stopPropagation();
                 setIsOpen(false);
+                resetAlignment();
             }
         };
 
@@ -316,7 +375,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
         return () => {
             editorElement.removeEventListener('keydown', handleKeyDown, true);
         };
-    }, [editor, handleCompleteWord]);
+    }, [editor, handleCompleteWord, resetAlignment]);
 
     if (!isOpen || !editor) {
         return null;
@@ -330,6 +389,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
             cleared={false}
             results={results}
             selection={selection}
+            suggestionBoxAlgn={suggestionBoxAlgn}
             onCompleteWord={handleCompleteWord}
             onItemHover={handleItemHover}
             position='top'
