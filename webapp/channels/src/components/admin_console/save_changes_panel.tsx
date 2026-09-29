@@ -30,7 +30,6 @@ const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink,
                 saving={saving}
                 disabled={isDisabled || !saveNeeded}
                 onClick={onClick}
-                extraClasses='save-button'
                 savingMessage={savingMessage ?? formatMessage({id: 'admin.team_channel_settings.saving', defaultMessage: 'Saving Config...'})}
             />
             {cancelLink ? (
