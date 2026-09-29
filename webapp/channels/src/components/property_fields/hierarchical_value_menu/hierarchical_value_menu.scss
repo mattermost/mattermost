@@ -50,6 +50,54 @@
         }
     }
 
+    // Channel-info chrome: match ChannelInfoAttributes__valueTrigger (borderless,
+    // grey wash on hover/open). Form / Account Settings keep the input trigger above.
+    &--inline {
+        width: auto;
+        min-width: 0;
+        flex: 1;
+
+        .hierarchical-value-menu__button {
+            width: 100%;
+            min-height: 28px;
+            padding: 0 4px;
+            border: none;
+            background: transparent;
+
+            &:hover:not(.disabled),
+            &[aria-expanded='true'] {
+                border: none;
+                background: rgba(var(--center-channel-color-rgb), 0.04);
+                box-shadow: none;
+            }
+
+            &:focus-visible {
+                border: none;
+                background: transparent;
+                box-shadow: none;
+                outline: 2px solid var(--button-bg);
+                outline-offset: 2px;
+            }
+
+            &[aria-expanded='true']:focus-visible {
+                background: rgba(var(--center-channel-color-rgb), 0.04);
+            }
+
+            &.disabled {
+                border: none;
+                background: transparent;
+                opacity: 0.6;
+            }
+        }
+
+        .hierarchical-value-menu__placeholder {
+            color: rgba(var(--center-channel-color-rgb), 0.48);
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 16px;
+        }
+    }
+
     &__button-inner {
         display: flex;
         width: 100%;
@@ -71,51 +119,17 @@
     }
 
     // Every chip, wrapping. No "+N" and no cap: chip overflow is a known
-    // residual for this widget.
+    // residual for this widget. Chips themselves are AttributeChip.
     &__chips {
         display: flex;
         flex-grow: 1;
         flex-wrap: wrap;
         gap: 2px;
+        align-items: center;
     }
 
     &__chip {
-        display: flex;
-        height: 24px;
-        align-items: center;
-        border-radius: 4px;
         margin: 2px;
-        background-color: rgba(var(--center-channel-color-rgb), 0.08);
-    }
-
-    &__chip-label {
-        padding: 0 4px 0 8px;
-        font-size: 12px;
-    }
-
-    &__chip--pending &__chip-label {
-        width: 64px;
-        height: 12px;
-        border-radius: 2px;
-        background: rgba(var(--center-channel-color-rgb), 0.16);
-    }
-
-    // A read that failed leaves nothing known about the id -- not even a stale
-    // name. The chip says so instead of printing the raw identifier.
-    &__chip--unavailable &__chip-label {
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-style: italic;
-    }
-
-    &__chip-remove {
-        display: flex;
-        align-items: center;
-        padding: 0 4px;
-        cursor: pointer;
-
-        &:hover {
-            background-color: rgba(var(--center-channel-color-rgb), 0.16);
-        }
     }
 
     &__menu {
@@ -144,6 +158,7 @@
 
             > .leading-element {
                 overflow: visible;
+                margin-inline-end: 4px;
             }
 
             > .label-elements {

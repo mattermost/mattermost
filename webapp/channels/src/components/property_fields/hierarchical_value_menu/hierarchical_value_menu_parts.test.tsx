@@ -816,6 +816,20 @@ describe('HierarchicalValueMenu chrome (mounted)', () => {
             expect(trigger()).toHaveClass('policy-row__value-trigger');
         });
 
+        test('defaults to the input variant with a chevron and no inline class', () => {
+            const {container} = renderMenu();
+
+            expect(container.querySelector('.hierarchical-value-menu')).not.toHaveClass('hierarchical-value-menu--inline');
+            expect(trigger().querySelector('svg')).toBeInTheDocument();
+        });
+
+        test('variant=inline marks the root and omits the trigger chevron', () => {
+            const {container} = renderMenu({variant: 'inline'});
+
+            expect(container.querySelector('.hierarchical-value-menu')).toHaveClass('hierarchical-value-menu--inline');
+            expect(trigger().querySelector('svg')).not.toBeInTheDocument();
+        });
+
         test('disabled marks the trigger disabled and adds the disabled class', () => {
             renderMenu({disabled: true});
 

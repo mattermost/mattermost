@@ -32,6 +32,11 @@ type Props = {
     size?: 'small' | 'medium';
 
     className?: string;
+
+    // When set, renders a circular dismiss control inside the chip (Figma Chip).
+    onRemove?: (event: React.MouseEvent) => void;
+    removeLabel?: string;
+    disabled?: boolean;
 };
 
 type RemoveButtonProps = {
@@ -41,28 +46,56 @@ type RemoveButtonProps = {
 };
 
 export const AttributeChipRemoveButton = ({onRemove, removeLabel, disabled}: RemoveButtonProps) => (
-    <button
-        type='button'
+    <span
+        role='button'
+        tabIndex={disabled ? -1 : 0}
         className='AttributeChip__remove'
         data-testid='attributeChipRemove'
+        data-menu-prevent-open={true}
         aria-label={removeLabel}
-        disabled={disabled}
+        aria-disabled={disabled || undefined}
+        onPointerDown={(event) => {
+            if (disabled || event.button !== 0) {
+                return;
+            }
+
+            // Inside a Menu trigger / <label>: cancel activation so the click
+            // reaches this control instead of opening the parent.
+            event.preventDefault();
+            event.stopPropagation();
+        }}
         onMouseDown={(event) => {
+            if (disabled) {
+                return;
+            }
             event.preventDefault();
             event.stopPropagation();
         }}
         onClick={(event) => {
+            if (disabled) {
+                return;
+            }
             event.preventDefault();
             event.stopPropagation();
             event.nativeEvent.stopImmediatePropagation();
             onRemove(event);
+        }}
+        onKeyDown={(event) => {
+            if (disabled) {
+                return;
+            }
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                event.stopPropagation();
+                onRemove(event as unknown as React.MouseEvent);
+            }
         }}
     >
         <CloseCircleIcon
             size={14}
             aria-hidden={true}
         />
-    </button>
+    </span>
 );
 
 /**
@@ -74,6 +107,8 @@ export const AttributeChipRemoveButton = ({onRemove, removeLabel, disabled}: Rem
  *
  * The background is admin-chosen, so the foreground is derived from its luminance,
  * as the channel banner already does. That is what holds contrast in all themes.
+ *
+ * Dismissible chips follow Components — Chip: circular CloseCircle inside the chip.
  */
 const AttributeChip = ({
     label,
@@ -82,6 +117,9 @@ const AttributeChip = ({
     announceLabel = true,
     size = 'small',
     className,
+    onRemove,
+    removeLabel,
+    disabled,
 }: Props) => {
     const style = useMemo(() => {
         if (!color || !HEX_COLOR_PATTERN.test(color)) {
@@ -97,6 +135,8 @@ const AttributeChip = ({
         return {backgroundColor: color, color: foreground};
     }, [color]);
 
+    const dismissible = Boolean(onRemove && removeLabel);
+
     return (
         <span
             className={classNames(
@@ -104,6 +144,7 @@ const AttributeChip = ({
                 `AttributeChip--${size}`,
                 {
                     'AttributeChip--neutral': !style,
+                    'AttributeChip--dismissible': dismissible,
                 },
                 className,
             )}
@@ -120,6 +161,13 @@ const AttributeChip = ({
                 </span>
             )}
             <span className='AttributeChip__value'>{value}</span>
+            {dismissible && (
+                <AttributeChipRemoveButton
+                    onRemove={onRemove!}
+                    removeLabel={removeLabel!}
+                    disabled={disabled}
+                />
+            )}
         </span>
     );
 };

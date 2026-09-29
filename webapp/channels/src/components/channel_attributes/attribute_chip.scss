@@ -13,7 +13,6 @@
     font-family: 'Open Sans', sans-serif;
     font-style: normal;
     font-weight: 600;
-    text-transform: uppercase;
     white-space: nowrap;
 
     &--small {
@@ -22,6 +21,7 @@
         font-size: 10px;
         letter-spacing: 0.02em;
         line-height: 12px;
+        text-transform: uppercase;
     }
 
     &--medium {
@@ -33,11 +33,42 @@
         gap: 2px;
         letter-spacing: 0.2px;
         line-height: 12px;
+        text-transform: uppercase;
+    }
+
+    // Dismissible chips keep option casing (Figma Components — Chip) and leave
+    // room for the circular close control on the trailing edge.
+    &--dismissible {
+        text-transform: none;
+        letter-spacing: normal;
+    }
+
+    &--medium.AttributeChip--dismissible {
+        padding: 4px 4px 4px 8px;
+        gap: 4px;
     }
 
     &--neutral {
         background: rgba(var(--center-channel-color-rgb), 0.08);
         color: rgb(var(--center-channel-color-rgb));
+    }
+
+    &--pending {
+        .AttributeChip__value {
+            width: 64px;
+            height: 12px;
+            border-radius: 2px;
+            background: rgba(var(--center-channel-color-rgb), 0.16);
+            color: transparent;
+        }
+    }
+
+    &--unavailable {
+        font-style: italic;
+
+        .AttributeChip__value {
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+        }
     }
 
     &__value {

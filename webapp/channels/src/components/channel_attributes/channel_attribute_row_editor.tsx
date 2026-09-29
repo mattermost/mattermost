@@ -15,7 +15,7 @@ import * as Menu from 'components/menu';
 import {asGraphFieldRef} from 'components/property_fields/graph';
 import AssignmentGraphPicker from 'components/property_fields/hierarchical_value_menu/assignment_picker';
 
-import AttributeChip, {AttributeChipRemoveButton} from './attribute_chip';
+import AttributeChip from './attribute_chip';
 import type {ChannelAttributeValue} from './set_channel_attribute_value';
 
 type Option = {label: string; value: string; color?: string};
@@ -145,6 +145,7 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                     {label},
                 )}
                 disabled={saving}
+                variant='inline'
             />
         );
     }
@@ -169,6 +170,9 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                             color={color}
                             size='medium'
                             announceLabel={false}
+                            onRemove={clearable ? () => onSubmit(null) : undefined}
+                            removeLabel={clearable ? clearLabel : undefined}
+                            disabled={saving}
                         />
                     ) : (
                         <span
@@ -228,13 +232,6 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                     );
                 })}
             </Menu.Container>
-            {clearable && hasDisplay && (
-                <AttributeChipRemoveButton
-                    onRemove={() => onSubmit(null)}
-                    removeLabel={clearLabel}
-                    disabled={saving}
-                />
-            )}
         </span>
     );
 };

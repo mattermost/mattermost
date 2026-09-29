@@ -407,8 +407,11 @@ describe('ChannelInfoAttributes', () => {
             await userEvent.hover(screen.getByTestId('channelInfoAttributeEdit-program'));
             const trigger = screen.getByTestId('channelInfoAttributeEdit-program');
             const remove = screen.getByTestId('attributeChipRemove');
-            expect(trigger).not.toContainElement(remove);
-            expect(trigger.parentElement).toBe(remove.parentElement);
+
+            // Remove lives inside the chip (and thus the trigger); pointer handlers
+            // must keep the menu closed and still clear the value.
+            expect(trigger).toContainElement(remove);
+            expect(screen.getByTestId('attributeChip')).toContainElement(remove);
 
             await userEvent.click(remove);
 

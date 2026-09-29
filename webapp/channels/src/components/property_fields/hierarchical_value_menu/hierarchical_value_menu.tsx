@@ -85,6 +85,10 @@ export type HierarchicalValueMenuProps = {
     className?: string;
     buttonClassName?: string;
 
+    // `input` (default): bordered Compass-like trigger for forms / Account Settings.
+    // `inline`: borderless chip chrome matching ChannelInfoAttributes__valueTrigger.
+    variant?: 'input' | 'inline';
+
     trailingChips?: ReactNode;
 
     // Array, not a fragment: MenuList console.errors on Fragment children.
@@ -118,9 +122,11 @@ export default function HierarchicalValueMenu({
     ariaLabel,
     className,
     buttonClassName,
+    variant = 'input',
     trailingChips,
     extraMenuItems,
 }: HierarchicalValueMenuProps) {
+    const isInline = variant === 'inline';
     const {formatMessage} = useIntl();
 
     const [isOpen, setIsOpen] = useState(false);
@@ -426,7 +432,7 @@ export default function HierarchicalValueMenu({
     }
 
     return (
-        <div className={classNames('hierarchical-value-menu', className)}>
+        <div className={classNames('hierarchical-value-menu', {'hierarchical-value-menu--inline': isInline}, className)}>
             <Menu.Container
                 menuButton={{
                     id: buttonId,
@@ -449,10 +455,12 @@ export default function HierarchicalValueMenu({
                                     trailingChips={trailingChips}
                                 />
                             )}
-                            <ChevronDownIcon
-                                size={18}
-                                color='rgba(var(--center-channel-color-rgb), 0.5)'
-                            />
+                            {!isInline && (
+                                <ChevronDownIcon
+                                    size={18}
+                                    color='rgba(var(--center-channel-color-rgb), 0.5)'
+                                />
+                            )}
                         </span>
                     ),
                 }}
