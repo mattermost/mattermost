@@ -50,8 +50,11 @@ export default class ScheduleMessageModal {
 
         const dateLocator = this.dateLocator(day);
 
-        const isMonthChanged = pacificDate.getMonth() !== originDate.getMonth();
-        if (!(await dateLocator.isVisible()) && isMonthChanged) {
+        // The same day-of-month is often still visible (and disabled) in the
+        // current month, so always advance when the target is in a later month.
+        const isMonthChanged =
+            pacificDate.getMonth() !== originDate.getMonth() || pacificDate.getFullYear() !== originDate.getFullYear();
+        if (isMonthChanged) {
             await this.container.getByLabel('Go to next month').click();
         }
 

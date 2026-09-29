@@ -46,8 +46,12 @@ export default class ScheduledDraftModal {
 
         const dl = this.dateLocator(day);
 
-        // If the date is not visible and the month has changed, click the next month button
-        if (!(await dl.isVisible()) && pacificDate.getMonth() !== originDate.getMonth()) {
+        // The same day-of-month is often still visible (and disabled) in the
+        // current month, so always advance when the target is in a later month.
+        if (
+            pacificDate.getMonth() !== originDate.getMonth() ||
+            pacificDate.getFullYear() !== originDate.getFullYear()
+        ) {
             await this.container.locator('button[aria-label="Go to next month"]').click();
         }
         await dl.click();
