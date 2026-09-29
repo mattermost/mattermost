@@ -78,9 +78,15 @@ if (localeNames.length === 0) {
     process.exit(2);
 }
 
+// en.json pairs each key with a {defaultMessage, description}; the locale
+// catalogs are flat key -> string. Flatten the source to the same shape so
+// everything below compares one string against another.
 let en;
 try {
-    en = JSON.parse(readCatalog(SOURCE));
+    en = Object.fromEntries(
+        Object.entries(JSON.parse(readCatalog(SOURCE))).
+            map(([key, entry]) => [key, entry.defaultMessage]),
+    );
 } catch (e) {
     console.error(`cannot read ${path.join(i18nDir, SOURCE)}: ${e.message}`);
     process.exit(2);
