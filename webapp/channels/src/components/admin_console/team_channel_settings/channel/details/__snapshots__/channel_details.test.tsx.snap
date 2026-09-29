@@ -418,7 +418,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="btn btn-primary save-button"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
@@ -861,7 +861,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="btn btn-primary save-button"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
@@ -1148,7 +1148,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="btn btn-primary save-button"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
@@ -1434,7 +1434,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="btn btn-primary save-button"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
@@ -1680,7 +1680,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="btn btn-primary save-button"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
@@ -1925,7 +1925,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="btn btn-primary save-button"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"

@@ -4205,7 +4205,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="btn btn-primary save-button"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
@@ -8272,7 +8272,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="btn btn-primary save-button"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
@@ -12340,7 +12340,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="btn btn-primary save-button"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
@@ -16407,7 +16407,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="btn btn-primary save-button"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"

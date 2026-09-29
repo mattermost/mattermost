@@ -44,7 +44,7 @@ exports[`admin_console/system_role should match snapshot 1`] = `
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="btn btn-primary save-button"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
@@ -114,7 +114,7 @@ exports[`admin_console/system_role should match snapshot with isLicensedForCloud
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="btn btn-primary save-button"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"

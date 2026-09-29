@@ -385,7 +385,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="btn btn-primary save-button"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
@@ -796,7 +796,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="btn btn-primary save-button"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
@@ -1205,7 +1205,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="btn btn-primary save-button"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
@@ -1612,7 +1612,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="btn btn-primary save-button"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
