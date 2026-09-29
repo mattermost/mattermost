@@ -2,10 +2,12 @@
 // See LICENSE.txt for license information.
 
 // Shared styles for admin console modals that use the Input component
-// Used by: ResetPasswordModal, ResetEmailModal
+// Used by: ResetPasswordModal, ResetEmailModal, CreateUserModal, CreateTeamModal
 
 .ResetPasswordModal,
-.ResetEmailModal {
+.ResetEmailModal,
+.CreateUserModal,
+.CreateTeamModal {
     &__body {
         display: flex;
         flex-direction: column;
