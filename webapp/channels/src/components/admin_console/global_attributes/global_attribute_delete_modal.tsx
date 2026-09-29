@@ -87,8 +87,8 @@ function GlobalAttributeDeleteModal({name, onConfirm, onExited, isOrphaned = fal
             compassDesign={true}
         >
             {/* An uninstalled plugin leaves no manifest behind to resolve a display
-                name from, so the raw source_plugin_id is the only identifier we can
-                honestly show here. */}
+                name from, so the raw plugin ID (source_plugin_id or an owner's ID) is the
+                only identifier we can honestly show here. */}
             {isOrphaned && ownerPluginIds?.length ? (
                 <p>
                     <FormattedMessage
