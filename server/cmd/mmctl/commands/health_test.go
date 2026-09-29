@@ -253,7 +253,7 @@ Notifications
 
 		printHealthFindings([]*model.HealthFinding{}, false, now)
 
-		s.Equal("Not evaluated yet — the first check runs within an hour of enabling the feature.", s.printedHealthFindings())
+		s.Equal("Not evaluated yet. The first check runs within an hour of enabling the feature.", s.printedHealthFindings())
 	})
 
 	s.Run("evaluation time comes from the newest finding, including hidden resolved ones", func() {
@@ -275,7 +275,7 @@ Notifications
 
 		printHealthFindings(healthTestFindings(lastSeen), false, lastSeen.Add(2*time.Hour+time.Minute))
 
-		s.Contains(s.printedHealthFindings(), "Last evaluated 2026-09-24 14:02 (121 minutes ago) — evaluation appears to have stopped\n")
+		s.Contains(s.printedHealthFindings(), "Last evaluated 2026-09-24 14:02 (121 minutes ago). Evaluation appears to have stopped.\n")
 	})
 
 	s.Run("evaluation two hours old is not reported as stopped", func() {
