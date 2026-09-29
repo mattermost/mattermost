@@ -18,6 +18,9 @@ test('MM-60727 relabels date separators when local midnight passes', {tag: '@mes
     const now = new Date();
     const midnight = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
 
+    // The setup posts have to land on one side of that boundary, not straddle it.
+    test.skip(midnight - now.getTime() < 5 * MINUTE, 'too close to a real UTC midnight');
+
     const eveningMessage = `evening ${pw.random.id()}`;
     const overnightMessage = `overnight ${pw.random.id()}`;
 
@@ -52,18 +55,19 @@ test('MM-60727 relabels date separators when local midnight passes', {tag: '@mes
     // * Verify the separator still reads "Today"
     await expect(separators).toHaveText(['Today']);
 
-    // # Let midnight pass without reloading the page
-    await page.clock.fastForward('00:30');
+    // # Let midnight pass without reloading the page, the way a suspended machine would
+    await page.clock.fastForward(30 * 1000);
 
     // * Verify the separator relabels itself to "Yesterday"
     await expect(separators).toHaveText(['Yesterday']);
 
-    // # Add a post dated just after midnight
+    // # Hand the page a live clock again, then add a post dated just after midnight
+    await page.clock.resume();
     await adminClient.createPost({
         channel_id: channel.id,
         user_id: user.id,
         message: overnightMessage,
-        create_at: midnight + 30 * 1000,
+        create_at: midnight + 10 * 1000,
     });
     await expect(channelsPage.centerView.container.getByText(overnightMessage, {exact: true})).toBeVisible();
 

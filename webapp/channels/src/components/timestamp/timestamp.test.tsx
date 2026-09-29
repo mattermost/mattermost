@@ -325,6 +325,8 @@ describe('components/timestamp/Timestamp', () => {
     });
 });
 
+// These use Jest's fake timers rather than the fakeDate helper above, because they need the
+// clock and the timer queue to advance together.
 describe('components/timestamp/Timestamp day rollover', () => {
     const TEN_SECONDS_BEFORE_MIDNIGHT = new Date('2019-05-03T23:59:50Z');
     const EARLIER_THAT_EVENING = new Date('2019-05-03T20:00:00Z');
@@ -400,24 +402,76 @@ describe('components/timestamp/Timestamp day rollover', () => {
         expect(container.textContent).toEqual('4 days ago');
     });
 
-    test('should recount whole weeks for a week-relative timestamp', () => {
-        // The last moment of a Saturday, so the next day boundary is also a week boundary.
-        jest.setSystemTime(new Date('2019-05-04T23:59:50Z'));
+    // Each case sits on the last moment of a period, so the next day boundary is also that
+    // period's boundary.
+    test.each([
+        ['week', '2019-05-04T23:59:50Z', '2019-05-01T12:00:00Z'],
+        ['month', '2019-04-30T23:59:50Z', '2019-04-15T12:00:00Z'],
+        ['quarter', '2019-03-31T23:59:50Z', '2019-02-15T12:00:00Z'],
+        ['year', '2018-12-31T23:59:50Z', '2018-06-15T12:00:00Z'],
+    ] as const)('should recount whole %ss when the period ends', (unit, now, value) => {
+        jest.setSystemTime(new Date(now));
 
         const {container} = renderWithContext(
             <Timestamp
-                value={new Date('2019-05-01T12:00:00Z')}
+                value={new Date(value)}
                 timeZone='UTC'
                 useTime={false}
-                units={['week']}
+                units={[unit]}
             />,
         );
 
-        expect(container.textContent).toEqual('this week');
+        expect(container.textContent).toEqual(`this ${unit}`);
 
         advanceBy(11 * 1000);
 
-        expect(container.textContent).toEqual('last week');
+        expect(container.textContent).toEqual(`last ${unit}`);
+    });
+
+    // Documents that a refresh interval takes priority over the day boundary, which is what
+    // keeps the finer-grained ranges ticking at their own rate.
+    test('should keep refreshing a minute-relative timestamp on its own interval', () => {
+        const {container} = renderWithContext(
+            <Timestamp
+                value={new Date('2019-05-03T23:58:20Z')}
+                timeZone='UTC'
+                useTime={false}
+                units={['minute']}
+            />,
+        );
+
+        expect(container.textContent).toEqual('1 minute ago');
+
+        advanceBy(31 * 1000);
+
+        expect(container.textContent).toEqual('2 minutes ago');
+    });
+
+    test('should catch up after the machine was suspended past midnight', () => {
+        const {container, rerender} = renderWithContext(
+            <Timestamp
+                value={EARLIER_THAT_EVENING}
+                timeZone='UTC'
+                useTime={false}
+                ranges={TODAY_YESTERDAY_RANGES}
+            />,
+        );
+
+        expect(container.textContent).toEqual('Today');
+
+        // Time moves on without any timer getting a chance to fire.
+        jest.setSystemTime(new Date('2019-05-04T08:00:00Z'));
+
+        rerender(
+            <Timestamp
+                value={new Date(EARLIER_THAT_EVENING.getTime() + 1000)}
+                timeZone='UTC'
+                useTime={false}
+                ranges={TODAY_YESTERDAY_RANGES}
+            />,
+        );
+
+        expect(container.textContent).toEqual('Yesterday');
     });
 
     // The only coverage of the branch that refreshes an absolute date format rather than a
