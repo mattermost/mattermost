@@ -1,0 +1,46 @@
+{
+    "ServiceSettings": {
+        "SiteURL": "https://chat.example.com",
+        "WebsocketURL": "",
+        "ListenAddress": ":8065",
+        "ConnectionSecurity": "",
+        "TLSMinVer": "1.2",
+        "Forward80To443": false,
+        "EnableIncomingWebhooks": true,
+        "EnableOutgoingWebhooks": true
+    },
+    "SqlSettings": {
+        "DriverName": "postgres",
+        "DataSource": "postgres://****:****@db.example.com:5432/mattermost?connect_timeout=10\u0026sslmode=require",
+        "DataSourceReplicas": [],
+        "DataSourceSearchReplicas": [],
+        "MaxIdleConns": 10,
+        "MaxOpenConns": 100
+    },
+    "EmailSettings": {
+        "SendEmailNotifications": true,
+        "SMTPServer": "smtp.example.com",
+        "SMTPPort": "587",
+        "SMTPPassword": "********************************",
+        "SendPushNotifications": true,
+        "PushNotificationServer": "http://push.example.com",
+        "PushNotificationContents": "full"
+    },
+    "ClusterSettings": {
+        "Enable": true,
+        "ClusterName": "production",
+        "OverrideHostname": "",
+        "NetworkInterface": "",
+        "BindAddress": "",
+        "AdvertiseAddress": "",
+        "UseIPAddress": true,
+        "EnableGossipCompression": true,
+        "EnableExperimentalGossipEncryption": null,
+        "ReadOnlyConfig": true,
+        "GossipPort": 8074
+    },
+    "FeatureFlags": {
+        "TestFeature": "off",
+        "HealthDashboard": false
+    }
+}

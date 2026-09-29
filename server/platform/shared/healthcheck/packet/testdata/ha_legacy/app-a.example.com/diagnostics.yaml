@@ -1,0 +1,76 @@
+version: 2
+license:
+  company: Example Corp
+  users: 500
+  sku_short_name: enterprise
+server:
+  # Machine
+  os: linux
+  architecture: amd64
+  hostname: app-a.example.com
+  installation_type: docker
+  # Capacity (hardware → effective quota)
+  cpu_cores: 4 # logical CPUs visible to the OS
+  total_memory_mb: 16000 # host/VM total RAM; may exceed container limit
+  # Process lifecycle
+  process_id: 1
+  started_at: 2026-09-20T08:00:00Z # when Mattermost process started
+  host_started_at: 2026-09-01T06:00:00Z # when the host OS booted; omitted if unavailable
+  open_file_descriptors: 120 # current open FDs for this process
+  max_file_descriptors: 65536 # system limit (ulimit -n)
+  # Software
+  version: 11.0.4
+  build_hash: 0123456789abcdef0123456789abcdef01234567
+  go_version: go1.24.6
+config:
+  store_type: database
+database:
+  type: postgres
+  version: "15.8"
+  schema_version: "232"
+  master_connections: 2
+  replica_connections: 0
+  search_connections: 0
+  master_connections_in_use: 0
+  master_connections_idle: 2
+  master_pool_wait_count: 0 # cumulative; total times a goroutine waited for a connection since process start
+  master_pool_wait_duration_ms: 0 # cumulative wait time across all goroutines since process start
+  master_connections_closed_max_idle: 0 # cumulative; connections closed because the idle pool was full
+  master_connections_closed_max_lifetime: 0 # cumulative; connections closed for exceeding ConnMaxLifetime
+  replica_connections_in_use: 0
+  replica_connections_idle: 0
+  replica_pool_wait_count: 0 # cumulative across all replicas; see master_pool_wait_count
+  replica_pool_wait_duration_ms: 0 # cumulative across all replicas
+  replica_connections_closed_max_idle: 0 # cumulative across all replicas
+  replica_connections_closed_max_lifetime: 0 # cumulative across all replicas
+file_store:
+  file_status: OK
+  file_driver: local
+  filesystem_type: ext4 # local driver only (e.g. ext4, xfs); omitted for s3 and other remote drivers
+  total_mb: 102400 # local driver only; capacity of the volume hosting FileSettings.Directory
+  available_mb: 51200 # local driver only; free space remaining on that volume
+websocket:
+  connections: 42
+cluster:
+  id: k3n9x7cq4fbq8g1s6ztw2yrm5h
+  number_of_nodes: 2
+notifications:
+  email:
+    status: OK
+  push:
+    status: OK
+ldap:
+  status: disabled
+saml:
+  status: disabled
+elastic:
+  status: disabled
+oauth_providers:
+  gitlab:
+    status: disabled
+  google:
+    status: disabled
+  office365:
+    status: disabled
+  openid:
+    status: disabled
