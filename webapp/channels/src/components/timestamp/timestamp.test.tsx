@@ -428,8 +428,8 @@ describe('components/timestamp/Timestamp day rollover', () => {
         expect(container.textContent).toEqual(`last ${unit}`);
     });
 
-    // Documents that a refresh interval takes priority over the day boundary, which is what
-    // keeps the finer-grained ranges ticking at their own rate.
+    // A refresh interval takes priority over the day boundary, which is what keeps the
+    // finer-grained ranges ticking at their own rate.
     test('should keep refreshing a minute-relative timestamp on its own interval', () => {
         const {container} = renderWithContext(
             <Timestamp
@@ -474,8 +474,7 @@ describe('components/timestamp/Timestamp day rollover', () => {
         expect(container.textContent).toEqual('Yesterday');
     });
 
-    // The only coverage of the branch that refreshes an absolute date format rather than a
-    // relative label, so deleting it silently drops that branch.
+    // Covers the branch that refreshes an absolute date format rather than a relative label.
     test('should drop the weekday format once the value is more than six days old', () => {
         const {container} = renderWithContext(
             <Timestamp
@@ -515,8 +514,7 @@ describe('components/timestamp/Timestamp day rollover', () => {
         expect(container.textContent).toEqual('Yesterday');
     });
 
-    // Every post in a channel renders one of these, so a time-only timestamp must not take a
-    // timer just because the component now knows how to schedule one.
+    // Every post in a channel renders one of these, so a time-only timestamp must not take a timer.
     test('should not schedule an update when only a time is rendered', () => {
         const before = jest.getTimerCount();
 

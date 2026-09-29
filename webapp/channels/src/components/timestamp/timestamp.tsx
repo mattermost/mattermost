@@ -95,10 +95,9 @@ type DisplayAs = {
 
 export type RangeDescriptor = Breakpoint & DisplayAs;
 
+// `dependsOnCurrentDay` is set when the range was selected by comparing whole calendar
+// periods, so the choice stops being valid once the local day changes.
 type ResolvedRange = DisplayAs & {
-
-    // Set when the range was selected by comparing whole calendar periods, so the choice
-    // stops being valid once the local day changes.
     dependsOnCurrentDay?: boolean;
 };
 
@@ -419,7 +418,7 @@ class Timestamp extends PureComponent<Props, State> {
 
         // Labels like "Today" and the date formats picked by how many days ago the value was
         // both stop being accurate once the local day rolls over, so refresh them then.
-        if (relative ? relative.updateAtNextDay : Boolean(date)) {
+        if (relative ? relative.updateAtNextDay : date) {
             return getMillisUntilNextDay(this.state.now, this.props.timeZone);
         }
 

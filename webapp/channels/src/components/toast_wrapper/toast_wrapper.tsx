@@ -291,10 +291,9 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
 
     newMessagesToastText = (count: number | undefined, since: number) => {
         if (this.props.width > TOAST_TEXT_COLLAPSE_WIDTH && typeof since !== 'undefined') {
+            // The sentence is built inside Timestamp's render prop so that the "since"
+            // connective is re-evaluated whenever Timestamp refreshes its own label.
             return (
-
-                // The sentence is built inside Timestamp's render prop so that the "since"
-                // connective is re-evaluated whenever Timestamp refreshes its own label.
                 <Timestamp
                     value={since}
                     useTime={false}

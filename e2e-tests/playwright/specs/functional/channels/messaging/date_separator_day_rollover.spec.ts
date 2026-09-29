@@ -19,7 +19,7 @@ test('MM-60727 relabels date separators when local midnight passes', {tag: '@mes
     const midnight = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
 
     // The setup posts have to land on one side of that boundary, not straddle it.
-    test.skip(midnight - now.getTime() < 5 * MINUTE, 'too close to a real UTC midnight');
+    test.skip(midnight - now.getTime() < 5 * MINUTE, 'Skipping test - too close to a real UTC midnight');
 
     const eveningMessage = `evening ${pw.random.id()}`;
     const overnightMessage = `overnight ${pw.random.id()}`;

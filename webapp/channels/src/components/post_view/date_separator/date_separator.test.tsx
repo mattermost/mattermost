@@ -33,6 +33,7 @@ describe('components/post_view/DateSeparator', () => {
     } as any);
 
     const initialState = stateForTimezone('UTC');
+
     test('should render Timestamp inside of a BasicSeparator and pass date/value to it', () => {
         const value = new Date('Fri Jan 12 2018 20:15:13 GMT+1200 (+12)');
         renderWithContext(
