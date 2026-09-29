@@ -20,7 +20,7 @@ exports[`AdminSettings should match snapshot 1`] = `
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"

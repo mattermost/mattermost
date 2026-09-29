@@ -363,7 +363,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary save-button"
+        class="btn btn-primary"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
@@ -414,7 +414,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary save-button"
+        class="btn btn-primary"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
@@ -796,7 +796,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary save-button"
+        class="btn btn-primary"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"

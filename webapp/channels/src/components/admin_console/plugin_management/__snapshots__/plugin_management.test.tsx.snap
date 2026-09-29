@@ -394,7 +394,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
@@ -810,7 +810,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
@@ -883,7 +883,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
@@ -1297,7 +1297,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
@@ -1719,7 +1719,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
@@ -2133,7 +2133,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
@@ -2546,7 +2546,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
@@ -2962,7 +2962,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
@@ -3375,7 +3375,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
@@ -3809,7 +3809,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
@@ -4505,7 +4505,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
@@ -4999,7 +4999,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
@@ -5493,7 +5493,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
@@ -5987,7 +5987,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
@@ -6667,7 +6667,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"

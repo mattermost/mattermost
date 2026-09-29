@@ -739,7 +739,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
@@ -1475,7 +1475,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
@@ -2220,7 +2220,7 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"

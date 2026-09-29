@@ -221,7 +221,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
@@ -667,7 +667,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
@@ -904,7 +904,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
@@ -1340,7 +1340,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
@@ -1900,7 +1900,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"

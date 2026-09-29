@@ -561,7 +561,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary save-button"
+        class="btn btn-primary"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
@@ -1158,7 +1158,7 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form sho
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary save-button"
+        class="btn btn-primary"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"

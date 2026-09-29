@@ -340,7 +340,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
@@ -699,7 +699,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
@@ -1058,7 +1058,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
@@ -1417,7 +1417,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary save-button"
+          class="btn btn-primary"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
