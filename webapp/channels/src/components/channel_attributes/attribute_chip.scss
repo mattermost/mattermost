@@ -39,8 +39,8 @@
     // Dismissible chips keep option casing (Figma Components — Chip) and leave
     // room for the circular close control on the trailing edge.
     &--dismissible {
-        text-transform: none;
         letter-spacing: normal;
+        text-transform: none;
     }
 
     &--medium.AttributeChip--dismissible {

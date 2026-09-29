@@ -142,8 +142,8 @@
         // Match resting textValue + valueTrigger so entering edit does not
         // stretch to full row width or shift the text.
         width: auto;
-        max-width: 100%;
         min-width: 1ch;
+        max-width: 100%;
         min-height: 28px;
         box-sizing: border-box;
         padding: 0 6px;
