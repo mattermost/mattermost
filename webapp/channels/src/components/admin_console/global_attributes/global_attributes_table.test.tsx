@@ -1115,6 +1115,28 @@ describe('GlobalAttributesTable', () => {
                 });
             });
 
+            it('shows the owner alongside an LDAP/SAML link on a standalone user attribute, without scopes', async () => {
+                getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
+                    if (opts?.cursorId || objectType !== 'user') {
+                        return Promise.resolve([]);
+                    }
+                    return Promise.resolve([makeField({
+                        id: 'user-1',
+                        name: 'standalone',
+                        object_type: 'user',
+                        attrs: {saml: 'dept', owners: [{id: 'svc-sync', type: 'service', scopes: ['local']}]},
+                    })]);
+                });
+
+                renderWithContext(<GlobalAttributesTable/>, getAllScopesState());
+
+                await waitFor(() => {
+                    expect(screen.getByTestId('global-attribute-source')).toHaveTextContent('Managed by svc-sync');
+                });
+                expect(screen.getByTestId('global-attribute-source')).toHaveTextContent('SAML');
+                expect(screen.getByTestId('global-attribute-source')).not.toHaveTextContent('local');
+            });
+
             it('lists every owner in stored order', async () => {
                 mockTemplateWithUserField({owners: [
                     {id: 'svc-b', type: 'service', scopes: []},

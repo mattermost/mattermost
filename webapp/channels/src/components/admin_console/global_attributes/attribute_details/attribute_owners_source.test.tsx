@@ -72,6 +72,13 @@ describe('AttributeOwnersSource', () => {
         expect(screen.getAllByRole('link')).toHaveLength(1);
     });
 
+    it('shows owner scopes on the Managed by line but not in the helper text', () => {
+        renderComponent([{...plugin, scopes: ['local']}]);
+
+        expect(screen.getByTestId('attributeOwnersSourceManagedBy')).toHaveTextContent('Managed by SCIM: local');
+        expect(screen.getByTestId('attributeOwnersSourceHelperText')).toHaveTextContent('Values for users are set by SCIM.');
+    });
+
     it('names the owners in helper text that differs from the plugin-created text', () => {
         renderComponent([plugin]);
 

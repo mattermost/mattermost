@@ -164,40 +164,50 @@ function SourceCell({field, isClassificationRow, owners}: ClassificationAwareCel
     const pluginDisplayName = useSelector((state: GlobalState) => getPluginDisplayName(state, pluginId));
 
     const kind = getSourceKind(field);
+    const syncLabel = SYNC_LABELS[kind];
+    const SyncKindIcon = getSourceIcon(kind);
 
     let content: React.ReactNode;
     if (isClassificationRow) {
+        // Not a plugin, LDAP, or SAML source, so it gets no source icon.
         content = <FormattedMessage {...sourceLabels.classificationMarkings}/>;
     } else if (kind === 'plugin') {
-        content = pluginDisplayName;
-    } else if (kind === 'ldap_and_saml') {
-        content = <FormattedMessage {...sourceLabels.ldapAndSaml}/>;
-    } else if (kind === 'ldap') {
-        content = <FormattedMessage {...sourceLabels.ldap}/>;
-    } else if (kind === 'saml') {
-        content = <FormattedMessage {...sourceLabels.saml}/>;
-    } else if (owners.length > 0) {
         content = (
-            <FormattedMessage
-                {...sourceLabels.ownedBy}
-                values={{owners: ownersLabel}}
-            />
+            <>
+                <PowerPlugOutlineIcon size={16}/>
+                {pluginDisplayName}
+            </>
+        );
+    } else if (owners.length > 0 || syncLabel) {
+        // An owned field can also be synced from LDAP/SAML, so both are shown.
+        content = (
+            <>
+                {owners.length > 0 && (
+                    <span className='GlobalAttributesTable__source'>
+                        <PowerPlugOutlineIcon size={16}/>
+                        <FormattedMessage
+                            {...sourceLabels.ownedBy}
+                            values={{owners: ownersLabel}}
+                        />
+                    </span>
+                )}
+                {syncLabel && (
+                    <span className='GlobalAttributesTable__source'>
+                        {SyncKindIcon && <SyncKindIcon size={16}/>}
+                        <FormattedMessage {...syncLabel}/>
+                    </span>
+                )}
+            </>
         );
     } else {
         content = <FormattedMessage {...sourceLabels.managed}/>;
     }
-
-    // The classification row identifies its source via text alone ("Classification
-    // Markings"), not a plugin/ldap/saml/managed kind, so it doesn't get one of those icons.
-    const isOwned = kind === 'managed' && owners.length > 0;
-    const Icon = isClassificationRow ? undefined : getSourceIcon(isOwned ? 'plugin' : kind);
 
     return (
         <span
             className='GlobalAttributesTable__source'
             data-testid='global-attribute-source'
         >
-            {Icon && <Icon size={16}/>}
             {content}
         </span>
     );
@@ -869,6 +879,12 @@ const sourceLabels = defineMessages({
         defaultMessage: 'Classification Markings',
     },
 });
+
+const SYNC_LABELS: Partial<Record<SourceKind, MessageDescriptor>> = {
+    ldap_and_saml: sourceLabels.ldapAndSaml,
+    ldap: sourceLabels.ldap,
+    saml: sourceLabels.saml,
+};
 
 const optionsLabels = defineMessages({
     freeText: {id: 'admin.global_attributes.table.options.free_text', defaultMessage: 'Free Text'},

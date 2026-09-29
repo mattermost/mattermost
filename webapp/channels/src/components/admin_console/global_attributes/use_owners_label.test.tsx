@@ -37,6 +37,13 @@ describe('useOwnersLabel', () => {
         expect(label([owner('scim'), owner('svc-sync', 'service')], state)).toBe('SCIM and svc-sync');
     });
 
+    it('appends scopes only when asked', () => {
+        const state = {plugins: {plugins: {scim: {name: 'SCIM'}}}};
+        const owners = [{...owner('scim'), scopes: ['local', 'okta']}, owner('svc-sync', 'service')];
+        expect(label(owners, state)).toBe('SCIM and svc-sync');
+        expect(renderHookWithContext(() => useOwnersLabel(owners, {withScopes: true}), state).result.current).toBe('SCIM: local, okta and svc-sync');
+    });
+
     it('is empty without owners', () => {
         expect(label([])).toBe('');
     });

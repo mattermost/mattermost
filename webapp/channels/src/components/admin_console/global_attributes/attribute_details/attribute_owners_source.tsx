@@ -50,6 +50,7 @@ function OwnerSettingsLink({pluginId}: {pluginId: string}): JSX.Element {
 function AttributeOwnersSource({owners, pluginInventoryLoaded}: Props): JSX.Element {
     const {formatMessage} = useIntl();
     const ownersLabel = useOwnersLabel(owners);
+    const scopedOwnersLabel = useOwnersLabel(owners, {withScopes: true});
     const installedPluginIds = useInstalledPluginIds();
 
     return (
@@ -63,7 +64,7 @@ function AttributeOwnersSource({owners, pluginInventoryLoaded}: Props): JSX.Elem
                     aria-hidden={true}
                 />
                 <span data-testid='attributeOwnersSourceManagedBy'>
-                    {formatMessage(messages.managedBy, {owners: ownersLabel})}
+                    {formatMessage(messages.managedBy, {owners: scopedOwnersLabel})}
                 </span>
                 {pluginInventoryLoaded && owners.map((owner) => (
                     owner.type === 'plugin' && installedPluginIds.has(owner.id) && (
