@@ -129,16 +129,3 @@ func (a *App) GetHealthFinding(rctx request.CTX, fingerprint string) (*model.Hea
 
 	return findings[0], nil
 }
-
-// HealthRules returns the rule registry that stored findings are rendered with.
-func (a *App) HealthRules() *healthcheck.Registry {
-	if rules := a.Srv().healthRulesOverride; rules != nil {
-		return rules
-	}
-	return healthcheck.Builtin()
-}
-
-// SetHealthRulesOverride replaces the built-in rule registry returned by App.HealthRules.
-func (s *Server) SetHealthRulesOverride(rules *healthcheck.Registry) {
-	s.healthRulesOverride = rules
-}

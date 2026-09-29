@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
 func (api *API) InitHealthDashboard() {
@@ -44,7 +45,7 @@ func requireHealthDashboard(c *Context) bool {
 // request locale. A finding whose code is no longer registered cannot be rendered or acted on,
 // so it is dropped.
 func renderFindings(c *Context, findings []*model.HealthFinding) []*model.HealthFinding {
-	rules := c.App.HealthRules()
+	rules := healthcheck.Builtin()
 	rendered := make([]*model.HealthFinding, 0, len(findings))
 	for _, finding := range findings {
 		rule, ok := rules.Get(finding.Code)

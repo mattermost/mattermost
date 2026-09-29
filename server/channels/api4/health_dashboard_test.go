@@ -62,21 +62,6 @@ func findingFingerprints(findings []*model.HealthFinding) []string {
 	return fingerprints
 }
 
-func testHealthRule(code string, surface healthcheck.Surface) healthcheck.Rule {
-	return healthcheck.Rule{
-		Code:     code,
-		Area:     model.AreaCluster,
-		Severity: healthcheck.SeverityWarning,
-		RuleText: model.RuleText{
-			TitleID:       "health.rule." + strings.ToLower(code) + ".title",
-			RemediationID: "health.rule." + strings.ToLower(code) + ".remediation",
-		},
-		Surface:    surface,
-		Volatility: healthcheck.VolatilityStable,
-		Eval:       func(*healthcheck.Snapshot) []healthcheck.Result { return nil },
-	}
-}
-
 func TestHealthDashboardAccess(t *testing.T) {
 	t.Run("unauthenticated", func(t *testing.T) {
 		th := setupHealthDashboard(t, true)
@@ -285,15 +270,8 @@ func TestRenderHealthFindingsLocale(t *testing.T) {
 func TestGetHealthFindingsHidesInternalSurface(t *testing.T) {
 	th := setupHealthDashboard(t, true)
 
-	rules := healthcheck.NewRegistry()
-	rules.Register(
-		testHealthRule("TEST_PRODUCT", healthcheck.SurfaceProduct),
-		testHealthRule("TEST_INTERNAL", healthcheck.SurfaceInternal),
-	)
-	th.App.Srv().SetHealthRulesOverride(rules)
-
-	product := newHealthFinding("TEST_PRODUCT", healthcheck.SurfaceProduct)
-	internal := newHealthFinding("TEST_INTERNAL", healthcheck.SurfaceInternal)
+	product := newHealthFinding("SITE_URL_HTTP", healthcheck.SurfaceProduct)
+	internal := newHealthFinding("SITE_URL_EMPTY", healthcheck.SurfaceInternal)
 	storeHealthFindings(t, th, product, internal)
 
 	for name, client := range map[string]*model.Client4{
