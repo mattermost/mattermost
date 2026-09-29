@@ -5,6 +5,7 @@ import type {Page} from '@playwright/test';
 import {expect} from '@playwright/test';
 
 import {components} from '@/ui/components';
+import type {DraftPost} from '@/ui/components';
 
 export default class DraftsPage {
     readonly page: Page;
@@ -15,6 +16,7 @@ export default class DraftsPage {
     readonly noDrafts;
 
     readonly scheduleMessageModal;
+    readonly sendMessageNowModal;
 
     constructor(page: Page) {
         this.page = page;
@@ -27,6 +29,9 @@ export default class DraftsPage {
 
         this.scheduleMessageModal = new components.ScheduleMessageModal(
             page.getByRole('dialog', {name: 'Schedule message'}),
+        );
+        this.sendMessageNowModal = new components.SendMessageNowModal(
+            page.getByRole('dialog', {name: 'Send message now'}),
         );
     }
 
@@ -65,5 +70,16 @@ export default class DraftsPage {
         const draft = this.draftViews().filter({hasText: channelName}).first();
         await draft.waitFor();
         return new components.DraftPost(draft);
+    }
+
+    /**
+     * Sends the given draft through its row's send action, confirming the dialog.
+     */
+    async sendDraft(draft: DraftPost) {
+        await draft.hover();
+        await expect(draft.sendButton).toBeVisible();
+        await draft.sendButton.click();
+        await this.sendMessageNowModal.toBeVisible();
+        await this.sendMessageNowModal.sendNowButton.click();
     }
 }
