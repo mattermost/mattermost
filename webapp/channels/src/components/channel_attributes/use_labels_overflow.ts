@@ -148,7 +148,22 @@ export function useLabelsOverflow(ids: string[], {allowEmptyVisible = false}: Ov
         // header), never flash every chip. Showing all here re-expanded the row
         // whenever the name had already yielded its space, which flickered at
         // narrow title widths.
+        //
+        // Cache widths for any mounted chips first. Collapsing without a cache
+        // leaves later expands stuck: hidden chips are not in the DOM, so the
+        // main loop exits at the first uncached id and never grows the visible set.
         if (availableWidth <= 0) {
+            for (const id of currentIds) {
+                const chipEl = chipRefs.current.get(id);
+                if (!chipEl) {
+                    continue;
+                }
+                const contentWidth = Math.max(chipEl.getBoundingClientRect().width, chipEl.scrollWidth);
+                if (contentWidth <= 0) {
+                    return;
+                }
+                chipWidthCache.current.set(id, contentWidth);
+            }
             setOverflowStartIndex(allowEmptyVisibleRef.current ? 0 : Math.min(1, currentIds.length));
             setMeasured(true);
             return;
