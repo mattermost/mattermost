@@ -26,7 +26,7 @@ const BODY_ID = 'attribute-applies-to-channel-panel';
 // array index, which misattributes state when a row is removed from the
 // middle of the list). Remove is only reachable once expanded -- there is no
 // collapsed-row remove affordance.
-function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disabled = false, lockedTooltip, onRemove}: AttributeAppliesToChannelItemProps): JSX.Element {
+function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disabled = false, lockedTooltip, removeLockedTooltip, onRemove}: AttributeAppliesToChannelItemProps): JSX.Element {
     const intl = useIntl();
     const {formatMessage} = intl;
     const [isOpen, setIsOpen] = useState(false);
@@ -68,6 +68,21 @@ function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disable
         </button>
     );
 
+    const removeButton = (
+        <Button
+            type='button'
+            emphasis='tertiary'
+            variant='destructive'
+            size='sm'
+            className='AttributeAppliesToItem__remove'
+            onClick={onRemove}
+            disabled={disabled || Boolean(removeLockedTooltip)}
+            data-testid='attributeAppliesToRow-channel-remove'
+        >
+            <FormattedMessage {...messages.removeLabel}/>
+        </Button>
+    );
+
     return (
         <div
             className={classNames('AttributeAppliesToItem', {'AttributeAppliesToItem--open': isOpen})}
@@ -85,20 +100,17 @@ function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disable
                         </span>
                     </WithTooltip>
                 ) : toggleButton}
-                {isOpen && (
-                    <Button
-                        type='button'
-                        emphasis='tertiary'
-                        variant='destructive'
-                        size='sm'
-                        className='AttributeAppliesToItem__remove'
-                        onClick={onRemove}
-                        disabled={disabled}
-                        data-testid='attributeAppliesToRow-channel-remove'
-                    >
-                        <FormattedMessage {...messages.removeLabel}/>
-                    </Button>
-                )}
+                {isOpen && (removeLockedTooltip ? (
+                    <WithTooltip title={removeLockedTooltip}>
+                        <span
+                            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled Remove is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
+                            tabIndex={0}
+                            data-testid='attributeAppliesToRow-channel-removeLockWrap'
+                        >
+                            {removeButton}
+                        </span>
+                    </WithTooltip>
+                ) : removeButton)}
             </div>
             {isOpen && (
                 <div

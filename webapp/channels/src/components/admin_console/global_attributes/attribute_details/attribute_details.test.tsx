@@ -2073,14 +2073,69 @@ describe('AttributeDetails', () => {
                 expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-member')).toBeEnabled();
             });
 
-            it.each(['channel', 'post'] as const)('keeps a standalone %s field\'s row toggle disabled behind an explanatory lock tooltip', async (objectType) => {
-                mockLoadedNonTemplateField(makeNonTemplate(objectType));
+            it('keeps a standalone post field\'s row toggle disabled behind an explanatory lock tooltip', async () => {
+                mockLoadedNonTemplateField(makeNonTemplate('post'));
 
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.getByTestId(`attributeAppliesToRow-${objectType}-toggle`)).toBeDisabled();
-                expect(screen.getByTestId(`attributeAppliesToRow-${objectType}-toggleLockWrap`)).toBeInTheDocument();
+                expect(screen.getByTestId('attributeAppliesToRow-post-toggle')).toBeDisabled();
+                expect(screen.getByTestId('attributeAppliesToRow-post-toggleLockWrap')).toBeInTheDocument();
+            });
+
+            it('leaves a standalone channel field\'s row toggle and settings enabled, with Remove locked', async () => {
+                mockLoadedNonTemplateField(makeNonTemplate('channel'));
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeAppliesToRow-channel-toggle')).toBeEnabled();
+                expect(screen.queryByTestId('attributeAppliesToRow-channel-toggleLockWrap')).not.toBeInTheDocument();
+
+                await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
+                expect(screen.getByTestId('attributeAppliesToRow-channel-remove')).toBeDisabled();
+                expect(screen.getByTestId('attributeAppliesToRow-channel-removeLockWrap')).toBeInTheDocument();
+                expect(screen.getByTestId('channelsResourceLocation-display_label_header')).toBeEnabled();
+            });
+
+            it('saves a standalone channel field\'s row settings in the same PATCH as the definition', async () => {
+                mockLoadedNonTemplateField(makeNonTemplate('channel'));
+                const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeNonTemplate('channel'));
+
+                renderEdit();
+                await waitForForm();
+
+                await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
+                await userEvent.click(screen.getByTestId('channelsResourceRequired-button'));
+                await userEvent.click(screen.getByTestId('saveSetting'));
+
+                await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
+                expect(patchPropertyField).toHaveBeenCalledTimes(1);
+                expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'channel', FIELD_ID, expect.objectContaining({
+                    attrs: expect.objectContaining({
+                        display_name: 'Department',
+                        required: true,
+                        change_policy: expect.any(String),
+                        editable: null,
+                        actions: expect.any(Array),
+                    }),
+                }));
+            });
+
+            it('keeps a standalone channel field\'s loaded config when only the display name changes', async () => {
+                mockLoadedNonTemplateField(makeNonTemplate('channel', {attrs: {display_name: 'Region', required: true}}));
+                const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeNonTemplate('channel'));
+
+                renderEdit();
+                await waitForForm();
+
+                await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' 2');
+                await userEvent.click(screen.getByTestId('saveSetting'));
+
+                await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+                expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'channel', FIELD_ID, expect.objectContaining({
+                    attrs: expect.objectContaining({display_name: 'Region 2', required: true}),
+                }));
             });
 
             it('keeps a plugin-created standalone user field\'s row toggle disabled', async () => {

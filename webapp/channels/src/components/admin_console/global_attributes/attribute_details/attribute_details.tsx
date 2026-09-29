@@ -345,8 +345,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // isEditMode check.
     const isNonTemplate = objectType !== GLOBAL_ATTRIBUTES_OBJECT_TYPE;
 
-    // A standalone user attribute's row is editable; channel and post rows stay shut.
-    const standaloneRowLocked = isNonTemplate && objectType !== 'user';
+    // A standalone user or channel attribute's row is editable; a post field has no row settings.
+    const standaloneRowLocked = isNonTemplate && objectType === 'post';
 
     // Substituted for the bare `disabled` prop everywhere else on this page --
     // one boolean, not a second parallel disabled path. Keeps the pre-existing
@@ -1004,6 +1004,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 if (objectType === 'user' && userConfigChanged) {
                     patch.resourceAttrs = userConfigAttrs;
                     patch.permissionValues = userConfigPermissionValues;
+                } else if (objectType === 'channel') {
+                    patch.resourceAttrs = buildChannelFieldPatch(channelResource).attrs;
                 }
                 try {
                     await updateAttributeField(objectType, fieldId, patch);
