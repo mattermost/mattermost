@@ -80,12 +80,12 @@ function getBaseState(): DeepPartial<GlobalState> {
 
 type EntitiesPartial = NonNullable<DeepPartial<GlobalState>['entities']>;
 
-// State where the Classification Markings admin page is actually reachable: Enterprise-tier
-// license (matching admin_definition.tsx's minLicenseTier(Enterprise) check) and the
-// ClassificationMarkings feature flag on, read from the same entities/admin config tree the
-// route rule itself reads. Both conditions default to "reachable" but can be independently
-// overridden to exercise the AND logic off the all-true/all-false diagonal (e.g. license ok
-// but flag off, or vice versa).
+// State where the Classification Markings admin page is actually reachable: Enterprise
+// Advanced license (matching admin_definition.tsx's minLicenseTier(EnterpriseAdvanced)
+// check) and the ClassificationMarkings feature flag on, read from the same entities/admin
+// config tree the route rule itself reads. Both conditions default to "reachable" but can
+// be independently overridden to exercise the AND logic off the all-true/all-false diagonal
+// (e.g. license ok but flag off, or vice versa).
 function getReachableState(overrides: {licenseSku?: string; classificationMarkingsFlagOn?: boolean; channelAttributesFlagOn?: boolean} = {}): DeepPartial<GlobalState> {
     const {licenseSku = 'advanced', classificationMarkingsFlagOn = true, channelAttributesFlagOn = true} = overrides;
     const state = getBaseState();
@@ -1195,6 +1195,29 @@ describe('GlobalAttributesTable', () => {
             expect(edit!).not.toHaveAttribute('aria-disabled', 'true');
             expect(edit!).not.toHaveTextContent('Coming soon');
         });
+
+        it('offers View and disables Delete when the listing page is read-only', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeField()]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable disabled={true}/>, getBaseState());
+
+            // Managed rows never fetch plugin statuses, so open the menu directly
+            // rather than via openActionsMenu (which waits on that fetch).
+            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+            const menuitems = screen.getAllByRole('menuitem');
+            expect(menuitems.find((el) => el.textContent?.includes('Edit attribute'))).toBeUndefined();
+
+            const view = menuitems.find((el) => el.textContent?.includes('View attribute'));
+            expect(view).not.toHaveAttribute('aria-disabled', 'true');
+
+            const del = menuitems.find((el) => el.textContent?.includes('Delete attribute'));
+            expect(del).toHaveAttribute('aria-disabled', 'true');
+
+            await userEvent.click(view!);
+            await waitFor(() => {
+                expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes/attribute_details/field-1');
+            });
+        });
     });
 
     describe('Delete action', () => {
@@ -1603,10 +1626,12 @@ describe('GlobalAttributesTable', () => {
             expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
         });
 
-        it('renders the ordinary dot-menu when the ClassificationMarkings flag is on but the license is sub-Enterprise', async () => {
+        it('renders the ordinary dot-menu when the ClassificationMarkings flag is on but the license is below Enterprise Advanced', async () => {
             getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
 
-            renderWithContext(<GlobalAttributesTable/>, getReachableState({licenseSku: 'professional'}));
+            // Enterprise (not Advanced) is enough for Attribute Management but not for
+            // Classification Markings — the row must not pretend that page is reachable.
+            renderWithContext(<GlobalAttributesTable/>, getReachableState({licenseSku: 'enterprise'}));
 
             const trigger = await screen.findByTestId('global-attribute-actions-field-1');
             expect(trigger).toBeInTheDocument();
