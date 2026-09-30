@@ -4160,6 +4160,14 @@
     {
       "from": "/end-user-guide/collaborate/channel-naming-conventions",
       "to": "/administration-guide/manage/admin/workspace-organization#channel-naming-conventions"
+    },
+    {
+      "from": "/product-overview/moving-from-slack",
+      "to": "/administration-guide/onboard/slack-migration-overview"
+    },
+    {
+      "from": "/administration-guide/onboard/moving-from-slack",
+      "to": "/administration-guide/onboard/slack-migration-overview"
     }
   ]
 }
