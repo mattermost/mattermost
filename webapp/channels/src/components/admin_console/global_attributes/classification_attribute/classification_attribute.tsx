@@ -162,13 +162,15 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
     // reaches, so a scope that will not list costs the rows, not the page.
     useEffect(() => {
         if (!template) {
-            return;
+            return undefined;
         }
+
+        let cancelled = false;
 
         (async () => {
             try {
                 const linkedFields = (await fetchLinkedFieldsForTemplate(template.id, allowedResourceTypes).catch(rethrowUnlessNotFound)) ?? [];
-                if (!isMountedRef.current) {
+                if (cancelled) {
                     return;
                 }
                 const otherResources: Array<{type: ResourceObjectType; name: string}> = [];
@@ -182,6 +184,10 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                 console.error('ClassificationAttribute-load-linked-resources: ', error); // eslint-disable-line no-console
             }
         })();
+
+        return () => {
+            cancelled = true;
+        };
     }, [allowedResourceTypes, template]);
 
     const levels = useMemo(() => {
