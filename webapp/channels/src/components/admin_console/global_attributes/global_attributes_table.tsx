@@ -27,6 +27,7 @@ import {getPluginDisplayName} from 'selectors/plugins';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import {
+    CLASSIFICATIONS_FIELD_TYPE,
     CLASSIFICATIONS_MARKINGS_ADMIN_URL,
     CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
@@ -68,11 +69,17 @@ export function getDisplayName(field: PropertyField): string {
 }
 
 // Identifies the single Classification Markings template field by its literal
-// name + object_type + group_id combo. There is no data-driven ownership flag
-// (attrs.protected/top-level `protected`) for this template field.
+// name + type + object_type + group_id combo. There is no data-driven ownership
+// flag (attrs.protected/top-level `protected`) for this template field.
+//
+// The type is part of it because the name alone is not reserved: an attribute
+// named `classification` of any other type is an ordinary attribute, and must
+// stay editable and deletable here — that is the only way to clear the conflict
+// the Classification Markings page reports.
 export function isClassificationMarkingsField(field: PropertyField, groupId: string): boolean {
     return (
         field.name === CLASSIFICATIONS_TEMPLATE_FIELD_NAME &&
+        field.type === CLASSIFICATIONS_FIELD_TYPE &&
         field.object_type === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE &&
         field.group_id === groupId
     );

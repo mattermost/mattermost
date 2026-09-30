@@ -1,17 +1,135 @@
-/* Intelligent Mission Environment diagram — v2.
+/* Intelligent Mission Environment diagram — content-driven renderer.
  *
- * Tighter visual match to the brand infographic:
- * - Application zone visibly contained in a denim wash + border
- * - Intro panels are NOT clickable cards; they're plain text columns
- *   (no left-edge accent bar — the surrounding denim wash/borders already
- *   signal the section boundary)
- * - Use Case cells use a soft denim-tinted background, not white-on-white
- * - All clickable cells share the same white-with-marigold-on-hover treatment
- * - Section titles get a thin marigold underline for visual rhythm
+ * All layout comes from the `IMEContent` model, so this stylesheet only
+ * carries visual affordances (colors, spacing, layer chrome, logo
+ * strips). The renderer sets `grid-template-columns` inline based on
+ * `layer.columns` and the footer count.
  */
 
-.diagram {
+.wrapper {
+  /* Fill the reading column by default; extend rightward on wider
+   * viewports (see the media query below) to preserve the deck's
+   * 16:9 proportions. `container-type: inline-size` lets `.cellGrid`
+   * / `.footerRow` / `.cellTitleSplit` collapse based on the
+   * wrapper's actual width rather than the viewport, so narrow
+   * reading columns (pages with a visible ToC, embedded contexts)
+   * collapse the same way narrow viewports do. */
   margin: 2rem 0 2.5rem;
+  width: 100%;
+  max-width: 1240px;
+  container-type: inline-size;
+}
+
+@media (min-width: 1300px) {
+  .wrapper {
+    /* Break out of the reading column rightward into the ToC gutter
+     * so the diagram gets close to the deck's 16:9 shape. Landing
+     * pages hide their ToC via frontmatter; other pages that show a
+     * ToC will visually overlap it — move those to a wider layout
+     * or add `hide_table_of_contents` on that page.
+     *
+     * Capped by min(1240px, viewport - sidebar - gutters). 1240 is
+     * chosen so the resulting height (with the internal padding
+     * trims and label-height fix) lands close to the deck's 16:9
+     * aspect at typical desktop widths. */
+    max-width: none;
+    width: min(1240px, calc(100vw - var(--doc-sidebar-width, 300px) - 4rem));
+  }
+}
+
+/* === Audience toggle above the diagram === */
+
+.toggleRow {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+  padding: 0.25rem;
+  background: var(--mm-denim-50, rgba(30, 50, 92, 0.06));
+  border-radius: 999px;
+  width: fit-content;
+}
+
+[data-theme='dark'] .toggleRow {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.toggleButton {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--mm-text-secondary, var(--mm-text-primary));
+  font-family: var(--mm-font-sans);
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+  padding: 0.4rem 0.95rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.toggleButton:hover {
+  color: var(--mm-color-denim, #1E325C);
+}
+
+.toggleButtonActive,
+.toggleButtonActive:hover {
+  background: var(--mm-color-denim, #1E325C);
+  color: var(--mm-color-white, #fff);
+}
+
+/* === Banner (mission variant) — dark denim with camo backdrop === */
+
+.banner {
+  background-color: var(--mm-color-denim, #1E325C);
+  /* background-image is set inline via useBaseUrl so the URL respects
+   * Docusaurus' configured baseUrl on non-root deployments. */
+  background-size: cover;
+  background-position: center;
+  color: var(--mm-color-white, #fff);
+  padding: 1.1rem 1.25rem;
+  text-align: center;
+  border-bottom: 3px solid var(--mm-color-marigold, #FFBC1F);
+}
+
+.bannerInner {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* Escape hatch for `.markdown h2` in `src/css/custom.css` which adds
+ * a 3rem top margin, 1.4rem top padding, and a decorative marigold
+ * ::before bar to every h2 inside a doc page. Same idiom the OpenAPI
+ * reset uses further down that file. */
+.bannerTitle,
+.bannerTitle:not([class*="openapi"]) {
+  font-family: var(--mm-font-sans);
+  font-weight: 800;
+  color: var(--mm-color-white, #fff);
+  font-size: 1.55rem;
+  line-height: 1.15;
+  margin: 0 0 0.3rem !important;
+  padding: 0 !important;
+  position: relative;
+  letter-spacing: -0.005em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+.bannerTitle::before,
+.bannerTitle:not([class*="openapi"])::before {
+  content: none !important;
+}
+
+.bannerTagline {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.88rem;
+  line-height: 1.4;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* === Diagram scaffold === */
+
+.diagram {
   border: 1px solid var(--mm-border-subtle, rgba(30, 50, 92, 0.18));
   border-radius: 8px;
   overflow: hidden;
@@ -23,8 +141,6 @@
   background: var(--mm-denim-700, #121E37);
   border-color: rgba(255, 255, 255, 0.1);
 }
-
-/* === Layer scaffold (vertical denim label on left + content area on right) === */
 
 .layer {
   display: grid;
@@ -44,15 +160,18 @@
   font-family: var(--mm-font-sans);
   font-weight: 800;
   font-size: 0.62rem;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-  padding: 0.85rem 0;
+  /* Small vertical padding — anything larger forces the row taller
+   * than the tile content on short lanes (notably Use Cases), which
+   * shows up as extra white space below the tiles. */
+  padding: 0.15rem 0;
 }
 
 .layerBody {
-  padding: 0.9rem 1rem;
+  padding: 0.55rem 0.85rem;
   background: var(--mm-bg-page, #fff);
 }
 
@@ -60,59 +179,47 @@
   background: var(--mm-denim-800, #0C1424);
 }
 
-/* Application zone gets a stronger denim wash to visibly contain it,
-   matching the original infographic where the whole Application block
-   reads as one tinted panel. */
-.layerApplication .layerBody {
+/* Per-layer washes: Applications gets a subtle denim tint to visually
+   contain its intro + product grid + client-strip footers. */
+.layer_applications .layerBody,
+.layer_application .layerBody {
   background: var(--mm-denim-50, rgba(30, 50, 92, 0.05));
 }
-[data-theme='dark'] .layerApplication .layerBody {
+[data-theme='dark'] .layer_applications .layerBody,
+[data-theme='dark'] .layer_application .layerBody {
   background: rgba(255, 255, 255, 0.03);
 }
 
-/* === Use Cases row — 3 horizontal cells, soft grey-tinted === */
-
-.useCaseRow {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.6rem;
+/* Applications tiles: center-align icon, title, and body copy to match
+ * the deck's Applications row. Scoped to this layer so Use Cases and
+ * Deployment cards keep their default left-aligned reading rhythm. */
+.layer_applications .cell {
+  align-items: center;
+  text-align: center;
+}
+.layer_applications .cellBody {
+  align-items: center;
 }
 
-.useCaseRow .cell {
-  background: var(--mm-denim-50, rgba(30, 50, 92, 0.045));
-  border-color: transparent;
-}
-.useCaseRow .cell:hover {
-  background: var(--mm-color-white, #fff);
-  border-color: var(--mm-color-marigold, #FFBC1F);
-}
-[data-theme='dark'] .useCaseRow .cell {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: transparent;
-}
+/* === Intro column === */
 
-/* === Intro panels (Application / Integration / Deployment left column) ===
-   Not clickable — plain text columns, no left-edge accent bar. */
-
-.appIntro,
-.intIntro,
-.depIntro {
+.intro {
   padding: 0.25rem 0.6rem 0.25rem 0;
 }
 
-.appIntro h3,
-.intIntro h3,
-.depIntro h3 {
+.intro h3 {
   display: flex;
-  align-items: center;
-  gap: 0.45rem;
+  align-items: flex-start;
+  gap: 0.4rem;
   font-family: var(--mm-font-sans);
-  font-size: 0.95rem;
+  /* Sized to fill the 135px intro column — the three intro blocks
+   * used to leave a lot of vertical whitespace at ~0.88rem. */
+  font-size: 0.98rem;
   font-weight: 700;
   color: var(--mm-color-denim, #1E325C);
-  margin: 0 0 0.4rem;
+  margin: 0 0 0.3rem;
   letter-spacing: -0.005em;
-  line-height: 1.25;
+  line-height: 1.2;
 }
 
 .introIcon {
@@ -122,120 +229,83 @@
   flex: 0 0 auto;
   width: 1.2rem;
   height: 1.2rem;
-  color: var(--mm-color-denim, #1E325C);
 }
 
-.introIcon svg {
-  width: 100%;
-  height: 100%;
-}
-
-[data-theme='dark'] .appIntro .introIcon,
-[data-theme='dark'] .intIntro .introIcon,
-[data-theme='dark'] .depIntro .introIcon {
-  color: var(--mm-denim-300, #8499C5);
-}
-
-[data-theme='dark'] .appIntro h3,
-[data-theme='dark'] .intIntro h3,
-[data-theme='dark'] .depIntro h3 {
+[data-theme='dark'] .intro h3 {
   color: var(--mm-color-white);
 }
 
-.appIntro p,
-.intIntro p,
-.depIntro p {
+.intro p {
   font-size: 0.78rem;
   line-height: 1.5;
   color: var(--mm-text-secondary, var(--mm-text-primary));
   margin: 0;
 }
 
-/* === Application grid: intro + 5 product cards === */
+/* === Layer content: intro + cells === */
 
-.appGrid {
+.layerContentWithIntro {
   display: grid;
-  grid-template-columns: minmax(190px, 1.1fr) 3.4fr;
-  gap: 1rem;
+  /* Fixed-width intro column so the cell grid gets every remaining
+   * pixel. The intro copy is short (2–3 short lines) and the earlier
+   * fractional split (1.1fr : 3.4fr) starved the 6-tile Applications
+   * row when the diagram fits inside the reading column. */
+  grid-template-columns: 135px 1fr;
+  gap: 0.7rem;
   align-items: stretch;
 }
 
-.productGrid {
+.cellGrid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 0.5rem;
+  gap: 0.4rem;
+  /* Column count comes from `--ime-cols` (set inline by the renderer)
+   * so responsive rules can override without fighting inline-style
+   * specificity. `data-cols` lets breakpoints keep single-column
+   * layers single-column. */
+  grid-template-columns: repeat(var(--ime-cols, 1), minmax(0, 1fr));
 }
 
-.appFooter {
-  display: grid;
-  /* Footer strips read as standalone bands — balanced columns so neither
-   * label wraps mid-phrase. (The grid above intentionally mirrors the
-   * intro/products asymmetry; the footer doesn't need to.) */
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-top: 0.65rem;
+/* Use-case layer (no intro) — larger typography */
+.layer_use-cases .cellGrid {
+  gap: 0.6rem;
 }
-
-.footerCell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.55rem 0.85rem;
-  font-size: 0.78rem;
-  font-weight: 600;
-  text-align: center;
-  border: 1px solid var(--mm-border-subtle, rgba(30, 50, 92, 0.15));
-  border-radius: 4px;
-  background: var(--mm-bg-page, #fff);
-  color: var(--mm-text-primary);
-  text-decoration: none;
-  transition: border-color 120ms ease, background 120ms ease;
+/* Use Cases tiles are tinted (denim-50) so the default .layerBody
+ * padding reads as a visible white frame on all four sides. Symmetric
+ * vertical trim so the buffer above and below the tiles matches. */
+.layer_use-cases .layerBody {
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
 }
-
-.footerIcon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  width: 1.1rem;
-  height: 1.1rem;
-  color: var(--mm-color-marigold, #FFBC1F);
+.layer_use-cases .cell {
+  background: var(--mm-denim-50, rgba(30, 50, 92, 0.045));
+  border-color: transparent;
 }
-
-.footerIcon svg {
-  width: 100%;
-  height: 100%;
-}
-.footerCell:hover {
+.layer_use-cases .cell:hover {
+  background: var(--mm-color-white, #fff);
   border-color: var(--mm-color-marigold, #FFBC1F);
-  background: var(--mm-marigold-100, rgba(255, 188, 31, 0.08));
-  color: var(--mm-text-primary);
-  text-decoration: none;
+}
+[data-theme='dark'] .layer_use-cases .cell {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: transparent;
+}
+.layer_use-cases .cellTitle {
+  /* Deck: Use Cases titles read as the largest per-tile heading. */
+  font-size: 1.15rem;
+  line-height: 1.2;
+  margin-bottom: 0.15rem;
+}
+.layer_use-cases .cellText {
+  font-size: 0.78rem;
 }
 
-[data-theme='dark'] .footerCell {
-  background: var(--mm-denim-700, #121E37);
-  color: var(--mm-color-white);
-}
-
-/* === Integration & Deployment grids === */
-
-.intGrid,
-.depGrid {
-  display: grid;
-  grid-template-columns: minmax(190px, 1.1fr) 1.7fr 1.7fr;
-  gap: 1rem;
-  align-items: stretch;
-}
-
-/* === Cell — the reusable clickable unit === */
+/* === Cell === */
 
 .cell {
+  position: relative; /* anchor for .cornerLogos */
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  padding: 0.6rem 0.7rem;
+  gap: 0.3rem;
+  padding: 0.5rem 0.6rem;
   border: 1px solid var(--mm-border-subtle, rgba(30, 50, 92, 0.18));
   border-radius: 4px;
   background: var(--mm-bg-page, #fff);
@@ -243,7 +313,9 @@
   text-decoration: none;
   transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
 }
-.cell:hover {
+
+/* Anchor variant reserves hover affordances; static (div) variant skips them. */
+a.cell:hover {
   border-color: var(--mm-color-marigold, #FFBC1F);
   box-shadow: 0 4px 14px -10px rgba(30, 50, 92, 0.35);
   text-decoration: none;
@@ -251,13 +323,14 @@
   transform: translateY(-1px);
 }
 
+.cellStatic {
+  cursor: default;
+}
+
 [data-theme='dark'] .cell {
   background: var(--mm-denim-700, #121E37);
   color: var(--mm-color-white);
   border-color: rgba(255, 255, 255, 0.1);
-}
-[data-theme='dark'] .cell:hover {
-  color: var(--mm-color-white);
 }
 
 .icon {
@@ -266,13 +339,33 @@
   justify-content: center;
   width: 1.45rem;
   height: 1.45rem;
-  color: var(--mm-color-marigold, #FFBC1F);
   margin-bottom: 0.15rem;
 }
 
-.icon svg {
+/* Image-based icons (product cards on the mission variant). Sized a bit
+ * larger than the base because the source PNGs from the sales deck
+ * have padding baked in.
+ */
+.iconImg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.iconImg img {
   width: 100%;
   height: 100%;
+  object-fit: contain;
+}
+
+.introIconImg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.introIconImg img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .cellBody {
@@ -297,6 +390,18 @@
   font-size: 0.74rem;
   line-height: 1.4;
   color: var(--mm-text-secondary, var(--mm-text-primary));
+  /* Explicit normal weight so nothing inherits bold from surrounding
+   * markdown/`<strong>` contexts — only `.cellTitle` should be bold. */
+  font-weight: 400;
+}
+
+/* Underlined product name that leads each Applications tile body
+ * (e.g. "Channels" in "Channels: ChatOps and automation"), mirroring
+ * the source slide. Stays normal weight; the underline is the accent. */
+.bodyLead {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 400;
 }
 
 .cellText ul {
@@ -309,37 +414,259 @@
   margin: 0.08rem 0;
 }
 
-/* === Use Case cells get larger title + tighter sub-text — readable at row scale === */
+/* === Footer strips (Application, Deployment) === */
 
-.useCaseRow .cellTitle {
-  font-size: 0.95rem;
+.footerRow {
+  display: grid;
+  gap: 1rem;
+  margin-top: 0.65rem;
+  grid-template-columns: repeat(var(--ime-cols, 1), minmax(0, 1fr));
 }
-.useCaseRow .cellText {
+
+.footerCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem;
   font-size: 0.78rem;
+  font-weight: 600;
+  text-align: center;
+  border: 1px solid var(--mm-border-subtle, rgba(30, 50, 92, 0.15));
+  border-radius: 4px;
+  background: var(--mm-bg-page, #fff);
+  color: var(--mm-text-primary);
+  text-decoration: none;
+  transition: border-color 120ms ease, background 120ms ease;
 }
 
-/* === Responsive collapse === */
+.footerCellStatic {
+  cursor: default;
+}
 
-@media (max-width: 980px) {
-  .appGrid,
-  .intGrid,
-  .depGrid {
+a.footerCell:hover {
+  border-color: var(--mm-color-marigold, #FFBC1F);
+  background: var(--mm-marigold-100, rgba(255, 188, 31, 0.08));
+  color: var(--mm-text-primary);
+  text-decoration: none;
+}
+
+[data-theme='dark'] .footerCell {
+  background: var(--mm-denim-700, #121E37);
+  color: var(--mm-color-white);
+}
+
+/* Dark mode: brand marks are mostly near-black glyphs that disappear on
+ * dark surfaces. Wrap each in a small white chip so it stays legible
+ * whether it sits on a footer strip, a cell, or a corner. Padding
+ * stays inside the pre-existing width/height (border-box) so strip
+ * heights and grid alignment don't change vs light mode. */
+[data-theme='dark'] .logoImg,
+[data-theme='dark'] .cornerLogo {
+  background: #e6e8ec;
+  border-radius: 3px;
+  padding: 0.15rem 0.3rem;
+  box-sizing: border-box;
+}
+
+[data-theme='dark'] .logoGrid .logoImg {
+  padding: 0.1rem 0.2rem;
+}
+
+[data-theme='dark'] .cornerLogo {
+  padding: 0.08rem 0.18rem;
+}
+
+/* === Logo strips === */
+
+.logoStrip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.45rem;
+}
+
+.logoImg {
+  height: 1.4rem;
+  max-width: 3.2rem;
+  width: auto;
+  object-fit: contain;
+  /* Real brand marks read best without opacity dimming */
+}
+
+/* Grid layout for cell logo strips (e.g. Layered Extensibility on
+ * the entadv variant). `--ime-logo-cols` is set inline by the
+ * renderer via `logoColumns`. */
+.logoGrid {
+  display: grid;
+  grid-template-columns: repeat(var(--ime-logo-cols, 3), minmax(0, 1fr));
+  justify-items: center;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+}
+.logoGrid .logoImg {
+  max-width: 100%;
+  height: 1.3rem;
+}
+
+/* Side-by-side cell body: bullet text on the left, ecosystem logo
+ * grid on the right. Used by Layered Extensibility so the 3×4 logo
+ * matrix sits next to the bullets, matching the source slide. */
+.cellSplit {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: center;
+}
+/* Compact the logo grid gutters when it's sitting alongside text —
+ * the column is roughly half the cell width. */
+.cellSplit .logoGrid {
+  gap: 0.35rem 0.45rem;
+  margin-top: 0;
+}
+
+/* Title-on-the-left layout (used by the two Interoperability cells).
+ * The title fills the left column at deck-scale size, bullets fill
+ * the right. The narrow title column keeps ~2–3 lines of wrap so the
+ * bullet list gets the majority of the horizontal space. */
+.cellTitleLeft {
+  padding: 0.7rem 0.85rem;
+}
+.cellTitleSplit {
+  display: grid;
+  grid-template-columns: minmax(7rem, 0.9fr) minmax(0, 2.4fr);
+  gap: 0.9rem;
+  align-items: stretch;
+  width: 100%;
+}
+.cellTitleAside {
+  /* Vertically centered against the bullet list on the right, but
+   * left-aligned horizontally within the title column. */
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+  height: 100%;
+}
+.cellTitleLeft .cellTitle {
+  font-size: 1.1rem;
+  line-height: 1.15;
+  letter-spacing: -0.005em;
+}
+/* Tighten bullet spacing so the right column reads as a dense list
+ * rather than a body-copy paragraph. */
+.cellTitleLeft .cellText ul {
+  padding-left: 1rem;
+}
+.cellTitleLeft .cellText li {
+  margin: 0.12rem 0;
+  line-height: 1.35;
+}
+
+@media (max-width: 600px) {
+  /* Stack title above bullets on narrow viewports. */
+  .cellTitleSplit {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+}
+
+/* Corner logo constellation — small AI/vendor icons pinned to the
+ * top-right of the cell (e.g. Enterprise-to-Edge on the mission
+ * variant). Positioned absolutely so they don't push the title down. */
+.cornerLogos {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 55%;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.cornerLogo {
+  height: 0.9rem;
+  max-width: 1.2rem;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Footer strips have their own logo sizing so wordmarks like AWS/Oracle
+ * don't overwhelm the sentence text next to them. */
+.footerCell .logoImg {
+  height: 1.1rem;
+  max-width: 2.4rem;
+}
+
+/* Inside a horizontal footer strip the logo strip sits inline with the
+ * text, so drop the stacking-context top margin that logoStrip carries
+ * for its intro-column use — otherwise the icons ride ~7px low. */
+.footerCell .logoStrip {
+  margin-top: 0;
+}
+
+.logoBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid var(--mm-border-subtle, rgba(30, 50, 92, 0.2));
+  border-radius: 3px;
+  background: var(--mm-bg-page, #fff);
+  color: var(--mm-color-denim, #1E325C);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+}
+
+[data-theme='dark'] .logoBadge {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--mm-color-white);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* === Responsive collapse ===
+ *
+ * Container-query based so the diagram collapses when its own width
+ * is narrow, whether the cause is a small viewport or a wide viewport
+ * with a visible ToC squeezing the reading column. */
+
+@container (max-width: 900px) {
+  .layerContentWithIntro {
     grid-template-columns: 1fr;
   }
-  .productGrid {
-    grid-template-columns: repeat(2, 1fr);
+  /* Two-column fallback keeps the Applications row's 6 tiles readable
+   * while preserving single-column layers (data-cols="1"). */
+  .cellGrid:not([data-cols="1"]) {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
-  .appFooter {
+  .footerRow:not([data-cols="1"]) {
+    grid-template-columns: 1fr !important;
+  }
+  /* Interoperability tiles stack title above bullets when the two
+   * tiles are forced to share a narrow row width. */
+  .cellTitleSplit {
     grid-template-columns: 1fr;
+    gap: 0.35rem;
   }
 }
 
 @media (max-width: 600px) {
-  .useCaseRow {
-    grid-template-columns: 1fr;
+  /* Match the container-query rule's `!important` so this override
+   * wins for multi-column layers too. Without it, the earlier
+   * `.cellGrid:not([data-cols="1"])` rule keeps two-column layouts
+   * two-column on phones. */
+  .cellGrid,
+  .cellGrid:not([data-cols="1"]) {
+    grid-template-columns: 1fr !important;
   }
-  .productGrid {
-    grid-template-columns: 1fr;
+  .footerRow,
+  .footerRow:not([data-cols="1"]) {
+    grid-template-columns: 1fr !important;
   }
   .layer {
     grid-template-columns: 1fr;

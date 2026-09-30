@@ -899,6 +899,77 @@ describe('AttributeDetails', () => {
             await waitFor(() => expect(screen.queryByPlaceholderText('department')).not.toBeInTheDocument());
         };
 
+        const addResourceAndExpand = async (label: string, type: string) => {
+            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            await userEvent.click(screen.getByRole('menuitem', {name: label}));
+            await waitFor(() => expect(screen.getByTestId(`attributeAppliesToRow-${type}`)).toBeInTheDocument());
+            await userEvent.click(screen.getByTestId(`attributeAppliesToRow-${type}-toggle`));
+        };
+
+        it('names the linked source as the Users resource\'s Managed-by value, and drops the row once the link is removed', async () => {
+            renderComponent();
+            await addResourceAndExpand('Users', 'user');
+
+            expect(screen.queryByTestId('attributeAppliesToUserManagedBy')).not.toBeInTheDocument();
+
+            await linkViaMenu(/AD\/LDAP/, 'employeeID');
+
+            const managedBy = screen.getByTestId('attributeAppliesToUserManagedBy');
+            expect(managedBy).toHaveTextContent('AD/LDAP');
+            expect(screen.getByText('Not editable in Mattermost.')).toBeInTheDocument();
+
+            // Compared against the Definition block's chip rather than a hard-coded
+            // path, so the two glyphs cannot drift apart unnoticed.
+            const chipIcon = screen.getByTestId('attributeExternalSourceChip-ldap').querySelector('svg path');
+            expect(chipIcon).not.toBeNull();
+            expect(managedBy.querySelector('svg path')).toHaveAttribute('d', chipIcon!.getAttribute('d'));
+
+            await userEvent.click(screen.getByTestId('attributeExternalSourceChip-ldap-remove'));
+
+            expect(screen.queryByTestId('attributeAppliesToUserManagedBy')).not.toBeInTheDocument();
+            expect(screen.queryByText('Not editable in Mattermost.')).not.toBeInTheDocument();
+        });
+
+        it('shows SAML as the Managed-by value when SAML is the only linked source', async () => {
+            renderComponent();
+            await addResourceAndExpand('Users', 'user');
+            await linkViaMenu(/^SAML/, 'position');
+
+            const managedBy = screen.getByTestId('attributeAppliesToUserManagedBy');
+            expect(managedBy).toHaveTextContent('SAML');
+            expect(managedBy).not.toHaveTextContent('AD/LDAP');
+
+            const chipIcon = screen.getByTestId('attributeExternalSourceChip-saml').querySelector('svg path');
+            expect(chipIcon).not.toBeNull();
+            expect(managedBy.querySelector('svg path')).toHaveAttribute('d', chipIcon!.getAttribute('d'));
+        });
+
+        it('names AD/LDAP when both sources are linked, and falls back to the survivor once one is unlinked', async () => {
+            renderComponent();
+            await addResourceAndExpand('Users', 'user');
+            await linkViaMenu(/AD\/LDAP/, 'employeeID');
+            await linkViaMenu(/^SAML/, 'position');
+
+            expect(screen.getByTestId('attributeAppliesToUserManagedBy')).toHaveTextContent('AD/LDAP');
+
+            await userEvent.click(screen.getByTestId('attributeExternalSourceChip-ldap-remove'));
+
+            expect(screen.getByTestId('attributeAppliesToUserManagedBy')).toHaveTextContent('SAML');
+        });
+
+        it('reports the source on the Users card alone, leaving the Channels and Posts cards unmarked', async () => {
+            renderComponent();
+            await linkViaMenu(/AD\/LDAP/, 'employeeID');
+            await addResourceAndExpand('Users', 'user');
+            await addResourceAndExpand('Channels', 'channel');
+            await addResourceAndExpand('Posts', 'post');
+
+            expect(within(screen.getByTestId('attributeAppliesToRow-user-body')).getByTestId('attributeAppliesToUserManagedBy')).toBeInTheDocument();
+            expect(within(screen.getByTestId('attributeAppliesToRow-channel-body')).queryByText('Not editable in Mattermost.')).not.toBeInTheDocument();
+            expect(within(screen.getByTestId('attributeAppliesToRow-post-body')).queryByText('Not editable in Mattermost.')).not.toBeInTheDocument();
+            expect(screen.getAllByText('Not editable in Mattermost.')).toHaveLength(1);
+        });
+
         it('linking a source forces Type to Text and marks the page dirty', async () => {
             renderComponent();
 
@@ -2030,6 +2101,31 @@ describe('AttributeDetails', () => {
 
                 expect(screen.getByTestId('attributeExternalSource')).toBeInTheDocument();
             });
+
+            it('names the persisted attrs.saml source as the loaded Users row\'s Managed-by value', async () => {
+                mockLoadedField(
+                    makeTemplate({attrs: {display_name: 'Department', saml: 'position'}}),
+                    [makeLinked('user', 'user-field')],
+                );
+
+                renderEdit();
+                await waitForForm();
+                await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+                expect(screen.getByTestId('attributeAppliesToUserManagedBy')).toHaveTextContent('SAML');
+                expect(screen.getByText('Not editable in Mattermost.')).toBeInTheDocument();
+            });
+
+            it('omits the Managed-by row from a loaded Users row when the attribute is managed in Mattermost', async () => {
+                mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
+
+                renderEdit();
+                await waitForForm();
+                await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+                expect(screen.getByTestId('attributeAppliesToRow-user-body')).toBeInTheDocument();
+                expect(screen.queryByTestId('attributeAppliesToUserManagedBy')).not.toBeInTheDocument();
+            });
         });
 
         it('keeps existing option IDs on PATCH and sends an empty id for newly added options', async () => {
@@ -2579,6 +2675,20 @@ describe('AttributeDetails', () => {
                 expect(screen.getByTestId('attributeAppliesToRow-user-toggleLockWrap')).toBeInTheDocument();
             });
 
+            it('does not show Managed by when leftover ldap/saml attrs are present on a plugin-owned field', async () => {
+                mockPluginInstalled();
+                mockLoadedField(makePluginOwnedTemplate({
+                    attrs: {display_name: 'Plugin field', source_plugin_id: PLUGIN_ID, protected: true, ldap: 'dept', saml: 'department'},
+                }), [makeLinked('user', 'user-field')]);
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.queryByTestId('attributeAppliesToUserManagedBy')).not.toBeInTheDocument();
+                expect(screen.queryByText('Managed by')).not.toBeInTheDocument();
+                expect(screen.queryByText('Not editable in Mattermost.')).not.toBeInTheDocument();
+            });
+
             it('keeps Save disabled regardless of otherwise-valid field state', async () => {
                 mockPluginInstalled();
                 mockLoadedField(makePluginOwnedTemplate());
@@ -2648,10 +2758,24 @@ describe('AttributeDetails', () => {
         });
 
         it('redirects to the listing when the field is Classification Markings', async () => {
-            mockLoadedField(makeTemplate({name: 'classification'}));
+            mockLoadedField(makeTemplate({name: 'classification', type: 'rank'}));
             renderEdit();
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
             expect(screen.queryByTestId('attributeDetails')).not.toBeInTheDocument();
+        });
+
+        it('opens a wrong-typed template named classification here, since it is an ordinary attribute', async () => {
+            // * This editor is the repair path the Classification Markings conflict error
+            // points at: the name is only reserved for the rank-typed definition.
+            mockLoadedField(makeTemplate({name: 'classification', type: 'text'}));
+            renderEdit();
+            expect(await screen.findByTestId('attributeDetails')).toBeInTheDocument();
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+
+            // Reachable is not enough: the collision is on the unique name, so the
+            // repair is renaming that, not the display name.
+            expect(screen.getByTestId('attributeDisplayNameInput')).toBeEnabled();
+            expect(screen.getByTestId('attributeNameEditLink')).toBeEnabled();
         });
 
         it('redirects to the listing when the field is missing', async () => {
@@ -2682,6 +2806,11 @@ describe('AttributeDetails', () => {
 
             expect(screen.getByRole('heading', {name: 'Edit Org chart Attribute'})).toBeInTheDocument();
             expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Hierarchical');
+
+            // The lock comes from the server constraint, not the flag, so
+            // turning PropertyFieldGraph off must not hand back a Type menu
+            // whose every entry the server would reject.
+            expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
             expect(mockHistoryPush).not.toHaveBeenCalled();
         });
 
@@ -2711,6 +2840,131 @@ describe('AttributeDetails', () => {
             expect(screen.getAllByTestId('attributeOptionsGraphRow__name').map((el) => el.textContent)).toEqual(['Air', 'Fighter']);
             expect(screen.queryByTestId('attributeExternalSourceTrigger')).not.toBeInTheDocument();
             expect(mockHistoryPush).not.toHaveBeenCalled();
+        });
+
+        // The server rejects a PATCH that converts a field to or from the graph
+        // type outright (app.property_field.update.graph_type_change.app_error),
+        // so neither direction may be reachable from this page.
+        it('drops Hierarchical from the type menu of an existing non-graph field, even with PropertyFieldGraph on', async () => {
+            mockLoadedField(makeTemplate({
+                type: 'rank',
+                attrs: {
+                    display_name: 'Clearance Level',
+                    options: [{id: 'opt-1', name: 'Low', rank: 1}],
+                },
+            }));
+
+            renderEdit({}, true);
+            await waitForForm();
+
+            expect(screen.getByTestId('attributeTypeMenuButton')).not.toBeDisabled();
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+
+            expect(screen.queryByRole('menuitemradio', {name: 'Hierarchical'})).not.toBeInTheDocument();
+            expect(screen.getAllByRole('menuitemradio').map((item) => item.textContent)).toEqual(['Text', 'Phone', 'URL', 'Select', 'Multiselect', 'Ranked']);
+        });
+
+        it('leaves a non-graph field free to change to another non-graph type, PATCHing that type', async () => {
+            mockLoadedField(makeTemplate({
+                type: 'rank',
+                attrs: {
+                    display_name: 'Clearance Level',
+                    options: [{id: 'opt-1', name: 'Low', rank: 1}],
+                },
+            }));
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeTemplate());
+
+            renderEdit({}, true);
+            await waitForForm();
+
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', FIELD_ID, expect.objectContaining({
+                type: 'select',
+                attrs: expect.objectContaining({
+                    options: [expect.objectContaining({id: 'opt-1', name: 'Low'})],
+                }),
+            }));
+        });
+
+        it('locks the Type control of an existing graph field, offering no type to convert to', async () => {
+            mockLoadedField(makeTemplate({
+                type: 'graph',
+                attrs: {
+                    display_name: 'Org chart',
+                    options: [{id: 'opt-1', name: 'Air'}],
+                },
+            }));
+            jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValue({
+                options: [{id: 'opt-1', name: 'Air', parents: []}],
+                has_more: false,
+            });
+
+            renderEdit({}, true);
+            await waitForForm();
+
+            const typeButton = screen.getByTestId('attributeTypeMenuButton');
+            expect(typeButton).toHaveTextContent('Hierarchical');
+            expect(typeButton).toBeDisabled();
+            expect(typeButton).toHaveAccessibleName('Type: Hierarchical. Locked because a hierarchical attribute cannot be converted to another type.');
+
+            await userEvent.hover(screen.getByTestId('attributeTypeLockWrap'));
+            const tooltip = await screen.findByRole('tooltip', {}, {timeout: 1000});
+            expect(tooltip).toHaveTextContent('Type cannot be changed — a hierarchical attribute cannot be converted to another type. Create a new attribute of the type you need instead.');
+        });
+
+        // The applies-to lock would otherwise win the reason chain here and tell
+        // the admin to remove the resource first -- an unlock that never arrives.
+        it('prefers the hierarchical Type lock reason over the applies-to one', async () => {
+            mockLoadedField(makeTemplate({
+                type: 'graph',
+                attrs: {
+                    display_name: 'Org chart',
+                    options: [{id: 'opt-1', name: 'Air'}],
+                },
+            }), [makeLinked('user', 'user-field', {type: 'graph'})]);
+            jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValue({
+                options: [{id: 'opt-1', name: 'Air', parents: []}],
+                has_more: false,
+            });
+
+            renderEdit({}, true);
+            await waitForForm();
+            await waitFor(() => expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument());
+
+            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveAccessibleName(/hierarchical attribute cannot be converted/);
+            expect(screen.getByTestId('attributeTypeMenuButton')).not.toHaveAccessibleName(/applies to a resource/);
+        });
+
+        it('keeps a graph field otherwise editable, PATCHing a renamed display name back as a graph field', async () => {
+            mockLoadedField(makeTemplate({
+                type: 'graph',
+                attrs: {
+                    display_name: 'Org chart',
+                    options: [{id: 'opt-1', name: 'Air'}],
+                },
+            }));
+            jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValue({
+                options: [{id: 'opt-1', name: 'Air', parents: []}],
+                has_more: false,
+            });
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeTemplate({type: 'graph'}));
+
+            renderEdit({}, true);
+            await waitForForm();
+
+            await userEvent.clear(screen.getByTestId('attributeDisplayNameInput'));
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Reporting chart');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', FIELD_ID, expect.objectContaining({
+                type: 'graph',
+                attrs: expect.objectContaining({display_name: 'Reporting chart'}),
+            }));
         });
     });
 });
