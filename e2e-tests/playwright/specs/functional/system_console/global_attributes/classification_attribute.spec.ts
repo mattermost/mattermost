@@ -66,9 +66,9 @@ test.describe(
             for (const level of levels) {
                 await expect(globalAttributes.classificationLevels).toContainText(level.name);
             }
-            await expect(
-                systemConsolePage.page.getByTestId('classificationAttribute').getByRole('textbox'),
-            ).toHaveCount(0);
+            // The display-name field is rendered as a disabled textbox (read-only),
+            // not omitted — assert it cannot be edited rather than counting zero inputs.
+            await expect(systemConsolePage.page.getByTestId('classificationAttributeName')).toBeDisabled();
 
             // * The one place levels can be changed is a link away
             await expect(globalAttributes.classificationMarkingsLink).toHaveAttribute(
@@ -129,6 +129,7 @@ test.describe(
         test('offers classification at channel creation, and demands it once Required is on', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
             await pw.ensureFeatureFlag('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
 
             const {levels} = await setupClassificationWithChannelField(adminClient);
             const {team} = await pw.initSetup();

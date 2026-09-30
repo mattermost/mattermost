@@ -55,7 +55,9 @@ export class ChannelAttributeLabels {
     }
 
     async openOverflow() {
-        await this.overflowButton.click();
+        // The overflow control sits under #channelHeaderDescription, which
+        // intercepts the default hit-target; force reaches the intended button.
+        await this.overflowButton.click({force: true});
         await expect(this.popover).toBeVisible();
         return this.popover;
     }
@@ -92,8 +94,12 @@ export class ChannelInfoAttributes {
         return this.row(name).getByTestId(`channelInfoAttributeEdit-${name}`);
     }
 
+    /**
+     * Select/multiselect menus portal outside the row; text inputs stay inside.
+     * Always resolve from the page so either path works.
+     */
     editor(name: string) {
-        return this.row(name).getByTestId(`channelAttributeEdit-${name}`);
+        return this.container.page().getByTestId(`channelAttributeEdit-${name}`);
     }
 
     error(name: string) {

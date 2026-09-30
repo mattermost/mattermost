@@ -11,9 +11,23 @@ export const CLASSIFICATION_ATTRIBUTE_PATH = `${GLOBAL_ATTRIBUTES_PATH}/classifi
 export type ChannelDisplayLocation = 'display_label_header' | 'display_label_info' | 'display_banner_top';
 
 async function setToggle(toggle: Locator, on: boolean) {
-    if (((await toggle.getAttribute('aria-pressed')) === 'true') !== on) {
-        await toggle.click();
+    // Role=switch uses aria-checked (and the input's checked state). aria-pressed
+    // is for toggle buttons and is unset on the Required switch.
+    const isOn =
+        (await toggle.getAttribute('aria-checked')) === 'true' ||
+        (await toggle.isChecked().catch(() => false));
+    if (isOn === on) {
+        return;
     }
+
+    // The switch <input> is covered by its <label for=...>, which intercepts
+    // pointer events on a normal click of the testid.
+    const id = await toggle.getAttribute('id');
+    if (id) {
+        await toggle.page().locator(`label[for="${id}"]`).click();
+        return;
+    }
+    await toggle.click({force: true});
 }
 
 /**

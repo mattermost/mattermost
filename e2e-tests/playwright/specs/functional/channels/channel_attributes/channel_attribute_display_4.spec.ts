@@ -25,6 +25,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
     test('banners a text attribute filled while creating the channel', async ({pw}) => {
         await pw.skipIfNoLicense();
         await pw.ensureFeatureFlag('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();

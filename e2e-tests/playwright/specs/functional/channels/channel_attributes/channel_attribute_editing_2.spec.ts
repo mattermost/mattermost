@@ -112,6 +112,7 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
     test('fills a locked attribute once, after which it is read-only', async ({pw}) => {
         await pw.skipIfNoLicense();
         await pw.ensureFeatureFlag('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
 
         const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();

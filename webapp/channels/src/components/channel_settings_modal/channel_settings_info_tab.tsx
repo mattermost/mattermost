@@ -8,6 +8,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import type {Channel, ChannelType} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
+import {addChannelToManagedCategory, removeChannelFromManagedCategory} from 'mattermost-redux/actions/channel_categories';
 import {patchChannel, updateChannelPrivacy} from 'mattermost-redux/actions/channels';
 import {General} from 'mattermost-redux/constants';
 import Permissions from 'mattermost-redux/constants/permissions';
@@ -395,6 +396,16 @@ function ChannelSettingsInfoTab({
         if (error) {
             handleServerError(error as ServerError);
             return false;
+        }
+
+        // Keep the sidebar in sync immediately; websocket may also deliver the
+        // same update, but only when property-field metadata is already loaded.
+        if ('managed_category_name' in updated && channel.team_id) {
+            if (managedCategoryName) {
+                dispatch(addChannelToManagedCategory(channel.team_id, channel.id, managedCategoryName));
+            } else {
+                dispatch(removeChannelFromManagedCategory(channel.team_id, channel.id));
+            }
         }
 
         // After every successful save, update local state to match the saved values

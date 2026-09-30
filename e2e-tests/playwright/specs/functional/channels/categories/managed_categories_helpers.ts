@@ -24,21 +24,13 @@ export async function skipIfNoEnterpriseLicense(adminClient: any) {
     );
 }
 
-export async function enableManagedCategories(adminClient: any) {
-    await adminClient.patchConfig({
-        TeamSettings: {
-            EnableManagedChannelCategories: true,
-        },
-    });
-}
+// Managed categories are gated solely by FeatureFlags.ManagedChannelCategories
+// (MM-68496 / MM-68608). The old TeamSettings.EnableManagedChannelCategories
+// config key no longer exists — these helpers remain as explicit no-ops so call
+// sites stay readable next to ensureFeatureFlag('ManagedChannelCategories', …).
+export async function enableManagedCategories(_adminClient: any) {}
 
-export async function disableManagedCategories(adminClient: any) {
-    await adminClient.patchConfig({
-        TeamSettings: {
-            EnableManagedChannelCategories: false,
-        },
-    });
-}
+export async function disableManagedCategories(_adminClient: any) {}
 
 /**
  * Creates a uniquely-named team and user per test and adds the user to the team.

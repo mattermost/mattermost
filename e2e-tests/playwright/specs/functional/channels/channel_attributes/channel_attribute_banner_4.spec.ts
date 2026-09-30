@@ -86,6 +86,7 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
     test('banner toggle is disabled when a required attribute designates the banner', async ({pw}) => {
         await pw.skipIfNoLicense();
         await pw.ensureFeatureFlag('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
 
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();

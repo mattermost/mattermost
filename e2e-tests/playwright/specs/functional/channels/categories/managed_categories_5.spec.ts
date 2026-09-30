@@ -65,37 +65,6 @@ test.describe('Managed Channel Categories', () => {
     );
 
     /**
-     * @objective Verify that the Enable Managed Channel Categories setting is available in the System Console
-     * under Site Configuration > Users and Teams.
-     */
-    test(
-        'Enable Managed Channel Categories setting is available in System Console',
-        {tag: '@managed_categories'},
-        async ({pw}) => {
-            await pw.ensureFeatureFlag('ManagedChannelCategories', true);
-
-            // # Initialize setup
-            const {adminUser, adminClient} = await setupManagedCategoriesTest(pw);
-            await skipIfNoEnterpriseLicense(adminClient);
-
-            // # Log in and navigate to the System Console
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await systemConsolePage.goto();
-            await systemConsolePage.toBeVisible();
-
-            // # Navigate to Users and Teams
-            await systemConsolePage.sidebar.siteConfiguration.usersAndTeams.click();
-            await systemConsolePage.usersAndTeams.toBeVisible();
-
-            // * Verify the setting is visible
-            const setting = systemConsolePage.usersAndTeams.container.getByTestId(
-                'TeamSettings.EnableManagedChannelCategoriestrue',
-            );
-            await expect(setting).toBeVisible();
-        },
-    );
-
-    /**
      * @objective Verify that a non-channel-admin user sees the managed category selector as disabled in channel settings.
      */
     test(

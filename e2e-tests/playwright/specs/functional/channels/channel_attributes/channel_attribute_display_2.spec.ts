@@ -29,6 +29,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
     test('keeps an undesignated required attribute editable in Channel Info for a channel admin', async ({pw}) => {
         await pw.skipIfNoLicense();
         await pw.ensureFeatureFlag('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();

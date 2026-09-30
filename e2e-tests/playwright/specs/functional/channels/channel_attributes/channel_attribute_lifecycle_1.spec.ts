@@ -24,6 +24,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
     test('blocks channel creation until a required attribute is filled', async ({pw}) => {
         await pw.skipIfNoLicense();
         await pw.ensureFeatureFlag('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -135,6 +136,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
     test('shows a required attribute as unset and lets it be filled from Channel Info', async ({pw}) => {
         await pw.skipIfNoLicense();
         await pw.ensureFeatureFlag('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
