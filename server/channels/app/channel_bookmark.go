@@ -46,6 +46,7 @@ func (a *App) CreateChannelBookmark(rctx request.CTX, newBookmark *model.Channel
 	}
 	message.Add("bookmark", string(bookmarkJSON))
 	a.setupBroadcastHookForChannelReadAccess(bookmark.ChannelId, message)
+	a.setupBroadcastHookForAbacBookmarks(message, bookmark.ChannelId, "bookmark", bookmark)
 	a.Publish(message)
 	return bookmark, nil
 }
@@ -101,6 +102,7 @@ func (a *App) UpdateChannelBookmark(rctx request.CTX, updateBookmark *model.Chan
 	}
 	message.Add("bookmarks", string(bookmarkJSON))
 	a.setupBroadcastHookForChannelReadAccess(updateBookmark.ChannelId, message)
+	a.setupBroadcastHookForAbacBookmarks(message, updateBookmark.ChannelId, "bookmarks", response.Updated, response.Deleted)
 	a.Publish(message)
 
 	return response, nil
@@ -123,6 +125,7 @@ func (a *App) DeleteChannelBookmark(bookmarkId, connectionId string) (*model.Cha
 	}
 	message.Add("bookmark", string(bookmarkJSON))
 	a.setupBroadcastHookForChannelReadAccess(bookmark.ChannelId, message)
+	a.setupBroadcastHookForAbacBookmarks(message, bookmark.ChannelId, "bookmark", bookmark)
 	a.Publish(message)
 
 	return bookmark, nil
@@ -150,6 +153,7 @@ func (a *App) UpdateChannelBookmarkSortOrder(bookmarkId, channelId string, newIn
 	}
 	message.Add("bookmarks", string(bookmarkJSON))
 	a.setupBroadcastHookForChannelReadAccess(channelId, message)
+	a.setupBroadcastHookForAbacBookmarks(message, channelId, "bookmarks", bookmarks...)
 	a.Publish(message)
 
 	return bookmarks, nil

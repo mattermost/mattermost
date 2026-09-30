@@ -60,6 +60,24 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 		require.Equal(t, 400, appErr.StatusCode)
 	})
 
+	t.Run("empty resource ID on channel resource returns bad request", func(t *testing.T) {
+		_, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
+			Resource: model.Resource{Type: model.AccessControlPolicyTypeChannel},
+		})
+		require.NotNil(t, appErr)
+		require.Equal(t, 400, appErr.StatusCode)
+	})
+
+	t.Run("empty resource ID on system-level resource is accepted", func(t *testing.T) {
+		disableABAC(t)
+
+		resp, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
+			Resource: model.Resource{Type: model.AccessControlPolicyTypePermission},
+		})
+		require.Nil(t, appErr)
+		require.Empty(t, resp.Decisions)
+	})
+
 	t.Run("unsupported action returns bad request", func(t *testing.T) {
 		_, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
 			Resource: channelResource,

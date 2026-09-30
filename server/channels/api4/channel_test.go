@@ -3801,6 +3801,8 @@ func TestSearchAllChannels(t *testing.T) {
 			// occasionally matched by a randomly generated Name or DisplayName
 			// belonging to another channel in the fixture.
 			"Name search",
+			// Prefix of Name "whatever". Term "what" also matches InitBasic DisplayNames
+			// ("dn_"+NewId()); z-base32 includes w/h/a/t but not v.
 			&model.ChannelSearch{Term: "whatev"},
 			[]string{openChannel.Id},
 		},
