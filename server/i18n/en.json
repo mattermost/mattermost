@@ -3335,8 +3335,8 @@
   },
   {
     "id": "api.ldap.invalid_test_type.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Invalid test type: {{.TestType}}",
+    "description": "API error for admins running an AD/LDAP diagnostic test; {{.TestType}} is the unrecognized test type identifier sent in the request."
   },
   {
     "id": "api.ldap.test.reenter_password",
@@ -10127,8 +10127,8 @@
   },
   {
     "id": "app.pap.get_channel_members_to_remove.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Could not get channel members to remove.",
+    "description": "API/job error for admins when computing which channel members no longer satisfy an access control policy and must be removed."
   },
   {
     "id": "app.pap.get_masked_visual_ast.app_error",
@@ -10137,8 +10137,8 @@
   },
   {
     "id": "app.pap.get_policies_for_field_ids.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Could not get policies for the given field IDs.",
+    "description": "API error for admins when fetching the access control policies that reference given user-attribute fields fails."
   },
   {
     "id": "app.pap.get_policy.app_error",
@@ -10147,13 +10147,13 @@
   },
   {
     "id": "app.pap.get_policy_attributes.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Could not get attributes for policy.",
+    "description": "API error for admins when fetching the user attributes referenced by an access control policy fails; 'policy' is an access control policy."
   },
   {
     "id": "app.pap.get_team_members_to_remove.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Could not get team members to remove.",
+    "description": "API/job error for admins when computing which team members no longer satisfy an access control policy and must be removed."
   },
   {
     "id": "app.pap.has_masked_values.app_error",
@@ -10167,18 +10167,18 @@
   },
   {
     "id": "app.pap.init.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Unable to initialize access control service.",
+    "description": "Error returned to admins when the attribute-based access control service fails to start."
   },
   {
     "id": "app.pap.is_ready.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Access control service is not ready.",
+    "description": "Error returned to admins calling access control APIs before the access control service has finished initializing."
   },
   {
     "id": "app.pap.mask_expression.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Could not mask policy expression.",
+    "description": "API error for admins when the server fails to hide (mask) restricted attribute values inside an access control policy expression."
   },
   {
     "id": "app.pap.masking.ambiguous_sibling.app_error",
@@ -10202,28 +10202,28 @@
   },
   {
     "id": "app.pap.missing_attribute.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "An attribute is missing from the expression.",
+    "description": "API error for admins when an access control policy expression references a user attribute that does not exist."
   },
   {
     "id": "app.pap.normalize_policy.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Could not normalize policy expression.",
+    "description": "API error for admins when an access control policy expression cannot be rewritten into its normalized form."
   },
   {
     "id": "app.pap.query_expression.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Could not query for expression.",
+    "description": "API error for admins when searching for users matching an access control policy expression fails."
   },
   {
     "id": "app.pap.rehydrate_rank.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Could not restore ranked operators in policy expression.",
+    "description": "API error for admins when restoring rank-comparison operators in an access control policy expression fails; technical failure, not user mistake."
   },
   {
     "id": "app.pap.save_policy.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Unable to save access control policy.",
+    "description": "Generic API error shown to system admins when saving an attribute-based access control policy fails."
   },
   {
     "id": "app.pap.save_policy.forbidden",
@@ -10232,13 +10232,13 @@
   },
   {
     "id": "app.pap.save_policy.invalid_value",
-    "translation": "",
-    "description": ""
+    "translation": "The policy expression contains a value that is not permitted.",
+    "description": "Validation error shown to admins saving an access control policy whose expression uses a disallowed attribute value."
   },
   {
     "id": "app.pap.save_policy.masked_condition_deleted",
-    "translation": "",
-    "description": ""
+    "translation": "A condition containing masked values was deleted. Please reload the policy and try again.",
+    "description": "Error shown to admins saving an access control policy after removing a rule condition whose values were masked (hidden) from them; asks them to reload and retry."
   },
   {
     "id": "app.pap.save_policy.masked_token_in_expression",
@@ -10247,13 +10247,13 @@
   },
   {
     "id": "app.pap.save_policy.name_exists.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "A policy with this name already exists. Please choose a different name.",
+    "description": "Validation error when an admin saves an access control policy using a name already taken by another policy."
   },
   {
     "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
-    "translation": "",
-    "description": ""
+    "translation": "This access rule uses channel attributes, which teams do not have. Remove the teams assigned to this policy before saving.",
+    "description": "API error (400) shown to a system admin saving a parent access policy that references channel attributes while one or more teams are still assigned to it. Teams have no attributes, so the assignments must be removed first."
   },
   {
     "id": "app.pap.save_policy.resolver_error",
@@ -10262,13 +10262,13 @@
   },
   {
     "id": "app.pap.save_policy.resource_attributes_disabled",
-    "translation": "",
-    "description": ""
+    "translation": "Access rules cannot use channel attributes on this server. This capability is not enabled.",
+    "description": "API error (400) shown to a system admin saving an access rule that references channel (resource) attributes on a server where that capability is turned off."
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Permission rule names must be unique within the policy.",
+    "description": "Validation error when an admin saves an access control policy containing two permission rules with the same name."
   },
   {
     "id": "app.pap.save_policy.self_exclusion",
@@ -10277,8 +10277,8 @@
   },
   {
     "id": "app.pap.save_policy.team_resource_attributes",
-    "translation": "",
-    "description": ""
+    "translation": "This access rule uses channel attributes, which teams do not have. Access rules with channel attributes can only be applied to channels.",
+    "description": "API error (400) shown to a system admin saving a team-scoped access policy whose expression references channel attributes, directly or via an imported parent policy. Explains that such rules apply only to channels."
   },
   {
     "id": "app.pap.search_access_control_policies.app_error",
@@ -10287,48 +10287,48 @@
   },
   {
     "id": "app.pap.simulate.attribute_refresh",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to refresh attributes for the simulation.",
+    "description": "Error in the access control policy simulator (admin tool for testing policies) when reloading user attribute values fails."
   },
   {
     "id": "app.pap.simulate.channel_required_for_resource",
-    "translation": "",
-    "description": ""
+    "translation": "A channel is required to simulate a policy that references channel attributes.",
+    "description": "API error (400) shown to a system admin running the access-policy simulation/preview in the System Console when the policy references channel attributes but no channel was selected to simulate against."
   },
   {
     "id": "app.pap.simulate.compile_failed",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to compile the policy for simulation.",
+    "description": "Error in the access control policy simulator when the policy expression fails to compile."
   },
   {
     "id": "app.pap.simulate.feature_disabled",
-    "translation": "",
-    "description": ""
+    "translation": "The permission policies feature is currently disabled.",
+    "description": "Error returned when an admin runs the access control policy simulator but the permission policies feature is turned off."
   },
   {
     "id": "app.pap.simulate.invalid_policy",
-    "translation": "",
-    "description": ""
+    "translation": "The policy is not valid.",
+    "description": "Validation error in the access control policy simulator; the submitted policy failed validation."
   },
   {
     "id": "app.pap.simulate.missing_actions",
-    "translation": "",
-    "description": ""
+    "translation": "At least one action is required for simulation.",
+    "description": "Validation error in the access control policy simulator when the request lists no actions (permissions) to test."
   },
   {
     "id": "app.pap.simulate.missing_channel_id",
-    "translation": "",
-    "description": ""
+    "translation": "A channel is required to simulate a channel-scoped policy.",
+    "description": "Validation error in the access control policy simulator when testing a channel-scoped policy without specifying a channel."
   },
   {
     "id": "app.pap.simulate.missing_policy",
-    "translation": "",
-    "description": ""
+    "translation": "A policy is required for simulation.",
+    "description": "Validation error in the access control policy simulator when no policy was included in the request."
   },
   {
     "id": "app.pap.simulate.missing_users",
-    "translation": "",
-    "description": ""
+    "translation": "At least one user is required for simulation.",
+    "description": "Validation error in the access control policy simulator when the request lists no users to test the policy against."
   },
   {
     "id": "app.pap.simulate.resolver_error",
@@ -10337,8 +10337,8 @@
   },
   {
     "id": "app.pap.simulate.too_many_users",
-    "translation": "",
-    "description": ""
+    "translation": "Too many users requested. Maximum allowed is {{.Max}}.",
+    "description": "Validation error in the access control policy simulator; {{.Max}} is the maximum number of users allowed per simulation request."
   },
   {
     "id": "app.pap.simulate.unavailable",
@@ -10347,8 +10347,8 @@
   },
   {
     "id": "app.pap.simulate.unsupported_type",
-    "translation": "",
-    "description": ""
+    "translation": "Policy type \"{{.Type}}\" is not supported by the simulator.",
+    "description": "Error in the access control policy simulator; {{.Type}} is the policy type identifier (e.g. channel, team) that the simulator cannot handle."
   },
   {
     "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
@@ -10367,13 +10367,13 @@
   },
   {
     "id": "app.pdp.access_evaluation.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Failed evaluate access control policy.",
+    "description": "Error when the server fails to evaluate an attribute-based access control policy while deciding whether a user may access a resource."
   },
   {
     "id": "app.pdp.access_evaluation.permission_policy.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to evaluate permission policy.",
+    "description": "Error when the server fails to evaluate a permission policy while checking a user's access."
   },
   {
     "id": "app.plugin.addon_not_licensed.app_error",
@@ -13158,163 +13158,163 @@
   },
   {
     "id": "ent.access_control.job_data_conversion.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to extract data from previous job.",
+    "description": "Background job error (access control membership sync) shown in the admin jobs table when data carried over from a previous job cannot be parsed."
   },
   {
     "id": "ent.access_control.sync_job.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to run access control sync job.",
+    "description": "Error status for the background job that synchronizes channel/team membership with access control policies; visible to system admins."
   },
   {
     "id": "ent.account_migration.get_all_failed",
-    "translation": "",
-    "description": ""
+    "translation": "Unable to get users.",
+    "description": "Error output of the CLI/mmctl authentication-migration command when the list of user accounts cannot be fetched."
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
-    "translation": "",
-    "description": ""
+    "translation": "Unable to get SAML users.",
+    "description": "Error output of the CLI/mmctl authentication-migration command when SAML-authenticated users cannot be fetched; SAML is the single sign-on protocol name."
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
-    "translation": "",
-    "description": ""
+    "translation": " attached a file.",
+    "description": "Mobile push notification body when a message contains only an attachment; appended directly after the sender's name, so the leading space is intentional."
   },
   {
     "id": "ent.autotranslation.add_task.missing_object_id",
-    "translation": "",
-    "description": ""
+    "translation": "Translation task must include an object ID.",
+    "description": "Internal validation error when queueing a translation task without the ID of the object (e.g. post) to translate."
   },
   {
     "id": "ent.autotranslation.add_task.missing_object_type",
-    "translation": "",
-    "description": ""
+    "translation": "Translation task must include an object type.",
+    "description": "Internal validation error when queueing a translation task without the type of object (e.g. post) to translate."
   },
   {
     "id": "ent.autotranslation.add_task.nil_task",
-    "translation": "",
-    "description": ""
+    "translation": "Translation task cannot be null.",
+    "description": "Internal validation error when a null translation task is queued; developer-leaning register."
   },
   {
     "id": "ent.autotranslation.add_task.worker_stopped",
-    "translation": "",
-    "description": ""
+    "translation": "Translation task cannot be added because the worker has been stopped.",
+    "description": "Error when a translation task is queued after the background translation worker has shut down."
   },
   {
     "id": "ent.autotranslation.create_translation_failed",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to create translation.",
+    "description": "Error when the automatic message translation feature fails to produce a translation for a post."
   },
   {
     "id": "ent.autotranslation.detect_language.nil_context",
-    "translation": "",
-    "description": ""
+    "translation": "Context is required for language detection.",
+    "description": "Internal validation error in automatic message translation; 'context' is the programming request context object, not conversational context."
   },
   {
     "id": "ent.autotranslation.detect_language.text_too_large",
-    "translation": "",
-    "description": ""
+    "translation": "Text exceeds maximum size for language detection.",
+    "description": "Validation error when text sent for language detection exceeds the size limit of the automatic translation feature."
   },
   {
     "id": "ent.autotranslation.detect_remote.error",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to detect language using translation provider.",
+    "description": "Error from the automatic message translation feature when the external translation provider fails to detect a text's language."
   },
   {
     "id": "ent.autotranslation.extract_content.mask_error",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to mask content for translation.",
+    "description": "Error when the automatic translation feature fails to mask (replace with placeholder tokens) mentions, links, and code before sending text to the translation provider."
   },
   {
     "id": "ent.autotranslation.extract_post.nil_post",
-    "translation": "",
-    "description": ""
+    "translation": "Post object cannot be null.",
+    "description": "Internal validation error in automatic message translation when the post object to translate is missing (null)."
   },
   {
     "id": "ent.autotranslation.feature_unavailable",
-    "translation": "",
-    "description": ""
+    "translation": "Auto-translation is not available. Please contact your system administrator about upgrading your enterprise license.",
+    "description": "Error shown to end users trying to use automatic message translation when the server license does not include it."
   },
   {
     "id": "ent.autotranslation.invalid_input",
-    "translation": "",
-    "description": ""
+    "translation": "Invalid language code provided.",
+    "description": "Validation error in automatic message translation when a language code parameter is not valid."
   },
   {
     "id": "ent.autotranslation.mask_verification_failed",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to update translation with new mask values.",
+    "description": "Error when the automatic translation feature cannot update a stored translation with regenerated mask placeholder values."
   },
   {
     "id": "ent.autotranslation.no_translatable_content",
-    "translation": "",
-    "description": ""
+    "translation": "Content contains no translatable text.",
+    "description": "Error from the automatic message translation feature when a post has no text that can be translated (e.g. only attachments)."
   },
   {
     "id": "ent.autotranslation.provider_not_available",
-    "translation": "",
-    "description": ""
+    "translation": "Translation provider is not available.",
+    "description": "Error when the configured machine-translation provider service cannot be reached; 'provider' is the external translation service."
   },
   {
     "id": "ent.autotranslation.provider_not_initialized",
-    "translation": "",
-    "description": ""
+    "translation": "Translation provider is not initialized.",
+    "description": "Error when the machine-translation provider has not been set up yet; 'provider' is the external translation service."
   },
   {
     "id": "ent.autotranslation.store_error",
-    "translation": "",
-    "description": ""
+    "translation": "Unable to process auto-translation request.",
+    "description": "Generic database error while processing an automatic message translation request."
   },
   {
     "id": "ent.autotranslation.unmask.missing_mask",
-    "translation": "",
-    "description": ""
+    "translation": "Translation contains unrecognized tokens.",
+    "description": "Error when the translated text returned by the provider contains placeholder tokens the server did not create; 'tokens' are the masking placeholders."
   },
   {
     "id": "ent.autotranslation.unmask.orphan_token",
-    "translation": "",
-    "description": ""
+    "translation": "Translation contains invalid tokens.",
+    "description": "Error when restoring masked placeholders in a translated message fails because a token is corrupted or unmatched."
   },
   {
     "id": "ent.autotranslation.validate_content.invalid_json",
-    "translation": "",
-    "description": ""
+    "translation": "Unable to parse JSON content.",
+    "description": "Validation error in automatic message translation when structured content cannot be parsed as JSON."
   },
   {
     "id": "ent.autotranslation.validate_content.invalid_type",
-    "translation": "",
-    "description": ""
+    "translation": "Unsupported content type for translation.",
+    "description": "Validation error in automatic message translation when the object type (e.g. post) is not one the feature can translate."
   },
   {
     "id": "ent.autotranslation.validate_content.nil_content",
-    "translation": "",
-    "description": ""
+    "translation": "Content cannot be null.",
+    "description": "Internal validation error in automatic message translation when the content to translate is missing (null); developer-leaning register."
   },
   {
     "id": "ent.autotranslation.validate_content.text_too_large",
-    "translation": "",
-    "description": ""
+    "translation": "Content exceeds maximum size for translation.",
+    "description": "Validation error when a message exceeds the maximum size the automatic translation feature accepts."
   },
   {
     "id": "ent.autotranslation.validate_id.empty",
-    "translation": "",
-    "description": ""
+    "translation": "Required ID cannot be empty.",
+    "description": "Validation error in automatic message translation when a required object ID parameter is empty."
   },
   {
     "id": "ent.autotranslation.validate_id.invalid",
-    "translation": "",
-    "description": ""
+    "translation": "Invalid ID format.",
+    "description": "Validation error in automatic message translation when an object ID parameter is malformed."
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "",
-    "description": ""
+    "translation": "Cluster configuration has changed for id={{ .id }}. The cluster may become unstable and a restart is required. To ensure the cluster is configured correctly you should perform a rolling restart immediately.",
+    "description": "Warning logged/surfaced to system admins of a high-availability cluster; {{ .id }} is the ID of the cluster node whose configuration diverged."
   },
   {
     "id": "ent.cluster.json_encode.error",
-    "translation": "",
-    "description": ""
+    "translation": "Error occurred while marshalling JSON request",
+    "description": "Log/error message for admins when a high-availability cluster message cannot be serialized to JSON; 'marshalling' means serializing."
   },
   {
     "id": "ent.cluster.save_config.error",
@@ -13323,8 +13323,8 @@
   },
   {
     "id": "ent.cluster.timeout.error",
-    "translation": "",
-    "description": ""
+    "translation": "Timed out waiting for cluster response",
+    "description": "Log/error message for admins when a node in a high-availability cluster does not answer a request in time."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -13333,8 +13333,8 @@
   },
   {
     "id": "ent.compliance.run_failed.error",
-    "translation": "",
-    "description": ""
+    "translation": "Compliance export failed for job '{{.JobName}}' at '{{.FilePath}}'",
+    "description": "Failure message for a compliance export job, seen by admins; {{.JobName}} is the job's name and {{.FilePath}} is the export file path."
   },
   {
     "id": "ent.data_retention.generic.license.error",
@@ -13343,18 +13343,18 @@
   },
   {
     "id": "ent.data_retention.policies.internal_error",
-    "translation": "",
-    "description": ""
+    "translation": "We encountered an error performing the requested operation.",
+    "description": "Generic server error shown to admins managing data retention policies in the System Console."
   },
   {
     "id": "ent.data_retention.policies.invalid_policy",
-    "translation": "",
-    "description": ""
+    "translation": "Policy is invalid.",
+    "description": "Validation error shown to admins when a submitted data retention policy fails validation; 'policy' is a data retention policy."
   },
   {
     "id": "ent.data_retention.run_failed.error",
-    "translation": "",
-    "description": ""
+    "translation": "Data retention job failed.",
+    "description": "Failure status of the background data retention job (automatic deletion of old messages/files); visible to admins in the jobs table."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
@@ -13693,53 +13693,53 @@
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Your license does not support ID Loaded Push Notifications.",
+    "description": "Error when ID-only ('ID Loaded') push notifications are configured without a supporting license; 'ID Loaded Push Notifications' is a feature name; admin audience."
   },
   {
     "id": "ent.intune.login.account_not_found.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Your account isn't fully set up yet. Please sign in to Mattermost via the web or desktop app first.",
+    "description": "Error shown on the mobile app sign-in flow via Microsoft Intune when no matching Mattermost account exists yet; end-user audience."
   },
   {
     "id": "ent.intune.login.extract_auth_data.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Authentication failed. Please try again or contact your system administrator.",
+    "description": "Error shown to end users when Microsoft Intune sign-in fails while reading identity data from the token."
   },
   {
     "id": "ent.intune.login.not_configured.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Microsoft Intune authentication is not configured.",
+    "description": "Error shown when a user attempts Microsoft Intune sign-in but the server has not configured it; 'Intune' is a Microsoft product name."
   },
   {
     "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Authentication failed. Invalid configuration.",
+    "description": "Error shown to end users during Microsoft Intune sign-in when the server's tenant configuration is wrong; intentionally vague for security."
   },
   {
     "id": "ent.intune.validate_token.invalid_token.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Authentication failed. Please try again.",
+    "description": "Error shown to end users when the Microsoft Intune sign-in token fails validation."
   },
   {
     "id": "ent.intune.validate_token.jwks_init.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Authentication service initialization failed. Please contact your system administrator.",
+    "description": "Error shown to end users when the server cannot initialize key retrieval (JWKS) for validating Microsoft Intune sign-in tokens."
   },
   {
     "id": "ent.intune.validate_token.missing_claims.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Authentication failed. Required user information is missing.",
+    "description": "Error shown to end users when the Microsoft Intune sign-in token lacks required identity fields (claims)."
   },
   {
     "id": "ent.intune.validate_token.token_expired.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Authentication session has expired. Please try signing in again.",
+    "description": "Error shown to end users when their Microsoft Intune sign-in token has expired; invites them to sign in again."
   },
   {
     "id": "ent.jobs.start_synchronize_job.timeout",
-    "translation": "",
-    "description": ""
+    "translation": "Reached AD/LDAP synchronization job timeout.",
+    "description": "Error when a manually triggered AD/LDAP synchronization job does not finish within the allowed time; admin audience."
   },
   {
     "id": "ent.ldap.app_error",
@@ -13748,18 +13748,18 @@
   },
   {
     "id": "ent.ldap.connection.test_failed",
-    "translation": "",
-    "description": ""
+    "translation": "LDAP connection test failed. Server: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Error: {{.Error}}",
+    "description": "Result message of the AD/LDAP connection test in the System Console; placeholders hold the configured server host, port, security type, certificate file names, bind username, and the underlying error."
   },
   {
     "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to retrieve CPA fields",
+    "description": "Error when fetching the Custom Profile Attribute (CPA) fields mapped to AD/LDAP attributes fails; admin/log audience."
   },
   {
     "id": "ent.ldap.create_fail",
-    "translation": "",
-    "description": ""
+    "translation": "Unable to create LDAP user.",
+    "description": "Error when the server fails to create a Mattermost account for an AD/LDAP user (e.g. during first login or sync)."
   },
   {
     "id": "ent.ldap.disabled.app_error",
@@ -13768,113 +13768,113 @@
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Unable to bind to AD/LDAP server. Check BindUsername and BindPassword.",
+    "description": "AD/LDAP sign-in error for admins; 'bind', 'BindUsername', and 'BindPassword' are LDAP terms/setting names and should stay recognizable."
   },
   {
     "id": "ent.ldap.do_login.certificate.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Error loading LDAP TLS Certificate file.",
+    "description": "Error when the TLS certificate file configured for AD/LDAP connections cannot be loaded; admin audience."
   },
   {
     "id": "ent.ldap.do_login.invalid_id",
-    "translation": "",
-    "description": ""
+    "translation": "Invalid AD/LDAP Id",
+    "description": "Error during AD/LDAP sign-in when the user's directory ID attribute value is invalid; 'Id' is the LDAP ID attribute."
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Invalid Password.",
+    "description": "Error shown on the login page when an AD/LDAP user enters a wrong password."
   },
   {
     "id": "ent.ldap.do_login.key.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Error loading LDAP TLS Key file.",
+    "description": "Error when the TLS private key file configured for AD/LDAP connections cannot be loaded; admin audience."
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "AD/LDAP functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license.",
+    "description": "Error shown when AD/LDAP sign-in is attempted but the server license does not include AD/LDAP authentication."
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Username given matches multiple users.",
+    "description": "Error during AD/LDAP sign-in when the entered username matches more than one directory entry."
   },
   {
     "id": "ent.ldap.do_login.search_ldap_server.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to search AD/LDAP server.",
+    "description": "Error during AD/LDAP sign-in when the search query against the directory server fails."
   },
   {
     "id": "ent.ldap.do_login.unable_to_connect.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Unable to connect to AD/LDAP server.",
+    "description": "Error shown on the login page when the Mattermost server cannot reach the AD/LDAP directory server."
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Your AD/LDAP account does not have permission to use this Mattermost server. Please ask your System Administrator to check the AD/LDAP user filter.",
+    "description": "Error shown to an end user whose AD/LDAP account is excluded by the configured user filter; 'user filter' is an LDAP setting name."
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "User not registered on AD/LDAP server.",
+    "description": "Error shown on the login page when the entered username does not exist on the AD/LDAP directory server."
   },
   {
     "id": "ent.ldap.do_login.x509.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Error creating key pair",
+    "description": "Error when building the TLS certificate/key pair for the AD/LDAP connection fails; 'key pair' is the cryptographic certificate pair."
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to get user.",
+    "description": "Error when looking up a Mattermost user by their AD/LDAP authentication data fails."
   },
   {
     "id": "ent.ldap.no.users.checkcertificate",
-    "translation": "",
-    "description": ""
+    "translation": "No LDAP users found, check your user filter and certificates.",
+    "description": "AD/LDAP test result shown to admins when the user search returns nobody; 'user filter' is an LDAP configuration setting."
   },
   {
     "id": "ent.ldap.save_user.email_exists.ldap_app_error",
-    "translation": "",
-    "description": ""
+    "translation": "This account does not use AD/LDAP authentication. Please sign in using email and password.",
+    "description": "Error shown on the login page when someone tries AD/LDAP sign-in but the account with that email uses email/password authentication instead."
   },
   {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
-    "translation": "",
-    "description": ""
+    "translation": "An account with that username already exists. Please contact your Administrator.",
+    "description": "Error during AD/LDAP sign-in when the username from the directory is already taken by a different Mattermost account; shown to end users."
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Unable to get all users using AD/LDAP.",
+    "description": "Error status of the AD/LDAP synchronization job when fetching all users from the directory fails; admin audience."
   },
   {
     "id": "ent.ldap.syncronize.get_all_groups.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "error retrieving groups.",
+    "description": "Lowercase error detail from the AD/LDAP sync job when retrieving all directory groups fails."
   },
   {
     "id": "ent.ldap.syncronize.populate_syncables",
-    "translation": "",
-    "description": ""
+    "translation": "error populating syncables",
+    "description": "Lowercase error detail from the AD/LDAP sync job; 'syncables' are the teams and channels linked to LDAP groups for automatic membership."
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to search users in AD/LDAP. Test if the Mattermost server can connect to your AD/LDAP server and try again.",
+    "description": "Error status of the AD/LDAP synchronization job when the directory search fails; advises admins to test connectivity."
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Size Limit Exceeded. Try increasing your Maximum page size setting. Check out https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded for more details.",
+    "description": "AD/LDAP sync job error for admins; 'Maximum page size' is a System Console setting name and the URL is a documentation link that must stay intact."
   },
   {
     "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "",
-    "description": ""
+    "translation": "Empty LDAP attribute value",
+    "description": "Error detail during AD/LDAP sync when a mapped custom profile attribute has an empty value in the directory; admin/log audience."
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
@@ -13898,33 +13898,33 @@
   },
   {
     "id": "ent.ldap_groups.group_search_error",
-    "translation": "",
-    "description": ""
+    "translation": "error retrieving ldap group",
+    "description": "Lowercase error detail when fetching a single LDAP group from the directory fails; admin/log audience."
   },
   {
     "id": "ent.ldap_groups.groups_search_error",
-    "translation": "",
-    "description": ""
+    "translation": "error retrieving ldap groups",
+    "description": "Lowercase error detail when fetching the list of LDAP groups from the directory fails; admin/log audience."
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
-    "translation": "",
-    "description": ""
+    "translation": "Invalid AD/LDAP id",
+    "description": "Lowercase error detail when an AD/LDAP group or user identifier is malformed; admin/log audience."
   },
   {
     "id": "ent.ldap_groups.members_of_group_error",
-    "translation": "",
-    "description": ""
+    "translation": "error retrieving members of group",
+    "description": "Lowercase error detail when fetching the member list of an LDAP group fails; admin/log audience."
   },
   {
     "id": "ent.ldap_groups.no_rows",
-    "translation": "",
-    "description": ""
+    "translation": "no groups found with matching uid",
+    "description": "Lowercase error detail when no LDAP group matches the given unique identifier (uid); admin/log audience."
   },
   {
     "id": "ent.ldap_groups.reachable_groups_error",
-    "translation": "",
-    "description": ""
+    "translation": "error retrieving groups for user",
+    "description": "Lowercase error detail when fetching the LDAP groups a user belongs to fails; admin/log audience."
   },
   {
     "id": "ent.ldap_id_migrate.app_error",
@@ -13943,283 +13943,283 @@
   },
   {
     "id": "ent.message_export.calculate_channel_exports.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to calculate channel export data.",
+    "description": "Error status of the compliance message export job when computing per-channel export data fails; admin audience."
   },
   {
     "id": "ent.message_export.job_data_conversion.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to convert a value from the job's data field.",
+    "description": "Error status of the compliance message export job when a stored job parameter cannot be parsed; admin audience."
   },
   {
     "id": "ent.message_export.run_export.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to select message export data.",
+    "description": "Error status of the compliance message export job when querying the messages to export fails; 'select' is a database query."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "",
-    "description": ""
+    "translation": "Unable to migrate AD/LDAP users with specified field. Duplicate entry detected. Please remove all duplicates and try again.",
+    "description": "Error from the migrate-to-LDAP admin command when two users share the same value in the chosen LDAP match field; audience is system admins."
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
-    "translation": "",
-    "description": ""
+    "translation": "Unable to find user on AD/LDAP server: ",
+    "description": "Error from the migrate-to-LDAP admin command; the user's identifier is appended directly after the trailing colon and space, so keep them."
   },
   {
     "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
-    "translation": "",
-    "description": ""
+    "translation": "Email already used by another SAML user.",
+    "description": "Error from the migrate-to-SAML admin command when a mapped email is already claimed by a different SAML user."
   },
   {
     "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
-    "translation": "",
-    "description": ""
+    "translation": "User not found in the users file.",
+    "description": "Error from the migrate-to-SAML admin command; the 'users file' is the JSON mapping file the admin supplies."
   },
   {
     "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
-    "translation": "",
-    "description": ""
+    "translation": "Username already used by another Mattermost user.",
+    "description": "Error from the migrate-to-SAML admin command when a mapped username is already taken by another Mattermost account."
   },
   {
     "id": "ent.outgoing_oauth_connections.authenticate.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "There was an error while authenticating the outgoing oauth connection: {{ .Error }}",
+    "description": "Admin API error when validating an outgoing OAuth connection's credentials fails; {{ .Error }} holds the underlying error text."
   },
   {
     "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "There is already an outgoing oauth connection for the provided audience.",
+    "description": "Admin API error; 'audience' is the target URL an outgoing OAuth connection applies to, and only one connection may exist per audience."
   },
   {
     "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
-    "translation": "",
-    "description": ""
+    "translation": "There is no outgoing oauth connection for the provided audience.",
+    "description": "Admin API error when no outgoing OAuth connection is configured for the requested audience (target URL)."
   },
   {
     "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "There was an error while deleting the outgoing oauth connection.",
+    "description": "Admin API error when deleting an outgoing OAuth connection (server-to-server OAuth credential) fails."
   },
   {
     "id": "ent.outgoing_oauth_connections.feature_disabled",
-    "translation": "",
-    "description": ""
+    "translation": "Outgoing OAuth connections are not available on this server.",
+    "description": "Error shown to admins when the outgoing OAuth connections feature is disabled or unavailable on the server."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connection.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "There was an error retrieving the outgoing oauth connection.",
+    "description": "Admin API error when loading a single outgoing OAuth connection fails."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "The outgoing oauth connection was not found.",
+    "description": "Admin API error when the requested outgoing OAuth connection does not exist."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "There was an error retrieving the outgoing oauth connection for the audience.",
+    "description": "Admin API error when looking up the outgoing OAuth connection for a target URL (audience) fails."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "The outgoing oauth connection for the provided audience was not found.",
+    "description": "Admin API error when no outgoing OAuth connection matches the given target URL (audience)."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connections.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "There was an error retrieving the outgoing oauth connections.",
+    "description": "Admin API error when listing all outgoing OAuth connections fails."
   },
   {
     "id": "ent.outgoing_oauth_connections.license_disable.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Your license does not support outgoing oauth connections.",
+    "description": "Error shown to admins using outgoing OAuth connections without a supporting license."
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "There was an error saving the outgoing oauth connection: {{ .Error }}",
+    "description": "Admin API error when creating an outgoing OAuth connection fails; {{ .Error }} holds the underlying error text."
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
-    "translation": "",
-    "description": ""
+    "translation": "There is already an outgoing oauth connection for the provided audience: {{ .Audience }}",
+    "description": "Admin API error on create; {{ .Audience }} is the target URL already claimed by another outgoing OAuth connection."
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
-    "translation": "",
-    "description": ""
+    "translation": "The provided audience is invalid: {{ .Error }}",
+    "description": "Admin API validation error on create; the audience is the connection's target URL and {{ .Error }} holds the validation failure detail."
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "There was an error updating the outgoing oauth connection: {{ .Error }}",
+    "description": "Admin API error when updating an outgoing OAuth connection fails; {{ .Error }} holds the underlying error text."
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
-    "translation": "",
-    "description": ""
+    "translation": "There is already an outgoing oauth connection for the provided audience: {{ .Audience }}",
+    "description": "Admin API error on update; {{ .Audience }} is the target URL already claimed by another outgoing OAuth connection."
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
-    "translation": "",
-    "description": ""
+    "translation": "The provided audience is invalid: {{ .Error }}",
+    "description": "Admin API validation error on update; the audience is the connection's target URL and {{ .Error }} holds the validation failure detail."
   },
   {
     "id": "ent.push_proxy.delete.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to delete push proxy auth token.",
+    "description": "Server error when deleting the stored authentication token for the push notification proxy fails; admin/log audience."
   },
   {
     "id": "ent.push_proxy.generate.bad_status.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to get auth token from push proxy server.",
+    "description": "Server error when the push notification proxy responds with a failure status while issuing an authentication token; admin/log audience."
   },
   {
     "id": "ent.push_proxy.generate.create_request.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to create HTTP request for push proxy auth.",
+    "description": "Server error when building the HTTP request to authenticate with the push notification proxy fails; admin/log audience."
   },
   {
     "id": "ent.push_proxy.generate.empty_token.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Push proxy returned empty auth token.",
+    "description": "Server error when the push notification proxy returns a blank authentication token; admin/log audience."
   },
   {
     "id": "ent.push_proxy.generate.encrypt.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to encrypt payload for push proxy auth.",
+    "description": "Server error when encrypting the payload sent to the push notification proxy for authentication fails; admin/log audience."
   },
   {
     "id": "ent.push_proxy.generate.http_request.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to send HTTP request to push proxy.",
+    "description": "Server error when the HTTP call to the push notification proxy fails; admin/log audience."
   },
   {
     "id": "ent.push_proxy.generate.marshal.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to marshal payload for push proxy auth.",
+    "description": "Server error when serializing the authentication payload for the push notification proxy fails; 'marshal' means serialize to JSON."
   },
   {
     "id": "ent.push_proxy.generate.marshal_request.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to marshal request body for push proxy auth.",
+    "description": "Server error when serializing the request body for push notification proxy authentication fails; admin/log audience."
   },
   {
     "id": "ent.push_proxy.generate.no_key.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "No encryption key available for push proxy auth.",
+    "description": "Server error when no encryption key exists for authenticating with the push notification proxy; admin/log audience."
   },
   {
     "id": "ent.push_proxy.generate.parse_response.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to parse response from push proxy auth endpoint.",
+    "description": "Server error when the response from the push notification proxy's authentication endpoint cannot be parsed; admin/log audience."
   },
   {
     "id": "ent.push_proxy.generate.save_system.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to save auth token.",
+    "description": "Server error when persisting the push notification proxy authentication token to the database fails; admin/log audience."
   },
   {
     "id": "ent.push_proxy.worker.interface_nil.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Push proxy interface is nil.",
+    "description": "Internal error in the push proxy background worker when its interface is uninitialized (nil); developer/log audience."
   },
   {
     "id": "ent.saml.attribute.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "SAML login was unsuccessful because one of the attributes is incorrect. Please contact your System Administrator.",
+    "description": "Error shown to end users when SAML single sign-on fails due to a misconfigured attribute mapping."
   },
   {
     "id": "ent.saml.build_request.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "An error occurred while initiating the request to the Identity Provider. Please contact your System Administrator.",
+    "description": "Error shown to end users when the server fails to build the SAML sign-on request; 'Identity Provider' is a SAML term."
   },
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "SAML could not load Identity Provider Public Certificate successfully, please contact your system administrator.",
+    "description": "SAML configuration error when the Identity Provider public certificate cannot be parsed; shown to users during login and to admins."
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "SAML login was unsuccessful because encryption is not enabled. Please contact your System Administrator.",
+    "description": "Error shown when SAML login is attempted while response encryption is required but not enabled on the server."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "SAML login was unsuccessful because the Service Provider Private Key was not found. Please contact your System Administrator.",
+    "description": "SAML login error when the Service Provider private key file is missing; 'Service Provider' is a SAML term for the Mattermost side."
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "SAML login was unsuccessful as the Identity Provider response is not encrypted. Please contact your System Administrator.",
+    "description": "SAML login error when the Identity Provider sent an unencrypted response but encryption is required."
   },
   {
     "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "",
-    "description": ""
+    "translation": "Failed to retrieve CPA field(s)",
+    "description": "Error when fetching the Custom Profile Attribute (CPA) fields mapped to SAML attributes fails; admin/log audience."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "We received an empty response from the Identity Provider.",
+    "description": "SAML login error shown to end users when the Identity Provider's response body is empty."
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "We received an invalid signature in the response from the Identity Provider. Please contact your System Administrator.",
+    "description": "SAML login error shown to end users when the cryptographic signature on the Identity Provider response fails verification."
   },
   {
     "id": "ent.saml.do_login.invalid_time.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "We received an invalid time in the response from the Identity Provider. Please contact your System Administrator.",
+    "description": "SAML login error shown to end users when the timestamp in the Identity Provider response is outside the allowed window."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "An error occurred while parsing the response from the Identity Provider. Please contact your System Administrator.",
+    "description": "SAML login error shown to end users when the Identity Provider response cannot be parsed."
   },
   {
     "id": "ent.saml.license_disable.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Your license does not support SAML authentication.",
+    "description": "Error when SAML single sign-on is used without a license that includes it; admin audience."
   },
   {
     "id": "ent.saml.login.ldap_user_missing",
-    "translation": "",
-    "description": ""
+    "translation": "No user registered on AD/LDAP server that matches the SAML user.",
+    "description": "SAML login error when the account cannot be linked because no AD/LDAP directory user matches the SAML identity."
   },
   {
     "id": "ent.saml.metadata.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "An error occurred while building Service Provider Metadata.",
+    "description": "Error when generating the SAML Service Provider metadata XML fails; 'Service Provider Metadata' is a SAML term; admin audience."
   },
   {
     "id": "ent.saml.save_user.email_exists.saml_app_error",
-    "translation": "",
-    "description": ""
+    "translation": "This account does not use SAML authentication. Please sign in using email and password.",
+    "description": "Error shown on the login page when someone tries SAML sign-in but the account with that email uses email/password authentication instead."
   },
   {
     "id": "ent.saml.save_user.username_exists.saml_app_error",
-    "translation": "",
-    "description": ""
+    "translation": "An account with that username already exists. Please contact your Administrator.",
+    "description": "Error during SAML sign-in when the username from the Identity Provider is already taken by a different Mattermost account."
   },
   {
     "id": "ent.saml.service_disable.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "SAML 2.0 is not configured or supported on this server.",
+    "description": "Error shown when SAML login is attempted but SAML 2.0 is not configured on the server; 'SAML 2.0' is a protocol name."
   },
   {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
-    "translation": "",
-    "description": ""
+    "translation": "SAML assertion attribute statement is invalid",
+    "description": "Error detail when a SAML assertion lacks the attribute statement needed to update custom profile attributes; admin/log audience."
   },
   {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": "",
-    "description": ""
+    "translation": "Unable to complete SAML login with an empty email address.",
+    "description": "Error when a user switches their sign-in method to SAML but the identity provides no email address."
   },
   {
     "id": "error",
