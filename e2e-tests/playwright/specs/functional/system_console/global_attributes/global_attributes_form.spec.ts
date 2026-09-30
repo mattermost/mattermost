@@ -8,7 +8,7 @@
  * Local runs: upload or use a license with SkuShortName `enterprise`, `entry`, or `advanced`.
  */
 
-import type {Page} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 import type {PropertyField} from '@mattermost/types/properties';
 
 import {expect, test} from '@mattermost/playwright-lib';
@@ -846,8 +846,8 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
             // (use_allowed_resource_types.ts) -- Channels additionally needs the
             // Enterprise Advanced tier. Without both flags on, the picker offers
             // fewer types and the 3-item assertion below fails.
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-            await pw.skipIfFeatureFlagNotSet('PostAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('PostAttributes', true);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
@@ -898,7 +898,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
 
             // See the "offers only unselected types" test above: Channels requires the
             // ChannelAttributes flag on top of the Enterprise-tier license.
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
@@ -948,7 +948,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
 
             // See the "offers only unselected types" test above: Channels requires the
             // ChannelAttributes flag on top of the Enterprise-tier license.
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const timestamp = Date.now();
             const displayName = `Playwright Applies To ${timestamp}`;
@@ -1010,8 +1010,8 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
             // See the "offers only unselected types" test above: Channels requires the
             // ChannelAttributes flag on top of the Enterprise-tier license, and Posts
             // requires PostAttributes. This test adds all three resources.
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-            await pw.skipIfFeatureFlagNotSet('PostAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('PostAttributes', true);
 
             const timestamp = Date.now();
             // Kept short: see the "saves Profile display..." test below -- a full
@@ -1289,8 +1289,12 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 // Measure the pane, not role=menu. Nested MUI Modal aria-hides the
                 // parent menu paper; its getBoundingClientRect can shift ~16px even
                 // when the suggestion list is portaled.
+                //
+                // The menu itself mounts with a grow transition, so read the height only
+                // once that has settled — otherwise this baseline lands mid-animation
+                // and every later reading looks like unrelated growth.
                 const pane = page.locator('.attribute-graph-parents-pane');
-                const heightBeforeSearch = await pane.evaluate((el) => el.getBoundingClientRect().height);
+                const heightBeforeSearch = await waitForStableRectHeight(pane);
                 await page.getByTestId('attributeGraphParentsPane__search').click();
 
                 const suggestions = page.getByTestId('attributeGraphParentsPane__suggestions');
@@ -1327,8 +1331,10 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 const mountedValueMenu = page.getByRole('menu', {name: 'Edit Air', includeHidden: true});
 
                 // * Pane does not grow by a suggestion row (~36px). Focus and the
-                // nested modal can still shift getBoundingClientRect by ~6–16px.
-                const heightAfterSearch = await pane.evaluate((el) => el.getBoundingClientRect().height);
+                // nested modal can still shift getBoundingClientRect by ~6–16px. Read the
+                // height only once the focus/modal transition has stopped moving it —
+                // sampling mid-transition is what made this assertion flaky.
+                const heightAfterSearch = await waitForStableRectHeight(pane);
                 expect(Math.abs(heightAfterSearch - heightBeforeSearch)).toBeLessThan(24);
                 await expect(mountedValueMenu).toBeAttached();
 
@@ -1860,7 +1866,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          */
         test('renames a matching linked channel display_name when the template display name changes', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const timestamp = Date.now();
             const name = `business_unit_${timestamp}`;
@@ -1904,7 +1910,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          */
         test('does not overwrite a diverged linked channel display_name when renaming the template', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const timestamp = Date.now();
             const name = `department_${timestamp}`;
@@ -2479,4 +2485,24 @@ async function openGraphRowDelete(page: Page, optionName: string, parentName = '
     const row = graphRow(page, optionName, parentName);
     await row.hover();
     await row.getByTestId('attributeOptionsGraphRow__delete').click();
+}
+
+// Polls getBoundingClientRect().height until two consecutive reads agree, so callers
+// don't sample a value mid CSS-transition (e.g. a focus ring or nested modal mount).
+async function waitForStableRectHeight(locator: Locator): Promise<number> {
+    let lastHeight = await locator.evaluate((el) => el.getBoundingClientRect().height);
+
+    await expect
+        .poll(
+            async () => {
+                const height = await locator.evaluate((el) => el.getBoundingClientRect().height);
+                const isStable = height === lastHeight;
+                lastHeight = height;
+                return isStable;
+            },
+            {timeout: 2000, intervals: [50, 100, 150, 300]},
+        )
+        .toBe(true);
+
+    return lastHeight;
 }

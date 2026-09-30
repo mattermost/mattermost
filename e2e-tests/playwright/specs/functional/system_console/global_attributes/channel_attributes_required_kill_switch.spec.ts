@@ -50,7 +50,7 @@ test.describe(
             pw,
         }) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             let name = '';
@@ -59,7 +59,7 @@ test.describe(
                 // # Enable enforcement so the Required toggle is visible, allowing
                 // # the attribute to be configured as required via the UI.
                 await setChannelAttributesRequired(adminClient, true);
-                await pw.skipIfFeatureFlagNotSet('ChannelAttributesRequired', true);
+                await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
 
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
                 name = await configureChannelAttribute(systemConsolePage, {
@@ -72,7 +72,7 @@ test.describe(
 
                 // # Ops disables enforcement after the fact (e.g. mobile rollout issue)
                 await setChannelAttributesRequired(adminClient, false);
-                await pw.skipIfFeatureFlagNotSet('ChannelAttributesRequired', false);
+                await pw.ensureFeatureFlag('ChannelAttributesRequired', false);
 
                 // # A fresh session picks up the new config
                 const {team} = await pw.initSetup();
@@ -114,13 +114,13 @@ test.describe(
             pw,
         }) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const suffix = pw.random.id();
 
             // # Enable enforcement before opening the New attribute form
             await setChannelAttributesRequired(adminClient, true);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributesRequired', true);
+            await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {globalAttributes} = systemConsolePage;
@@ -135,7 +135,7 @@ test.describe(
 
             // # Disable enforcement and load the form fresh
             await setChannelAttributesRequired(adminClient, false);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributesRequired', false);
+            await pw.ensureFeatureFlag('ChannelAttributesRequired', false);
 
             const {systemConsolePage: systemConsolePageAfter} = await pw.testBrowser.login(adminUser);
             const globalAttributesAfter = systemConsolePageAfter.globalAttributes;

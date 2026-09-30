@@ -13,10 +13,9 @@ export default class ChannelsHeader {
     readonly channelMenuDropdown;
     readonly callButton: Locator;
     readonly pinnedMessagesButton: Locator;
-    // Two chip slots, two accessors: 'attributes' is the row under the channel
-    // name, 'infoAttributes' the inline strip beside the member count.
+    // Info- and header-designated chips collapse into one merged row here, same
+    // as the thread chrome (see ChannelAttributeSurface).
     readonly attributes: ChannelAttributeLabels;
-    readonly infoAttributes: ChannelAttributeLabels;
     readonly addChannelHeaderButton: Locator;
 
     constructor(container: Locator) {
@@ -26,8 +25,10 @@ export default class ChannelsHeader {
         this.channelMenuDropdown = container.locator('#channelHeaderDropdownButton');
         this.callButton = container.getByRole('button', {name: /call/i}).first();
         this.pinnedMessagesButton = container.locator('#channelHeaderPinButton');
-        this.attributes = new ChannelAttributeLabels(container.getByTestId('channelAttributeLabels-header'), 'header');
-        this.infoAttributes = new ChannelAttributeLabels(container.getByTestId('channelAttributeLabels-info'), 'info');
+        this.attributes = new ChannelAttributeLabels(
+            container.getByTestId('channelAttributeLabels-info-header'),
+            'info-header',
+        );
         this.addChannelHeaderButton = container.getByRole('button', {name: 'Add a channel header'});
     }
 

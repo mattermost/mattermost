@@ -5,17 +5,17 @@ import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
 /**
- * Which of the channel header's two chip slots to address: 'header' is the row
- * under the channel name, 'info' the inline strip beside the member count. Each
- * slot carries its own test ids, since both can be on screen at once.
- *
- * 'info-header' is the merged row the thread chrome uses, where the two slots
- * share one row so overflow is decided once.
+ * The product renders exactly one merged attribute-chip row per mount point (the
+ * channel header, the thread header, and the RHS thread pane all pass both
+ * `ChannelLabelSurface.INFO` and `ChannelLabelSurface.HEADER` to
+ * `ChannelAttributeLabels`, so info- and header-designated chips always collapse
+ * into a single row together) — there is no separate 'header'-only or
+ * 'info'-only surface anywhere in the app.
  */
-export type ChannelAttributeSurface = 'header' | 'info' | 'info-header';
+export type ChannelAttributeSurface = 'info-header';
 
 /**
- * The attribute chips in one channel header slot.
+ * The attribute chips in one merged chip row.
  */
 export class ChannelAttributeLabels {
     readonly container: Locator;
@@ -76,8 +76,16 @@ export class ChannelInfoAttributes {
         return this.container.getByTestId(`channelInfoAttributeRow-${name}`);
     }
 
+    /**
+     * A text attribute the viewer can edit renders its value as plain text inside
+     * the edit button (channel_info_attributes.tsx), not as an AttributeChip --
+     * every other case (non-text, or text but read-only) does use the chip. Only
+     * one of the two is ever present for a given row, so `.or()` resolves to
+     * whichever actually rendered.
+     */
     chip(name: string) {
-        return this.row(name).getByTestId('attributeChip');
+        const row = this.row(name);
+        return row.getByTestId('attributeChip').or(row.locator('.ChannelInfoAttributes__textValue'));
     }
 
     editButton(name: string) {

@@ -321,7 +321,7 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
                 // concurrency-guarded against each other; the tag is this suite's existing
                 // (if informal) convention for grouping tests that share this exact resource.
                 await setClassificationMarkingsFeatureFlag(adminClient, true);
-                await pw.skipIfFeatureFlagNotSet('ClassificationMarkings', true);
+                await pw.ensureFeatureFlag('ClassificationMarkings', true);
 
                 const timestamp = Date.now();
                 const classificationDisplayName = `E2E Classification Attribute ${timestamp}`;

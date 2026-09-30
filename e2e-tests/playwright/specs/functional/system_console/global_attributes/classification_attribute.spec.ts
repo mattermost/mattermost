@@ -53,7 +53,7 @@ test.describe(
          */
         test('shows the definition read-only and links to Classification Markings', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const {levels} = await setupClassificationWithChannelField(adminClient);
 
@@ -82,7 +82,7 @@ test.describe(
          */
         test('applies a header chip to channels once Header is chosen', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const {levels} = await setupClassificationWithChannelField(adminClient);
             const {team, user} = await pw.initSetup();
@@ -128,7 +128,7 @@ test.describe(
          */
         test('offers classification at channel creation, and demands it once Required is on', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const {levels} = await setupClassificationWithChannelField(adminClient);
             const {team} = await pw.initSetup();
@@ -173,7 +173,7 @@ test.describe(
          */
         test('stops bannering when the display locations exclude the banner', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const {levels} = await setupClassificationWithChannelField(adminClient);
             const {team, user} = await pw.initSetup();
@@ -210,7 +210,7 @@ test.describe(
          */
         test('removes the Channels resource only after confirming, and keeps it removed', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             await setupClassificationWithChannelField(adminClient);
 

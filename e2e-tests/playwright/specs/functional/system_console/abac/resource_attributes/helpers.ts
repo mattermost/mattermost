@@ -20,8 +20,9 @@ import type {PlaywrightExtended} from '@mattermost/playwright-lib';
  * patchConfig in a spec substitutes for the environment variable. Both CI paths
  * set it — SERVER_ENV_BASELINE for the testcontainers stack the Playwright suite
  * runs on, and e2e-tests/.ci/server.generate.sh for the docker-compose one — and
- * every spec here guards with skipIfFeatureFlagNotSet so a server without it
- * skips rather than failing on a policy save the server refuses.
+ * every spec here guards with ensureFeatureFlag so a server without it gets
+ * restarted with the flag on (under testcontainers) instead of failing on a
+ * policy save the server refuses.
  */
 
 const PROPERTY_GROUP = 'access_control';

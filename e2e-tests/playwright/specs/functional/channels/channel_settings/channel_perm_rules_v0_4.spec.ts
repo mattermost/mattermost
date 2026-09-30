@@ -37,8 +37,8 @@ test.describe('Channel Settings Modal - Permissions Policy tab (v0.4)', () => {
         // to render (the channel-scope sub-flag depends on the
         // umbrella, mirroring `IsChannelPermissionPoliciesEnabled` on
         // the server).
-        await pw.skipIfFeatureFlagNotSet('PermissionPolicies', true);
-        await pw.skipIfFeatureFlagNotSet('ChannelPermissionPolicies', true);
+        await pw.ensureFeatureFlag('PermissionPolicies', true);
+        await pw.ensureFeatureFlag('ChannelPermissionPolicies', true);
     });
 
     test('MM-PP_v0_4_c1 Permissions Policy tab visible on private channel when feature flag enabled', async ({pw}) => {

@@ -24,14 +24,12 @@ test.describe(
     'System Console - applying an attribute to channels',
     {tag: ['@system_console', '@channel_attributes']},
     () => {
-        test.describe.configure({mode: 'serial'});
-
         /**
          * @objective Ensure the Channels row writes every channel key onto a linked channel field.
          */
         test('creates a linked channel field carrying the configured keys', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             const displayName = `Program ${suffix}`;
@@ -75,7 +73,7 @@ test.describe(
             pw,
         }) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             let name = '';
@@ -117,11 +115,16 @@ test.describe(
         });
 
         /**
-         * @objective Ensure the Channel Info display location puts the attribute in Channel Info only.
+         * @objective Ensure the Channel Info display location also renders the attribute as a
+         * header chip, alongside Channel Info.
+         *
+         * "Info" and "Header" are two independent triggers into the same merged header chip
+         * row (see ChannelAttributeLabels) — either one is enough to show a chip there.
+         * Channel Info shows every attribute regardless of display location.
          */
-        test('shows a Channel-Info-only attribute in Channel Info and not in the header', async ({pw}) => {
+        test('shows an Info-designated attribute in the header chip row and in Channel Info', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             let name = '';
@@ -149,9 +152,8 @@ test.describe(
                 await modal.create();
                 await expect(modal.container).not.toBeVisible();
 
-                // * The inline header slot carries it, the row-below slot does not
-                await expect(channelsPage.centerView.header.infoAttributes.chip('INTERNAL')).toBeVisible();
-                await expect(channelsPage.centerView.header.attributes.chip('INTERNAL')).toHaveCount(0);
+                // * Info designation is enough on its own to show the header chip
+                await expect(channelsPage.centerView.header.attributes.chip('INTERNAL')).toBeVisible();
 
                 // * And Channel Info carries it, as it does for every attribute
                 const info = await channelsPage.openChannelInfo();
@@ -167,7 +169,7 @@ test.describe(
          */
         test('renders a Banner-only attribute as a banner, with no chip', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             let name = '';
@@ -209,7 +211,7 @@ test.describe(
          */
         test('stores a value for an attribute with no display location and renders it nowhere', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             let name = '';
@@ -247,7 +249,6 @@ test.describe(
 
                 // * And is rendered on no display surface
                 await expect(channelsPage.centerView.header.attributes.chip('QUIET')).toHaveCount(0);
-                await expect(channelsPage.centerView.header.infoAttributes.chip('QUIET')).toHaveCount(0);
                 await expect(channelsPage.page.getByTestId('channel_banner_container')).toHaveCount(0);
 
                 // * Channel Info still lists it: the display locations govern the
@@ -266,7 +267,7 @@ test.describe(
          */
         test('locks the value in Channel Info when the change policy forbids changes', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             let name = '';
@@ -320,7 +321,7 @@ test.describe(
          */
         test('keeps a console-configured attribute out of a plain member reach', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             let name = '';
@@ -380,7 +381,7 @@ test.describe(
          */
         test('channel-linked field does not inherit ldap/saml sync attrs from the template', async ({pw}) => {
             const {adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             const name = `sync_attr_regression_${suffix}`;
