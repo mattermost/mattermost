@@ -16,6 +16,8 @@ import type {UserPropertyField, UserPropertyFieldType} from '@mattermost/types/p
 import {Client4} from 'mattermost-redux/client';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
 
+import {GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from 'components/admin_console/global_attributes/constants';
+
 import {getPluginDisplayName} from 'selectors/plugins';
 
 import SettingsGroup from 'components/admin_console/settings_group';
@@ -111,13 +113,22 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
                     attributes.map((attr) => {
                         const original = originalAttributes.find((o) => o.id === attr.id);
                         if (original?.attrs?.[attributeKey] !== attr.attrs?.[attributeKey]) {
-                            const updatedAttr = {
+                            const newValue = (attr.attrs?.[attributeKey] as string) || null;
+
+                            if (attr.linked_field_id) {
+                                // Field is linked to a Global Attribute template: patch
+                                // the template (canonical schema owner) and the user field
+                                // separately via the property-field API.
+                                return Promise.all([
+                                    Client4.patchPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, attr.linked_field_id, {attrs: {[attributeKey]: newValue}}),
+                                    Client4.patchPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, 'user', attr.id, {attrs: {[attributeKey]: newValue}}),
+                                ]);
+                            }
+
+                            return Client4.patchCustomProfileAttributeField(attr.id, {
                                 type: 'text' as UserPropertyFieldType,
-                                attrs: {
-                                    ...attr.attrs,
-                                },
-                            };
-                            return Client4.patchCustomProfileAttributeField(attr.id, updatedAttr);
+                                attrs: {...attr.attrs},
+                            });
                         }
                         return Promise.resolve(null);
                     }),
