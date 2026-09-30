@@ -6,6 +6,8 @@ import React from 'react';
 
 import {PhoneIcon} from '@mattermost/compass-icons/components';
 
+import PluginLinkTooltip from 'components/plugin_link_tooltip';
+
 import './markdown_phone_link.scss';
 
 const TEL_PREFIX = 'tel:';
@@ -17,24 +19,38 @@ type Props = {
     title?: string;
     target?: string;
     rel?: string;
+    hasPluginTooltips?: boolean;
 };
 
 export default function MarkdownPhoneLink(props: Props) {
-    return (
-        <a
-            href={props.href}
-            className={classNames('markdown-phone-link', props.className)}
-            title={props.title}
-            target={props.target}
-            rel={props.rel}
-        >
+    const anchorProps = {
+        href: props.href,
+        className: classNames('markdown-phone-link', props.className),
+        title: props.title,
+        target: props.target,
+        rel: props.rel,
+    };
+
+    const content = (
+        <>
             <PhoneIcon
                 size={12}
                 aria-hidden='true'
             />
             <span>{stripTelPrefixFromAutolink(props.href, props.children)}</span>
-        </a>
+        </>
     );
+
+    // PluginLinkTooltip renders its own anchor, so it replaces ours instead of wrapping it.
+    if (props.hasPluginTooltips) {
+        return (
+            <PluginLinkTooltip nodeAttributes={anchorProps}>
+                {content}
+            </PluginLinkTooltip>
+        );
+    }
+
+    return <a {...anchorProps}>{content}</a>;
 }
 
 // Auto-linked numbers show the raw href as their text, so drop the scheme to show just the number.

@@ -170,6 +170,7 @@ export default function messageHtmlToComponent(html: string, options: Options = 
                 title={node.attribs.title}
                 target={node.attribs.target}
                 rel={node.attribs.rel}
+                hasPluginTooltips={options.hasPluginTooltips}
             >
                 {children}
             </MarkdownPhoneLink>

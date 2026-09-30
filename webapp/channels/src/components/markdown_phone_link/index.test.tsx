@@ -3,9 +3,20 @@
 
 import React from 'react';
 
-import {render, screen} from 'tests/react_testing_utils';
+import {render, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {RootHtmlPortalId} from 'utils/constants';
 
 import MarkdownPhoneLink from './index';
+
+class TestLinkTooltip extends React.PureComponent<{href: string}> {
+    render() {
+        if (this.props.href.startsWith('tel:')) {
+            return <div>{'Phone tooltip'}</div>;
+        }
+
+        return null;
+    }
+}
 
 describe('MarkdownPhoneLink', () => {
     test('should render the link with a phone icon and the label text', () => {
@@ -39,5 +50,40 @@ describe('MarkdownPhoneLink', () => {
         render(<MarkdownPhoneLink href='tel:+34600517276'>{'tel: call us'}</MarkdownPhoneLink>);
 
         expect(screen.getByRole('link')).toHaveTextContent('tel: call us');
+    });
+
+    test('should show plugin link tooltips on a single link when hasPluginTooltips is set', async () => {
+        const state = {
+            plugins: {
+                components: {
+                    LinkTooltip: [{id: 'test', pluginId: 'example.test', component: TestLinkTooltip}],
+                },
+            },
+        };
+
+        const {container} = renderWithContext(
+            <>
+                <MarkdownPhoneLink
+                    href='tel:+34600517276'
+                    className='theme markdown__link'
+                    hasPluginTooltips={true}
+                >
+                    {'+34600517276'}
+                </MarkdownPhoneLink>
+                <div id={RootHtmlPortalId}/>
+            </>,
+            state,
+        );
+
+        const links = container.querySelectorAll('a');
+        expect(links).toHaveLength(1);
+        expect(links[0]).toHaveAttribute('href', 'tel:+34600517276');
+        expect(links[0]).toHaveClass('markdown-phone-link', 'theme', 'markdown__link');
+        expect(links[0].querySelector('svg')).toBeInTheDocument();
+
+        await userEvent.hover(screen.getByText('+34600517276'));
+        await waitFor(() => {
+            expect(screen.queryByText('Phone tooltip')).toBeVisible();
+        });
     });
 });

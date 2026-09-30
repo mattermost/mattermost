@@ -251,6 +251,19 @@ const myFunction = () => {
             expect(link).toHaveTextContent(/^1-555-123-4567$/);
         });
 
+        test('should render a single phone link anchor when plugin tooltips are enabled', () => {
+            const input = 'Call [+34600517276](tel:+34600517276)';
+            const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
+
+            const {container} = renderWithContext(<>{messageHtmlToComponent(html, {hasPluginTooltips: true})}</>);
+
+            const links = container.querySelectorAll('a');
+            expect(links).toHaveLength(1);
+            expect(links[0]).toHaveClass('markdown-phone-link');
+            expect(links[0]).toHaveAttribute('href', 'tel:+34600517276');
+            expect(links[0].querySelector('svg')).toBeInTheDocument();
+        });
+
         test('should not render other links using MarkdownPhoneLink', () => {
             const input = '[example](https://example.com)';
             const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
