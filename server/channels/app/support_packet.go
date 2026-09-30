@@ -4,7 +4,6 @@
 package app
 
 import (
-	"encoding/json"
 	"path/filepath"
 	"slices"
 	"sync"
@@ -17,16 +16,27 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 )
 
 func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) []model.FileData {
 	functions := map[string]func(rctx request.CTX) (*model.FileData, error){
-		"metadata":    a.getSupportPacketMetadata,
-		"stats":       a.getSupportPacketStats,
-		"jobs":        a.getSupportPacketJobList,
-		"permissions": a.getSupportPacketPermissionsInfo,
-		"plugins":     a.getPluginsFile,
-		"schema":      a.getSupportPacketDatabaseSchema,
+		"metadata": func(rctx request.CTX) (*model.FileData, error) {
+			return supportPacketMetadataFile(a.getSupportPacketMetadata(rctx))
+		},
+		"stats": func(rctx request.CTX) (*model.FileData, error) {
+			return supportPacketStatsFile(a.getSupportPacketStats(rctx))
+		},
+		"jobs": func(rctx request.CTX) (*model.FileData, error) {
+			return supportPacketJobsFile(a.getSupportPacketJobList(rctx))
+		},
+		"permissions": func(rctx request.CTX) (*model.FileData, error) {
+			return supportPacketPermissionsFile(a.getSupportPacketPermissionsInfo(rctx))
+		},
+		"plugins": func(rctx request.CTX) (*model.FileData, error) {
+			return supportPacketPluginsFile(a.getPluginsList(rctx))
+		},
+		"schema": a.getSupportPacketDatabaseSchema,
 	}
 
 	var (
@@ -136,101 +146,99 @@ func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPack
 	return fileDatas
 }
 
-func (a *App) getSupportPacketStats(rctx request.CTX) (*model.FileData, error) {
+func supportPacketMetadataFile(m *model.PacketMetadata, err error) (*model.FileData, error) {
+	return platform.YAMLFile(model.PacketMetadataFileName, m, err)
+}
+
+func supportPacketStatsFile(s *model.SupportPacketStats, err error) (*model.FileData, error) {
+	return platform.YAMLFile("stats.yaml", s, err)
+}
+
+func supportPacketJobsFile(j *model.SupportPacketJobList, err error) (*model.FileData, error) {
+	return platform.YAMLFile("jobs.yaml", j, err)
+}
+
+func supportPacketPermissionsFile(p *model.SupportPacketPermissionInfo, err error) (*model.FileData, error) {
+	return platform.YAMLFile("permissions.yaml", p, err)
+}
+
+func supportPacketPluginsFile(p *model.SupportPacketPluginList, err error) (*model.FileData, error) {
+	return platform.JSONFile("plugins.json", p, err)
+}
+
+func (a *App) getSupportPacketStats(rctx request.CTX) (*model.SupportPacketStats, error) {
 	var (
 		rErr  *multierror.Error
-		err   error
 		stats model.SupportPacketStats
 	)
 
-	stats.RegisteredUsers, err = a.Srv().Store().User().Count(model.UserCountOptions{IncludeDeleted: true})
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get registered user count"))
+	collect := func(name string, get func() (int64, error)) *int64 {
+		value, err := get()
+		if err != nil {
+			rErr = multierror.Append(rErr, errors.Wrapf(err, "failed to get %s", name))
+			return nil
+		}
+
+		return &value
 	}
 
-	stats.ActiveUsers, err = a.Srv().Store().User().Count(model.UserCountOptions{})
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get active user count"))
-	}
+	stats.RegisteredUsers = collect("registered user count", func() (int64, error) {
+		return a.Srv().Store().User().Count(model.UserCountOptions{IncludeDeleted: true})
+	})
+	stats.ActiveUsers = collect("active user count", func() (int64, error) {
+		return a.Srv().Store().User().Count(model.UserCountOptions{})
+	})
+	stats.DailyActiveUsers = collect("daily active user count", func() (int64, error) {
+		return a.Srv().Store().User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+	})
+	stats.MonthlyActiveUsers = collect("monthly active user count", func() (int64, error) {
+		return a.Srv().Store().User().AnalyticsActiveCount(MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+	})
+	stats.DeactivatedUsers = collect("deactivated user count", func() (int64, error) {
+		return a.Srv().Store().User().AnalyticsGetInactiveUsersCount()
+	})
+	stats.Guests = collect("guest count", func() (int64, error) {
+		return a.Srv().Store().User().AnalyticsGetGuestCount()
+	})
+	stats.SingleChannelGuests = collect("single channel guest count", func() (int64, error) {
+		return a.Srv().Store().User().AnalyticsGetSingleChannelGuestCount()
+	})
+	stats.BotAccounts = collect("bot account count", func() (int64, error) {
+		return a.Srv().Store().User().Count(model.UserCountOptions{IncludeBotAccounts: true, ExcludeRegularUsers: true})
+	})
+	stats.Posts = collect("post count", func() (int64, error) {
+		return a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{})
+	})
+	stats.Channels = collect("channel count", func() (int64, error) {
+		openChannels, err := a.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypeOpen)
+		if err != nil {
+			return 0, err
+		}
 
-	stats.DailyActiveUsers, err = a.Srv().Store().User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get daily active user count"))
-	}
+		privateChannels, err := a.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypePrivate)
+		if err != nil {
+			return 0, err
+		}
 
-	stats.MonthlyActiveUsers, err = a.Srv().Store().User().AnalyticsActiveCount(MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get monthly active user count"))
-	}
+		return openChannels + privateChannels, nil
+	})
+	stats.Teams = collect("team count", func() (int64, error) {
+		return a.Srv().Store().Team().AnalyticsTeamCount(nil)
+	})
+	stats.SlashCommands = collect("command count", func() (int64, error) {
+		return a.Srv().Store().Command().AnalyticsCommandCount("")
+	})
+	stats.IncomingWebhooks = collect("incoming webhook count", func() (int64, error) {
+		return a.Srv().Store().Webhook().AnalyticsIncomingCount("", "")
+	})
+	stats.OutgoingWebhooks = collect("outgoing webhook count", func() (int64, error) {
+		return a.Srv().Store().Webhook().AnalyticsOutgoingCount("")
+	})
 
-	stats.DeactivatedUsers, err = a.Srv().Store().User().AnalyticsGetInactiveUsersCount()
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get deactivated user count"))
-	}
-
-	stats.Guests, err = a.Srv().Store().User().AnalyticsGetGuestCount()
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get guest count"))
-	}
-
-	stats.SingleChannelGuests, err = a.Srv().Store().User().AnalyticsGetSingleChannelGuestCount()
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get single channel guest count"))
-	}
-
-	stats.BotAccounts, err = a.Srv().Store().User().Count(model.UserCountOptions{IncludeBotAccounts: true, ExcludeRegularUsers: true})
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get bot acount count"))
-	}
-
-	stats.Posts, err = a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{})
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get post count"))
-	}
-
-	openChannels, err := a.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypeOpen)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get open channels count"))
-	}
-	privateChannels, err := a.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypePrivate)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get private channels count"))
-	}
-	stats.Channels = openChannels + privateChannels
-
-	stats.Teams, err = a.Srv().Store().Team().AnalyticsTeamCount(nil)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get team count"))
-	}
-
-	stats.SlashCommands, err = a.Srv().Store().Command().AnalyticsCommandCount("")
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get command count"))
-	}
-
-	stats.IncomingWebhooks, err = a.Srv().Store().Webhook().AnalyticsIncomingCount("", "")
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get incoming webhook count"))
-	}
-
-	stats.OutgoingWebhooks, err = a.Srv().Store().Webhook().AnalyticsOutgoingCount("")
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get  outgoing webhook count"))
-	}
-
-	b, err := yaml.Marshal(&stats)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to marshal Support Packet into yaml"))
-	}
-
-	fileData := &model.FileData{
-		Filename: "stats.yaml",
-		Body:     b,
-	}
-	return fileData, rErr.ErrorOrNil()
+	return &stats, rErr.ErrorOrNil()
 }
 
-func (a *App) getSupportPacketJobList(rctx request.CTX) (*model.FileData, error) {
+func (a *App) getSupportPacketJobList(rctx request.CTX) (*model.SupportPacketJobList, error) {
 	const numberOfJobsRuns = 5
 
 	var (
@@ -241,45 +249,35 @@ func (a *App) getSupportPacketJobList(rctx request.CTX) (*model.FileData, error)
 
 	jobs.LDAPSyncJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeLdapSync, 0, numberOfJobsRuns)
 	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting LDAP sync jobs"))
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting LDAP sync jobs"))
 	}
 	jobs.DataRetentionJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeDataRetention, 0, numberOfJobsRuns)
 	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting data retention jobs"))
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting data retention jobs"))
 	}
 	jobs.MessageExportJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeMessageExport, 0, numberOfJobsRuns)
 	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting message export jobs"))
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting message export jobs"))
 	}
 	jobs.ElasticPostIndexingJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeElasticsearchPostIndexing, 0, numberOfJobsRuns)
 	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post indexing jobs"))
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting ES post indexing jobs"))
 	}
 	jobs.ElasticPostAggregationJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeElasticsearchPostAggregation, 0, numberOfJobsRuns)
 	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post aggregation jobs"))
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting ES post aggregation jobs"))
 	}
 	jobs.MigrationJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeMigrations, 0, numberOfJobsRuns)
 	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting migration jobs"))
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting migration jobs"))
 	}
 
-	b, err := yaml.Marshal(&jobs)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to marshal jobs list into yaml"))
-	}
-
-	fileData := &model.FileData{
-		Filename: "jobs.yaml",
-		Body:     b,
-	}
-	return fileData, rErr.ErrorOrNil()
+	return &jobs, rErr.ErrorOrNil()
 }
 
-func (a *App) getSupportPacketPermissionsInfo(_ request.CTX) (*model.FileData, error) {
+func (a *App) getSupportPacketPermissionsInfo(_ request.CTX) (*model.SupportPacketPermissionInfo, error) {
 	var (
 		rErr        *multierror.Error
-		err         error
 		permissions model.SupportPacketPermissionInfo
 	)
 
@@ -289,7 +287,7 @@ func (a *App) getSupportPacketPermissionsInfo(_ request.CTX) (*model.FileData, e
 	for {
 		schemes, appErr := a.GetSchemesPage("", page, perPage)
 		if appErr != nil {
-			rErr = multierror.Append(errors.Wrap(appErr, "failed to get list of schemes"))
+			rErr = multierror.Append(rErr, errors.Wrap(appErr, "failed to get list of schemes"))
 			break
 		}
 
@@ -307,7 +305,7 @@ func (a *App) getSupportPacketPermissionsInfo(_ request.CTX) (*model.FileData, e
 
 	roles, appErr := a.GetAllRoles()
 	if appErr != nil {
-		rErr = multierror.Append(errors.Wrap(appErr, "failed to get list of roles"))
+		rErr = multierror.Append(rErr, errors.Wrap(appErr, "failed to get list of roles"))
 	}
 
 	for _, r := range roles {
@@ -315,19 +313,10 @@ func (a *App) getSupportPacketPermissionsInfo(_ request.CTX) (*model.FileData, e
 	}
 	permissions.Roles = roles
 
-	b, err := yaml.Marshal(&permissions)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to marshal permission info into yaml"))
-	}
-
-	fileData := &model.FileData{
-		Filename: "permissions.yaml",
-		Body:     b,
-	}
-	return fileData, rErr.ErrorOrNil()
+	return &permissions, rErr.ErrorOrNil()
 }
 
-func (a *App) getPluginsFile(_ request.CTX) (*model.FileData, error) {
+func (a *App) getPluginsList(_ request.CTX) (*model.SupportPacketPluginList, error) {
 	// Getting the plugins installed on the server, prettify it, and then add them to the file data array
 	plugins, appErr := a.GetPlugins()
 	if appErr != nil {
@@ -342,34 +331,16 @@ func (a *App) getPluginsFile(_ request.CTX) (*model.FileData, error) {
 		pluginList.Disabled = append(pluginList.Disabled, p.Manifest)
 	}
 
-	pluginsPrettyJSON, err := json.MarshalIndent(pluginList, "", "    ")
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal plugin list into json")
-	}
-
-	fileData := &model.FileData{
-		Filename: "plugins.json",
-		Body:     pluginsPrettyJSON,
-	}
-	return fileData, nil
+	return &pluginList, nil
 }
 
-func (a *App) getSupportPacketMetadata(_ request.CTX) (*model.FileData, error) {
+func (a *App) getSupportPacketMetadata(_ request.CTX) (*model.PacketMetadata, error) {
 	metadata, err := model.GeneratePacketMetadata(model.SupportPacketType, a.ServerId(), a.License(), nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate Packet metadata")
 	}
 
-	b, err := yaml.Marshal(metadata)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal Packet metadata into yaml")
-	}
-
-	fileData := &model.FileData{
-		Filename: model.PacketMetadataFileName,
-		Body:     b,
-	}
-	return fileData, nil
+	return metadata, nil
 }
 
 func (a *App) getSupportPacketDatabaseSchema(rctx request.CTX) (*model.FileData, error) {

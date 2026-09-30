@@ -138,7 +138,7 @@ body.app__body #root {
             "announcement announcement" min-content
             "admin-announcement admin-announcement" min-content
             "header header" min-content
-            "lhs center"
+            "lhs center" minmax(0, 1fr)
             "classification-banner-bottom classification-banner-bottom" min-content
             "footer footer" min-content;
         grid-template-columns: auto 1fr; /* lhs takes its content width, center takes remaining space */
