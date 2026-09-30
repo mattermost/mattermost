@@ -367,7 +367,12 @@ export async function restartMattermostContainer(env: Record<string, string>): P
         testConfig.bootEnvOverrides,
     );
 
-    testConfig.baseURL = resolveUrl(mattermost, MATTERMOST_PORT, MATTERMOST_ALIAS);
+    // Mirrors applyResolvedConfig()'s subpath override below the initial resolveUrl() call —
+    // otherwise a subpath run's baseURL reverts to the un-proxied container URL on every restart,
+    // silently dropping every later request (in this worker, for the rest of the run) past nginx.
+    testConfig.baseURL = testConfig.subpathMode
+        ? `${testConfig.nginxUrl}${SUBPATH_DEFAULT}`
+        : resolveUrl(mattermost, MATTERMOST_PORT, MATTERMOST_ALIAS);
     testConfig.mattermostContainerId = mattermost.getId();
     clearClientCache();
 
