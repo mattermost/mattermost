@@ -127,7 +127,7 @@ const TYPES = {
  * English needs a plural far less often than the languages it is translated
  * into: "{count} items were deleted" is one sentence in English and four in
  * Russian. Wrapping a bare {count} in {count, plural, ...} is how a translator
- * makes that sentence grammatical, and it loses nothing -- so it is allowed,
+ * makes that sentence grammatical, and it loses nothing, so it is allowed,
  * even though the source never asked for a plural. Demotion is the reverse and
  * stays fatal.
  *
@@ -144,9 +144,9 @@ const PROMOTIONS = {
 
 /**
  * Map every variable and tag in an AST to the set of types it is used as. A
- * single name is regularly used in more than one role -- "{count, number} new
+ * single name is regularly used in more than one role ("{count, number} new
  * {count, plural, one {message} other {messages}}" uses count as both a number
- * and a plural -- so this has to be a set per name, not a type per name.
+ * and a plural), so this has to be a set per name, not a type per name.
  *
  * Plural categories are deliberately not compared: which categories a message
  * needs is a property of the locale, not of the source string.

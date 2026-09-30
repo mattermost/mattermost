@@ -1017,7 +1017,7 @@ func verifyLocale(name string, raw []byte, en map[string]Item, warnMissingIDs bo
 		plural, itemIsPlural := pluralForms(item.Translation)
 
 		// Collapsing a pluralised source to a single string still loads and
-		// still renders, it just silently stops pluralising -- the same defect
+		// still renders, it just silently stops pluralising: the same defect
 		// check_icu.mjs rejects on the webapp side.
 		if sourceIsPlural && !itemIsPlural {
 			problems = append(problems, fmt.Sprintf("%s: %s: en.json pluralises this id but the translation is a single string, which silently stops pluralising", name, id))
@@ -1031,7 +1031,7 @@ func verifyLocale(name string, raw []byte, en map[string]Item, warnMissingIDs bo
 		// email_batching.go passes len(notifications)-1. A language that has to
 		// inflect where English does not is translating correctly. The residual
 		// risk is a call site that passes no count, where go-i18n resolves to
-		// language.Invalid, finds no template, and renders the raw id -- not
+		// language.Invalid, finds no template, and renders the raw id. That is not
 		// something the catalogs can tell us, so it is not checked here.
 		if !itemIsPlural {
 			continue
