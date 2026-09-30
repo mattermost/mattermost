@@ -2066,6 +2066,29 @@ describe('GlobalAttributesTable', () => {
                 expect(tooltip).toHaveTextContent('A user attribute named "clearance" already exists and is linked to Classification.');
             });
 
+            it('is an icon with a role that admits a name, so it can neither ship invisible nor unannounceable', async () => {
+                renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+                const warning = await findWarning();
+
+                // `img` is what lets aria-label be announced on a span whose only
+                // content is decoration. Asserted on the attribute rather than
+                // through a query by role, because testing-library computes an
+                // accessible name for the label with or without it while real
+                // assistive tech does not.
+                expect(warning).toHaveAttribute('role', 'img');
+
+                // And there is something to see. Asserted structurally, for the
+                // same reason the read-only resource icons are in
+                // applies_to_card.test: the icon is aria-hidden and has nothing a
+                // query by role or accessible name could find, so without this,
+                // deleting it would leave an empty focusable span every other
+                // assertion here is happy with.
+                const icon = warning.querySelector('svg');
+                expect(icon).not.toBeNull();
+                expect(icon).toHaveAttribute('aria-hidden', 'true');
+            });
+
             it('takes keyboard focus, so the same warning is reachable without a mouse', async () => {
                 renderWithContext(<GlobalAttributesTable/>, getBaseState());
 

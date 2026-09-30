@@ -10,7 +10,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import ModalController from 'components/modal_controller';
 
-import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 
 import ClassificationAttribute from './classification_attribute';
 
@@ -325,6 +325,57 @@ describe('ClassificationAttribute', () => {
         expect(await screen.findByTestId('appliesToEmpty')).toBeInTheDocument();
         expect(screen.queryByTestId('appliesToReadOnlyResources')).not.toBeInTheDocument();
         expect(screen.queryByTestId('classificationAttributeLoadError')).not.toBeInTheDocument();
+    });
+
+    it('keeps the page usable when the linked-field listing genuinely fails, and loses only its rows', async () => {
+        // That listing decides one read-only sentence and nothing else on the page,
+        // so it runs outside the load the page waits on: inside it, any non-404 from
+        // the user or post scope replaced the levels, the channel row and Save with
+        // the load-error screen.
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        const existingChannelField = channelField({required: true, actions: ['display_label_header']});
+        const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
+            if (objectType === 'template') {
+                return [TEMPLATE];
+            }
+            if (objectType === 'user') {
+                throw new ClientError('https://example.com', {
+                    message: 'Internal Server Error',
+                    status_code: 500,
+                    url: '/api/v4/properties/groups/access_control/user/fields',
+                });
+            }
+            return [existingChannelField];
+        });
+
+        render();
+
+        // The listing runs in its own effect, so the page can be on screen before it
+        // has failed -- waiting on the page alone would make the "no read-only rows"
+        // assertion below a statement about the state the page starts in.
+        await waitFor(() => {
+            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'user', 'system', undefined, expect.anything());
+        });
+        await act(async () => {});
+
+        // Everything the page is for, none of which the failed listing has any say
+        // over. Spelled out rather than left to the load-error check alone, because
+        // the error screen is not the only way this could go wrong.
+        expect(screen.getByTestId('classificationAttributeLevels')).toHaveTextContent('UNCLASSIFIED');
+        expect(screen.getByTestId('classificationAttributeLevels')).toHaveTextContent('SECRET');
+        expect(screen.getByTestId('channelsResourceRow')).toBeInTheDocument();
+        expect(screen.getByTestId('channelsResourceRowSummary')).toHaveTextContent('Required · Display: Header');
+        expect(screen.getByTestId('saveSetting')).toBeInTheDocument();
+        expect(screen.getByTestId('classificationAttributeCancelLink')).toBeInTheDocument();
+        expect(screen.queryByTestId('classificationAttributeLoadError')).not.toBeInTheDocument();
+
+        // The only casualty. The same fixture plus a listed user field produces the
+        // row in the test above, so its absence here is the failure and nothing else.
+        expect(screen.queryByTestId('appliesToReadOnlyResources')).not.toBeInTheDocument();
+        expect(screen.queryByText(/Applied to Users as/)).not.toBeInTheDocument();
+
+        consoleSpy.mockRestore();
     });
 
     it('creates the channel field when the resource is added and saved', async () => {

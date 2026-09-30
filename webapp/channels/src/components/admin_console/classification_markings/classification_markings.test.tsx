@@ -789,6 +789,23 @@ describe('ClassificationMarkings component', () => {
         expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/membership_policies');
     });
 
+    test('should quote the clearance attribute in the help text under the name it is actually created with', async () => {
+        // The display name is pinned as a literal where the create call is
+        // asserted, and this copy quotes the same name: the two are one pair, so
+        // renaming the attribute without this reads as two different attributes.
+        const field = makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}});
+        mockFieldsByObjectType({[CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field]});
+
+        renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
+        await screen.findByTestId('clearanceAttributeCheckbox');
+        await waitForClearanceNameListing();
+
+        expect(screen.getByTestId('clearanceAttributehelp-text')).toHaveTextContent(
+            'Creates a ranked "Classification clearance" user attribute linked to these classification levels. ' +
+            'Channel membership can then be managed with a corresponding membership policy.',
+        );
+    });
+
     test('should render disabled state when no existing field', async () => {
         mockFieldsByObjectType({});
 
@@ -2278,6 +2295,15 @@ describe('Clearance name shared with another attribute', () => {
 
         expect(section.getByRole('heading', {name: 'Another attribute already uses this name'})).toBeInTheDocument();
         expect(section.getByText(WARNING_TEXT)).toBeInTheDocument();
+
+        // Its severity, not only its presence: the blocking notice below carries
+        // the same icon and differs from this one in nothing a query by role or
+        // text can see, so without this the warning could be dressed as a block
+        // while still reading as a warning. SectionNotice puts its type on the
+        // container's class list.
+        const notice = section.getByRole('heading', {name: 'Another attribute already uses this name'}).closest('.sectionNoticeContainer');
+        expect(notice).toHaveClass('warning');
+        expect(notice).not.toHaveClass('danger');
 
         // The half that matters: this one warns, it does not block. The server
         // accepts the user field this page creates, so the admin is still allowed

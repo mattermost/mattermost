@@ -69,19 +69,22 @@ describe('classification_markings/utils', () => {
         });
 
         it('asks for another page after a short one, since only an empty page ends the paging', async () => {
-            // A page shorter than the requested size is the usual sign that it was
-            // the last one, but this loop does not read it that way -- so a field
-            // sitting behind a short page is still reached. The caller depends on
-            // that: it is looking for a name it does not own, which any page could
-            // hold.
+            // A short page is not what this loop stops on, unlike its sibling
+            // listPropertyFields in global_attributes/utils, which breaks there.
+            // The server would let it: SearchPropertyFields applies DeleteAt = 0
+            // and every other filter in SQL before LIMIT, so in directory mode a
+            // short page really is the last one. This is the cost of not reading
+            // it that way -- one more request, always, to be told what the short
+            // page already said -- and it is the stop condition the caller's
+            // cursor arithmetic is written against.
             getPropertyFields.
                 mockResolvedValueOnce([makeField({id: 'u1', create_at: 1})]).
-                mockResolvedValueOnce([makeField({id: 'behind-a-short-page', create_at: 2})]).
+                mockResolvedValueOnce([makeField({id: 'u2', create_at: 2})]).
                 mockResolvedValueOnce([]);
 
             const fields = await listLiveFields('user');
 
-            expect(fields.map((field) => field.id)).toEqual(['u1', 'behind-a-short-page']);
+            expect(fields.map((field) => field.id)).toEqual(['u1', 'u2']);
             expect(getPropertyFields).toHaveBeenCalledTimes(3);
         });
 

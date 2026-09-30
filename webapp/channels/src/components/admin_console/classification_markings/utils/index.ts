@@ -217,8 +217,9 @@ async function findLiveFieldByName(objectType: string, name: string): Promise<Pr
 
 /**
  * Every live field in an object type. Unlike findLiveFieldByName, which stops at
- * the first match because names are unique, this pages to the end: a caller
- * looking for a name this feature does not own has to see all of them.
+ * the first match because names are unique, this pages until a page comes back
+ * empty: a caller looking for a name this feature does not own has to see all
+ * of them.
  */
 export async function listLiveFields(objectType: string): Promise<PropertyField[]> {
     const maxItems = 500;

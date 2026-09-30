@@ -141,22 +141,10 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                     return;
                 }
 
-                const linkedFields = (await fetchLinkedFieldsForTemplate(templateField.id, allowedResourceTypes).catch(rethrowUnlessNotFound)) ?? [];
-                if (!isMountedRef.current) {
-                    return;
-                }
-                const otherResources: Array<{type: ResourceObjectType; name: string}> = [];
-                for (const linked of linkedFields) {
-                    if (linked.object_type !== CHANNEL_OBJECT_TYPE && isResourceObjectType(linked.object_type)) {
-                        otherResources.push({type: linked.object_type, name: linked.name});
-                    }
-                }
-
                 const existingChannelField = channelLookup.field;
                 setTemplate(templateField);
                 setChannelField(existingChannelField ?? null);
                 setChannelResource(existingChannelField ? parseChannelFieldConfig(existingChannelField) : null);
-                setOtherLinkedResources(otherResources);
                 setLoadState('ready');
             } catch (error) {
                 // Logged as well as shown: the canned copy cannot say which call failed.
@@ -167,7 +155,34 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                 }
             }
         })();
-    }, [allowedResourceTypes]);
+    }, []);
+
+    // Kept out of the load above, whose catch replaces the whole page with an
+    // error screen. These rows only report which other resources the template
+    // reaches, so a scope that will not list costs the rows, not the page.
+    useEffect(() => {
+        if (!template) {
+            return;
+        }
+
+        (async () => {
+            try {
+                const linkedFields = (await fetchLinkedFieldsForTemplate(template.id, allowedResourceTypes).catch(rethrowUnlessNotFound)) ?? [];
+                if (!isMountedRef.current) {
+                    return;
+                }
+                const otherResources: Array<{type: ResourceObjectType; name: string}> = [];
+                for (const linked of linkedFields) {
+                    if (linked.object_type !== CHANNEL_OBJECT_TYPE && isResourceObjectType(linked.object_type)) {
+                        otherResources.push({type: linked.object_type, name: linked.name});
+                    }
+                }
+                setOtherLinkedResources(otherResources);
+            } catch (error) {
+                console.error('ClassificationAttribute-load-linked-resources: ', error); // eslint-disable-line no-console
+            }
+        })();
+    }, [allowedResourceTypes, template]);
 
     const levels = useMemo(() => {
         const options = (template?.attrs?.options ?? []) as PropertyFieldOption[];

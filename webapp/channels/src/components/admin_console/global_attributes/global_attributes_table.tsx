@@ -272,11 +272,17 @@ function AttributeCell({field, isClassificationRow, nameConflict}: Classificatio
 
                             // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child, so without this the warning is mouse-only
                             tabIndex={0}
+
+                            // The icon is the whole content, so the element needs a
+                            // role that admits a name for aria-label to be announced.
                             role='img'
                             aria-label={conflictText}
                             data-testid={`global-attribute-name-conflict-${field.id}`}
                         >
-                            <AlertOutlineIcon size={16}/>
+                            <AlertOutlineIcon
+                                size={16}
+                                aria-hidden={true}
+                            />
                         </span>
                     </WithTooltip>
                 )}
