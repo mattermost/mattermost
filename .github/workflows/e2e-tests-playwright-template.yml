@@ -390,7 +390,7 @@ jobs:
         # no PR to comment on, so the story lands in the job summary.
         if: always()
         continue-on-error: true
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-triage@6bf7ab93a4b65bf85be5cf803379d3c780816828 # actions/e2e-triage, branch e2e-triage
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-triage@8ac48c6d8e5f5a9c818bd46d7108a834d5c855b2 # actions/e2e-triage, branch e2e-triage
         with:
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
           status-context: ${{ inputs.context_name }}
