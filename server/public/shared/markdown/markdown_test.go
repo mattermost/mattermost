@@ -206,6 +206,10 @@ func TestParse(t *testing.T) {
 	})
 
 	t.Run("parsing one document many times over completes in bounded time", func(t *testing.T) {
+		if testing.Short() {
+			t.Skip("wall-clock bound is not meaningful in short mode")
+		}
+
 		n := 3000
 		markdown := referenceUses(n, "no", "\n\n") + referenceDefinitions(n, "", " ", "\n\n")
 		require.LessOrEqual(t, len(markdown), MaxLen())
@@ -224,6 +228,12 @@ func TestParse(t *testing.T) {
 			})
 		}
 		wg.Wait()
+
+		// The race detector and loaded shared runners can push linear work past one second even
+		// when the allocation-growth tests already show the cost follows document size.
+		if raceDetector {
+			return
+		}
 
 		elapsed := time.Since(start)
 		assert.Lessf(t, elapsed, time.Second,
