@@ -99,6 +99,14 @@ func Read(r io.ReaderAt, size int64) (*Packet, error) {
 		}
 	}
 
+	generationErrors, found, err := readRaw(zr, model.SupportPacketErrorFile)
+	switch {
+	case err != nil:
+		warnings = append(warnings, fmt.Sprintf("%s.", err))
+	case found:
+		warnings = append(warnings, fmt.Sprintf("The server reported errors while generating the packet, so some data may be missing: %s", strings.TrimSpace(string(generationErrors))))
+	}
+
 	return &Packet{Snapshot: snapshot, Warnings: warnings}, nil
 }
 
@@ -213,25 +221,33 @@ func readSection[T any](zr *zip.Reader, sections map[model.WorkspaceSection]erro
 const maxMemberSize = 64 << 20
 
 func readMember(zr *zip.Reader, name string, v any, unmarshal func([]byte, any) error) (found bool, err error) {
-	f, err := zr.Open(name)
-	if errors.Is(err, fs.ErrNotExist) {
-		return false, nil
-	}
-	if err != nil {
-		return true, fmt.Errorf("failed to read %s: %w", name, err)
-	}
-	defer f.Close()
-
-	data, err := io.ReadAll(io.LimitReader(f, maxMemberSize+1))
-	if err != nil {
-		return true, fmt.Errorf("failed to read %s: %w", name, err)
-	}
-	if len(data) > maxMemberSize {
-		return true, fmt.Errorf("failed to read %s: larger than %d MiB", name, maxMemberSize>>20)
+	data, found, err := readRaw(zr, name)
+	if !found || err != nil {
+		return found, err
 	}
 
 	if err = unmarshal(data, v); err != nil {
 		return true, fmt.Errorf("failed to parse %s: %w", name, err)
 	}
 	return true, nil
+}
+
+func readRaw(zr *zip.Reader, name string) (data []byte, found bool, err error) {
+	f, err := zr.Open(name)
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil, false, nil
+	}
+	if err != nil {
+		return nil, true, fmt.Errorf("failed to read %s: %w", name, err)
+	}
+	defer f.Close()
+
+	data, err = io.ReadAll(io.LimitReader(f, maxMemberSize+1))
+	if err != nil {
+		return nil, true, fmt.Errorf("failed to read %s: %w", name, err)
+	}
+	if len(data) > maxMemberSize {
+		return nil, true, fmt.Errorf("failed to read %s: larger than %d MiB", name, maxMemberSize>>20)
+	}
+	return data, true, nil
 }
