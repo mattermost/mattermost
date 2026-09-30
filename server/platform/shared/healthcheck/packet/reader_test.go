@@ -343,6 +343,17 @@ func TestReadUnparsableNodeDiagnostics(t *testing.T) {
 	assert.Contains(t, evaluate(t, p.Snapshot), finding{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject})
 }
 
+func TestReadGenerationErrors(t *testing.T) {
+	files := fixtureFiles(t, "standalone")
+	files[model.SupportPacketErrorFile] = []byte("1 error occurred:\n\t* failed to get plugin list for Support Packet\n\n")
+
+	p := readFiles(t, files)
+
+	require.Len(t, p.Warnings, 1)
+	assert.Equal(t, "The server reported errors while generating the packet, so some data may be missing: 1 error occurred:\n\t* failed to get plugin list for Support Packet", p.Warnings[0])
+	assert.True(t, p.Snapshot.Has(model.SectionPlugins))
+}
+
 func TestReadInvalidPackets(t *testing.T) {
 	t.Run("not a zip", func(t *testing.T) {
 		data := []byte("definitely not a zip")
