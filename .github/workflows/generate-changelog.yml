@@ -37,6 +37,15 @@ on:
         description: 'Blog post URL for the Improvements section — if omitted, auto-constructed from version (e.g. https://mattermost.com/blog/mattermost-v11-9-is-now-available/)'
         required: false
         type: string
+      mode:
+        description: 'auto: add notes from newly merged PRs to the open changelog PR without touching existing lines, or open a draft PR if there is none. regenerate: rebuild the entry from scratch, discarding edits made in the PR. dry_run: generate only, into the run summary and an artifact; nothing is pushed.'
+        required: false
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - regenerate
+          - dry_run
 
 jobs:
   generate-changelog:
@@ -114,6 +123,50 @@ jobs:
           fi
           echo "changelog=docs/main/product-overview/mattermost-v${MAJOR}-changelog.mdx" >> "$GITHUB_OUTPUT"
 
+      # Reviewers edit the changelog PR directly, so a rerun must not overwrite it. In
+      # auto mode an open PR is updated in place: the script adds only the notes from PRs
+      # its body does not list yet, and every existing line is kept.
+      - name: Find open changelog PR
+        id: pr
+        env:
+          GH_TOKEN: ${{ steps.writeToken.outputs.token }}
+          VERSION: ${{ inputs.version }}
+          MODE: ${{ inputs.mode }}
+        run: |
+          # Run the generator from this checkout even after the PR branch is checked out
+          # below: that branch was cut when the PR was opened and may carry an older copy.
+          cp .github/scripts/generate_changelog.py "$RUNNER_TEMP/generate_changelog.py"
+
+          PR_NUMBER="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "changelog/$VERSION" --state open --json number --jq '.[0].number // empty')"
+          BODY_FILE=""
+          if [ -n "$PR_NUMBER" ]; then
+            BODY_FILE="$RUNNER_TEMP/changelog-pr-body.md"
+            gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json body --jq .body > "$BODY_FILE"
+            echo "Open changelog PR: #$PR_NUMBER"
+          fi
+          case "$MODE" in
+            dry_run)    SCRIPT_MODE=create; PUBLISH=none; BODY_FILE="" ;;
+            regenerate) SCRIPT_MODE=create; PUBLISH=regenerate ;;
+            *)
+              if [ -n "$PR_NUMBER" ]; then SCRIPT_MODE=update; PUBLISH=update
+              else SCRIPT_MODE=create; PUBLISH=create; fi ;;
+          esac
+          echo "Script mode: $SCRIPT_MODE, publish: $PUBLISH"
+          {
+            echo "number=$PR_NUMBER"
+            echo "body_file=$BODY_FILE"
+            echo "script_mode=$SCRIPT_MODE"
+            echo "publish=$PUBLISH"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Check out changelog PR branch
+        if: steps.pr.outputs.script_mode == 'update'
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          git fetch origin "changelog/$VERSION"
+          git checkout -B "changelog/$VERSION" FETCH_HEAD
+
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
@@ -123,6 +176,7 @@ jobs:
         run: pip install requests anthropic
 
       - name: Generate changelog
+        id: generate
         env:
           GITHUB_TOKEN: ${{ steps.readToken.outputs.token }} # Read-only token for fetching PRs from source repos
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }} # Enables AI categorization and formatting — add under Settings → Secrets and variables → Actions
@@ -134,32 +188,91 @@ jobs:
           GO_VERSION: ${{ inputs.go_version }}
           BLOG_POST_URL: ${{ inputs.blog_post_url }}
           CHANGELOG_PATH: ${{ steps.paths.outputs.changelog }}
-        run: python .github/scripts/generate_changelog.py
+          MODE: ${{ steps.pr.outputs.script_mode }}
+          PR_BODY_FILE: ${{ steps.pr.outputs.body_file }}
+          OUTPUT_DIR: ${{ runner.temp }}/changelog-output
+        run: python "$RUNNER_TEMP/generate_changelog.py"
+
+      - name: Write run summary
+        env:
+          VERSION: ${{ inputs.version }}
+          MODE: ${{ inputs.mode }}
+          SCRIPT_MODE: ${{ steps.pr.outputs.script_mode }}
+          CHANGED: ${{ steps.generate.outputs.changed }}
+        run: |
+          OUT="$RUNNER_TEMP/changelog-output"
+          {
+            echo "## $VERSION changelog ($MODE, $SCRIPT_MODE)"
+            echo
+            if [ "$SCRIPT_MODE" = "update" ] && [ "$CHANGED" != "true" ]; then
+              echo "No new release notes since the last run."
+            elif [ -s "$OUT/entry.mdx" ]; then
+              [ "$SCRIPT_MODE" = "update" ] && echo "Added to the open changelog PR:" && echo
+              echo '````mdx'
+              cat "$OUT/entry.mdx"
+              echo '````'
+            fi
+            echo
+            echo "Each section's bullets and their source PRs are in \`sections.json\` in the \`changelog-output\` artifact."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload changelog output
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: changelog-output
+          path: ${{ runner.temp }}/changelog-output/
+          if-no-files-found: error
 
       # Dispatch inputs and repo variables are bound to environment variables rather than
       # interpolated directly into the script body. Interpolated ${{ }} expressions are
       # substituted before bash runs, so a value containing shell metacharacters would be
       # executed as code alongside the write-scoped app token.
-      - name: Create Pull Request
+      - name: Create or update Pull Request
+        if: steps.pr.outputs.publish != 'none'
         env:
           GH_TOKEN: ${{ steps.writeToken.outputs.token }}
           VERSION: ${{ inputs.version }}
-          MILESTONE: ${{ inputs.milestone }}
-          SERVER_REPOS: ${{ inputs.server_repos }}
           COMMIT_USER_NAME: ${{ vars.CHANGELOG_GIT_USERNAME }}
           COMMIT_USER_EMAIL: ${{ vars.CHANGELOG_GIT_EMAIL }}
           CHANGELOG_FILE: ${{ steps.paths.outputs.changelog }}
+          PUBLISH: ${{ steps.pr.outputs.publish }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          CHANGED: ${{ steps.generate.outputs.changed }}
+          ADDED_PRS: ${{ steps.generate.outputs.added_prs }}
         run: |
+          BODY_FILE="$RUNNER_TEMP/changelog-output/pr_body.md"
           git config user.name "$COMMIT_USER_NAME"
           git config user.email "$COMMIT_USER_EMAIL"
-          git checkout -b "changelog/$VERSION"
+
+          if [ "$PUBLISH" = "update" ]; then
+            # Already on the PR branch. New commits only, never a force-push, so every
+            # edit made in the PR survives.
+            if [ "$CHANGED" != "true" ]; then
+              echo "No new release notes — changelog PR #$PR_NUMBER left unchanged"
+              exit 0
+            fi
+            git add "$CHANGELOG_FILE"
+            git diff --staged --quiet && echo "No changes to commit" && exit 0
+            git commit -m "docs: add release notes from $ADDED_PRS newly merged PR(s) to the $VERSION changelog"
+            git push origin "HEAD:changelog/$VERSION"
+            gh pr edit "$PR_NUMBER" --repo mattermost/mattermost --body-file "$BODY_FILE"
+            exit 0
+          fi
+
+          # create or regenerate: a fresh branch from master, replacing any previous one.
+          git checkout -B "changelog/$VERSION"
           git add "$CHANGELOG_FILE"
           git diff --staged --quiet && echo "No changes to commit" && exit 0
           git commit -m "docs: add changelog for $VERSION"
           git push origin "changelog/$VERSION" --force
-          gh pr create \
-            --repo mattermost/mattermost \
-            --title "$VERSION Changelog" \
-            --body "Auto-generated changelog for milestone \`$MILESTONE\` from \`$SERVER_REPOS\`." \
-            --base master \
-            --head "changelog/$VERSION"
+          if [ -n "$PR_NUMBER" ]; then
+            gh pr edit "$PR_NUMBER" --repo mattermost/mattermost --body-file "$BODY_FILE"
+          else
+            gh pr create \
+              --repo mattermost/mattermost \
+              --draft \
+              --title "$VERSION Changelog" \
+              --body-file "$BODY_FILE" \
+              --base master \
+              --head "changelog/$VERSION"
+          fi
