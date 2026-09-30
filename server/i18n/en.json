@@ -10371,11 +10371,6 @@
     "description": "Error when the server fails to evaluate a permission policy while checking a user's access."
   },
   {
-    "id": "app.pdp.action_has_permission_policy.app_error",
-    "translation": "Could not determine whether permission policies govern this action.",
-    "description": ""
-  },
-  {
     "id": "app.plugin.addon_not_licensed.app_error",
     "translation": "This plugin requires the {{.AddOn}} add-on, which your license does not include.",
     "description": "Error shown to an admin trying to enable a plugin that requires a separately purchased license add-on. {{.AddOn}} is the add-on's internal name from the license; it is not translated."
