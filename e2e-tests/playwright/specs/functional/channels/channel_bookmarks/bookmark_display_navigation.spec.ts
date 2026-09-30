@@ -47,7 +47,8 @@ test('MM-T5611 opens external and internal bookmark links', {tag: '@channels'}, 
         userClient,
         channel.id,
         'Town Square',
-        new URL(`/${team.name}/channels/town-square`, testConfig.baseURL).toString(),
+        // Root-relative resolution against baseURL would drop the /subpath prefix in subpath mode.
+        `${testConfig.baseURL}/${team.name}/channels/town-square`,
     );
     await channelsPage.goto(team.name, channel.name);
 

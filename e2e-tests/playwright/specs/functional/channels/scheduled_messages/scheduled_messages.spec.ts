@@ -384,7 +384,7 @@ test(
         await scheduledPostsPage.sendMessageNowModal.sendNowButton.click();
 
         // * Verify page redirects to the channel
-        await expect(channelsPage.page).toHaveURL(townSquareUrl);
+        await expect(channelsPage.page).toHaveURL(new RegExp(`${townSquareUrl}$`));
 
         // * Verify scheduled indicators are removed
         await channelsPage.centerView.scheduledPostIndicator.toBeNotVisible();
@@ -458,7 +458,7 @@ test(
         await scheduledPostsPage.sendMessageNowModal.sendNowButton.click();
 
         // * Verify page redirects to the DM channel
-        await expect(channelsPage.page).toHaveURL(`/${team.name}/messages/@${otherUser.username}`);
+        await expect(channelsPage.page).toHaveURL(new RegExp(`/${team.name}/messages/@${otherUser.username}$`));
 
         // * Verify scheduled indicators are removed
         await channelsPage.centerView.scheduledPostIndicator.toBeNotVisible();
@@ -574,7 +574,7 @@ test(
         await scheduledPostsPage.sendMessageNowModal.sendNowButton.click();
 
         // * Verify page redirects to the channel
-        await expect(channelsPage.page).toHaveURL(townSquareUrl);
+        await expect(channelsPage.page).toHaveURL(new RegExp(`${townSquareUrl}$`));
 
         // * Verify scheduled indicators are removed
         await channelsPage.centerView.scheduledPostIndicator.toBeNotVisible();
