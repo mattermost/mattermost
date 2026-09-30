@@ -2648,10 +2648,24 @@ describe('AttributeDetails', () => {
         });
 
         it('redirects to the listing when the field is Classification Markings', async () => {
-            mockLoadedField(makeTemplate({name: 'classification'}));
+            mockLoadedField(makeTemplate({name: 'classification', type: 'rank'}));
             renderEdit();
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
             expect(screen.queryByTestId('attributeDetails')).not.toBeInTheDocument();
+        });
+
+        it('opens a wrong-typed template named classification here, since it is an ordinary attribute', async () => {
+            // * This editor is the repair path the Classification Markings conflict error
+            // points at: the name is only reserved for the rank-typed definition.
+            mockLoadedField(makeTemplate({name: 'classification', type: 'text'}));
+            renderEdit();
+            expect(await screen.findByTestId('attributeDetails')).toBeInTheDocument();
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+
+            // Reachable is not enough: the collision is on the unique name, so the
+            // repair is renaming that, not the display name.
+            expect(screen.getByTestId('attributeDisplayNameInput')).toBeEnabled();
+            expect(screen.getByTestId('attributeNameEditLink')).toBeEnabled();
         });
 
         it('redirects to the listing when the field is missing', async () => {

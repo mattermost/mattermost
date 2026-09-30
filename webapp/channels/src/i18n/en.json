@@ -3355,6 +3355,30 @@
     "defaultMessage": "Open color picker",
     "description": "Accessibility label for the color swatch button in the classification levels table; opens a color picker for that level."
   },
+  "admin.classification_markings.conflict.channel_field": {
+    "defaultMessage": "A channel attribute named \"{name}\" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management, then reload this page.",
+    "description": ""
+  },
+  "admin.classification_markings.conflict.clearance": {
+    "defaultMessage": "A user attribute named \"{name}\" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management to enable the clearance attribute.",
+    "description": ""
+  },
+  "admin.classification_markings.conflict.clearance_title": {
+    "defaultMessage": "Clearance attribute cannot be created",
+    "description": ""
+  },
+  "admin.classification_markings.conflict.system_field": {
+    "defaultMessage": "A system attribute named \"{name}\" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management, then reload this page.",
+    "description": ""
+  },
+  "admin.classification_markings.conflict.template": {
+    "defaultMessage": "An attribute named \"{name}\" already exists with a different type, so it is not a set of classification levels. Rename or remove it in Attribute Management, then reload this page.",
+    "description": ""
+  },
+  "admin.classification_markings.conflict.title": {
+    "defaultMessage": "Classification markings cannot be configured",
+    "description": ""
+  },
   "admin.classification_markings.enable.description": {
     "defaultMessage": "Use this to enable classification markings as banners at the system and channel level. You can pre-select text and colors for your banner, as well as set a default option for consistency.",
     "description": "Help text under the 'Enable classification markings' toggle on the System Console Classification Markings page (Enterprise Advanced feature)."
@@ -3382,6 +3406,10 @@
   "admin.classification_markings.enforcement.clearance.title": {
     "defaultMessage": "Clearance attribute",
     "description": "Section heading above the clearance checkbox in System Console > Classification Markings. A noun phrase naming the feature, not an instruction. The attribute is created with the hardcoded English display name 'Clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
+  },
+  "admin.classification_markings.error.create_name_conflict": {
+    "defaultMessage": "Could not save because an attribute with a conflicting name already exists: {error} Rename or remove it in Attribute Management, then reload this page.",
+    "description": ""
   },
   "admin.classification_markings.error.delete_has_dependents": {
     "defaultMessage": "Cannot disable classification markings while channel classifications exist. Remove all channel classification markings first.",
@@ -6658,6 +6686,10 @@
   "admin.global_attributes.classification.markings_page_name": {
     "defaultMessage": "Classification Markings",
     "description": "Link text naming the Classification Markings page of the System Console. It fills the {link} slot in the 'Classification is not set up yet' notice. Must match the translation of the System Console sidebar item of the same name."
+  },
+  "admin.global_attributes.classification.name_conflict": {
+    "defaultMessage": "An attribute named \"{name}\" already exists but is not part of classification. Rename or remove it in Attribute Management, then reload this page.",
+    "description": ""
   },
   "admin.global_attributes.classification.name_fallback": {
     "defaultMessage": "Classification",
