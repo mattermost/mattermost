@@ -159,7 +159,6 @@ function DraftRow({
         history.push(channelUrl);
     }, [channelUrl, dispatch, history, rootId, rootPostDeleted, isEditing]);
 
-    const isBeingScheduled = useRef(false);
     const isScheduledPostBeingSent = useRef(false);
 
     const thread = useSelector((state: GlobalState) => {
@@ -183,18 +182,22 @@ function DraftRow({
     }, [dispatch, channelId, rootId]);
 
     const afterSubmit = useCallback((response: SubmitPostReturnType) => {
-        // if draft was being scheduled, delete the draft after it's been scheduled
-        if (isBeingScheduled.current && response.created && !response.error) {
-            handleOnDelete();
-            isBeingScheduled.current = false;
+        if (!response.created || response.error) {
+            return;
         }
 
         // if scheduled posts was being sent, delete the scheduled post after it's been sent
-        if (isScheduledPostBeingSent.current && response.created && !response.error) {
+        if (isScheduledPostBeingSent.current) {
             const scheduledPost = item as ScheduledPost;
             dispatch(deleteScheduledPost(scheduledPost.user_id, scheduledPost.id, connectionId));
             isScheduledPostBeingSent.current = false;
+            return;
         }
+
+        // createPost only clears the local copy of the draft, through storeDraft's
+        // setGlobalItem, so the draft has to be removed here or the surviving server copy
+        // syncs back in on the next fetch.
+        handleOnDelete();
     }, [connectionId, dispatch, handleOnDelete, item]);
 
     // TODO LOL verify the types and handled it better
@@ -217,7 +220,6 @@ function DraftRow({
     );
 
     const onScheduleDraft = useCallback(async (schedulingInfo: SchedulingInfo): Promise<{error?: string}> => {
-        isBeingScheduled.current = true;
         await handleOnSend(item as PostDraft, schedulingInfo);
         return Promise.resolve({});
     }, [item, handleOnSend]);
