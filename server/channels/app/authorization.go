@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
@@ -237,6 +238,40 @@ func (a *App) SessionHasPermissionToReadPost(rctx request.CTX, session model.Ses
 	}
 
 	return a.SessionHasPermissionToReadChannel(rctx, session, channel)
+}
+
+// PluginGrantsPostEdit reports whether an active plugin implementing the UserHasPermissionToEditPost
+// hook grants userID permission to edit post. It returns true on the first grant and false when
+// plugins are disabled or none grant. Callers must only consult it after core has denied the edit
+// for lack of edit_others_posts; a grant stands in for that check alone.
+func (a *App) PluginGrantsPostEdit(rctx request.CTX, userID string, post *model.Post) bool {
+	if userID == "" || post == nil {
+		return false
+	}
+
+	granted := false
+	grantingPluginID := ""
+	pluginContext := pluginContext(rctx)
+	postForPlugin := post.ForPlugin()
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
+		if !hooks.UserHasPermissionToEditPost(pluginContext, userID, postForPlugin) {
+			return true
+		}
+		granted = true
+		if manifest != nil {
+			grantingPluginID = manifest.Id
+		}
+		return false
+	}, plugin.UserHasPermissionToEditPostID)
+
+	if granted {
+		rctx.Logger().Debug("Plugin granted permission to edit post",
+			mlog.String("plugin_id", grantingPluginID),
+			mlog.String("user_id", userID),
+			mlog.String("post_id", post.Id),
+		)
+	}
+	return granted
 }
 
 func (a *App) SessionHasPermissionToCategory(rctx request.CTX, session model.Session, userID, teamID, categoryId string) bool {

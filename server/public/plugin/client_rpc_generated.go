@@ -331,6 +331,60 @@ func (s *hooksRPCServer) UserHasLoggedIn(args *Z_UserHasLoggedInArgs, returns *Z
 }
 
 func init() {
+	hookNameToId["UserHasPermissionToEditPost"] = UserHasPermissionToEditPostID
+}
+
+type Z_UserHasPermissionToEditPostArgs struct {
+	A *Context
+	B string
+	C *model.Post
+}
+
+type Z_UserHasPermissionToEditPostReturns struct {
+	A bool
+}
+
+func (g *hooksRPCClient) UserHasPermissionToEditPost(c *Context, userID string, post *model.Post) bool {
+	_args := &Z_UserHasPermissionToEditPostArgs{c, userID, post}
+	_returns := &Z_UserHasPermissionToEditPostReturns{}
+	if g.implemented[UserHasPermissionToEditPostID] {
+		if err := g.client.Call("Plugin.UserHasPermissionToEditPost", _args, _returns); err != nil {
+			g.log.Error("RPC call UserHasPermissionToEditPost to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+// UserHasPermissionToEditPostWithRPCErr returns the same values as UserHasPermissionToEditPost, with an additional trailing error
+// for the RPC transport — always the LAST return slot.
+func (g *hooksRPCClient) UserHasPermissionToEditPostWithRPCErr(c *Context, userID string, post *model.Post) (bool, error) {
+	_args := &Z_UserHasPermissionToEditPostArgs{c, userID, post}
+	_returns := &Z_UserHasPermissionToEditPostReturns{}
+	var _err error
+	if g.implemented[UserHasPermissionToEditPostID] {
+		_err = g.client.Call("Plugin.UserHasPermissionToEditPost", _args, _returns)
+		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
+			_returns = &Z_UserHasPermissionToEditPostReturns{}
+			g.log.Debug("RPC call UserHasPermissionToEditPost to plugin failed.", mlog.Err(_err))
+		}
+	}
+	return _returns.A, _err
+}
+
+func (s *hooksRPCServer) UserHasPermissionToEditPost(args *Z_UserHasPermissionToEditPostArgs, returns *Z_UserHasPermissionToEditPostReturns) error {
+	if hook, ok := s.impl.(interface {
+		UserHasPermissionToEditPost(c *Context, userID string, post *model.Post) bool
+	}); ok {
+		returns.A = hook.UserHasPermissionToEditPost(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("Hook UserHasPermissionToEditPost called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
 	hookNameToId["MessageHasBeenPosted"] = MessageHasBeenPostedID
 }
 
@@ -2262,6 +2316,8 @@ type HooksWithRPCErrGenerated interface {
 	UserWillLogInWithRPCErr(c *Context, user *model.User) (string, error)
 
 	UserHasLoggedInWithRPCErr(c *Context, user *model.User) error
+
+	UserHasPermissionToEditPostWithRPCErr(c *Context, userID string, post *model.Post) (bool, error)
 
 	MessageHasBeenPostedWithRPCErr(c *Context, post *model.Post) error
 

@@ -1213,7 +1213,8 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		// PermissionEditPost already checked above
 	} else if c.AppContext.Session().UserId != originalPost.UserId {
 		// We don't need to check the member here, since we already checked it above
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditOthersPosts); !ok {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditOthersPosts); !ok &&
+			!c.App.PluginGrantsPostEdit(c.AppContext, c.AppContext.Session().UserId, originalPost) {
 			c.SetPermissionError(model.PermissionEditOthersPosts)
 			return
 		}
@@ -1328,6 +1329,12 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, patch *model.PostP
 	}
 
 	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission)
+	if !ok && permission == model.PermissionEditOthersPosts {
+		// A plugin grant stands in for edit_others_posts only; the user must still hold edit_post.
+		if canEdit, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost); canEdit {
+			ok = c.App.PluginGrantsPostEdit(c.AppContext, c.AppContext.Session().UserId, originalPost)
+		}
+	}
 	if !ok {
 		c.SetPermissionError(permission)
 		return false

@@ -845,6 +845,24 @@ func (_m *Hooks) UserHasLoggedIn(c *plugin.Context, user *model.User) {
 	_m.Called(c, user)
 }
 
+// UserHasPermissionToEditPost provides a mock function with given fields: c, userID, post
+func (_m *Hooks) UserHasPermissionToEditPost(c *plugin.Context, userID string, post *model.Post) bool {
+	ret := _m.Called(c, userID, post)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UserHasPermissionToEditPost")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(*plugin.Context, string, *model.Post) bool); ok {
+		r0 = rf(c, userID, post)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // UserWillLogIn provides a mock function with given fields: c, user
 func (_m *Hooks) UserWillLogIn(c *plugin.Context, user *model.User) string {
 	ret := _m.Called(c, user)
