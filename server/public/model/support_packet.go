@@ -10,6 +10,7 @@ const (
 	SupportPacketErrorFile      = "warning.txt"
 )
 
+// SupportPacketDiagnostics reports one node's diagnostics. A nil pointer field was not collected, which is not the same as zero.
 type SupportPacketDiagnostics struct {
 	Version int `yaml:"version"`
 
@@ -39,8 +40,8 @@ type SupportPacketDiagnostics struct {
 		ProcessID           int       `yaml:"process_id"`
 		StartedAt           time.Time `yaml:"started_at"`
 		HostStartedAt       time.Time `yaml:"host_started_at,omitempty"`
-		OpenFileDescriptors int64     `yaml:"open_file_descriptors"`
-		MaxFileDescriptors  int64     `yaml:"max_file_descriptors"`
+		OpenFileDescriptors *int64    `yaml:"open_file_descriptors,omitempty"`
+		MaxFileDescriptors  *int64    `yaml:"max_file_descriptors,omitempty"`
 
 		// Software
 		Version   string `yaml:"version"`
@@ -54,12 +55,12 @@ type SupportPacketDiagnostics struct {
 
 	Database struct {
 		Type                                string     `yaml:"type"`
-		Version                             string     `yaml:"version"`
-		SchemaVersion                       string     `yaml:"schema_version"`
+		Version                             *string    `yaml:"version,omitempty"`
+		SchemaVersion                       *string    `yaml:"schema_version,omitempty"`
 		MasterConnections                   int        `yaml:"master_connections"`
 		ReplicaConnections                  int        `yaml:"replica_connections"`
 		SearchConnections                   int        `yaml:"search_connections"`
-		MasterConnectionsInUse              int        `yaml:"master_connections_in_use"`
+		MasterConnectionsInUse              *int       `yaml:"master_connections_in_use,omitempty"`
 		MasterConnectionsIdle               int        `yaml:"master_connections_idle"`
 		MasterPoolWaitCount                 int64      `yaml:"master_pool_wait_count"`
 		MasterPoolWaitDurationMs            int64      `yaml:"master_pool_wait_duration_ms"`
@@ -98,7 +99,7 @@ type SupportPacketDiagnostics struct {
 
 	Cluster struct {
 		ID            string `yaml:"id"`
-		NumberOfNodes int    `yaml:"number_of_nodes"`
+		NumberOfNodes *int   `yaml:"number_of_nodes,omitempty"`
 	} `yaml:"cluster"`
 
 	Notifications struct {

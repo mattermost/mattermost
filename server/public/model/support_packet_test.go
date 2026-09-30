@@ -70,3 +70,35 @@ outgoing_webhooks: 14
 
 	assert.Equal(t, expected, string(data))
 }
+
+func TestSupportPacketDiagnosticsYAMLOmitsNilAndKeepsZero(t *testing.T) {
+	t.Parallel()
+
+	var diagnostics SupportPacketDiagnostics
+	diagnostics.Server.OpenFileDescriptors = new(int64(0))
+	diagnostics.Database.MasterConnectionsInUse = new(0)
+	diagnostics.Cluster.NumberOfNodes = new(0)
+
+	data, err := yaml.Marshal(&diagnostics)
+	require.NoError(t, err)
+
+	body := string(data)
+	assert.Contains(t, body, "open_file_descriptors: 0\n")
+	assert.Contains(t, body, "master_connections_in_use: 0\n")
+	assert.Contains(t, body, "number_of_nodes: 0\n")
+	assert.NotContains(t, body, "max_file_descriptors")
+	assert.NotContains(t, body, "schema_version")
+
+	var roundTrip SupportPacketDiagnostics
+	err = yaml.Unmarshal(data, &roundTrip)
+	require.NoError(t, err)
+	assert.Nil(t, roundTrip.Server.MaxFileDescriptors)
+	assert.Nil(t, roundTrip.Database.Version)
+	assert.Nil(t, roundTrip.Database.SchemaVersion)
+	require.NotNil(t, roundTrip.Server.OpenFileDescriptors)
+	assert.Equal(t, int64(0), *roundTrip.Server.OpenFileDescriptors)
+	require.NotNil(t, roundTrip.Database.MasterConnectionsInUse)
+	assert.Equal(t, 0, *roundTrip.Database.MasterConnectionsInUse)
+	require.NotNil(t, roundTrip.Cluster.NumberOfNodes)
+	assert.Equal(t, 0, *roundTrip.Cluster.NumberOfNodes)
+}

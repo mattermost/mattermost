@@ -21,6 +21,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -291,8 +292,10 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, "docker", d.Server.InstallationType)
 		assert.Positive(t, d.Server.CPUCores)
 		assert.Positive(t, d.Server.TotalMemoryMB)
-		assert.True(t, d.Server.OpenFileDescriptors == -1 || d.Server.OpenFileDescriptors > 0, "OpenFileDescriptors should be -1 (unsupported) or positive, got %d", d.Server.OpenFileDescriptors)
-		assert.True(t, d.Server.MaxFileDescriptors == -1 || d.Server.MaxFileDescriptors > 0, "MaxFileDescriptors should be -1 (unsupported) or positive, got %d", d.Server.MaxFileDescriptors)
+		require.NotNil(t, d.Server.OpenFileDescriptors)
+		require.NotNil(t, d.Server.MaxFileDescriptors)
+		assert.True(t, *d.Server.OpenFileDescriptors == -1 || *d.Server.OpenFileDescriptors > 0, "OpenFileDescriptors should be -1 (unsupported) or positive, got %d", *d.Server.OpenFileDescriptors)
+		assert.True(t, *d.Server.MaxFileDescriptors == -1 || *d.Server.MaxFileDescriptors > 0, "MaxFileDescriptors should be -1 (unsupported) or positive, got %d", *d.Server.MaxFileDescriptors)
 		assert.Positive(t, d.Server.ProcessID)
 		assert.False(t, d.Server.StartedAt.IsZero())
 		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
@@ -307,12 +310,15 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		/* DB */
 		assert.NotEmpty(t, d.Database.Type)
-		assert.NotEmpty(t, d.Database.Version)
-		assert.NotEmpty(t, d.Database.SchemaVersion)
+		require.NotNil(t, d.Database.Version)
+		assert.NotEmpty(t, *d.Database.Version)
+		require.NotNil(t, d.Database.SchemaVersion)
+		assert.NotEmpty(t, *d.Database.SchemaVersion)
 		assert.NotZero(t, d.Database.MasterConnections)
 		assert.Zero(t, d.Database.ReplicaConnections)
 		assert.Zero(t, d.Database.SearchConnections)
-		assert.GreaterOrEqual(t, d.Database.MasterConnectionsInUse, 0)
+		require.NotNil(t, d.Database.MasterConnectionsInUse)
+		assert.GreaterOrEqual(t, *d.Database.MasterConnectionsInUse, 0)
 		assert.GreaterOrEqual(t, d.Database.MasterConnectionsIdle, 0)
 		assert.GreaterOrEqual(t, d.Database.MasterPoolWaitCount, int64(0))
 		assert.GreaterOrEqual(t, d.Database.MasterPoolWaitDurationMs, int64(0))
@@ -344,7 +350,8 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		/* Cluster */
 		assert.Empty(t, d.Cluster.ID)
-		assert.Zero(t, d.Cluster.NumberOfNodes)
+		require.NotNil(t, d.Cluster.NumberOfNodes)
+		assert.Zero(t, *d.Cluster.NumberOfNodes)
 
 		/* LDAP */
 		assert.Equal(t, model.StatusDisabled, d.LDAP.Status)
@@ -943,7 +950,8 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		})
 
 		packet := getDiagnostics(t)
-		assert.Equal(t, 3, packet.Database.MasterConnectionsInUse)
+		require.NotNil(t, packet.Database.MasterConnectionsInUse)
+		assert.Equal(t, 3, *packet.Database.MasterConnectionsInUse)
 		assert.Equal(t, 7, packet.Database.MasterConnectionsIdle)
 		assert.Equal(t, int64(11), packet.Database.MasterPoolWaitCount)
 		assert.Equal(t, int64(2025), packet.Database.MasterPoolWaitDurationMs)
@@ -1286,6 +1294,81 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 	})
 }
 
+func TestGetSupportPacketDiagnosticsFieldPresence(t *testing.T) {
+	th := Setup(t)
+
+	marshalSections := func(t *testing.T, nodeDiagnostics *model.NodeDiagnostics, collectErr error) (database, cluster map[string]any) {
+		t.Helper()
+
+		fileData, err := supportPacketDiagnosticsFile(nodeDiagnostics.Diagnostics, collectErr)
+		require.NotNil(t, fileData)
+		require.ErrorIs(t, err, collectErr)
+
+		var packet struct {
+			Database map[string]any `yaml:"database"`
+			Cluster  map[string]any `yaml:"cluster"`
+		}
+		require.NoError(t, yaml.Unmarshal(fileData.Body, &packet))
+		return packet.Database, packet.Cluster
+	}
+
+	t.Run("fields whose collection failed are omitted", func(t *testing.T) {
+		originalStore := th.Service.Store
+		th.Service.Store = &failingDiagnosticsStore{
+			Store:            originalStore,
+			schemaVersionErr: errors.New("schema down"),
+			dbVersionErr:     errors.New("version down"),
+			diagnosticsErr:   errors.New("stats down"),
+		}
+		t.Cleanup(func() {
+			th.Service.Store = originalStore
+		})
+
+		cluster := emocks.NewClusterInterface(t)
+		cluster.On("SendClusterMessage", mock.Anything).Return().Maybe()
+		cluster.On("GetClusterId").Return("cluster-id")
+		cluster.On("GetClusterInfos").Return(nil, errors.New("gossip down"))
+		originalCluster := th.Service.clusterIFace
+		t.Cleanup(func() {
+			th.Service.clusterIFace = originalCluster
+		})
+		th.Service.clusterIFace = cluster
+
+		nodeDiagnostics, err := th.Service.GetSupportPacketDiagnostics(th.Context)
+		require.Error(t, err)
+		require.NotNil(t, nodeDiagnostics)
+		d := nodeDiagnostics.Diagnostics
+		require.NotNil(t, d)
+		assert.Nil(t, d.Database.Version)
+		assert.Nil(t, d.Database.SchemaVersion)
+		assert.Nil(t, d.Database.MasterConnectionsInUse)
+		assert.Nil(t, d.Cluster.NumberOfNodes)
+
+		database, clusterSection := marshalSections(t, nodeDiagnostics, err)
+		assert.NotContains(t, database, "version")
+		assert.NotContains(t, database, "schema_version")
+		assert.NotContains(t, database, "master_connections_in_use")
+		assert.Equal(t, "cluster-id", clusterSection["id"])
+		assert.NotContains(t, clusterSection, "number_of_nodes")
+	})
+
+	t.Run("legitimately zero values are written", func(t *testing.T) {
+		originalStore := th.Service.Store
+		th.Service.Store = &fixedDBStatsStore{Store: originalStore}
+		t.Cleanup(func() {
+			th.Service.Store = originalStore
+		})
+
+		nodeDiagnostics, err := th.Service.GetSupportPacketDiagnostics(th.Context)
+		require.NoError(t, err)
+		require.NotNil(t, nodeDiagnostics)
+
+		database, cluster := marshalSections(t, nodeDiagnostics, nil)
+		assert.EqualValues(t, 0, database["master_connections_in_use"])
+		assert.EqualValues(t, 0, cluster["number_of_nodes"])
+	})
+}
+
 func TestGetSupportPacketConfig(t *testing.T) {
 	// t.Setenv is correct here: this test verifies that feature flags set via
 	// environment variables (the production mechanism) appear in the sanitized
@@ -1490,19 +1573,19 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.Server.ProcessID = 90210
 	diagnostics.Server.StartedAt = time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)
 	diagnostics.Server.HostStartedAt = time.Date(2025, 12, 30, 0, 0, 0, 0, time.UTC)
-	diagnostics.Server.OpenFileDescriptors = 512
-	diagnostics.Server.MaxFileDescriptors = 8192
+	diagnostics.Server.OpenFileDescriptors = new(int64(512))
+	diagnostics.Server.MaxFileDescriptors = new(int64(8192))
 	diagnostics.Server.Version = "11.0.0"
 	diagnostics.Server.BuildHash = "abc123"
 	diagnostics.Server.GoVersion = "go1.26"
 	diagnostics.Config.Source = "memory://"
 	diagnostics.Database.Type = "postgres"
-	diagnostics.Database.Version = "16.4"
-	diagnostics.Database.SchemaVersion = "123"
+	diagnostics.Database.Version = new("16.4")
+	diagnostics.Database.SchemaVersion = new("123")
 	diagnostics.Database.MasterConnections = 40
 	diagnostics.Database.ReplicaConnections = 20
 	diagnostics.Database.SearchConnections = 10
-	diagnostics.Database.MasterConnectionsInUse = 5
+	diagnostics.Database.MasterConnectionsInUse = new(5)
 	diagnostics.Database.MasterConnectionsIdle = 35
 	diagnostics.Database.MasterPoolWaitCount = 100
 	diagnostics.Database.MasterPoolWaitDurationMs = 220
@@ -1531,7 +1614,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.FileStore.AvailableMB = 102400
 	diagnostics.Websocket.Connections = 77
 	diagnostics.Cluster.ID = "cluster-id"
-	diagnostics.Cluster.NumberOfNodes = 3
+	diagnostics.Cluster.NumberOfNodes = new(3)
 	diagnostics.Notifications.Email.Status = model.StatusOk
 	diagnostics.Notifications.Push.Status = model.StatusFail
 	diagnostics.Notifications.Push.Error = "proxy timeout"

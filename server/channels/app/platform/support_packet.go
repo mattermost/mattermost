@@ -218,29 +218,36 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		installationType = unknownDataPoint
 	}
 	d.Server.InstallationType = installationType
-	d.Server.OpenFileDescriptors, err = getOpenFileDescriptors()
+	openFileDescriptors, err := getOpenFileDescriptors()
 	if err != nil {
 		fail(model.SectionServerFDs, errors.Wrap(err, "error while getting open file descriptor count"))
+	} else {
+		d.Server.OpenFileDescriptors = new(openFileDescriptors)
 	}
-	d.Server.MaxFileDescriptors, err = getMaxFileDescriptors()
+	maxFileDescriptors, err := getMaxFileDescriptors()
 	if err != nil {
 		fail(model.SectionServerFDs, errors.Wrap(err, "error while getting max file descriptor limit"))
+	} else {
+		d.Server.MaxFileDescriptors = new(maxFileDescriptors)
 	}
 
 	/* Config */
 	d.Config.Source = ps.DescribeConfig()
 
 	/* DB */
-	d.Database.Type, d.Database.SchemaVersion, err = ps.DatabaseTypeAndSchemaVersion()
+	databaseType, schemaVersion, err := ps.DatabaseTypeAndSchemaVersion()
 	if err != nil {
 		fail(model.SectionDatabaseIdentity, errors.Wrap(err, "error while getting DB type and schema version"))
+	} else {
+		d.Database.Type = databaseType
+		d.Database.SchemaVersion = new(schemaVersion)
 	}
 
 	databaseVersion, err := ps.Store.GetDbVersion(false)
 	if err != nil {
 		fail(model.SectionDatabaseIdentity, errors.Wrap(err, "error while getting DB version"))
 	} else {
-		d.Database.Version = databaseVersion
+		d.Database.Version = new(databaseVersion)
 	}
 	d.Database.MasterConnections = ps.Store.TotalMasterDbConnections()
 	d.Database.ReplicaConnections = ps.Store.TotalReadDbConnections()
@@ -284,8 +291,10 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		if e != nil {
 			fail(model.SectionCluster, errors.Wrap(e, "error while getting cluster infos"))
 		} else {
-			d.Cluster.NumberOfNodes = max(len(clusterInfo), 1) // clusterInfo is empty if the node is the only one in the cluster
+			d.Cluster.NumberOfNodes = new(max(len(clusterInfo), 1)) // clusterInfo is empty if the node is the only one in the cluster
 		}
+	} else {
+		d.Cluster.NumberOfNodes = new(0)
 	}
 
 	/* LDAP */
@@ -414,7 +423,7 @@ func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *
 		return nil
 	}
 
-	diagnostics.Database.MasterConnectionsInUse = storeDiagnostics.MasterConnectionsInUse
+	diagnostics.Database.MasterConnectionsInUse = new(storeDiagnostics.MasterConnectionsInUse)
 	diagnostics.Database.MasterConnectionsIdle = storeDiagnostics.MasterConnectionsIdle
 	diagnostics.Database.MasterPoolWaitCount = storeDiagnostics.MasterPoolWaitCount
 	diagnostics.Database.MasterPoolWaitDurationMs = storeDiagnostics.MasterPoolWaitDurationMs
