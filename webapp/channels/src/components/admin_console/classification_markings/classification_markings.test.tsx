@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import {ClientError} from '@mattermost/client';
 import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
@@ -19,6 +20,8 @@ import {
     processClassificationField,
     fetchClassificationField,
     fetchChannelClassificationField,
+    fetchLinkedClassificationField,
+    fetchUserLinkedFields,
     CLASSIFICATIONS_CHANNEL_FIELD_NAME,
     CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
     CLASSIFICATIONS_FIELD_TARGET_ID,
@@ -147,6 +150,33 @@ function makeSystemValue(fieldId: string, optionId: string): PropertyValue<strin
         created_by: 'user1',
         updated_by: 'user1',
     };
+}
+
+// The page reads one paged list per object type, so keying the mock on the object
+// type keeps a test independent of how many lookups the load and save paths make
+// and in what order — a `mockResolvedValueOnce` chain silently feeds the wrong
+// page to the wrong lookup as soon as either changes.
+// Serves one page per object type and an empty page for every cursored follow-up,
+// which is how the paged lookups know to stop. Each lookup starts from no cursor,
+// so the same object type can be read more than once in a test.
+function mockFieldsByObjectType(byType: Partial<Record<string, PropertyField[]>>) {
+    return jest.spyOn(Client4, 'getPropertyFields').mockImplementation(
+        async (_group, objectType, _targetType, _targetId, cursor) => (cursor?.cursorId ? [] : (byType[objectType] ?? [])),
+    );
+}
+
+// The suite runs with clearMocks, which empties call history but leaves queued
+// mockResolvedValueOnce values and installed implementations in place, so an
+// unconsumed one leaks into the next test. restoreAllMocks drops the spies this
+// file puts on real modules (Utils); the resets cover the automocked Client4
+// methods, which restoring does not return to anything useful.
+function resetPropertyFieldMocks() {
+    jest.restoreAllMocks();
+    (Client4.getPropertyFields as jest.Mock).mockReset();
+    (Client4.getSystemPropertyValues as jest.Mock).mockReset();
+    (Client4.createPropertyField as jest.Mock).mockReset();
+    (Client4.patchPropertyField as jest.Mock).mockReset();
+    (Client4.deletePropertyField as jest.Mock).mockReset();
 }
 
 describe('detectPreset', () => {
@@ -297,9 +327,7 @@ describe('processClassificationField', () => {
 });
 
 describe('fetchClassificationField', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
+    beforeEach(resetPropertyFieldMocks);
 
     test('should return the matching field from first page', async () => {
         const expected = makePropertyField({delete_at: 0});
@@ -309,7 +337,7 @@ describe('fetchClassificationField', () => {
         ]);
 
         const result = await fetchClassificationField();
-        expect(result).toEqual(expected);
+        expect(result).toEqual({field: expected});
         expect(Client4.getPropertyFields).toHaveBeenCalledTimes(1);
     });
 
@@ -321,7 +349,15 @@ describe('fetchClassificationField', () => {
         ]);
 
         const result = await fetchClassificationField();
-        expect(result).toEqual(active);
+        expect(result).toEqual({field: active});
+    });
+
+    test('should report a non-rank template named classification as a conflict rather than adopting it', async () => {
+        const foreign = makePropertyField({id: 'foreign', type: 'text'});
+        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([foreign]);
+
+        const result = await fetchClassificationField();
+        expect(result).toEqual({conflict: foreign});
     });
 
     test('should paginate when field not found on first page', async () => {
@@ -337,18 +373,18 @@ describe('fetchClassificationField', () => {
             mockResolvedValueOnce(page2);
 
         const result = await fetchClassificationField();
-        expect(result).toEqual(expected);
+        expect(result).toEqual({field: expected});
         expect(Client4.getPropertyFields).toHaveBeenCalledTimes(2);
 
         const secondCallArgs = (Client4.getPropertyFields as jest.Mock).mock.calls[1];
         expect(secondCallArgs[4]).toEqual({cursorId: 'p2', cursorCreateAt: 200});
     });
 
-    test('should return undefined when no pages contain the field', async () => {
+    test('should report neither field nor conflict when no pages contain the name', async () => {
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
 
         const result = await fetchClassificationField();
-        expect(result).toBeUndefined();
+        expect(result).toEqual({});
     });
 
     test('should stop after 500 items to avoid infinite loop', async () => {
@@ -363,20 +399,75 @@ describe('fetchClassificationField', () => {
         }
 
         const result = await fetchClassificationField();
-        expect(result).toBeUndefined();
+        expect(result).toEqual({});
 
         expect(Client4.getPropertyFields).toHaveBeenCalledTimes(5);
     });
 });
 
-describe('fetchChannelClassificationField', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
+describe('fetchLinkedClassificationField', () => {
+    beforeEach(resetPropertyFieldMocks);
 
-        // Reset mockResolvedValueOnce queues that may carry over from the
-        // fetchClassificationField "stop after 500 items" test.
-        (Client4.getPropertyFields as jest.Mock).mockReset?.();
+    test('should return the system field linked to the given template', async () => {
+        const expected = makeLinkedField({linked_field_id: 'field1'});
+        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([expected]);
+
+        const result = await fetchLinkedClassificationField('field1');
+        expect(result).toEqual({field: expected});
+        expect(Client4.getPropertyFields).toHaveBeenCalledWith(
+            ACCESS_CONTROL_PROPERTY_GROUP,
+            CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+            CLASSIFICATIONS_FIELD_TARGET_TYPE,
+            CLASSIFICATIONS_FIELD_TARGET_ID,
+            expect.any(Object),
+        );
     });
+
+    test('should report a system field linked to a different template as a conflict', async () => {
+        const foreign = makeLinkedField({id: 'foreign', linked_field_id: 'some_other_template'});
+        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([foreign]);
+
+        const result = await fetchLinkedClassificationField('field1');
+        expect(result).toEqual({conflict: foreign});
+    });
+
+    test('should report an unlinked system field as a conflict', async () => {
+        const orphan = makeLinkedField({id: 'orphan', linked_field_id: ''});
+        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([orphan]);
+
+        const result = await fetchLinkedClassificationField('field1');
+        expect(result).toEqual({conflict: orphan});
+    });
+
+    test.each([
+        ['unlinked', ''],
+        ['linked to a foreign template', 'some_other_template'],
+    ])('should report a system field %s as a conflict when no template exists', async (_label, linkedFieldId) => {
+        // This is the state the save path starts from before the template is
+        // created: nothing can legitimately be linked yet, so no system field
+        // here is ours, whatever it points at.
+        const orphan = makeLinkedField({id: 'orphan', linked_field_id: linkedFieldId});
+        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([orphan]);
+
+        const result = await fetchLinkedClassificationField('');
+        expect(result).toEqual({conflict: orphan});
+    });
+
+    test('should paginate until the name is found', async () => {
+        const expected = makeLinkedField({id: 'found'});
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([makeLinkedField({id: 'p1', name: 'other', create_at: 100})]).
+            mockResolvedValueOnce([expected]);
+
+        expect(await fetchLinkedClassificationField('field1')).toEqual({field: expected});
+
+        const secondCallArgs = (Client4.getPropertyFields as jest.Mock).mock.calls[1];
+        expect(secondCallArgs[4]).toEqual({cursorId: 'p1', cursorCreateAt: 100});
+    });
+});
+
+describe('fetchChannelClassificationField', () => {
+    beforeEach(resetPropertyFieldMocks);
 
     test('should return the matching channel-linked field from first page', async () => {
         const expected = makeChannelLinkedField();
@@ -385,8 +476,8 @@ describe('fetchChannelClassificationField', () => {
             expected,
         ]);
 
-        const result = await fetchChannelClassificationField();
-        expect(result).toEqual(expected);
+        const result = await fetchChannelClassificationField('field1');
+        expect(result).toEqual({field: expected});
         expect(Client4.getPropertyFields).toHaveBeenCalledTimes(1);
         expect(Client4.getPropertyFields).toHaveBeenCalledWith(
             ACCESS_CONTROL_PROPERTY_GROUP,
@@ -397,13 +488,31 @@ describe('fetchChannelClassificationField', () => {
         );
     });
 
-    test('should skip channel fields without linked_field_id', async () => {
+    test('should report an unlinked channel field as a conflict', async () => {
         const orphan = makeChannelLinkedField({id: 'orphan', linked_field_id: ''});
-        const linked = makeChannelLinkedField({id: 'linked'});
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([orphan, linked]);
+        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([orphan]);
 
-        const result = await fetchChannelClassificationField();
-        expect(result).toEqual(linked);
+        const result = await fetchChannelClassificationField('field1');
+        expect(result).toEqual({conflict: orphan});
+    });
+
+    test('should report a channel field linked to a different template as a conflict', async () => {
+        const foreign = makeChannelLinkedField({id: 'foreign', linked_field_id: 'some_other_template'});
+        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([foreign]);
+
+        const result = await fetchChannelClassificationField('field1');
+        expect(result).toEqual({conflict: foreign});
+    });
+
+    test.each([
+        ['unlinked', ''],
+        ['linked to a foreign template', 'some_other_template'],
+    ])('should report a channel field %s as a conflict when no template exists', async (_label, linkedFieldId) => {
+        const orphan = makeChannelLinkedField({id: 'orphan', linked_field_id: linkedFieldId});
+        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([orphan]);
+
+        const result = await fetchChannelClassificationField('');
+        expect(result).toEqual({conflict: orphan});
     });
 
     test('should skip soft-deleted channel-linked fields', async () => {
@@ -411,8 +520,8 @@ describe('fetchChannelClassificationField', () => {
         const active = makeChannelLinkedField({id: 'active'});
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([deleted, active]);
 
-        const result = await fetchChannelClassificationField();
-        expect(result).toEqual(active);
+        const result = await fetchChannelClassificationField('field1');
+        expect(result).toEqual({field: active});
     });
 
     test('should paginate using cursor when field not found on first page', async () => {
@@ -427,28 +536,28 @@ describe('fetchChannelClassificationField', () => {
             mockResolvedValueOnce(page1).
             mockResolvedValueOnce(page2);
 
-        const result = await fetchChannelClassificationField();
-        expect(result).toEqual(expected);
+        const result = await fetchChannelClassificationField('field1');
+        expect(result).toEqual({field: expected});
         expect(Client4.getPropertyFields).toHaveBeenCalledTimes(2);
 
         const secondCallArgs = (Client4.getPropertyFields as jest.Mock).mock.calls[1];
         expect(secondCallArgs[4]).toEqual({cursorId: 'p2', cursorCreateAt: 200});
     });
 
-    test('should return undefined when field list is empty', async () => {
+    test('should report neither field nor conflict when field list is empty', async () => {
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
 
-        const result = await fetchChannelClassificationField();
-        expect(result).toBeUndefined();
+        const result = await fetchChannelClassificationField('field1');
+        expect(result).toEqual({});
     });
 
-    test('should return undefined when no pages contain a valid channel-linked field', async () => {
+    test('should report neither field nor conflict when no page holds the name', async () => {
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([
             makeChannelLinkedField({id: 'irrelevant', name: 'other'}),
         ]).mockResolvedValueOnce([]);
 
-        const result = await fetchChannelClassificationField();
-        expect(result).toBeUndefined();
+        const result = await fetchChannelClassificationField('field1');
+        expect(result).toEqual({});
     });
 
     test('should stop after 500 items to avoid infinite loop', async () => {
@@ -462,16 +571,88 @@ describe('fetchChannelClassificationField', () => {
             spy.mockResolvedValueOnce(makePage(i * 100));
         }
 
-        const result = await fetchChannelClassificationField();
-        expect(result).toBeUndefined();
+        const result = await fetchChannelClassificationField('field1');
+        expect(result).toEqual({});
         expect(Client4.getPropertyFields).toHaveBeenCalledTimes(5);
     });
 });
 
-describe('ClassificationMarkings component', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
+describe('fetchUserLinkedFields', () => {
+    beforeEach(resetPropertyFieldMocks);
+
+    test('should collect every live user field linked to the template regardless of name', async () => {
+        const clearance = makeUserLinkedField();
+        const renamed = makeUserLinkedField({id: 'renamed', name: 'security_level'});
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([clearance, renamed]).
+            mockResolvedValueOnce([]);
+
+        const result = await fetchUserLinkedFields('field1');
+        expect(result).toEqual({fields: [clearance, renamed]});
     });
+
+    test('should report a clearance-named user field linked elsewhere as a conflict', async () => {
+        const foreign = makeUserLinkedField({id: 'foreign', linked_field_id: 'some_other_template'});
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([foreign]).
+            mockResolvedValueOnce([]);
+
+        const result = await fetchUserLinkedFields('field1');
+        expect(result).toEqual({fields: [], conflict: foreign});
+    });
+
+    test('should ignore unlinked user fields that do not hold the clearance name', async () => {
+        const unrelated = makeUserLinkedField({id: 'unrelated', name: 'department', linked_field_id: ''});
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([unrelated]).
+            mockResolvedValueOnce([]);
+
+        const result = await fetchUserLinkedFields('field1');
+        expect(result).toEqual({fields: []});
+    });
+
+    test('should ignore soft-deleted user fields on both sides', async () => {
+        const deletedLink = makeUserLinkedField({id: 'deleted_link', delete_at: 999});
+        const deletedConflict = makeUserLinkedField({id: 'deleted_conflict', linked_field_id: 'other', delete_at: 999});
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([deletedLink, deletedConflict]).
+            mockResolvedValueOnce([]);
+
+        const result = await fetchUserLinkedFields('field1');
+        expect(result).toEqual({fields: []});
+    });
+
+    test.each([
+        ['unlinked', ''],
+        ['linked to a foreign template', 'some_other_template'],
+    ])('should report a clearance-named user field %s as a conflict when no template exists', async (_label, linkedFieldId) => {
+        const orphan = makeUserLinkedField({id: 'orphan', linked_field_id: linkedFieldId});
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([orphan]).
+            mockResolvedValueOnce([]);
+
+        const result = await fetchUserLinkedFields('');
+        expect(result).toEqual({fields: [], conflict: orphan});
+    });
+
+    test('should collect matches and the conflict across pages', async () => {
+        const linked = makeUserLinkedField({id: 'linked', name: 'security_level', create_at: 100});
+        const foreign = makeUserLinkedField({id: 'foreign', linked_field_id: 'some_other_template'});
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([linked]).
+            mockResolvedValueOnce([foreign]).
+            mockResolvedValueOnce([]);
+
+        const result = await fetchUserLinkedFields('field1');
+        expect(result).toEqual({fields: [linked], conflict: foreign});
+
+        const secondCallArgs = (Client4.getPropertyFields as jest.Mock).mock.calls[1];
+        expect(secondCallArgs[4]).toEqual({cursorId: 'linked', cursorCreateAt: 100});
+    });
+});
+
+describe('ClassificationMarkings component', () => {
+    beforeEach(resetPropertyFieldMocks);
 
     test('should show loading screen initially', () => {
         jest.spyOn(Client4, 'getPropertyFields').mockReturnValue(new Promise(() => {}));
@@ -485,7 +666,7 @@ describe('ClassificationMarkings component', () => {
     test('should show error when load fails', async () => {
         const error = new Error('Network error');
         (error as unknown as Record<string, number>).status_code = 500;
-        jest.spyOn(Client4, 'getPropertyFields').mockRejectedValueOnce(error);
+        jest.spyOn(Client4, 'getPropertyFields').mockRejectedValue(error);
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
@@ -494,7 +675,7 @@ describe('ClassificationMarkings component', () => {
     });
 
     test('should show informational notice when loaded', async () => {
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
+        mockFieldsByObjectType({});
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
@@ -513,19 +694,11 @@ describe('ClassificationMarkings component', () => {
         const clearance = makeUserLinkedField();
 
         // Clearance exists, so the levels are enforced and the notice is untrue.
-        // Second user-object-type page comes back empty to end pagination.
-        let userCalls = 0;
-        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
-            switch (objectType) {
-            case CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE:
-                return [field];
-            case CLASSIFICATIONS_SYSTEM_OBJECT_TYPE:
-                return [linked];
-            case CLASSIFICATIONS_CHANNEL_OBJECT_TYPE:
-                return [channel];
-            default:
-                return (userCalls++ % 2 === 0) ? [clearance] : [];
-            }
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field],
+            [CLASSIFICATIONS_SYSTEM_OBJECT_TYPE]: [linked],
+            [CLASSIFICATIONS_CHANNEL_OBJECT_TYPE]: [channel],
+            [CLASSIFICATIONS_USER_OBJECT_TYPE]: [clearance],
         });
 
         renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
@@ -546,9 +719,7 @@ describe('ClassificationMarkings component', () => {
 
     test('should navigate to the membership policies page from the clearance help text', async () => {
         const field = makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}});
-        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
-            return objectType === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE ? [field] : [];
-        });
+        mockFieldsByObjectType({[CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field]});
 
         renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
         await screen.findByTestId('clearanceAttributeCheckbox');
@@ -558,7 +729,7 @@ describe('ClassificationMarkings component', () => {
     });
 
     test('should render disabled state when no existing field', async () => {
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
+        mockFieldsByObjectType({});
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
@@ -582,9 +753,7 @@ describe('ClassificationMarkings component', () => {
                 })),
             },
         });
-        jest.spyOn(Client4, 'getPropertyFields').
-            mockResolvedValueOnce([field]). // template field call
-            mockResolvedValueOnce([]); // linked field call (none found)
+        mockFieldsByObjectType({[CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field]});
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
@@ -597,7 +766,7 @@ describe('ClassificationMarkings component', () => {
     });
 
     test('should show preset and levels sections when enabled', async () => {
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
+        mockFieldsByObjectType({});
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
@@ -625,9 +794,7 @@ describe('ClassificationMarkings component', () => {
                 })),
             },
         });
-        jest.spyOn(Client4, 'getPropertyFields').
-            mockResolvedValueOnce([field]).
-            mockResolvedValueOnce([]); // linked field
+        mockFieldsByObjectType({[CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field]});
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
@@ -650,9 +817,7 @@ describe('ClassificationMarkings component', () => {
                 })),
             },
         });
-        jest.spyOn(Client4, 'getPropertyFields').
-            mockResolvedValueOnce([field]).
-            mockResolvedValueOnce([]); // linked field
+        mockFieldsByObjectType({[CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field]});
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
@@ -674,7 +839,7 @@ describe('ClassificationMarkings component', () => {
     });
 
     test('should detect hasChanges when toggling enabled', async () => {
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
+        mockFieldsByObjectType({});
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
@@ -691,7 +856,7 @@ describe('ClassificationMarkings component', () => {
     });
 
     test('should validate empty levels when saving while enabled', async () => {
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
+        mockFieldsByObjectType({});
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
@@ -713,7 +878,7 @@ describe('ClassificationMarkings component', () => {
     test('should handle 404 error as no field found', async () => {
         const error = new Error('Not found');
         (error as unknown as Record<string, number>).status_code = 404;
-        jest.spyOn(Client4, 'getPropertyFields').mockRejectedValueOnce(error);
+        jest.spyOn(Client4, 'getPropertyFields').mockRejectedValue(error);
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
@@ -729,9 +894,7 @@ describe('ClassificationMarkings component', () => {
                 ],
             },
         });
-        jest.spyOn(Client4, 'getPropertyFields').
-            mockResolvedValueOnce([field]).
-            mockResolvedValueOnce([]);
+        mockFieldsByObjectType({[CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field]});
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('Classification levels');
@@ -764,13 +927,14 @@ describe('ClassificationMarkings component', () => {
         });
 
         // Use an existing linked field so persistLevels uses patchPropertyField
-        // (not createPropertyField) for the linked field, keeping all mocks fully consumed.
+        // (not createPropertyField) for the linked field.
         const linkedField = makeLinkedField({attrs: {actions: []}});
 
-        jest.spyOn(Client4, 'getPropertyFields').
-            mockResolvedValueOnce([field]). // template field
-            mockResolvedValueOnce([linkedField]). // linked field (existing, no banner actions)
-            mockResolvedValueOnce([makeChannelLinkedField()]); // channel-linked field exists during save
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field],
+            [CLASSIFICATIONS_SYSTEM_OBJECT_TYPE]: [linkedField],
+            [CLASSIFICATIONS_CHANNEL_OBJECT_TYPE]: [makeChannelLinkedField()],
+        });
         jest.spyOn(Client4, 'patchPropertyField').
             mockResolvedValueOnce(patchedTemplate). // patch template
             mockResolvedValueOnce(linkedField); // patch linked
@@ -806,7 +970,7 @@ describe('ClassificationMarkings component', () => {
     });
 
     test('should pass disabled prop to disable controls', async () => {
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
+        mockFieldsByObjectType({});
 
         renderWithContext(<ClassificationMarkings disabled={true}/>, BASE_STATE);
 
@@ -818,12 +982,10 @@ describe('ClassificationMarkings component', () => {
 });
 
 describe('GlobalClassificationIndicators section', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
+    beforeEach(resetPropertyFieldMocks);
 
     test('should not show Global Classification Indicators when classification is disabled', async () => {
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
+        mockFieldsByObjectType({});
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('True');
@@ -835,9 +997,7 @@ describe('GlobalClassificationIndicators section', () => {
         const field = makePropertyField({
             attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
         });
-        jest.spyOn(Client4, 'getPropertyFields').
-            mockResolvedValueOnce([field]).
-            mockResolvedValueOnce([]);
+        mockFieldsByObjectType({[CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field]});
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('Global Classification Indicators');
@@ -855,9 +1015,10 @@ describe('GlobalClassificationIndicators section', () => {
         });
         const sysValue = makeSystemValue('linked_field1', 'lvl1');
 
-        jest.spyOn(Client4, 'getPropertyFields').
-            mockResolvedValueOnce([field]). // template field
-            mockResolvedValueOnce([linked]); // linked field
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field],
+            [CLASSIFICATIONS_SYSTEM_OBJECT_TYPE]: [linked],
+        });
 
         jest.spyOn(Client4, 'getSystemPropertyValues').
             mockResolvedValueOnce([sysValue]); // system value
@@ -880,9 +1041,10 @@ describe('GlobalClassificationIndicators section', () => {
         });
         const sysValue = makeSystemValue('linked_field1', 'lvl1');
 
-        jest.spyOn(Client4, 'getPropertyFields').
-            mockResolvedValueOnce([field]).
-            mockResolvedValueOnce([linked]);
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field],
+            [CLASSIFICATIONS_SYSTEM_OBJECT_TYPE]: [linked],
+        });
 
         jest.spyOn(Client4, 'getSystemPropertyValues').
             mockResolvedValueOnce([sysValue]);
@@ -899,9 +1061,7 @@ describe('GlobalClassificationIndicators section', () => {
         const field = makePropertyField({
             attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
         });
-        jest.spyOn(Client4, 'getPropertyFields').
-            mockResolvedValueOnce([field]).
-            mockResolvedValueOnce([]);
+        mockFieldsByObjectType({[CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field]});
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('Global Classification Indicators');
@@ -924,9 +1084,10 @@ describe('GlobalClassificationIndicators section', () => {
         });
         const sysValue = makeSystemValue('linked_field1', 'lvl1');
 
-        jest.spyOn(Client4, 'getPropertyFields').
-            mockResolvedValueOnce([field]).
-            mockResolvedValueOnce([linked]);
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field],
+            [CLASSIFICATIONS_SYSTEM_OBJECT_TYPE]: [linked],
+        });
 
         jest.spyOn(Client4, 'getSystemPropertyValues').
             mockResolvedValueOnce([sysValue]);
@@ -961,9 +1122,10 @@ describe('GlobalClassificationIndicators section', () => {
         });
         const sysValue = makeSystemValue('linked_field1', 'lvl1');
 
-        jest.spyOn(Client4, 'getPropertyFields').
-            mockResolvedValueOnce([field]).
-            mockResolvedValueOnce([linked]);
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field],
+            [CLASSIFICATIONS_SYSTEM_OBJECT_TYPE]: [linked],
+        });
 
         jest.spyOn(Client4, 'getSystemPropertyValues').
             mockResolvedValueOnce([sysValue]);
@@ -997,10 +1159,11 @@ describe('GlobalClassificationIndicators section', () => {
             attrs: {actions: [DISPLAY_BANNER_TOP, DISPLAY_BANNER_BOTTOM]},
         });
 
-        jest.spyOn(Client4, 'getPropertyFields').
-            mockResolvedValueOnce([field]).
-            mockResolvedValueOnce([linked]).
-            mockResolvedValueOnce([makeChannelLinkedField()]); // channel-linked field already exists during save
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field],
+            [CLASSIFICATIONS_SYSTEM_OBJECT_TYPE]: [linked],
+            [CLASSIFICATIONS_CHANNEL_OBJECT_TYPE]: [makeChannelLinkedField()], // already exists during save
+        });
 
         jest.spyOn(Client4, 'getSystemPropertyValues').
             mockResolvedValueOnce([sysValue]);
@@ -1077,10 +1240,11 @@ describe('GlobalClassificationIndicators section', () => {
         });
         const patchedLinked = makeLinkedField({attrs: {actions: []}});
 
-        jest.spyOn(Client4, 'getPropertyFields').
-            mockResolvedValueOnce([field]).
-            mockResolvedValueOnce([linked]).
-            mockResolvedValueOnce([makeChannelLinkedField()]); // channel-linked field already exists during save
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field],
+            [CLASSIFICATIONS_SYSTEM_OBJECT_TYPE]: [linked],
+            [CLASSIFICATIONS_CHANNEL_OBJECT_TYPE]: [makeChannelLinkedField()], // already exists during save
+        });
 
         jest.spyOn(Client4, 'patchPropertyField').
             mockResolvedValueOnce(patchedTemplate).
@@ -1128,11 +1292,11 @@ describe('GlobalClassificationIndicators section', () => {
         });
         const linked = makeLinkedField({attrs: {actions: []}});
 
-        jest.spyOn(Client4, 'getPropertyFields').
-            mockResolvedValueOnce([field]).
-            mockResolvedValueOnce([linked]).
-            mockResolvedValueOnce([]). // channel-linked field lookup during disable -> none
-            mockResolvedValueOnce([]); // clearance user field lookup during disable -> none
+        // No channel or clearance field, so the disable path only deletes these two.
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field],
+            [CLASSIFICATIONS_SYSTEM_OBJECT_TYPE]: [linked],
+        });
 
         const deleteOrder: string[] = [];
         const deleteFieldSpy = jest.spyOn(Client4, 'deletePropertyField');
@@ -1180,17 +1344,14 @@ describe('GlobalClassificationIndicators section', () => {
 });
 
 describe('Channel classification linked field branches', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
+    beforeEach(resetPropertyFieldMocks);
 
     test('should create the channel-linked field on the transition into enabled', async () => {
         // The other half of the rule below: creation happens once, when classification
         // is turned on, so enabling it still gives channels a classification to carry.
-        jest.spyOn(Client4, 'getPropertyFields').
-            mockResolvedValueOnce([]). // template field load -> none, so this starts disabled
-            mockResolvedValueOnce([]). // linked field load
-            mockResolvedValue([]); // channel-linked field lookup during save
+        //
+        // Nothing exists yet, so the page starts disabled and the save creates all three.
+        mockFieldsByObjectType({});
 
         const createdTemplate = makePropertyField({
             attrs: {options: [{id: 'lvl1', name: 'NEW', color: '#007A33', rank: 1}]},
@@ -1235,14 +1396,82 @@ describe('Channel classification linked field branches', () => {
                     CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
                     expect.objectContaining({
                         name: CLASSIFICATIONS_CHANNEL_FIELD_NAME,
+
+                        // The same type the conflict check reads, so a field this
+                        // page creates can never be mistaken for a foreign one.
+                        type: 'rank',
                         linked_field_id: createdTemplate.id,
                     }),
                 );
             });
+
+            expect(createSpy).toHaveBeenCalledWith(
+                ACCESS_CONTROL_PROPERTY_GROUP,
+                CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+                expect.objectContaining({name: CLASSIFICATIONS_TEMPLATE_FIELD_NAME, type: 'rank'}),
+            );
+            expect(createSpy).toHaveBeenCalledWith(
+                ACCESS_CONTROL_PROPERTY_GROUP,
+                CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+                expect.objectContaining({name: CLASSIFICATIONS_SYSTEM_FIELD_NAME, type: 'rank'}),
+            );
             await act(async () => {});
         } finally {
             console.error = origError;
         }
+    });
+
+    test('should patch rather than duplicate a system field the initial load missed', async () => {
+        // The load-time lookup can race a field that was already there, which is
+        // why save re-fetches. That re-fetch has to recognise the field as ours,
+        // or the save creates a second one and the server refuses it.
+        const field = makePropertyField({
+            attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
+        });
+        const linked = makeLinkedField({attrs: {actions: []}});
+
+        let systemLookups = 0;
+        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType, _targetType, _targetId, cursor) => {
+            if (cursor?.cursorId) {
+                return [];
+            }
+            if (objectType === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE) {
+                return [field];
+            }
+            if (objectType === CLASSIFICATIONS_SYSTEM_OBJECT_TYPE) {
+                // Invisible while the page loads, present by the time it saves.
+                systemLookups += 1;
+                return systemLookups === 1 ? [] : [linked];
+            }
+            return [];
+        });
+
+        const patchSpy = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(field);
+        const createSpy = jest.spyOn(Client4, 'createPropertyField');
+
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+        await screen.findByText('Classification levels');
+
+        const user = userEvent.setup();
+        const nameInput = screen.getByRole('textbox', {name: /Classification level name/i});
+        await user.clear(nameInput);
+        await user.type(nameInput, 'MODIFIED');
+        await user.tab();
+        await user.click(await screen.findByText('Save'));
+
+        await waitFor(() => {
+            expect(patchSpy).toHaveBeenCalledWith(
+                ACCESS_CONTROL_PROPERTY_GROUP,
+                CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+                linked.id,
+                expect.anything(),
+            );
+        });
+        expect(createSpy).not.toHaveBeenCalledWith(
+            expect.anything(),
+            CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+            expect.anything(),
+        );
     });
 
     test('should not reinstate a channel-linked field that was removed while enabled', async () => {
@@ -1258,10 +1487,11 @@ describe('Channel classification linked field branches', () => {
         });
         const patchedLinked = makeLinkedField({attrs: {actions: []}});
 
-        jest.spyOn(Client4, 'getPropertyFields').
-            mockResolvedValueOnce([field]). // template field load
-            mockResolvedValueOnce([linked]). // linked field load
-            mockResolvedValueOnce([]); // channel-linked field lookup during save -> none
+        // No channel-linked field: the one that was removed must stay removed.
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field],
+            [CLASSIFICATIONS_SYSTEM_OBJECT_TYPE]: [linked],
+        });
 
         jest.spyOn(Client4, 'patchPropertyField').
             mockResolvedValueOnce(patchedTemplate).
@@ -1303,10 +1533,11 @@ describe('Channel classification linked field branches', () => {
         const patchedLinked = makeLinkedField({attrs: {actions: []}});
         const existingChannelField = makeChannelLinkedField();
 
-        jest.spyOn(Client4, 'getPropertyFields').
-            mockResolvedValueOnce([field]).
-            mockResolvedValueOnce([linked]).
-            mockResolvedValueOnce([existingChannelField]); // channel field exists
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field],
+            [CLASSIFICATIONS_SYSTEM_OBJECT_TYPE]: [linked],
+            [CLASSIFICATIONS_CHANNEL_OBJECT_TYPE]: [existingChannelField],
+        });
 
         jest.spyOn(Client4, 'patchPropertyField').
             mockResolvedValueOnce(patchedTemplate).
@@ -1349,17 +1580,10 @@ describe('Channel classification linked field branches', () => {
         const channel = makeChannelLinkedField();
 
         // No existing clearance field; everything else already exists (patch, not create).
-        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
-            switch (objectType) {
-            case CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE:
-                return [field];
-            case CLASSIFICATIONS_SYSTEM_OBJECT_TYPE:
-                return [linked];
-            case CLASSIFICATIONS_CHANNEL_OBJECT_TYPE:
-                return [channel];
-            default:
-                return []; // user object type: no clearance yet
-            }
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field],
+            [CLASSIFICATIONS_SYSTEM_OBJECT_TYPE]: [linked],
+            [CLASSIFICATIONS_CHANNEL_OBJECT_TYPE]: [channel],
         });
         jest.spyOn(Client4, 'patchPropertyField').
             mockResolvedValueOnce(makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}})).
@@ -1404,20 +1628,11 @@ describe('Channel classification linked field branches', () => {
         // while the saved state records it as off.
         const extraClearance = makeUserLinkedField({id: 'clearance_field2', name: 'clearance_dupe'});
 
-        // Clearance exists: return both on the first user-object-type page, then an
-        // empty page to end pagination (per fetchUserLinkedFields invocation).
-        let userCalls = 0;
-        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
-            switch (objectType) {
-            case CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE:
-                return [field];
-            case CLASSIFICATIONS_SYSTEM_OBJECT_TYPE:
-                return [linked];
-            case CLASSIFICATIONS_CHANNEL_OBJECT_TYPE:
-                return [channel];
-            default:
-                return (userCalls++ % 2 === 0) ? [clearance, extraClearance] : [];
-            }
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field],
+            [CLASSIFICATIONS_SYSTEM_OBJECT_TYPE]: [linked],
+            [CLASSIFICATIONS_CHANNEL_OBJECT_TYPE]: [channel],
+            [CLASSIFICATIONS_USER_OBJECT_TYPE]: [clearance, extraClearance],
         });
         jest.spyOn(Client4, 'patchPropertyField').
             mockResolvedValueOnce(makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}})).
@@ -1455,11 +1670,12 @@ describe('Channel classification linked field branches', () => {
         const linked = makeLinkedField({attrs: {actions: []}});
         const channel = makeChannelLinkedField();
 
-        jest.spyOn(Client4, 'getPropertyFields').
-            mockResolvedValueOnce([field]). // template field load
-            mockResolvedValueOnce([linked]). // linked field load
-            mockResolvedValueOnce([channel]). // channel field lookup during disable
-            mockResolvedValueOnce([]); // clearance user field lookup during disable -> none
+        // No clearance user field.
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field],
+            [CLASSIFICATIONS_SYSTEM_OBJECT_TYPE]: [linked],
+            [CLASSIFICATIONS_CHANNEL_OBJECT_TYPE]: [channel],
+        });
 
         const deleteOrder: string[] = [];
         jest.spyOn(Client4, 'deletePropertyField').mockImplementation(async (_group, objectType, id) => {
@@ -1515,11 +1731,11 @@ describe('Channel classification linked field branches', () => {
         });
         const linked = makeLinkedField({attrs: {actions: []}});
 
-        jest.spyOn(Client4, 'getPropertyFields').
-            mockResolvedValueOnce([field]).
-            mockResolvedValueOnce([linked]).
-            mockResolvedValueOnce([]). // no channel field exists
-            mockResolvedValueOnce([]); // no clearance user field exists
+        // No channel field, no clearance user field.
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field],
+            [CLASSIFICATIONS_SYSTEM_OBJECT_TYPE]: [linked],
+        });
 
         const deletedTypes: string[] = [];
         jest.spyOn(Client4, 'deletePropertyField').mockImplementation(async (_group, objectType) => {
@@ -1565,18 +1781,10 @@ describe('Channel classification linked field branches', () => {
 
         // ABAC is off now, but the clearance field was created while it was on.
         // Skipping its deletion would leave a dependent and fail the template delete.
-        let userCalls = 0;
-        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
-            switch (objectType) {
-            case CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE:
-                return [field];
-            case CLASSIFICATIONS_SYSTEM_OBJECT_TYPE:
-                return [linked];
-            case CLASSIFICATIONS_CHANNEL_OBJECT_TYPE:
-                return [];
-            default:
-                return (userCalls++ % 2 === 0) ? [clearance] : [];
-            }
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field],
+            [CLASSIFICATIONS_SYSTEM_OBJECT_TYPE]: [linked],
+            [CLASSIFICATIONS_USER_OBJECT_TYPE]: [clearance],
         });
 
         const deletedIds: string[] = [];
@@ -1616,9 +1824,7 @@ describe('Channel classification linked field branches', () => {
 });
 
 describe('Custom preset caching and dropdown visibility', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
+    beforeEach(resetPropertyFieldMocks);
 
     test('should restore cached custom levels when switching back to Custom', async () => {
         const field = makePropertyField({
@@ -1629,9 +1835,7 @@ describe('Custom preset caching and dropdown visibility', () => {
                 ],
             },
         });
-        jest.spyOn(Client4, 'getPropertyFields').
-            mockResolvedValueOnce([field]).
-            mockResolvedValueOnce([]); // linked field
+        mockFieldsByObjectType({[CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field]});
 
         const origError = console.error;
         console.error = (...args: Parameters<typeof console.error>) => {
@@ -1699,9 +1903,7 @@ describe('Custom preset caching and dropdown visibility', () => {
                 options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}],
             },
         });
-        jest.spyOn(Client4, 'getPropertyFields').
-            mockResolvedValueOnce([field]).
-            mockResolvedValueOnce([]); // linked field
+        mockFieldsByObjectType({[CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field]});
 
         const origError = console.error;
         console.error = (...args: Parameters<typeof console.error>) => {
@@ -1759,7 +1961,7 @@ describe('Custom preset caching and dropdown visibility', () => {
     });
 
     test('should treat PRESET_EMPTY selection as a no-op', async () => {
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
+        mockFieldsByObjectType({});
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('True');
@@ -1794,9 +1996,11 @@ describe('Custom preset caching and dropdown visibility', () => {
         });
         const sysValue = makeSystemValue('linked_field1', 'lvl1');
 
-        jest.spyOn(Client4, 'getPropertyFields').
-            mockResolvedValueOnce([field]).
-            mockResolvedValueOnce([linked]);
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field],
+            [CLASSIFICATIONS_SYSTEM_OBJECT_TYPE]: [linked],
+            [CLASSIFICATIONS_CHANNEL_OBJECT_TYPE]: [makeChannelLinkedField()], // already exists during save
+        });
         jest.spyOn(Client4, 'getSystemPropertyValues').
             mockResolvedValueOnce([sysValue]);
 
@@ -1851,9 +2055,6 @@ describe('Custom preset caching and dropdown visibility', () => {
                 mockResolvedValueOnce(patchedTemplate). // patch template
                 mockResolvedValueOnce(patchedLinked); // patch linked (disable banner first)
 
-            jest.spyOn(Client4, 'getPropertyFields').
-                mockResolvedValueOnce([makeChannelLinkedField()]); // channel field exists
-
             const saveUpsertSpy = jest.spyOn(Utils, 'saveUpsertSystemValue').mockResolvedValue([]);
 
             // The final patch linked (enable banner) needs a mock too
@@ -1876,5 +2077,166 @@ describe('Custom preset caching and dropdown visibility', () => {
         } finally {
             console.error = origError;
         }
+    });
+});
+
+// Every field this feature owns is named `classification` (or `clearance` for the
+// user field), but those names are not reserved: Attribute Management can create
+// either. A conflicting field can neither be adopted nor replaced, and the teardown
+// on disable would delete whatever owns it.
+describe('Conflicting same-named fields', () => {
+    beforeEach(resetPropertyFieldMocks);
+
+    test('should refuse to adopt a text template named classification and go read-only', async () => {
+        const foreign = makePropertyField({id: 'foreign_text', type: 'text', attrs: {}});
+        mockFieldsByObjectType({[CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [foreign]});
+
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+
+        expect(await screen.findByRole('heading', {name: 'Classification markings cannot be configured'})).toBeInTheDocument();
+        expect(screen.getByText(/An attribute named "classification" already exists with a different type/)).toBeInTheDocument();
+
+        // Adopting it would show the feature enabled with an empty levels table.
+        const enabledFalse = screen.getByTestId('classificationEnabledfalse') as HTMLInputElement;
+        expect(enabledFalse.checked).toBe(true);
+        expect(screen.queryByText('Classification levels')).not.toBeInTheDocument();
+
+        // Read-only: the toggle cannot be moved, so the teardown that would delete
+        // the foreign field can never run.
+        expect(screen.getByTestId('classificationEnabledtrue')).toBeDisabled();
+        expect(enabledFalse).toBeDisabled();
+
+        await userEvent.setup().click(screen.getByTestId('classificationEnabledtrue'));
+        expect(enabledFalse.checked).toBe(true);
+        expect(screen.getByText('Save').closest('button')).toBeDisabled();
+    });
+
+    test('should block on an unlinked channel field named classification before anything is created', async () => {
+        // Nothing exists yet, so the page would otherwise offer to create the
+        // feature's fields: the template and system field would commit and the
+        // channel field would 409, leaving a half-built setup behind.
+        const orphanChannel = makeChannelLinkedField({id: 'orphan_channel', linked_field_id: ''});
+        const createSpy = jest.spyOn(Client4, 'createPropertyField');
+        mockFieldsByObjectType({[CLASSIFICATIONS_CHANNEL_OBJECT_TYPE]: [orphanChannel]});
+
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+
+        expect(await screen.findByRole('heading', {name: 'Classification markings cannot be configured'})).toBeInTheDocument();
+        expect(screen.getByText(/A channel attribute named "classification" already exists/)).toBeInTheDocument();
+
+        // Save stays inert rather than committing the template and system field
+        // and then failing on the channel one.
+        const user = userEvent.setup();
+        await user.click(screen.getByTestId('classificationEnabledtrue'));
+        expect(screen.getByText('Save').closest('button')).toBeDisabled();
+
+        await user.click(screen.getByText('Save'));
+        expect(createSpy).not.toHaveBeenCalled();
+    });
+
+    test('should block on a system field named classification that is linked to another template', async () => {
+        const field = makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}});
+        const foreignSystem = makeLinkedField({id: 'foreign_system', linked_field_id: 'some_other_template'});
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field],
+            [CLASSIFICATIONS_SYSTEM_OBJECT_TYPE]: [foreignSystem],
+        });
+
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+
+        expect(await screen.findByRole('heading', {name: 'Classification markings cannot be configured'})).toBeInTheDocument();
+        expect(screen.getByText(/A system attribute named "classification" already exists/)).toBeInTheDocument();
+
+        // The real template is still shown, just not editable: the admin can see
+        // what exists without being able to act on it.
+        const levelName = screen.getByRole('textbox', {name: /Classification level name/i});
+        expect(levelName).toHaveValue('UNCLASSIFIED');
+        expect(levelName).toHaveAttribute('readonly');
+        expect(screen.queryByText('Add level')).not.toBeInTheDocument();
+        expect(screen.getByText('Save').closest('button')).toBeDisabled();
+    });
+
+    test('should disable only the clearance checkbox when a clearance user field belongs to another template', async () => {
+        const field = makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}});
+        const foreignClearance = makeUserLinkedField({id: 'foreign_clearance', linked_field_id: 'some_other_template'});
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field],
+            [CLASSIFICATIONS_USER_OBJECT_TYPE]: [foreignClearance],
+        });
+
+        renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
+
+        const checkbox = await screen.findByTestId('clearanceAttributeCheckbox');
+        expect(checkbox).toBeDisabled();
+        expect(checkbox).not.toBeChecked();
+        expect(screen.getByRole('heading', {name: 'Clearance attribute cannot be created'})).toBeInTheDocument();
+        expect(screen.getByText(/A user attribute named "clearance" already exists/)).toBeInTheDocument();
+
+        // Scoped to that one control: the levels are still editable.
+        expect(screen.getByRole('textbox', {name: /Classification level name/i})).not.toHaveAttribute('readonly');
+        expect(screen.getByText('Add level')).toBeInTheDocument();
+        expect(screen.queryByRole('heading', {name: 'Classification markings cannot be configured'})).not.toBeInTheDocument();
+    });
+});
+
+describe('Save conflict error mapping', () => {
+    beforeEach(resetPropertyFieldMocks);
+
+    // Both conflicts answer 409, so the status alone cannot tell them apart:
+    // mapping on it alone told an admin *enabling* the feature that it could not
+    // be disabled while channel classifications exist.
+    const existingTemplate = makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}});
+
+    async function renderConfiguredPage() {
+        mockFieldsByObjectType({[CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [existingTemplate]});
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+        await screen.findByText('Classification levels');
+        return userEvent.setup();
+    }
+
+    test('should name the conflicting attribute when a create is refused for a duplicate name', async () => {
+        // The template is already there so it is patched, and the system field is
+        // created — the race this leaves open once load-time checks pass is a
+        // same-named field appearing in between.
+        jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(existingTemplate);
+        jest.spyOn(Client4, 'createPropertyField').mockRejectedValue(new ClientError('https://example.com', {
+            message: 'Cannot create property "classification": a property with this name already exists at the system level.',
+
+            // Spelled out rather than taken from the constant production reads,
+            // so a typo in that constant cannot pass unnoticed. It comes from
+            // CreatePropertyField in server/channels/app/properties/property_field.go.
+            server_error_id: 'app.property_field.create.name_conflict.app_error',
+            status_code: 409,
+            url: '/api/v4/properties/groups/access_control/system/fields',
+        }));
+
+        const user = await renderConfiguredPage();
+        const nameInput = screen.getByRole('textbox', {name: /Classification level name/i});
+        await user.clear(nameInput);
+        await user.type(nameInput, 'MODIFIED');
+        await user.tab();
+        await user.click(await screen.findByText('Save'));
+
+        expect(await screen.findByText(/an attribute with a conflicting name already exists/)).toHaveTextContent(
+            'a property with this name already exists at the system level',
+        );
+        expect(screen.queryByText(/Cannot disable classification markings/)).not.toBeInTheDocument();
+    });
+
+    test('should keep the cannot-disable copy for a delete-dependents conflict', async () => {
+        // Turning the feature off deletes the template, which the server refuses
+        // while anything still links to it. This is the one case that copy fits.
+        jest.spyOn(Client4, 'deletePropertyField').mockRejectedValue(new ClientError('https://example.com', {
+            message: 'Cannot delete property field while other fields are linked to it.',
+            server_error_id: 'app.property_field.delete.has_dependents.app_error',
+            status_code: 409,
+            url: '/api/v4/properties/groups/access_control/template/fields/field1',
+        }));
+
+        const user = await renderConfiguredPage();
+        await user.click(screen.getByTestId('classificationEnabledfalse'));
+        await user.click(await screen.findByText('Save'));
+
+        expect(await screen.findByText(/Cannot disable classification markings while channel classifications exist/)).toBeInTheDocument();
     });
 });
