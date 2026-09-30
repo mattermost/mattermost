@@ -75,7 +75,7 @@ var CheckEmptySrcCmd = &cobra.Command{
 var VerifyCmd = &cobra.Command{
 	Use:     "verify",
 	Short:   "Verify the non-English translation files against en.json",
-	Long:    "Checks every non-English file in i18n/ against i18n/en.json: it must load through the same go-i18n loader the server runs at startup, hold exactly the ids en.json holds, interpolate exactly the {{.Fields}} the source interpolates, and define exactly the CLDR plural categories its locale uses.",
+	Long:    "Checks every non-English file in i18n/ against i18n/en.json: it must load through the same go-i18n loader the server runs at startup, hold exactly the ids en.json holds with none left empty, interpolate exactly the {{.Fields}} the source interpolates, and define exactly the CLDR plural categories its locale uses.",
 	Example: "  i18n verify",
 	// A verification failure is a normal outcome, not a usage error.
 	SilenceUsage: true,
@@ -85,7 +85,7 @@ var VerifyCmd = &cobra.Command{
 var CleanEmptyCmd = &cobra.Command{
 	Use:     "clean-empty",
 	Short:   "Clean empty translations",
-	Long:    "Clean empty translations in translation files other than i18n/en.json base file",
+	Long:    "Remove empty or whitespace-only translations from translation files other than the i18n/en.json base file",
 	Example: "  i18n clean-empty",
 	RunE:    cleanEmptyCmdF,
 }
@@ -110,7 +110,7 @@ func init() {
 	CheckEmptySrcCmd.Flags().String("enterprise-dir", "../../enterprise", "Path to folder with the Mattermost enterprise source code")
 	CheckEmptySrcCmd.Flags().String("server-dir", "./", "Path to folder with the Mattermost server source code")
 
-	VerifyCmd.Flags().Bool("warn-missing-ids", false, "Report ids missing from a locale as warnings instead of errors")
+	VerifyCmd.Flags().Bool("warn-missing-ids", false, "Report ids missing from a locale, or present but untranslated, as warnings instead of errors")
 	VerifyCmd.Flags().String("server-dir", "./", "Path to folder with the Mattermost server source code")
 
 	CleanEmptyCmd.Flags().Bool("dry-run", false, "Run without applying changes")
@@ -776,11 +776,16 @@ func clean(translationDir string, file string, dryRun bool, check bool) (*string
 	return &result, nil
 }
 
+func isBlankTranslation(raw json.RawMessage) bool {
+	var text string
+	return json.Unmarshal(raw, &text) == nil && strings.TrimSpace(text) == ""
+}
+
 func removeEmptyTranslations(oldList []Item) ([]Item, int) {
 	var count int
 	var newList []Item
 	for i, t := range oldList {
-		if string(t.Translation) != "\"\"" {
+		if !isBlankTranslation(t.Translation) {
 			newList = append(newList, oldList[i])
 		} else {
 			count++
@@ -794,7 +799,7 @@ func JSONMarshal(t any) ([]byte, error) {
 	buffer := &bytes.Buffer{}
 	encoder := json.NewEncoder(buffer)
 	encoder.SetEscapeHTML(false)
-	encoder.SetIndent("", "    ")
+	encoder.SetIndent("", "  ")
 	err := encoder.Encode(t)
 	return buffer.Bytes(), err
 }
@@ -888,8 +893,8 @@ func pluralCategories(locale string) map[language.Plural]bool {
 
 // verifyLocale checks one non-English catalog, raw, against the en.json
 // items in en, returning the defects found and, separately, the ids the catalog
-// has yet to translate. Whether a missing id is a defect or merely a warning is
-// the caller's choice, via warnMissingIDs.
+// has yet to translate, whether by absence or by an empty value. Whether that is
+// a defect or merely a warning is the caller's choice, via warnMissingIDs.
 func verifyLocale(name string, raw []byte, en map[string]Item, warnMissingIDs bool) (problems, warnings []string) {
 	locale := strings.TrimSuffix(name, ".json")
 
@@ -934,6 +939,19 @@ func verifyLocale(name string, raw []byte, en map[string]Item, warnMissingIDs bo
 		source, ok := en[id]
 		if !ok {
 			problems = append(problems, fmt.Sprintf("%s: %s: extra id not in en.json", name, id))
+			continue
+		}
+
+		// newTemplate("") yields a nil template, so bundle.translate returns
+		// the id, exactly as for a missing id. A whitespace-only translation is
+		// worse: it renders, and the user sees nothing at all.
+		if isBlankTranslation(item.Translation) {
+			msg := fmt.Sprintf("%s: %s: empty translation", name, id)
+			if warnMissingIDs {
+				warnings = append(warnings, msg)
+			} else {
+				problems = append(problems, msg)
+			}
 			continue
 		}
 
@@ -982,11 +1000,9 @@ func verifyLocale(name string, raw []byte, en map[string]Item, warnMissingIDs bo
 		// like "api.command_invite.user_already_in_channel.app_error". Deleting
 		// the entry instead lets the en fallback serve real English.
 		//
-		// Empty single-string translations render the same raw id, but they are
-		// not flagged here: several hundred already exist, and `i18n clean-empty`
-		// already removes exactly that shape. This is the one the existing tools
-		// cannot see, because countEmptyItems and removeEmptyTranslations both
-		// test the raw JSON for `""` and so skip every plural map.
+		// Unlike a blank single-string translation, this is always an error:
+		// `i18n clean-empty` removes only the single-string shape, so there is
+		// no tool to fall back on.
 		for c, form := range plural {
 			if strings.TrimSpace(form) == "" {
 				problems = append(problems, fmt.Sprintf("%s: %s: plural category %q is empty, which renders the raw translation id; delete the entry to fall back to English", name, id, c))
