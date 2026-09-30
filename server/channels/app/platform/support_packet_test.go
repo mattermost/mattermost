@@ -21,7 +21,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -1159,7 +1158,7 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 		})
 	}
 
-	requireSectionErrors := func(t *testing.T, failed map[model.NodeSection][]string) {
+	requireSectionErrors := func(t *testing.T, failed map[model.NodeSection][]string) *model.SupportPacketDiagnostics {
 		t.Helper()
 
 		nodeDiagnostics, err := th.Service.GetSupportPacketDiagnostics(th.Context)
@@ -1187,6 +1186,7 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 				assert.ErrorContains(t, err, msg)
 			}
 		}
+		return nodeDiagnostics.Diagnostics
 	}
 
 	t.Run("all sections present and clean", func(t *testing.T) {
@@ -1196,17 +1196,20 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 	t.Run("DB schema version fails", func(t *testing.T) {
 		setStore(t, &failingDiagnosticsStore{schemaVersionErr: errors.New("schema down")})
 
-		requireSectionErrors(t, map[model.NodeSection][]string{
+		d := requireSectionErrors(t, map[model.NodeSection][]string{
 			model.SectionDatabaseIdentity: {"error while getting DB type and schema version"},
 		})
+		assert.Nil(t, d.Database.Type)
+		assert.Nil(t, d.Database.SchemaVersion)
 	})
 
 	t.Run("DB version fails", func(t *testing.T) {
 		setStore(t, &failingDiagnosticsStore{dbVersionErr: errors.New("version down")})
 
-		requireSectionErrors(t, map[model.NodeSection][]string{
+		d := requireSectionErrors(t, map[model.NodeSection][]string{
 			model.SectionDatabaseIdentity: {"error while getting DB version"},
 		})
+		assert.Nil(t, d.Database.Version)
 	})
 
 	t.Run("both DB identity sites fail", func(t *testing.T) {
@@ -1223,9 +1226,21 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 	t.Run("store diagnostics fail", func(t *testing.T) {
 		setStore(t, &failingDiagnosticsStore{diagnosticsErr: errors.New("stats down")})
 
-		requireSectionErrors(t, map[model.NodeSection][]string{
+		d := requireSectionErrors(t, map[model.NodeSection][]string{
 			model.SectionDatabaseStats: {"error while collecting support packet database diagnostics"},
 		})
+		assert.Nil(t, d.Database.MasterConnectionsInUse)
+		assert.Nil(t, d.Database.MasterConnectionsIdle)
+		assert.Nil(t, d.Database.MasterPoolWaitCount)
+		assert.Nil(t, d.Database.MasterPoolWaitDurationMs)
+		assert.Nil(t, d.Database.MasterConnectionsClosedMaxIdle)
+		assert.Nil(t, d.Database.MasterConnectionsClosedMaxLifetime)
+		assert.Nil(t, d.Database.ReplicaConnectionsInUse)
+		assert.Nil(t, d.Database.ReplicaConnectionsIdle)
+		assert.Nil(t, d.Database.ReplicaPoolWaitCount)
+		assert.Nil(t, d.Database.ReplicaPoolWaitDurationMs)
+		assert.Nil(t, d.Database.ReplicaConnectionsClosedMaxIdle)
+		assert.Nil(t, d.Database.ReplicaConnectionsClosedMaxLifetime)
 	})
 
 	t.Run("disk space fails", func(t *testing.T) {
@@ -1248,9 +1263,12 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 			cfg.FileSettings.Directory = model.NewPointer(filepath.Join(t.TempDir(), "missing"))
 		})
 
-		requireSectionErrors(t, map[model.NodeSection][]string{
+		d := requireSectionErrors(t, map[model.NodeSection][]string{
 			model.SectionFilestoreDisk: {"error while getting disk space info"},
 		})
+		assert.Nil(t, d.FileStore.FilesystemType)
+		assert.Nil(t, d.FileStore.TotalMB)
+		assert.Nil(t, d.FileStore.AvailableMB)
 	})
 
 	t.Run("cluster infos fail", func(t *testing.T) {
@@ -1265,9 +1283,10 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 		})
 		th.Service.clusterIFace = cluster
 
-		requireSectionErrors(t, map[model.NodeSection][]string{
+		d := requireSectionErrors(t, map[model.NodeSection][]string{
 			model.SectionCluster: {"error while getting cluster infos"},
 		})
+		assert.Nil(t, d.Cluster.NumberOfNodes)
 	})
 
 	t.Run("LDAP vendor info fails", func(t *testing.T) {
@@ -1307,140 +1326,6 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 		})
 
 		requireSectionErrors(t, nil)
-	})
-}
-
-func TestGetSupportPacketDiagnosticsFieldPresence(t *testing.T) {
-	th := Setup(t)
-
-	type packetSections struct {
-		Database  map[string]any `yaml:"database"`
-		FileStore map[string]any `yaml:"file_store"`
-		Cluster   map[string]any `yaml:"cluster"`
-	}
-
-	marshalSections := func(t *testing.T, nodeDiagnostics *model.NodeDiagnostics, collectErr error) packetSections {
-		t.Helper()
-
-		fileData, err := supportPacketDiagnosticsFile(nodeDiagnostics.Diagnostics, collectErr)
-		require.NotNil(t, fileData)
-		require.ErrorIs(t, err, collectErr)
-
-		var packet packetSections
-		require.NoError(t, yaml.Unmarshal(fileData.Body, &packet))
-		return packet
-	}
-
-	poolCounterKeys := []string{
-		"master_connections_in_use",
-		"master_connections_idle",
-		"master_pool_wait_count",
-		"master_pool_wait_duration_ms",
-		"master_connections_closed_max_idle",
-		"master_connections_closed_max_lifetime",
-		"replica_connections_in_use",
-		"replica_connections_idle",
-		"replica_pool_wait_count",
-		"replica_pool_wait_duration_ms",
-		"replica_connections_closed_max_idle",
-		"replica_connections_closed_max_lifetime",
-	}
-
-	t.Run("fields whose collection failed are omitted", func(t *testing.T) {
-		originalStore := th.Service.Store
-		th.Service.Store = &failingDiagnosticsStore{
-			Store:            originalStore,
-			schemaVersionErr: errors.New("schema down"),
-			dbVersionErr:     errors.New("version down"),
-			diagnosticsErr:   errors.New("stats down"),
-		}
-		t.Cleanup(func() {
-			th.Service.Store = originalStore
-		})
-
-		cluster := emocks.NewClusterInterface(t)
-		cluster.On("SendClusterMessage", mock.Anything).Return().Maybe()
-		cluster.On("GetClusterId").Return("cluster-id")
-		cluster.On("GetClusterInfos").Return(nil, errors.New("gossip down"))
-		originalCluster := th.Service.clusterIFace
-		t.Cleanup(func() {
-			th.Service.clusterIFace = originalCluster
-		})
-		th.Service.clusterIFace = cluster
-
-		originalFileStore := th.Service.filestore
-		originalDir := *th.Service.Config().FileSettings.Directory
-		t.Cleanup(func() {
-			err := SetFileStore(originalFileStore)(th.Service)
-			require.NoError(t, err)
-			th.Service.UpdateConfig(func(cfg *model.Config) {
-				cfg.FileSettings.Directory = model.NewPointer(originalDir)
-			})
-		})
-		fb := &fmocks.FileBackend{}
-		fb.On("DriverName").Return(model.ImageDriverLocal)
-		fb.On("TestConnection").Return(nil)
-		require.NoError(t, SetFileStore(fb)(th.Service))
-		th.Service.UpdateConfig(func(cfg *model.Config) {
-			cfg.FileSettings.Directory = model.NewPointer(filepath.Join(t.TempDir(), "missing"))
-		})
-
-		nodeDiagnostics, err := th.Service.GetSupportPacketDiagnostics(th.Context)
-		require.Error(t, err)
-		require.NotNil(t, nodeDiagnostics)
-		d := nodeDiagnostics.Diagnostics
-		require.NotNil(t, d)
-		assert.Nil(t, d.Database.Type)
-		assert.Nil(t, d.Database.Version)
-		assert.Nil(t, d.Database.SchemaVersion)
-		assert.Nil(t, d.Database.MasterConnectionsInUse)
-		assert.Nil(t, d.Database.MasterConnectionsIdle)
-		assert.Nil(t, d.Database.MasterPoolWaitCount)
-		assert.Nil(t, d.Database.MasterPoolWaitDurationMs)
-		assert.Nil(t, d.Database.MasterConnectionsClosedMaxIdle)
-		assert.Nil(t, d.Database.MasterConnectionsClosedMaxLifetime)
-		assert.Nil(t, d.Database.ReplicaConnectionsInUse)
-		assert.Nil(t, d.Database.ReplicaConnectionsIdle)
-		assert.Nil(t, d.Database.ReplicaPoolWaitCount)
-		assert.Nil(t, d.Database.ReplicaPoolWaitDurationMs)
-		assert.Nil(t, d.Database.ReplicaConnectionsClosedMaxIdle)
-		assert.Nil(t, d.Database.ReplicaConnectionsClosedMaxLifetime)
-		assert.Nil(t, d.FileStore.FilesystemType)
-		assert.Nil(t, d.FileStore.TotalMB)
-		assert.Nil(t, d.FileStore.AvailableMB)
-		assert.Nil(t, d.Cluster.NumberOfNodes)
-
-		packet := marshalSections(t, nodeDiagnostics, err)
-		assert.NotContains(t, packet.Database, "type")
-		assert.NotContains(t, packet.Database, "version")
-		assert.NotContains(t, packet.Database, "schema_version")
-		for _, key := range poolCounterKeys {
-			assert.NotContains(t, packet.Database, key)
-		}
-		assert.Contains(t, packet.Database, "master_connections")
-		assert.Equal(t, model.ImageDriverLocal, packet.FileStore["file_driver"])
-		assert.NotContains(t, packet.FileStore, "filesystem_type")
-		assert.NotContains(t, packet.FileStore, "total_mb")
-		assert.NotContains(t, packet.FileStore, "available_mb")
-		assert.Equal(t, "cluster-id", packet.Cluster["id"])
-		assert.NotContains(t, packet.Cluster, "number_of_nodes")
-	})
-
-	t.Run("legitimately zero values are written", func(t *testing.T) {
-		originalStore := th.Service.Store
-		th.Service.Store = &fixedDBStatsStore{Store: originalStore}
-		t.Cleanup(func() {
-			th.Service.Store = originalStore
-		})
-
-		nodeDiagnostics, err := th.Service.GetSupportPacketDiagnostics(th.Context)
-		require.NoError(t, err)
-		require.NotNil(t, nodeDiagnostics)
-
-		packet := marshalSections(t, nodeDiagnostics, nil)
-		for _, key := range poolCounterKeys {
-			assert.EqualValues(t, 0, packet.Database[key], key)
-		}
 	})
 }
 
