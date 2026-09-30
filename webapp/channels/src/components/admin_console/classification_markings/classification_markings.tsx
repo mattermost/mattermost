@@ -66,7 +66,7 @@ import type {ClassificationLevel} from './utils/presets';
 import {PENDING_LEVEL_PREFIX, PRESET_CUSTOM, PRESET_EMPTY, presets} from './utils/presets';
 
 import SaveChangesPanel from '../save_changes_panel';
-import {AdminSection, AdminWrapper, SectionHeader, SectionHeading} from '../system_properties/controls';
+import {AdminSection, AdminWrapper, DangerText, SectionHeader, SectionHeading} from '../system_properties/controls';
 
 const MEMBERSHIP_POLICIES_URL = '/admin_console/system_attributes/membership_policies';
 
@@ -820,7 +820,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                 saving={saving}
                 saveNeeded={hasChanges}
                 onClick={handleSave}
-                serverError={saveError}
+                serverError={saveError ? <DangerText>{saveError}</DangerText> : undefined}
                 isDisabled={saving || readOnly}
                 savingMessage={formatMessage({id: 'admin.classification_markings.saving', defaultMessage: 'Saving...'})}
             />
