@@ -11,6 +11,8 @@ export default class BrowseChannelsModal {
     readonly hideArchivedCheckbox: Locator;
     readonly hideJoinedCheckbox: Locator;
     readonly searchInput: Locator;
+    readonly channelTypeFilterButton: Locator;
+    readonly archivedChannelsMenuItem: Locator;
 
     readonly results: Locator;
 
@@ -21,6 +23,8 @@ export default class BrowseChannelsModal {
         this.hideArchivedCheckbox = container.getByRole('checkbox', {name: 'Hide Archived'});
         this.hideJoinedCheckbox = container.getByRole('checkbox', {name: 'Hide Joined'});
         this.searchInput = container.getByRole('textbox', {name: 'Search channels'});
+        this.channelTypeFilterButton = container.getByRole('button', {name: 'Channel type filter'});
+        this.archivedChannelsMenuItem = container.page().getByRole('menuitem', {name: 'Archived channels'});
 
         // This role seems incorrect and will likely need to be changed later
         this.results = this.container.getByRole('search');
@@ -40,6 +44,16 @@ export default class BrowseChannelsModal {
 
     async fillSearchInput(text: string) {
         await this.searchInput.fill(text);
+    }
+
+    getChannel(channelDisplayName: string) {
+        return this.results.getByText(channelDisplayName, {exact: true});
+    }
+
+    async filterByArchivedChannels() {
+        await this.channelTypeFilterButton.click();
+        await this.archivedChannelsMenuItem.click();
+        await expect(this.channelTypeFilterButton).toContainText('Channel Type: Archived');
     }
 
     async toHaveChannelAsNthResult(channelName: string, index: number) {

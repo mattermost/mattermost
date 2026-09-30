@@ -33,10 +33,12 @@ test(
 );
 
 /**
- * @objective Verify Ctrl/Cmd+Shift+K opens the Direct Messages modal, and Escape closes it.
+ * @objective Verify Ctrl/Cmd+Shift+K opens and closes the Direct Messages modal.
+ *
+ * MM-T1278 duplicates MM-T1276 and is covered by the same test.
  */
 test(
-    'MM-T1276 opens the Direct Messages modal with the keyboard shortcut',
+    'MM-T1276 MM-T1278 opens and closes the Direct Messages modal with the keyboard shortcut',
     {tag: '@keyboard_shortcuts'},
     async ({pw}) => {
         const {user, team} = await pw.initSetup();
@@ -51,8 +53,8 @@ test(
         // * Verify the Direct Messages modal opens
         await channelsPage.directChannelsModal.toBeVisible();
 
-        // # Close the modal with Escape
-        await page.keyboard.press('Escape');
+        // # Press the Direct Messages shortcut again
+        await page.keyboard.press('ControlOrMeta+Shift+K');
 
         // * Verify the Direct Messages modal closes
         await expect(channelsPage.directChannelsModal.container).not.toBeVisible();

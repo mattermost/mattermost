@@ -11,7 +11,6 @@
 // Group: @channels @messaging @smoke
 
 import {getAdminAccount} from '@/support/env';
-import * as MESSAGES from '@/fixtures/messages';
 import timeouts from '@/fixtures/timeouts';
 
 describe('Message', () => {
@@ -156,25 +155,6 @@ describe('Message', () => {
             cy.get(divPostId).find('span.emoticon').should('not.exist');
             cy.get(divPostId).find('span.codespan__pre-wrap code').should('have.text', '😉');
         });
-    });
-
-    it('MM-T3307 Focus remains in the RHS text box', () => {
-        cy.postMessage(MESSAGES.MEDIUM);
-
-        // # Open reply thread (RHS)
-        cy.clickPostCommentIcon();
-
-        // # Add some text to RHS text box
-        cy.uiGetReplyTextBox().type(MESSAGES.TINY);
-
-        // # Click on Preview
-        cy.get('#PreviewInputTextButton').click();
-
-        // # Click on Reply
-        cy.uiReply();
-
-        // * Focus to remain in the RHS text box
-        cy.uiGetReplyTextBox().should('be.focused');
     });
 });
 

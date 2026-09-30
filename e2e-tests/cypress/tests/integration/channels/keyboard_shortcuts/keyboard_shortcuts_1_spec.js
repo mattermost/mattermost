@@ -403,16 +403,6 @@ describe('Keyboard Shortcuts', () => {
         cy.uiGetSettingsModal().should('not.exist');
     });
 
-    it('MM-T1278 - CTRL/CMD+SHIFT+K', () => {
-        // # Type CTRL/CMD+SHIFT+K to open 'Direct Messages' modal
-        cy.uiGetPostTextBox().cmdOrCtrlShortcut('{shift}K');
-        cy.get('#moreDmModal').should('be.visible').contains('Direct Messages');
-
-        // # Type CTRL/CMD+SHIFT+K to close 'Direct Messages' modal
-        cy.get('body').cmdOrCtrlShortcut('{shift}K');
-        cy.get('#moreDmModal').should('not.exist');
-    });
-
     it('MM-T4452 - CTRL/CMD+SHIFT+. Expand or collapse RHS when RHS is already open', () => {
         // # Post a message in center
         cy.postMessage(messages.TINY);

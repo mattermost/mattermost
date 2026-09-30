@@ -73,6 +73,15 @@ export default class DirectChannelsModal {
         await this.searchInput.fill(text);
     }
 
+    async toHaveNoResultsFor(query: string) {
+        await expect(this.container.getByText(/No results found matching/)).toContainText(query);
+    }
+
+    async toHaveDeactivatedConversation(username: string, email: string) {
+        await expect(this.container.getByText(new RegExp(`@${username}.*Deactivated`))).toBeVisible();
+        await expect(this.container.getByText(email, {exact: true})).toBeVisible();
+    }
+
     getUserResult(username: string) {
         return this.results.getByText(`@${username}`, {exact: false});
     }

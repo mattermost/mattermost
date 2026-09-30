@@ -95,6 +95,26 @@ export default class ChannelsPost {
         await expect(this.container).toBeVisible();
     }
 
+    async notToBeVisible() {
+        await expect(this.container).not.toBeVisible();
+    }
+
+    getFileThumbnail(filename: string) {
+        return this.container.getByLabel(`file thumbnail ${filename}`);
+    }
+
+    async toHaveFile(filename: string) {
+        await expect(this.getFileThumbnail(filename)).toBeVisible();
+    }
+
+    async toHaveNoMessageText() {
+        await expect(this.messageText).toHaveCount(0);
+    }
+
+    async toBeEdited() {
+        await expect(this.editedIndicator).toBeVisible();
+    }
+
     /**
      * Hover over the post. Can be used for post menu to appear.
      */
@@ -120,7 +140,7 @@ export default class ChannelsPost {
             }
 
             id = await this.container.getAttribute('id');
-            postId = (id ?? '').substring('post_'.length);
+            postId = (id ?? '').replace(/^(?:post_|rhsPost_)/, '');
 
             if (postId && !SUFFIXED_POST_ID_RE.test(postId)) {
                 return postId;
@@ -137,10 +157,6 @@ export default class ChannelsPost {
 
     async toHaveId(postId: string) {
         await expect.poll(() => this.getId()).toBe(postId);
-    }
-
-    async toBeEdited() {
-        await expect(this.editedIndicator).toBeVisible();
     }
 
     async isSystemMessage() {
@@ -221,6 +237,15 @@ export default class ChannelsPost {
      */
     getLink(name: string): Locator {
         return this.container.getByRole('link', {name});
+    }
+
+    getReaction(name: string) {
+        const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return this.container.getByRole('button', {name: new RegExp(`:${escapedName}:`)});
+    }
+
+    async toHaveReactionCount(name: string, count: number) {
+        await expect(this.getReaction(name).locator('.Reaction__number--display')).toHaveText(String(count));
     }
 
     getInlineImage(altText: string) {

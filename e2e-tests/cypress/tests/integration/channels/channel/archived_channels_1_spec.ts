@@ -80,33 +80,6 @@ describe('Leave an archived channel', () => {
         });
     });
 
-    it('MM-T1697 - Browse Public channels shows archived channels option', () => {
-        // # Create public channel
-        cy.apiCreateChannel(testTeam.id, 'channel', 'channel').then(({channel}) => {
-            // # Visit the channel
-            cy.visit(`/${testTeam.name}/channels/${channel.name}`);
-
-            // # Archive the channel
-            cy.uiArchiveChannel();
-
-            // # Click on browse channels
-            cy.uiBrowseOrCreateChannel('Browse channels');
-
-            // # More channels modal opens
-            cy.get('#browseChannelsModal').should('be.visible');
-
-            // # Click on dropdown
-            cy.findByText(channelType.all).should('be.visible').click();
-
-            // # Click archived channels
-            cy.findByText('Archived channels').click();
-
-            // # Modal should contain created channel
-            cy.get('#moreChannelsList').should('contain', channel.display_name);
-        });
-        cy.get('body').typeWithForce('{esc}');
-    });
-
     it('MM-T1699 - Browse Channels for all channel types shows archived channels option', () => {
         let archivedPrivateChannel: Channel;
         let archivedPublicChannel: Channel;
@@ -248,36 +221,6 @@ describe('Leave an archived channel', () => {
             // # Channel list should contain only the private channel user is a member of
             cy.get('#moreChannelsList').should('contain', archivedPrivateChannel1.name);
             cy.get('#moreChannelsList').should('not.contain', archivedPrivateChannel2.name);
-        });
-        cy.get('body').typeWithForce('{esc}');
-    });
-
-    it('MM-T1703 - User can open archived channels', () => {
-        let archivedChannel: Channel;
-
-        // # Create a public channel
-        cy.apiCreateChannel(testTeam.id, 'channel', 'channel').then(({channel}) => {
-            archivedChannel = channel;
-
-            // # Visit the channel
-            cy.visit(`/${testTeam.name}/channels/${archivedChannel.name}`);
-
-            // # Archive the channel
-            cy.uiArchiveChannel();
-        });
-
-        // # Click on browse channels from menu
-        cy.uiBrowseOrCreateChannel('Browse channels');
-
-        // # More channels modal opens and lands on all channels
-        cy.get('#browseChannelsModal').should('be.visible').then(() => {
-            cy.findByText(channelType.all).should('be.visible').click();
-
-            // # Go to archived channels
-            cy.findByText('Archived channels').click();
-
-            // # More channels list should contain the archived channel
-            cy.get('#moreChannelsList').should('contain', archivedChannel.display_name);
         });
         cy.get('body').typeWithForce('{esc}');
     });

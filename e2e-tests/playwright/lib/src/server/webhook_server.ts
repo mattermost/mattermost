@@ -31,15 +31,23 @@ export async function setupWebhookTestServer(
         mattermostBaseUrl: string;
         adminUsername: string;
         adminPassword: string;
+        /**
+         * Address the webhook sidecar should stamp onto any dialog/form URLs it builds itself
+         * (e.g. chained multi-step dialogs) for the Mattermost *server* to call back into it.
+         * Defaults to `testConfig.webhookBaseUrl`. Distinct from the fixed request target below,
+         * which the *test process* uses to physically reach the sidecar and is never overridden —
+         * in testcontainers mode that's the host-mapped port, while a server-dereferenced URL
+         * needs the container-internal alias (`testConfig.webhookInternalUrl`).
+         */
         webhookBaseUrl?: string;
     },
 ): Promise<void> {
-    const webhookBaseUrl = opts.webhookBaseUrl ?? testConfig.webhookBaseUrl;
-    const res = await request.post(`${webhookBaseUrl}/setup`, {
+    const payloadWebhookBaseUrl = opts.webhookBaseUrl ?? testConfig.webhookBaseUrl;
+    const res = await request.post(`${testConfig.webhookBaseUrl}/setup`, {
         headers: {'Content-Type': 'application/json'},
         data: {
             baseUrl: opts.mattermostBaseUrl,
-            webhookBaseUrl,
+            webhookBaseUrl: payloadWebhookBaseUrl,
             adminUsername: opts.adminUsername,
             adminPassword: opts.adminPassword,
         },
