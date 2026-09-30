@@ -51,7 +51,7 @@ import type {ChannelResourceConfig} from '../applies_to/channels';
 import {ATTRIBUTE_TYPE_DESCRIPTOR, getAttributeTypeDescriptor, toServerFieldType} from '../attribute_type';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from '../constants';
 import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField} from '../global_attributes_table';
-import {findNameConflict, messages as nameConflictMessages, nameConflictText} from '../name_conflict';
+import {findNameConflict, messages as nameConflictMessages, nameConflictText, type NameConflict} from '../name_conflict';
 import useAllowedResourceTypes from '../use_allowed_resource_types';
 import type {AttributeFieldType, AttributeTypeId, UpdateAttributeFieldPatch} from '../utils';
 import {
@@ -295,6 +295,20 @@ function firstMatchingReason<T extends string>(...pairs: Array<[T, boolean]>): T
         }
     }
     return null;
+}
+
+// The conflict catalogs are fetched once and held in a ref; only a change in
+// the derived warning is committed to state. Putting the lists in state would
+// re-render the whole form (open graph menus included) when the fetch lands,
+// even if the typed name collides with nothing.
+function sameNameConflict(a: NameConflict | undefined, b: NameConflict | undefined): boolean {
+    if (a === b) {
+        return true;
+    }
+    if (!a || !b) {
+        return false;
+    }
+    return a.field.id === b.field.id && a.exact === b.exact && a.ownerTemplate?.id === b.ownerTemplate?.id;
 }
 
 type Props = {
@@ -576,35 +590,6 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         };
     }, [fieldId, allowedResourceTypes]);
 
-    // Live user fields (what a CEL rule can collide with) and templates (to name
-    // the owner of a colliding linked field). Loaded independently of the field
-    // being edited, because the create form needs them too. A failure here only
-    // costs the warning: the save path still reports the server's own 409.
-    const [conflictUserFields, setConflictUserFields] = useState<PropertyField[]>([]);
-    const [conflictTemplates, setConflictTemplates] = useState<PropertyField[]>([]);
-    useEffect(() => {
-        let cancelled = false;
-
-        (async () => {
-            try {
-                const [userFields, templates] = await Promise.all([
-                    listPropertyFields('user'),
-                    listPropertyFields(GLOBAL_ATTRIBUTES_OBJECT_TYPE),
-                ]);
-                if (!cancelled) {
-                    setConflictUserFields(userFields);
-                    setConflictTemplates(templates);
-                }
-            } catch (error) {
-                console.error('AttributeDetails-load-name-conflicts: ', error); // eslint-disable-line no-console
-            }
-        })();
-
-        return () => {
-            cancelled = true;
-        };
-    }, []);
-
     const autoSlugDisplay = useMemo(() => computeAutoSlugDisplay(displayName), [displayName]);
     const currentName = (isEditingName || isNameManuallyEdited) ? manualName : (autoSlugDisplay ?? '');
     const nameUnchanged = isEditMode && currentName === originalNameRef.current;
@@ -615,14 +600,55 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // render while invalid, which would churn the callback identity needlessly.
     const hasNameError = Boolean(nameValidationError);
 
-    // A user attribute already carrying this name. Not an error: a template
-    // applied only to Channels becomes resource.attributes.<name>, which CEL
-    // keeps separate from user.attributes.<name>. It is a warning, because the
-    // two are indistinguishable in this listing.
-    const nameConflict = useMemo(
-        () => (currentName ? findNameConflict(currentName, conflictUserFields, conflictTemplates, fieldId) : undefined),
-        [conflictTemplates, conflictUserFields, currentName, fieldId],
-    );
+    // Live user fields (what a CEL rule can collide with) and templates (to name
+    // the owner of a colliding linked field). Loaded independently of the field
+    // being edited, because the create form needs them too. A failure here only
+    // costs the warning: the save path still reports the server's own 409.
+    const conflictCatalogRef = useRef<{userFields: PropertyField[]; templates: PropertyField[]}>({
+        userFields: [],
+        templates: [],
+    });
+    const currentNameRef = useRef(currentName);
+    currentNameRef.current = currentName;
+    const fieldIdRef = useRef(fieldId);
+    fieldIdRef.current = fieldId;
+    const [nameConflict, setNameConflict] = useState<NameConflict | undefined>();
+
+    useEffect(() => {
+        let cancelled = false;
+
+        (async () => {
+            try {
+                const [userFields, templates] = await Promise.all([
+                    listPropertyFields('user'),
+                    listPropertyFields(GLOBAL_ATTRIBUTES_OBJECT_TYPE),
+                ]);
+                if (cancelled) {
+                    return;
+                }
+                conflictCatalogRef.current = {userFields, templates};
+                const name = currentNameRef.current;
+                setNameConflict((prev) => {
+                    const next = name ? findNameConflict(name, userFields, templates, fieldIdRef.current) : undefined;
+                    return sameNameConflict(prev, next) ? prev : next;
+                });
+            } catch (error) {
+                console.error('AttributeDetails-load-name-conflicts: ', error); // eslint-disable-line no-console
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    useEffect(() => {
+        const {userFields, templates} = conflictCatalogRef.current;
+        setNameConflict((prev) => {
+            const next = currentName ? findNameConflict(currentName, userFields, templates, fieldId) : undefined;
+            return sameNameConflict(prev, next) ? prev : next;
+        });
+    }, [currentName, fieldId]);
 
     // Only an exact match would collide on the server, which compares names
     // case-sensitively. Applying to Users under that name creates a second user

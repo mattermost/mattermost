@@ -1666,6 +1666,29 @@ describe('AttributeDetails', () => {
             expect(screen.getAllByRole('status')).toContain(warning);
         });
 
+        it('warns when the catalog arrives after the name has already been typed', async () => {
+            let resolveUserFields!: (fields: PropertyField[]) => void;
+            const userFieldsPromise = new Promise<PropertyField[]>((resolve) => {
+                resolveUserFields = resolve;
+            });
+            jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType, _targetType, _targetId, options) => {
+                if (options?.cursorId) {
+                    return Promise.resolve([]);
+                }
+                if (objectType === 'user') {
+                    return userFieldsPromise;
+                }
+                return Promise.resolve([]);
+            });
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Clearance');
+            expect(screen.queryByTestId('attributeNameConflictWarning')).not.toBeInTheDocument();
+
+            resolveUserFields([makeUserField('clearance')]);
+            expect(await screen.findByTestId('attributeNameConflictWarning')).toBeVisible();
+        });
+
         it('shows no warning for a name no user field holds, and clears it again when a conflicting name is changed', async () => {
             mockConflictFields([makeUserField('clearance')]);
 
