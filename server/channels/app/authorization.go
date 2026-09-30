@@ -257,7 +257,7 @@ func (a *App) SessionHasPermissionToChannelByPost(rctx request.CTX, session mode
 		if err != nil {
 			// No channel to evaluate against, so granting on a system-wide permission
 			// would bypass the policy.
-			return !a.channelAccessEnforcementActive()
+			return !a.ChannelAccessEnforcementActive()
 		}
 	}
 
@@ -293,7 +293,7 @@ func (a *App) SessionHasPermissionToReadPost(rctx request.CTX, session model.Ses
 
 	channel, err := a.Srv().Store().Channel().GetForPost(postID)
 	if err != nil {
-		if a.channelAccessEnforcementActive() {
+		if a.ChannelAccessEnforcementActive() {
 			// The fallback below has no channel to evaluate against, so granting on
 			// a system-wide permission would bypass the policy.
 			return false, false

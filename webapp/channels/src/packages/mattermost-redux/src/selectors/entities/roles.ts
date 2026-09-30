@@ -10,7 +10,6 @@ import {General, Permissions} from 'mattermost-redux/constants';
 import {CHANNEL_MANAGEMENT_PERMISSIONS, CHANNEL_WRITE_PERMISSIONS} from 'mattermost-redux/constants/permissions';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
-import {getRenderDecision} from 'mattermost-redux/selectors/entities/render_permissions';
 import type {PermissionsOptions} from 'mattermost-redux/selectors/entities/roles_helpers';
 import {
     getMySystemPermissions as getMySystemPermissionsInternal,
@@ -216,12 +215,10 @@ export const haveIGroupPermission: (state: GlobalState, groupID: string, permiss
     },
 );
 
+// Reads the cache directly rather than through getRenderDecision: haveIChannelPermission
+// runs this for every write and management check, and an identifier object per call adds up.
 function isChannelActionDenied(state: GlobalState, channelId: string, action: string): boolean {
-    const decision = getRenderDecision(state, {
-        resourceType: 'channel',
-        resourceId: channelId,
-        action,
-    });
+    const decision = state.entities.renderPermissions?.byResource?.channel?.[channelId]?.[action];
 
     return Boolean(decision?.evaluated && !decision.allowed);
 }
@@ -235,7 +232,7 @@ export function isChannelManagementDenied(state: GlobalState, channelId: string)
 }
 
 // The role grant alone, with no attribute-based policy applied. Mirrors the server's
-// HasPermissionToChannelRBACOnly, and exists for the same reason: a surface that needs to
+// HasPermissionToChannel, which is RBAC-only, and exists for the same reason: a surface that needs to
 // stay visible under a policy denial — rendering its controls disabled rather than
 // vanishing — has to ask what the user's roles allow, separately from what a policy does.
 // Prefer haveIChannelPermission for anything that gates an actual action.

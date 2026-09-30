@@ -31,6 +31,10 @@ func channelManagementDenied(a *app.App, rctx request.CTX, args *model.CommandAr
 	return rctx.Session().UserId == args.UserId && !a.EnforceChannelManagementAccess(rctx, args.UserId, channel)
 }
 
+func channelManagementDeniedByID(a *app.App, rctx request.CTX, args *model.CommandArgs, channelID string) bool {
+	return rctx.Session().UserId == args.UserId && !a.EnforceChannelManagementAccessByID(rctx, args.UserId, channelID)
+}
+
 // parseNamedArgs parses a command string into a map of arguments. It is assumed the
 // command string is of the form `<action> --arg1 value1 ...` Supports empty values.
 // Arg names are limited to [0-9a-zA-Z_].

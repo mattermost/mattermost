@@ -340,7 +340,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	c.Logger = c.App.Log().With(loggerFields...)
 	c.AppContext = c.AppContext.WithLogger(c.Logger)
-	c.AppContext = app.WithChannelAccessMemo(c.AppContext)
+	// Nothing reads the memo while the gates are inert, so don't allocate it.
+	if c.App.ChannelAccessEnforcementActive() {
+		c.AppContext = app.WithChannelAccessMemo(c.AppContext)
+	}
 	c.App.ProcessSessionAttributesRequest(c.AppContext, r)
 
 	if c.Err == nil && h.RequireSession {

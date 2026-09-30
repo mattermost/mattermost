@@ -334,10 +334,10 @@ function PermissionPolicyDetails({
     // Channel Read Access hides channels from users without telling them, and Manage
     // Channel can take editing away from the people maintaining them, so either gets a
     // confirmation step. Other policies save straight through.
-    const confirmableActions = selectedPermissions.filter((permission) =>
+    const confirmableActions = useMemo(() => selectedPermissions.filter((permission) =>
         permission === ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS ||
         permission === ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
-    );
+    ), [selectedPermissions]);
 
     const handleSubmit = async () => {
         if (!preSaveCheck()) {

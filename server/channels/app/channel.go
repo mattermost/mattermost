@@ -2546,7 +2546,7 @@ func (a *App) GetAllChannelsCount(rctx request.CTX, opts model.ChannelSearchOpts
 }
 
 func (a *App) fillChannelPage(rctx request.CTX, userID string, offset, limit int, fetch func(offset, limit int) (model.ChannelList, error)) (model.ChannelList, error) {
-	if !a.channelAccessEnforcementActive() {
+	if !a.ChannelAccessEnforcementActive() {
 		return fetch(offset, limit)
 	}
 
@@ -3682,7 +3682,7 @@ func (a *App) MarkTeamChannelsAndThreadsViewed(rctx request.CTX, teamID string, 
 	// Dropping a hidden channel here leaves its unread and mention counts intact, so
 	// they are waiting when access returns. times feeds the thread update, the
 	// websocket payload and the response, so filtering it covers all three.
-	if a.channelAccessEnforcementActive() {
+	if a.ChannelAccessEnforcementActive() {
 		channelsToView = a.FilterChannelIDsByReadAccess(rctx, userID, channelsToView)
 		channelsToClearPushNotifications = a.FilterChannelIDsByReadAccess(rctx, userID, channelsToClearPushNotifications)
 		for channelID := range times {

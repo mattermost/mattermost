@@ -59,7 +59,7 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
     // Unarchiving is authorised on manage_team, which the management decision does not
     // reach through the permission selectors, so ask it here. An archived channel mounts
     // no composer to prefetch it.
-    const managementAllowedByPolicy = useChannelManagementAccess(channel.id);
+    const managementAllowedByPolicy = useChannelManagementAccess(isArchived ? channel.id : '');
 
     return (
         <>

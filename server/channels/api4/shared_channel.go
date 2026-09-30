@@ -167,12 +167,13 @@ func inviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if _, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId); appErr != nil {
+	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
 		c.SetInvalidURLParam("channel_id")
 		return
 	}
 
-	if !requireChannelManagementAccessByID(c, c.Params.ChannelId) {
+	if !requireChannelManagementAccess(c, channel) {
 		return
 	}
 
@@ -222,12 +223,13 @@ func uninviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if _, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId); appErr != nil {
+	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
 		c.SetInvalidURLParam("channel_id")
 		return
 	}
 
-	if !requireChannelManagementAccessByID(c, c.Params.ChannelId) {
+	if !requireChannelManagementAccess(c, channel) {
 		return
 	}
 

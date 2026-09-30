@@ -752,7 +752,7 @@ function ChannelSettingsPermissionsPolicyTab({
                 defaultMessage='You cannot save these rules because they would remove your own ability to manage this channel. Update the Manage channel rules so that you still satisfy them, then try again.'
             />
         );
-    } else {
+    } else if (selfCheckBlock === 'denied') {
         selfCheckBlockMessage = (
             <FormattedMessage
                 id='channel_settings.permissions_policy.error.self_exclusion_message'

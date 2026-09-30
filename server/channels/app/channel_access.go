@@ -51,6 +51,9 @@ func (m *channelAccessMemo) get(key channelAccessKey) (allowed bool, ok bool) {
 func (m *channelAccessMemo) set(key channelAccessKey, allowed bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	if m.decisions == nil {
+		m.decisions = map[channelAccessKey]bool{}
+	}
 	m.decisions[key] = allowed
 }
 
@@ -64,6 +67,9 @@ func (m *channelAccessMemo) getActionGoverned(channelID, action string) (governe
 func (m *channelAccessMemo) setActionGoverned(channelID, action string, governed bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	if m.actionGoverned == nil {
+		m.actionGoverned = map[channelActionGovernedKey]bool{}
+	}
 	m.actionGoverned[channelActionGovernedKey{channelID: channelID, action: action}] = governed
 }
 
@@ -92,11 +98,7 @@ func WithChannelAccessMemo(rctx request.CTX) request.CTX {
 	if getChannelAccessMemo(rctx) != nil {
 		return rctx
 	}
-	memo := &channelAccessMemo{
-		decisions:      map[channelAccessKey]bool{},
-		actionGoverned: map[channelActionGovernedKey]bool{},
-	}
-	return rctx.WithContext(context.WithValue(rctx.Context(), channelAccessMemoKey{}, memo))
+	return rctx.WithContext(context.WithValue(rctx.Context(), channelAccessMemoKey{}, &channelAccessMemo{}))
 }
 
 func ChannelAccessEnforcementDenial(rctx request.CTX) (channelID string, action string) {
@@ -238,7 +240,7 @@ func (a *App) noteChannelAccessEnforcementDenial(rctx request.CTX, userID, chann
 	}
 }
 
-func (a *App) channelAccessEnforcementActive() bool {
+func (a *App) ChannelAccessEnforcementActive() bool {
 	return a.attributeBasedAccessControlEnabled() &&
 		model.MinimumEnterpriseAdvancedLicense(a.License()) &&
 		a.Srv().Channels().AccessControl != nil
@@ -248,7 +250,7 @@ func (a *App) channelAccessEnforcementActive() bool {
 // recipient's channel_read_access policy is evaluated before the event reaches them. The hook is
 // left off when that evaluation would allow every recipient.
 func (a *App) setupBroadcastHookForChannelReadAccess(channelID string, message *model.WebSocketEvent) {
-	if channelID == "" || !a.channelAccessEnforcementActive() {
+	if channelID == "" || !a.ChannelAccessEnforcementActive() {
 		return
 	}
 
@@ -288,21 +290,28 @@ func (a *App) channelWriteAccessDecision(rctx request.CTX, userID string, channe
 		return true
 	}
 
-	return a.channelActionAllowed(rctx, userID, channel, model.AccessControlPolicyActionChannelWriteAccess)
+	if !a.channelActionGoverned(rctx, channel, model.AccessControlPolicyActionChannelWriteAccess) {
+		return true
+	}
+
+	return a.hasChannelAccess(rctx, userID, channel, model.AccessControlPolicyActionChannelWriteAccess)
 }
 
 // channelManagementAccessDecision evaluates channel_management_access alone. Unlike
 // writes, bot sessions are evaluated too; system admins are never bound.
 func (a *App) channelManagementAccessDecision(rctx request.CTX, userID string, channel *model.Channel) bool {
-	if !a.channelAccessGateApplies(userID, channel) {
+	if !a.channelAccessGateApplies(userID, channel) ||
+		!a.channelActionGoverned(rctx, channel, model.AccessControlPolicyActionChannelManagementAccess) {
 		return true
 	}
 
+	// After the governance check, which is memoised, so an ungoverned channel skips the
+	// role lookup and the roles slice it allocates.
 	if a.holdsManageSystem(rctx, userID) {
 		return true
 	}
 
-	return a.channelActionAllowed(rctx, userID, channel, model.AccessControlPolicyActionChannelManagementAccess)
+	return a.hasChannelAccess(rctx, userID, channel, model.AccessControlPolicyActionChannelManagementAccess)
 }
 
 func (a *App) holdsManageSystem(rctx request.CTX, userID string) bool {
@@ -310,17 +319,6 @@ func (a *App) holdsManageSystem(rctx request.CTX, userID string) bool {
 		return a.SessionHasPermissionTo(*rctx.Session(), model.PermissionManageSystem)
 	}
 	return a.HasPermissionTo(rctx, userID, model.PermissionManageSystem)
-}
-
-// channelActionAllowed is the core the write and management gates share: the gate stays
-// inert until a policy carrying the action governs the channel, then that action alone
-// decides.
-func (a *App) channelActionAllowed(rctx request.CTX, userID string, channel *model.Channel, action string) bool {
-	if !a.channelActionGoverned(rctx, channel, action) {
-		return true
-	}
-
-	return a.hasChannelAccess(rctx, userID, channel, action)
 }
 
 func (a *App) channelActionGoverned(rctx request.CTX, channel *model.Channel, action string) bool {
@@ -393,7 +391,7 @@ func (a *App) channelAccessGateApplies(userID string, channel *model.Channel) bo
 		return false
 	}
 
-	return a.channelAccessEnforcementActive()
+	return a.ChannelAccessEnforcementActive()
 }
 
 func (a *App) hasChannelAccess(rctx request.CTX, userID string, channel *model.Channel, action string) bool {
@@ -487,7 +485,7 @@ func (a *App) buildChannelAccessSubject(rctx request.CTX, userID, channelID stri
 }
 
 func (a *App) FilterChannelIDsByReadAccess(rctx request.CTX, userID string, channelIDs []string) []string {
-	if len(channelIDs) == 0 || !a.channelAccessEnforcementActive() {
+	if len(channelIDs) == 0 || !a.ChannelAccessEnforcementActive() {
 		return channelIDs
 	}
 
@@ -504,7 +502,7 @@ func (a *App) FilterChannelIDsByReadAccess(rctx request.CTX, userID string, chan
 // read filters it is deliberately non-recording: a filtered request succeeds, so there is
 // no denial for SetPermissionError to report.
 func (a *App) FilterChannelIDsByManagementAccess(rctx request.CTX, userID string, channelIDs []string) []string {
-	if len(channelIDs) == 0 || !a.channelAccessEnforcementActive() {
+	if len(channelIDs) == 0 || !a.ChannelAccessEnforcementActive() {
 		return channelIDs
 	}
 
@@ -518,7 +516,7 @@ func (a *App) FilterChannelIDsByManagementAccess(rctx request.CTX, userID string
 }
 
 func (a *App) FilterChannelMembersByReadAccess(rctx request.CTX, userID string, members model.ChannelMembers) model.ChannelMembers {
-	if len(members) == 0 || !a.channelAccessEnforcementActive() {
+	if len(members) == 0 || !a.ChannelAccessEnforcementActive() {
 		return members
 	}
 
@@ -532,7 +530,7 @@ func (a *App) FilterChannelMembersByReadAccess(rctx request.CTX, userID string, 
 }
 
 func (a *App) FilterChannelsByReadAccess(rctx request.CTX, userID string, channels []*model.Channel) []*model.Channel {
-	if len(channels) == 0 || !a.channelAccessEnforcementActive() {
+	if len(channels) == 0 || !a.ChannelAccessEnforcementActive() {
 		return channels
 	}
 
@@ -550,7 +548,7 @@ func (a *App) FilterChannelListByReadAccess(rctx request.CTX, userID string, cha
 }
 
 func (a *App) FilterChannelListWithTeamDataByReadAccess(rctx request.CTX, userID string, channels model.ChannelListWithTeamData) (kept model.ChannelListWithTeamData, dropped int) {
-	if len(channels) == 0 || !a.channelAccessEnforcementActive() {
+	if len(channels) == 0 || !a.ChannelAccessEnforcementActive() {
 		return channels, 0
 	}
 
@@ -570,7 +568,7 @@ func (a *App) HasChannelReadAccessByID(rctx request.CTX, userID, channelID strin
 }
 
 func (a *App) hasChannelAccessByID(rctx request.CTX, userID, channelID string, check func(*model.Channel) bool) bool {
-	if channelID == "" || !a.channelAccessEnforcementActive() {
+	if channelID == "" || !a.ChannelAccessEnforcementActive() {
 		return true
 	}
 
