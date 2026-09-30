@@ -139,88 +139,75 @@ func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPack
 func (a *App) getSupportPacketStats(rctx request.CTX) (*model.FileData, error) {
 	var (
 		rErr  *multierror.Error
-		err   error
 		stats model.SupportPacketStats
 	)
 
-	stats.RegisteredUsers, err = a.Srv().Store().User().Count(model.UserCountOptions{IncludeDeleted: true})
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get registered user count"))
+	collect := func(name string, get func() (int64, error)) *int64 {
+		value, err := get()
+		if err != nil {
+			rErr = multierror.Append(rErr, errors.Wrapf(err, "failed to get %s", name))
+			return nil
+		}
+
+		return &value
 	}
 
-	stats.ActiveUsers, err = a.Srv().Store().User().Count(model.UserCountOptions{})
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get active user count"))
-	}
+	stats.RegisteredUsers = collect("registered user count", func() (int64, error) {
+		return a.Srv().Store().User().Count(model.UserCountOptions{IncludeDeleted: true})
+	})
+	stats.ActiveUsers = collect("active user count", func() (int64, error) {
+		return a.Srv().Store().User().Count(model.UserCountOptions{})
+	})
+	stats.DailyActiveUsers = collect("daily active user count", func() (int64, error) {
+		return a.Srv().Store().User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+	})
+	stats.MonthlyActiveUsers = collect("monthly active user count", func() (int64, error) {
+		return a.Srv().Store().User().AnalyticsActiveCount(MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+	})
+	stats.DeactivatedUsers = collect("deactivated user count", func() (int64, error) {
+		return a.Srv().Store().User().AnalyticsGetInactiveUsersCount()
+	})
+	stats.Guests = collect("guest count", func() (int64, error) {
+		return a.Srv().Store().User().AnalyticsGetGuestCount()
+	})
+	stats.SingleChannelGuests = collect("single channel guest count", func() (int64, error) {
+		return a.Srv().Store().User().AnalyticsGetSingleChannelGuestCount()
+	})
+	stats.BotAccounts = collect("bot account count", func() (int64, error) {
+		return a.Srv().Store().User().Count(model.UserCountOptions{IncludeBotAccounts: true, ExcludeRegularUsers: true})
+	})
+	stats.Posts = collect("post count", func() (int64, error) {
+		return a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{})
+	})
+	stats.Channels = collect("channel count", func() (int64, error) {
+		openChannels, err := a.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypeOpen)
+		if err != nil {
+			return 0, err
+		}
 
-	stats.DailyActiveUsers, err = a.Srv().Store().User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get daily active user count"))
-	}
+		privateChannels, err := a.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypePrivate)
+		if err != nil {
+			return 0, err
+		}
 
-	stats.MonthlyActiveUsers, err = a.Srv().Store().User().AnalyticsActiveCount(MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get monthly active user count"))
-	}
-
-	stats.DeactivatedUsers, err = a.Srv().Store().User().AnalyticsGetInactiveUsersCount()
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get deactivated user count"))
-	}
-
-	stats.Guests, err = a.Srv().Store().User().AnalyticsGetGuestCount()
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get guest count"))
-	}
-
-	stats.SingleChannelGuests, err = a.Srv().Store().User().AnalyticsGetSingleChannelGuestCount()
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get single channel guest count"))
-	}
-
-	stats.BotAccounts, err = a.Srv().Store().User().Count(model.UserCountOptions{IncludeBotAccounts: true, ExcludeRegularUsers: true})
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get bot acount count"))
-	}
-
-	stats.Posts, err = a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{})
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get post count"))
-	}
-
-	openChannels, err := a.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypeOpen)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get open channels count"))
-	}
-	privateChannels, err := a.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypePrivate)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get private channels count"))
-	}
-	stats.Channels = openChannels + privateChannels
-
-	stats.Teams, err = a.Srv().Store().Team().AnalyticsTeamCount(nil)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get team count"))
-	}
-
-	stats.SlashCommands, err = a.Srv().Store().Command().AnalyticsCommandCount("")
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get command count"))
-	}
-
-	stats.IncomingWebhooks, err = a.Srv().Store().Webhook().AnalyticsIncomingCount("", "")
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get incoming webhook count"))
-	}
-
-	stats.OutgoingWebhooks, err = a.Srv().Store().Webhook().AnalyticsOutgoingCount("")
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to get  outgoing webhook count"))
-	}
+		return openChannels + privateChannels, nil
+	})
+	stats.Teams = collect("team count", func() (int64, error) {
+		return a.Srv().Store().Team().AnalyticsTeamCount(nil)
+	})
+	stats.SlashCommands = collect("command count", func() (int64, error) {
+		return a.Srv().Store().Command().AnalyticsCommandCount("")
+	})
+	stats.IncomingWebhooks = collect("incoming webhook count", func() (int64, error) {
+		return a.Srv().Store().Webhook().AnalyticsIncomingCount("", "")
+	})
+	stats.OutgoingWebhooks = collect("outgoing webhook count", func() (int64, error) {
+		return a.Srv().Store().Webhook().AnalyticsOutgoingCount("")
+	})
 
 	b, err := yaml.Marshal(&stats)
 	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to marshal Support Packet into yaml"))
+		rErr = multierror.Append(rErr, errors.Wrap(err, "failed to marshal Support Packet into yaml"))
 	}
 
 	fileData := &model.FileData{
