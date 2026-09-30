@@ -104,8 +104,16 @@ func TestFeatureFlagsSetDefaults_PropertyFieldGraph(t *testing.T) {
 	var flags FeatureFlags
 	flags.SetDefaults()
 
-	require.False(t, flags.PropertyFieldGraph, "PropertyFieldGraph should default to false")
-	require.Equal(t, "false", flags.ToMap()["PropertyFieldGraph"])
+	require.True(t, flags.PropertyFieldGraph, "PropertyFieldGraph should default to true")
+	require.Equal(t, "true", flags.ToMap()["PropertyFieldGraph"])
+}
+
+func TestFeatureFlagsSetDefaults_ResourceAttributesInPolicies(t *testing.T) {
+	var flags FeatureFlags
+	flags.SetDefaults()
+
+	require.True(t, flags.ResourceAttributesInPolicies, "ResourceAttributesInPolicies should default to true")
+	require.Equal(t, "true", flags.ToMap()["ResourceAttributesInPolicies"])
 }
 
 func TestFeatureFlagsSetDefaults_TeamMembershipAccessControl(t *testing.T) {

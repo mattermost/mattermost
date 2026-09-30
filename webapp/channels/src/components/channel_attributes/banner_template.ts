@@ -11,9 +11,11 @@ import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 // matchAll() read it — a shared instance makes the answer depend on who asked last.
 const tokenPattern = () => /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g;
 
-// Excludes "-" and "/": a banner authored as "- {{classification}}" is a markdown
-// list, and stripping its marker would rewrite what the author wrote.
-const SEPARATORS = '·|';
+// Separators cleaned when an adjacent attribute collapses. "*" is excluded so
+// markdown emphasis survives; "-" is excluded so a leading markdown list marker
+// is not stripped from authored text. One or two of these in a row (e.g. "·",
+// ".", "/", "?", "||") count as a removable separator.
+const SEPARATOR_CHARS = '·|./?';
 
 export function attributeToken(fieldName: string): string {
     return `{{${fieldName}}}`;
@@ -21,6 +23,15 @@ export function attributeToken(fieldName: string): string {
 
 export function hasAttributeTokens(text: string): boolean {
     return tokenPattern().test(text);
+}
+
+export function hasAttributeToken(text: string, fieldName: string): boolean {
+    for (const match of text.matchAll(tokenPattern())) {
+        if (match[1] === fieldName) {
+            return true;
+        }
+    }
+    return false;
 }
 
 export type BannerSegment = {type: 'text'; text: string} | {type: 'token'; name: string};
@@ -50,6 +61,22 @@ export function parseBannerTemplate(template: string): BannerSegment[] {
     return segments;
 }
 
+/**
+ * True when a template can never put anything on screen: no attribute reference
+ * to fill in later, and nothing left but separators and whitespace.
+ *
+ * Deleting the last attribute chip leaves the separators that sat between them
+ * behind, so "· ·" reads as authored text to every length check. A template that
+ * still references an attribute is not blank whatever it renders to today —
+ * that is the banner waiting for a value, which is the point of the feature.
+ */
+export function isBlankTemplate(template: string): boolean {
+    if (hasAttributeTokens(template)) {
+        return false;
+    }
+    return template.replace(new RegExp(`[\\s${SEPARATOR_CHARS}]`, 'g'), '') === '';
+}
+
 export function referencedFieldNames(text: string): string[] {
     const names: string[] = [];
     for (const match of text.matchAll(tokenPattern())) {
@@ -67,7 +94,9 @@ export function referencedFieldNames(text: string): string[] {
  */
 export function renderBannerTemplate(template: string, attributes: ResolvedChannelAttribute[]): string {
     if (!template || !hasAttributeTokens(template)) {
-        return template;
+        // Separator residue is not content, but anything else an author typed is
+        // theirs and passes through untouched.
+        return isBlankTemplate(template) ? '' : template;
     }
 
     const byName = new Map<string, ResolvedChannelAttribute>();
@@ -75,34 +104,58 @@ export function renderBannerTemplate(template: string, attributes: ResolvedChann
         byName.set(attribute.field.name, attribute);
     }
 
+    const reservedText = [template, ...attributes.map((attribute) => attribute.displayValue)].join('');
+    let emptyTokenMarker = '\uE000';
+    while (reservedText.includes(emptyTokenMarker)) {
+        emptyTokenMarker += '\uE000';
+    }
+
+    let collapsed = false;
     const substituted = template.replace(tokenPattern(), (_full, name: string) => {
-        return byName.get(name)?.displayValue ?? '';
+        const value = byName.get(name)?.displayValue;
+        if (!value) {
+            collapsed = true;
+            return emptyTokenMarker;
+        }
+        return value;
     });
 
-    return tidySeparators(substituted);
+    return collapsed ? tidySeparators(substituted, emptyTokenMarker) : substituted;
 }
 
-// Collapses the punctuation a removed token leaves behind. Only touches the
-// separators the composer offers, so a hand-written banner keeps its own.
-function tidySeparators(text: string): string {
-    const run = new RegExp(`(?:\\s*[${SEPARATORS}]\\s*){2,}`, 'g');
-    const leading = new RegExp(`^[\\s${SEPARATORS}]+`);
-    const trailing = new RegExp(`[\\s${SEPARATORS}]+$`);
+// Only a separator directly next to a collapsed token is removable. Keep the
+// separator on the left when both sides have one, preserving the author's choice.
+function tidySeparators(substituted: string, marker: string): string {
+    let text = substituted;
+    const leftSeparator = new RegExp(`(?:^|\\s)[${SEPARATOR_CHARS}]{1,2}\\s*$`);
+    const rightSeparator = new RegExp(`^\\s*[${SEPARATOR_CHARS}]{1,2}(?=\\s|$)\\s*`);
+    let index = text.indexOf(marker);
 
-    return text.
+    while (index !== -1) {
+        let before = text.slice(0, index);
+        let after = text.slice(index + marker.length);
+        const left = before.match(leftSeparator);
+        const right = after.match(rightSeparator);
 
-        replace(run, (match) => ` ${match.trim().charAt(0)} `).
-        replace(leading, '').
-        replace(trailing, '').
-        replace(/\s{2,}/g, ' ');
+        if (right) {
+            after = after.slice(right[0].length);
+        } else if (left) {
+            before = before.slice(0, -left[0].length);
+        }
+
+        const gap = before && after && ((/\s$/).test(before) || (/^\s/).test(after)) ? ' ' : '';
+        text = before.replace(/\s+$/, '') + gap + after.replace(/^\s+/, '');
+        index = text.indexOf(marker);
+    }
+
+    return text;
 }
 
 /**
- * Guarantees a token for every attribute the admin designated for the banner.
+ * Seeds a template with tokens for every attribute designated for the banner.
  *
- * Designation is not a suggestion: an author may add to the banner and reorder what
- * is there, but may not drop a designated attribute. A missing one is appended rather
- * than the edit refused, so the composer never has to explain itself.
+ * Designation is a default, not an enforcement: missing tokens are appended so a
+ * fresh channel banner starts with them, but an author may remove any of them.
  */
 export function withRequiredTokens(template: string, fieldNames: string[]): string {
     if (fieldNames.length === 0) {
@@ -121,10 +174,26 @@ export function withRequiredTokens(template: string, fieldNames: string[]): stri
     return existing ? `${existing} · ${additions}` : additions;
 }
 
+/**
+ * Inserts a token at a template offset, padded with a space on whichever side
+ * would otherwise glue it to adjacent text or another token, so the rendered
+ * banner never reads "textSECRETmore".
+ */
+export function insertToken(template: string, at: number, token: string): {template: string; leadingSpace: boolean} {
+    const leadingSpace = at > 0 && !(/\s/).test(template[at - 1]);
+    const trailingSpace = at < template.length && !(/\s/).test(template[at]);
+    const inserted = `${leadingSpace ? ' ' : ''}${token}${trailingSpace ? ' ' : ''}`;
+
+    return {template: template.slice(0, at) + inserted + template.slice(at), leadingSpace};
+}
+
 // Token name plus the label to show for it. Callers decide which attributes to offer.
-export function tokenSuggestions(attributes: ResolvedChannelAttribute[]): Array<{name: string; label: string}> {
+export function tokenSuggestions(attributes: ResolvedChannelAttribute[]): Array<{name: string; label: string; value: string}> {
     return attributes.map((attribute) => ({
         name: attribute.field.name,
         label: getPropertyFieldLabel(attribute.field),
+
+        // This channel's value, empty when unset: an unset token renders nothing.
+        value: attribute.displayValue,
     }));
 }

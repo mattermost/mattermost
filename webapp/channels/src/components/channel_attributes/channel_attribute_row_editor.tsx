@@ -4,7 +4,7 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {CheckIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon, ChevronDownIcon, CloseIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
 
@@ -15,7 +15,7 @@ import * as Menu from 'components/menu';
 import {asGraphFieldRef} from 'components/property_fields/graph';
 import AssignmentGraphPicker from 'components/property_fields/hierarchical_value_menu/assignment_picker';
 
-import AttributeChip, {AttributeChipRemoveButton} from './attribute_chip';
+import AttributeChip from './attribute_chip';
 import type {ChannelAttributeValue} from './set_channel_attribute_value';
 
 type Option = {label: string; value: string; color?: string};
@@ -34,6 +34,70 @@ function selectedIds(raw: unknown): string[] {
     }
     return [];
 }
+
+type RemovableChipProps = {
+    label: string;
+    value: string;
+    color?: string;
+    disabled?: boolean;
+    onRemove: () => void;
+};
+
+// The remove control sits inside the chip, on its own background, so it reads as
+// part of the value rather than as a stray icon next to it. A span, not a button:
+// it lives inside the trigger's own <button>, and a nested button is invalid HTML.
+// stopPropagation on both pointerdown and click keeps the removal from also
+// toggling the trigger's menu open.
+const RemovableChip = ({label, value, color, disabled, onRemove}: RemovableChipProps) => {
+    const {formatMessage} = useIntl();
+
+    return (
+        <AttributeChip
+            className='ChannelInfoAttributes__chip'
+            label={label}
+            value={value}
+            color={color}
+            size='medium'
+            announceLabel={false}
+        >
+            {!disabled && (
+                <span
+                    className='ChannelInfoAttributes__chipRemove'
+                    role='button'
+                    tabIndex={0}
+                    aria-label={formatMessage(
+                        {id: 'channel_attributes.info.remove_value', defaultMessage: 'Remove {value}'},
+                        {value},
+                    )}
+                    onPointerDown={(event) => {
+                        if (event.button !== 0) {
+                            return;
+                        }
+                        event.stopPropagation();
+                        event.preventDefault();
+                    }}
+                    onClick={(event) => {
+                        event.stopPropagation();
+                        event.preventDefault();
+                        onRemove();
+                    }}
+                    onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.stopPropagation();
+                            event.preventDefault();
+                            onRemove();
+                        }
+                    }}
+                >
+                    <CloseIcon
+                        size={12}
+                        aria-hidden={true}
+                    />
+                </span>
+            )}
+        </AttributeChip>
+    );
+};
 
 type Props = {
     field: PropertyField;
@@ -62,9 +126,15 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
 
     const chosen = useMemo(() => selectedIds(rawValue), [rawValue]);
 
+    // Unfiltered: a currently-selected option can fall outside a directional
+    // change policy's reachable set (e.g. a lower rung under raise_only), and
+    // still needs a label to render its chip.
+    const allOptions = useMemo(() => toOptions(field), [field]);
+    const optionById = useMemo(() => new Map(allOptions.map((option) => [option.value, option])), [allOptions]);
+
     const options = useMemo(
-        () => toOptions(field).filter((option) => canMoveToOption(field, rawValue, option.value)),
-        [field, rawValue],
+        () => allOptions.filter((option) => canMoveToOption(field, rawValue, option.value)),
+        [allOptions, field, rawValue],
     );
 
     const clearable = getPropertyFieldChangePolicy(field) === 'any' || !isPropertyValueSet(rawValue);
@@ -149,6 +219,71 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
         );
     }
 
+    // Multiselect renders one removable chip per value, boxed like the graph
+    // attribute picker; single-select shows its one chip and clears from the menu.
+    const triggerChildren = isMultiselect ? (
+        <span className='ChannelInfoAttributes__triggerInner'>
+            {chosen.length > 0 ? (
+                <span className='ChannelInfoAttributes__chips'>
+                    {chosen.map((optionId) => {
+                        const option = optionById.get(optionId);
+                        return (
+                            <RemovableChip
+                                key={optionId}
+                                label={label}
+                                value={option?.label ?? optionId}
+                                color={option?.color}
+                                disabled={saving}
+                                onRemove={() => handlePick(optionId)}
+                            />
+                        );
+                    })}
+                </span>
+            ) : (
+                <span
+                    className='ChannelInfoAttributes__empty'
+                    data-testid={`channelInfoAttributeUnset-${field.name}`}
+                >
+                    <FormattedMessage
+                        id='channel_attributes.info.not_set'
+                        defaultMessage='Not set'
+                    />
+                </span>
+            )}
+            <ChevronDownIcon
+                size={16}
+                aria-hidden={true}
+            />
+        </span>
+    ) : (
+        <span className='ChannelInfoAttributes__triggerInner'>
+            {hasDisplay ? (
+                <AttributeChip
+                    className='ChannelInfoAttributes__chip'
+                    label={label}
+                    value={displayValue!}
+                    color={color}
+                    size='medium'
+                    announceLabel={false}
+                />
+            ) : (
+                <span
+                    className='ChannelInfoAttributes__empty'
+                    data-testid={`channelInfoAttributeUnset-${field.name}`}
+                >
+                    <FormattedMessage
+                        id='channel_attributes.info.not_set'
+                        defaultMessage='Not set'
+                    />
+                </span>
+            )}
+            <ChevronDownIcon
+                size={16}
+                aria-hidden={true}
+            />
+        </span>
+    );
+
     return (
         <span className='ChannelInfoAttributes__valueActive'>
             <Menu.Container
@@ -162,25 +297,7 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                         {id: 'channel_attributes.info.edit', defaultMessage: 'Edit {label}'},
                         {label},
                     ),
-                    children: hasDisplay ? (
-                        <AttributeChip
-                            label={label}
-                            value={displayValue!}
-                            color={color}
-                            size='medium'
-                            announceLabel={false}
-                        />
-                    ) : (
-                        <span
-                            className='ChannelInfoAttributes__empty'
-                            data-testid={`channelInfoAttributeUnset-${field.name}`}
-                        >
-                            <FormattedMessage
-                                id='channel_attributes.info.not_set'
-                                defaultMessage='Not set'
-                            />
-                        </span>
-                    ),
+                    children: triggerChildren,
                 }}
                 menu={{
                     id: `channelAttributeEdit-${field.name}`,
@@ -228,13 +345,6 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                     );
                 })}
             </Menu.Container>
-            {clearable && hasDisplay && (
-                <AttributeChipRemoveButton
-                    onRemove={() => onSubmit(null)}
-                    removeLabel={clearLabel}
-                    disabled={saving}
-                />
-            )}
         </span>
     );
 };
