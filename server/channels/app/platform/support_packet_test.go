@@ -351,7 +351,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		/* Cluster */
 		assert.Empty(t, d.Cluster.ID)
 		require.NotNil(t, d.Cluster.NumberOfNodes)
-		assert.Zero(t, *d.Cluster.NumberOfNodes)
+		assert.Equal(t, 1, *d.Cluster.NumberOfNodes)
 
 		/* LDAP */
 		assert.Equal(t, model.StatusDisabled, d.LDAP.Status)
@@ -1363,9 +1363,8 @@ func TestGetSupportPacketDiagnosticsFieldPresence(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, nodeDiagnostics)
 
-		database, cluster := marshalSections(t, nodeDiagnostics, nil)
+		database, _ := marshalSections(t, nodeDiagnostics, nil)
 		assert.EqualValues(t, 0, database["master_connections_in_use"])
-		assert.EqualValues(t, 0, cluster["number_of_nodes"])
 	})
 }
 

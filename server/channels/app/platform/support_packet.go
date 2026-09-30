@@ -189,8 +189,9 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	totalMemoryBytes, err := getTotalMemory()
 	if err != nil {
 		fail(model.SectionServerHost, errors.Wrap(err, "error while getting total memory"))
+	} else {
+		d.Server.TotalMemoryMB = new(totalMemoryBytes / 1024 / 1024)
 	}
-	d.Server.TotalMemoryMB = totalMemoryBytes / 1024 / 1024
 	containerLimits, err := getContainerLimits()
 	if err != nil {
 		rctx.Logger().Debug("Failed to get container limits for Support Packet", mlog.Err(err))
@@ -198,9 +199,11 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.Server.ContainerCPULimit = containerLimits.CPULimit
 		d.Server.ContainerMemoryLimitMB = containerLimits.MemoryLimitMB
 	}
-	d.Server.Hostname, err = os.Hostname()
+	hostname, err := os.Hostname()
 	if err != nil {
 		fail(model.SectionServerHost, errors.Wrap(err, "error while getting hostname"))
+	} else {
+		d.Server.Hostname = new(hostname)
 	}
 	d.Server.ProcessID = os.Getpid()
 	d.Server.StartedAt = ps.startTime.UTC()
@@ -239,7 +242,7 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	if err != nil {
 		fail(model.SectionDatabaseIdentity, errors.Wrap(err, "error while getting DB type and schema version"))
 	} else {
-		d.Database.Type = databaseType
+		d.Database.Type = new(databaseType)
 		d.Database.SchemaVersion = new(schemaVersion)
 	}
 
@@ -275,9 +278,9 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		if diskErr != nil {
 			fail(model.SectionFilestoreDisk, errors.Wrap(diskErr, "error while getting disk space info"))
 		} else {
-			d.FileStore.FilesystemType = di.FilesystemType
-			d.FileStore.TotalMB = di.TotalMB
-			d.FileStore.AvailableMB = di.AvailableMB
+			d.FileStore.FilesystemType = new(di.FilesystemType)
+			d.FileStore.TotalMB = new(di.TotalMB)
+			d.FileStore.AvailableMB = new(di.AvailableMB)
 		}
 	}
 
@@ -294,7 +297,7 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 			d.Cluster.NumberOfNodes = new(max(len(clusterInfo), 1)) // clusterInfo is empty if the node is the only one in the cluster
 		}
 	} else {
-		d.Cluster.NumberOfNodes = new(0)
+		d.Cluster.NumberOfNodes = new(1)
 	}
 
 	/* LDAP */
