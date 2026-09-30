@@ -28,6 +28,7 @@ import {
     unregisterPluginReconnectHandler,
 } from 'actions/websocket_actions';
 import {clearLoggedChannelIntroErrors} from 'selectors/channel_intro';
+import {clearLoggedChannelViewErrors} from 'selectors/channel_view_plugin';
 import store from 'stores/redux_store';
 
 import {clearComposerPlaceholderErrors} from 'components/advanced_text_editor/composer_placeholder';
@@ -78,6 +79,7 @@ import type {
     ChannelTypeOptionComponent,
     ChannelIconOverrideRegistration,
     ChannelIntroRegistration,
+    ChannelViewRegistration,
     ComposerPlaceholderRegistration,
     ProductSwitcherMenuItemRegistration,
 } from 'types/store/plugins';
@@ -1526,6 +1528,51 @@ export default class PluginRegistry {
         }
         const id = generateId();
         this.dispatchPluginComponentWithData('ChannelIntro', {id, pluginId: this.id, matcher, component});
+        return id;
+    });
+
+    /**
+     * Register a component that replaces the center view of channels the matcher selects. The
+     * channel header, channel banner, and bookmarks bar stay rendered by core; the post list and
+     * the message composer (including the archived-channel and read-only notices that replace it)
+     * are not rendered, and the component fills the remaining space instead.
+     *
+     * `matcher` receives the full GlobalState as the first argument and a Channel object as the
+     * second, so it can read plugin-owned slices (e.g. state['plugins-<id>']). It runs on every
+     * store update while a channel is open, so it should be cheap or memoized by the plugin.
+     * Matcher throws are caught and treated as no-match. The first registration whose matcher
+     * returns exactly `true` wins (alphabetical pluginId, then insertion order).
+     *
+     * `component` receives {channel, channelId, teamId, focusedPostId}, where teamId is the current
+     * team's id. Core marks the channel as read when the component mounts and whenever the channel
+     * changes, as the post list would.
+     *
+     * Permalinks (`/:team/channels/:channel/:postid`): by default core renders its normal post list
+     * and composer for a permalink so the linked post is still shown and highlighted; the plugin
+     * component returns once the user switches away and back to the channel. Pass
+     * `handlesPermalinks: true` to render the component for permalinks too; it then receives the
+     * linked post id as `focusedPostId` and is responsible for showing that post.
+     *
+     * Registrations are cleaned up automatically when the plugin is removed.
+     *
+     * @returns Auto-generated unique id for this registration, usable with `unregisterComponent`.
+     */
+    registerChannelViewComponent = reArg(['matcher', 'component', 'handlesPermalinks'], ({matcher, component, handlesPermalinks = false}: {
+        matcher: ChannelViewRegistration['matcher'];
+        component: ChannelViewRegistration['component'];
+        handlesPermalinks?: ChannelViewRegistration['handlesPermalinks'];
+    }) => {
+        if (this.isActive()) {
+            clearLoggedChannelViewErrors(this.id);
+        }
+        const id = generateId();
+        this.dispatchPluginComponentWithData('ChannelView', {
+            id,
+            pluginId: this.id,
+            matcher,
+            component,
+            handlesPermalinks: handlesPermalinks === true,
+        });
         return id;
     });
 

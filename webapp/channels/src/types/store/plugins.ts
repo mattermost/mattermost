@@ -76,6 +76,7 @@ export type PluginsState = {
         ChannelIconOverride: ChannelIconOverrideRegistration[];
         ChannelComposerBanner: ChannelComposerBannerComponent[];
         ChannelIntro: ChannelIntroRegistration[];
+        ChannelView: ChannelViewRegistration[];
         PostHeader: PostHeaderComponent[];
         ComposerPlaceholder: ComposerPlaceholderRegistration[];
         ProductSwitcherMenuItem: ProductSwitcherMenuItemRegistration[];
@@ -472,6 +473,28 @@ export type ChannelComposerBannerComponent = PluginComponent & {
 export type ChannelIntroRegistration = PluginComponent & {
     matcher: (state: GlobalState, channel: Channel) => boolean;
     component: React.ComponentType<{channel: Channel}>;
+};
+
+export type ChannelViewPluginComponentProps = {
+    channel: Channel;
+    channelId: string;
+
+    /** The current team's id. Differs from channel.team_id, which is empty for DMs and GMs. */
+    teamId: string;
+
+    /**
+     * Post id the channel was opened focused on via a permalink. Only ever set for registrations
+     * with `handlesPermalinks: true`; otherwise core renders its own post view for permalinks.
+     */
+    focusedPostId?: string;
+};
+
+export type ChannelViewRegistration = PluginComponent & {
+    matcher: (state: GlobalState, channel: Channel) => boolean;
+    component: React.ComponentType<ChannelViewPluginComponentProps>;
+
+    /** When true, the component is also rendered for permalinks and receives focusedPostId. */
+    handlesPermalinks?: boolean;
 };
 
 export type PostHeaderComponent = PluginComponent & {
