@@ -352,8 +352,16 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 			// Build a template-specific patch: schema attrs only (options, ldap, saml,
 			// display_name, value_type, …). Display attrs (visibility, managed,
 			// sort_order) stay on the user field.
+			//
+			// Name is intentionally not forwarded. Template name management belongs
+			// to the Global Attributes admin page, which locks the name field
+			// whenever linked fields exist (nameLockedByAppliesTo). The CPA user
+			// field is a linked field, so the name lock always applies. Additionally,
+			// the System Properties UI sends patch.Name on every save regardless of
+			// whether the name changed, and for migrated fields the template may
+			// carry a different name (slugified or disambiguated), so forwarding
+			// blindly would attempt a spurious rename.
 			tmplPatch := &model.PropertyFieldPatch{
-				Name: patch.Name,
 				Type: patch.Type,
 			}
 			if patch.Attrs != nil {
@@ -363,7 +371,7 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
-			if tmplPatch.Name != nil || tmplPatch.Type != nil || tmplPatch.Attrs != nil {
+			if tmplPatch.Type != nil || tmplPatch.Attrs != nil {
 				tmpl.Patch(tmplPatch, true)
 				tmpl.UpdatedBy = c.AppContext.Session().UserId
 				if _, _, tmplUpdateErr := c.App.UpdatePropertyField(rctx, group.ID, tmpl, false, connectionID); tmplUpdateErr != nil {

@@ -2375,4 +2375,65 @@ func TestCPATemplateSystem(t *testing.T) {
 		require.Len(t, tmplCPA.Attrs.Options, 1, "template options must be preserved after a display-only patch")
 		require.Equal(t, "X", tmplCPA.Attrs.Options[0].Name)
 	})
+
+	t.Run("patch with user-field name does not rename a template whose name differs (migrated field)", func(t *testing.T) {
+		// Simulate a migrated field: the user field name is the legacy human-readable
+		// identifier ("job_title"), but the template was created with a disambiguated
+		// name ("job_title_<id>"). The System Properties UI always sends name on every
+		// save, so patchCPAField must not blindly forward it to the template when the
+		// values diverge.
+		userFieldName := celSafeName()
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), &model.PropertyField{
+			Name: userFieldName,
+			Type: model.PropertyFieldTypeText,
+		})
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, created.LinkedFieldID)
+
+		// Directly rename the template to a different name, simulating what the
+		// migration produces for a disambiguation or slugification case.
+		group := getGroup(t)
+		templateID := *created.LinkedFieldID
+		tmpl, appErr := th.App.GetPropertyField(rctx, group.ID, templateID)
+		require.Nil(t, appErr)
+		differentTemplateName := celSafeName() // a name that does not match userFieldName
+		tmpl.Name = differentTemplateName
+		_, _, appErr = th.App.UpdatePropertyField(rctx, group.ID, tmpl, false, "")
+		require.Nil(t, appErr, "setup: rename template to a name that differs from the user field")
+
+		// Patch 1: user field sends its own unchanged name (System Properties UI pattern).
+		// Template name must not change.
+		patch1 := &model.PropertyFieldPatch{
+			Name: model.NewPointer(userFieldName),
+			Attrs: model.NewPointer(model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsVisibility: "always",
+			}),
+		}
+		_, resp, err = th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, patch1)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		tmplAfter, appErr := th.App.GetPropertyField(rctx, group.ID, templateID)
+		require.Nil(t, appErr)
+		require.Equal(t, differentTemplateName, tmplAfter.Name,
+			"resave with unchanged name must not rename the template")
+
+		// Patch 2: genuine rename of the user field to a new name.
+		// Template name must still not change — the Global Attributes admin page
+		// locks the name field whenever linked fields exist, so the CPA endpoint
+		// must not bypass that by forwarding the rename to the template.
+		genuineNewName := celSafeName()
+		patch2 := &model.PropertyFieldPatch{
+			Name: model.NewPointer(genuineNewName),
+		}
+		_, resp, err = th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, patch2)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		tmplAfterRename, appErr := th.App.GetPropertyField(rctx, group.ID, templateID)
+		require.Nil(t, appErr)
+		require.Equal(t, differentTemplateName, tmplAfterRename.Name,
+			"renaming the user field must not rename the template")
+	})
 }
