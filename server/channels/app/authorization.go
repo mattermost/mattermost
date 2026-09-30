@@ -115,6 +115,8 @@ func (a *App) SessionHasPermissionToChannel(rctx request.CTX, session model.Sess
 		return a.EnforceChannelReadAccess(rctx, session.UserId, channel), isMember
 	case isChannelWritePermission(permission):
 		return a.EnforceChannelWriteAccess(rctx, session.UserId, channel), isMember
+	case isChannelManagementPermission(permission):
+		return a.EnforceChannelManagementAccess(rctx, session.UserId, channel), isMember
 	}
 
 	return hasPermission, isMember
@@ -385,8 +387,8 @@ func (a *App) HasPermissionToTeam(rctx request.CTX, askingUserId string, teamID 
 //
 // This answers an RBAC question only: it deliberately does NOT evaluate the channel
 // access policy. Policy belongs to the API layer, where the request has a session to
-// evaluate rules against -- see requireChannelReadAccess / requireChannelWriteAccess in
-// channels/api4/channel.go. Most of this function's callers are sessionless (the recap
+// evaluate rules against -- see requireChannelReadAccess / requireChannelWriteAccess /
+// requireChannelManagementAccess in channels/api4/channel.go. Most of this function's callers are sessionless (the recap
 // job, incoming webhooks, invite-token signup) or ask about a third-party user, so a
 // gate here would either deny every one of them or evaluate against the wrong subject.
 // Do not reintroduce a channel-access check in this function; add one to the handler.

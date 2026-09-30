@@ -21,7 +21,7 @@ let mockPrivateChannelPermission = true;
 let mockPublicChannelPermission = true;
 let mockManageChannelAccessRulesPermission = false;
 let mockManageSharedChannelsPermission = false;
-let mockIsChannelWriteDenied = false;
+let mockIsChannelManagementDenied = false;
 const mockGetBasePath = jest.fn(() => '');
 const mockSettingsSidebar = jest.fn();
 const mockChannelSettingsPluginTab = jest.fn();
@@ -38,8 +38,8 @@ jest.mock('mattermost-redux/selectors/entities/channel_banner', () => ({
 
 // Mock the roles selector which is used for permission checks.
 //
-// The modal asks haveIChannelPermissionRBACOnly for tab visibility so a channel_write_access
-// denial renders the tabs read-only instead of hiding them; isChannelWriteDenied is what
+// The modal asks haveIChannelPermissionRBACOnly for tab visibility so a channel_management_access
+// denial renders the tabs read-only instead of hiding them; isChannelManagementDenied is what
 // drives that read-only state. haveIChannelPermission is still mocked because the tab
 // components below reach for it.
 jest.mock('mattermost-redux/selectors/entities/roles', () => {
@@ -62,12 +62,12 @@ jest.mock('mattermost-redux/selectors/entities/roles', () => {
             (state, teamId, channelId, permission) => rbacOnly(permission),
         ),
 
-        // Mirrors the real selector: the role grant minus anything a write denial covers.
+        // Mirrors the real selector: the role grant minus anything a management denial covers.
         // Every permission the tabs check is in that set, so a test that asserts a tab is
         // still visible under a denial only passes while the modal asks the RBAC-only
         // variant for visibility.
         haveIChannelPermission: jest.fn().mockImplementation(
-            (state, teamId, channelId, permission) => !mockIsChannelWriteDenied && rbacOnly(permission),
+            (state, teamId, channelId, permission) => !mockIsChannelManagementDenied && rbacOnly(permission),
         ),
         haveISystemPermission: jest.fn().mockImplementation((state, {permission}) => {
             if (permission === 'manage_shared_channels') {
@@ -75,7 +75,7 @@ jest.mock('mattermost-redux/selectors/entities/roles', () => {
             }
             return false;
         }),
-        isChannelWriteDenied: jest.fn().mockImplementation(() => mockIsChannelWriteDenied),
+        isChannelManagementDenied: jest.fn().mockImplementation(() => mockIsChannelManagementDenied),
     };
 });
 
@@ -372,7 +372,7 @@ describe('ChannelSettingsModal', () => {
         mockPublicChannelPermission = true;
         mockManageChannelAccessRulesPermission = false; // Default to no access rules permission
         mockManageSharedChannelsPermission = false;
-        mockIsChannelWriteDenied = false;
+        mockIsChannelManagementDenied = false;
         mockGetBasePath.mockReturnValue('');
         mockChannelSettingsPluginTab.mockClear();
         mockSettingsSidebar.mockClear();
@@ -800,10 +800,10 @@ describe('ChannelSettingsModal', () => {
             expect(screen.queryByText('Membership Policy')).not.toBeInTheDocument();
         });
 
-        describe('channel_write_access policy', () => {
+        describe('channel_management_access policy', () => {
             // A denial makes the modal read-only rather than hiding tabs. Every tab here is
-            // gated on a permission the write gate covers, so honouring the denial in the
-            // visibility checks would hide all of them and leave an empty modal.
+            // gated on a permission the management gate covers, so honouring the denial in
+            // the visibility checks would hide all of them and leave an empty modal.
             const withPermissionPolicyFlags = () => {
                 const testState = makeTestState();
                 testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
@@ -814,9 +814,9 @@ describe('ChannelSettingsModal', () => {
                 return testState;
             };
 
-            it('keeps both policy tabs visible when the policy denies write access', async () => {
+            it('keeps both policy tabs visible when the policy denies management access', async () => {
                 mockManageChannelAccessRulesPermission = true;
-                mockIsChannelWriteDenied = true;
+                mockIsChannelManagementDenied = true;
 
                 renderWithContext(<ChannelSettingsModal {...baseProps}/>, withPermissionPolicyFlags());
 
@@ -828,11 +828,11 @@ describe('ChannelSettingsModal', () => {
                 expect(screen.getByRole('tab', {name: /permissions policy/i})).toBeInTheDocument();
             });
 
-            it('keeps the other tabs visible when the policy denies write access', async () => {
-                // Info, Configuration and Archive are gated on write permissions too, so
-                // they are the reason the modal used to come up empty under a denial.
+            it('keeps the other tabs visible when the policy denies management access', async () => {
+                // Info, Configuration and Archive are gated on management permissions too,
+                // so they are the reason the modal used to come up empty under a denial.
                 mockManageChannelAccessRulesPermission = true;
-                mockIsChannelWriteDenied = true;
+                mockIsChannelManagementDenied = true;
 
                 renderWithContext(<ChannelSettingsModal {...baseProps}/>, withPermissionPolicyFlags());
 
@@ -844,9 +844,9 @@ describe('ChannelSettingsModal', () => {
                 expect(screen.getByRole('tab', {name: /archive channel/i})).toBeInTheDocument();
             });
 
-            it('marks the rendered tab read-only when the policy denies write access', async () => {
+            it('marks the rendered tab read-only when the policy denies management access', async () => {
                 mockManageChannelAccessRulesPermission = true;
-                mockIsChannelWriteDenied = true;
+                mockIsChannelManagementDenied = true;
 
                 renderWithContext(<ChannelSettingsModal {...baseProps}/>, withPermissionPolicyFlags());
 
@@ -857,9 +857,9 @@ describe('ChannelSettingsModal', () => {
                 expect(screen.getByTestId('info-tab-read-only')).toBeInTheDocument();
             });
 
-            it('does not mark tabs read-only when the policy allows write access', async () => {
+            it('does not mark tabs read-only when the policy allows management access', async () => {
                 mockManageChannelAccessRulesPermission = true;
-                mockIsChannelWriteDenied = false;
+                mockIsChannelManagementDenied = false;
 
                 renderWithContext(<ChannelSettingsModal {...baseProps}/>, withPermissionPolicyFlags());
 

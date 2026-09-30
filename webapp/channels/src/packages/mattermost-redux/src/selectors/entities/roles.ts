@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS} from '@mattermost/types/access_control';
+import {ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS, ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS} from '@mattermost/types/access_control';
 import type {GroupMembership, GroupPermissions} from '@mattermost/types/groups';
 import type {Role} from '@mattermost/types/roles';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {General, Permissions} from 'mattermost-redux/constants';
-import {CHANNEL_WRITE_PERMISSIONS} from 'mattermost-redux/constants/permissions';
+import {CHANNEL_MANAGEMENT_PERMISSIONS, CHANNEL_WRITE_PERMISSIONS} from 'mattermost-redux/constants/permissions';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getRenderDecision} from 'mattermost-redux/selectors/entities/render_permissions';
@@ -216,14 +216,22 @@ export const haveIGroupPermission: (state: GlobalState, groupID: string, permiss
     },
 );
 
-export function isChannelWriteDenied(state: GlobalState, channelId: string): boolean {
+function isChannelActionDenied(state: GlobalState, channelId: string, action: string): boolean {
     const decision = getRenderDecision(state, {
         resourceType: 'channel',
         resourceId: channelId,
-        action: ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
+        action,
     });
 
     return Boolean(decision?.evaluated && !decision.allowed);
+}
+
+export function isChannelWriteDenied(state: GlobalState, channelId: string): boolean {
+    return isChannelActionDenied(state, channelId, ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS);
+}
+
+export function isChannelManagementDenied(state: GlobalState, channelId: string): boolean {
+    return isChannelActionDenied(state, channelId, ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS);
 }
 
 // The role grant alone, with no attribute-based policy applied. Mirrors the server's
@@ -244,6 +252,10 @@ export function haveIChannelPermission(state: GlobalState, teamId: string | unde
 
     if (channelId && CHANNEL_WRITE_PERMISSIONS.has(permission)) {
         return !isChannelWriteDenied(state, channelId);
+    }
+
+    if (channelId && CHANNEL_MANAGEMENT_PERMISSIONS.has(permission)) {
+        return !isChannelManagementDenied(state, channelId);
     }
 
     return true;

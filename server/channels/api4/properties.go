@@ -989,6 +989,14 @@ func requireFieldTargetChannelAccess(c *Context, field *model.PropertyField) boo
 	return true
 }
 
+func requireFieldTargetChannelManagementAccess(c *Context, field *model.PropertyField) bool {
+	if field.TargetType != string(model.PropertyFieldTargetLevelChannel) || field.TargetID == "" {
+		return true
+	}
+
+	return requireChannelManagementAccessByID(c, field.TargetID)
+}
+
 // hasTargetAccess checks that the caller has access to the target entity
 // identified by objectType and targetID. For reads (write=false) it checks
 // read-level permissions; for writes it checks management-level permissions.

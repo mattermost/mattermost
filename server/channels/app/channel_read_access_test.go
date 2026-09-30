@@ -647,56 +647,58 @@ func TestEvaluateChannelReadAccessGovernanceCheckFailsClosed(t *testing.T) {
 }
 
 // Every channel-scoped permission must be deliberately classified as a read, a
-// write, or neither. channel_read_access gates the reads and channel_write_access
-// gates the writes; a new permission left out of both allowlists silently escapes
-// both gates, so adding one to the model fails here until somebody decides which
-// side it belongs on.
+// write, a management action, or neither. channel_read_access gates the reads,
+// channel_write_access the writes and channel_management_access the management
+// actions; a new permission left out of every allowlist silently escapes every gate,
+// so adding one to the model fails here until somebody decides which side it
+// belongs on.
 func TestChannelPermissionClassification(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	const (
-		classRead    = "read"
-		classWrite   = "write"
-		classNeither = "neither"
+		classRead       = "read"
+		classWrite      = "write"
+		classManagement = "management"
+		classNeither    = "neither"
 	)
 
 	want := map[string]string{
-		"add_bookmark_private_channel":      classWrite,
-		"add_bookmark_public_channel":       classWrite,
+		"add_bookmark_private_channel":      classManagement,
+		"add_bookmark_public_channel":       classManagement,
 		"add_reaction":                      classWrite,
-		"convert_private_channel_to_public": classWrite,
-		"convert_public_channel_to_private": classWrite,
+		"convert_private_channel_to_public": classManagement,
+		"convert_public_channel_to_private": classManagement,
 		"create_post":                       classWrite,
 		"create_post_ephemeral":             classWrite,
 		"create_post_public":                classWrite,
-		"delete_bookmark_private_channel":   classWrite,
-		"delete_bookmark_public_channel":    classWrite,
+		"delete_bookmark_private_channel":   classManagement,
+		"delete_bookmark_public_channel":    classManagement,
 		"delete_others_posts":               classWrite,
 		"delete_post":                       classWrite,
-		"delete_private_channel":            classWrite,
-		"delete_public_channel":             classWrite,
-		"edit_bookmark_private_channel":     classWrite,
-		"edit_bookmark_public_channel":      classWrite,
+		"delete_private_channel":            classManagement,
+		"delete_public_channel":             classManagement,
+		"edit_bookmark_private_channel":     classManagement,
+		"edit_bookmark_public_channel":      classManagement,
 		"edit_file_attachment":              classWrite,
 		"edit_others_posts":                 classWrite,
 		"edit_post":                         classWrite,
-		// Policy administration, not channel content. Gating it would make a policy
-		// that denies its own author unfixable, since the gate binds system admins
-		// too — so every call site asks RBAC-only and this stays off both lists.
+		// Policy administration, not channel content. Every call site asks RBAC-only,
+		// and the policy endpoints apply the management gate themselves, so this
+		// stays off every list.
 		"manage_channel_access_rules":             classNeither,
-		"manage_channel_join_requests":            classWrite,
-		"manage_channel_roles":                    classWrite,
-		"manage_private_channel_auto_translation": classWrite,
-		"manage_private_channel_banner":           classWrite,
-		"manage_private_channel_discoverability":  classWrite,
-		"manage_private_channel_members":          classWrite,
-		"manage_private_channel_properties":       classWrite,
-		"manage_public_channel_auto_translation":  classWrite,
-		"manage_public_channel_banner":            classWrite,
-		"manage_public_channel_members":           classWrite,
-		"manage_public_channel_properties":        classWrite,
-		"order_bookmark_private_channel":          classWrite,
-		"order_bookmark_public_channel":           classWrite,
+		"manage_channel_join_requests":            classManagement,
+		"manage_channel_roles":                    classManagement,
+		"manage_private_channel_auto_translation": classManagement,
+		"manage_private_channel_banner":           classManagement,
+		"manage_private_channel_discoverability":  classManagement,
+		"manage_private_channel_members":          classManagement,
+		"manage_private_channel_properties":       classManagement,
+		"manage_public_channel_auto_translation":  classManagement,
+		"manage_public_channel_banner":            classManagement,
+		"manage_public_channel_members":           classManagement,
+		"manage_public_channel_properties":        classManagement,
+		"order_bookmark_private_channel":          classManagement,
+		"order_bookmark_public_channel":           classManagement,
 		"read_channel":                            classRead,
 		"read_channel_content":                    classRead,
 		// Never reaches the channel gates: it is only an error payload behind an
@@ -719,15 +721,23 @@ func TestChannelPermissionClassification(t *testing.T) {
 
 		class, classified := want[permission.Id]
 		require.True(t, classified,
-			"classify %s as a channel read, a write, or neither, then add it here", permission.Id)
+			"classify %s as a channel read, a write, a management action, or neither, then add it here", permission.Id)
 
 		isRead := isChannelReadPermission(permission)
 		isWrite := isChannelWritePermission(permission)
-		require.False(t, isRead && isWrite,
-			"%s is on both allowlists; a permission is a read or a write, never both", permission.Id)
+		isManagement := isChannelManagementPermission(permission)
+		allowlists := 0
+		for _, on := range []bool{isRead, isWrite, isManagement} {
+			if on {
+				allowlists++
+			}
+		}
+		require.LessOrEqual(t, allowlists, 1,
+			"%s is on more than one allowlist; a permission belongs to one gate at most", permission.Id)
 
 		require.Equal(t, class == classRead, isRead, "isChannelReadPermission(%s)", permission.Id)
 		require.Equal(t, class == classWrite, isWrite, "isChannelWritePermission(%s)", permission.Id)
+		require.Equal(t, class == classManagement, isManagement, "isChannelManagementPermission(%s)", permission.Id)
 	}
 }
 

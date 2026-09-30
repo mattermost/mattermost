@@ -46,11 +46,12 @@ const (
 	AccessControlPolicyVersionV0_4 = "v0.4"
 	AccessControlPolicyVersionV0_5 = "v0.5"
 
-	AccessControlPolicyActionMembership             = "membership"
-	AccessControlPolicyActionUploadFileAttachment   = "upload_file_attachment"
-	AccessControlPolicyActionDownloadFileAttachment = "download_file_attachment"
-	AccessControlPolicyActionChannelReadAccess      = "channel_read_access"
-	AccessControlPolicyActionChannelWriteAccess     = "channel_write_access"
+	AccessControlPolicyActionMembership              = "membership"
+	AccessControlPolicyActionUploadFileAttachment    = "upload_file_attachment"
+	AccessControlPolicyActionDownloadFileAttachment  = "download_file_attachment"
+	AccessControlPolicyActionChannelReadAccess       = "channel_read_access"
+	AccessControlPolicyActionChannelWriteAccess      = "channel_write_access"
+	AccessControlPolicyActionChannelManagementAccess = "channel_management_access"
 
 	AccessControlPolicyScopeTeam = "team"
 
@@ -86,11 +87,12 @@ func IsValidAccessControlAutoAddMode(mode string) bool {
 }
 
 var allowedActionsV0_3 = map[string]bool{
-	AccessControlPolicyActionMembership:             true,
-	AccessControlPolicyActionUploadFileAttachment:   true,
-	AccessControlPolicyActionDownloadFileAttachment: true,
-	AccessControlPolicyActionChannelReadAccess:      true,
-	AccessControlPolicyActionChannelWriteAccess:     true,
+	AccessControlPolicyActionMembership:              true,
+	AccessControlPolicyActionUploadFileAttachment:    true,
+	AccessControlPolicyActionDownloadFileAttachment:  true,
+	AccessControlPolicyActionChannelReadAccess:       true,
+	AccessControlPolicyActionChannelWriteAccess:      true,
+	AccessControlPolicyActionChannelManagementAccess: true,
 }
 
 // allowedChannelRolesV0_4 is the set of channel-scoped roles that may appear
@@ -105,10 +107,11 @@ var allowedChannelRolesV0_4 = map[string]bool{
 // appear on a v0.4 channel resource policy rule. Each such rule must carry a
 // channel-scoped role.
 var allowedPermissionActionsV0_4 = map[string]bool{
-	AccessControlPolicyActionUploadFileAttachment:   true,
-	AccessControlPolicyActionDownloadFileAttachment: true,
-	AccessControlPolicyActionChannelReadAccess:      true,
-	AccessControlPolicyActionChannelWriteAccess:     true,
+	AccessControlPolicyActionUploadFileAttachment:    true,
+	AccessControlPolicyActionDownloadFileAttachment:  true,
+	AccessControlPolicyActionChannelReadAccess:       true,
+	AccessControlPolicyActionChannelWriteAccess:      true,
+	AccessControlPolicyActionChannelManagementAccess: true,
 }
 
 // IsPermissionAction reports whether the given action is a non-membership
@@ -185,8 +188,8 @@ func (p *AccessControlPolicy) HasPermissionRuleAction() bool {
 }
 
 // HasAction reports whether any rule on this policy carries the given action.
-// The write gate uses it to decide whether a channel's own policy governs
-// writes. Safe to call on a nil policy.
+// The write and management gates use it to decide whether a channel's own policy
+// governs their action. Safe to call on a nil policy.
 func (p *AccessControlPolicy) HasAction(action string) bool {
 	if p == nil {
 		return false
@@ -725,6 +728,10 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
 		if slices.Contains(rule.Actions, AccessControlPolicyActionChannelWriteAccess) &&
 			p.Type != AccessControlPolicyTypePermission && p.Type != AccessControlPolicyTypeChannel {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.channel_write_access_type.app_error", nil, fmt.Sprintf("channel_write_access is not allowed on %s policies", p.Type), 400)
+		}
+		if slices.Contains(rule.Actions, AccessControlPolicyActionChannelManagementAccess) &&
+			p.Type != AccessControlPolicyTypePermission && p.Type != AccessControlPolicyTypeChannel {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.channel_management_access_type.app_error", nil, fmt.Sprintf("channel_management_access is not allowed on %s policies", p.Type), 400)
 		}
 
 		if appErr := rule.validateRuleContract(); appErr != nil {

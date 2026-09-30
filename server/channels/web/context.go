@@ -54,7 +54,8 @@ func (c *Context) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
 		rec.AddErrorDesc(c.Err.Error())
 		if c.Err.Id == "api.context.permissions.app_error" ||
 			c.Err.Id == "api.channel.channel_read_access.abac_denied.app_error" ||
-			c.Err.Id == "api.channel.channel_write_access.abac_denied.app_error" {
+			c.Err.Id == "api.channel.channel_write_access.abac_denied.app_error" ||
+			c.Err.Id == "api.channel.channel_management_access.abac_denied.app_error" {
 			level = app.LevelPerms
 		}
 		rec.Fail()
@@ -285,14 +286,18 @@ func NewJSONEncodingError(err error) *model.AppError {
 
 func (c *Context) SetPermissionError(permissions ...*model.Permission) {
 	if channelID, action := app.ChannelAccessEnforcementDenial(c.AppContext); channelID != "" {
-		// Both ids are spelled out rather than computed: mmgotool i18n extract only
+		// The ids are spelled out rather than computed: mmgotool i18n extract only
 		// collects literals passed to NewAppError, so routing them through a helper
 		// drops them from en.json.
 		details := "userId=" + c.AppContext.Session().UserId + ", channelId=" + channelID
-		if action == model.AccessControlPolicyActionChannelWriteAccess {
+		switch action {
+		case model.AccessControlPolicyActionChannelWriteAccess:
 			c.Err = model.NewAppError("Permissions", "api.channel.channel_write_access.abac_denied.app_error", nil,
 				details, http.StatusForbidden)
-		} else {
+		case model.AccessControlPolicyActionChannelManagementAccess:
+			c.Err = model.NewAppError("Permissions", "api.channel.channel_management_access.abac_denied.app_error", nil,
+				details, http.StatusForbidden)
+		default:
 			c.Err = model.NewAppError("Permissions", "api.channel.channel_read_access.abac_denied.app_error", nil,
 				details, http.StatusForbidden)
 		}

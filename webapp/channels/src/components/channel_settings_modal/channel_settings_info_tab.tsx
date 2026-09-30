@@ -47,7 +47,7 @@ type ChannelSettingsInfoTabProps = {
     showTabSwitchError?: boolean;
 
     // Only drives the explanatory banner. Every field below already reads the
-    // channel-write-aware permission selectors, so a denial disables them on its own.
+    // channel-management-aware permission selectors, so a denial disables them on its own.
     isReadOnly?: boolean;
 };
 

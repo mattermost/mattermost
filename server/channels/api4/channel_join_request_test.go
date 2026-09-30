@@ -146,10 +146,10 @@ func TestGetChannelByName_VisibleForQualifyingNonMemberOnDiscoverable(t *testing
 
 // setupJoinRequestChannelAccess stands up a discoverable private channel and
 // signs in an off-channel requester, with the channel-access gates live and the
-// two channel-access actions answered as given. The channel is marked
+// channel-access actions answered as given. The channel is marked
 // discoverable before the mock is installed so the admin patch is not itself
 // gated by a decision under test.
-func setupJoinRequestChannelAccess(t *testing.T, readAllowed, writeAllowed bool) (*TestHelper, *model.Channel) {
+func setupJoinRequestChannelAccess(t *testing.T, readAllowed, writeAllowed, managementAllowed bool) (*TestHelper, *model.Channel) {
 	t.Helper()
 
 	th := SetupConfig(t, func(cfg *model.Config) {
@@ -174,17 +174,30 @@ func setupJoinRequestChannelAccess(t *testing.T, readAllowed, writeAllowed bool)
 		Return(model.AccessDecision{Decision: readAllowed}, nil)
 	mockACS.On("AccessEvaluation", mock.Anything, channelWriteAccessEvaluation).
 		Return(model.AccessDecision{Decision: writeAllowed}, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, channelManagementAccessEvaluation).
+		Return(model.AccessDecision{Decision: managementAllowed}, nil)
 	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
 		Return(model.AccessDecision{Decision: true}, nil)
 
 	return th, channel
 }
 
-// Asking to join is the request that exists to obtain access, so the write
-// policy must not refuse it — a channel whose write rule excludes non-members
-// would otherwise be unjoinable through the very flow meant to let people in.
+// Asking to join is the request that exists to obtain access, so neither the write
+// nor the management policy may refuse it — a channel whose rule excludes
+// non-members would otherwise be unjoinable through the very flow meant to let
+// people in.
 func TestRequestJoinChannelAPI_NotGatedByChannelWriteAccess(t *testing.T) {
-	th, channel := setupJoinRequestChannelAccess(t, true /* read */, false /* write */)
+	th, channel := setupJoinRequestChannelAccess(t, true /* read */, false /* write */, true /* management */)
+	requireJoinRequestQueued(t, th, channel)
+}
+
+func TestRequestJoinChannelAPI_NotGatedByChannelManagementAccess(t *testing.T) {
+	th, channel := setupJoinRequestChannelAccess(t, true /* read */, true /* write */, false /* management */)
+	requireJoinRequestQueued(t, th, channel)
+}
+
+func requireJoinRequestQueued(t *testing.T, th *TestHelper, channel *model.Channel) {
+	t.Helper()
 
 	resp, err := th.Client.DoAPIPost(context.Background(), "/channels/"+channel.Id+"/join_request", `{"message":"let me in"}`)
 	require.NoError(t, err)
@@ -200,7 +213,7 @@ func TestRequestJoinChannelAPI_NotGatedByChannelWriteAccess(t *testing.T) {
 // The read policy still gates the flow: a session that cannot see the channel
 // must not be able to queue a request against it.
 func TestRequestJoinChannelAPI_GatedByChannelReadAccess(t *testing.T) {
-	th, channel := setupJoinRequestChannelAccess(t, false /* read */, true /* write */)
+	th, channel := setupJoinRequestChannelAccess(t, false /* read */, true /* write */, true /* management */)
 
 	resp, err := th.Client.DoAPIPost(context.Background(), "/channels/"+channel.Id+"/join_request", `{"message":"let me in"}`)
 	defer closeBodyOrNil(resp)

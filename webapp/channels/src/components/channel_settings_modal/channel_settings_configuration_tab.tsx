@@ -67,7 +67,7 @@ type Props = {
     canManageSharedChannels?: boolean;
     canManageJoinLeaveMessages?: boolean;
 
-    // The sections here stay visible under a channel_write_access denial (their
+    // The sections here stay visible under a channel_management_access denial (their
     // permissions come from the RBAC-only check) and every control is disabled instead.
     isReadOnly?: boolean;
 };

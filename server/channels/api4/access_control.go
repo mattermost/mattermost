@@ -44,17 +44,17 @@ func preserveSystemManagedFields(c *Context, policy *model.AccessControlPolicy) 
 	return nil
 }
 
-// requirePolicyChannelWriteAccess gates channel-scoped policy administration on the
-// channel's own channel_write_access policy, so a channel or team admin who may not
-// write in the channel can no longer add, edit or delete its membership and permission
+// requirePolicyChannelManagementAccess gates channel-scoped policy administration on the
+// channel's own channel_management_access policy, so a channel or team admin who may not
+// manage the channel can no longer add, edit or delete its membership and permission
 // policies.
-func requirePolicyChannelWriteAccess(c *Context, channelID string, hasManageSystem bool) bool {
+func requirePolicyChannelManagementAccess(c *Context, channelID string, hasManageSystem bool) bool {
 	// Permitting for `hasManageSystem` so allow creating policies from System Console
 	if hasManageSystem || channelID == "" {
 		return true
 	}
 
-	return requireChannelWriteAccessByID(c, channelID)
+	return requireChannelManagementAccessByID(c, channelID)
 }
 
 func (api *API) InitAccessControlPolicy() {
@@ -211,7 +211,7 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 				return
 			}
 
-			if !requirePolicyChannelWriteAccess(c, policy.ID, hasManageSystem) {
+			if !requirePolicyChannelManagementAccess(c, policy.ID, hasManageSystem) {
 				return
 			}
 
@@ -320,7 +320,7 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 			if gatedChannelID == "" {
 				gatedChannelID = policyID
 			}
-			if !requirePolicyChannelWriteAccess(c, gatedChannelID, hasSystemPermission) {
+			if !requirePolicyChannelManagementAccess(c, gatedChannelID, hasSystemPermission) {
 				return
 			}
 		}
@@ -393,7 +393,7 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 			}
 		}
 
-		if channelPermErr == nil && !requirePolicyChannelWriteAccess(c, policyID, hasSystemPermission) {
+		if channelPermErr == nil && !requirePolicyChannelManagementAccess(c, policyID, hasSystemPermission) {
 			return
 		}
 	}
@@ -442,7 +442,7 @@ func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if !requirePolicyChannelWriteAccess(c, channelId, hasSystemPermission) {
+	if !requirePolicyChannelManagementAccess(c, channelId, hasSystemPermission) {
 		return
 	}
 
@@ -497,7 +497,7 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if !requirePolicyChannelWriteAccess(c, channelId, hasSystemPermission) {
+	if !requirePolicyChannelManagementAccess(c, channelId, hasSystemPermission) {
 		return
 	}
 
@@ -725,7 +725,7 @@ func simulatePolicyForUsers(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if !requirePolicyChannelWriteAccess(c, params.ChannelID, hasSystemPermission) {
+	if !requirePolicyChannelManagementAccess(c, params.ChannelID, hasSystemPermission) {
 		return
 	}
 
@@ -828,7 +828,7 @@ func validateExpressionAgainstRequester(c *Context, w http.ResponseWriter, r *ht
 	}
 
 	// After the whole block above, so the gate binds the team-admin path too.
-	if !requirePolicyChannelWriteAccess(c, channelId, hasSystemPermission) {
+	if !requirePolicyChannelManagementAccess(c, channelId, hasSystemPermission) {
 		return
 	}
 
@@ -959,7 +959,7 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if !requirePolicyChannelWriteAccess(c, policyID, hasManageSystemPermission) {
+		if !requirePolicyChannelManagementAccess(c, policyID, hasManageSystemPermission) {
 			return
 		}
 	}
@@ -1059,7 +1059,7 @@ func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
-			if channelPermErr == nil && !requirePolicyChannelWriteAccess(c, entry.ID, hasSystemPermission) {
+			if channelPermErr == nil && !requirePolicyChannelManagementAccess(c, entry.ID, hasSystemPermission) {
 				return
 			}
 		}
@@ -1465,7 +1465,7 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if !requirePolicyChannelWriteAccess(c, channelId, hasSystemPermission) {
+	if !requirePolicyChannelManagementAccess(c, channelId, hasSystemPermission) {
 		return
 	}
 
@@ -1541,7 +1541,7 @@ func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if !requirePolicyChannelWriteAccess(c, channelId, hasSystemPermission) {
+	if !requirePolicyChannelManagementAccess(c, channelId, hasSystemPermission) {
 		return
 	}
 

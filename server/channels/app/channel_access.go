@@ -28,10 +28,16 @@ type channelAccessDenial struct {
 	action    string
 }
 
+// channelActionGovernedKey is the channel and action a governance answer was computed for.
+type channelActionGovernedKey struct {
+	channelID string
+	action    string
+}
+
 type channelAccessMemo struct {
 	mu                sync.Mutex
 	decisions         map[channelAccessKey]bool
-	writeGoverned     map[string]bool
+	actionGoverned    map[channelActionGovernedKey]bool
 	enforcementDenial channelAccessDenial
 }
 
@@ -48,17 +54,17 @@ func (m *channelAccessMemo) set(key channelAccessKey, allowed bool) {
 	m.decisions[key] = allowed
 }
 
-func (m *channelAccessMemo) getWriteGoverned(channelID string) (governed bool, ok bool) {
+func (m *channelAccessMemo) getActionGoverned(channelID, action string) (governed bool, ok bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	governed, ok = m.writeGoverned[channelID]
+	governed, ok = m.actionGoverned[channelActionGovernedKey{channelID: channelID, action: action}]
 	return governed, ok
 }
 
-func (m *channelAccessMemo) setWriteGoverned(channelID string, governed bool) {
+func (m *channelAccessMemo) setActionGoverned(channelID, action string, governed bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.writeGoverned[channelID] = governed
+	m.actionGoverned[channelActionGovernedKey{channelID: channelID, action: action}] = governed
 }
 
 func (m *channelAccessMemo) noteEnforcementDenial(denial channelAccessDenial) {
@@ -87,8 +93,8 @@ func WithChannelAccessMemo(rctx request.CTX) request.CTX {
 		return rctx
 	}
 	memo := &channelAccessMemo{
-		decisions:     map[channelAccessKey]bool{},
-		writeGoverned: map[string]bool{},
+		decisions:      map[channelAccessKey]bool{},
+		actionGoverned: map[channelActionGovernedKey]bool{},
 	}
 	return rctx.WithContext(context.WithValue(rctx.Context(), channelAccessMemoKey{}, memo))
 }
@@ -116,25 +122,39 @@ func isChannelReadPermission(permission *model.Permission) bool {
 
 func isChannelWritePermission(permission *model.Permission) bool {
 	switch permission.Id {
-	case model.PermissionAddBookmarkPrivateChannel.Id,
-		model.PermissionAddBookmarkPublicChannel.Id,
-		model.PermissionAddReaction.Id,
-		model.PermissionConvertPrivateChannelToPublic.Id,
-		model.PermissionConvertPublicChannelToPrivate.Id,
+	case model.PermissionAddReaction.Id,
 		model.PermissionCreatePost.Id,
 		model.PermissionCreatePostEphemeral.Id,
 		model.PermissionCreatePostPublic.Id,
-		model.PermissionDeleteBookmarkPrivateChannel.Id,
-		model.PermissionDeleteBookmarkPublicChannel.Id,
 		model.PermissionDeleteOthersPosts.Id,
 		model.PermissionDeletePost.Id,
+		model.PermissionEditFileAttachment.Id,
+		model.PermissionEditOthersPosts.Id,
+		model.PermissionEditPost.Id,
+		model.PermissionRemoveOthersReactions.Id,
+		model.PermissionRemoveReaction.Id,
+		model.PermissionUploadFile.Id,
+		model.PermissionUseChannelMentions.Id,
+		model.PermissionUseGroupMentions.Id,
+		model.PermissionUseSlashCommands.Id:
+		return true
+	default:
+		return false
+	}
+}
+
+func isChannelManagementPermission(permission *model.Permission) bool {
+	switch permission.Id {
+	case model.PermissionAddBookmarkPrivateChannel.Id,
+		model.PermissionAddBookmarkPublicChannel.Id,
+		model.PermissionConvertPrivateChannelToPublic.Id,
+		model.PermissionConvertPublicChannelToPrivate.Id,
+		model.PermissionDeleteBookmarkPrivateChannel.Id,
+		model.PermissionDeleteBookmarkPublicChannel.Id,
 		model.PermissionDeletePrivateChannel.Id,
 		model.PermissionDeletePublicChannel.Id,
 		model.PermissionEditBookmarkPrivateChannel.Id,
 		model.PermissionEditBookmarkPublicChannel.Id,
-		model.PermissionEditFileAttachment.Id,
-		model.PermissionEditOthersPosts.Id,
-		model.PermissionEditPost.Id,
 		model.PermissionManageChannelJoinRequests.Id,
 		model.PermissionManageChannelRoles.Id,
 		model.PermissionManagePrivateChannelAutoTranslation.Id,
@@ -147,13 +167,7 @@ func isChannelWritePermission(permission *model.Permission) bool {
 		model.PermissionManagePublicChannelMembers.Id,
 		model.PermissionManagePublicChannelProperties.Id,
 		model.PermissionOrderBookmarkPrivateChannel.Id,
-		model.PermissionOrderBookmarkPublicChannel.Id,
-		model.PermissionRemoveOthersReactions.Id,
-		model.PermissionRemoveReaction.Id,
-		model.PermissionUploadFile.Id,
-		model.PermissionUseChannelMentions.Id,
-		model.PermissionUseGroupMentions.Id,
-		model.PermissionUseSlashCommands.Id:
+		model.PermissionOrderBookmarkPublicChannel.Id:
 		return true
 	default:
 		return false
@@ -179,22 +193,38 @@ func (a *App) EnforceChannelReadAccessByID(rctx request.CTX, userID, channelID s
 }
 
 func (a *App) EnforceChannelWriteAccess(rctx request.CTX, userID string, channel *model.Channel) bool {
-	allowed, deniedAction := a.channelWriteAccessDecision(rctx, userID, channel)
-	if allowed {
+	if a.channelWriteAccessDecision(rctx, userID, channel) {
 		return true
 	}
 
-	a.noteChannelAccessEnforcementDenial(rctx, userID, channel.Id, deniedAction)
+	a.noteChannelAccessEnforcementDenial(rctx, userID, channel.Id, model.AccessControlPolicyActionChannelWriteAccess)
 	return false
 }
 
 func (a *App) EnforceChannelWriteAccessByID(rctx request.CTX, userID, channelID string) bool {
-	allowed, deniedAction := a.channelWriteAccessDecisionByID(rctx, userID, channelID)
-	if allowed {
+	if a.channelWriteAccessDecisionByID(rctx, userID, channelID) {
 		return true
 	}
 
-	a.noteChannelAccessEnforcementDenial(rctx, userID, channelID, deniedAction)
+	a.noteChannelAccessEnforcementDenial(rctx, userID, channelID, model.AccessControlPolicyActionChannelWriteAccess)
+	return false
+}
+
+func (a *App) EnforceChannelManagementAccess(rctx request.CTX, userID string, channel *model.Channel) bool {
+	if a.channelManagementAccessDecision(rctx, userID, channel) {
+		return true
+	}
+
+	a.noteChannelAccessEnforcementDenial(rctx, userID, channel.Id, model.AccessControlPolicyActionChannelManagementAccess)
+	return false
+}
+
+func (a *App) EnforceChannelManagementAccessByID(rctx request.CTX, userID, channelID string) bool {
+	if a.channelManagementAccessDecisionByID(rctx, userID, channelID) {
+		return true
+	}
+
+	a.noteChannelAccessEnforcementDenial(rctx, userID, channelID, model.AccessControlPolicyActionChannelManagementAccess)
 	return false
 }
 
@@ -243,9 +273,11 @@ func (a *App) HasChannelReadAccess(rctx request.CTX, userID string, channel *mod
 	return a.hasChannelAccess(rctx, userID, channel, model.AccessControlPolicyActionChannelReadAccess)
 }
 
-func (a *App) channelWriteAccessDecision(rctx request.CTX, userID string, channel *model.Channel) (allowed bool, deniedAction string) {
+// channelWriteAccessDecision evaluates channel_write_access alone: a channel_read_access
+// denial does not refuse a write.
+func (a *App) channelWriteAccessDecision(rctx request.CTX, userID string, channel *model.Channel) bool {
 	if !a.channelAccessGateApplies(userID, channel) {
-		return true, ""
+		return true
 	}
 
 	// Integrations are out of scope. A bot has no interactive session, so a rule
@@ -253,47 +285,68 @@ func (a *App) channelWriteAccessDecision(rctx request.CTX, userID string, channe
 	// Webhook and plugin writes never reach a permission check at all, so they are
 	// already exempt; this covers the one integration that does carry a session.
 	if userID == rctx.Session().UserId && rctx.Session().IsBotUser() {
-		return true, ""
+		return true
 	}
 
-	if !a.channelWriteAccessGoverned(rctx, channel) {
-		return true, ""
-	}
-
-	if !a.hasChannelAccess(rctx, userID, channel, model.AccessControlPolicyActionChannelReadAccess) {
-		return false, model.AccessControlPolicyActionChannelReadAccess
-	}
-
-	if !a.hasChannelAccess(rctx, userID, channel, model.AccessControlPolicyActionChannelWriteAccess) {
-		return false, model.AccessControlPolicyActionChannelWriteAccess
-	}
-
-	return true, ""
+	return a.channelActionAllowed(rctx, userID, channel, model.AccessControlPolicyActionChannelWriteAccess)
 }
 
-func (a *App) channelWriteAccessGoverned(rctx request.CTX, channel *model.Channel) bool {
+// channelManagementAccessDecision evaluates channel_management_access alone. Unlike
+// writes, bot sessions are evaluated too; system admins are never bound.
+func (a *App) channelManagementAccessDecision(rctx request.CTX, userID string, channel *model.Channel) bool {
+	if !a.channelAccessGateApplies(userID, channel) {
+		return true
+	}
+
+	if a.holdsManageSystem(rctx, userID) {
+		return true
+	}
+
+	return a.channelActionAllowed(rctx, userID, channel, model.AccessControlPolicyActionChannelManagementAccess)
+}
+
+func (a *App) holdsManageSystem(rctx request.CTX, userID string) bool {
+	if userID == rctx.Session().UserId {
+		return a.SessionHasPermissionTo(*rctx.Session(), model.PermissionManageSystem)
+	}
+	return a.HasPermissionTo(rctx, userID, model.PermissionManageSystem)
+}
+
+// channelActionAllowed is the core the write and management gates share: the gate stays
+// inert until a policy carrying the action governs the channel, then that action alone
+// decides.
+func (a *App) channelActionAllowed(rctx request.CTX, userID string, channel *model.Channel, action string) bool {
+	if !a.channelActionGoverned(rctx, channel, action) {
+		return true
+	}
+
+	return a.hasChannelAccess(rctx, userID, channel, action)
+}
+
+func (a *App) channelActionGoverned(rctx request.CTX, channel *model.Channel, action string) bool {
 	memo := getChannelAccessMemo(rctx)
 	if memo != nil {
-		if governed, ok := memo.getWriteGoverned(channel.Id); ok {
+		if governed, ok := memo.getActionGoverned(channel.Id, action); ok {
 			return governed
 		}
 	}
 
-	governed := a.evaluateChannelWriteAccessGoverned(rctx, channel)
+	governed := a.evaluateChannelActionGoverned(rctx, channel, action)
 	if memo != nil {
-		memo.setWriteGoverned(channel.Id, governed)
+		memo.setActionGoverned(channel.Id, action, governed)
 	}
 	return governed
 }
 
-func (a *App) evaluateChannelWriteAccessGoverned(rctx request.CTX, channel *model.Channel) bool {
+func (a *App) evaluateChannelActionGoverned(rctx request.CTX, channel *model.Channel, action string) bool {
 	acs := a.Srv().Channels().AccessControl
 
-	governed, appErr := acs.ActionHasPermissionPolicy(rctx, model.AccessControlPolicyActionChannelWriteAccess)
+	governed, appErr := acs.ActionHasPermissionPolicy(rctx, action)
 	if appErr != nil {
 		// A failed governance check says nothing about whether a policy applies, so
 		// fall through to the evaluation rather than skipping a gate that would deny.
-		rctx.Logger().Debug("Failed to check whether permission policies govern channel_write_access; evaluating anyway",
+		rctx.Logger().Debug("Failed to check whether permission policies govern the channel action; evaluating anyway",
+			mlog.String("action", action),
 			mlog.String("channel_id", channel.Id),
 			mlog.Err(appErr),
 		)
@@ -310,19 +363,21 @@ func (a *App) evaluateChannelWriteAccessGoverned(rctx request.CTX, channel *mode
 	// A channel resource policy is stored under the channel id.
 	policy, appErr := acs.GetPolicy(rctx, channel.Id)
 	if appErr != nil {
-		rctx.Logger().Warn("Failed to load the channel policy for channel_write_access governance; evaluating anyway",
+		rctx.Logger().Warn("Failed to load the channel policy for channel action governance; evaluating anyway",
+			mlog.String("action", action),
 			mlog.String("channel_id", channel.Id),
 			mlog.Err(appErr),
 		)
 		return true
 	}
 
-	return policy.HasAction(model.AccessControlPolicyActionChannelWriteAccess)
+	return policy.HasAction(action)
 }
 
 func isChannelAccessAction(action string) bool {
 	return action == model.AccessControlPolicyActionChannelReadAccess ||
-		action == model.AccessControlPolicyActionChannelWriteAccess
+		action == model.AccessControlPolicyActionChannelWriteAccess ||
+		action == model.AccessControlPolicyActionChannelManagementAccess
 }
 
 func channelAccessExempt(channel *model.Channel) bool {
@@ -445,17 +500,17 @@ func (a *App) FilterChannelIDsByReadAccess(rctx request.CTX, userID string, chan
 	return filtered
 }
 
-// FilterChannelIDsByWriteAccess drops the channels the user may not write to. Like the
+// FilterChannelIDsByManagementAccess drops the channels the user may not manage. Like the
 // read filters it is deliberately non-recording: a filtered request succeeds, so there is
 // no denial for SetPermissionError to report.
-func (a *App) FilterChannelIDsByWriteAccess(rctx request.CTX, userID string, channelIDs []string) []string {
+func (a *App) FilterChannelIDsByManagementAccess(rctx request.CTX, userID string, channelIDs []string) []string {
 	if len(channelIDs) == 0 || !a.channelAccessEnforcementActive() {
 		return channelIDs
 	}
 
 	filtered := make([]string, 0, len(channelIDs))
 	for _, channelID := range channelIDs {
-		if allowed, _ := a.channelWriteAccessDecisionByID(rctx, userID, channelID); allowed {
+		if a.channelManagementAccessDecisionByID(rctx, userID, channelID) {
 			filtered = append(filtered, channelID)
 		}
 	}
@@ -534,22 +589,14 @@ func (a *App) hasChannelAccessByID(rctx request.CTX, userID, channelID string, c
 	return check(channel)
 }
 
-func (a *App) channelWriteAccessDecisionByID(rctx request.CTX, userID, channelID string) (allowed bool, deniedAction string) {
-	if channelID == "" || !a.channelAccessEnforcementActive() {
-		return true, ""
-	}
+func (a *App) channelWriteAccessDecisionByID(rctx request.CTX, userID, channelID string) bool {
+	return a.hasChannelAccessByID(rctx, userID, channelID, func(channel *model.Channel) bool {
+		return a.channelWriteAccessDecision(rctx, userID, channel)
+	})
+}
 
-	channel, appErr := a.GetChannel(rctx, channelID)
-	if appErr != nil {
-		if appErr.StatusCode == http.StatusNotFound {
-			return true, ""
-		}
-		rctx.Logger().Warn("Failed to resolve channel for channel_write_access evaluation; denying",
-			mlog.String("channel_id", channelID),
-			mlog.Err(appErr),
-		)
-		return false, model.AccessControlPolicyActionChannelWriteAccess
-	}
-
-	return a.channelWriteAccessDecision(rctx, userID, channel)
+func (a *App) channelManagementAccessDecisionByID(rctx request.CTX, userID, channelID string) bool {
+	return a.hasChannelAccessByID(rctx, userID, channelID, func(channel *model.Channel) bool {
+		return a.channelManagementAccessDecision(rctx, userID, channel)
+	})
 }

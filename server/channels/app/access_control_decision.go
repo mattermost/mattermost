@@ -46,6 +46,11 @@ var renderableABACActions = map[string]renderableActionConfig{
 		DefaultWhenInactive: true,
 		FailClosedOnError:   true,
 	},
+	model.AccessControlPolicyActionChannelManagementAccess: {
+		ResourceType:        model.AccessControlPolicyTypeChannel,
+		DefaultWhenInactive: true,
+		FailClosedOnError:   true,
+	},
 }
 
 // SearchAllowedActionsForCurrentUser computes non-authoritative, render-time ABAC
@@ -120,8 +125,11 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 	}
 
 	exempt := slices.ContainsFunc(candidates, isChannelAccessAction) && a.channelAccessExemptByID(rctx, req.Resource.ID)
+	managementExempt := slices.Contains(candidates, model.AccessControlPolicyActionChannelManagementAccess) &&
+		a.SessionHasPermissionTo(*rctx.Session(), model.PermissionManageSystem)
 	recordIfExempt := func(action string) bool {
-		if !exempt || !isChannelAccessAction(action) {
+		if !(exempt && isChannelAccessAction(action)) &&
+			!(managementExempt && action == model.AccessControlPolicyActionChannelManagementAccess) {
 			return false
 		}
 		record(action, model.RenderPermissionDecision{Allowed: true, Evaluated: true})

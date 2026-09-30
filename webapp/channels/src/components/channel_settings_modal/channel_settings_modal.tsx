@@ -17,7 +17,7 @@ import type {Channel} from '@mattermost/types/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getLicense, isChannelPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
-import {haveIChannelPermissionRBACOnly, haveISystemPermission, isChannelWriteDenied} from 'mattermost-redux/selectors/entities/roles';
+import {haveIChannelPermissionRBACOnly, haveISystemPermission, isChannelManagementDenied} from 'mattermost-redux/selectors/entities/roles';
 
 import {
     setShowPreviewOnChannelSettingsHeaderModal,
@@ -194,21 +194,19 @@ function ChannelSettingsModalBody({channel, isOpen, onExited, focusOriginElement
         haveIChannelPermissionRBACOnly(state, channel.team_id, channel.id, Permissions.MANAGE_CHANNEL_ACCESS_RULES),
     );
 
-    // Changing any channel setting is a write to the channel, so a policy denying
-    // channel_write_access makes the whole modal read-only. Every tab above is gated on a
-    // permission the write gate covers, so honouring the denial in the visibility checks
-    // would hide all of them at once and leave an empty modal that explains nothing —
-    // hence RBAC-only visibility plus a disabled state and a banner.
-    //
-    // System admins are read-only here too even though the server exempts manage_system,
-    // so there is one behaviour to reason about; the banner points them at the System
-    // Console, which is the surface that still lets them edit.
+    // Changing any channel setting is managing the channel, so a policy denying
+    // channel_management_access makes the whole modal read-only. Every tab above is gated
+    // on a permission the management gate covers, so honouring the denial in the
+    // visibility checks would hide all of them at once and leave an empty modal that
+    // explains nothing — hence RBAC-only visibility plus a disabled state and a banner.
+    // System admins are never denied: the gate, and the decision it renders from, exempt
+    // manage_system.
     //
     // Reads the cached decision rather than fetching one: an unfetched channel falls open
     // and the server's 403 is the backstop. In practice the composer for the channel you
     // are viewing has already fetched it, and Channel Settings opens from that channel.
     const isReadOnly = useSelector((state: GlobalState) =>
-        isChannelWriteDenied(state, channel.id),
+        isChannelManagementDenied(state, channel.id),
     );
 
     const basePath = useSelector(getBasePath);

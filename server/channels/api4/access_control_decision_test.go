@@ -108,10 +108,8 @@ func TestSearchAccessControlDecisionActions(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		// upload_file_attachment, download_file_attachment, channel_read_access and
-		// channel_write_access.
-		require.Len(t, out.Decisions, 4)
-		require.Len(t, out.Results, 4)
+		require.Len(t, out.Decisions, 5)
+		require.Len(t, out.Results, 5)
 	})
 
 	t.Run("subject not matching session user returns 403", func(t *testing.T) {
@@ -227,4 +225,28 @@ func TestSearchAccessControlDecisionActionsChannelWriteAccess(t *testing.T) {
 	require.NoError(t, err)
 	require.Contains(t, discovered.Decisions, model.AccessControlPolicyActionChannelWriteAccess)
 	require.Contains(t, discovered.Decisions, model.AccessControlPolicyActionChannelReadAccess)
+}
+
+func TestSearchAccessControlDecisionActionsChannelManagementAccess(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+	}).InitBasic(t)
+
+	channelResource := model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: th.BasicChannel.Id}
+
+	targeted, _, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
+		Resource: channelResource,
+		Actions:  []string{model.AccessControlPolicyActionChannelManagementAccess},
+	})
+	require.NoError(t, err)
+	require.Contains(t, targeted.Decisions, model.AccessControlPolicyActionChannelManagementAccess)
+	// ABAC is inactive in this fixture, so the registry default applies — Channel
+	// Settings must not go read-only on a server with the feature switched off.
+	require.True(t, targeted.Decisions[model.AccessControlPolicyActionChannelManagementAccess].Allowed)
+
+	discovered, _, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
+		Resource: channelResource,
+	})
+	require.NoError(t, err)
+	require.Contains(t, discovered.Decisions, model.AccessControlPolicyActionChannelManagementAccess)
 }

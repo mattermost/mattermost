@@ -50,7 +50,7 @@ type ChannelSettingsAccessRulesTabProps = {
     setAreThereUnsavedChanges?: (unsaved: boolean) => void;
     showTabSwitchError?: boolean;
 
-    /** A channel_write_access denial. The rules stay legible but nothing can be edited. */
+    /** A channel_management_access denial. The rules stay legible but nothing can be edited. */
     isReadOnly?: boolean;
 };
 

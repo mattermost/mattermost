@@ -47,7 +47,7 @@ test.describe(
             ).toBeNull();
         });
 
-        test('a channel admin denied channel_write_access sees the policy tabs read-only', async ({pw}) => {
+        test('a channel admin denied channel_management_access sees the policy tabs read-only', async ({pw}) => {
             test.setTimeout(180000);
             await pw.skipIfNoLicense();
 
@@ -60,8 +60,8 @@ test.describe(
 
             const channel = await adminClient.createChannel({
                 team_id: team.id,
-                name: `cwa-${pw.random.id()}`.toLowerCase(),
-                display_name: `Channel Write Access ${pw.random.id()}`,
+                name: `cma-${pw.random.id()}`.toLowerCase(),
+                display_name: `Manage Channel ${pw.random.id()}`,
                 type: 'P',
                 purpose: '',
                 header: '',
@@ -69,22 +69,22 @@ test.describe(
             await adminClient.addToChannel(user.id, channel.id);
             await adminClient.updateChannelMemberRoles(channel.id, user.id, 'channel_user channel_admin');
 
-            // # Something for the channel admin to still be able to read once writes are denied
-            const readableMessage = `readable under a write denial ${pw.random.id()}`;
+            // # Something for the channel admin to still be able to read once management is denied
+            const readableMessage = `readable under a management denial ${pw.random.id()}`;
             await adminClient.createPost({channel_id: channel.id, message: readableMessage} as any);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await enableABAC(systemConsolePage.page);
             await adminClient.patchConfig({AccessControlSettings: {EnableAttributeBasedAccessControl: true}});
 
-            const policyName = `PP Write Deny ${pw.random.id()}`;
+            const policyName = `PP Manage Deny ${pw.random.id()}`;
             createdPolicyName = policyName;
             createdPolicyClient = adminClient;
 
             await createPermissionPolicy(systemConsolePage.page, {
                 name: policyName,
                 celExpression: 'user.attributes.Department == "NoSuchDepartment"',
-                permissions: ['Channel Write Access'],
+                permissions: ['Manage Channel'],
                 adminClient,
             });
 

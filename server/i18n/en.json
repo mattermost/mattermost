@@ -380,6 +380,10 @@
     "translation": "This channel has been converted to a Private Channel."
   },
   {
+    "id": "api.channel.channel_management_access.abac_denied.app_error",
+    "translation": "You do not currently have permission to manage this channel."
+  },
+  {
     "id": "api.channel.channel_member_counts_by_group.license.error",
     "translation": "Your license does not support groups"
   },
@@ -11569,6 +11573,10 @@
   {
     "id": "model.access_policy.is_valid.actions.app_error",
     "translation": "Action(s) is not valid."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_management_access_type.app_error",
+    "translation": "The Manage Channel action is only allowed on permission and channel policies."
   },
   {
     "id": "model.access_policy.is_valid.actions.channel_read_access_type.app_error",

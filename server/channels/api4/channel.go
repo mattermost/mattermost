@@ -776,6 +776,10 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !requireChannelManagementAccess(c, channel) {
+		return
+	}
+
 	channel, err = c.App.RestoreChannel(c.AppContext, channel, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -1131,6 +1135,22 @@ func requireChannelWriteAccessByID(c *Context, channelID string) bool {
 		return true
 	}
 	c.SetPermissionError(model.PermissionCreatePost)
+	return false
+}
+
+func requireChannelManagementAccess(c *Context, channel *model.Channel) bool {
+	if c.App.EnforceChannelManagementAccess(c.AppContext, c.AppContext.Session().UserId, channel) {
+		return true
+	}
+	c.SetPermissionError(model.PermissionManageChannelRoles)
+	return false
+}
+
+func requireChannelManagementAccessByID(c *Context, channelID string) bool {
+	if c.App.EnforceChannelManagementAccessByID(c.AppContext, c.AppContext.Session().UserId, channelID) {
+		return true
+	}
+	c.SetPermissionError(model.PermissionManageChannelRoles)
 	return false
 }
 
@@ -2678,12 +2698,12 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Read rather than write, and gated here rather than at the manage-members choke
+	// Read rather than management, and gated here rather than at the manage-members choke
 	// point below, because the public-channel self-add path is authorised on a team
-	// permission and never reaches that point. Joining is a read-tier action: a write
-	// rule that excludes non-members would otherwise make a channel you can plainly
-	// see unjoinable. Adding *other* users still gets the write gate, from the
-	// manage_*_channel_members checks below. Matches requestJoinChannel.
+	// permission and never reaches that point. Joining is a read-tier action: a
+	// management rule that excludes non-members would otherwise make a channel you can
+	// plainly see unjoinable. Adding *other* users still gets the management gate, from
+	// the manage_*_channel_members checks below. Matches requestJoinChannel.
 	if !requireChannelReadAccess(c, channel) {
 		return
 	}
@@ -2864,13 +2884,6 @@ func setChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Require system admin
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
-	// Rewriting the member list is a write to the channel, and this handler never
-	// reaches a channel permission check. The channel-access policies bind system
-	// admins too, so the check above does not stand in for the gate.
-	if !requireChannelWriteAccessByID(c, c.Params.ChannelId) {
 		return
 	}
 

@@ -216,8 +216,8 @@ describe('ChannelSettingsArchiveTab', () => {
     });
 
     describe('when the channel is read-only', () => {
-        // A channel_write_access denial. The tab stays visible so the modal is not empty,
-        // but archiving is a write and has to be refused.
+        // A channel_management_access denial. The tab stays visible so the modal is not
+        // empty, but archiving is managing the channel and has to be refused.
         it('disables the archive button and explains why', () => {
             renderWithContext(
                 <ChannelSettingsArchiveTab

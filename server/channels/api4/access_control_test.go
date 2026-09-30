@@ -28,7 +28,7 @@ func allowSelfInclusion(mockACS *mocks.AccessControlServiceInterface, userID str
 
 // ungovernedChannelAccess reports that no permission policy governs the
 // channel-access actions. Channel-scoped policy administration passes through the
-// channel_write_access gate, which consults the access-control service before the
+// channel_management_access gate, which consults the access-control service before the
 // handler under test is reached; these tests cover the policy endpoints, not the
 // gate, so it answers "not governed" and stays out of the way.
 func ungovernedChannelAccess(mockACS *mocks.AccessControlServiceInterface) {

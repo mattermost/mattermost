@@ -33,6 +33,7 @@ import WysiwygEditor from 'components/advanced_text_editor/wysiwyg_editor/wysiwy
 import type {WysiwygEditorHandle} from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
 import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
+import {useChannelManagementAccess} from 'components/common/hooks/useChannelManagementAccess';
 import {useChannelWriteAccess} from 'components/common/hooks/useChannelWriteAccess';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
@@ -217,6 +218,11 @@ const AdvancedTextEditor = ({
     });
 
     const writeAllowedByPolicy = useChannelWriteAccess(channelId);
+
+    // Fetched here, alongside the write decision, only so it is cached: the management
+    // controls around the channel (members, bookmarks, header menu, Channel Settings)
+    // read it through haveIChannelPermission rather than fetching their own.
+    useChannelManagementAccess(channelId);
     const useChannelMentions = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
         return channel ? haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_CHANNEL_MENTIONS) : false;

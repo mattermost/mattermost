@@ -13,6 +13,7 @@ import {
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
     ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
     ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
+    ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
     ACCESS_CONTROL_CHANNEL_ROLE_ADMIN,
     ACCESS_CONTROL_CHANNEL_ROLE_GUEST,
     ACCESS_CONTROL_CHANNEL_ROLE_USER,
@@ -34,7 +35,7 @@ import {getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selec
 import {mergeSessionAttributes} from 'components/admin_console/access_control/editors/shared';
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import SimulateAccessModal from 'components/admin_console/access_control/modals/simulate_access/simulate_access_modal';
-import ChannelReadAccessConfirmModal from 'components/admin_console/permission_policies/modals/channel_read_access_confirm_modal';
+import ChannelAccessConfirmModal from 'components/admin_console/permission_policies/modals/channel_access_confirm_modal';
 import ConfirmModal from 'components/confirm_modal';
 import * as Menu from 'components/menu';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
@@ -56,7 +57,12 @@ type SaveResult = typeof SAVE_RESULT_SAVED | typeof SAVE_RESULT_ERROR;
 
 const PAGE_SIZE = 10;
 
-type SelfAccessCheck = 'allowed' | 'denied' | 'skipped' | 'failed';
+// 'denied' is a channel_read_access denial, 'denied_management' a channel_management_access one.
+type SelfAccessCheck = 'allowed' | 'denied' | 'denied_management' | 'skipped' | 'failed';
+
+// The actions whose rules can lock the author out of this channel, so a save carrying one
+// is confirmed first and then checked against the author.
+const SELF_CHECKED_ACTIONS = [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS, ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS];
 
 type ChannelSettingsPermissionsPolicyTabProps = {
     channel: Channel;
@@ -64,7 +70,7 @@ type ChannelSettingsPermissionsPolicyTabProps = {
     showTabSwitchError?: boolean;
 
     /**
-     * A channel_write_access denial. The rule list stays legible — name, role and
+     * A channel_management_access denial. The rule list stays legible — name, role and
      * permission count — but the editor never opens.
      *
      * Deliberately not "open the editor read-only": the editor has a name field, a role
@@ -138,6 +144,14 @@ const actionMessages = defineMessages({
         id: 'channel_settings.permissions_policy.action.channel_write_access.description',
         defaultMessage: 'Allow users to post in this channel and change its content',
     },
+    channelManagementAccessLabel: {
+        id: 'channel_settings.permissions_policy.action.channel_management_access',
+        defaultMessage: 'Manage channel',
+    },
+    channelManagementAccessDescription: {
+        id: 'channel_settings.permissions_policy.action.channel_management_access.description',
+        defaultMessage: "Allow users to change this channel's settings, bookmarks, members and access rules",
+    },
 });
 
 interface RoleDefinition {
@@ -163,6 +177,7 @@ const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
     {value: ACCESS_CONTROL_ACTION_DOWNLOAD_FILE, label: actionMessages.downloadLabel, description: actionMessages.downloadDescription},
     {value: ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS, label: actionMessages.channelReadAccessLabel, description: actionMessages.channelReadAccessDescription},
     {value: ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS, label: actionMessages.channelWriteAccessLabel, description: actionMessages.channelWriteAccessDescription},
+    {value: ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS, label: actionMessages.channelManagementAccessLabel, description: actionMessages.channelManagementAccessDescription},
 ];
 
 const ACTION_LABEL_IDS: Record<string, MessageDescriptor> = {
@@ -170,6 +185,7 @@ const ACTION_LABEL_IDS: Record<string, MessageDescriptor> = {
     [ACCESS_CONTROL_ACTION_DOWNLOAD_FILE]: actionMessages.downloadLabel,
     [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS]: actionMessages.channelReadAccessLabel,
     [ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS]: actionMessages.channelWriteAccessLabel,
+    [ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS]: actionMessages.channelManagementAccessLabel,
 };
 
 type EditableRule = {
@@ -224,8 +240,8 @@ function ChannelSettingsPermissionsPolicyTab({
 
     const currentUserId = useSelector(getCurrentUserId);
 
-    const [showChannelReadAccessConfirmModal, setShowChannelReadAccessConfirmModal] = useState(false);
-    const [selfCheckBlock, setSelfCheckBlock] = useState<'denied' | 'failed' | null>(null);
+    const [showChannelAccessConfirmModal, setShowChannelAccessConfirmModal] = useState(false);
+    const [selfCheckBlock, setSelfCheckBlock] = useState<'denied' | 'denied_management' | 'failed' | null>(null);
     const [isSavingPolicy, setIsSavingPolicy] = useState(false);
 
     // Guards against a second save while the first request is in flight; a
@@ -613,9 +629,18 @@ function ChannelSettingsPermissionsPolicyTab({
         }
     }, [actions, buildFinalRules, originalImports, channel.id, channel.display_name, formatMessage]);
 
-    const checkSelfChannelReadAccess = useCallback(async (): Promise<SelfAccessCheck> => {
-        const governsChannelReadAccess = rules.some((r) => r.actions.includes(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS));
-        if (!governsChannelReadAccess) {
+    const confirmableActions = useMemo(
+        () => SELF_CHECKED_ACTIONS.filter((action) => rules.some((r) => r.actions.includes(action))),
+        [rules],
+    );
+
+    const checkSelfChannelAccess = useCallback(async (): Promise<SelfAccessCheck> => {
+        // channel_management_access never binds system admins, so for them only the read
+        // rules can lock them out.
+        const checkedActions = confirmableActions.filter((action) =>
+            action !== ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS || !isSystemAdmin,
+        );
+        if (checkedActions.length === 0) {
             return 'skipped';
         }
 
@@ -627,7 +652,7 @@ function ChannelSettingsPermissionsPolicyTab({
         try {
             result = await actions.simulatePolicyForUsers({
                 policy: buildCandidatePolicy(rules.map(fromEditable)),
-                actions: [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS],
+                actions: checkedActions,
                 users: [{user_id: currentUserId}],
 
                 evaluation_scope: 'all',
@@ -642,13 +667,20 @@ function ChannelSettingsPermissionsPolicyTab({
 
         const mine = result?.data?.results?.find((r) => r.user?.id === currentUserId);
 
-        const decision = mine?.decisions?.[ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS];
-        if (!decision) {
-            return 'failed';
+        // Read first: losing sight of the channel is the denial worth reporting.
+        let outcome: SelfAccessCheck = 'allowed';
+        for (const action of checkedActions) {
+            const decision = mine?.decisions?.[action];
+            if (!decision) {
+                return 'failed';
+            }
+            if (!decision.decision && outcome === 'allowed') {
+                outcome = action === ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS ? 'denied' : 'denied_management';
+            }
         }
 
-        return decision.decision ? 'allowed' : 'denied';
-    }, [actions, buildCandidatePolicy, rules, policySimulationEnabled, currentUserId]);
+        return outcome;
+    }, [actions, buildCandidatePolicy, rules, confirmableActions, isSystemAdmin, policySimulationEnabled, currentUserId]);
 
     const commitSave = useCallback(async () => {
         if (saveInProgress.current) {
@@ -658,10 +690,10 @@ function ChannelSettingsPermissionsPolicyTab({
         setIsSavingPolicy(true);
 
         try {
-            const selfCheck = await checkSelfChannelReadAccess();
+            const selfCheck = await checkSelfChannelAccess();
 
-            if (selfCheck === 'denied' || selfCheck === 'failed') {
-                setShowChannelReadAccessConfirmModal(false);
+            if (selfCheck === 'denied' || selfCheck === 'denied_management' || selfCheck === 'failed') {
+                setShowChannelAccessConfirmModal(false);
                 setSelfCheckBlock(selfCheck);
                 return;
             }
@@ -672,15 +704,15 @@ function ChannelSettingsPermissionsPolicyTab({
             setIsSavingPolicy(false);
             saveInProgress.current = false;
         }
-    }, [persistRules, rules, checkSelfChannelReadAccess]);
+    }, [persistRules, rules, checkSelfChannelAccess]);
 
     const handleSaveChanges = useCallback(async () => {
-        if (rules.some((r) => r.actions.includes(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS))) {
-            setShowChannelReadAccessConfirmModal(true);
+        if (confirmableActions.length > 0) {
+            setShowChannelAccessConfirmModal(true);
             return;
         }
         await commitSave();
-    }, [commitSave, rules]);
+    }, [commitSave, confirmableActions]);
 
     const handleCancel = useCallback(() => {
         try {
@@ -705,16 +737,40 @@ function ChannelSettingsPermissionsPolicyTab({
     const hasErrors = Boolean(formError) || Boolean(showTabSwitchError);
     const shouldShowPanel = !isReadOnly && (hasUnsavedChanges || saveChangesPanelState === SAVE_RESULT_SAVED) && editingKey === null;
 
+    let selfCheckBlockMessage;
+    if (selfCheckBlock === 'failed') {
+        selfCheckBlockMessage = (
+            <FormattedMessage
+                id='channel_settings.permissions_policy.error.self_exclusion_check_failed'
+                defaultMessage='Could not confirm that you would keep access to this channel. Please try again.'
+            />
+        );
+    } else if (selfCheckBlock === 'denied_management') {
+        selfCheckBlockMessage = (
+            <FormattedMessage
+                id='channel_settings.permissions_policy.error.self_exclusion_management_message'
+                defaultMessage='You cannot save these rules because they would remove your own ability to manage this channel. Update the Manage channel rules so that you still satisfy them, then try again.'
+            />
+        );
+    } else {
+        selfCheckBlockMessage = (
+            <FormattedMessage
+                id='channel_settings.permissions_policy.error.self_exclusion_message'
+                defaultMessage='You cannot save these rules because they would remove your own access to this channel. Update the Channel read access rules so that you still satisfy them, then try again.'
+            />
+        );
+    }
+
     // ── Render: load error (defensive — replaces both list and editor) ───
     // Block all editing affordances when the initial policy load failed
     // for a reason other than 404. Falling through to the regular
     // editor would let an author save an empty `rules` state on top of
     // an existing policy that simply couldn't be fetched.
     if (loadError) {
-        // A channel_write_access denial also refuses the policy fetch, so for a caller
-        // without manage_system the load "failure" is the gate working as intended, not a
-        // fault. Show the same notice the other tabs show rather than surfacing the raw
-        // 403 in an error style no other tab uses.
+        // A channel_management_access denial also refuses the policy fetch, so the load
+        // "failure" is the gate working as intended, not a fault. Show the same notice
+        // the other tabs show rather than surfacing the raw 403 in an error style no
+        // other tab uses.
         if (isReadOnly) {
             return (
                 <div
@@ -1038,18 +1094,19 @@ function ChannelSettingsPermissionsPolicyTab({
                 />
             )}
 
-            {showChannelReadAccessConfirmModal && (
-                <ChannelReadAccessConfirmModal
+            {showChannelAccessConfirmModal && (
+                <ChannelAccessConfirmModal
                     show={true}
                     targetScope='channel'
+                    actions={confirmableActions}
                     isStacked={true}
                     isSaving={isSavingPolicy}
-                    onHide={() => setShowChannelReadAccessConfirmModal(false)}
+                    onHide={() => setShowChannelAccessConfirmModal(false)}
                     onConfirm={async () => {
                         // Close after the request, not before, so the dialog's
                         // buttons are disabled while it runs.
                         await commitSave();
-                        setShowChannelReadAccessConfirmModal(false);
+                        setShowChannelAccessConfirmModal(false);
                     }}
                 />
             )}
@@ -1062,17 +1119,7 @@ function ChannelSettingsPermissionsPolicyTab({
                         defaultMessage='Cannot save permission rules'
                     />
                 }
-                message={selfCheckBlock === 'failed' ? (
-                    <FormattedMessage
-                        id='channel_settings.permissions_policy.error.self_exclusion_check_failed'
-                        defaultMessage='Could not confirm that you would keep access to this channel. Please try again.'
-                    />
-                ) : (
-                    <FormattedMessage
-                        id='channel_settings.permissions_policy.error.self_exclusion_message'
-                        defaultMessage='You cannot save these rules because they would remove your own access to this channel. Update the Channel read access rules so that you still satisfy them, then try again.'
-                    />
-                )}
+                message={selfCheckBlockMessage}
                 confirmButtonText={
                     <FormattedMessage
                         id='channel_settings.permissions_policy.error.back_to_editing'

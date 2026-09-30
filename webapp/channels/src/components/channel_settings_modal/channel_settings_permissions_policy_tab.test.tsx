@@ -7,6 +7,7 @@ import {
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
     ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+    ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
     ACCESS_CONTROL_CHANNEL_ROLE_ADMIN,
     ACCESS_CONTROL_CHANNEL_ROLE_USER,
 } from '@mattermost/types/access_control';
@@ -619,13 +620,13 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
     });
 
     describe('when the channel is read-only', () => {
-        // A channel_write_access denial refuses the policy fetch too, so this tab used to
-        // surface the raw 403 in an error style no other tab uses. It has to show the same
-        // notice the rest of the modal shows.
-        const writeDenied = {status_code: 403, message: 'You do not currently have permission to write in this channel.'};
+        // A channel_management_access denial refuses the policy fetch too, so this tab used
+        // to surface the raw 403 in an error style no other tab uses. It has to show the
+        // same notice the rest of the modal shows.
+        const managementDenied = {status_code: 403, message: 'You do not currently have permission to manage this channel.'};
 
         it('shows the shared read-only notice instead of the refused fetch', async () => {
-            mockActions.getChannelPolicy.mockResolvedValue({error: writeDenied});
+            mockActions.getChannelPolicy.mockResolvedValue({error: managementDenied});
 
             renderWithContext(
                 <ChannelSettingsPermissionsPolicyTab
@@ -638,7 +639,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
             expect(await screen.findByTestId('permissions-policy-read-only')).toBeInTheDocument();
             expect(screen.getByText('Editing is restricted')).toBeInTheDocument();
             expect(screen.queryByTestId('permissions-policy-load-error')).not.toBeInTheDocument();
-            expect(screen.queryByText(writeDenied.message)).not.toBeInTheDocument();
+            expect(screen.queryByText(managementDenied.message)).not.toBeInTheDocument();
         });
 
         it('still reports a genuine load failure when not read-only', async () => {
@@ -805,7 +806,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
 
     // ── Pre-save self-lockout guard ───────────────────────────────────────
     describe('self-lockout guard', () => {
-        const stateWith = ({simulation = true} = {}) => ({
+        const stateWith = ({simulation = true, roles = 'system_admin'} = {}) => ({
             entities: {
                 general: {
                     config: {
@@ -816,24 +817,25 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
                 users: {
                     currentUserId: 'current_user_id',
                     profiles: {
-                        current_user_id: TestHelper.getUserMock({id: 'current_user_id', roles: 'system_admin'}),
+                        current_user_id: TestHelper.getUserMock({id: 'current_user_id', roles}),
                     },
                 },
             },
         });
 
-        const selfDecision = (decision: boolean) => ({
+        const selfDecision = (decision: boolean, action = ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS) => ({
             data: {
                 results: [{
                     user: {id: 'current_user_id'},
-                    decisions: {[ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS]: {decision}},
+                    decisions: {[action]: {decision}},
                 }],
                 total: 1,
             },
         });
 
-        // Authors a channel_read_access rule and clicks through to the confirmation.
-        const authorAccessChannelRule = async (state: object, channel?: Channel) => {
+        // Authors a rule carrying the given channel-access actions (channel_read_access
+        // by default) and clicks through to the confirmation.
+        const authorAccessChannelRule = async (state: object, channel?: Channel, ruleActions = [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS]) => {
             const props = channel ? {...baseProps, channel} : baseProps;
             renderWithContext(<ChannelSettingsPermissionsPolicyTab {...props}/>, state);
 
@@ -846,7 +848,10 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
                 const {calls} = (TableEditor as unknown as jest.Mock).mock;
                 calls[calls.length - 1][0].onChange('user.attributes.department == "eng"');
             });
-            await userEvent.click(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS}`));
+            for (const action of ruleActions) {
+                // eslint-disable-next-line no-await-in-loop
+                await userEvent.click(screen.getByTestId(`cpp-add-permission-${action}`));
+            }
             await userEvent.type(screen.getByTestId('permissions-policy-editor-name'), 'Managed devices only');
             await userEvent.click(screen.getByTestId('permissions-policy-editor-save'));
 
@@ -997,6 +1002,49 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
             await userEvent.click(await screen.findByRole('button', {name: 'Save policy'}));
 
             await waitFor(() => expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1));
+        });
+
+        // A Manage channel rule the author fails locks them out of this very tab.
+        test('blocks the save when a channel_management_access rule would lock the author out', async () => {
+            mockActions.simulatePolicyForUsers.mockResolvedValue(selfDecision(false, ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS));
+
+            await authorAccessChannelRule(stateWith({roles: 'system_user'}), undefined, [ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS]);
+
+            expect(await screen.findByText('You cannot save these rules because they would remove your own ability to manage this channel. Update the Manage channel rules so that you still satisfy them, then try again.')).toBeInTheDocument();
+            expect(mockActions.saveChannelPolicy).not.toHaveBeenCalled();
+            const params = mockActions.simulatePolicyForUsers.mock.calls[0][0];
+            expect(params.actions).toEqual([ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS]);
+        });
+
+        test('checks both actions in one simulation when the rules carry both', async () => {
+            mockActions.simulatePolicyForUsers.mockResolvedValue({
+                data: {
+                    results: [{
+                        user: {id: 'current_user_id'},
+                        decisions: {
+                            [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS]: {decision: true},
+                            [ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS]: {decision: true},
+                        },
+                    }],
+                    total: 1,
+                },
+            });
+
+            await authorAccessChannelRule(stateWith({roles: 'system_user'}), undefined, [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS, ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS]);
+
+            await waitFor(() => expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1));
+            expect(mockActions.simulatePolicyForUsers).toHaveBeenCalledTimes(1);
+            const params = mockActions.simulatePolicyForUsers.mock.calls[0][0];
+            expect(params.actions).toEqual([ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS, ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS]);
+        });
+
+        // channel_management_access never binds system admins, so there is nothing to
+        // lock them out of; the confirmation still shows.
+        test('does not simulate channel_management_access for a system admin', async () => {
+            await authorAccessChannelRule(stateWith(), undefined, [ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS]);
+
+            await waitFor(() => expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1));
+            expect(mockActions.simulatePolicyForUsers).not.toHaveBeenCalled();
         });
     });
 });

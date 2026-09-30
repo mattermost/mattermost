@@ -2407,6 +2407,7 @@ var accessControlDecisionActions = []string{
 	model.AccessControlPolicyActionDownloadFileAttachment,
 	model.AccessControlPolicyActionChannelReadAccess,
 	model.AccessControlPolicyActionChannelWriteAccess,
+	model.AccessControlPolicyActionChannelManagementAccess,
 	einterfaces.AccessControlDecisionActionPlugin,
 	accessControlDecisionActionOther,
 }

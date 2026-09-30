@@ -149,6 +149,17 @@ func (sp *ShareProvider) DoCommand(a *app.App, rctx request.CTX, args *model.Com
 	}
 
 	switch action {
+	case "share", "unshare", "invite", "uninvite":
+		channel, appErr := a.GetChannel(rctx, args.ChannelId)
+		if appErr != nil {
+			return response(args.T("api.command_share.share_channel.error", map[string]any{"Error": appErr.Error()}))
+		}
+		if channelManagementDenied(a, rctx, args, channel) {
+			return response(args.T("api.channel.channel_management_access.abac_denied.app_error"))
+		}
+	}
+
+	switch action {
 	case "share":
 		return sp.doShareChannel(a, rctx, args, margs)
 	case "unshare":

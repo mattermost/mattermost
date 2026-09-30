@@ -172,6 +172,10 @@ func inviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	if !requireChannelManagementAccessByID(c, c.Params.ChannelId) {
+		return
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventInviteRemoteClusterToChannel, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "remote_id", c.Params.RemoteId)
@@ -220,6 +224,10 @@ func uninviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.R
 
 	if _, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId); appErr != nil {
 		c.SetInvalidURLParam("channel_id")
+		return
+	}
+
+	if !requireChannelManagementAccessByID(c, c.Params.ChannelId) {
 		return
 	}
 

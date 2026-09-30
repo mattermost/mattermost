@@ -196,8 +196,8 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 			Resource: channelResource,
 		})
 		require.Nil(t, appErr)
-		require.Len(t, resp.Decisions, 4)
-		require.Len(t, resp.Results, 4)
+		require.Len(t, resp.Decisions, 5)
+		require.Len(t, resp.Results, 5)
 		resultNames := make(map[string]bool, len(resp.Results))
 		for _, r := range resp.Results {
 			resultNames[r.Action.Name] = true
@@ -206,6 +206,7 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 		require.True(t, resultNames[model.AccessControlPolicyActionDownloadFileAttachment])
 		require.True(t, resultNames[model.AccessControlPolicyActionChannelReadAccess])
 		require.True(t, resultNames[model.AccessControlPolicyActionChannelWriteAccess])
+		require.True(t, resultNames[model.AccessControlPolicyActionChannelManagementAccess])
 	})
 
 	t.Run("discovery mode ABAC active permitted in results denied excluded", func(t *testing.T) {
@@ -224,12 +225,15 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
 			return req.Action == model.AccessControlPolicyActionChannelWriteAccess
 		})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionChannelManagementAccess
+		})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
 
 		resp, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
 			Resource: channelResource,
 		})
 		require.Nil(t, appErr)
-		require.Len(t, resp.Decisions, 4)
+		require.Len(t, resp.Decisions, 5)
 		require.Len(t, resp.Results, 1)
 		require.Equal(t, model.AccessControlPolicyActionUploadFileAttachment, resp.Results[0].Action.Name)
 	})
@@ -448,6 +452,7 @@ func TestSearchAllowedActionsExemptsDirectAndGroupChannels(t *testing.T) {
 	channelAccessActions := []string{
 		model.AccessControlPolicyActionChannelReadAccess,
 		model.AccessControlPolicyActionChannelWriteAccess,
+		model.AccessControlPolicyActionChannelManagementAccess,
 	}
 
 	for name, channel := range map[string]*model.Channel{"DM": dm, "GM": gm} {
@@ -503,5 +508,31 @@ func TestSearchAllowedActionsExemptsDirectAndGroupChannels(t *testing.T) {
 		for _, action := range channelAccessActions {
 			require.False(t, resp.Decisions[action].Allowed, "%s must still be denied in an ordinary channel", action)
 		}
+	})
+
+	// The management gate never binds manage_system, so the render decision must not
+	// report a denial the gate would not make. The other actions still bind admins.
+	t.Run("a system admin is allowed channel_management_access without consulting the PDP", func(t *testing.T) {
+		withDenyAllACS(t)
+
+		adminSession, appErr := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.SystemAdminUser.Id,
+			Roles:  model.SystemAdminRoleId + " " + model.SystemUserRoleId,
+			Props:  model.StringMap{},
+		})
+		require.Nil(t, appErr)
+
+		resp, appErr := th.App.SearchAllowedActionsForCurrentUser(th.Context.WithSession(adminSession), model.ActionSearchRequest{
+			Resource: model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: th.BasicChannel.Id},
+			Actions:  channelAccessActions,
+		})
+		require.Nil(t, appErr)
+
+		management := resp.Decisions[model.AccessControlPolicyActionChannelManagementAccess]
+		require.True(t, management.Allowed)
+		require.True(t, management.Evaluated)
+		require.False(t, resp.Decisions[model.AccessControlPolicyActionChannelWriteAccess].Allowed,
+			"only channel_management_access exempts system admins")
+		require.False(t, resp.Decisions[model.AccessControlPolicyActionChannelReadAccess].Allowed)
 	})
 }
