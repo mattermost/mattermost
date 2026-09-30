@@ -157,8 +157,9 @@ export class ChannelInfoAttributes {
 
     async select(name: string, option: string) {
         await this.startEditing(name);
-        await this.editor(name).click();
-        await this.container.page().getByText(option, {exact: true}).click();
+        // startEditing already opens the menu; clicking editor() would hit the
+        // first option testid and commit/close before the intended pick.
+        await this.container.page().getByRole('menuitem', {name: option, exact: true}).click();
     }
 
     /**
@@ -166,9 +167,7 @@ export class ChannelInfoAttributes {
      */
     async deselect(name: string, option: string) {
         await this.startEditing(name);
-
-        const chip = this.editor(name).locator('.DropDown__multi-value', {hasText: option});
-        await chip.locator('.DropDown__multi-value__remove').click();
+        await this.container.page().getByRole('menuitem', {name: option, exact: true}).click();
     }
 
     async add(name: string, option?: string) {
