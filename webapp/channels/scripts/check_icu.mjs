@@ -11,6 +11,8 @@
  * than recording.
  *
  *   - the file is valid JSON and every value is a string
+ *   - the file is in canonical form: keys in code-point order, a 2-space
+ *     indent and a trailing newline, so a hand edit changes only what it means to
  *   - no value is empty or whitespace-only. react-intl replaces '' with the
  *     English, exactly as for a missing key, and renders whitespace as a blank.
  *     --warn-missing-keys does not downgrade this: a blank entry is a leftover
@@ -180,11 +182,22 @@ for (const [key, message] of Object.entries(en)) {
 
 for (const name of localeNames) {
     let data;
+    const text = readCatalog(name);
     try {
-        data = JSON.parse(readCatalog(name));
+        data = JSON.parse(text);
     } catch (e) {
         errors.push(`${name}: invalid JSON: ${e.message}`);
         continue;
+    }
+
+    // Keys in code-point order, as every catalog already is, so that a hand edit
+    // cannot reorder or reindent a file and bury its one real change in the diff.
+    // A duplicate key also lands here: JSON.parse keeps only the last one.
+    const canonical = JSON.stringify(Object.fromEntries(Object.keys(data).sort().map((k) => [k, data[k]])), null, 2) + '\n';
+    if (text !== canonical) {
+        const at = [...text].findIndex((c, i) => c !== canonical[i]);
+        const line = text.slice(0, at === -1 ? text.length : at).split('\n').length;
+        errors.push(`${name}: not in canonical form from line ${line}: keys in code-point order, a 2-space indent and a trailing newline`);
     }
 
     for (const key of Object.keys(en)) {

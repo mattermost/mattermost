@@ -27,7 +27,12 @@ const SCRIPT = path.join(__dirname, 'check_icu.mjs');
  */
 function check(en, locales, {warnMissingKeys = false, extraFiles = {}} = {}) {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'check-icu-'));
-    const serialize = (body) => (typeof body === 'string' ? body : JSON.stringify(body));
+
+    // Objects are written in canonical form, as the checker requires of every
+    // catalog; pass a string to test a file exactly as written.
+    const serialize = (body) => (typeof body === 'string' ? body : JSON.stringify(
+        Object.fromEntries(Object.keys(body).sort().map((k) => [k, body[k]])), null, 2,
+    ) + '\n');
     const serializeSource = (body) => (typeof body === 'string' ? body : JSON.stringify(
         Object.fromEntries(Object.entries(body).map(([key, defaultMessage]) => [key, {defaultMessage, description: ''}])),
     ));
@@ -64,6 +69,17 @@ describe('check_icu', () => {
     });
 
     describe('well-formedness', () => {
+        test.each([
+            ['keys out of order', '{\n  "a.c": "Deux",\n  "a.b": "Un"\n}\n'],
+            ['a four-space indent', '{\n    "a.b": "Un",\n    "a.c": "Deux"\n}\n'],
+            ['no trailing newline', '{\n  "a.b": "Un",\n  "a.c": "Deux"\n}'],
+        ])('rejects a catalog with %s', (_, text) => {
+            const {code, stderr} = check({'a.b': 'One', 'a.c': 'Two'}, {'fr.json': text});
+
+            expect(code).toBe(1);
+            expect(stderr).toContain('fr.json: not in canonical form');
+        });
+
         test('accepts a clean catalog', () => {
             const {code, stdout} = check(
                 {'a.b': 'Hello {name}'},
@@ -121,7 +137,7 @@ describe('check_icu', () => {
             fs.writeFileSync(path.join(dir, 'en.json'), JSON.stringify({
                 'a.b': {defaultMessage: 'Hello', description: "Rendered before the {unclosed brace and an ' apostrophe"},
             }));
-            fs.writeFileSync(path.join(dir, 'fr.json'), JSON.stringify({'a.b': 'Bonjour'}));
+            fs.writeFileSync(path.join(dir, 'fr.json'), JSON.stringify({'a.b': 'Bonjour'}, null, 2) + '\n');
 
             const result = spawnSync(process.execPath, [SCRIPT, dir], {encoding: 'utf8'});
 

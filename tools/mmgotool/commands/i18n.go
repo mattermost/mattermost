@@ -856,6 +856,44 @@ func templateTokens(raw json.RawMessage) map[string]bool {
 // loadItems keys a locale catalog's entries by translation ID. The catalogs are
 // JSON arrays, so this is what lets a caller look an ID up in one catalog while
 // walking another.
+// duplicateIDs returns each id raw lists more than once, in first-seen order.
+func duplicateIDs(raw []byte) []string {
+	var list []Item
+	if err := json.Unmarshal(raw, &list); err != nil {
+		return nil
+	}
+	seen := make(map[string]int, len(list))
+	var dups []string
+	for _, item := range list {
+		seen[item.ID]++
+		if seen[item.ID] == 2 {
+			dups = append(dups, item.ID)
+		}
+	}
+	return dups
+}
+
+// firstNonCanonicalLine returns the first line at which raw differs from the
+// same entries, in the same order, re-encoded as JSONMarshal writes them, or 0 if
+// it does not differ. Entry order is not checked: the server catalogs have none.
+func firstNonCanonicalLine(raw []byte) int {
+	var list []Item
+	if err := json.Unmarshal(raw, &list); err != nil {
+		return 0
+	}
+	canonical, err := JSONMarshal(list)
+	if err != nil || bytes.Equal(raw, canonical) {
+		return 0
+	}
+	line := 1
+	for i := 0; i < len(raw) && i < len(canonical) && raw[i] == canonical[i]; i++ {
+		if raw[i] == '\n' {
+			line++
+		}
+	}
+	return line
+}
+
 func loadItems(raw []byte) (map[string]Item, error) {
 	var list []Item
 	if err := json.Unmarshal(raw, &list); err != nil {
@@ -913,6 +951,14 @@ func verifyLocale(name string, raw []byte, en map[string]Item, warnMissingIDs bo
 	items, err := loadItems(raw)
 	if err != nil {
 		return []string{fmt.Sprintf("%s: %v", name, err)}, nil
+	}
+
+	for _, id := range duplicateIDs(raw) {
+		problems = append(problems, fmt.Sprintf("%s: %s: duplicate id; the loader keeps only one", name, id))
+	}
+
+	if line := firstNonCanonicalLine(raw); line > 0 {
+		problems = append(problems, fmt.Sprintf("%s: not in canonical form from line %d: use a 2-space indent, no HTML escaping, and a trailing newline", name, line))
 	}
 
 	// Unreachable in practice, and kept as an invariant guard: the loader above
