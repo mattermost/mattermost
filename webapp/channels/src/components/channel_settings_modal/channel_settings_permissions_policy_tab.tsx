@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState, useRef} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -11,6 +11,7 @@ import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/typ
 import {
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
+    ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
     ACCESS_CONTROL_CHANNEL_ROLE_ADMIN,
     ACCESS_CONTROL_CHANNEL_ROLE_GUEST,
     ACCESS_CONTROL_CHANNEL_ROLE_USER,
@@ -32,6 +33,7 @@ import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/user
 import {mergeSessionAttributes} from 'components/admin_console/access_control/editors/shared';
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import SimulateAccessModal from 'components/admin_console/access_control/modals/simulate_access/simulate_access_modal';
+import ChannelReadAccessConfirmModal from 'components/admin_console/permission_policies/modals/channel_read_access_confirm_modal';
 import * as Menu from 'components/menu';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
@@ -104,6 +106,14 @@ const actionMessages = defineMessages({
         id: 'channel_settings.permissions_policy.action.download.description',
         defaultMessage: 'Allow users to download attached files from this channel',
     },
+    channelReadAccessLabel: {
+        id: 'channel_settings.permissions_policy.action.channel_read_access',
+        defaultMessage: 'Channel read access',
+    },
+    channelReadAccessDescription: {
+        id: 'channel_settings.permissions_policy.action.channel_read_access.description',
+        defaultMessage: 'Allow users to read the channel and its content',
+    },
 });
 
 interface RoleDefinition {
@@ -127,11 +137,13 @@ const AVAILABLE_ROLES: RoleDefinition[] = [
 const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
     {value: ACCESS_CONTROL_ACTION_UPLOAD_FILE, label: actionMessages.uploadLabel, description: actionMessages.uploadDescription},
     {value: ACCESS_CONTROL_ACTION_DOWNLOAD_FILE, label: actionMessages.downloadLabel, description: actionMessages.downloadDescription},
+    {value: ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS, label: actionMessages.channelReadAccessLabel, description: actionMessages.channelReadAccessDescription},
 ];
 
 const ACTION_LABEL_IDS: Record<string, MessageDescriptor> = {
     [ACCESS_CONTROL_ACTION_UPLOAD_FILE]: actionMessages.uploadLabel,
     [ACCESS_CONTROL_ACTION_DOWNLOAD_FILE]: actionMessages.downloadLabel,
+    [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS]: actionMessages.channelReadAccessLabel,
 };
 
 type EditableRule = {
@@ -182,6 +194,13 @@ function ChannelSettingsPermissionsPolicyTab({
     // hiding the UI here keeps the author from clicking a button
     // that would only surface a backend error.
     const policySimulationEnabled = useSelector(isPolicySimulationEnabled);
+
+    const [showChannelReadAccessConfirmModal, setShowChannelReadAccessConfirmModal] = useState(false);
+    const [isSavingPolicy, setIsSavingPolicy] = useState(false);
+
+    // Guards against a second save while the first request is in flight; a
+    // duplicate save would race the same channel policy.
+    const saveInProgress = useRef(false);
 
     const actions = useChannelAccessControlActions(channel.id);
     const {policies: systemPolicies} = useChannelSystemPolicies(channel);
@@ -565,10 +584,28 @@ function ChannelSettingsPermissionsPolicyTab({
         }
     }, [actions, originalAllRules, originalMembershipExpression, originalImports, channel.id, channel.display_name, formatMessage]);
 
-    const handleSaveChanges = useCallback(async () => {
-        const result = await persistRules(rules);
-        setSaveChangesPanelState(result);
+    const commitSave = useCallback(async () => {
+        if (saveInProgress.current) {
+            return;
+        }
+        saveInProgress.current = true;
+        setIsSavingPolicy(true);
+        try {
+            const result = await persistRules(rules);
+            setSaveChangesPanelState(result);
+        } finally {
+            setIsSavingPolicy(false);
+            saveInProgress.current = false;
+        }
     }, [persistRules, rules]);
+
+    const handleSaveChanges = useCallback(async () => {
+        if (rules.some((r) => r.actions.includes(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS))) {
+            setShowChannelReadAccessConfirmModal(true);
+            return;
+        }
+        await commitSave();
+    }, [commitSave, rules]);
 
     const handleCancel = useCallback(() => {
         try {
@@ -906,6 +943,22 @@ function ChannelSettingsPermissionsPolicyTab({
                     })}
                 />
             )}
+
+            {showChannelReadAccessConfirmModal && (
+                <ChannelReadAccessConfirmModal
+                    show={true}
+                    targetScope='channel'
+                    isStacked={true}
+                    isSaving={isSavingPolicy}
+                    onHide={() => setShowChannelReadAccessConfirmModal(false)}
+                    onConfirm={async () => {
+                        // Close after the request, not before, so the dialog's
+                        // buttons are disabled while it runs.
+                        await commitSave();
+                        setShowChannelReadAccessConfirmModal(false);
+                    }}
+                />
+            )}
         </div>
     );
 }
@@ -985,7 +1038,9 @@ function PermissionRuleEditor({
     }, []);
 
     const selectedRoleDef = AVAILABLE_ROLES.find((r) => r.value === draft.role);
-    const availableToAdd = AVAILABLE_PERMISSIONS.filter((p) => !draft.actions.includes(p.value));
+    const availableToAdd = AVAILABLE_PERMISSIONS.filter(
+        (p) => !draft.actions.includes(p.value),
+    );
 
     return (
         <div

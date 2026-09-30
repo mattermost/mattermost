@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useCallback, useMemo, type JSX} from 'react';
+import React, {useState, useEffect, useCallback, useMemo, useRef, type JSX} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -9,6 +9,11 @@ import {useSelector} from 'react-redux';
 import {GenericModal} from '@mattermost/components';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
+import {
+    ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
+    ACCESS_CONTROL_ACTION_UPLOAD_FILE,
+    ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+} from '@mattermost/types/access_control';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {CHANNEL_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
@@ -18,6 +23,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SimulateAccessModal from 'components/admin_console/access_control/modals/simulate_access/simulate_access_modal';
 import BlockableLink from 'components/admin_console/blockable_link';
+import ChannelReadAccessConfirmModal from 'components/admin_console/permission_policies/modals/channel_read_access_confirm_modal';
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import * as Menu from 'components/menu';
@@ -57,18 +63,25 @@ const permissionMessages = defineMessages({
     downloadDescription: {id: 'admin.permission_policies.permission.download_file.description', defaultMessage: 'Allow users to download files to their device'},
     uploadLabel: {id: 'admin.permission_policies.permission.upload_file.label', defaultMessage: 'Upload Files'},
     uploadDescription: {id: 'admin.permission_policies.permission.upload_file.description', defaultMessage: 'Allow users to upload files while sending a message'},
+    channelReadAccessLabel: {id: 'admin.permission_policies.permission.channel_read_access.label', defaultMessage: 'Channel Read Access'},
+    channelReadAccessDescription: {id: 'admin.permission_policies.permission.channel_read_access.description', defaultMessage: 'Allow users to read the channel and its content'},
 });
 
 const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
     {
-        value: 'download_file_attachment',
+        value: ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
         label: permissionMessages.downloadLabel,
         description: permissionMessages.downloadDescription,
     },
     {
-        value: 'upload_file_attachment',
+        value: ACCESS_CONTROL_ACTION_UPLOAD_FILE,
         label: permissionMessages.uploadLabel,
         description: permissionMessages.uploadDescription,
+    },
+    {
+        value: ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+        label: permissionMessages.channelReadAccessLabel,
+        description: permissionMessages.channelReadAccessDescription,
     },
 ];
 
@@ -137,6 +150,7 @@ function PermissionPolicyDetails({
     const [autocompleteResult, setAutocompleteResult] = useState<UserPropertyField[]>([]);
     const [attributesLoaded, setAttributesLoaded] = useState(false);
     const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
+    const [showChannelReadAccessConfirmModal, setShowChannelReadAccessConfirmModal] = useState(false);
     const [pageLoaded, setPageLoaded] = useState(false);
     const [loadFailed, setLoadFailed] = useState(false);
     const [showTest, setShowTest] = useState(false);
@@ -259,11 +273,17 @@ function PermissionPolicyDetails({
         return true;
     };
 
-    const handleSubmit = async () => {
-        if (!preSaveCheck()) {
+    // Guards against a second save while the first request is in flight. The
+    // Save button stays clickable during a save (SaveButton only uses `saving`
+    // for its label), and a duplicate POST would come back as a spurious
+    // "name already exists".
+    const saveInProgress = useRef(false);
+
+    const savePolicy = async () => {
+        if (saveInProgress.current) {
             return;
         }
-
+        saveInProgress.current = true;
         setSaving(true);
         try {
             const result = await actions.createPolicy({
@@ -291,7 +311,23 @@ function PermissionPolicyDetails({
             getHistory().push('/admin_console/system_attributes/permission_policies');
         } finally {
             setSaving(false);
+            saveInProgress.current = false;
         }
+    };
+
+    // Channel Read Access hides channels from users without telling them, so it gets
+    // a confirmation step. File-only policies save straight through.
+    const handleSubmit = async () => {
+        if (!preSaveCheck()) {
+            return;
+        }
+
+        if (selectedPermissions.includes(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS)) {
+            setShowChannelReadAccessConfirmModal(true);
+            return;
+        }
+
+        await savePolicy();
     };
 
     const handleDelete = async () => {
@@ -838,12 +874,28 @@ function PermissionPolicyDetails({
                             actions={selectedPermissions}
                             ruleName={policyName}
                             actionLabels={{
-                                upload_file_attachment: formatMessage(permissionMessages.uploadLabel),
-                                download_file_attachment: formatMessage(permissionMessages.downloadLabel),
+                                [ACCESS_CONTROL_ACTION_UPLOAD_FILE]: formatMessage(permissionMessages.uploadLabel),
+                                [ACCESS_CONTROL_ACTION_DOWNLOAD_FILE]: formatMessage(permissionMessages.downloadLabel),
+                                [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS]: formatMessage(permissionMessages.channelReadAccessLabel),
                             }}
                             targetRole={selectedRole}
                             targetScope='system'
                             accessControlFields={mergedAttributes}
+                        />
+                    )}
+
+                    {showChannelReadAccessConfirmModal && (
+                        <ChannelReadAccessConfirmModal
+                            show={true}
+                            targetScope='system'
+                            isSaving={saving}
+                            onHide={() => setShowChannelReadAccessConfirmModal(false)}
+                            onConfirm={async () => {
+                                // Close after the request, not before, so the
+                                // dialog's buttons are disabled while it runs.
+                                await savePolicy();
+                                setShowChannelReadAccessConfirmModal(false);
+                            }}
                         />
                     )}
 

@@ -9971,12 +9971,40 @@
     "defaultMessage": "Add policy",
     "description": "Button on the System Console > Permission Policies page that starts creating a new attribute-based permission policy."
   },
+  "admin.permission_policies.channel_read_access_confirm.body_effect": {
+    "defaultMessage": "Any session that does not meet the conditions will lose access to channels covered by this policy.",
+    "description": ""
+  },
+  "admin.permission_policies.channel_read_access_confirm.body_scope_channel": {
+    "defaultMessage": "This policy controls Channel Read Access for this channel only.",
+    "description": ""
+  },
+  "admin.permission_policies.channel_read_access_confirm.body_scope_workspace": {
+    "defaultMessage": "This policy controls Channel Read Access across every channel in the workspace, except direct messages and group messages.",
+    "description": ""
+  },
+  "admin.permission_policies.channel_read_access_confirm.body_simulate": {
+    "defaultMessage": "Run Simulate rules first if you have not confirmed who this affects.",
+    "description": ""
+  },
+  "admin.permission_policies.channel_read_access_confirm.cancel": {
+    "defaultMessage": "Cancel",
+    "description": ""
+  },
+  "admin.permission_policies.channel_read_access_confirm.confirm": {
+    "defaultMessage": "Save policy",
+    "description": ""
+  },
+  "admin.permission_policies.channel_read_access_confirm.title": {
+    "defaultMessage": "Save this policy?",
+    "description": ""
+  },
   "admin.permission_policies.delete": {
     "defaultMessage": "Delete",
     "description": "Destructive menu item in a policy's actions menu that deletes the permission policy."
   },
   "admin.permission_policies.description": {
-    "defaultMessage": "Create policies to control file upload and download permissions based on user attributes.",
+    "defaultMessage": "Create policies to control what users can do, based on their attributes.",
     "description": "Description under the page title on the System Console > Permission Policies page."
   },
   "admin.permission_policies.edit": {
@@ -10170,6 +10198,14 @@
   "admin.permission_policies.page_title": {
     "defaultMessage": "Permission Policies",
     "description": "Page title of the System Console > Permission Policies page (attribute-based access control policies for permissions)."
+  },
+  "admin.permission_policies.permission.channel_read_access.description": {
+    "defaultMessage": "Allow users to read the channel and its content",
+    "description": ""
+  },
+  "admin.permission_policies.permission.channel_read_access.label": {
+    "defaultMessage": "Channel Read Access",
+    "description": ""
   },
   "admin.permission_policies.permission.download_file.description": {
     "defaultMessage": "Allow users to download files to their device",
@@ -19802,6 +19838,14 @@
   "channel_settings.modal.title": {
     "defaultMessage": "Channel Settings",
     "description": "Title of the Channel Settings modal."
+  },
+  "channel_settings.permissions_policy.action.channel_read_access": {
+    "defaultMessage": "Channel read access",
+    "description": ""
+  },
+  "channel_settings.permissions_policy.action.channel_read_access.description": {
+    "defaultMessage": "Allow users to read the channel and its content",
+    "description": ""
   },
   "channel_settings.permissions_policy.action.download": {
     "defaultMessage": "Download files",
