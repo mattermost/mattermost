@@ -2350,8 +2350,9 @@ describe('Clearance name shared with another attribute', () => {
 
     test('should stay quiet about an attribute whose name is something else', async () => {
         // Attribute Management is rarely empty, and the classification template
-        // alone proves nothing: templateId drops it before any name is compared.
-        // `department` is the field that makes this a name check.
+        // alone proves nothing: it is named `classification`, so no name check
+        // has to run for it to be passed over. `department` is the field that
+        // makes this a name check.
         const unrelatedTemplate = makePropertyField({
             id: 'department_template',
             name: 'department',

@@ -304,7 +304,11 @@ describe('ClassificationAttribute', () => {
 
     it('treats a 404 from the linked-field listing as nothing linked', async () => {
         // Same convention as the two lookups above: 404 is how the property routes
-        // say "no such field", not that the page is broken.
+        // say "no such field", not that the page is broken. The empty state alone
+        // would also hold without that convention, so the spy is what separates
+        // "handled" from "logged as a failure and rendered the same way".
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
         const notFound = new ClientError('https://example.com', {
             message: 'Not found',
             status_code: 404,
@@ -325,6 +329,7 @@ describe('ClassificationAttribute', () => {
         expect(await screen.findByTestId('appliesToEmpty')).toBeInTheDocument();
         expect(screen.queryByTestId('appliesToReadOnlyResources')).not.toBeInTheDocument();
         expect(screen.queryByTestId('classificationAttributeLoadError')).not.toBeInTheDocument();
+        expect(consoleSpy).not.toHaveBeenCalled();
     });
 
     it('keeps the page usable when the linked-field listing genuinely fails, and loses only its rows', async () => {
