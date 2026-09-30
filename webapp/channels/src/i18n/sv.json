@@ -3104,7 +3104,7 @@
   "admin.webserverModeTitle": "Webserver-läge:",
   "admin.webserverModeUncompressed": "Okomprimerade",
   "admin.webserverModeUncompressedDescription": "Mattermost-servern kommer sända statiska filer okomprimerade.",
-  "adminConsole.list.table.exactTime.at": "klockan",
+  "adminConsole.list.table.exactTime": "{date, date, long} klockan {date, time, medium}",
   "adminConsole.list.table.genericError": "Det uppstod ett fel vid inläsningen av data, försök igen",
   "adminConsole.list.table.genericLoading": "Laddar",
   "adminConsole.list.table.genericNoData": "Inga uppgifter",

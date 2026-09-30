@@ -2895,7 +2895,7 @@
   "admin.webserverModeTitle": "Режим веб-сервера:",
   "admin.webserverModeUncompressed": "Без стиснення",
   "admin.webserverModeUncompressedDescription": "Сервер Mattermost буде обслуговувати статичні файли без стиснення.",
-  "adminConsole.list.table.exactTime.at": "о",
+  "adminConsole.list.table.exactTime": "{date, date, long} о {date, time, medium}",
   "adminConsole.list.table.genericError": "Виникла помилка при завантаженні даних, спробуйте ще раз",
   "adminConsole.list.table.genericLoading": "Завантаження",
   "adminConsole.list.table.genericNoData": "Немає даних",
