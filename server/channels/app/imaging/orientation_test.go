@@ -392,7 +392,12 @@ func TestGetImageOrientationLargeMetadata(t *testing.T) {
 	// Reading the orientation of a small image stays within a bounded amount
 	// of work no matter how large a nested tag structure its EXIF metadata
 	// declares, and still reports the orientation that structure carries.
-	const bound = time.Second
+	// The worst-case rows walk ~0.5M skipped entries, which takes around a
+	// second under -race on a loaded runner, so they get a looser bound.
+	const (
+		bound          = time.Second
+		worstCaseBound = 10 * time.Second
+	)
 
 	// Pointer arrays this long, and directories this large, exceed the tag-size
 	// limit and are skipped wholesale before any of their entries are visited.
@@ -417,15 +422,16 @@ func TestGetImageOrientationLargeMetadata(t *testing.T) {
 		format  string
 		payload []byte
 		maxSize int
+		bound   time.Duration
 	}{
-		{"jpeg", "jpeg", jpegWithEXIF(t, exif), smallImage},
-		{"png", "png", pngWithEXIF(t, exif), smallImage},
-		{"tiff", "tiff", exif, smallImage},
-		{"webp", "webp", webpWithEXIF(t, exif), smallImage},
-		{"jpeg, orientation in thumbnail directory", "jpeg", jpegWithEXIF(t, thumbnailDirEXIF), smallImage},
-		{"png, worst case within tag-size limit", "png", pngWithEXIF(t, worstCase), readerLimit},
-		{"tiff, worst case within tag-size limit", "tiff", worstCase, readerLimit},
-		{"webp, worst case within tag-size limit", "webp", webpWithEXIF(t, worstCase), readerLimit},
+		{"jpeg", "jpeg", jpegWithEXIF(t, exif), smallImage, bound},
+		{"png", "png", pngWithEXIF(t, exif), smallImage, bound},
+		{"tiff", "tiff", exif, smallImage, bound},
+		{"webp", "webp", webpWithEXIF(t, exif), smallImage, bound},
+		{"jpeg, orientation in thumbnail directory", "jpeg", jpegWithEXIF(t, thumbnailDirEXIF), smallImage, bound},
+		{"png, worst case within tag-size limit", "png", pngWithEXIF(t, worstCase), readerLimit, worstCaseBound},
+		{"tiff, worst case within tag-size limit", "tiff", worstCase, readerLimit, worstCaseBound},
+		{"webp, worst case within tag-size limit", "webp", webpWithEXIF(t, worstCase), readerLimit, worstCaseBound},
 	}
 
 	inputs := []struct {
@@ -457,8 +463,8 @@ func TestGetImageOrientationLargeMetadata(t *testing.T) {
 				case res := <-done:
 					require.NoError(t, res.err)
 					require.Equal(t, UpsideDown, res.orientation)
-				case <-time.After(bound):
-					t.Fatalf("GetImageOrientation did not return within %s for a %d byte image", bound, len(p.payload))
+				case <-time.After(p.bound):
+					t.Fatalf("GetImageOrientation did not return within %s for a %d byte image", p.bound, len(p.payload))
 				}
 			})
 		}
