@@ -65,6 +65,14 @@ describe('Keyboard Shortcuts', () => {
                     // * Check if the message is equal to the last message
                     cy.findByTestId('reply_textbox').should('have.text', messages[previousMessageIndex]);
 
+                    // Restoring a slash command opens autocomplete, which steals CTRL/CMD+UP.
+                    if (messages[previousMessageIndex] === '/shrug') {
+                        cy.get('#suggestionList', {timeout: TIMEOUTS.FIVE_SEC}).should('be.visible');
+                        cy.findByTestId('reply_textbox').type('{esc}');
+                        cy.get('#suggestionList').should('not.exist');
+                        cy.findByTestId('reply_textbox').should('be.focused').and('have.text', '/shrug');
+                    }
+
                     previousMessageIndex--;
                 }
 
