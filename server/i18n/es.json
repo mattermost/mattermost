@@ -7912,10 +7912,6 @@
     "translation": "No se pudo generar la información del archivo a partir de los datos cargados."
   },
   {
-    "id": "api.team.invite_members.unable_to_send_email.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.group.crud_permission",
     "translation": "No fue posible realizar la operación para ese tipo de fuente."
   },
@@ -7924,16 +7920,8 @@
     "translation": "El tamaño del lote de indexación masiva de Elasticsearch debe ser al menos de {{.BatchSize}}."
   },
   {
-    "id": "api.custom_groups.no_remote_id",
-    "translation": " "
-  },
-  {
     "id": "app.system.get_onboarding_request.app_error",
     "translation": "No se pudo obtener el estado de finalización de inducción."
-  },
-  {
-    "id": "app.custom_group.unique_name",
-    "translation": " "
   },
   {
     "id": "common.parse_error_int64",
@@ -7942,14 +7930,6 @@
   {
     "id": "app.post.cloud.get.app_error",
     "translation": "No se puede recuperar la publicación porque ha superado el límite del plan de la nube."
-  },
-  {
-    "id": "app.last_accessible_post.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
-    "translation": " "
   },
   {
     "id": "app.system.complete_onboarding_request.app_error",
@@ -7968,28 +7948,8 @@
     "translation": "Error al intentar guardar la configuración completa del primer administrador en la tienda."
   },
   {
-    "id": "api.custom_groups.count_err",
-    "translation": " "
-  },
-  {
-    "id": "api.custom_groups.feature_disabled",
-    "translation": " "
-  },
-  {
-    "id": "api.custom_groups.license_error",
-    "translation": " "
-  },
-  {
-    "id": "api.custom_groups.must_be_referenceable",
-    "translation": " "
-  },
-  {
     "id": "app.usage.get_storage_usage.app_error",
     "translation": "No se pudo obtener el uso de almacenamiento."
-  },
-  {
-    "id": "api.getThreadsForUser.bad_only_params",
-    "translation": " "
   },
   {
     "id": "app.job.get_all_jobs_by_type_and_status.app_error",
@@ -8002,14 +7962,6 @@
   {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "La longitud máxima de MattermostAppID es de 32 caracteres."
-  },
-  {
-    "id": "app.channel.get_file_count.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.member_count",
-    "translation": " "
   },
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
@@ -8032,40 +7984,12 @@
     "translation": "El Nombre debe tener 1 o más caracteres alfanuméricos en minúsculas."
   },
   {
-    "id": "model.member.is_valid.channel.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.create",
-    "translation": " "
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.restore",
-    "translation": " "
-  },
-  {
-    "id": "app.post.analytics_teams_count.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.teams.analytics_teams_count.app_error",
-    "translation": " "
-  },
-  {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
     "translation": "Decodificador de concurrencia inválido {{.Value}}. Debe ser un número positivo o -1."
   },
   {
-    "id": "model.member.is_valid.emails.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.system.complete_onboarding_request.no_first_user",
     "translation": "La inducción sólo puede ser completada por un Administrador del Sistema."
-  },
-  {
-    "id": "api.license_error",
-    "translation": " "
   },
   {
     "id": "api.file.cloud_upload.app_error",
@@ -8084,20 +8008,8 @@
     "translation": "{{ .SenderName }} te invitó a unirte al Canal {{ .ChannelName }} en el Equipo {{ .TeamDisplayName }}"
   },
   {
-    "id": "app.user.update_thread_read_for_user_by_post.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.license.request_trial_license.embargoed",
     "translation": "No fuimos capaces de procesar la solicitud debido a limitaciones para países embargados. [Aprende más en nuestra documentación](https://mattermost.com/pl/limitations-for-embargoed-countries), o contacta a legal@mattermost.com para preguntas sobre limitaciones de exportación."
-  },
-  {
-    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
-    "translation": " "
   },
   {
     "id": "api.team.invite_guests_to_channels.license.error",
