@@ -2939,6 +2939,10 @@
     "description": "API error shown when a custom emoji image exceeds the allowed dimensions; {{.MaxWidth}} and {{.MaxHeight}} are the pixel limits."
   },
   {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Unable to create emoji. The image is too large to process. Try using one with smaller dimensions or fewer frames."
+  },
+  {
     "id": "api.emoji.upload.open.app_error",
     "translation": "Unable to create the emoji. An error occurred when trying to open the attached image.",
     "description": "API error shown when the uploaded custom emoji image file cannot be opened on the server."
@@ -17150,6 +17154,11 @@
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
     "translation": "Invalid processed at time.",
     "description": "API error when a scheduled post's processed-at timestamp (when it was actually sent) is negative."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "Burn-on-read messages cannot be sent as recurring scheduled posts.",
+    "description": "Validation error (400) returned to an end user who tries to save a repeating weekly post of Burn-on-read type; Burn-on-Read posts cannot be weekly recurring posts."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_files.app_error",
