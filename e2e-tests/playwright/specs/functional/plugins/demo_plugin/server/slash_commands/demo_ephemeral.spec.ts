@@ -51,6 +51,12 @@ test('should send ephemeral post with Update and Delete actions via /ephemeral c
     // After clicking Update the text changes — re-find the post by its new content.
     // The virtual list can re-render immediately after the click, causing a brief DOM
     // detachment window; wrap the assertion in toPass to ride out that re-render.
+    // Server-side the button click round-trips in well under a second (confirmed via
+    // server logs), so the 30s ceiling previously here was tight enough that CI load
+    // (rolling-upgrade workers run 6 extra sidecar service containers alongside the
+    // freshly-swapped server) pushed the client-side websocket-delivery-to-render path
+    // past it. test.setTimeout(120000) above already budgets for this; widen the poll
+    // to use that headroom instead of failing a request that was still in flight.
     await ephemeralPost.getByRole('button', {name: 'Update', exact: true}).click();
     const updatedPost = channelsPage.centerView.container
         .getByRole('listitem')
@@ -58,12 +64,12 @@ test('should send ephemeral post with Update and Delete actions via /ephemeral c
         .last();
     await expect
         .poll(async () => updatedPost.getByText('updated ephemeral action', {exact: true}).isVisible(), {
-            timeout: 30000,
-            intervals: [500, 1000, 2000],
+            timeout: 60000,
+            intervals: [500, 1000, 2000, 5000],
         })
         .toBe(true);
-    await expect(updatedPost.getByRole('button', {name: 'Update 1', exact: true})).toBeVisible({timeout: 15000});
-    await expect(updatedPost.getByRole('button', {name: 'Delete', exact: true})).toBeVisible({timeout: 15000});
+    await expect(updatedPost.getByRole('button', {name: 'Update 1', exact: true})).toBeVisible({timeout: 20000});
+    await expect(updatedPost.getByRole('button', {name: 'Delete', exact: true})).toBeVisible({timeout: 20000});
 
     // 7. Click Delete and verify post content is removed and buttons are gone
     // After delete the text changes again — re-find by the new content
