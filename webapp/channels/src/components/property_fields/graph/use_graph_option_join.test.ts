@@ -9,6 +9,7 @@ import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from '.
 import type {GraphFieldRef} from './page_all_access_control_field_options';
 import {useGraphOptionJoin} from './use_graph_option_join';
 import type {UseGraphOptionJoinOpts} from './use_graph_option_join';
+import {clearGraphOptionNameCache, clearGraphOptionNamesForField} from './use_graph_option_names';
 
 jest.mock('./page_all_access_control_field_options', () => ({
     ...jest.requireActual('./page_all_access_control_field_options'),
@@ -78,6 +79,7 @@ const renderJoin = (field: GraphFieldRef, opts?: UseGraphOptionJoinOpts) => {
 describe('useGraphOptionJoin', () => {
     beforeEach(() => {
         clearPropertyFieldOptionWalks();
+        clearGraphOptionNameCache();
         mockPageAll.mockResolvedValue([]);
     });
 
@@ -324,6 +326,55 @@ describe('useGraphOptionJoin', () => {
             await settle();
 
             expect(mockPageAll).toHaveBeenCalledTimes(1);
+        });
+
+        test('does not announce options loaded after the field names are cleared', async () => {
+            const first = deferred<PropertyFieldOption[]>();
+            const second = deferred<PropertyFieldOption[]>();
+            mockPageAll.
+                mockReturnValueOnce(first.promise).
+                mockReturnValueOnce(second.promise);
+            const onOptionsLoaded = jest.fn();
+            const field = fieldOf();
+
+            const {result} = renderJoin(field, {prefetch: true, onOptionsLoaded});
+            await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
+
+            clearGraphOptionNamesForField(field.id);
+            await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(2));
+
+            first.resolve(hierarchy());
+            await settle();
+
+            expect(onOptionsLoaded).not.toHaveBeenCalled();
+            expect(result.current.status).toBe('loading');
+
+            second.resolve(hierarchy());
+            await waitFor(() => expect(result.current.status).toBe('loaded'));
+            expect(onOptionsLoaded).toHaveBeenCalledTimes(1);
+        });
+
+        test('a field clear does not start a walk that was never requested', async () => {
+            renderJoin(fieldOf(), {open: false, prefetch: false});
+
+            clearGraphOptionNamesForField('field-1');
+            await settle();
+
+            expect(mockPageAll).not.toHaveBeenCalled();
+        });
+
+        test('a field clear while the menu is open starts a replacement walk without closing', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            const field = fieldOf();
+            const {result} = renderJoin(field, {open: true});
+            await waitFor(() => expect(result.current.status).toBe('loaded'));
+            expect(mockPageAll).toHaveBeenCalledTimes(1);
+
+            clearGraphOptionNamesForField(field.id);
+
+            await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(2));
+            await waitFor(() => expect(result.current.status).toBe('loaded'));
+            expect(result.current.join.byId.has('opt-air')).toBe(true);
         });
     });
 });

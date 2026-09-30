@@ -20,12 +20,19 @@ const SCRIPT = path.join(__dirname, 'check_icu.mjs');
  * Write a source catalog and one or more locale catalogs to a temp i18n dir, run
  * the checker over that directory, and return its exit code and output. A
  * catalog may be an object, or a string when the case needs to be malformed.
+ *
+ * Cases state `en` flat, as `key -> message`, since the message is all any of
+ * them is about. Real en.json pairs each key with a {defaultMessage,
+ * description}, so wrap it into that shape on the way out.
  */
 function check(en, locales, {warnMissingKeys = false, extraFiles = {}} = {}) {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'check-icu-'));
     const serialize = (body) => (typeof body === 'string' ? body : JSON.stringify(body));
+    const serializeSource = (body) => (typeof body === 'string' ? body : JSON.stringify(
+        Object.fromEntries(Object.entries(body).map(([key, defaultMessage]) => [key, {defaultMessage, description: ''}])),
+    ));
 
-    fs.writeFileSync(path.join(dir, 'en.json'), serialize(en));
+    fs.writeFileSync(path.join(dir, 'en.json'), serializeSource(en));
     for (const [name, body] of Object.entries({...locales, ...extraFiles})) {
         fs.writeFileSync(path.join(dir, name), serialize(body));
     }
@@ -104,6 +111,22 @@ describe('check_icu', () => {
             expect(code).toBe(1);
             expect(stderr).toContain('en.json:a.b: source does not parse');
             expect(stderr).not.toContain('fr.json:a.b:');
+        });
+
+        // A description is prose written for a translator, so it may say
+        // anything, including things ICU would choke on. Only the
+        // defaultMessage is a message.
+        test('never parses the description', () => {
+            const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'check-icu-'));
+            fs.writeFileSync(path.join(dir, 'en.json'), JSON.stringify({
+                'a.b': {defaultMessage: 'Hello', description: "Rendered before the {unclosed brace and an ' apostrophe"},
+            }));
+            fs.writeFileSync(path.join(dir, 'fr.json'), JSON.stringify({'a.b': 'Bonjour'}));
+
+            const result = spawnSync(process.execPath, [SCRIPT, dir], {encoding: 'utf8'});
+
+            expect(result.status).toBe(0);
+            expect(result.stderr).toBe('');
         });
     });
 

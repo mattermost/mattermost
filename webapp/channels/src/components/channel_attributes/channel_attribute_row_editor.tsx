@@ -12,6 +12,8 @@ import {PROPERTY_TEXT_VALUE_MAX_LENGTH} from 'mattermost-redux/constants/propert
 import {canMoveToOption, getPropertyFieldChangePolicy, getPropertyFieldLabel, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
 
 import * as Menu from 'components/menu';
+import {asGraphFieldRef} from 'components/property_fields/graph';
+import AssignmentGraphPicker from 'components/property_fields/hierarchical_value_menu/assignment_picker';
 
 import AttributeChip, {AttributeChipRemoveButton} from './attribute_chip';
 import type {ChannelAttributeValue} from './set_channel_attribute_value';
@@ -81,6 +83,13 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
         onSubmit(optionId);
     }, [chosen, isMultiselect, onSubmit]);
 
+    // Memoized: the picker keys its own memos on field identity.
+    const graphField = useMemo(() => (field.type === 'graph' ? asGraphFieldRef(field) : null), [field]);
+
+    const handleGraphIdsChange = useCallback((next: string[]) => {
+        onSubmit(next.length ? next : null);
+    }, [onSubmit]);
+
     const handleTextKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter') {
             event.preventDefault();
@@ -114,6 +123,28 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                 autoFocus={true}
                 aria-label={label}
                 data-testid={`channelAttributeEdit-${field.name}`}
+            />
+        );
+    }
+
+    if (graphField) {
+        return (
+            <AssignmentGraphPicker
+                field={graphField}
+                ids={chosen}
+                onIdsChange={handleGraphIdsChange}
+                menuId={`channelAttributeEdit-${field.name}`}
+                buttonId={`channelInfoAttributeEdit-${field.name}`}
+                buttonDataTestId={`channelInfoAttributeEdit-${field.name}`}
+                placeholder={formatMessage({
+                    id: 'channel_attributes.info.not_set',
+                    defaultMessage: 'Not set',
+                })}
+                ariaLabel={formatMessage(
+                    {id: 'channel_attributes.info.edit', defaultMessage: 'Edit {label}'},
+                    {label},
+                )}
+                disabled={saving}
             />
         );
     }

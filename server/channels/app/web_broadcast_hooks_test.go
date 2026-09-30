@@ -306,6 +306,80 @@ func TestPermalinkBroadcastHook(t *testing.T) {
 	})
 }
 
+func TestPermalinkBroadcastHook_ChannelMentions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	session, err := th.Server.Platform().CreateSession(th.Context, &model.Session{
+		UserId: th.BasicUser.Id,
+	})
+	require.NoError(t, err)
+
+	wc := &platform.WebConn{
+		Platform: th.Server.Platform(),
+		Suite:    th.App,
+		UserId:   session.UserId,
+	}
+	hook := &permalinkBroadcastHook{}
+
+	// BasicUser can read the previewed post's channel, but not this private channel.
+	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+	appErr := th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
+	require.Nil(t, appErr)
+
+	refPost := th.CreatePost(t, th.BasicChannel)
+	refPost.AddProp(model.PostPropsChannelMentions, map[string]any{
+		privateChannel.Name: map[string]any{
+			"id":           privateChannel.Id,
+			"display_name": privateChannel.DisplayName,
+		},
+		th.BasicChannel.Name: map[string]any{
+			"id":           th.BasicChannel.Id,
+			"display_name": th.BasicChannel.DisplayName,
+		},
+	})
+	previewPost := model.NewPreviewPost(refPost, th.BasicTeam, th.BasicChannel)
+
+	cleanPost := th.BasicPost.Clone()
+	cleanPost.Metadata = &model.PostMetadata{}
+	cleanJSON, err := cleanPost.ToJSON()
+	require.NoError(t, err)
+
+	wsEvent := model.NewWebSocketEvent(model.WebsocketEventPosted, "", th.BasicPost.ChannelId, "", nil, "")
+	wsEvent.Add("post", cleanJSON)
+
+	msg := platform.MakeHookedWebSocketEvent(wsEvent)
+	err = hook.Process(msg, wc, map[string]any{
+		"preview_channel":          th.BasicChannel,
+		"permalink_previewed_post": previewPost,
+		"preview_prop":             refPost.Id,
+	})
+	require.NoError(t, err)
+
+	gotJSON, ok := msg.Get("post").(string)
+	require.True(t, ok)
+	assert.NotContains(t, gotJSON, privateChannel.DisplayName, "private channel display name should not be broadcast")
+
+	var gotPost model.Post
+	require.NoError(t, json.Unmarshal([]byte(gotJSON), &gotPost))
+	require.Len(t, gotPost.Metadata.Embeds, 1)
+
+	embedData, ok := gotPost.Metadata.Embeds[0].Data.(map[string]any)
+	require.True(t, ok)
+	embeddedPost, ok := embedData["post"].(map[string]any)
+	require.True(t, ok)
+	embeddedProps, ok := embeddedPost["props"].(map[string]any)
+	require.True(t, ok)
+	mentions, ok := embeddedProps[model.PostPropsChannelMentions].(map[string]any)
+	require.True(t, ok)
+
+	assert.NotContains(t, mentions, privateChannel.Name)
+	assert.Contains(t, mentions, th.BasicChannel.Name)
+
+	// The hook args are shared across recipients, so the previewed post must not be mutated.
+	assert.Contains(t, refPost.GetProp(model.PostPropsChannelMentions), privateChannel.Name)
+}
+
 func TestChannelMentionsBroadcastHook(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -1154,5 +1228,281 @@ func TestSetupBroadcastHookForAbacFiles(t *testing.T) {
 		// The file-count logic is verified via TestAbacFilesBroadcastHook_Process.
 		hooks := message.GetBroadcast().BroadcastHooks
 		assert.Empty(t, hooks, "AccessControl is nil in test env — hook not registered")
+	})
+}
+
+func TestAbacBookmarksBroadcastHook_Process(t *testing.T) {
+	mainHelper.Parallel(t)
+	hook := &abacBookmarksBroadcastHook{}
+
+	userID := model.NewId()
+	channelID := model.NewId()
+
+	makeBookmark := func(withFile bool) *model.ChannelBookmarkWithFileInfo {
+		bookmark := &model.ChannelBookmarkWithFileInfo{
+			ChannelBookmark: &model.ChannelBookmark{
+				Id:          model.NewId(),
+				ChannelId:   channelID,
+				DisplayName: "bookmark",
+				Type:        model.ChannelBookmarkLink,
+				LinkUrl:     "https://mattermost.com",
+			},
+		}
+		if withFile {
+			fileID := model.NewId()
+			bookmark.Type = model.ChannelBookmarkFile
+			bookmark.LinkUrl = ""
+			bookmark.FileId = fileID
+			bookmark.FileInfo = &model.FileInfo{
+				Id:          fileID,
+				ChannelId:   channelID,
+				Name:        "secret.png",
+				Extension:   "png",
+				MimeType:    "image/png",
+				MiniPreview: &[]byte{1, 2, 3, 4},
+			}
+		}
+		return bookmark
+	}
+
+	makeMessage := func(t *testing.T, event model.WebsocketEventType, field string, payload any) *platform.HookedWebSocketEvent {
+		t.Helper()
+		payloadJSON, err := json.Marshal(payload)
+		require.NoError(t, err)
+		ev := model.NewWebSocketEvent(event, "", channelID, "", nil, "")
+		ev.Add(field, string(payloadJSON))
+		return platform.MakeHookedWebSocketEvent(ev)
+	}
+
+	makeArgs := func(field string) map[string]any {
+		return map[string]any{
+			"channel_id": channelID,
+			"field":      field,
+		}
+	}
+
+	makeWebConn := func(t *testing.T, allowed bool) *platform.WebConn {
+		t.Helper()
+		mockSuite := &platform_mocks.SuiteIFace{}
+		mockSuite.On("HasPermissionToFileAction", mock.Anything, userID, mock.AnythingOfType("string"), channelID, model.AccessControlPolicyActionDownloadFileAttachment).Return(allowed)
+		wc := &platform.WebConn{
+			UserId:   userID,
+			Platform: &platform.PlatformService{},
+			Suite:    mockSuite,
+		}
+		wc.SetSession(&model.Session{UserId: userID, Roles: model.SystemUserRoleId})
+		return wc
+	}
+
+	decode := func(t *testing.T, msg *platform.HookedWebSocketEvent, field string) any {
+		t.Helper()
+		raw, ok := msg.Get(field).(string)
+		require.True(t, ok)
+		var decoded any
+		require.NoError(t, json.Unmarshal([]byte(raw), &decoded))
+		return decoded
+	}
+
+	// requireNoFileInfo walks the decoded payload and asserts no "file" object survived.
+	var requireNoFileInfo func(t *testing.T, value any)
+	requireNoFileInfo = func(t *testing.T, value any) {
+		t.Helper()
+		switch typed := value.(type) {
+		case map[string]any:
+			if file, ok := typed["file"]; ok {
+				assert.Nil(t, file, "file info should be stripped")
+			}
+			for key, nested := range typed {
+				if key == "file" {
+					continue
+				}
+				requireNoFileInfo(t, nested)
+			}
+		case []any:
+			for _, item := range typed {
+				requireNoFileInfo(t, item)
+			}
+		}
+	}
+
+	t.Run("denied user: single bookmark payload has file info stripped", func(t *testing.T) {
+		bookmark := makeBookmark(true)
+		msg := makeMessage(t, model.WebsocketEventChannelBookmarkCreated, "bookmark", bookmark)
+
+		err := hook.Process(msg, makeWebConn(t, false), makeArgs("bookmark"))
+		require.NoError(t, err)
+		require.False(t, msg.Event().IsRejected())
+
+		raw, _ := msg.Get("bookmark").(string)
+		assert.NotContains(t, raw, "mini_preview")
+		assert.NotContains(t, raw, "secret.png")
+		assert.Contains(t, raw, bookmark.Id, "the bookmark itself is still delivered")
+		requireNoFileInfo(t, decode(t, msg, "bookmark"))
+	})
+
+	t.Run("denied user: array payload has file info stripped from every entry", func(t *testing.T) {
+		bookmarks := []*model.ChannelBookmarkWithFileInfo{makeBookmark(true), makeBookmark(false), makeBookmark(true)}
+		msg := makeMessage(t, model.WebsocketEventChannelBookmarkSorted, "bookmarks", bookmarks)
+
+		err := hook.Process(msg, makeWebConn(t, false), makeArgs("bookmarks"))
+		require.NoError(t, err)
+		require.False(t, msg.Event().IsRejected())
+
+		raw, _ := msg.Get("bookmarks").(string)
+		assert.NotContains(t, raw, "mini_preview")
+		assert.NotContains(t, raw, "secret.png")
+
+		decoded, ok := decode(t, msg, "bookmarks").([]any)
+		require.True(t, ok)
+		require.Len(t, decoded, 3)
+		requireNoFileInfo(t, decoded)
+	})
+
+	t.Run("denied user: updated/deleted wrapper payload has file info stripped from both entries", func(t *testing.T) {
+		response := &model.UpdateChannelBookmarkResponse{
+			Updated: makeBookmark(true),
+			Deleted: makeBookmark(true),
+		}
+		msg := makeMessage(t, model.WebsocketEventChannelBookmarkUpdated, "bookmarks", response)
+
+		err := hook.Process(msg, makeWebConn(t, false), makeArgs("bookmarks"))
+		require.NoError(t, err)
+		require.False(t, msg.Event().IsRejected())
+
+		raw, _ := msg.Get("bookmarks").(string)
+		assert.NotContains(t, raw, "mini_preview")
+		assert.NotContains(t, raw, "secret.png")
+
+		decoded, ok := decode(t, msg, "bookmarks").(map[string]any)
+		require.True(t, ok)
+		require.Contains(t, decoded, "updated")
+		require.Contains(t, decoded, "deleted")
+		requireNoFileInfo(t, decoded)
+	})
+
+	t.Run("allowed user: payload is unchanged", func(t *testing.T) {
+		bookmark := makeBookmark(true)
+		msg := makeMessage(t, model.WebsocketEventChannelBookmarkCreated, "bookmark", bookmark)
+		before, _ := msg.Get("bookmark").(string)
+
+		err := hook.Process(msg, makeWebConn(t, true), makeArgs("bookmark"))
+		require.NoError(t, err)
+		require.False(t, msg.Event().IsRejected())
+
+		after, _ := msg.Get("bookmark").(string)
+		assert.Equal(t, before, after)
+		assert.Contains(t, after, "mini_preview")
+	})
+
+	t.Run("nil session: fail-secure, file info stripped", func(t *testing.T) {
+		bookmark := makeBookmark(true)
+		msg := makeMessage(t, model.WebsocketEventChannelBookmarkCreated, "bookmark", bookmark)
+
+		wc := &platform.WebConn{
+			UserId:   userID,
+			Platform: &platform.PlatformService{},
+		}
+		// Do NOT call wc.SetSession — session remains nil
+
+		err := hook.Process(msg, wc, makeArgs("bookmark"))
+		require.NoError(t, err)
+		require.False(t, msg.Event().IsRejected())
+
+		raw, _ := msg.Get("bookmark").(string)
+		assert.NotContains(t, raw, "mini_preview")
+		requireNoFileInfo(t, decode(t, msg, "bookmark"))
+	})
+
+	t.Run("denied user: malformed payload rejects the event", func(t *testing.T) {
+		ev := model.NewWebSocketEvent(model.WebsocketEventChannelBookmarkCreated, "", channelID, "", nil, "")
+		ev.Add("bookmark", "{not json")
+		msg := platform.MakeHookedWebSocketEvent(ev)
+
+		err := hook.Process(msg, makeWebConn(t, false), makeArgs("bookmark"))
+		require.NoError(t, err)
+		assert.True(t, msg.Event().IsRejected(), "event must be rejected when the payload cannot be sanitised")
+	})
+
+	t.Run("denied user: missing payload field rejects the event", func(t *testing.T) {
+		ev := model.NewWebSocketEvent(model.WebsocketEventChannelBookmarkCreated, "", channelID, "", nil, "")
+		msg := platform.MakeHookedWebSocketEvent(ev)
+
+		err := hook.Process(msg, makeWebConn(t, false), makeArgs("bookmark"))
+		require.NoError(t, err)
+		assert.True(t, msg.Event().IsRejected())
+	})
+
+	t.Run("missing channel_id arg: returns error", func(t *testing.T) {
+		msg := makeMessage(t, model.WebsocketEventChannelBookmarkCreated, "bookmark", makeBookmark(true))
+
+		err := hook.Process(msg, makeWebConn(t, true), map[string]any{"field": "bookmark"})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "channel_id")
+	})
+
+	t.Run("missing field arg: returns error", func(t *testing.T) {
+		msg := makeMessage(t, model.WebsocketEventChannelBookmarkCreated, "bookmark", makeBookmark(true))
+
+		err := hook.Process(msg, makeWebConn(t, true), map[string]any{"channel_id": channelID})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "field")
+	})
+}
+
+func TestSetupBroadcastHookForAbacBookmarks(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	bookmarkWithFile := &model.ChannelBookmarkWithFileInfo{
+		ChannelBookmark: &model.ChannelBookmark{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			Type:      model.ChannelBookmarkFile,
+			FileId:    model.NewId(),
+		},
+		FileInfo: &model.FileInfo{Id: model.NewId(), Name: "file.png", Extension: "png"},
+	}
+
+	linkBookmark := &model.ChannelBookmarkWithFileInfo{
+		ChannelBookmark: &model.ChannelBookmark{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			Type:      model.ChannelBookmarkLink,
+			LinkUrl:   "https://mattermost.com",
+		},
+	}
+
+	t.Run("when ABAC is disabled: hook NOT registered", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(false)
+		})
+
+		message := model.NewWebSocketEvent(model.WebsocketEventChannelBookmarkCreated, "", th.BasicChannel.Id, "", nil, "")
+		th.App.setupBroadcastHookForAbacBookmarks(message, th.BasicChannel.Id, "bookmark", bookmarkWithFile)
+
+		assert.Empty(t, message.GetBroadcast().BroadcastHooks)
+	})
+
+	t.Run("when AccessControl is nil: hook NOT registered", func(t *testing.T) {
+		// In test setup without enterprise, AccessControl is nil.
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+
+		message := model.NewWebSocketEvent(model.WebsocketEventChannelBookmarkCreated, "", th.BasicChannel.Id, "", nil, "")
+		th.App.setupBroadcastHookForAbacBookmarks(message, th.BasicChannel.Id, "bookmark", bookmarkWithFile)
+
+		assert.Empty(t, message.GetBroadcast().BroadcastHooks)
+	})
+
+	t.Run("when no bookmark carries file info: hook NOT registered", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+
+		message := model.NewWebSocketEvent(model.WebsocketEventChannelBookmarkCreated, "", th.BasicChannel.Id, "", nil, "")
+		th.App.setupBroadcastHookForAbacBookmarks(message, th.BasicChannel.Id, "bookmark", linkBookmark, nil)
+
+		assert.Empty(t, message.GetBroadcast().BroadcastHooks)
 	})
 }

@@ -9,7 +9,7 @@ import type {HierarchicalValueMenuProps} from './hierarchical_value_menu';
 import type {GraphOptionJoin} from '../graph';
 import {assignmentFallbackLabels, computeAssignmentPrefetch} from '../graph/assignment_prefetch';
 import type {GraphFieldRef} from '../graph/page_all_access_control_field_options';
-import {commitGraphOptionNames, graphJoinNames} from '../graph/use_graph_option_names';
+import {commitGraphOptionNames, getGraphOptionNameGeneration, graphJoinNames} from '../graph/use_graph_option_names';
 
 export {computeAssignmentPrefetch, assignmentFallbackLabels};
 
@@ -49,17 +49,20 @@ export default function AssignmentGraphPicker({
     const idsRef = useRef(ids);
     idsRef.current = ids;
 
-    const joinRef = useRef<GraphOptionJoin | null>(null);
+    const joinRef = useRef<{join: GraphOptionJoin; generation: number} | null>(null);
 
-    const handleOptionsLoaded = useCallback((join: GraphOptionJoin) => {
-        joinRef.current = join;
+    const handleOptionsLoaded = useCallback((join: GraphOptionJoin, generation: number) => {
+        if (getGraphOptionNameGeneration(field.id) !== generation) {
+            return;
+        }
+        joinRef.current = {join, generation};
         commitGraphOptionNames(field.id, graphJoinNames(join));
     }, [field.id]);
 
     const handleIdsChange = useCallback((next: string[]) => {
-        const join = joinRef.current;
-        if (join) {
-            const names = namesForHeldIds(join, next);
+        const loaded = joinRef.current;
+        if (loaded && getGraphOptionNameGeneration(field.id) === loaded.generation) {
+            const names = namesForHeldIds(loaded.join, next);
             if (Object.keys(names).length > 0) {
                 commitGraphOptionNames(field.id, names);
             }

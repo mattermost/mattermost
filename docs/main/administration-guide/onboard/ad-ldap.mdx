@@ -127,18 +127,6 @@ To configure AD/LDAP synchronization with AD/LDAP sign-in:
 
 3.  From Mattermost v10.9, you can configure Mattermost to automatically [re-add members of an LDAP group to group-synchronized teams or channels](/administration-guide/configure/authentication-configuration-settings#re-add-removed-members-on-sync) during LDAP synchronization, even if those members were previously removed. This option enables you to maintain uninterrupted collaboration and address specific organizational needs, ensuring users who were unintentionally removed due to changes in LDAP group membership, synchronization errors, or exceptions to the standard group sync rules can be seamlessly restored.
 
-> <div class="note">
->
-> <div class="title">
->
-> Note
->
-> </div>
->
-> The [mmctl ldap sync](/administration-guide/manage/mmctl-command-line-tool#mmctl-ldap-sync) command takes precedence over this server configuration setting. If you have this setting disabled, and run the mmctl command with the `--include-removed-members` flag, removed members will be re-added during LDAP synchronization.
->
-> </div>
-
 ## Configure AD/LDAP sign-in using filters
 
 Using filters assigns roles to specified users on login. To access AD/LDAP filter settings, navigate to **System Console \> Authentication \> AD/LDAP** to open the AD/LDAP wizard and go to the **User Filters** section.
@@ -247,13 +235,10 @@ There are three AD/LDAP attributes that apear to be similar but serve a differen
 
 ### How do I deactivate users?
 
-If a user has logged into Mattermost through AD/LDAP or SAML, you can choose how they are deactivated, whether manually or automatically.
-
-There are three main ways to do this:
+If a user has logged into Mattermost through AD/LDAP, they're managed by your directory server. AD/LDAP users can't be deactivated manually from **System Console \> User Management \> Users** - the **Deactivate** action is rejected for AD/LDAP-managed accounts. Instead, deactivate them in one of two ways:
 
 1.  **User deletion:** If the user is completely removed from the AD/LDAP server, they will be deactivated in Mattermost on the next synchronization.
-2.  **User filter:** Set the [user filter](/administration-guide/configure/authentication-configuration-settings#user-filter) to only select the subset of AD/LDAP users you want to have access to Mattermost. When someone is removed from the selected group, they will be deactivated in Mattermost on the next synchronization.
-3.  **Manually deactivate**: Go to **System Console \> User Management \> Users**, select a user's role, and select **Deactivate**. When you manually deactivate a user, they can reactivate themselves by logging back in.
+2.  **User filter:** Set the [user filter](/administration-guide/configure/authentication-configuration-settings#user-filter) to only select the subset of AD/LDAP users you want to have access to Mattermost. When someone no longer matches the configured user filter, they will be deactivated in Mattermost on the next synchronization.
 
 For AD/LDAP, to filter out deactivated users you must set the user filter to:
 
@@ -265,7 +250,7 @@ Filters can also be used for excluding users who belong to certain groups. For A
 
 `(!(memberof=cn=DEV_OPS,ou=Users,dc=sademo,dc=com)))`
 
-When a user is deactivated in Mattermost via options one or two above, all the user's current sessions are revoked and they will be unable to log in or access Mattermost.
+When a user is deactivated in Mattermost, all the user's current sessions are revoked and they will be unable to log in or access Mattermost.
 
 ### Can I connect to multiple AD/LDAP servers?
 

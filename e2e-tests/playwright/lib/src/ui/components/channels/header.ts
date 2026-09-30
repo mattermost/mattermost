@@ -17,6 +17,7 @@ export default class ChannelsHeader {
     // name, 'infoAttributes' the inline strip beside the member count.
     readonly attributes: ChannelAttributeLabels;
     readonly infoAttributes: ChannelAttributeLabels;
+    readonly addChannelHeaderButton: Locator;
 
     constructor(container: Locator) {
         this.container = container;
@@ -27,6 +28,7 @@ export default class ChannelsHeader {
         this.pinnedMessagesButton = container.locator('#channelHeaderPinButton');
         this.attributes = new ChannelAttributeLabels(container.getByTestId('channelAttributeLabels-header'), 'header');
         this.infoAttributes = new ChannelAttributeLabels(container.getByTestId('channelAttributeLabels-info'), 'info');
+        this.addChannelHeaderButton = container.getByRole('button', {name: 'Add a channel header'});
     }
 
     async toBeVisible() {
@@ -56,5 +58,26 @@ export default class ChannelsHeader {
     async openPinnedMessages() {
         await expect(this.pinnedMessagesButton).toBeVisible();
         await this.pinnedMessagesButton.click();
+    }
+
+    async openAddChannelHeader() {
+        await this.container.hover();
+        await this.addChannelHeaderButton.click();
+    }
+
+    getHeaderText(text: string) {
+        return this.container.getByText(text, {exact: false});
+    }
+
+    getHeaderLink(name: string) {
+        return this.container.getByRole('link', {name});
+    }
+
+    getHeaderMention(name: string) {
+        return this.container.getByRole('button', {name});
+    }
+
+    getHeaderTooltip(text: string) {
+        return this.container.page().getByRole('tooltip').filter({hasText: text});
     }
 }

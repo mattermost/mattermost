@@ -55,6 +55,12 @@
         width: 100%;
         align-items: center;
         justify-content: space-between;
+
+        // An SVG flex item has no automatic minimum size, so the chevron would
+        // otherwise shrink as wrapping chips widen the row's max-content size.
+        > svg {
+            flex-shrink: 0;
+        }
     }
 
     &__placeholder {

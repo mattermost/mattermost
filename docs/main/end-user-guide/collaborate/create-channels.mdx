@@ -63,6 +63,23 @@ Tap <img src={useBaseUrl('/img/ui/plus_F0415.svg')} alt="The Plus icon provides 
 </Tabs>
 
 
+## Add an emoji to a channel name
+
+Channel names can include standard Unicode emojis, which are the emojis that look the same, or similar, across platforms. To add one, position your cursor in the channel **Name** field where you want the emoji, then open the Unicode emoji picker for your operating system:
+
+- On Windows, press <kbd>Windows</kbd> + <kbd>.</kbd> or <kbd>;</kbd>.
+- On macOS, press <kbd>Ctrl</kbd> + <kbd>⌘</kbd> + <kbd>Space</kbd>.
+
+You can add an emoji when you create a channel, or later when you [rename the channel](/end-user-guide/collaborate/rename-channels).
+
+<Note>
+
+[Some Unicode characters](https://www.w3.org/TR/unicode-xml/#Charlist) aren't supported in channel names.
+
+</Note>
+
+Prefixing channel names with emojis is a common way to make related channels easy to spot in a long sidebar. See the [workspace organization](/administration-guide/manage/admin/workspace-organization#channel-naming-conventions) documentation for guidance on applying naming conventions consistently.
+
 ## Automate with channel actions
 
 The person who creates a channel automatically becomes the channel admin. Channel admins using Mattermost in a web browser or the desktop app can access **Channel Actions** from the channel name drop-down menu in the center pane to set up automatic actions when users [join the channel](/end-user-guide/collaborate/join-leave-channels#join-a-channel) or [post a message](/end-user-guide/collaborate/send-messages) to the channel.
@@ -74,3 +91,14 @@ Automatic actions include:
 - Prompting to run a playbook based on the contents of a message.
 
 The [collaborative playbooks must be enabled](/administration-guide/configure/plugins-configuration-settings#collaborative-playbooks) for channel admins to use channel actions.
+
+## Channel name rules
+
+Every channel has a display name that appears throughout the Mattermost interface, and a URL used to reach the channel in a web browser.
+
+- Channel names must be 2 - 64 characters in length.
+- Channel names appear in the menus people use to choose which conversations to join, so a descriptive name helps people find the channel.
+- Channel URLs can contain only lowercase letters, numbers, hyphens, and underscores, and must be unique within a team. Two channels on the same team can't share a URL.
+- If your system admin has enabled anonymous channel and team URLs, available in Mattermost Enterprise Advanced from v11.6.0, URLs are assigned automatically and don't reflect the channel name.
+
+To describe what a channel is for, beyond what its name conveys, see the [channel purpose and header](/end-user-guide/collaborate/channel-header-purpose) documentation. For guidance on naming channels consistently across your organization, see the [workspace organization](/administration-guide/manage/admin/workspace-organization#channel-naming-conventions) documentation.
