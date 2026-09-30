@@ -328,6 +328,9 @@ export async function saveCreateChannelLinkedField(templateFieldId: string): Pro
         target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
         target_id: CLASSIFICATIONS_FIELD_TARGET_ID,
         linked_field_id: templateFieldId,
+        attrs: {
+            actions: [DISPLAY_BANNER_TOP],
+        },
         permission_field: 'admin',
         permission_values: 'admin',
         permission_options: 'admin',
