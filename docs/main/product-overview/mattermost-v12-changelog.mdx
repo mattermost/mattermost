@@ -120,7 +120,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - Pre-packaged Zoom plugin version [v2.0.0](https://github.com/mattermost/mattermost-plugin-zoom/releases/tag/v2.0.0).
  - Pre-packaged GitHub plugin version [v3.0.0](https://github.com/mattermost/mattermost-plugin-github/releases/tag/v3.0.0).
  - Pre-packaged Legal Hold plugin version [v1.1.6](https://github.com/mattermost/mattermost-plugin-legal-hold/releases/tag/v1.1.6).
- - Pre-packaged Playbooks plugin version [v2.12.0](https://github.com/mattermost/mattermost-plugin-playbooks/releases/tag/v2.12.0).
+ - Pre-packaged Playbooks plugin version [v2.12.1](https://github.com/mattermost/mattermost-plugin-playbooks/releases/tag/v2.12.1).
  - Pre-packaged MS Calendar plugin version [v2.0.0](https://github.com/mattermost/mattermost-plugin-mscalendar/releases/tag/v2.0.0).
  - Pre-packaged MS Teams Meetings plugin version [v3.0.0](https://github.com/mattermost/mattermost-plugin-msteams-meetings/releases/tag/v3.0.0).
  - Pre-packaged Boards plugin version [v10.0.0](https://github.com/mattermost/mattermost-plugin-boards/releases/tag/v10.0.0).
@@ -164,6 +164,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - Updated OAuth application management and authorization endpoint handling.
  - Updated team filter handling in the users listing API.
  - [Session attributes](https://docs.mattermost.com/administration-guide/manage/admin/session-attributes) (user agent, IP address, device/network posture) are now collected by default.
+ - Updated file metadata preparation for post retrieval, channel bookmarks, and notification delivery.
 
 #### mmctl
  - Added ``--expires-in`` flag to ``mmctl bot create --with-token`` for personal access token lifetime enforcement on user-owned bot accounts.
@@ -224,6 +225,9 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - Fixed an issue where changing a channel attribute, or opening some attribute dropdowns, briefly blanked out every attribute chip in the channel header.
  - Fixed an issue where invalidating cached sessions did not propagate to already-open websocket connections in some cases.
  - Fixed an issue where channel attribute values could not be saved when the underlying attribute definition had an LDAP or SAML sync source set, resulting in a 403 Forbidden error.
+ - Fixed an issue where a channel's header attributes were not displayed when a thread was opened from the Threads view or in a thread popout.
+ - Fixed an issue where relative date separators between posts did not update when the local day changed while a channel stayed open, leaving a stale "Today" separator and creating a second "Today" separator for posts made after midnight.
+ - Fixed an issue where the Classification Markings page could silently adopt, or collide with, an unrelated attribute named "classification" created in Attribute Management. Such a conflict is now reported with an explanatory error and the page is read-only until it is resolved, and the conflicting attribute stays editable and deletable in Attribute Management.
 
 ### API Changes
  - Added ``POST /access_control/decisions/actions/search (searchAccessControlDecisionActions)`` API endpoint.
