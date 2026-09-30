@@ -2489,14 +2489,16 @@ async function openGraphRowDelete(page: Page, optionName: string, parentName = '
 
 // Polls getBoundingClientRect().height until two consecutive reads agree, so callers
 // don't sample a value mid CSS-transition (e.g. a focus ring or nested modal mount).
+// expect.poll runs the first probe immediately, so that reading is only a baseline;
+// compare only after a later probe that has waited for the poll interval.
 async function waitForStableRectHeight(locator: Locator): Promise<number> {
-    let lastHeight = await locator.evaluate((el) => el.getBoundingClientRect().height);
+    let lastHeight: number | undefined;
 
     await expect
         .poll(
             async () => {
                 const height = await locator.evaluate((el) => el.getBoundingClientRect().height);
-                const isStable = height === lastHeight;
+                const isStable = lastHeight !== undefined && height === lastHeight;
                 lastHeight = height;
                 return isStable;
             },
@@ -2504,5 +2506,5 @@ async function waitForStableRectHeight(locator: Locator): Promise<number> {
         )
         .toBe(true);
 
-    return lastHeight;
+    return lastHeight!;
 }
