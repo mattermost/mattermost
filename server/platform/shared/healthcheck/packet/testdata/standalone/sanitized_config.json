@@ -35,7 +35,6 @@
         "AdvertiseAddress": "",
         "UseIPAddress": true,
         "EnableGossipCompression": true,
-        "EnableExperimentalGossipEncryption": null,
         "ReadOnlyConfig": true,
         "GossipPort": 8074
     },
