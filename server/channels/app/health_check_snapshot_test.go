@@ -191,8 +191,8 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 	err := th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 	require.NoError(t, err)
 	t.Cleanup(func() {
-		_, err := th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
-		require.NoError(t, err)
+		_, deleteErr := th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
+		require.NoError(t, deleteErr)
 	})
 
 	err = th.App.clearLatestVersionCache()
