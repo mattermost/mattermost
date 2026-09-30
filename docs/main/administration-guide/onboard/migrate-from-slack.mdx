@@ -3,121 +3,103 @@ title: "Slack Migration Guide"
 ---
 <PlanAvailability slug="all-commercial" />
 
-Evaluating the move from Slack? Start with the high-level [migration overview](/administration-guide/onboard/slack-migration-overview), then return here for implementation steps.
-
 ## Overview
 
-Mattermost provides a migration path from Slack so you can bring collaboration history into a self-hosted Mattermost environment. The recommended flow is:
-
-1. [Understand Slack to Mattermost feature mapping](#what-migrates--what-doesnt) so you can plan for migration gaps.
-2. [Prepare your Mattermost environment](#2-prepare-your-mattermost-environment).
-3. [Export data from Slack](#3-export-your-data-from-slack) using Slack’s tools and documentation. Identify whether you have a single-workspace or Enterprise Grid export.
-4. [Transform the Slack export into a Mattermost bulk import package with `mmetl`](#4-transform-the-export-with-mmetl).
-   - For Enterprise Grid, split the export with `grid-transform` first. Run `transform slack --dry-run` before the full transform, which produces a JSONL file and `data/` attachments directory.
-   - For multiple exports, transform each archive separately and import them chronologically.
-5. [Package and import the data into Mattermost](#5-package-and-import-into-mattermost) using the [bulk loading](/administration-guide/onboard/bulk-loading-data) documentation.
-6. [Validate the migration](#6-validate-the-migration) before the production cutover.
-
-This is a *best effort* migration. Mattermost tools preserve the majority of messages, files, and workspace structure, but Slack and Mattermost differ architecturally, and manual adjustments are often required. Plan for days to weeks depending on export size and complexity. Always run a trial migration in a development or staging environment first.
-
-Slack’s data control policies and export capabilities can change at any time, and Slack may charge fees for exporting data. Support for negotiating export of customer IP from Slack Enterprise is available by contacting a [Mattermost Expert](https://mattermost.com/contact-sales/).
+Mattermost provides a reliable migration path from Slack, enabling you to bring your organization’s collaboration history into a secure, self-hosted Mattermost environment. The migration process supports full workspaces, including users, channels and message history, direct messages, and threads so your teams can continue working without losing valuable context.
 
 <Note>
 
-Consider [talking to a Mattermost expert](https://mattermost.com/contact-sales/) if your organization needs support migrating from Slack to Mattermost.
+Evaluating the move from Slack? Start with the high-level [migration overview](/administration-guide/onboard/slack-migration-overview), then return here for implementation steps.
+
+</Note>
+
+This process involves preparing your environment, exporting data from Slack, converting that data into a compatible format, and then importing it into Mattermost.
+
+1. [Understand Slack to Mattermost feature mapping](#what-migrates--what-doesnt):
+    - Review how workspaces, channels, conversations, posts, users, and integrations migrate.
+2. [Prepare your Mattermost environment](#2-prepare-your-mattermost-environment):
+    - Scope history, export size, and attachments.
+    - Confirm infrastructure and Mattermost server settings.
+    - Back up your Mattermost environment before importing.
+3. [Export data from Slack](#3-export-your-data-from-slack):
+    - Generate an export using Slack’s tools and documentation.
+    - Identify whether you have a single-workspace or Enterprise Grid export.
+4. [Transform the Slack export with `mmetl`](#4-transform-the-export-with-mmetl):
+    - For Enterprise Grid, split the export with `grid-transform` first.
+    - Validate the export, then run `transform slack --dry-run` before the full transform.
+    - The full transform produces a JSONL file and a `data/` attachments directory.
+    - For multiple exports, transform each archive separately and import them chronologically.
+5. [Package and import the data into Mattermost](#5-package-and-import-into-mattermost):
+    - Package the transformed data using the [bulk loading](/administration-guide/onboard/bulk-loading-data) documentation.
+    - Upload and process the archive with `mmctl`.
+6. [Validate the migration](#6-validate-the-migration):
+    - Confirm channels, users, and message history imported correctly.
+    - Fix unread channels and threads if needed, then activate imported accounts before the production cutover.
+
+Slack’s data control policies and export capabilities can change at any time, and Slack may charge fees for exporting data. [Talk to an expert](https://mattermost.com/contact-sales/) for support negotiating export of your organization’s data from Slack Enterprise, and to run the migration with your team.
+
+<Note>
+
+Consider [Mattermost Professional Services](https://mattermost.com/resources/help/services/) if your organization needs support migrating from Slack to Mattermost.
 
 </Note>
 
 ## 1. Understand Slack to Mattermost feature mapping \{#what-migrates--what-doesnt}
 
-The Slack path focuses on core collaboration data: posts, threads, reactions, file attachments, users, and channels. Bot users and bot messages also migrate when you configure `--bot-owner`. Slash commands, workflows, webhooks, and other integrations do not migrate and must be rebuilt in Mattermost.
+The tables below show what comes with you from Slack and what you set up again in Mattermost.
 
-For basic content (posts, reactions, threads, attachments, and users), expect better than about 70% fidelity (often higher), excluding integrations.
-
-### Channels and conversations
+### Workspaces and Channels
 
 | Content type | Migrates? | Notes |
 | --- | --- | --- |
+| Enterprise Grid Workspaces | Yes | Map to Mattermost teams. See [Enterprise Grid exports](#enterprise-grid-exports) |
 | Public / private channels | Yes | Archived Slack channels import as archived when timestamps are available |
 | 1:1 DMs | Yes | Map directly to Mattermost direct messages |
-| Multi-party DMs (MPIMs) | Yes (converted) | Up to 8 members become Mattermost Group Messages; larger groups become private channels |
-| Slack Connect | No | Not migrated as Connect. `mmetl` does not detect or skip these channels; if present in the export they may import as ordinary channels without external org members. For Mattermost interoperability afterward, see [Connected workspaces](/administration-guide/onboard/connected-workspaces) |
-| Starred conversations | No | |
+| Group DMs | Yes | Up to 8 members become Mattermost Group Messages; larger groups become private channels |
+| Slack Connect | No | Not migrated as Connect, but channels can be mapped to a single Mattermost team. For Mattermost interoperability afterward, see [Connected workspaces](/administration-guide/onboard/connected-workspaces) |
+| Starred conversations | No | Mattermost allows users to [Save messages](/end-user-guide/collaborate/save-pin-messages) |
 
 ### Posts and content
 
 | Content type | Migrates? | Notes |
 | --- | --- | --- |
-| Posts and threads | Yes | Most message types and thread replies migrate; some unsupported Slack subtypes are skipped, and some thread relationships may not be preserved |
-| File attachments | Yes | Included unless you pass `--skip-attachments`. Oversized messages split into replies; more than five attachments on a post overflow into additional replies |
-| Reactions | Yes | Stored by emoji name. Custom emoji **images** are not imported automatically (see [Custom emoji](#custom-emoji)) |
-| Channel mentions (embedded) | Best effort | Slack `<#CHANNEL_ID>` mentions become Mattermost `~channel` mentions when the channel is in the export |
-| Links to specific posts | Preserved as-is | Original Slack URLs kept; they work while Slack remains accessible |
-| External links | Preserved as-is | |
-| Custom emoji images | No (separate step) | `mmetl` does not import emoji images; recreate or bulk-import with matching names (see [Custom emoji](#custom-emoji)) |
-| Emoji skin tone modifiers | No | Stripped (for example `+1::skin-tone-3` to `+1`) |
-| Canvases | No | |
+| Posts and threads | Yes | Message history and thread replies come with you |
+| File attachments | Yes | Files attached to messages come with you. Posts with many files may be split across replies |
+| Reactions | Yes | Emoji reactions come with the post. Custom emoji images must be readded separately. See [Custom emoji](#custom-emoji) |
+| Channel mentions | Yes | Become Mattermost channel mentions when the channel is included in the export |
+| Links to Slack posts | Yes | Original Slack URLs are kept and will work while Slack remains accessible |
+| External links | Yes | Remain unchanged in post content |
+| Standard emoji | Yes | Skin-tone variants are not kept |
+| Custom emoji | No | Add them in Mattermost with the same names. See [Custom emoji](#custom-emoji) |
+| Canvases | No | Download any you need from the links in `canvases.json` before you leave Slack |
 
-### Users and bots
+### Users and bots \{#users-and-bots}
 
 | Content type | Migrates? | Notes |
 | --- | --- | --- |
-| Users | Yes | Created by the import. Missing emails: see [User emails](#user-emails). Guests: see [Guest users](#guest-users) |
-| Deactivated or deleted Slack users | Yes | Imported as deactivated Mattermost users (`DeleteAt` set), including public/private channel memberships |
-| Bots | Yes | Requires `--bot-owner <MATTERMOST_USERNAME>` on `mmetl transform slack` |
+| Users | Yes | Name, email, and title come with the user. See [User emails](#user-emails) and [Guest users](#guest-users) |
+| Deactivated or deleted users | Yes | Imported as deactivated Mattermost users, including their channel memberships |
+| Bots | Yes | Must be owned by a Mattermost user via `--bot-owner` flag. See [Useful transform flags](#useful-transform-flags) |
 | User groups | No | Recreate with [Custom Groups](/end-user-guide/collaborate/organize-using-custom-user-groups) |
-| Presence, profile pictures, custom profile fields | No | Name, email, and title/position migrate; images and presence do not |
+| Profile pictures | No | Users add their own picture. See [Manage your profile](/end-user-guide/preferences/manage-your-profile) |
+| Presence | No | Users set [status and availability](/end-user-guide/preferences/set-your-status-availability) in Mattermost |
+| Custom profile fields | No | Recreate them as [user attributes](/administration-guide/manage/admin/user-attributes) |
 
 ### Integrations
 
-| Content type | Migrates? | Notes |
-| --- | --- | --- |
-| Slash commands / workflows / webhooks | No | Rebuild with [Mattermost integrations](/integrations-guide/integrations-guide-index) |
+Integrations are not included in the Slack export file, so Mattermost has no way to migrate them. Recreate each one in Mattermost using the mapping below. Incoming webhook payloads and custom slash command requests that already use Slack’s format can be reused; point them at the new Mattermost URL.
 
-### Custom emoji \{#custom-emoji}
-
-`mmetl` does **not** import Slack custom emoji images or definitions. Reaction names are still attached to posts in the bulk import file, so those reactions are present on the imported posts but stay invisible until matching custom emoji are created on the Mattermost server.
-
-- Standard/system emoji reactions (for example `thumbsup`, `heart`) work without extra setup.
-- Custom emoji reactions are stored by name only (for example `shipit`, without surrounding colons). Bulk import saves those reactions even if the custom emoji does not exist yet.
-- Until a custom emoji with that name exists in Mattermost, the reaction does not render in the UI (no image is shown). After you add a matching custom emoji, historical reactions appear automatically because the client resolves emoji by name at display time.
-- Custom emoji names in Mattermost are lowercase (`alphanumeric`, `_`, `-`, `+`). Recreate Slack custom emoji using the same base name.
-- Skin-tone and similar modifiers are not preserved. `mmetl` strips Slack names at `::` (for example `+1::skin-tone-3` becomes `+1`).
-- Add custom emoji after (or before) message import via the [custom emoji UI](/end-user-guide/collaborate/react-with-emojis-gifs#upload-custom-emojis), or include [`emoji` objects](/administration-guide/onboard/bulk-loading-data#emoji-object) in a bulk import package (emoji lines must appear after the version line and before team lines). Enable custom emoji in System Console if needed: [Enable custom emoji](/administration-guide/configure/site-configuration-settings#enable-custom-emoji).
-
-### Guest users \{#guest-users}
-
-Slack marks guests with `is_restricted` (multi-channel guest) or `is_ultra_restricted` (single-channel guest; Slack also sets `is_restricted` on those accounts). Control how `mmetl` migrates them with `mmetl transform slack --guest-handling`:
-
-| Mode | Behavior |
-| --- | --- |
-| `guest` (default; or omit the flag) | Export them as Mattermost guests (`system_guest` / `team_guest` / `channel_guest`). For correct guest behavior, the destination server needs Guest Accounts [enabled](/administration-guide/configure/authentication-configuration-settings#enable-guest-access) and licensed (see [guest accounts](/administration-guide/onboard/guest-accounts)). Without that, the import can still succeed, but the accounts will not behave as guests; use `user` mode instead. |
-| `user` | Export them as regular Mattermost users (full member permissions). |
-| `skip` | Drop guest users entirely, along with their memberships, authored posts, and reactions. |
-
-Additional behavior in `guest` mode:
-
-- Guests are added only to the **public and private channels** they belonged to in the Slack export. Mattermost scopes guest access through those memberships; guests cannot freely discover or join other channels, so Slack’s channel-scoped access is effectively preserved.
-- A guest with **no** public or private channel membership (for example, present only in a DM or MPIM) cannot be imported as a Mattermost guest. `mmetl` **skips** that user and drops their memberships and authored posts/reactions, and logs a warning. Use `--guest-handling=user` to import those accounts as regular members instead.
-- On later bulk imports, Mattermost matches existing users by username, so the same guest is updated rather than duplicated; additional channel memberships from a later batch can be applied on re-import.
-
-### User emails \{#user-emails}
-
-If a Slack user has no email in the export, `mmetl transform slack` does not invent an address by default. Without one of the flags below, transform exits with an error naming that user.
-
-| Transform choice | JSONL edit needed? |
-| --- | --- |
-| Neither flag (transform fails) | No: fix the Slack export or re-run with a flag |
-| `--default-email-domain <DOMAIN>` | Optional: only if the synthesized `username@DOMAIN` addresses are wrong or temporary |
-| `--skip-empty-emails` | **Required**: blank emails fail Mattermost import validation; set a real email on each affected `user` line |
-| Placeholder users with `@local` (user ID missing from `users.json`) | Recommended: replace `<userid>@local` with real addresses before import |
-
-**Flags**
-
-- `--default-email-domain <DOMAIN>`: sets missing emails to `username@<DOMAIN>` (for example `--default-email-domain example.com` yields `jane@example.com`). Prefer your organization domain when possible.
-- `--skip-empty-emails`: leaves the email blank and keeps the user in the JSONL.
-
-Search the JSONL for your `--default-email-domain` value or `@local`, correct addresses, then re-validate with `mmctl import validate`. If you leave temporary placeholders in place, update those users in Mattermost after import.
+| Slack integration | Migrates? | Mattermost mapping | What to recreate |
+| --- | --- | --- | --- |
+| Slack Marketplace apps | No | [Pre-built plugins](/integrations-guide/popular-integrations), such as Jira, GitHub, GitLab, Zoom, and ServiceNow | Install the matching plugin and set up channels, credentials, and notifications again. Use a webhook, slash command, or [custom plugin](/integrations-guide/plugins) when Mattermost has no equivalent |
+| Custom apps | No | [Plugins](/integrations-guide/plugins) and the [REST API](/integrations-guide/restful-api) | Rebuild the app, including its tokens and where it is installed |
+| Incoming webhooks | No | [Incoming webhooks](/integrations-guide/incoming-webhooks). Payloads are [Slack-compatible](/integrations-guide/incoming-webhooks#slack-compatibility) | Each webhook URL and the channel it posts to |
+| Outgoing webhooks | No | [Outgoing webhooks](/integrations-guide/outgoing-webhooks) | Trigger words, channels, and callback URLs |
+| Slash commands | No | [Built-in](/integrations-guide/built-in-slash-commands) and [custom slash commands](/integrations-guide/slash-commands). Custom command requests are Slack-compatible | Each custom command name, request URL, and channel scope. Use the built-in command when Mattermost already provides one |
+| Bot users | No | Bot accounts migrate. See [Users and bots](#users-and-bots). Behavior is a bot account with the REST API or a plugin | What the bot does. Assign an owner with `--bot-owner` |
+| Workflow Builder | No | [Playbooks](/end-user-guide/workflow-automation/workflow-automation-index) for in-channel processes, and [no-code automation](/integrations-guide/no-code-automation) (n8n, Zapier, Make) for multi-app workflows | Triggers, steps, forms, and destinations |
+| Block Kit | No | [Mattermost Blocks](https://docs.mattermost.com/developers/integrate/reference/mm-blocks/) and [interactive dialogs](https://docs.mattermost.com/developers/integrate/plugins/interactive-dialogs/) | Buttons, menus, and forms. Posted message text still imports with the post |
+| Events API | No | [Outgoing webhooks](/integrations-guide/outgoing-webhooks) for keyword triggers; plugins or the REST API for other events | The subscriptions and the service that receives them |
 
 ## 2. Prepare your Mattermost environment
 
@@ -165,19 +147,13 @@ Slack offers two common export types:
 1. **Public channels export**: Public channel messages and file links. Available on all Slack plans.
 2. **All channels and conversations export**: Public channels, private channels, DMs, and group messages. Available on Business+ (application required) and Enterprise Grid.
 
-Slack Free plan exports include messages and file links from public channels, but only file links from the last 90 days are included.
+Slack Free plan exports include messages and file links from public channels, but only file links from the last 90 days are included. Slack can change its export format without notice, so use the [latest mmetl release](https://github.com/mattermost/mmetl/releases/) before a large migration. If a transform fails with unexpected parse errors, check the [changelog](https://github.com/mattermost/mmetl/releases/) or [file an issue](https://github.com/mattermost/mmetl/issues).
 
 <Important>
 
 Avoid unzipping and rezipping the Slack export. That can change the archive layout and break the transformation process.
 
 </Important>
-
-<Note>
-
-Slack periodically changes its export format without notice. Before a large migration, [download the latest mmetl release](https://github.com/mattermost/mmetl/releases/). If `mmetl transform slack --dry-run` or the full transform fails with unexpected parse errors after a Slack-side change, check the [mmetl changelog](https://github.com/mattermost/mmetl/releases/) or [file an issue](https://github.com/mattermost/mmetl/issues); it may be a format change rather than a mistake in your process.
-
-</Note>
 
 ### Single-workspace exports
 
@@ -327,14 +303,14 @@ If any Slack user is missing an email, transform fails unless you pass `--defaul
 
 - `mattermost_import.jsonl`: users, channels, posts, and related records
 - `data/` (or your `--attachments-dir`): attachment files under `bulk-export-attachments/`
-- `transform-slack.log`: INFO-level progress (use `--debug` for more detail)
+- `transform-slack.log`: INFO-level progress (use `--debug` for more detail). See [Appendix B](#appendix-b-mmetl-parsing-phases) for what each phase means.
 
 4. Spot-check success:
 
 - The command exits `0`.
 - The JSONL starts with a `version` line and contains `user`, `channel` / `direct_channel`, and `post` / `direct_post` lines.
 - Attachment paths referenced in the JSONL exist under `data/`.
-- The log shows the parse phases completing without fatal errors.
+- The log shows the [parse phases](#appendix-b-mmetl-parsing-phases) completing without fatal errors.
 - If you used an email flag, search the JSONL for the synthesized domain (or blank emails if you used `--skip-empty-emails`) and follow [User emails](#user-emails) before packaging.
 
 5. Signs of a failed or partial run:
@@ -375,61 +351,7 @@ Customers often receive several Slack dumps (for example, six archives covering 
 - `--discard-invalid-props` / `-p`: Drop posts whose props exceed Mattermost limits.
 - `--guest-handling=guest|user|skip`: See [Guest users](#guest-users).
 - `--bot-owner <MATTERMOST_USERNAME>`: Required when the export contains bot users.
-- `--debug`: Verbose logging in `transform-slack.log`.
-
-### mmetl parsing phases
-
-Large transforms move through four phases. Watch `transform-slack.log` (and console output) to gauge progress. Per-channel progress for phases 2-4 is logged at **DEBUG** level; run with `--debug` to see those lines. Phase completion messages and file-reading progress use **INFO**.
-
-1. **Reading the import file**: Often 5-10 minutes depending on archive size.
-
-   Example:
-
-   ``` text
-   {"file":"parse.go:226","level":"info","msg":"Processing file 1 of 10335: aluminum-white-lightbulb/","time":"2024-03-11T20:41:09-04:00"}
-   ```
-
-2. **Converting user mentions**: Can take hours on large exports.
-
-   Example (requires `--debug`):
-
-   ``` text
-   {"file":"parse.go:109","level":"debug","msg":"Slack Import: converting user mentions for channel touchscreen-headphones-sleek. 1 of 400","time":"2024-03-11T20:41:10-04:00"}
-   ```
-
-   When the phase finishes (INFO):
-
-   ``` text
-   {"level":"info","msg":"Slack Import: Converted user mentions"}
-   ```
-
-3. **Converting channel mentions**: Typically about half as long as user mentions.
-
-   Example (requires `--debug`):
-
-   ``` text
-   {"file":"parse.go:132","level":"debug","msg":"Slack Import: converting channel mentions for channel robust-smart-home-device-matrix. 95 of 400","time":"2024-03-11T20:41:48-04:00"}
-   ```
-
-   When the phase finishes (INFO):
-
-   ``` text
-   {"level":"info","msg":"Slack Import: Converted channel mentions"}
-   ```
-
-4. **Converting post markup**: Slack formatting to Mattermost Markdown; usually the fastest phase.
-
-   Example (requires `--debug`):
-
-   ``` text
-   {"file":"parse.go:196","level":"debug","msg":"Slack Import: converting markdown for channel vertex-robust-vacuum. 120 of 400","time":"2024-03-11T20:41:58-04:00"}
-   ```
-
-   When the phase finishes (INFO):
-
-   ``` text
-   {"level":"info","msg":"Slack Import: Converted markdown"}
-   ```
+- `--debug`: Verbose logging in `transform-slack.log`. See [Appendix B](#appendix-b-mmetl-parsing-phases) for how to read the phases in that log.
 
 ## 5. Package and import into Mattermost
 
@@ -599,3 +521,99 @@ Use `mmetl grid-transform` to split the archive, then transform each workspace a
 ### Are there features of Slack that are not supported?
 
 See [Slack to Mattermost feature mapping](#what-migrates--what-doesnt). Core collaboration data can be migrated subject to those tables; apps, workflows, and similar integrations must be rebuilt using [Mattermost integrations](/integrations-guide/integrations-guide-index).
+
+## Appendix A: Custom emoji, guests, and user emails \{#appendix}
+
+Custom emoji, guest accounts, and user emails each need a decision during the migration. The Slack export does not bring them across in a form Mattermost can use as-is. Message history can still import while you settle these.
+
+- **[Custom emoji](#custom-emoji).** Reactions on imported posts keep the emoji name. Add the image in Mattermost for the reaction to display.
+- **[Guest users](#guest-users).** Decide whether Slack guests become Mattermost guests, regular members, or are left out of the import.
+- **[User emails](#user-emails).** Every imported user needs an email address. Users missing one in the Slack export need an address before import.
+
+### Custom emoji \{#custom-emoji}
+
+Reactions import with the post, stored by emoji name. Custom emoji images have to be added in Mattermost.
+
+- Standard emoji such as `thumbsup` and `heart` display with no extra setup.
+- Add each custom emoji with the same name, in lowercase. Historical reactions display as soon as that name exists. Add them before or after the message import in the [custom emoji UI](/end-user-guide/collaborate/react-with-emojis-gifs#upload-custom-emojis), or as [`emoji` objects](/administration-guide/onboard/bulk-loading-data#emoji-object) in the bulk import. Turn on [custom emoji](/administration-guide/configure/site-configuration-settings#enable-custom-emoji) in the System Console if needed.
+- Skin-tone variants are dropped. `+1::skin-tone-3` becomes `+1`.
+
+### Guest users \{#guest-users}
+
+Set `--guest-handling` on `mmetl transform slack` to choose what happens to Slack guests:
+
+| Mode | What happens |
+| --- | --- |
+| `guest` (default) | They become Mattermost guests, limited to the public and private channels they were in. [Guest Accounts](/administration-guide/onboard/guest-accounts) must be [enabled](/administration-guide/configure/authentication-configuration-settings#enable-guest-access) and licensed. |
+| `user` | They become regular members. |
+| `skip` | They are left out, along with their channel memberships, posts, and reactions. |
+
+A guest who was only in direct or group messages cannot be a Mattermost guest. That account is skipped unless you use `--guest-handling=user`.
+
+### User emails \{#user-emails}
+
+Every imported user needs an email address. If the Slack export is missing one, the transform stops and names that user unless you choose a flag:
+
+| Choice | What to do |
+| --- | --- |
+| `--default-email-domain example.com` | Missing emails become `username@example.com`. Use your organization domain. Correct any address that should be different before import. |
+| `--skip-empty-emails` | Emails stay blank. Set a real address on each affected user before import, or import validation fails. |
+| No flag | The transform stops. Fix the export or re-run with a flag. |
+
+Enterprise Grid imports can also create placeholder users with a `<userid>@local` address. Replace those with real addresses before import.
+
+Search the import file for your domain or `@local`, correct the addresses, and run `mmctl import validate`.
+
+## Appendix B: mmetl parsing phases \{#appendix-b-mmetl-parsing-phases}
+
+Large transforms move through four phases. Watch `transform-slack.log` (and console output) to gauge progress. Per-channel progress for phases 2-4 is logged at **DEBUG** level; run with `--debug` to see those lines. Phase completion messages and file-reading progress use **INFO**.
+
+1. **Reading the import file**: Often 5-10 minutes depending on archive size.
+
+   Example:
+
+   ``` text
+   {"file":"parse.go:226","level":"info","msg":"Processing file 1 of 10335: aluminum-white-lightbulb/","time":"2024-03-11T20:41:09-04:00"}
+   ```
+
+2. **Converting user mentions**: Can take hours on large exports.
+
+   Example (requires `--debug`):
+
+   ``` text
+   {"file":"parse.go:109","level":"debug","msg":"Slack Import: converting user mentions for channel touchscreen-headphones-sleek. 1 of 400","time":"2024-03-11T20:41:10-04:00"}
+   ```
+
+   When the phase finishes (INFO):
+
+   ``` text
+   {"level":"info","msg":"Slack Import: Converted user mentions"}
+   ```
+
+3. **Converting channel mentions**: Typically about half as long as user mentions.
+
+   Example (requires `--debug`):
+
+   ``` text
+   {"file":"parse.go:132","level":"debug","msg":"Slack Import: converting channel mentions for channel robust-smart-home-device-matrix. 95 of 400","time":"2024-03-11T20:41:48-04:00"}
+   ```
+
+   When the phase finishes (INFO):
+
+   ``` text
+   {"level":"info","msg":"Slack Import: Converted channel mentions"}
+   ```
+
+4. **Converting post markup**: Slack formatting to Mattermost Markdown; usually the fastest phase.
+
+   Example (requires `--debug`):
+
+   ``` text
+   {"file":"parse.go:196","level":"debug","msg":"Slack Import: converting markdown for channel vertex-robust-vacuum. 120 of 400","time":"2024-03-11T20:41:58-04:00"}
+   ```
+
+   When the phase finishes (INFO):
+
+   ``` text
+   {"level":"info","msg":"Slack Import: Converted markdown"}
+   ```
