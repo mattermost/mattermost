@@ -18563,6 +18563,10 @@
     "defaultMessage": "This attribute can only be raised, never lowered",
     "description": "Screen-reader label for the lock icon next to a ranked channel attribute in the channel info panel, such as a classification level. The value can only move to a higher rank."
   },
+  "channel_attributes.info.locked_source_managed": {
+    "defaultMessage": "This attribute is managed by an integration and cannot be changed here",
+    "description": "Screen-reader label for the lock icon next to a channel attribute in the channel info panel, when the value is set by an integration and cannot be edited here."
+  },
   "channel_attributes.info.not_set": {
     "defaultMessage": "Not set",
     "description": "Placeholder shown in place of the value of a channel attribute that has no value, in the channel info right-hand panel. Describes an attribute value, not a person."
