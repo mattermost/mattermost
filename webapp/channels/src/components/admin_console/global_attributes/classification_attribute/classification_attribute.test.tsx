@@ -335,8 +335,8 @@ describe('ClassificationAttribute', () => {
     it('keeps the page usable when the linked-field listing genuinely fails, and loses only its rows', async () => {
         // That listing decides one read-only sentence and nothing else on the page,
         // so it runs outside the load the page waits on: inside it, any non-404 from
-        // the user or post scope replaced the levels, the channel row and Save with
-        // the load-error screen.
+        // the user or post scope would replace the levels, the channel row and Save
+        // with the load-error screen.
         const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
         const existingChannelField = channelField({required: true, actions: ['display_label_header']});

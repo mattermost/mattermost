@@ -1862,11 +1862,10 @@ describe('GlobalAttributesTable', () => {
 
             renderWithContext(<GlobalAttributesTable/>, getBaseState());
 
-            const row = await findRowByName('Clearance');
+            await findRowByName('Clearance');
 
             // * `security_level` is free for this template to use: nothing an admin
             // writes in a policy resolves to both it and the clearance field.
-            expect(within(row).queryAllByTestId(CONFLICT_TESTID)).toHaveLength(0);
             expect(screen.queryAllByTestId(CONFLICT_TESTID)).toHaveLength(0);
         });
 
@@ -1956,9 +1955,8 @@ describe('GlobalAttributesTable', () => {
             renderWithContext(<GlobalAttributesTable/>, state);
 
             // Template rows paint ahead of the scope fetches, so the row is on
-            // screen during the window this is about. Its Applies-to spinner is
-            // the rendered signal that the window is still open — it shows for
-            // exactly as long as resourcesLoaded is false.
+            // screen during the window this is about, with its Applies-to spinner
+            // still showing.
             const clearanceCell = (await screen.findAllByTestId('global-attribute-name')).
                 find((candidate) => candidate.textContent === 'Clearance');
             expect(clearanceCell).toBeDefined();

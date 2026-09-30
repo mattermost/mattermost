@@ -1687,9 +1687,7 @@ describe('Channel classification linked field branches', () => {
 
                     // Spelled out rather than read from the constant production
                     // uses: an expectation built from that constant passes
-                    // whatever it says. The label names which clearance this is,
-                    // because an unrelated attribute called "Clearance" is what
-                    // an admin confuses it with.
+                    // whatever it says.
                     attrs: expect.objectContaining({managed: 'admin', display_name: 'Classification clearance'}),
                 }),
             );
@@ -2430,8 +2428,9 @@ describe('Clearance name listing failures', () => {
 
     // Everything the page is for, none of which the failed listing has any say
     // over. Spelled out rather than checked through a single "not the error
-    // screen" assertion, because the 404 case does not render the error screen
-    // either — it used to render an empty, never-configured page instead.
+    // screen" assertion, because the 404 case would not render the error screen
+    // either: the load path's 404 branch returns before the loaded configuration
+    // is applied, leaving an empty, never-configured page.
     function expectPageFullyUsable() {
         // Configured, not never-configured: the levels that came back are on
         // screen and the feature reads as enabled.

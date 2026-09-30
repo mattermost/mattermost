@@ -1596,23 +1596,21 @@ describe('AttributeDetails', () => {
             } as PropertyField;
         }
 
-        function makeOwnerTemplate(): PropertyField {
-            return {
-                id: OWNER_TEMPLATE_ID,
-                name: 'markings',
-                type: 'rank',
-                group_id: 'accesscontrolgroupuuid001',
-                object_type: 'template',
-                target_id: '',
-                target_type: 'system',
-                create_at: 1,
-                update_at: 1,
-                delete_at: 0,
-                created_by: '',
-                updated_by: '',
-                attrs: {display_name: 'Security Markings'},
-            } as PropertyField;
-        }
+        const OWNER_TEMPLATE = {
+            id: OWNER_TEMPLATE_ID,
+            name: 'markings',
+            type: 'rank',
+            group_id: 'accesscontrolgroupuuid001',
+            object_type: 'template',
+            target_id: '',
+            target_type: 'system',
+            create_at: 1,
+            update_at: 1,
+            delete_at: 0,
+            created_by: '',
+            updated_by: '',
+            attrs: {display_name: 'Security Markings'},
+        } as PropertyField;
 
         // The page lists user fields (what a name can collide with) and templates
         // (to name the owner of a linked one) on mount. listPropertyFields walks
@@ -1650,7 +1648,7 @@ describe('AttributeDetails', () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField');
             mockConflictFields(
                 [makeUserField('clearance', {linked_field_id: OWNER_TEMPLATE_ID})],
-                [makeOwnerTemplate()],
+                [OWNER_TEMPLATE],
             );
 
             await renderCreate();
@@ -1726,9 +1724,6 @@ describe('AttributeDetails', () => {
             // disabled MUI item is pointer-events: none, and letting userEvent
             // refuse the interaction would prove only that CSS. Closing the menu
             // afterwards gives Menu.Item's deferred onClick its chance to fire.
-            // What swallows the click is MUI's `disabled`; the option carries its
-            // onClick unconditionally, so this is a statement about the outcome
-            // and not about any guard of the picker's own.
             await userEvent.click(users, {pointerEventsCheck: 0});
             await userEvent.keyboard('{Escape}');
             await waitFor(() => expect(screen.queryByRole('menuitem')).not.toBeInTheDocument());

@@ -71,12 +71,6 @@ describe('classification_markings/utils', () => {
         it('asks for another page after a short one, since only an empty page ends the paging', async () => {
             // A short page is not what this loop stops on, unlike its sibling
             // listPropertyFields in global_attributes/utils, which breaks there.
-            // The server would let it: SearchPropertyFields applies DeleteAt = 0
-            // and every other filter in SQL before LIMIT, so in directory mode a
-            // short page really is the last one. This is the cost of not reading
-            // it that way -- one more request, always, to be told what the short
-            // page already said -- and it is the stop condition the caller's
-            // cursor arithmetic is written against.
             getPropertyFields.
                 mockResolvedValueOnce([makeField({id: 'u1', create_at: 1})]).
                 mockResolvedValueOnce([makeField({id: 'u2', create_at: 2})]).

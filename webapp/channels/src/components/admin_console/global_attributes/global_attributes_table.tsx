@@ -252,7 +252,11 @@ function classificationSubtitleId(fieldId: string): string {
     return `global-attribute-classification-subtitle-${fieldId}`;
 }
 
-function AttributeCell({field, isClassificationRow, nameConflict}: ClassificationAwareCellProps & {nameConflict?: NameConflict}) {
+type AttributeCellProps = ClassificationAwareCellProps & {
+    nameConflict?: NameConflict;
+};
+
+function AttributeCell({field, isClassificationRow, nameConflict}: AttributeCellProps) {
     const {formatMessage} = useIntl();
     const conflictText = nameConflict ? nameConflictText(nameConflict, formatMessage) : '';
 
