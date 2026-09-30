@@ -388,7 +388,11 @@ jobs:
         # only intermittency clears a failure: a test that failed in the previous
         # master run too is a streak, not a flake, and stays red. A master run has
         # no PR to comment on, so the story lands in the job summary.
-        if: always()
+        #
+        # Only a red run is worth triaging: the verdict can turn a red run green
+        # and never the other way round, so on a green one there is nothing for
+        # it to change.
+        if: always() && steps.summary.outcome != 'success'
         continue-on-error: true
         uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-triage@8ac48c6d8e5f5a9c818bd46d7108a834d5c855b2 # actions/e2e-triage, branch e2e-triage
         with:
