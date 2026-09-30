@@ -230,6 +230,8 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - Fixed an issue where relative date separators between posts did not update when the local day changed while a channel stayed open, leaving a stale "Today" separator and creating a second "Today" separator for posts made after midnight.
  - Fixed an issue where the Classification Markings page could silently adopt, or collide with, an unrelated attribute named "classification" created in Attribute Management. Such a conflict is now reported with an explanatory error and the page is read-only until it is resolved, and the conflicting attribute stays editable and deletable in Attribute Management.
  - Fixed an issue where extracting content from ZIP archives could lead to excessive memory consumption.
+ - Fixed blank server messages in Spanish, French, Italian and Japanese, which now show in English until translated.
+ - Fixed an issue where file attachments could stay hidden or visible after a session attribute changed until the client cache was cleared.
 
 ### API Changes
  - Added ``POST /access_control/decisions/actions/search (searchAccessControlDecisionActions)`` API endpoint.
