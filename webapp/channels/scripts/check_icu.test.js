@@ -53,7 +53,7 @@ describe('check_icu', () => {
         // The script's whole premise is that parsing here implies parsing under
         // react-intl, which only holds while the two agree on a version. Three
         // copies of this package exist in the tree, so a bare import picks up
-        // whichever npm hoisted -- for a long time, the older one
+        // whichever npm hoisted: for a long time, the older one
         // babel-plugin-formatjs pulls. The script sidesteps that by resolving
         // the parser from react-intl's own node_modules, which works only while
         // react-intl keeps depending on the parser directly.
