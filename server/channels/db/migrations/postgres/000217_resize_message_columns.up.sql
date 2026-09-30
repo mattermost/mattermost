@@ -8,7 +8,7 @@ BEGIN
     IF col_len IS NOT NULL AND col_len < 1048576 THEN
         -- Postgres rebuilds expression indexes on an altered column while holding
         -- an ACCESS EXCLUSIVE lock on posts. Drop it here so the ALTER below is
-        -- metadata-only, and let 000233 recreate it with CREATE INDEX CONCURRENTLY.
+        -- metadata-only, and let 000234 recreate it with CREATE INDEX CONCURRENTLY.
         -- concurrentIndex:ignore DROP INDEX CONCURRENTLY would not reduce blocking
         -- because the ALTER below takes an ACCESS EXCLUSIVE lock regardless.
         DROP INDEX IF EXISTS idx_posts_message_txt;

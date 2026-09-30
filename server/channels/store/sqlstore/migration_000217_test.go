@@ -30,7 +30,7 @@ func TestMigration000217(t *testing.T) {
 
 	upSQL := readMigrationSQL(t, "000217_resize_message_columns.up.sql")
 	downSQL := readMigrationSQL(t, "000217_resize_message_columns.down.sql")
-	recreateIndexSQL := readMigrationSQL(t, "000233_recreate_posts_message_txt_index.up.sql")
+	recreateIndexSQL := readMigrationSQL(t, "000234_recreate_posts_message_txt_index.up.sql")
 
 	type tableCol struct {
 		table  string

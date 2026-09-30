@@ -3191,7 +3191,7 @@
   "admin.webserverModeTitle": "Webserver Mode:",
   "admin.webserverModeUncompressed": "Uncompressed",
   "admin.webserverModeUncompressedDescription": "The Mattermost server will serve static files uncompressed.",
-  "adminConsole.list.table.exactTime.at": "at",
+  "adminConsole.list.table.exactTime": "{date, date, long} at {date, time, medium}",
   "adminConsole.list.table.genericError": "An error occurred while loading the data, please try again",
   "adminConsole.list.table.genericLoading": "Loading",
   "adminConsole.list.table.genericNoData": "No data",

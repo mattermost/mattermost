@@ -57,6 +57,19 @@ export function getDiff(
     return truncateEndpoints ? momentA.startOf(unit).diff(momentB.startOf(unit), unit) : momentA.diff(b, unit, true);
 }
 
+export function getMillisUntilNextDay(
+    from: Date,
+    timeZone: string = new Intl.DateTimeFormat().resolvedOptions().timeZone,
+): number {
+    const value = moment.utc(from.getTime());
+
+    if (timeZone) {
+        value.tz(timeZone);
+    }
+
+    return value.clone().add(1, 'day').startOf('day').diff(value);
+}
+
 export function isSameDay(a: Date, b: Date = new Date()): boolean {
     return a.getDate() === b.getDate() && isSameMonth(a, b);
 }
