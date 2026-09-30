@@ -285,13 +285,19 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		/* Server information */
 		assert.NotEmpty(t, d.Server.OS)
 		assert.NotEmpty(t, d.Server.Architecture)
-		assert.NotEmpty(t, d.Server.Hostname)
+		require.NotNil(t, d.Server.Hostname)
+		assert.NotEmpty(t, *d.Server.Hostname)
 		assert.Equal(t, model.CurrentVersion, d.Server.Version)
 		// BuildHash is not present in tests
 		assert.NotEmpty(t, d.Server.GoVersion)
 		assert.Equal(t, "docker", d.Server.InstallationType)
 		assert.Positive(t, d.Server.CPUCores)
-		assert.Positive(t, d.Server.TotalMemoryMB)
+		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
+			require.NotNil(t, d.Server.TotalMemoryMB)
+			assert.Positive(t, *d.Server.TotalMemoryMB)
+		} else {
+			assert.Nil(t, d.Server.TotalMemoryMB)
+		}
 		require.NotNil(t, d.Server.OpenFileDescriptors)
 		require.NotNil(t, d.Server.MaxFileDescriptors)
 		assert.True(t, *d.Server.OpenFileDescriptors == -1 || *d.Server.OpenFileDescriptors > 0, "OpenFileDescriptors should be -1 (unsupported) or positive, got %d", *d.Server.OpenFileDescriptors)
@@ -309,7 +315,8 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, "memory://", d.Config.Source)
 
 		/* DB */
-		assert.NotEmpty(t, d.Database.Type)
+		require.NotNil(t, d.Database.Type)
+		assert.NotEmpty(t, *d.Database.Type)
 		require.NotNil(t, d.Database.Version)
 		assert.NotEmpty(t, *d.Database.Version)
 		require.NotNil(t, d.Database.SchemaVersion)
@@ -319,30 +326,39 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Zero(t, d.Database.SearchConnections)
 		require.NotNil(t, d.Database.MasterConnectionsInUse)
 		assert.GreaterOrEqual(t, *d.Database.MasterConnectionsInUse, 0)
-		assert.GreaterOrEqual(t, d.Database.MasterConnectionsIdle, 0)
-		assert.GreaterOrEqual(t, d.Database.MasterPoolWaitCount, int64(0))
-		assert.GreaterOrEqual(t, d.Database.MasterPoolWaitDurationMs, int64(0))
-		assert.GreaterOrEqual(t, d.Database.MasterConnectionsClosedMaxIdle, int64(0))
-		assert.GreaterOrEqual(t, d.Database.MasterConnectionsClosedMaxLifetime, int64(0))
-		assert.GreaterOrEqual(t, d.Database.ReplicaConnectionsInUse, 0)
-		assert.GreaterOrEqual(t, d.Database.ReplicaConnectionsIdle, 0)
-		assert.GreaterOrEqual(t, d.Database.ReplicaPoolWaitCount, int64(0))
-		assert.GreaterOrEqual(t, d.Database.ReplicaPoolWaitDurationMs, int64(0))
-		assert.GreaterOrEqual(t, d.Database.ReplicaConnectionsClosedMaxIdle, int64(0))
-		assert.GreaterOrEqual(t, d.Database.ReplicaConnectionsClosedMaxLifetime, int64(0))
+		for _, v := range []*int{d.Database.MasterConnectionsIdle, d.Database.ReplicaConnectionsInUse, d.Database.ReplicaConnectionsIdle} {
+			require.NotNil(t, v)
+			assert.GreaterOrEqual(t, *v, 0)
+		}
+		for _, v := range []*int64{
+			d.Database.MasterPoolWaitCount,
+			d.Database.MasterPoolWaitDurationMs,
+			d.Database.MasterConnectionsClosedMaxIdle,
+			d.Database.MasterConnectionsClosedMaxLifetime,
+			d.Database.ReplicaPoolWaitCount,
+			d.Database.ReplicaPoolWaitDurationMs,
+			d.Database.ReplicaConnectionsClosedMaxIdle,
+			d.Database.ReplicaConnectionsClosedMaxLifetime,
+		} {
+			require.NotNil(t, v)
+			assert.GreaterOrEqual(t, *v, int64(0))
+		}
 
 		/* File store */
 		assert.Equal(t, "OK", d.FileStore.Status)
 		assert.Empty(t, d.FileStore.Error)
 		assert.Equal(t, "local", d.FileStore.Driver)
 		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
-			assert.NotEmpty(t, d.FileStore.FilesystemType, "FilesystemType should not be empty on supported platforms")
-			assert.Positive(t, d.FileStore.TotalMB, "TotalMB should be positive on supported platforms")
-			assert.Positive(t, d.FileStore.AvailableMB, "AvailableMB should be positive on supported platforms")
+			require.NotNil(t, d.FileStore.FilesystemType)
+			require.NotNil(t, d.FileStore.TotalMB)
+			require.NotNil(t, d.FileStore.AvailableMB)
+			assert.NotEmpty(t, *d.FileStore.FilesystemType, "FilesystemType should not be empty on supported platforms")
+			assert.Positive(t, *d.FileStore.TotalMB, "TotalMB should be positive on supported platforms")
+			assert.Positive(t, *d.FileStore.AvailableMB, "AvailableMB should be positive on supported platforms")
 		} else {
-			assert.Empty(t, d.FileStore.FilesystemType)
-			assert.Zero(t, d.FileStore.TotalMB)
-			assert.Zero(t, d.FileStore.AvailableMB)
+			assert.Nil(t, d.FileStore.FilesystemType)
+			assert.Nil(t, d.FileStore.TotalMB)
+			assert.Nil(t, d.FileStore.AvailableMB)
 		}
 
 		/* Websockets */
@@ -405,9 +421,9 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		assert.Equal(t, "OK", packet.FileStore.Status)
 		assert.Equal(t, "amazons3", packet.FileStore.Driver)
-		assert.Empty(t, packet.FileStore.FilesystemType)
-		assert.Zero(t, packet.FileStore.TotalMB)
-		assert.Zero(t, packet.FileStore.AvailableMB)
+		assert.Nil(t, packet.FileStore.FilesystemType)
+		assert.Nil(t, packet.FileStore.TotalMB)
+		assert.Nil(t, packet.FileStore.AvailableMB)
 	})
 
 	t.Run("no LDAP info if LDAP sync is disabled", func(t *testing.T) {
@@ -952,17 +968,17 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		packet := getDiagnostics(t)
 		require.NotNil(t, packet.Database.MasterConnectionsInUse)
 		assert.Equal(t, 3, *packet.Database.MasterConnectionsInUse)
-		assert.Equal(t, 7, packet.Database.MasterConnectionsIdle)
-		assert.Equal(t, int64(11), packet.Database.MasterPoolWaitCount)
-		assert.Equal(t, int64(2025), packet.Database.MasterPoolWaitDurationMs)
-		assert.Equal(t, int64(13), packet.Database.MasterConnectionsClosedMaxIdle)
-		assert.Equal(t, int64(17), packet.Database.MasterConnectionsClosedMaxLifetime)
-		assert.Equal(t, 5, packet.Database.ReplicaConnectionsInUse)
-		assert.Equal(t, 9, packet.Database.ReplicaConnectionsIdle)
-		assert.Equal(t, int64(19), packet.Database.ReplicaPoolWaitCount)
-		assert.Equal(t, int64(4090), packet.Database.ReplicaPoolWaitDurationMs)
-		assert.Equal(t, int64(23), packet.Database.ReplicaConnectionsClosedMaxIdle)
-		assert.Equal(t, int64(29), packet.Database.ReplicaConnectionsClosedMaxLifetime)
+		assert.Equal(t, new(7), packet.Database.MasterConnectionsIdle)
+		assert.Equal(t, new(int64(11)), packet.Database.MasterPoolWaitCount)
+		assert.Equal(t, new(int64(2025)), packet.Database.MasterPoolWaitDurationMs)
+		assert.Equal(t, new(int64(13)), packet.Database.MasterConnectionsClosedMaxIdle)
+		assert.Equal(t, new(int64(17)), packet.Database.MasterConnectionsClosedMaxLifetime)
+		assert.Equal(t, new(5), packet.Database.ReplicaConnectionsInUse)
+		assert.Equal(t, new(9), packet.Database.ReplicaConnectionsIdle)
+		assert.Equal(t, new(int64(19)), packet.Database.ReplicaPoolWaitCount)
+		assert.Equal(t, new(int64(4090)), packet.Database.ReplicaPoolWaitDurationMs)
+		assert.Equal(t, new(int64(23)), packet.Database.ReplicaConnectionsClosedMaxIdle)
+		assert.Equal(t, new(int64(29)), packet.Database.ReplicaConnectionsClosedMaxLifetime)
 	})
 
 	t.Run("OpenID disabled", func(t *testing.T) {
@@ -1297,19 +1313,37 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 func TestGetSupportPacketDiagnosticsFieldPresence(t *testing.T) {
 	th := Setup(t)
 
-	marshalSections := func(t *testing.T, nodeDiagnostics *model.NodeDiagnostics, collectErr error) (database, cluster map[string]any) {
+	type packetSections struct {
+		Database  map[string]any `yaml:"database"`
+		FileStore map[string]any `yaml:"file_store"`
+		Cluster   map[string]any `yaml:"cluster"`
+	}
+
+	marshalSections := func(t *testing.T, nodeDiagnostics *model.NodeDiagnostics, collectErr error) packetSections {
 		t.Helper()
 
 		fileData, err := supportPacketDiagnosticsFile(nodeDiagnostics.Diagnostics, collectErr)
 		require.NotNil(t, fileData)
 		require.ErrorIs(t, err, collectErr)
 
-		var packet struct {
-			Database map[string]any `yaml:"database"`
-			Cluster  map[string]any `yaml:"cluster"`
-		}
+		var packet packetSections
 		require.NoError(t, yaml.Unmarshal(fileData.Body, &packet))
-		return packet.Database, packet.Cluster
+		return packet
+	}
+
+	poolCounterKeys := []string{
+		"master_connections_in_use",
+		"master_connections_idle",
+		"master_pool_wait_count",
+		"master_pool_wait_duration_ms",
+		"master_connections_closed_max_idle",
+		"master_connections_closed_max_lifetime",
+		"replica_connections_in_use",
+		"replica_connections_idle",
+		"replica_pool_wait_count",
+		"replica_pool_wait_duration_ms",
+		"replica_connections_closed_max_idle",
+		"replica_connections_closed_max_lifetime",
 	}
 
 	t.Run("fields whose collection failed are omitted", func(t *testing.T) {
@@ -1334,22 +1368,62 @@ func TestGetSupportPacketDiagnosticsFieldPresence(t *testing.T) {
 		})
 		th.Service.clusterIFace = cluster
 
+		originalFileStore := th.Service.filestore
+		originalDir := *th.Service.Config().FileSettings.Directory
+		t.Cleanup(func() {
+			err := SetFileStore(originalFileStore)(th.Service)
+			require.NoError(t, err)
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.FileSettings.Directory = model.NewPointer(originalDir)
+			})
+		})
+		fb := &fmocks.FileBackend{}
+		fb.On("DriverName").Return(model.ImageDriverLocal)
+		fb.On("TestConnection").Return(nil)
+		require.NoError(t, SetFileStore(fb)(th.Service))
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.FileSettings.Directory = model.NewPointer(filepath.Join(t.TempDir(), "missing"))
+		})
+
 		nodeDiagnostics, err := th.Service.GetSupportPacketDiagnostics(th.Context)
 		require.Error(t, err)
 		require.NotNil(t, nodeDiagnostics)
 		d := nodeDiagnostics.Diagnostics
 		require.NotNil(t, d)
+		assert.Nil(t, d.Database.Type)
 		assert.Nil(t, d.Database.Version)
 		assert.Nil(t, d.Database.SchemaVersion)
 		assert.Nil(t, d.Database.MasterConnectionsInUse)
+		assert.Nil(t, d.Database.MasterConnectionsIdle)
+		assert.Nil(t, d.Database.MasterPoolWaitCount)
+		assert.Nil(t, d.Database.MasterPoolWaitDurationMs)
+		assert.Nil(t, d.Database.MasterConnectionsClosedMaxIdle)
+		assert.Nil(t, d.Database.MasterConnectionsClosedMaxLifetime)
+		assert.Nil(t, d.Database.ReplicaConnectionsInUse)
+		assert.Nil(t, d.Database.ReplicaConnectionsIdle)
+		assert.Nil(t, d.Database.ReplicaPoolWaitCount)
+		assert.Nil(t, d.Database.ReplicaPoolWaitDurationMs)
+		assert.Nil(t, d.Database.ReplicaConnectionsClosedMaxIdle)
+		assert.Nil(t, d.Database.ReplicaConnectionsClosedMaxLifetime)
+		assert.Nil(t, d.FileStore.FilesystemType)
+		assert.Nil(t, d.FileStore.TotalMB)
+		assert.Nil(t, d.FileStore.AvailableMB)
 		assert.Nil(t, d.Cluster.NumberOfNodes)
 
-		database, clusterSection := marshalSections(t, nodeDiagnostics, err)
-		assert.NotContains(t, database, "version")
-		assert.NotContains(t, database, "schema_version")
-		assert.NotContains(t, database, "master_connections_in_use")
-		assert.Equal(t, "cluster-id", clusterSection["id"])
-		assert.NotContains(t, clusterSection, "number_of_nodes")
+		packet := marshalSections(t, nodeDiagnostics, err)
+		assert.NotContains(t, packet.Database, "type")
+		assert.NotContains(t, packet.Database, "version")
+		assert.NotContains(t, packet.Database, "schema_version")
+		for _, key := range poolCounterKeys {
+			assert.NotContains(t, packet.Database, key)
+		}
+		assert.Contains(t, packet.Database, "master_connections")
+		assert.Equal(t, model.ImageDriverLocal, packet.FileStore["file_driver"])
+		assert.NotContains(t, packet.FileStore, "filesystem_type")
+		assert.NotContains(t, packet.FileStore, "total_mb")
+		assert.NotContains(t, packet.FileStore, "available_mb")
+		assert.Equal(t, "cluster-id", packet.Cluster["id"])
+		assert.NotContains(t, packet.Cluster, "number_of_nodes")
 	})
 
 	t.Run("legitimately zero values are written", func(t *testing.T) {
@@ -1363,8 +1437,10 @@ func TestGetSupportPacketDiagnosticsFieldPresence(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, nodeDiagnostics)
 
-		database, _ := marshalSections(t, nodeDiagnostics, nil)
-		assert.EqualValues(t, 0, database["master_connections_in_use"])
+		packet := marshalSections(t, nodeDiagnostics, nil)
+		for _, key := range poolCounterKeys {
+			assert.EqualValues(t, 0, packet.Database[key], key)
+		}
 	})
 }
 
@@ -1563,10 +1639,10 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.License.IsNonProduction = true
 	diagnostics.Server.OS = "linux"
 	diagnostics.Server.Architecture = "amd64"
-	diagnostics.Server.Hostname = "mm-host"
+	diagnostics.Server.Hostname = new("mm-host")
 	diagnostics.Server.InstallationType = "docker"
 	diagnostics.Server.CPUCores = 8
-	diagnostics.Server.TotalMemoryMB = 32768
+	diagnostics.Server.TotalMemoryMB = new(uint64(32768))
 	diagnostics.Server.ContainerCPULimit = 6.5
 	diagnostics.Server.ContainerMemoryLimitMB = 16384
 	diagnostics.Server.ProcessID = 90210
@@ -1578,24 +1654,24 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.Server.BuildHash = "abc123"
 	diagnostics.Server.GoVersion = "go1.26"
 	diagnostics.Config.Source = "memory://"
-	diagnostics.Database.Type = "postgres"
+	diagnostics.Database.Type = new("postgres")
 	diagnostics.Database.Version = new("16.4")
 	diagnostics.Database.SchemaVersion = new("123")
 	diagnostics.Database.MasterConnections = 40
 	diagnostics.Database.ReplicaConnections = 20
 	diagnostics.Database.SearchConnections = 10
 	diagnostics.Database.MasterConnectionsInUse = new(5)
-	diagnostics.Database.MasterConnectionsIdle = 35
-	diagnostics.Database.MasterPoolWaitCount = 100
-	diagnostics.Database.MasterPoolWaitDurationMs = 220
-	diagnostics.Database.MasterConnectionsClosedMaxIdle = 2
-	diagnostics.Database.MasterConnectionsClosedMaxLifetime = 1
-	diagnostics.Database.ReplicaConnectionsInUse = 3
-	diagnostics.Database.ReplicaConnectionsIdle = 17
-	diagnostics.Database.ReplicaPoolWaitCount = 12
-	diagnostics.Database.ReplicaPoolWaitDurationMs = 66
-	diagnostics.Database.ReplicaConnectionsClosedMaxIdle = 4
-	diagnostics.Database.ReplicaConnectionsClosedMaxLifetime = 3
+	diagnostics.Database.MasterConnectionsIdle = new(35)
+	diagnostics.Database.MasterPoolWaitCount = new(int64(100))
+	diagnostics.Database.MasterPoolWaitDurationMs = new(int64(220))
+	diagnostics.Database.MasterConnectionsClosedMaxIdle = new(int64(2))
+	diagnostics.Database.MasterConnectionsClosedMaxLifetime = new(int64(1))
+	diagnostics.Database.ReplicaConnectionsInUse = new(3)
+	diagnostics.Database.ReplicaConnectionsIdle = new(17)
+	diagnostics.Database.ReplicaPoolWaitCount = new(int64(12))
+	diagnostics.Database.ReplicaPoolWaitDurationMs = new(int64(66))
+	diagnostics.Database.ReplicaConnectionsClosedMaxIdle = new(int64(4))
+	diagnostics.Database.ReplicaConnectionsClosedMaxLifetime = new(int64(3))
 	diagnostics.Database.CacheHitRatio = &cacheHitRatio
 	diagnostics.Database.Deadlocks = &deadlocks
 	diagnostics.Database.TempFiles = &tempFiles
@@ -1608,9 +1684,9 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.Database.PostsLastAutovacuum = &postsLastAutovacuum
 	diagnostics.FileStore.Status = model.StatusOk
 	diagnostics.FileStore.Driver = model.ImageDriverLocal
-	diagnostics.FileStore.FilesystemType = "ext4"
-	diagnostics.FileStore.TotalMB = 204800
-	diagnostics.FileStore.AvailableMB = 102400
+	diagnostics.FileStore.FilesystemType = new("ext4")
+	diagnostics.FileStore.TotalMB = new(uint64(204800))
+	diagnostics.FileStore.AvailableMB = new(uint64(102400))
 	diagnostics.Websocket.Connections = 77
 	diagnostics.Cluster.ID = "cluster-id"
 	diagnostics.Cluster.NumberOfNodes = new(3)

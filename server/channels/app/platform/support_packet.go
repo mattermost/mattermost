@@ -199,11 +199,11 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.Server.ContainerCPULimit = containerLimits.CPULimit
 		d.Server.ContainerMemoryLimitMB = containerLimits.MemoryLimitMB
 	}
-	hostname, err := os.Hostname()
+	serverHostname, err := os.Hostname()
 	if err != nil {
 		fail(model.SectionServerHost, errors.Wrap(err, "error while getting hostname"))
 	} else {
-		d.Server.Hostname = new(hostname)
+		d.Server.Hostname = new(serverHostname)
 	}
 	d.Server.ProcessID = os.Getpid()
 	d.Server.StartedAt = ps.startTime.UTC()
@@ -427,17 +427,17 @@ func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *
 	}
 
 	diagnostics.Database.MasterConnectionsInUse = new(storeDiagnostics.MasterConnectionsInUse)
-	diagnostics.Database.MasterConnectionsIdle = storeDiagnostics.MasterConnectionsIdle
-	diagnostics.Database.MasterPoolWaitCount = storeDiagnostics.MasterPoolWaitCount
-	diagnostics.Database.MasterPoolWaitDurationMs = storeDiagnostics.MasterPoolWaitDurationMs
-	diagnostics.Database.MasterConnectionsClosedMaxIdle = storeDiagnostics.MasterConnectionsClosedMaxIdle
-	diagnostics.Database.MasterConnectionsClosedMaxLifetime = storeDiagnostics.MasterConnectionsClosedMaxLifetime
-	diagnostics.Database.ReplicaConnectionsInUse = storeDiagnostics.ReplicaConnectionsInUse
-	diagnostics.Database.ReplicaConnectionsIdle = storeDiagnostics.ReplicaConnectionsIdle
-	diagnostics.Database.ReplicaPoolWaitCount = storeDiagnostics.ReplicaPoolWaitCount
-	diagnostics.Database.ReplicaPoolWaitDurationMs = storeDiagnostics.ReplicaPoolWaitDurationMs
-	diagnostics.Database.ReplicaConnectionsClosedMaxIdle = storeDiagnostics.ReplicaConnectionsClosedMaxIdle
-	diagnostics.Database.ReplicaConnectionsClosedMaxLifetime = storeDiagnostics.ReplicaConnectionsClosedMaxLifetime
+	diagnostics.Database.MasterConnectionsIdle = new(storeDiagnostics.MasterConnectionsIdle)
+	diagnostics.Database.MasterPoolWaitCount = new(storeDiagnostics.MasterPoolWaitCount)
+	diagnostics.Database.MasterPoolWaitDurationMs = new(storeDiagnostics.MasterPoolWaitDurationMs)
+	diagnostics.Database.MasterConnectionsClosedMaxIdle = new(storeDiagnostics.MasterConnectionsClosedMaxIdle)
+	diagnostics.Database.MasterConnectionsClosedMaxLifetime = new(storeDiagnostics.MasterConnectionsClosedMaxLifetime)
+	diagnostics.Database.ReplicaConnectionsInUse = new(storeDiagnostics.ReplicaConnectionsInUse)
+	diagnostics.Database.ReplicaConnectionsIdle = new(storeDiagnostics.ReplicaConnectionsIdle)
+	diagnostics.Database.ReplicaPoolWaitCount = new(storeDiagnostics.ReplicaPoolWaitCount)
+	diagnostics.Database.ReplicaPoolWaitDurationMs = new(storeDiagnostics.ReplicaPoolWaitDurationMs)
+	diagnostics.Database.ReplicaConnectionsClosedMaxIdle = new(storeDiagnostics.ReplicaConnectionsClosedMaxIdle)
+	diagnostics.Database.ReplicaConnectionsClosedMaxLifetime = new(storeDiagnostics.ReplicaConnectionsClosedMaxLifetime)
 	diagnostics.Database.CacheHitRatio = storeDiagnostics.CacheHitRatio
 	diagnostics.Database.Deadlocks = storeDiagnostics.Deadlocks
 	diagnostics.Database.TempFiles = storeDiagnostics.TempFiles

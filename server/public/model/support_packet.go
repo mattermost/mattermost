@@ -25,14 +25,14 @@ type SupportPacketDiagnostics struct {
 
 	Server struct {
 		// Machine
-		OS               string `yaml:"os"`
-		Architecture     string `yaml:"architecture"`
-		Hostname         string `yaml:"hostname"`
-		InstallationType string `yaml:"installation_type"`
+		OS               string  `yaml:"os"`
+		Architecture     string  `yaml:"architecture"`
+		Hostname         *string `yaml:"hostname,omitempty"`
+		InstallationType string  `yaml:"installation_type"`
 
 		// Capacity
 		CPUCores               int     `yaml:"cpu_cores"`
-		TotalMemoryMB          uint64  `yaml:"total_memory_mb"`
+		TotalMemoryMB          *uint64 `yaml:"total_memory_mb,omitempty"`
 		ContainerCPULimit      float64 `yaml:"container_cpu_limit,omitempty"`
 		ContainerMemoryLimitMB uint64  `yaml:"container_memory_limit_mb,omitempty"`
 
@@ -54,24 +54,24 @@ type SupportPacketDiagnostics struct {
 	} `yaml:"config"`
 
 	Database struct {
-		Type                                string     `yaml:"type"`
+		Type                                *string    `yaml:"type,omitempty"`
 		Version                             *string    `yaml:"version,omitempty"`
 		SchemaVersion                       *string    `yaml:"schema_version,omitempty"`
 		MasterConnections                   int        `yaml:"master_connections"`
 		ReplicaConnections                  int        `yaml:"replica_connections"`
 		SearchConnections                   int        `yaml:"search_connections"`
 		MasterConnectionsInUse              *int       `yaml:"master_connections_in_use,omitempty"`
-		MasterConnectionsIdle               int        `yaml:"master_connections_idle"`
-		MasterPoolWaitCount                 int64      `yaml:"master_pool_wait_count"`
-		MasterPoolWaitDurationMs            int64      `yaml:"master_pool_wait_duration_ms"`
-		MasterConnectionsClosedMaxIdle      int64      `yaml:"master_connections_closed_max_idle"`
-		MasterConnectionsClosedMaxLifetime  int64      `yaml:"master_connections_closed_max_lifetime"`
-		ReplicaConnectionsInUse             int        `yaml:"replica_connections_in_use"`
-		ReplicaConnectionsIdle              int        `yaml:"replica_connections_idle"`
-		ReplicaPoolWaitCount                int64      `yaml:"replica_pool_wait_count"`
-		ReplicaPoolWaitDurationMs           int64      `yaml:"replica_pool_wait_duration_ms"`
-		ReplicaConnectionsClosedMaxIdle     int64      `yaml:"replica_connections_closed_max_idle"`
-		ReplicaConnectionsClosedMaxLifetime int64      `yaml:"replica_connections_closed_max_lifetime"`
+		MasterConnectionsIdle               *int       `yaml:"master_connections_idle,omitempty"`
+		MasterPoolWaitCount                 *int64     `yaml:"master_pool_wait_count,omitempty"`
+		MasterPoolWaitDurationMs            *int64     `yaml:"master_pool_wait_duration_ms,omitempty"`
+		MasterConnectionsClosedMaxIdle      *int64     `yaml:"master_connections_closed_max_idle,omitempty"`
+		MasterConnectionsClosedMaxLifetime  *int64     `yaml:"master_connections_closed_max_lifetime,omitempty"`
+		ReplicaConnectionsInUse             *int       `yaml:"replica_connections_in_use,omitempty"`
+		ReplicaConnectionsIdle              *int       `yaml:"replica_connections_idle,omitempty"`
+		ReplicaPoolWaitCount                *int64     `yaml:"replica_pool_wait_count,omitempty"`
+		ReplicaPoolWaitDurationMs           *int64     `yaml:"replica_pool_wait_duration_ms,omitempty"`
+		ReplicaConnectionsClosedMaxIdle     *int64     `yaml:"replica_connections_closed_max_idle,omitempty"`
+		ReplicaConnectionsClosedMaxLifetime *int64     `yaml:"replica_connections_closed_max_lifetime,omitempty"`
 		CacheHitRatio                       *float64   `yaml:"cache_hit_ratio,omitempty"`
 		Deadlocks                           *int64     `yaml:"deadlocks,omitempty"`
 		TempFiles                           *int64     `yaml:"temp_files,omitempty"`
@@ -85,12 +85,12 @@ type SupportPacketDiagnostics struct {
 	} `yaml:"database"`
 
 	FileStore struct {
-		Status         string `yaml:"file_status"`
-		Error          string `yaml:"error,omitempty"`
-		Driver         string `yaml:"file_driver"`
-		FilesystemType string `yaml:"filesystem_type,omitempty"`
-		TotalMB        uint64 `yaml:"total_mb,omitempty"`
-		AvailableMB    uint64 `yaml:"available_mb,omitempty"`
+		Status         string  `yaml:"file_status"`
+		Error          string  `yaml:"error,omitempty"`
+		Driver         string  `yaml:"file_driver"`
+		FilesystemType *string `yaml:"filesystem_type,omitempty"`
+		TotalMB        *uint64 `yaml:"total_mb,omitempty"`
+		AvailableMB    *uint64 `yaml:"available_mb,omitempty"`
 	} `yaml:"file_store"`
 
 	Websocket struct {

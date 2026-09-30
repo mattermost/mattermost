@@ -78,6 +78,8 @@ func TestSupportPacketDiagnosticsYAMLOmitsNilAndKeepsZero(t *testing.T) {
 	diagnostics.Server.OpenFileDescriptors = new(int64(0))
 	diagnostics.Database.MasterConnectionsInUse = new(0)
 	diagnostics.Cluster.NumberOfNodes = new(0)
+	diagnostics.Database.ReplicaPoolWaitCount = new(int64(0))
+	diagnostics.FileStore.AvailableMB = new(uint64(0))
 
 	data, err := yaml.Marshal(&diagnostics)
 	require.NoError(t, err)
@@ -86,8 +88,15 @@ func TestSupportPacketDiagnosticsYAMLOmitsNilAndKeepsZero(t *testing.T) {
 	assert.Contains(t, body, "open_file_descriptors: 0\n")
 	assert.Contains(t, body, "master_connections_in_use: 0\n")
 	assert.Contains(t, body, "number_of_nodes: 0\n")
+	assert.Contains(t, body, "replica_pool_wait_count: 0\n")
+	assert.Contains(t, body, "available_mb: 0\n")
 	assert.NotContains(t, body, "max_file_descriptors")
 	assert.NotContains(t, body, "schema_version")
+	assert.NotContains(t, body, "hostname")
+	assert.NotContains(t, body, "total_memory_mb")
+	assert.NotContains(t, body, "  type:")
+	assert.NotContains(t, body, "master_pool_wait_count")
+	assert.NotContains(t, body, "total_mb")
 
 	var roundTrip SupportPacketDiagnostics
 	err = yaml.Unmarshal(data, &roundTrip)
@@ -101,4 +110,8 @@ func TestSupportPacketDiagnosticsYAMLOmitsNilAndKeepsZero(t *testing.T) {
 	assert.Equal(t, 0, *roundTrip.Database.MasterConnectionsInUse)
 	require.NotNil(t, roundTrip.Cluster.NumberOfNodes)
 	assert.Equal(t, 0, *roundTrip.Cluster.NumberOfNodes)
+	assert.Nil(t, roundTrip.Server.Hostname)
+	assert.Nil(t, roundTrip.FileStore.TotalMB)
+	require.NotNil(t, roundTrip.FileStore.AvailableMB)
+	assert.Equal(t, uint64(0), *roundTrip.FileStore.AvailableMB)
 }
