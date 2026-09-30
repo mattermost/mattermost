@@ -8,7 +8,7 @@
  * Local runs: upload or use a license with SkuShortName `enterprise`, `entry`, or `advanced`.
  */
 
-import type {Page} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 import type {PropertyField} from '@mattermost/types/properties';
 
 import {expect, test} from '@mattermost/playwright-lib';
@@ -1378,8 +1378,12 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 // Measure the pane, not role=menu. Nested MUI Modal aria-hides the
                 // parent menu paper; its getBoundingClientRect can shift ~16px even
                 // when the suggestion list is portaled.
+                //
+                // The menu itself mounts with a grow transition, so read the height only
+                // once that has settled — otherwise this baseline lands mid-animation
+                // and every later reading looks like unrelated growth.
                 const pane = page.locator('.attribute-graph-parents-pane');
-                const heightBeforeSearch = await pane.evaluate((el) => el.getBoundingClientRect().height);
+                const heightBeforeSearch = await waitForStableRectHeight(pane);
                 await page.getByTestId('attributeGraphParentsPane__search').click();
 
                 const suggestions = page.getByTestId('attributeGraphParentsPane__suggestions');
@@ -1416,8 +1420,10 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 const mountedValueMenu = page.getByRole('menu', {name: 'Edit Air', includeHidden: true});
 
                 // * Pane does not grow by a suggestion row (~36px). Focus and the
-                // nested modal can still shift getBoundingClientRect by ~6–16px.
-                const heightAfterSearch = await pane.evaluate((el) => el.getBoundingClientRect().height);
+                // nested modal can still shift getBoundingClientRect by ~6–16px. Read the
+                // height only once the focus/modal transition has stopped moving it —
+                // sampling mid-transition is what made this assertion flaky.
+                const heightAfterSearch = await waitForStableRectHeight(pane);
                 expect(Math.abs(heightAfterSearch - heightBeforeSearch)).toBeLessThan(24);
                 await expect(mountedValueMenu).toBeAttached();
 
@@ -2568,4 +2574,26 @@ async function openGraphRowDelete(page: Page, optionName: string, parentName = '
     const row = graphRow(page, optionName, parentName);
     await row.hover();
     await row.getByTestId('attributeOptionsGraphRow__delete').click();
+}
+
+// Polls getBoundingClientRect().height until two consecutive reads agree, so callers
+// don't sample a value mid CSS-transition (e.g. a focus ring or nested modal mount).
+// expect.poll runs the first probe immediately, so that reading is only a baseline;
+// compare only after a later probe that has waited for the poll interval.
+async function waitForStableRectHeight(locator: Locator): Promise<number> {
+    let lastHeight: number | undefined;
+
+    await expect
+        .poll(
+            async () => {
+                const height = await locator.evaluate((el) => el.getBoundingClientRect().height);
+                const isStable = lastHeight !== undefined && height === lastHeight;
+                lastHeight = height;
+                return isStable;
+            },
+            {timeout: 2000, intervals: [50, 100, 150, 300]},
+        )
+        .toBe(true);
+
+    return lastHeight!;
 }
