@@ -1109,7 +1109,7 @@ func TestGetSupportPacketConfig(t *testing.T) {
 	})
 
 	// Happy path where we have a sanitized config file with no err
-	config, err := th.Service.getSupportPacketConfig(th.Context)
+	config, err := th.Service.GetSupportPacketConfig(th.Context)
 	require.NotNil(t, config)
 	assert.NoError(t, err)
 

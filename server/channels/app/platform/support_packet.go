@@ -85,7 +85,7 @@ func (ps *PlatformService) GenerateSupportPacket(rctx request.CTX, options *mode
 			return supportPacketDiagnosticsFile(ps.getSupportPacketDiagnostics(rctx))
 		},
 		"config": func(rctx request.CTX) (*model.FileData, error) {
-			return supportPacketConfigFile(ps.getSupportPacketConfig(rctx))
+			return supportPacketConfigFile(ps.GetSupportPacketConfig(rctx))
 		},
 		"heap profile": ps.getHeapProfile,
 		"goroutines":   ps.getGoroutineProfile,
@@ -536,7 +536,8 @@ func (ps *PlatformService) testPushProxyConnection(ctx context.Context, serverUR
 	return nil
 }
 
-func (ps *PlatformService) getSupportPacketConfig(rctx request.CTX) (*model.SupportPacketConfig, error) {
+// GetSupportPacketConfig returns the support packet's sanitized config payload.
+func (ps *PlatformService) GetSupportPacketConfig(rctx request.CTX) (*model.SupportPacketConfig, error) {
 	config := ps.getSanitizedConfig(rctx, &model.SanitizeOptions{PartiallyRedactDataSources: true})
 	spConfig := model.SupportPacketConfig{
 		Config:       config,
