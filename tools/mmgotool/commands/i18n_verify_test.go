@@ -177,12 +177,12 @@ func TestVerifyLocale(t *testing.T) {
 			problem:    "a.b: empty translation",
 		},
 		{
-			name:           "empty translation is a warning under warn-missing-ids",
+			name:           "empty translation is still an error under warn-missing-ids",
 			localeName:     "fr.json",
 			en:             enPlain,
 			locale:         `[{"id":"a.b","translation":""}]`,
 			warnMissingIDs: true,
-			warning:        "a.b: empty translation",
+			problem:        "a.b: empty translation",
 		},
 		{
 			name:       "whitespace-only translation is an error by default",
