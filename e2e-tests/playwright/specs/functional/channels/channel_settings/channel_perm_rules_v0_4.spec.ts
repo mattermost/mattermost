@@ -204,9 +204,12 @@ test.describe('Channel Settings Modal - Permissions Policy tab (v0.4)', () => {
             await expect(editor.getByTestId('permissions-policy-editor-name')).toHaveValue('Block external uploads');
             await expect(channelSettings.infoSettings.container).not.toBeVisible();
 
-            // # Leave the editor the supported way
-            await channelSettings.container.getByTestId('permissions-policy-editor-cancel').click();
+            // # Take the way out the footer offers
+            await savePanel.getByTestId('SaveChangesPanel__cancel-btn').click();
+
+            // * The draft is dropped and the rules list is back
             await expect(editor).not.toBeVisible();
+            await expect(tab.getByTestId('permissions-policy-add-rule')).toBeVisible();
 
             // * Section switching works again once no rule is being edited
             await channelSettings.openInfoTab();
