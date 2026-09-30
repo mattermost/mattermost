@@ -3,10 +3,8 @@
 
 import path from 'node:path';
 
-// Single source of truth for the fixed values every container/helper needs to agree on.
-// Kept separate from test_config.ts because these are not overridable — they're either
-// Testcontainers network aliases (only meaningful inside the Testcontainers network) or
-// fixed test-only credentials for a throwaway local service.
+// Fixed values every container/helper agrees on: network aliases and throwaway test
+// credentials. Not overridable, unlike test_config.ts.
 
 export const POSTGRES_ALIAS = 'postgres';
 export const POSTGRES_PORT = 5432;
@@ -21,6 +19,9 @@ export const INBUCKET_POP3_PORT = 10110;
 
 export const MATTERMOST_ALIAS = 'server';
 export const MATTERMOST_PORT = 8065;
+// Host port the container publishes MATTERMOST_PORT to; fixed and distinct from 8065 so a
+// testcontainers run doesn't collide with a locally-run dev server on the same machine.
+export const MATTERMOST_FIXED_HOST_PORT = 8055;
 
 // Interactive-message/dialog callback sidecar shared with Cypress. Always started, like
 // postgres/inbucket — not gated behind testcontainersServices.
@@ -38,6 +39,10 @@ export const KEYCLOAK_PORT = 8080;
 export const KEYCLOAK_REALM = 'mattermost';
 export const KEYCLOAK_ADMIN_USER = 'admin';
 export const KEYCLOAK_ADMIN_PASSWORD = 'admin';
+
+// Matches the `mattermost-openid` client's clientId/secret in keycloak-realm-export.json.
+export const KEYCLOAK_OPENID_CLIENT_ID = 'mattermost-openid';
+export const KEYCLOAK_OPENID_CLIENT_SECRET = '9Y7dykcoA9luTC77XtXxOu9UbNx3rhj6';
 
 export const ELASTICSEARCH_ALIAS = 'elasticsearch';
 export const ELASTICSEARCH_PORT = 9200;
@@ -63,15 +68,11 @@ export const OPENSEARCH_PORT = 9201;
 export const OPENSEARCH_ADMIN_PASSWORD = 'Test@dmin_123';
 
 // Applied to every container this module starts, so `npm run testcontainers:down` can find and
-// remove them from a fresh process — the in-memory `started` state in stack.ts only exists in
-// the process that created it.
+// remove them from a fresh process, since stack.ts's in-memory `started` state doesn't persist.
 export const TESTCONTAINERS_LABEL_KEY = 'mm-playwright-testcontainers';
 export const TESTCONTAINERS_LABEL_VALUE = 'true';
 export const TESTCONTAINERS_LABELS = {[TESTCONTAINERS_LABEL_KEY]: TESTCONTAINERS_LABEL_VALUE};
 
-// Bind-mounted into every Mattermost container at /mattermost/data (mattermost_container.ts) so
-// local-disk file storage survives restartMattermostContainer()'s docker rm -f, which would
-// otherwise discard the anonymous VOLUME Docker creates for it. Fixed and repo-relative (not an
-// os.tmpdir()) so every process — including a later npm-script invocation or CI loop iteration —
-// resolves the same path independently, with nothing to persist through .env.testcontainers.
+// Fixed and repo-relative (not os.tmpdir()) so every process resolves the same path; bind-mounted
+// to /mattermost/data so local-disk file storage survives restartMattermostContainer()'s docker rm -f.
 export const MATTERMOST_DATA_DIR = path.resolve(process.cwd(), '.mattermost_data');
