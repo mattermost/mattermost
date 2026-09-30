@@ -2020,8 +2020,8 @@
     "description": "Admin console setting label (toggle) on the Attribute-Based Access Control page controlling whether end users see access-policy indicators."
   },
   "admin.accesscontrol.enableDesc": {
-    "defaultMessage": "Allow access restrictions based on user attributes using custom access policies. To effectively use this feature, you must define user attributes in the {userAttributes} section.",
-    "description": "Admin console help text for the main attribute-based access control toggle; {userAttributes} is replaced by a link labeled 'User Attributes'."
+    "defaultMessage": "Allow access restrictions based on user attributes using custom access policies. To effectively use this feature, you must define attributes in the {userAttributes} section.",
+    "description": "Admin console help text for the main attribute-based access control toggle; {userAttributes} is replaced by a link labeled 'Attribute Management'."
   },
   "admin.accesscontrol.enableTitle": {
     "defaultMessage": "Allow attribute based access controls on this server",
@@ -2052,8 +2052,8 @@
     "description": "Label of a true/false toggle in System Console > System Attributes > Attribute-Based Access > Session Attributes. 'Trust' is a verb; refers to an HTTP header set by a reverse proxy."
   },
   "admin.accesscontrol.user_properties.link.label": {
-    "defaultMessage": "User Attributes",
-    "description": "Link text inserted into the attribute-based access control help text; links to the User Attributes settings section."
+    "defaultMessage": "Attribute Management",
+    "description": "Link text inserted into the attribute-based access control help text; links to the Attribute Management settings section."
   },
   "admin.advance.cluster": {
     "defaultMessage": "High Availability",
