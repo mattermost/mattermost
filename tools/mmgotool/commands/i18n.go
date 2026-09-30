@@ -110,7 +110,7 @@ func init() {
 	CheckEmptySrcCmd.Flags().String("enterprise-dir", "../../enterprise", "Path to folder with the Mattermost enterprise source code")
 	CheckEmptySrcCmd.Flags().String("server-dir", "./", "Path to folder with the Mattermost server source code")
 
-	VerifyCmd.Flags().Bool("warn-missing-ids", false, "Report ids missing from a locale, or present but untranslated, as warnings instead of errors")
+	VerifyCmd.Flags().Bool("warn-missing-ids", false, "Report ids missing from a locale as warnings instead of errors")
 	VerifyCmd.Flags().String("server-dir", "./", "Path to folder with the Mattermost server source code")
 
 	CleanEmptyCmd.Flags().Bool("dry-run", false, "Run without applying changes")
@@ -893,8 +893,8 @@ func pluralCategories(locale string) map[language.Plural]bool {
 
 // verifyLocale checks one non-English catalog, raw, against the en.json
 // items in en, returning the defects found and, separately, the ids the catalog
-// has yet to translate, whether by absence or by an empty value. Whether that is
-// a defect or merely a warning is the caller's choice, via warnMissingIDs.
+// does not carry yet. Whether an absent id is a defect or merely a warning is the
+// caller's choice, via warnMissingIDs; an empty one is always a defect.
 func verifyLocale(name string, raw []byte, en map[string]Item, warnMissingIDs bool) (problems, warnings []string) {
 	locale := strings.TrimSuffix(name, ".json")
 
@@ -944,14 +944,11 @@ func verifyLocale(name string, raw []byte, en map[string]Item, warnMissingIDs bo
 
 		// newTemplate("") yields a nil template, so bundle.translate returns
 		// the id, exactly as for a missing id. A whitespace-only translation is
-		// worse: it renders, and the user sees nothing at all.
+		// worse: it renders, and the user sees nothing at all. Unlike a missing
+		// id, this is an error even under warnMissingIDs: it is a placeholder
+		// left behind, not work in progress.
 		if isBlankTranslation(item.Translation) {
-			msg := fmt.Sprintf("%s: %s: empty translation", name, id)
-			if warnMissingIDs {
-				warnings = append(warnings, msg)
-			} else {
-				problems = append(problems, msg)
-			}
+			problems = append(problems, fmt.Sprintf("%s: %s: empty translation", name, id))
 			continue
 		}
 

@@ -165,12 +165,11 @@ describe('check_icu', () => {
             expect(stderr).toContain('fr.json:a.b: empty translation');
         });
 
-        test('an empty translation is a warning under --warn-missing-keys', () => {
+        test('an empty translation is still an error under --warn-missing-keys', () => {
             const {code, stderr} = check({'a.b': 'Hello'}, {'fr.json': {'a.b': ''}}, {warnMissingKeys: true});
 
-            expect(code).toBe(0);
+            expect(code).toBe(1);
             expect(stderr).toContain('fr.json:a.b: empty translation');
-            expect(stderr).toContain('1 warning(s)');
         });
 
         test('a whitespace-only translation is an error by default', () => {

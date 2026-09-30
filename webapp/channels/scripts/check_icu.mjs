@@ -13,7 +13,8 @@
  *   - the file is valid JSON and every value is a string
  *   - no value is empty or whitespace-only. react-intl replaces '' with the
  *     English, exactly as for a missing key, and renders whitespace as a blank.
- *     --warn-missing-keys downgrades this too, for work in progress.
+ *     --warn-missing-keys does not downgrade this: a blank entry is a leftover
+ *     placeholder, not work in progress.
  *   - every value parses with @formatjs/icu-messageformat-parser, the parser
  *     react-intl runs in production, so "parses here" implies "parses there"
  *   - a translation never invents a variable the source does not have. An
@@ -33,7 +34,7 @@
  *
  * Key parity is a separate question from whether the entries that exist are
  * correct. An extra key, one en.json does not have, is always an error: nothing
- * will ever read it. A missing key -- absent, or present but blank -- is an
+ * will ever read it. An absent key is an
  * error by default and a warning under --warn-missing-keys, and is not a
  * runtime defect either way, because react-intl falls back to the source
  * message.
@@ -205,8 +206,11 @@ for (const name of localeNames) {
         // react-intl falls back to the English for '', exactly as for a missing
         // key. A whitespace-only translation is worse: it renders, and the
         // user sees nothing at all.
+        // Unlike a missing key, this is an error even under --warn-missing-keys:
+        // an absent key is work in progress, but an empty one is a placeholder
+        // left behind, such as the translate-i18n skill's seeding.
         if (message.trim() === '') {
-            (warnMissingKeys ? warnings : errors).push(`${name}:${key}: empty translation`);
+            errors.push(`${name}:${key}: empty translation`);
             continue;
         }
 
