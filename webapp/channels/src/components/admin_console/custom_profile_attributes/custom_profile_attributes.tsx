@@ -16,9 +16,9 @@ import type {UserPropertyField, UserPropertyFieldType} from '@mattermost/types/p
 import {Client4} from 'mattermost-redux/client';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
 
-import {GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from 'components/admin_console/global_attributes/constants';
-
 import {getPluginDisplayName} from 'selectors/plugins';
+
+import {GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from 'components/admin_console/global_attributes/constants';
 
 import SettingsGroup from 'components/admin_console/settings_group';
 import TextSetting from 'components/admin_console/text_setting';

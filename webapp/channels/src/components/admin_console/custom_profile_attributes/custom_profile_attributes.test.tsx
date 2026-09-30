@@ -305,7 +305,9 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
             await userEvent.type(input, 'new-title');
 
             const saveAction = baseProps.registerSaveAction.mock.calls.at(-1)[0];
-            await act(async () => { await saveAction(); });
+            await act(async () => {
+                await saveAction();
+            });
 
             expect(Client4.patchPropertyField).toHaveBeenCalledWith(
                 'access_control', 'template', 'template-field-id', {attrs: {ldap: 'new-title'}},
@@ -328,7 +330,9 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
             await userEvent.clear(input);
 
             const saveAction = baseProps.registerSaveAction.mock.calls.at(-1)[0];
-            await act(async () => { await saveAction(); });
+            await act(async () => {
+                await saveAction();
+            });
 
             expect(Client4.patchPropertyField).toHaveBeenCalledWith(
                 'access_control', 'template', 'template-field-id', {attrs: {ldap: null}},
