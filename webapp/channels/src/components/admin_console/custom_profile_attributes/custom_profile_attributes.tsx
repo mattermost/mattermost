@@ -19,7 +19,6 @@ import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/ge
 import {getPluginDisplayName} from 'selectors/plugins';
 
 import {GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from 'components/admin_console/global_attributes/constants';
-
 import SettingsGroup from 'components/admin_console/settings_group';
 import TextSetting from 'components/admin_console/text_setting';
 
