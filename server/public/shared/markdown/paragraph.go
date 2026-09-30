@@ -32,9 +32,21 @@ func (b *Paragraph) Continuation(indentation int, r Range) *continuation {
 }
 
 func (b *Paragraph) Close() {
+	// What a reference definition leaves behind is the tail of the text it was read from, so the
+	// text is joined once and read from a growing offset. Joining it again for each definition
+	// would make the work a paragraph of definitions costs grow with the square of its length.
+	var raw string
+	rawOffset := 0
+	hasRaw := false
+
 	for {
 		for i := range b.Text {
-			b.Text[i] = trimLeftSpace(b.markdown, b.Text[i])
+			if trimmed := trimLeftSpace(b.markdown, b.Text[i]); trimmed != b.Text[i] {
+				b.Text[i] = trimmed
+				// Trimming shortens the text the ranges cover, so what was joined no longer
+				// describes them.
+				hasRaw = false
+			}
 			if b.Text[i].Position < b.Text[i].End {
 				break
 			}
@@ -44,12 +56,19 @@ func (b *Paragraph) Close() {
 			break
 		}
 
-		definition, remaining := parseReferenceDefinition(b.markdown, b.Text)
+		if !hasRaw {
+			raw = joinRanges(b.markdown, b.Text)
+			rawOffset = 0
+			hasRaw = true
+		}
+
+		definition, length := parseReferenceDefinition(b.markdown, raw[rawOffset:], b.Text)
 		if definition == nil {
 			break
 		}
 		b.ReferenceDefinitions = append(b.ReferenceDefinitions, definition)
-		b.Text = remaining
+		rawOffset += length
+		b.Text = trimBytesFromRanges(b.Text, length)
 	}
 
 	for i, v := range slices.Backward(b.Text) {
