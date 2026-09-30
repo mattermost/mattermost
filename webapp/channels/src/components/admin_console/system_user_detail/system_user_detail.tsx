@@ -2117,7 +2117,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             )}
                         </div>
                     }
-                    confirmButtonVariant='destructive'
+                    destructive={true}
                     confirmButtonText={
                         <FormattedMessage
                             id='deactivate_member_modal.deactivate'

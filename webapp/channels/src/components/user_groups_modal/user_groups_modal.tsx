@@ -5,7 +5,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {GetGroupsForUserParams, GetGroupsParams, Group, GroupSearchParams} from '@mattermost/types/groups';
 
 import './user_groups_modal.scss';
@@ -216,7 +216,7 @@ const UserGroupsModal = (props: Props) => {
                 props.canCreateCustomGroups &&
                 <Button
                     emphasis='secondary'
-                    size='sm'
+                    size='small'
                     onClick={goToCreateModal}
                 >
                     <FormattedMessage

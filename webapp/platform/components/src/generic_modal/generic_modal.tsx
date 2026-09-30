@@ -6,7 +6,7 @@ import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {Button, type ButtonVariant} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import {useFocusTrap} from '../hooks/useFocusTrap';
 import {useStackedModal} from '../hooks/useStackedModal';
@@ -29,7 +29,7 @@ export type Props = {
     handleEnterKeyPress?: () => void;
     handleKeydown?: (event?: React.KeyboardEvent<HTMLDivElement>) => void;
     confirmButtonText?: React.ReactNode;
-    confirmButtonVariant?: ButtonVariant;
+    destructive?: boolean;
     cancelButtonText?: React.ReactNode;
     isConfirmDisabled?: boolean;
     id?: string;
@@ -115,7 +115,7 @@ export const GenericModal: React.FC<Props> = ({
     handleEnterKeyPress,
     handleKeydown,
     confirmButtonText,
-    confirmButtonVariant,
+    destructive,
     cancelButtonText,
     isConfirmDisabled,
     container,
@@ -204,7 +204,7 @@ export const GenericModal: React.FC<Props> = ({
     // Build confirm button if provided.
     let confirmButtonElement;
     if (handleConfirm) {
-        const buttonTypeClass = confirmButtonVariant === 'destructive' ? 'delete' : 'confirm';
+        const buttonTypeClass = destructive ? 'delete' : 'confirm';
         let confirmButtonTextContent: React.ReactNode = (
             <FormattedMessage
                 id='generic_modal.confirm'
@@ -219,7 +219,7 @@ export const GenericModal: React.FC<Props> = ({
                 autoFocus={autoFocusConfirmButton}
                 type='submit'
                 emphasis='primary'
-                variant={confirmButtonVariant}
+                destructive={destructive}
                 className={classNames('GenericModal__button', buttonTypeClass, {
                     disabled: isConfirmDisabled,
                 })}

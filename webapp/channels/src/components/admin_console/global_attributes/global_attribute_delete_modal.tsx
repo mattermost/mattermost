@@ -76,7 +76,7 @@ function GlobalAttributeDeleteModal({name, onConfirm, onExited, isOrphaned = fal
     return (
         <GenericModal
             confirmButtonText={confirmButtonText}
-            confirmButtonVariant='destructive'
+            destructive={true}
             handleCancel={noop}
             handleConfirm={onConfirm}
             modalHeaderText={title}

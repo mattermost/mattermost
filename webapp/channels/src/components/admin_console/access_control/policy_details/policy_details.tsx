@@ -871,7 +871,7 @@ function PolicyDetails({
                             defaultMessage='Delete Policy'
                         />
                     }
-                    confirmButtonVariant='destructive'
+                    destructive={true}
                     compassDesign={true}
                 >
                     <>

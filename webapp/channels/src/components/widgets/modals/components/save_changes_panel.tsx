@@ -6,7 +6,7 @@ import React, {useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
@@ -113,7 +113,7 @@ function SaveChangesPanel({
                 <Button
                     data-testid='SaveChangesPanel__cancel-btn'
                     emphasis='tertiary'
-                    size='sm'
+                    size='small'
                     className={classNames('SaveChangesPanel__cancel-btn', {error: tabChangeError || state === 'error'})}
                     onClick={handleCancel}
                     disabled={saving}
@@ -128,7 +128,7 @@ function SaveChangesPanel({
                 <Button
                     data-testid='SaveChangesPanel__save-btn'
                     emphasis='primary'
-                    size='sm'
+                    size='small'
                     className={classNames('SaveChangesPanel__save-btn', {error: tabChangeError || state === 'error', 'btn-force-disabled': saving})}
                     onClick={handleSubmit}
                     disabled={saveButtonDisabled}

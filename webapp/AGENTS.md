@@ -8,18 +8,19 @@ Follow `webapp/STYLE_GUIDE.md` for canonical style, accessibility, and testing s
 
 ## Shared Components
 
-Prefer the shared components from `@mattermost/shared` over hand-rolled equivalents:
+Prefer design-system components over hand-rolled equivalents:
 
-- **`Button`** — use for text-based button UI instead of building bespoke `<button>` elements or styling.
+- **`Button`** — for **new and migrated** text-based button UI, prefer Compass UI. Shared remains until migration finishes; do not introduce new shared `Button` call sites when compass-ui fits.
   ```typescript
-  import {Button} from '@mattermost/shared/components/button';
+  import {Button} from '@mattermost/compass-ui/components/button';
   ```
+  Size tokens differ from shared (`xs`/`sm`/`md`/`lg` → `x-small`/`small`/`medium`/`large`). Use `destructive` (boolean) and `appearance="inverted"` instead of shared `variant`.
 - **`WithTooltip`** — use for tooltips instead of wiring up Floating UI or other tooltip primitives directly.
   ```typescript
   import {WithTooltip} from '@mattermost/shared/components/tooltip';
   ```
 
-Always import via the full package name (`@mattermost/shared/...`), never via relative paths into `platform/shared/`.
+Always import via the full package name (`@mattermost/shared/...` or `@mattermost/compass-ui/...`), never via relative paths into `platform/shared/` or package source.
 
 ## Plugin-facing surface on `window.WebappUtils`
 

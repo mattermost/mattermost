@@ -815,7 +815,7 @@ function PermissionPolicyDetails({
                                     defaultMessage='Delete Policy'
                                 />
                             }
-                            confirmButtonVariant='destructive'
+                            destructive={true}
                             compassDesign={true}
                         >
                             <FormattedMessage

@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Team} from '@mattermost/types/teams';
 
 import Permissions from 'mattermost-redux/constants/permissions';
@@ -184,7 +184,7 @@ export default class TeamMembersModal extends React.PureComponent<Props, State> 
                             id='invitePeople'
                             type='button'
                             emphasis='primary'
-                            size='sm'
+                            size='small'
                             onClick={this.handleInvitePeople}
                         >
                             <FormattedMessage

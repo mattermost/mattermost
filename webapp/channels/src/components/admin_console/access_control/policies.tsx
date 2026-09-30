@@ -503,7 +503,7 @@ export default function PolicyList(props: Props): JSX.Element {
                             defaultMessage='Delete Policy'
                         />
                     }
-                    confirmButtonVariant='destructive'
+                    destructive={true}
                     compassDesign={true}
                 >
                     <>

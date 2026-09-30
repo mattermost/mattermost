@@ -8,7 +8,7 @@ import {useHistory} from 'react-router-dom';
 
 import {ChevronLeftIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Channel} from '@mattermost/types/channels';
 import type {ScheduledRecap, ScheduledRecapInput, ScheduledRecapTimePeriod} from '@mattermost/types/recaps';
 import {ScheduledRecapChannelModes, ScheduledRecapTimePeriods} from '@mattermost/types/recaps';

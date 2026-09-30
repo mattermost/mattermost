@@ -272,7 +272,7 @@ function PendingJoinRequestRow({
                         defaultMessage='Deny request'
                     />
                 }
-                confirmButtonVariant='destructive'
+                destructive={true}
                 onConfirm={handleDenyConfirm}
                 onCancel={() => setShowDenyConfirm(false)}
             />

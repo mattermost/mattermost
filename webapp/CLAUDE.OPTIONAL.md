@@ -52,7 +52,7 @@ Always import packages using their full name, never relative paths:
 // Correct
 import {Client4} from '@mattermost/client';
 import {UserProfile} from '@mattermost/types/users';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
@@ -67,7 +67,8 @@ import Client4 from '../platform/client/src/client4.ts';
 - **React Router 5.3**: Client-side routing
 - **React Intl**: Internationalization
 - **Floating UI**: Tooltips and popovers (prefer `WithTooltip` from `@mattermost/shared/components/tooltip`)
-- **@mattermost/shared**: Shared components and utilities (`Button`, `WithTooltip`, etc.) — prefer these over rolling your own
+- **@mattermost/compass-ui**: Prefer `Button` from here for new and migrated call sites; `@mattermost/shared` Button remains until migration finishes
+- **@mattermost/shared**: Shared components and utilities (`WithTooltip`, etc.) — prefer these over rolling your own
 - **@mattermost/compass-icons**: Icon library (prefer over font-awesome)
 - **Monaco Editor**: Code editor integration
 - **Styled Components**: Limited use (for MUI and some legacy components)

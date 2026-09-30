@@ -712,7 +712,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                             defaultMessage='Are you sure you want to deactivate your account? This can only be reversed by your System Administrator.'
                         />
                     }
-                    confirmButtonVariant='destructive'
+                    destructive={true}
                     confirmButtonText={deactivateMemberButton}
                     onConfirm={this.handleDeactivateAccountSubmit}
                     onCancel={this.handleHideDeactivateAccountModal}

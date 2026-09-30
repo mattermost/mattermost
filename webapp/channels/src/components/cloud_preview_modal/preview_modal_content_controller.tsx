@@ -6,7 +6,7 @@ import {useIntl} from 'react-intl';
 
 import {ArrowLeftIcon, ArrowRightIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import PreviewModalContent from './preview_modal_content';
 import {modalContent} from './preview_modal_content_data';

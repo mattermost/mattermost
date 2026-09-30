@@ -5,7 +5,8 @@ import classNames from 'classnames';
 import React, {useMemo} from 'react';
 
 import glyphMap from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
+import type {ButtonAppearance, ButtonSize} from '@mattermost/compass-ui/components/button';
 
 import {useBooleanProp, useDropdownProp, useStringProp} from './hooks';
 import {buildComponent} from './utils';
@@ -15,8 +16,7 @@ const propPossibilities = {};
 const iconValues = [''].concat(Object.keys(glyphMap));
 
 const emphasisValues = ['primary', 'secondary', 'tertiary', 'quaternary'];
-const sizeValues = ['xs', 'sm', 'md', 'lg'];
-const variantValues = ['', 'destructive'];
+const sizeValues = ['x-small', 'small', 'medium', 'large'];
 
 type Props = {
     backgroundClass: string;
@@ -29,8 +29,8 @@ export default function ButtonComponentLibrary({backgroundClass}: Props) {
     const [trailingIcon, trailingIconPossibilities, trailingIconSelector] = useDropdownProp('trailingIcon', '', iconValues, false);
 
     const [emphasis, emphasisPossibilities, emphasisSelector] = useDropdownProp('emphasis', 'primary', emphasisValues, true);
-    const [size, sizePossibilities, sizeSelector] = useDropdownProp('size', 'md', sizeValues, true);
-    const [variant, variantPossibilities, variantSelector] = useDropdownProp('variant', '', variantValues, true);
+    const [size, sizePossibilities, sizeSelector] = useDropdownProp('size', 'medium', sizeValues, true);
+    const [destructive, destructiveSelector] = useBooleanProp('destructive', false);
 
     const [disabled, disabledSelector] = useBooleanProp('disabled', false);
 
@@ -51,17 +51,17 @@ export default function ButtonComponentLibrary({backgroundClass}: Props) {
                 leadingIconPossibilities,
                 sizePossibilities,
                 trailingIconPossibilities,
-                variantPossibilities,
             ], [
                 {children},
                 emphasis,
                 size,
-                variant,
+                destructive,
                 disabled,
             ],
         ),
         [
             children,
+            destructive,
             disabled,
             emphasis,
             emphasisPossibilities,
@@ -69,8 +69,6 @@ export default function ButtonComponentLibrary({backgroundClass}: Props) {
             size,
             sizePossibilities,
             trailingIconPossibilities,
-            variant,
-            variantPossibilities,
         ],
     );
 
@@ -82,7 +80,7 @@ export default function ButtonComponentLibrary({backgroundClass}: Props) {
             <hr/>
             {emphasisSelector}
             {sizeSelector}
-            {variantSelector}
+            {destructiveSelector}
             <hr/>
             {disabledSelector}
             <div className={classNames('clWrapper', backgroundClass)}>{components}</div>
@@ -92,26 +90,29 @@ export default function ButtonComponentLibrary({backgroundClass}: Props) {
 }
 
 function ButtonGrid() {
-    const sizes = ['md', 'xs', 'sm', 'lg'] as const;
-    const variants = ['', 'destructive', 'inverted'] as const;
+    const sizes: ButtonSize[] = ['medium', 'x-small', 'small', 'large'];
+    const appearances: Array<{label: string; appearance?: ButtonAppearance; destructive?: boolean}> = [
+        {label: 'default'},
+        {label: 'destructive', destructive: true},
+        {label: 'inverted', appearance: 'inverted'},
+    ];
     const states = ['default', 'hover', 'active', 'focus', 'disabled'] as const;
 
     const emphasisLevels = ['primary', 'secondary', 'tertiary', 'quaternary'] as const;
 
     const rows = [];
     for (const size of sizes) {
-        for (const variant of variants) {
+        for (const appearance of appearances) {
             for (const state of states) {
                 const row = [];
 
-                if (variant === '' && state === 'default') {
-                    const sizeLabels = {md: 'medium', xs: 'x-small', sm: 'small', lg: 'large'} as const;
+                if (appearance.label === 'default' && state === 'default') {
                     row.push(
                         <th
                             key='size'
                             scope='row'
                         >
-                            {sizeLabels[size]}
+                            {size}
                         </th>,
                     );
                 } else {
@@ -126,7 +127,7 @@ function ButtonGrid() {
                             key='variant'
                             scope='row'
                         >
-                            {variant}
+                            {appearance.label}
                         </th>,
                     );
                 } else {
@@ -153,12 +154,13 @@ function ButtonGrid() {
                     row.push(
                         <td
                             key={emphasis}
-                            className={classNames({inverted: variant === 'inverted'})}
+                            className={classNames({inverted: appearance.appearance === 'inverted'})}
                         >
                             <Button
                                 emphasis={emphasis}
                                 size={size}
-                                variant={variant}
+                                destructive={appearance.destructive}
+                                appearance={appearance.appearance}
                                 className={stateClassName}
                                 disabled={state === 'disabled'}
                             >
@@ -169,7 +171,7 @@ function ButtonGrid() {
                 }
 
                 rows.push(
-                    <tr key={`${size}-${variant}-${state}`} >
+                    <tr key={`${size}-${appearance.label}-${state}`} >
                         {row}
                     </tr>,
                 );

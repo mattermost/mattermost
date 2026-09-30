@@ -6,7 +6,7 @@ import {defineMessage, FormattedDate, FormattedMessage, useIntl} from 'react-int
 import {useSelector, useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {ClientLicense, License} from '@mattermost/types/config';
 
 import {previewLicense, uploadLicense} from 'mattermost-redux/actions/admin';
