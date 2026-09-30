@@ -660,7 +660,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
     test('explains the blocked section switch while the rule editor is open', async () => {
         const {rerender} = await openExistingRuleEditor();
 
-        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+        expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
 
         rerender(
             <ChannelSettingsPermissionsPolicyTab
@@ -669,9 +669,9 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
             />,
         );
 
-        expect(await screen.findByRole('alert')).toHaveTextContent(
-            'You have unsaved changes. Save or cancel this rule to continue.',
-        );
+        // The same floating footer the rest of the modal uses, in its error state.
+        expect(await screen.findByText('You have unsaved changes')).toBeInTheDocument();
+        expect(screen.getByTestId('SaveChangesPanel__save-btn')).toBeDisabled();
 
         // The modal clears the flag on a timeout.
         rerender(
@@ -682,7 +682,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
         );
 
         await waitFor(() => {
-            expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
         });
     });
 
@@ -696,9 +696,24 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
             />,
         );
 
-        expect(await screen.findByRole('alert')).toHaveTextContent(
-            'You have unsaved changes. Save or cancel this rule to continue.',
+        expect(await screen.findByText('You have unsaved changes')).toBeInTheDocument();
+    });
+
+    test('leaves the rule editor when the blocked-switch footer is cancelled', async () => {
+        const {rerender} = await openExistingRuleEditor();
+
+        rerender(
+            <ChannelSettingsPermissionsPolicyTab
+                {...baseProps}
+                showTabSwitchError={true}
+            />,
         );
+
+        await userEvent.click(await screen.findByTestId('SaveChangesPanel__cancel-btn'));
+
+        // Back on the rules list, with the rule the editor was showing intact.
+        expect(screen.queryByTestId('permissions-policy-editor')).not.toBeInTheDocument();
+        expect(screen.getByText('Existing rule')).toBeInTheDocument();
     });
 
     test('keeps the in-progress draft when a section switch is blocked', async () => {
@@ -719,9 +734,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
             />,
         );
 
-        expect(await screen.findByRole('alert')).toHaveTextContent(
-            'You have unsaved changes. Save or cancel this rule to continue.',
-        );
+        expect(await screen.findByText('You have unsaved changes')).toBeInTheDocument();
 
         // The message asks the user to save the rule, so the rule has to survive it.
         expect(screen.getByTestId('permissions-policy-editor-name')).toHaveValue('Renamed rule');
@@ -745,30 +758,6 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
         );
 
         expect(screen.getByTestId('permissions-policy-editor-error')).toHaveTextContent('Each permission rule needs a unique name.');
-    });
-
-    test('scrolls the blocked section switch warning into view', async () => {
-        const scrollIntoView = jest.fn();
-        const originalScrollIntoView = HTMLElement.prototype.scrollIntoView;
-        HTMLElement.prototype.scrollIntoView = scrollIntoView;
-
-        try {
-            const {rerender} = await openExistingRuleEditor();
-            expect(scrollIntoView).not.toHaveBeenCalled();
-
-            rerender(
-                <ChannelSettingsPermissionsPolicyTab
-                    {...baseProps}
-                    showTabSwitchError={true}
-                />,
-            );
-
-            await screen.findByRole('alert');
-            await waitFor(() => {
-                expect(scrollIntoView).toHaveBeenCalledWith({behavior: 'smooth', block: 'nearest'});
-            });
-        } finally {
-            HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
-        }
+        expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
     });
 });

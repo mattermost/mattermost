@@ -19855,10 +19855,6 @@
     "defaultMessage": "Save rule",
     "description": "Confirm button in the permission rule editor when saving changes to a rule."
   },
-  "channel_settings.permissions_policy.editor.tab_switch_error": {
-    "defaultMessage": "You have unsaved changes. Save or cancel this rule to continue.",
-    "description": "Error shown in the permission rule editor when the user tries to switch to another Channel Settings section while a rule is still being edited; they must save or cancel the rule first."
-  },
   "channel_settings.permissions_policy.empty": {
     "defaultMessage": "No permission rules yet. Click \"Add rule\" to create one.",
     "description": "Empty-state text of the permission rules table; 'Add rule' refers to the button of that name."

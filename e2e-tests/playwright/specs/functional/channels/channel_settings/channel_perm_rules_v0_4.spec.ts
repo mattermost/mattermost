@@ -191,12 +191,13 @@ test.describe('Channel Settings Modal - Permissions Policy tab (v0.4)', () => {
             // # Try to leave the editor by selecting the Info section
             await channelSettings.infoTab.click();
 
-            // * The blocked switch is explained rather than ignored. The modal
-            // withdraws the explanation after 3s, so assert inside that window.
-            await expect(channelSettings.container.getByTestId('permissions-policy-editor-error')).toHaveText(
-                'You have unsaved changes. Save or cancel this rule to continue.',
-                {timeout: 2000},
-            );
+            // * The blocked switch is reported through the modal's floating
+            // footer in its error state, with saving from there disabled. The
+            // modal withdraws it after 3s, so assert inside that window.
+            const savePanel = channelSettings.container.locator('.SaveChangesPanel');
+            await expect(savePanel).toContainText('You have unsaved changes', {timeout: 2000});
+            await expect(savePanel).toHaveClass(/error/);
+            await expect(channelSettings.saveButton).toBeDisabled();
 
             // * The Permissions Policy section is still the selected one and the draft is intact
             await expect(permissionsTab).toHaveAttribute('aria-selected', 'true');
