@@ -341,6 +341,112 @@ describe('PluginRegistry — registerChannelIntro', () => {
     });
 });
 
+describe('PluginRegistry — registerChannelViewComponent', () => {
+    const PLUGIN_ID = 'test_plugin';
+
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+    });
+
+    function getChannelViewRegs() {
+        return mockCurrentStore.getState().components.ChannelView;
+    }
+
+    it('(a) adds an entry with the returned id, plugin id, matcher, and component', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const matcher = () => true;
+        const component = () => null;
+        const id = registry.registerChannelViewComponent({matcher, component});
+
+        expect(typeof id).toBe('string');
+        expect(id.length).toBeGreaterThan(0);
+
+        const entries = getChannelViewRegs();
+        expect(entries).toHaveLength(1);
+        expect(entries[0].id).toBe(id);
+        expect(entries[0].pluginId).toBe(PLUGIN_ID);
+        expect(entries[0].matcher).toBe(matcher);
+        expect(entries[0].component).toBe(component);
+        expect(entries[0].handlesPermalinks).toBe(false);
+    });
+
+    it('(b) accepts positional arguments', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const matcher = () => true;
+        const component = () => null;
+        registry.registerChannelViewComponent(matcher, component);
+        registry.registerChannelViewComponent(matcher, component, true);
+
+        const entries = getChannelViewRegs();
+        expect(entries).toHaveLength(2);
+        expect(entries[0].matcher).toBe(matcher);
+        expect(entries[0].component).toBe(component);
+        expect(entries[0].handlesPermalinks).toBe(false);
+        expect(entries[1].handlesPermalinks).toBe(true);
+    });
+
+    it('(b2) stores handlesPermalinks only when it is exactly true', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        registry.registerChannelViewComponent({matcher: () => true, component: () => null, handlesPermalinks: true});
+        registry.registerChannelViewComponent({matcher: () => true, component: () => null, handlesPermalinks: 'yes' as unknown as boolean});
+
+        const entries = getChannelViewRegs();
+        expect(entries[0].handlesPermalinks).toBe(true);
+        expect(entries[1].handlesPermalinks).toBe(false);
+    });
+
+    it('(c) unregisterComponent removes only that registration', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const id1 = registry.registerChannelViewComponent({matcher: () => true, component: () => null});
+        const id2 = registry.registerChannelViewComponent({matcher: () => false, component: () => null});
+        expect(id1).not.toBe(id2);
+
+        registry.unregisterComponent(id1);
+
+        const entries = getChannelViewRegs();
+        expect(entries).toHaveLength(1);
+        expect(entries[0].id).toBe(id2);
+    });
+
+    it('(d) REMOVED_WEBAPP_PLUGIN sweeps entries for that plugin and leaves others intact', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const otherRegistry = new PluginRegistry('other_plugin');
+
+        registry.registerChannelViewComponent({matcher: () => true, component: () => null});
+        otherRegistry.registerChannelViewComponent({matcher: () => false, component: () => null});
+
+        mockCurrentStore.dispatch({
+            type: ActionTypes.REMOVED_WEBAPP_PLUGIN,
+            data: {id: PLUGIN_ID},
+        });
+
+        const entries = getChannelViewRegs();
+        expect(entries).toHaveLength(1);
+        expect(entries[0].pluginId).toBe('other_plugin');
+    });
+
+    it('(e) registrations from different plugins are sorted by pluginId', () => {
+        const registryZ = new PluginRegistry('zzz_plugin');
+        const registryA = new PluginRegistry('aaa_plugin');
+
+        registryZ.registerChannelViewComponent({matcher: () => true, component: () => null});
+        registryA.registerChannelViewComponent({matcher: () => true, component: () => null});
+
+        const entries = getChannelViewRegs();
+        expect(entries).toHaveLength(2);
+        expect(entries[0].pluginId).toBe('aaa_plugin');
+        expect(entries[1].pluginId).toBe('zzz_plugin');
+    });
+
+    it('(f) is ignored when the plugin is no longer active', () => {
+        const registry = new PluginRegistry(PLUGIN_ID, () => false);
+        const id = registry.registerChannelViewComponent({matcher: () => true, component: () => null});
+
+        expect(typeof id).toBe('string');
+        expect(getChannelViewRegs()).toHaveLength(0);
+    });
+});
+
 describe('PluginRegistry — registerPostHeaderComponent', () => {
     const PLUGIN_ID = 'test_plugin';
 
