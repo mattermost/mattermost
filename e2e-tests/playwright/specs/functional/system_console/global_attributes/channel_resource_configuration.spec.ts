@@ -12,7 +12,13 @@
 import {expect, test} from '@mattermost/playwright-lib';
 
 import {configureChannelAttribute, deleteChannelFieldIfExists, findChannelField} from './applies_to_helpers';
-import {deleteGlobalAttributeFieldIfExists, requireGlobalAttributesEnabled} from './global_attributes_helpers';
+import {
+    createGlobalAttributeField,
+    createLinkedDependentField,
+    deleteGlobalAttributeFieldIfExists,
+    deleteLinkedDependentField,
+    requireGlobalAttributesEnabled,
+} from './global_attributes_helpers';
 
 test.describe(
     'System Console - applying an attribute to channels',
@@ -111,52 +117,6 @@ test.describe(
         });
 
         /**
-         * @objective Ensure the Channel Info display location puts the attribute in Channel Info only.
-         */
-        test('shows a Channel-Info-only attribute in Channel Info and not in the header', async ({pw}) => {
-            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
-            const suffix = pw.random.id();
-            let name = '';
-
-            try {
-                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-
-                name = await configureChannelAttribute(systemConsolePage, {
-                    displayName: `Info ${suffix}`,
-                    type: 'Select',
-                    options: ['INTERNAL'],
-                    required: true,
-                    displayLocations: ['display_label_info'],
-                });
-
-                const {team} = await pw.initSetup();
-                const {channelsPage} = await pw.testBrowser.login(adminUser);
-                await channelsPage.goto(team.name);
-                await channelsPage.toBeVisible();
-
-                const modal = await channelsPage.openNewChannelModal();
-                await modal.fillDisplayName(`Attr Info ${suffix}`);
-                await channelsPage.page.getByTestId(`channelAttribute-${name}`).click();
-                await channelsPage.page.getByText('INTERNAL', {exact: true}).click();
-                await modal.create();
-                await expect(modal.container).not.toBeVisible();
-
-                // * The inline header slot carries it, the row-below slot does not
-                await expect(channelsPage.centerView.header.infoAttributes.chip('INTERNAL')).toBeVisible();
-                await expect(channelsPage.centerView.header.attributes.chip('INTERNAL')).toHaveCount(0);
-
-                // * And Channel Info carries it, as it does for every attribute
-                const info = await channelsPage.openChannelInfo();
-                await expect(info.attributes.chip(name)).toHaveText('INTERNAL');
-            } finally {
-                await deleteChannelFieldIfExists(adminClient, name);
-                await deleteGlobalAttributeFieldIfExists(adminClient, name);
-            }
-        });
-
-        /**
          * @objective Ensure the Banner display location renders a banner and nothing else.
          */
         test('renders a Banner-only attribute as a banner, with no chip', async ({pw}) => {
@@ -241,7 +201,6 @@ test.describe(
 
                 // * And is rendered on no display surface
                 await expect(channelsPage.centerView.header.attributes.chip('QUIET')).toHaveCount(0);
-                await expect(channelsPage.centerView.header.infoAttributes.chip('QUIET')).toHaveCount(0);
                 await expect(channelsPage.page.getByTestId('channel_banner_container')).toHaveCount(0);
 
                 // * Channel Info still lists it: the display locations govern the
@@ -274,7 +233,6 @@ test.describe(
                     options: ['FINAL'],
                     required: true,
                     changePolicy: 'Cannot be changed once set',
-                    displayLocations: ['display_label_info'],
                 });
 
                 // * The console wrote both keys: change_policy, and the editable key the
@@ -327,7 +285,6 @@ test.describe(
                     type: 'Select',
                     options: ['SET'],
                     required: true,
-                    displayLocations: ['display_label_info'],
                 });
 
                 const channelField = await findChannelField(adminClient, name);
@@ -364,6 +321,51 @@ test.describe(
             } finally {
                 await deleteChannelFieldIfExists(adminClient, name);
                 await deleteGlobalAttributeFieldIfExists(adminClient, name);
+            }
+        });
+        /**
+         * @objective Regression for MM-70890: a template with ldap/saml sync attrs applied to
+         * a channel must NOT copy those attrs onto the channel-linked field. Without the fix,
+         * checkSyncLock blocks all writes to the channel field with 403 because the field
+         * carries attrs.ldap/attrs.saml even though SAML/LDAP sync never writes channel values.
+         */
+        test('channel-linked field does not inherit ldap/saml sync attrs from the template', async ({pw}) => {
+            const {adminClient} = await requireGlobalAttributesEnabled(pw);
+            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
+            const suffix = pw.random.id();
+            const name = `sync_attr_regression_${suffix}`;
+            let templateId = '';
+            let channelFieldId = '';
+
+            try {
+                // # Create a template with ldap and saml attrs via API
+                const template = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {ldap: 'sAMAccountName', saml: 'employeeID'},
+                });
+                templateId = template.id;
+
+                // # Link a channel field to that template
+                const channelField = await createLinkedDependentField(
+                    adminClient,
+                    name,
+                    template.id,
+                    'text',
+                    'channel',
+                );
+                channelFieldId = channelField.id;
+
+                // * The channel field must not carry ldap or saml attrs
+                expect(channelField.attrs?.ldap).toBeUndefined();
+                expect(channelField.attrs?.saml).toBeUndefined();
+            } finally {
+                if (channelFieldId) {
+                    await deleteLinkedDependentField(adminClient, channelFieldId, 'channel');
+                }
+                if (templateId) {
+                    await deleteGlobalAttributeFieldIfExists(adminClient, name);
+                }
             }
         });
     },

@@ -11,6 +11,7 @@ import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/re
 
 import {GraphParentEdgeAlert} from './edge_alert';
 import {classifyParentCandidate} from './edge_candidates';
+import {SEARCH_FIELD_CLASS} from './edge_list';
 import {addChildOption, addParentEdge, addTopLevelOption, removeParentEdge} from './graph_utils';
 import AttributeGraphParentsPane from './parents_pane';
 
@@ -154,6 +155,7 @@ describe('AttributeGraphParentsPane', () => {
         const search = screen.getByTestId('attributeGraphParentsPane__search');
         fireEvent.focus(search);
         expect(screen.getByTestId('attributeGraphParentsPane__suggestions')).toBeInTheDocument();
+        expect(screen.getByTestId('attributeGraphParentsPane__suggestions').closest('.attribute-graph-parents-pane')).toBeNull();
 
         fireEvent.blur(search);
         expect(screen.queryByTestId('attributeGraphParentsPane__suggestions')).not.toBeInTheDocument();
@@ -169,6 +171,52 @@ describe('AttributeGraphParentsPane', () => {
         expect(screen.queryByTestId('attributeGraphParentsPane__suggestions')).not.toBeInTheDocument();
     });
 
+    it('closes suggestions on Escape when a candidate is focused', async () => {
+        renderPane([opt('A'), opt('B', ['A']), opt('C', ['B'])], 'C');
+        await openParentsView();
+        await openParentSearch();
+
+        const candidate = screen.getByTestId('attributeGraphParentsPane__candidate-A');
+        candidate.focus();
+        expect(candidate).toHaveFocus();
+        await userEvent.keyboard('{Escape}');
+
+        expect(screen.queryByTestId('attributeGraphParentsPane__suggestions')).not.toBeInTheDocument();
+        expect(screen.getByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Parents of C');
+    });
+
+    it('portals the suggestion list outside the pane so search does not grow the menu', async () => {
+        renderWithContext(
+            <div
+                className='attribute-graph-parents-pane'
+                data-testid='attributeGraphParentsPane'
+            >
+                <AttributeGraphParentsPane
+                    options={[opt('A'), opt('B', ['A']), opt('C', ['B'])]}
+                    optionName='C'
+                    onOptionsChange={jest.fn()}
+                    onDelete={jest.fn()}
+                />
+            </div>,
+        );
+        await openParentsView();
+        const searchField = document.querySelector(`.${SEARCH_FIELD_CLASS}`) as HTMLElement;
+        Object.defineProperty(searchField, 'offsetWidth', {configurable: true, value: 240});
+        Object.defineProperty(screen.getByTestId('attributeGraphParentsPane__search'), 'offsetWidth', {
+            configurable: true,
+            value: 200,
+        });
+        await openParentSearch();
+
+        const suggestions = screen.getByTestId('attributeGraphParentsPane__suggestions');
+        expect(document.body).toContainElement(suggestions);
+        expect(suggestions.closest('[data-testid="attributeGraphParentsPane"]')).toBeNull();
+        expect(suggestions.closest('.attribute-graph-parents-pane')).toBeNull();
+        const paper = suggestions.closest('.attribute-graph-parents-pane__suggestions-paper');
+        expect(paper).toBeTruthy();
+        expect(paper).toHaveStyle({width: '240px'});
+    });
+
     it('keeps suggestions open while a candidate is pressed so add and create still apply', async () => {
         const options = [opt('A'), opt('B', ['A']), opt('C', ['B'])];
         const {onOptionsChange} = renderPane(options, 'C');
@@ -177,6 +225,7 @@ describe('AttributeGraphParentsPane', () => {
 
         const candidate = screen.getByTestId('attributeGraphParentsPane__candidate-A');
         fireEvent.mouseDown(candidate);
+        fireEvent.pointerDown(candidate);
         expect(screen.getByTestId('attributeGraphParentsPane__suggestions')).toBeInTheDocument();
         await userEvent.click(candidate);
 
@@ -404,6 +453,9 @@ describe('AttributeGraphParentsPane', () => {
 
         await userEvent.click(screen.getByTestId('attributeGraphParentsPane__openChildren'));
         await userEvent.click(screen.getByTestId('attributeGraphParentsPane__childSearch'));
+        const childSuggestions = screen.getByTestId('attributeGraphParentsPane__childSuggestions');
+        expect(document.body).toContainElement(childSuggestions);
+        expect(childSuggestions.closest('.attribute-graph-parents-pane')).toBeNull();
         await userEvent.click(screen.getByTestId('attributeGraphParentsPane__candidate-B'));
 
         await waitFor(() => {

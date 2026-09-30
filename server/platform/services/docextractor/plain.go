@@ -26,7 +26,7 @@ func (pe *plainExtractor) Match(filename string) bool {
 	return true
 }
 
-func (pe *plainExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, maxFileSize int64) (string, error) {
+func (pe *plainExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, maxFileSize int64, _ *ExtractionBudget) (string, error) {
 	limit := int64(maxPlainTextExtractionBytes)
 	if maxFileSize > 0 && maxFileSize < limit {
 		limit = maxFileSize
