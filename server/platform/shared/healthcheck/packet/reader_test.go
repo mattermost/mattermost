@@ -387,6 +387,17 @@ func TestReadInvalidPackets(t *testing.T) {
 		assert.Error(t, sectionErr)
 	})
 
+	t.Run("oversized member is a section error", func(t *testing.T) {
+		files := fixtureFiles(t, "standalone")
+		files[model.SupportPacketStatsFileName] = make([]byte, maxMemberSize+1)
+
+		s := readFiles(t, files).Snapshot
+		present, err := s.SectionErr(model.SectionStats)
+		assert.True(t, present)
+		assert.ErrorContains(t, err, "stats.yaml: larger than 64 MiB")
+		assert.Nil(t, s.Stats)
+	})
+
 	t.Run("missing file", func(t *testing.T) {
 		_, err := ReadFile(filepath.Join(t.TempDir(), "missing.zip"))
 		require.Error(t, err)

@@ -208,13 +208,26 @@ func readSection[T any](zr *zip.Reader, sections map[model.WorkspaceSection]erro
 	return &v
 }
 
+// maxMemberSize caps how much of one packet file is read, so a crafted or corrupt packet
+// cannot exhaust memory. Real packet files are a few hundred KB at most.
+const maxMemberSize = 64 << 20
+
 func readMember(zr *zip.Reader, name string, v any, unmarshal func([]byte, any) error) (found bool, err error) {
-	data, err := fs.ReadFile(zr, name)
+	f, err := zr.Open(name)
 	if errors.Is(err, fs.ErrNotExist) {
 		return false, nil
 	}
 	if err != nil {
 		return true, fmt.Errorf("failed to read %s: %w", name, err)
+	}
+	defer f.Close()
+
+	data, err := io.ReadAll(io.LimitReader(f, maxMemberSize+1))
+	if err != nil {
+		return true, fmt.Errorf("failed to read %s: %w", name, err)
+	}
+	if len(data) > maxMemberSize {
+		return true, fmt.Errorf("failed to read %s: larger than %d MiB", name, maxMemberSize>>20)
 	}
 
 	if err = unmarshal(data, v); err != nil {
