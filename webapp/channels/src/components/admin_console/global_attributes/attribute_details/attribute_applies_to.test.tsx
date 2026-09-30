@@ -141,9 +141,11 @@ describe('AttributeAppliesTo', () => {
             expect(users).toHaveTextContent('Name already in use');
 
             // pointerEventsCheck off so userEvent dispatches the click rather than
-            // refusing it over the item's pointer-events: none. What swallows the
-            // click is MUI's own `disabled` handling, which is as far as this goes:
-            // the option is offered, and choosing it adds nothing.
+            // refusing it over the item's pointer-events: none. The component
+            // passes onAdd to every option unconditionally and relies on MUI's
+            // `disabled` to swallow the click, so what follows is a statement
+            // about the outcome only — choosing a blocked option adds nothing —
+            // and not about any guard of this component's own.
             await userEvent.click(users, {pointerEventsCheck: 0});
 
             // A live Menu.Item defers its onClick until the menu has finished

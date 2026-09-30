@@ -117,6 +117,18 @@ describe('AppliesToCard', () => {
         expect(rows).toHaveLength(2);
         expect(rows[0]).toHaveTextContent('Applied to Users as clearance');
         expect(rows[1]).toHaveTextContent('Applied to Posts as post_marking');
+
+        // Each row also carries its resource's icon. Asserted structurally
+        // rather than by role or name, because it is decoration: it is
+        // aria-hidden, repeats the resource the sentence beside it already
+        // names, and has nothing a query by role or accessible name could find.
+        // Without this, deleting it from the card would change nothing any test
+        // here can see.
+        for (const row of rows) {
+            const icon = row.querySelector('.GlobalAttributesResourceIcon');
+            expect(icon).not.toBeNull();
+            expect(icon).toHaveAttribute('aria-hidden', 'true');
+        }
     });
 
     it('does not call itself empty while a read-only resource is listed', () => {

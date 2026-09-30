@@ -47,6 +47,14 @@ describe('AttributeDetails', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         jest.restoreAllMocks();
+
+        // The page lists user fields and templates on mount to resolve name
+        // conflicts, whatever else a test is about. Unmocked that reaches the
+        // network, and every case here would log the rejection the page catches.
+        // Empty pages give the same outcome that failure did -- nothing to
+        // collide with -- and end listPropertyFields' paging loop immediately.
+        // A test with fields of its own replaces this wholesale.
+        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([]);
     });
 
     const ALL_RESOURCES_STATE = {entities: {general: {
@@ -1652,6 +1660,12 @@ describe('AttributeDetails', () => {
             expect(warning).toHaveTextContent('A user attribute named "clearance" already exists and is linked to Security Markings.');
             expect(warning).toHaveTextContent('Applying this attribute to Users would need a second user attribute named "clearance", which the server does not allow.');
             expect(createPropertyField).not.toHaveBeenCalled();
+
+            // * The warning appears and rewrites itself while the admin is still
+            // typing, so a screen reader is only told about it at all if it is a
+            // live region. Polite rather than assertive, which is why the role is
+            // `status`: an alert on every keystroke would talk over the typing.
+            expect(screen.getAllByRole('status')).toContain(warning);
         });
 
         it('shows no warning for a name no user field holds, and clears it again when a conflicting name is changed', async () => {
@@ -1712,6 +1726,9 @@ describe('AttributeDetails', () => {
             // disabled MUI item is pointer-events: none, and letting userEvent
             // refuse the interaction would prove only that CSS. Closing the menu
             // afterwards gives Menu.Item's deferred onClick its chance to fire.
+            // What swallows the click is MUI's `disabled`; the option carries its
+            // onClick unconditionally, so this is a statement about the outcome
+            // and not about any guard of the picker's own.
             await userEvent.click(users, {pointerEventsCheck: 0});
             await userEvent.keyboard('{Escape}');
             await waitFor(() => expect(screen.queryByRole('menuitem')).not.toBeInTheDocument());
@@ -1757,6 +1774,42 @@ describe('AttributeDetails', () => {
             expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('clearance');
             expect(screen.getByTestId('attributeNameConflictWarning')).toBeVisible();
             expect(screen.getByTestId('saveSetting')).toBeEnabled();
+        });
+
+        it('leaves the form fully usable when the listing the warning is built from fails', async () => {
+            // Everything this warning knows comes from that one listing, and
+            // nothing else on the page reads it. A failure therefore costs the
+            // warning alone: the create still goes through, and the server's own
+            // 409 is what actually stops a duplicate user field being made.
+            const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+            jest.spyOn(Client4, 'getPropertyFields').mockRejectedValue(new Error('network'));
+
+            renderComponent();
+            await waitFor(() => {
+                expect(consoleSpy).toHaveBeenCalledWith('AttributeDetails-load-name-conflicts: ', expect.any(Error));
+            });
+            await runPostRenderAct(3);
+
+            // The name every other case in this describe collides on, so the
+            // silence below is the failed listing rather than a free name.
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Clearance');
+
+            expect(screen.queryByTestId('attributeNameConflictWarning')).not.toBeInTheDocument();
+            expect(screen.getByTestId('saveSetting')).toBeEnabled();
+
+            // Users is the only resource an exact collision withholds, so it is
+            // the one an unanswered listing would strand if the page treated
+            // "not known" as "conflicting".
+            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            const users = screen.getByRole('menuitem', {name: /^Users/});
+            expect(users).not.toHaveAttribute('aria-disabled', 'true');
+            expect(users).not.toHaveTextContent('Name already in use');
+
+            await userEvent.click(users);
+            expect(await screen.findByTestId('attributeAppliesToRow-user')).toBeInTheDocument();
+            expect(screen.getByTestId('saveSetting')).toBeEnabled();
+
+            consoleSpy.mockRestore();
         });
     });
 

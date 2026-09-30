@@ -547,17 +547,28 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
     // field owned by Classification and an unrelated `Clearance` template) are
     // therefore invisible to each other here. Resolved against the live user
     // fields, since a CEL rule names one of those.
+    //
+    // Waits on resourcesLoaded like the unlinked rows do: suppressedScopes is
+    // only populated once the scope fetches settle, so warning before that
+    // would read a cache this page has not confirmed it can still fetch.
     const nameConflictsByFieldId = useMemo(() => {
-        const liveUserFields = suppressedScopes.has('user') ? [] : userLinkedFields;
+        const liveUserFields = resourcesLoaded && !suppressedScopes.has('user') ? userLinkedFields : [];
         const byFieldId: Record<string, NameConflict> = {};
         for (const field of allRows) {
+            // Only rows that share the user namespace. A channel or post field
+            // is `resource.attributes.<name>` in CEL, which never resolves to a
+            // user field however alike the two names look; a template counts
+            // because applying it to Users would put it in that namespace.
+            if (field.object_type !== GLOBAL_ATTRIBUTES_OBJECT_TYPE && field.object_type !== 'user') {
+                continue;
+            }
             const conflict = findNameConflict(field.name, liveUserFields, fields, field.id);
             if (conflict) {
                 byFieldId[field.id] = conflict;
             }
         }
         return byFieldId;
-    }, [allRows, fields, suppressedScopes, userLinkedFields]);
+    }, [allRows, fields, resourcesLoaded, suppressedScopes, userLinkedFields]);
 
     // The Source column resolves plugin-owned rows to a plugin display name, but
     // server-only plugins are absent from the webapp manifest registry — their names

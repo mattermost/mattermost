@@ -180,6 +180,52 @@ function mockFieldsByObjectType(byType: Partial<Record<string, PropertyField[]>>
     );
 }
 
+// Same fixture as mockFieldsByObjectType, except that the *second* page of the
+// template object type rejects.
+//
+// Two different lookups read that object type — the classification lookup
+// (findLiveFieldByName) and the clearance name-conflict listing
+// (listLiveFields) — so the object type alone cannot tell them apart. How they
+// page can. findLiveFieldByName returns the moment a page contains a field
+// called `classification` and never asks for another; listLiveFields has no
+// name to stop at, so it always requests one more page to learn it has reached
+// the end. Serving a first page that already holds the classification template
+// therefore satisfies the lookup outright, and rejecting only the cursored
+// follow-up breaks the listing and nothing else.
+function mockFieldsByObjectTypeWithFailingTemplateListing(byType: Partial<Record<string, PropertyField[]>>, error: unknown) {
+    return jest.spyOn(Client4, 'getPropertyFields').mockImplementation(
+        async (_group, objectType, _targetType, _targetId, cursor) => {
+            if (objectType === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE && cursor?.cursorId) {
+                throw error;
+            }
+            return cursor?.cursorId ? [] : (byType[objectType] ?? []);
+        },
+    );
+}
+
+// Cursored reads of the template object type, which only the clearance
+// name-conflict listing issues: the classification lookup stops at the first
+// page that holds `classification`, and an empty first page ends it too.
+function templateListingCalls() {
+    return (Client4.getPropertyFields as jest.Mock).mock.calls.filter(
+        ([, objectType, , , cursor]) => objectType === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE && cursor?.cursorId,
+    );
+}
+
+// The listing runs in its own effect, so the clearance section can be on screen
+// before it has landed — waiting on the section alone would make a "no warning"
+// assertion a statement about the state the page starts in. The cursored
+// follow-up above is what says the listing has read to the end.
+//
+// Needs a fixture whose first template page is non-empty: an empty one ends the
+// paging outright, and there is then no second call to wait for.
+async function waitForClearanceNameListing() {
+    await waitFor(() => {
+        expect(templateListingCalls().length).toBeGreaterThan(0);
+    });
+    await act(async () => {});
+}
+
 // The suite runs with clearMocks, which empties call history but leaves queued
 // mockResolvedValueOnce values and installed implementations in place, so an
 // unconsumed one leaks into the next test. restoreAllMocks drops the spies this
@@ -2219,6 +2265,7 @@ describe('Clearance name shared with another attribute', () => {
     async function renderClearanceSection() {
         renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
         await screen.findByTestId('clearanceAttributeCheckbox');
+        await waitForClearanceNameListing();
         return within(screen.getByTestId('clearanceAttribute'));
     }
 
@@ -2311,6 +2358,123 @@ describe('Clearance name shared with another attribute', () => {
         expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeDisabled();
         expect(section.getByRole('heading', {name: 'Clearance attribute cannot be created'})).toBeInTheDocument();
         expect(section.queryByRole('heading', {name: 'Another attribute already uses this name'})).not.toBeInTheDocument();
+    });
+});
+
+// The listing behind that warning is the only lookup on this page whose answer
+// nothing depends on: it decides a sentence, and every other decision the page
+// makes is already settled without it. So it reads the templates on its own
+// rather than from inside the load the page waits on, whose catch turns any
+// failure into the load-error screen and whose 404 branch returns before the
+// loaded configuration is ever applied.
+describe('Clearance name listing failures', () => {
+    beforeEach(resetPropertyFieldMocks);
+
+    const configuredTemplate = makePropertyField({
+        attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
+    });
+
+    // Exactly the fixture the warning tests above use, so the only difference
+    // between a warning and no warning here is whether the listing answered.
+    const fixture = {
+        [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [configuredTemplate, makeForeignClearanceTemplate()],
+    };
+
+    async function renderWithFailingListing(error: unknown) {
+        // The page logs the failure it swallows. Swallowed here too, but only
+        // that one line: anything else console.error says still surfaces.
+        const origError = console.error;
+        console.error = (...args: Parameters<typeof console.error>) => {
+            if (typeof args[0] === 'string' && args[0].startsWith('ClassificationMarkings-load-clearance-name-conflict')) {
+                return;
+            }
+            origError(...args);
+        };
+
+        try {
+            mockFieldsByObjectTypeWithFailingTemplateListing(fixture, error);
+            renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
+            await screen.findByTestId('clearanceAttributeCheckbox');
+            await waitForClearanceNameListing();
+        } finally {
+            console.error = origError;
+        }
+    }
+
+    // Everything the page is for, none of which the failed listing has any say
+    // over. Spelled out rather than checked through a single "not the error
+    // screen" assertion, because the 404 case does not render the error screen
+    // either — it used to render an empty, never-configured page instead.
+    function expectPageFullyUsable() {
+        // Configured, not never-configured: the levels that came back are on
+        // screen and the feature reads as enabled.
+        expect(screen.getByTestId('classificationEnabledtrue')).toBeChecked();
+        expect(screen.getByRole('textbox', {name: /Classification level name/i})).toHaveValue('UNCLASSIFIED');
+        expect(screen.getByText('Classification levels')).toBeInTheDocument();
+        expect(screen.getByText('Add level')).toBeInTheDocument();
+
+        expect(screen.getByTestId('classificationPreset')).toBeInTheDocument();
+
+        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
+
+        expect(screen.queryByText(/Failed to load classification markings/)).not.toBeInTheDocument();
+    }
+
+    test('should keep the whole page usable, minus the warning, when the listing 500s', async () => {
+        await renderWithFailingListing(new ClientError('https://example.com', {
+            message: 'Internal Server Error',
+            server_error_id: 'api.context.internal_error',
+            status_code: 500,
+            url: '/api/v4/properties/groups/access_control/template/fields',
+        }));
+
+        expectPageFullyUsable();
+
+        // The only casualty. The same fixture warns in the tests above, so its
+        // absence here is the failed listing and nothing else.
+        expect(screen.queryByRole('heading', {name: 'Another attribute already uses this name'})).not.toBeInTheDocument();
+        expect(screen.queryByText(/already exists in Attribute Management/)).not.toBeInTheDocument();
+    });
+
+    test('should still show the configured levels when the listing 404s', async () => {
+        // A 404 is the one status the load path treats as "nothing is set up
+        // here", so a listing failing with it inside that path reported a fully
+        // configured instance as never configured.
+        await renderWithFailingListing(new ClientError('https://example.com', {
+            message: 'Not Found',
+            server_error_id: 'api.context.404.app_error',
+            status_code: 404,
+            url: '/api/v4/properties/groups/access_control/template/fields',
+        }));
+
+        expectPageFullyUsable();
+
+        expect(screen.queryByRole('heading', {name: 'Another attribute already uses this name'})).not.toBeInTheDocument();
+        expect(screen.queryByText(/already exists in Attribute Management/)).not.toBeInTheDocument();
+    });
+
+    test('should not list the templates at all while ABAC is off', async () => {
+        // Clearance is an ABAC-only concept and its section is not rendered
+        // without it, so the listing behind its warning is a request for
+        // something nothing on the page could show.
+        mockFieldsByObjectType(fixture);
+
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+
+        await screen.findByText('Classification levels');
+        await act(async () => {});
+
+        // One read of the template object type — the classification lookup,
+        // which stops on its first page. A listing would have followed it with a
+        // cursored second read.
+        const templateCalls = (Client4.getPropertyFields as jest.Mock).mock.calls.filter(
+            ([, objectType]) => objectType === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+        );
+        expect(templateCalls).toHaveLength(1);
+        expect(templateListingCalls()).toHaveLength(0);
+
+        expect(screen.queryByTestId('clearanceAttributeCheckbox')).not.toBeInTheDocument();
+        expect(screen.queryByRole('heading', {name: 'Another attribute already uses this name'})).not.toBeInTheDocument();
     });
 });
 

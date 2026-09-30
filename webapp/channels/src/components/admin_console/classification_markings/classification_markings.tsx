@@ -248,12 +248,6 @@ export default function ClassificationMarkings({disabled}: Props) {
                     }
                     hasClearance = clearance.fields.length > 0;
                     setClearanceConflict(clearance.conflict ?? null);
-
-                    const templates = await listLiveFields(CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE);
-                    if (cancelled) {
-                        return;
-                    }
-                    setClearanceTemplateConflict(findNameConflicts(CLEARANCE_FIELD_NAME, templates, templateId)[0] ?? null);
                 }
 
                 if (field) {
@@ -301,6 +295,35 @@ export default function ClassificationMarkings({disabled}: Props) {
                 if (!cancelled) {
                     setLoading(false);
                 }
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [currentUserId, abacEnabled]);
+
+    // Kept out of the load above, which the whole page waits on and whose catch
+    // turns any failure into the load-error screen. This lookup only decides a
+    // warning, so it pages the templates on its own and a failure costs nothing
+    // but the warning. Nothing needs excluding from the match: these are
+    // template fields, none of which can carry a linked_field_id, and
+    // classification's own template is named `classification`, not `clearance`.
+    useEffect(() => {
+        if (!currentUserId || !abacEnabled) {
+            return undefined;
+        }
+
+        let cancelled = false;
+
+        (async () => {
+            try {
+                const templates = await listLiveFields(CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE);
+                if (!cancelled) {
+                    setClearanceTemplateConflict(findNameConflicts(CLEARANCE_FIELD_NAME, templates)[0] ?? null);
+                }
+            } catch (err: unknown) {
+                console.error('ClassificationMarkings-load-clearance-name-conflict: ', err); // eslint-disable-line no-console
             }
         })();
 

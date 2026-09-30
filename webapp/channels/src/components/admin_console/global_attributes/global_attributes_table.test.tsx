@@ -1914,6 +1914,70 @@ describe('GlobalAttributesTable', () => {
             consoleSpy.mockRestore();
         });
 
+        it('says nothing until the scope fetches settle, even with the colliding field already cached', async () => {
+            // Same cache as the test above, but the fetch has not answered yet
+            // rather than failed. Which of the two it will be is exactly what is
+            // unknown during this window, so the warning waits: a cache this page
+            // has not re-confirmed can name an attribute that was renamed or
+            // deleted since, and the table would then point at nothing.
+            let resolveUser: (value: PropertyField[]) => void = () => {};
+            const userPending = new Promise<PropertyField[]>((resolve) => {
+                resolveUser = resolve;
+            });
+
+            const cachedClearanceField = makeClearanceUserField({linked_field_id: classificationTemplate.id});
+            getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
+                if (opts?.cursorId) {
+                    return Promise.resolve([]);
+                }
+                if (objectType === 'template') {
+                    return Promise.resolve([clearanceTemplate, classificationTemplate]);
+                }
+                if (objectType === 'user') {
+                    return userPending;
+                }
+                return Promise.resolve([]);
+            });
+
+            const state = getBaseState();
+            state.entities!.properties = {
+                groups: {
+                    byId: {[ACCESS_CONTROL_GROUP_UUID]: {id: ACCESS_CONTROL_GROUP_UUID, name: 'access_control'}},
+                    byName: {access_control: {id: ACCESS_CONTROL_GROUP_UUID, name: 'access_control'}},
+                },
+                fields: {
+                    byId: {[cachedClearanceField.id]: cachedClearanceField},
+                    byObjectType: {
+                        user: {[ACCESS_CONTROL_GROUP_UUID]: {[cachedClearanceField.id]: cachedClearanceField}},
+                    },
+                },
+            };
+
+            renderWithContext(<GlobalAttributesTable/>, state);
+
+            // Template rows paint ahead of the scope fetches, so the row is on
+            // screen during the window this is about. Its Applies-to spinner is
+            // the rendered signal that the window is still open — it shows for
+            // exactly as long as resourcesLoaded is false.
+            const clearanceCell = (await screen.findAllByTestId('global-attribute-name')).
+                find((candidate) => candidate.textContent === 'Clearance');
+            expect(clearanceCell).toBeDefined();
+            const pendingRow = clearanceCell!.closest('tr')!;
+            expect(within(pendingRow).getByTestId('loadingSpinner')).toBeInTheDocument();
+            expect(screen.queryAllByTestId(CONFLICT_TESTID)).toHaveLength(0);
+
+            await act(async () => {
+                resolveUser([cachedClearanceField]);
+                await userPending;
+            });
+
+            // * The wait is a delay, not a suppression: the same cached field
+            // warns as soon as the fetch confirms it is still there.
+            const clearanceRow = await findRowByName('Clearance');
+            expect(within(clearanceRow).getByTestId(`global-attribute-name-conflict-${clearanceTemplate.id}`)).
+                toHaveAccessibleName(/linked to Classification/);
+        });
+
         it('warns on both of two standalone user rows whose names differ only in case', async () => {
             // The warning is computed per row, not only for templates, and a
             // standalone user field gets a row of its own. The server's
@@ -1933,6 +1997,48 @@ describe('GlobalAttributesTable', () => {
             const uppercaseRow = await findRowByName('Clearance');
             expect(within(uppercaseRow).getByTestId('global-attribute-name-conflict-user-clearance-upper')).
                 toHaveAccessibleName(/standalone user attribute named "clearance"/);
+        });
+
+        it('leaves a standalone channel field unwarned about a same-named user field', async () => {
+            // A channel field is resource.attributes.clearance in CEL, which
+            // never resolves to the user field however alike the two names look,
+            // so neither shadows the other in a policy and the warning's copy
+            // would be describing a collision that cannot happen.
+            const channelClearance = makeField({
+                id: 'channel-clearance',
+                name: 'clearance',
+                object_type: 'channel',
+                attrs: {display_name: 'Channel Clearance'},
+            });
+            const userClearance = makeField({
+                id: 'user-clearance-standalone',
+                name: 'clearance',
+                object_type: 'user',
+                attrs: {display_name: 'User Clearance'},
+            });
+
+            getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
+                if (opts?.cursorId) {
+                    return Promise.resolve([]);
+                }
+                if (objectType === 'user') {
+                    return Promise.resolve([userClearance]);
+                }
+                if (objectType === 'channel') {
+                    return Promise.resolve([channelClearance]);
+                }
+                return Promise.resolve([]);
+            });
+
+            renderWithContext(<GlobalAttributesTable/>, getAllScopesState());
+
+            const channelRow = await findRowByName('Channel Clearance');
+            expect(within(channelRow).queryAllByTestId(CONFLICT_TESTID)).toHaveLength(0);
+
+            // Nor the user field itself: it is the other side of the comparison,
+            // and a row is always excluded from its own.
+            const userRow = await findRowByName('User Clearance');
+            expect(within(userRow).queryAllByTestId(CONFLICT_TESTID)).toHaveLength(0);
         });
 
         describe('warning affordance', () => {

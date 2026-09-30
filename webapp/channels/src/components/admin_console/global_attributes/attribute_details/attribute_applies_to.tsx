@@ -146,7 +146,7 @@ function AttributeAppliesTo({
                         key={type}
                         disabled={Boolean(blockedReason)}
                         leadingElement={<ResourceTypeIcon type={type}/>}
-                        onClick={blockedReason ? undefined : () => onAdd(type)}
+                        onClick={() => onAdd(type)}
                         labels={(
                             <>
                                 <span><FormattedMessage {...resourceTypeLabels[type]}/></span>
