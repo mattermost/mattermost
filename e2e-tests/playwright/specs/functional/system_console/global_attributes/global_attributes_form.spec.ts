@@ -8,7 +8,7 @@
  * Local runs: upload or use a license with SkuShortName `enterprise`, `entry`, or `advanced`.
  */
 
-import type {Page} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 import type {PropertyField} from '@mattermost/types/properties';
 
 import {expect, test} from '@mattermost/playwright-lib';
@@ -721,6 +721,95 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         });
 
         /**
+         * @objective Ensure changing a template's AD/LDAP sync source on Save also updates the
+         * already-linked Users field. LDAP sync reads attrs.ldap on the Users field (copied only
+         * at create), so a template-only edit would otherwise leave sync on the stale mapping.
+         */
+        test('cascades an edited AD/LDAP sync source onto an already-linked Users field on Save', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_sync_cascade_${timestamp}`;
+            const displayName = `Playwright Sync Cascade ${timestamp}`;
+
+            try {
+                const template = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName, ldap: 'oldDept'},
+                });
+                await createLinkedDependentField(adminClient, name, template.id, 'text', 'user', {
+                    display_name: displayName,
+                });
+
+                // * Create copied ldap onto the Users field (the sync mapping LDAP actually reads)
+                let linkedFields = await fetchLinkedFieldsForTemplate(adminClient, template.id);
+                let userField = linkedFields.find((f) => f.object_type === 'user');
+                expect(userField?.attrs?.ldap).toBe('oldDept');
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}/attribute_details/${template.id}`);
+
+                // # Edit the AD/LDAP chip to a new directory attribute and save
+                await page.getByTestId('attributeExternalSourceChip-ldap-edit').click();
+                const input = page.getByPlaceholder('department');
+                await expect(input).toHaveValue('oldDept');
+                await input.fill('newDept');
+                await page.getByRole('button', {name: 'Save'}).click();
+                await expect(page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText('AD/LDAP: newDept');
+
+                await page.getByTestId('saveSetting').click();
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                // * The linked Users field's attrs.ldap moved with the template — not left at oldDept
+                linkedFields = await fetchLinkedFieldsForTemplate(adminClient, template.id);
+                userField = linkedFields.find((f) => f.object_type === 'user');
+                expect(userField?.attrs?.ldap).toBe('newDept');
+            } finally {
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective Ensure clearing a template's AD/LDAP sync source on Save also clears it on
+         * the already-linked Users field, so LDAP sync stops writing that field.
+         */
+        test('clears ldap on an already-linked Users field when the template sync source is removed', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_sync_clear_${timestamp}`;
+            const displayName = `Playwright Sync Clear ${timestamp}`;
+
+            try {
+                const template = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName, ldap: 'oldDept'},
+                });
+                await createLinkedDependentField(adminClient, name, template.id, 'text', 'user', {
+                    display_name: displayName,
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}/attribute_details/${template.id}`);
+
+                // # Remove the AD/LDAP link and save
+                await page.getByTestId('attributeExternalSourceChip-ldap-remove').click();
+                await expect(page.getByTestId('attributeExternalSourceChip-ldap')).toHaveCount(0);
+                await page.getByTestId('saveSetting').click();
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                // * Users field no longer carries attrs.ldap (empty/absent — sync will skip it)
+                const linkedFields = await fetchLinkedFieldsForTemplate(adminClient, template.id);
+                const userField = linkedFields.find((f) => f.object_type === 'user');
+                expect(userField?.attrs?.ldap || '').toBe('');
+            } finally {
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
+            }
+        });
+
+        /**
          * @objective Ensure a linked chip's edit action reopens the modal pre-filled and commits
          * a changed value, and that its remove action clears the link immediately with no modal.
          */
@@ -1289,8 +1378,12 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 // Measure the pane, not role=menu. Nested MUI Modal aria-hides the
                 // parent menu paper; its getBoundingClientRect can shift ~16px even
                 // when the suggestion list is portaled.
+                //
+                // The menu itself mounts with a grow transition, so read the height only
+                // once that has settled — otherwise this baseline lands mid-animation
+                // and every later reading looks like unrelated growth.
                 const pane = page.locator('.attribute-graph-parents-pane');
-                const heightBeforeSearch = await pane.evaluate((el) => el.getBoundingClientRect().height);
+                const heightBeforeSearch = await waitForStableRectHeight(pane);
                 await page.getByTestId('attributeGraphParentsPane__search').click();
 
                 const suggestions = page.getByTestId('attributeGraphParentsPane__suggestions');
@@ -1327,8 +1420,10 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 const mountedValueMenu = page.getByRole('menu', {name: 'Edit Air', includeHidden: true});
 
                 // * Pane does not grow by a suggestion row (~36px). Focus and the
-                // nested modal can still shift getBoundingClientRect by ~6–16px.
-                const heightAfterSearch = await pane.evaluate((el) => el.getBoundingClientRect().height);
+                // nested modal can still shift getBoundingClientRect by ~6–16px. Read the
+                // height only once the focus/modal transition has stopped moving it —
+                // sampling mid-transition is what made this assertion flaky.
+                const heightAfterSearch = await waitForStableRectHeight(pane);
                 expect(Math.abs(heightAfterSearch - heightBeforeSearch)).toBeLessThan(24);
                 await expect(mountedValueMenu).toBeAttached();
 
@@ -2479,4 +2574,26 @@ async function openGraphRowDelete(page: Page, optionName: string, parentName = '
     const row = graphRow(page, optionName, parentName);
     await row.hover();
     await row.getByTestId('attributeOptionsGraphRow__delete').click();
+}
+
+// Polls getBoundingClientRect().height until two consecutive reads agree, so callers
+// don't sample a value mid CSS-transition (e.g. a focus ring or nested modal mount).
+// expect.poll runs the first probe immediately, so that reading is only a baseline;
+// compare only after a later probe that has waited for the poll interval.
+async function waitForStableRectHeight(locator: Locator): Promise<number> {
+    let lastHeight: number | undefined;
+
+    await expect
+        .poll(
+            async () => {
+                const height = await locator.evaluate((el) => el.getBoundingClientRect().height);
+                const isStable = lastHeight !== undefined && height === lastHeight;
+                lastHeight = height;
+                return isStable;
+            },
+            {timeout: 2000, intervals: [50, 100, 150, 300]},
+        )
+        .toBe(true);
+
+    return lastHeight!;
 }
