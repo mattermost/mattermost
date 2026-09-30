@@ -103,6 +103,13 @@ func (hooks *hooksTimerLayer) MessageWillBeUpdated(c *Context, newPost, oldPost 
 	return _returnsA, _returnsB
 }
 
+func (hooks *hooksTimerLayer) UserHasPermissionToEditPost(c *Context, userID string, post *model.Post) bool {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.UserHasPermissionToEditPost(c, userID, post)
+	hooks.recordTime(startTime, "UserHasPermissionToEditPost", true)
+	return _returnsA
+}
+
 func (hooks *hooksTimerLayer) MessageHasBeenPosted(c *Context, post *model.Post) {
 	startTime := timePkg.Now()
 	hooks.hooksImpl.MessageHasBeenPosted(c, post)
@@ -417,6 +424,13 @@ func (hooks *hooksTimerLayer) UserHasLoggedInWithRPCErr(c *Context, user *model.
 	_returnsRPCErr := hooks.hooksWithRPCErrImpl.UserHasLoggedInWithRPCErr(c, user)
 	hooks.recordTime(startTime, "UserHasLoggedInWithRPCErr", _returnsRPCErr == nil)
 	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) UserHasPermissionToEditPostWithRPCErr(c *Context, userID string, post *model.Post) (bool, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.UserHasPermissionToEditPostWithRPCErr(c, userID, post)
+	hooks.recordTime(startTime, "UserHasPermissionToEditPostWithRPCErr", _returnsRPCErr == nil)
+	return _returnsA, _returnsRPCErr
 }
 
 func (hooks *hooksTimerLayer) MessageHasBeenPostedWithRPCErr(c *Context, post *model.Post) error {

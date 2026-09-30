@@ -75,6 +75,7 @@ const (
 	DraftWillBeUpsertedID                     = 55
 	MessagesWillBeConsumedWithContextID       = 56
 	OnLicenseChangedID                        = 57
+	UserHasPermissionToEditPostID             = 58
 	TotalHooksID                              = iota
 )
 
@@ -175,6 +176,22 @@ type Hooks interface {
 	//
 	// Minimum server version: 5.2
 	MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string)
+
+	// UserHasPermissionToEditPost is invoked when a user attempts to edit a post they did not author and
+	// core permissions would deny the edit (the user lacks edit_others_posts in the channel). Returning true
+	// grants the edit for this request. Plugins cannot revoke an edit that core already allows. The hook is
+	// not invoked for the post author or for users who already hold edit_others_posts, and it is not invoked
+	// for system-generated edits. Plugins should keep this fast; it runs synchronously on the request path.
+	//
+	// A grant only replaces the edit_others_posts check: the user must still hold edit_post and
+	// create_post in the channel, and ServiceSettings.PostEditTimeLimit still applies. The first plugin
+	// to return true grants the edit; remaining plugins are not consulted. MessageWillBeUpdated still
+	// runs for a granted edit and can reject it.
+	//
+	// Invoked from the PUT /posts/{post_id} and PUT /posts/{post_id}/patch API endpoints.
+	//
+	// Minimum server version: 12.0
+	UserHasPermissionToEditPost(c *Context, userID string, post *model.Post) bool
 
 	// MessageHasBeenPosted is invoked after the message has been committed to the database.
 	// If you need to modify or reject the post, see MessageWillBePosted

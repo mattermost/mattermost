@@ -3967,6 +3967,125 @@ func TestHookChannelWillBeArchived(t *testing.T) {
 	})
 }
 
+func TestHookUserHasPermissionToEditPost(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	// Grants the edit only when the post's "grant" prop names the requesting user, so the tests also
+	// verify that userID and the post's props reach the plugin.
+	grantingPlugin := `
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) UserHasPermissionToEditPost(c *plugin.Context, userID string, post *model.Post) bool {
+			grant, _ := post.GetProp("grant").(string)
+			return grant != "" && grant == userID
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`
+
+	denyingPlugin := `
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) UserHasPermissionToEditPost(c *plugin.Context, userID string, post *model.Post) bool {
+			return false
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`
+
+	makePost := func(th *TestHelper, props model.StringInterface) *model.Post {
+		post := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "card description",
+		}
+		post.SetProps(props)
+		return post
+	}
+
+	t.Run("granted", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{grantingPlugin}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.NoError(t, activationErrors[0])
+
+		post := makePost(th, model.StringInterface{"grant": th.BasicUser2.Id})
+		assert.True(t, th.App.PluginGrantsPostEdit(th.Context, th.BasicUser2.Id, post))
+	})
+
+	t.Run("not granted", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{grantingPlugin}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.NoError(t, activationErrors[0])
+
+		assert.False(t, th.App.PluginGrantsPostEdit(th.Context, th.BasicUser2.Id, makePost(th, nil)))
+		assert.False(t, th.App.PluginGrantsPostEdit(th.Context, th.BasicUser2.Id, makePost(th, model.StringInterface{"grant": th.SystemAdminUser.Id})))
+		assert.False(t, th.App.PluginGrantsPostEdit(th.Context, "", makePost(th, model.StringInterface{"grant": th.BasicUser2.Id})))
+		assert.False(t, th.App.PluginGrantsPostEdit(th.Context, th.BasicUser2.Id, nil))
+	})
+
+	t.Run("any plugin can grant", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{denyingPlugin, grantingPlugin}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.NoError(t, activationErrors[0])
+		require.NoError(t, activationErrors[1])
+
+		post := makePost(th, model.StringInterface{"grant": th.BasicUser2.Id})
+		assert.True(t, th.App.PluginGrantsPostEdit(th.Context, th.BasicUser2.Id, post))
+	})
+
+	t.Run("no plugins", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		post := makePost(th, model.StringInterface{"grant": th.BasicUser2.Id})
+		assert.False(t, th.App.PluginGrantsPostEdit(th.Context, th.BasicUser2.Id, post))
+	})
+
+	t.Run("plugins disabled", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+		th.App.ch.SetPluginsEnvironment(nil)
+
+		post := makePost(th, model.StringInterface{"grant": th.BasicUser2.Id})
+		assert.False(t, th.App.PluginGrantsPostEdit(th.Context, th.BasicUser2.Id, post))
+	})
+}
+
 func TestHookRPCChannelWillBeUpdated(t *testing.T) {
 	mainHelper.Parallel(t)
 

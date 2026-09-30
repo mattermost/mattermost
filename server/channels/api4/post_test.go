@@ -14,6 +14,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
+	"path/filepath"
 	"reflect"
 	"slices"
 	"strings"
@@ -26,6 +28,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	pluginutils "github.com/mattermost/mattermost/server/public/plugin/utils"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
@@ -2604,6 +2607,177 @@ func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
 	post.Message = "changed"
 	_, _, err = th.SystemAdminClient.UpdatePost(context.Background(), post.Id, post)
 	require.NoError(t, err)
+}
+
+// installPostEditGrantPlugin compiles and activates a plugin whose UserHasPermissionToEditPost hook
+// records every call in its KV store (key "consulted_<userID>_<postID>") and grants the edit only
+// when the post's "grant" prop names the requesting user.
+func installPostEditGrantPlugin(t *testing.T, th *TestHelper) string {
+	t.Helper()
+
+	pluginID := "com.mattermost.post_edit_grant_test"
+	pluginCode := `
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) UserHasPermissionToEditPost(c *plugin.Context, userID string, post *model.Post) bool {
+			_ = p.API.KVSet("consulted_"+userID+"_"+post.Id, []byte("1"))
+			grant, _ := post.GetProp("grant").(string)
+			return grant != "" && grant == userID
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`
+
+	pluginDir, err := filepath.Abs(*th.App.Config().PluginSettings.Directory)
+	require.NoError(t, err)
+	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+	pluginutils.CompileGo(t, pluginCode, backend)
+	err = os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
+	require.NoError(t, err)
+
+	manifest, activated, err := th.App.GetPluginsEnvironment().Activate(pluginID)
+	require.NoError(t, err)
+	require.NotNil(t, manifest)
+	require.True(t, activated)
+
+	// Without an enabled plugin state, the next config change would deactivate the plugin.
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.PluginStates[pluginID] = &model.PluginState{Enable: true}
+	})
+	t.Cleanup(func() {
+		if env := th.App.GetPluginsEnvironment(); env != nil {
+			env.Deactivate(pluginID)
+		}
+	})
+
+	return pluginID
+}
+
+func TestPostEditPluginGrant(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	channel := th.BasicChannel
+
+	createPost := func(t *testing.T, props model.StringInterface) *model.Post {
+		t.Helper()
+		post, _, err := th.Client.CreatePost(context.Background(), &model.Post{
+			ChannelId: channel.Id,
+			Message:   "card description " + model.NewId(),
+			Props:     props,
+		})
+		require.NoError(t, err)
+		return post
+	}
+
+	updateAndPatchAs := func(t *testing.T, client *model.Client4, post *model.Post) (*model.Response, *model.Response) {
+		t.Helper()
+		update := &model.Post{Id: post.Id, ChannelId: post.ChannelId, Message: "updated " + model.NewId(), Props: post.GetProps()}
+		_, updateResp, _ := client.UpdatePost(context.Background(), post.Id, update)
+		_, patchResp, _ := client.PatchPost(context.Background(), post.Id, &model.PostPatch{Message: model.NewPointer("patched " + model.NewId())})
+		return updateResp, patchResp
+	}
+
+	th.LoginBasic(t)
+	grantedPost := createPost(t, model.StringInterface{"grant": th.BasicUser2.Id})
+	ungrantedPost := createPost(t, nil)
+
+	client2 := th.CreateClient()
+	_, _, err := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
+	require.NoError(t, err)
+
+	t.Run("non-author without edit_others_posts is denied without a granting plugin", func(t *testing.T) {
+		updateResp, patchResp := updateAndPatchAs(t, client2, grantedPost)
+		CheckForbiddenStatus(t, updateResp)
+		CheckForbiddenStatus(t, patchResp)
+	})
+
+	pluginID := installPostEditGrantPlugin(t, th)
+	consulted := func(t *testing.T, userID, postID string) bool {
+		t.Helper()
+		value, appErr := th.App.GetPluginKey(pluginID, "consulted_"+userID+"_"+postID)
+		require.Nil(t, appErr)
+		return value != nil
+	}
+
+	t.Run("granting plugin allows update and patch by a non-author", func(t *testing.T) {
+		update := &model.Post{Id: grantedPost.Id, ChannelId: channel.Id, Message: "updated by board member", Props: grantedPost.GetProps()}
+		updated, _, err := client2.UpdatePost(context.Background(), grantedPost.Id, update)
+		require.NoError(t, err)
+		assert.Equal(t, "updated by board member", updated.Message)
+		assert.Equal(t, th.BasicUser.Id, updated.UserId, "a granted edit must not change the post's author")
+
+		patched, _, err := client2.PatchPost(context.Background(), grantedPost.Id, &model.PostPatch{Message: model.NewPointer("patched by board member")})
+		require.NoError(t, err)
+		assert.Equal(t, "patched by board member", patched.Message)
+		assert.Equal(t, th.BasicUser.Id, patched.UserId)
+
+		assert.True(t, consulted(t, th.BasicUser2.Id, grantedPost.Id))
+	})
+
+	t.Run("plugin declining leaves the edit denied", func(t *testing.T) {
+		updateResp, patchResp := updateAndPatchAs(t, client2, ungrantedPost)
+		CheckForbiddenStatus(t, updateResp)
+		CheckForbiddenStatus(t, patchResp)
+		assert.True(t, consulted(t, th.BasicUser2.Id, ungrantedPost.Id))
+	})
+
+	t.Run("hook is not consulted for the post author", func(t *testing.T) {
+		updateResp, patchResp := updateAndPatchAs(t, th.Client, ungrantedPost)
+		CheckOKStatus(t, updateResp)
+		CheckOKStatus(t, patchResp)
+		assert.False(t, consulted(t, th.BasicUser.Id, ungrantedPost.Id))
+	})
+
+	t.Run("hook is not consulted for users with edit_others_posts", func(t *testing.T) {
+		updateResp, patchResp := updateAndPatchAs(t, th.SystemAdminClient, ungrantedPost)
+		CheckOKStatus(t, updateResp)
+		CheckOKStatus(t, patchResp)
+		assert.False(t, consulted(t, th.SystemAdminUser.Id, ungrantedPost.Id))
+	})
+
+	t.Run("grant does not bypass the edit_post permission", func(t *testing.T) {
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.RemovePermissionFromRole(t, model.PermissionEditPost.Id, model.ChannelUserRoleId)
+
+		updateResp, patchResp := updateAndPatchAs(t, client2, grantedPost)
+		CheckForbiddenStatus(t, updateResp)
+		CheckForbiddenStatus(t, patchResp)
+	})
+
+	t.Run("grant does not bypass PostEditTimeLimit", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		oldPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: channel.Id,
+			Message:   "old card " + model.NewId(),
+			UserId:    th.BasicUser.Id,
+			CreateAt:  model.GetMillis() - 2000,
+			Props:     model.StringInterface{"grant": th.BasicUser2.Id},
+		}, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		updateResp, patchResp := updateAndPatchAs(t, client2, oldPost)
+		CheckBadRequestStatus(t, updateResp)
+		CheckBadRequestStatus(t, patchResp)
+		assert.True(t, consulted(t, th.BasicUser2.Id, oldPost.Id), "the patch should reach the time limit check only through the grant")
+	})
 }
 
 func TestPatchPost(t *testing.T) {
