@@ -187,7 +187,15 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		cfg.EmailSettings.PushNotificationServer = model.NewPointer("http://push.example.com")
 	})
 
-	err := th.App.clearLatestVersionCache()
+	// Without it the permissions collector fails and the packet carries a warning.txt.
+	err := th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_, err := th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
+		require.NoError(t, err)
+	})
+
+	err = th.App.clearLatestVersionCache()
 	require.NoError(t, err)
 
 	live, err := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context, latestVersionServer(t).URL)
