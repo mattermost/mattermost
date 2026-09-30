@@ -68,6 +68,24 @@ describe('check_icu', () => {
         });
     });
 
+    describe('right-to-left', () => {
+        test('warns about a horizontal arrow in a right-to-left locale', () => {
+            const {code, stderr} = check({'a.b': 'Next →'}, {'fa.json': {'a.b': 'بعدی →'}});
+
+            expect(code).toBe(0);
+            expect(stderr).toContain('fa.json:a.b: horizontal arrow in a right-to-left locale');
+        });
+
+        test('ignores vertical arrows, and left-to-right locales', () => {
+            const {stderr} = check(
+                {'a.b': 'Use ↑↓ to browse', 'a.c': 'Next →'},
+                {'fa.json': {'a.b': 'از ↑↓ استفاده کنید', 'a.c': 'بعدی'}, 'fr.json': {'a.b': 'Utilisez ↑↓', 'a.c': 'Suivant →'}},
+            );
+
+            expect(stderr).not.toContain('horizontal arrow');
+        });
+    });
+
     describe('well-formedness', () => {
         test.each([
             ['keys out of order', '{\n  "a.c": "Deux",\n  "a.b": "Un"\n}\n'],

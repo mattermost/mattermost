@@ -180,7 +180,17 @@ for (const [key, message] of Object.entries(en)) {
     }
 }
 
+// Horizontal arrows and pointers. They are not bidi-mirrored, so in a
+// right-to-left sentence one meaning "next" or "leads to" points backwards.
+// Vertical arrows and the ↵ key symbol read the same either way.
+const HORIZONTAL_GLYPH = /[\u2190\u2192\u21D0\u21D2\u27F5\u27F6\u2794\u279C-\u27BF\u2B05\u25B6\u25B8\u25BA\u25C0\u25C2\u25C4]/u;
+const isRightToLeft = (locale) => {
+    const tag = new Intl.Locale(locale);
+    return (tag.getTextInfo ? tag.getTextInfo() : tag.textInfo).direction === 'rtl';
+};
+
 for (const name of localeNames) {
+    const rightToLeft = isRightToLeft(path.basename(name, '.json'));
     let data;
     const text = readCatalog(name);
     try {
@@ -225,6 +235,10 @@ for (const name of localeNames) {
         if (message.trim() === '') {
             errors.push(`${name}:${key}: empty translation`);
             continue;
+        }
+
+        if (rightToLeft && HORIZONTAL_GLYPH.test(message)) {
+            warnings.push(`${name}:${key}: horizontal arrow in a right-to-left locale points the opposite way to the reading direction`);
         }
 
         // ignoreTag: false parses <b>...</b> as tags rather than literal text,
