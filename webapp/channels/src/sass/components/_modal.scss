@@ -168,7 +168,7 @@
         justify-content: end;
         padding: 24px 32px;
         border: none;
-        grid-row-gap: 8px;
+        gap: 8px;
 
         &.divider {
             border-top: var(--border-light);
@@ -185,10 +185,6 @@
             float: left;
             font-weight: bold;
             text-align: left;
-        }
-
-        & .btn + .btn {
-            margin-left: 8px;
         }
     }
 

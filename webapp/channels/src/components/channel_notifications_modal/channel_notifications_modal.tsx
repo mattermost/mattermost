@@ -359,7 +359,7 @@ export default function ChannelNotificationsModal(props: Props) {
     );
 
     const footerContent = (
-        <footer className='ChannelNotificationModal__footer'>
+        <>
             {serverError &&
             <span
                 role='alert'
@@ -388,7 +388,7 @@ export default function ChannelNotificationsModal(props: Props) {
                     defaultMessage='Save'
                 />
             </Button>
-        </footer>
+        </>
     );
 
     const headerText = (
