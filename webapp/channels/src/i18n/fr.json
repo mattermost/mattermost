@@ -2349,7 +2349,7 @@
   "admin.webserverModeTitle": "Mode du serveur web :",
   "admin.webserverModeUncompressed": "Non compressé",
   "admin.webserverModeUncompressedDescription": "Le serveur Mattermost sert les fichiers statiques sans compression.",
-  "adminConsole.list.table.exactTime.at": "à",
+  "adminConsole.list.table.exactTime": "{date, date, long} à {date, time, medium}",
   "adminConsole.list.table.rowsCount.(show)rowsPerPage": "Afficher",
   "adminConsole.list.table.rowsCount.10": "10",
   "adminConsole.list.table.rowsCount.100": "100",

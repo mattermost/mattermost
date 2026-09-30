@@ -3648,7 +3648,7 @@
   "admin.webserverModeTitle": "网页服务器模式：",
   "admin.webserverModeUncompressed": "未压缩",
   "admin.webserverModeUncompressedDescription": "Mattermost 服务器将传输未压缩过的静态文件。",
-  "adminConsole.list.table.exactTime.at": " ",
+  "adminConsole.list.table.exactTime": "{date, date, long} {date, time, medium}",
   "adminConsole.list.table.genericError": "加载数据时出现错误，请重试",
   "adminConsole.list.table.genericLoading": "加载中",
   "adminConsole.list.table.genericNoData": "无数据",
