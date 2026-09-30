@@ -2020,8 +2020,8 @@
     "description": "Admin console setting label (toggle) on the Attribute-Based Access Control page controlling whether end users see access-policy indicators."
   },
   "admin.accesscontrol.enableDesc": {
-    "defaultMessage": "Allow access restrictions based on user attributes using custom access policies. To effectively use this feature, you must define user attributes in the {userAttributes} section.",
-    "description": "Admin console help text for the main attribute-based access control toggle; {userAttributes} is replaced by a link labeled 'User Attributes'."
+    "defaultMessage": "Allow access restrictions based on user attributes using custom access policies. To effectively use this feature, you must define attributes in the {userAttributes} section.",
+    "description": "Admin console help text for the main attribute-based access control toggle; {userAttributes} is replaced by a link labeled 'Attribute Management'."
   },
   "admin.accesscontrol.enableTitle": {
     "defaultMessage": "Allow attribute based access controls on this server",
@@ -2052,8 +2052,8 @@
     "description": "Label of a true/false toggle in System Console > System Attributes > Attribute-Based Access > Session Attributes. 'Trust' is a verb; refers to an HTTP header set by a reverse proxy."
   },
   "admin.accesscontrol.user_properties.link.label": {
-    "defaultMessage": "User Attributes",
-    "description": "Link text inserted into the attribute-based access control help text; links to the User Attributes settings section."
+    "defaultMessage": "Attribute Management",
+    "description": "Link text inserted into the attribute-based access control help text; links to the Attribute Management settings section."
   },
   "admin.advance.cluster": {
     "defaultMessage": "High Availability",
@@ -16995,9 +16995,9 @@
     "defaultMessage": "Reorder row",
     "description": "Accessibility label for the drag handle button used to reorder rows in admin console tables."
   },
-  "adminConsole.list.table.exactTime.at": {
-    "defaultMessage": "at",
-    "description": "The word 'at' inserted between the date and the time in exact-timestamp tooltips of admin console tables (e.g. 'July 30, 2026 at 08:00:00 PM')."
+  "adminConsole.list.table.exactTime": {
+    "defaultMessage": "{date, date, long} at {date, time, medium}",
+    "description": "Tooltip on the relative dates (e.g. 'Today', '3 days') in admin console tables such as System Users, showing the exact date and time. {date} is a timestamp; the date and time are formatted for the reader's locale, so only the connecting word needs translating, and it may be dropped where the language needs none."
   },
   "adminConsole.list.table.genericError": {
     "defaultMessage": "There was an error loading the data, please try again",
