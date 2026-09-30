@@ -24,6 +24,22 @@ func writeCatalog(t *testing.T, dir, name, body string) string {
 	return p
 }
 
+// canonical re-encodes a catalog body as JSONMarshal writes it, so a case can be
+// written compactly and still pass the canonical-form check. A body that does
+// not decode is returned unchanged, for the cases that test exactly that.
+func canonical(t *testing.T, body string) string {
+	t.Helper()
+
+	var list []Item
+	if err := json.Unmarshal([]byte(body), &list); err != nil {
+		return body
+	}
+	out, err := JSONMarshal(list)
+	require.NoError(t, err)
+
+	return string(out)
+}
+
 // source parses an en.json body into the items a catalog is checked against.
 func source(t *testing.T, en string) map[string]Item {
 	t.Helper()
@@ -214,7 +230,7 @@ func TestVerifyLocale(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			problems, warnings := verifyLocale(tc.localeName, []byte(tc.locale), source(t, tc.en), tc.warnMissingIDs)
+			problems, warnings := verifyLocale(tc.localeName, []byte(canonical(t, tc.locale)), source(t, tc.en), tc.warnMissingIDs)
 
 			if tc.problem == "" {
 				assert.Empty(t, problems, "expected no problems")
@@ -250,6 +266,41 @@ func TestVerifyLocaleUnknownLocale(t *testing.T) {
 	}
 }
 
+func TestVerifyLocaleDuplicateID(t *testing.T) {
+	t.Parallel()
+
+	body := canonical(t, `[{"id":"a.b","translation":"Un"},{"id":"a.b","translation":"Un"}]`)
+	problems, _ := verifyLocale("fr.json", []byte(body), source(t, `[{"id":"a.b","translation":"One"}]`), false)
+	assert.Contains(t, problems, "fr.json: a.b: duplicate id; the loader keeps only one")
+}
+
+func TestVerifyLocaleCanonicalForm(t *testing.T) {
+	t.Parallel()
+
+	const compact = `[{"id":"a.b","translation":"Bonjour"}]`
+	items := source(t, `[{"id":"a.b","translation":"Hello"}]`)
+
+	for name, body := range map[string]string{
+		"compact":             compact,
+		"four-space indent":   "[\n    {\n        \"id\": \"a.b\",\n        \"translation\": \"Bonjour\"\n    }\n]\n",
+		"no trailing newline": strings.TrimSuffix(canonical(t, compact), "\n"),
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			problems, _ := verifyLocale("fr.json", []byte(body), items, false)
+			assert.Contains(t, strings.Join(problems, "\n"), "fr.json: not in canonical form")
+		})
+	}
+
+	t.Run("canonical", func(t *testing.T) {
+		t.Parallel()
+
+		problems, _ := verifyLocale("fr.json", []byte(canonical(t, compact)), items, false)
+		assert.Empty(t, problems)
+	})
+}
+
 // Each file is loaded into its own bundle, so a defect in one locale can never
 // be masked by another having already been loaded, in either order.
 func TestVerifyLocaleIsOrderIndependent(t *testing.T) {
@@ -281,7 +332,7 @@ func TestVerifyCmd(t *testing.T) {
 		dir := filepath.Join(serverDir, "i18n")
 		require.NoError(t, os.MkdirAll(dir, 0700))
 		writeCatalog(t, dir, "en.json", `[{"id":"a.b","translation":"{{.User}} is here"}]`)
-		writeCatalog(t, dir, "fr.json", locale)
+		writeCatalog(t, dir, "fr.json", canonical(t, locale))
 
 		// Neither of these is a locale catalog, and neither may be walked.
 		writeCatalog(t, dir, "README.md", "not a catalog")
