@@ -155,10 +155,11 @@ func cpaFieldCreateCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 	name := args[0]
 	fieldType := args[1]
 
+	// Build PropertyField object
 	field := &model.PropertyField{
 		Name:       name,
 		Type:       model.PropertyFieldType(fieldType),
-		TargetType: "user",
+		TargetType: "user", // CPA fields target users
 		Attrs:      make(model.StringInterface),
 	}
 

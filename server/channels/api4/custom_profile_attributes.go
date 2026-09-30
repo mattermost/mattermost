@@ -18,46 +18,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
-// cpaUserFieldAttrs are the attrs that belong on the user-linked field rather
-// than the template. All other CPA attrs are schema-level and live on the
-// template; these three control how the field is displayed and who can set it.
-var cpaUserFieldAttrs = map[string]struct{}{
-	model.PropertyFieldAttrVisibility: {},
-	model.PropertyFieldAttrManaged:    {},
-	model.PropertyFieldAttrSortOrder:  {},
-}
-
-// splitCPAAttrs partitions a CPA attrs map into the schema portion (goes on
-// the template) and the display portion (stays on the user-linked field).
-// display_name and value_type are included in both: the template carries the
-// canonical value, and the user field keeps its own copy for backward
-// compatibility with callers that read user-field attrs directly.
-func splitCPAAttrs(attrs model.StringInterface) (schema, display model.StringInterface) {
-	schema = make(model.StringInterface)
-	display = make(model.StringInterface)
-	for k, v := range attrs {
-		if _, isUserOnly := cpaUserFieldAttrs[k]; isUserOnly {
-			display[k] = v
-		} else {
-			schema[k] = v
-		}
-	}
-	// Copy display_name and value_type into the display map so the user field
-	// keeps them even though they are also on the template.
-	for _, k := range []string{model.PropertyFieldAttrDisplayName, model.PropertyFieldAttrValueType} {
-		if v, ok := attrs[k]; ok {
-			display[k] = v
-		}
-	}
-	// Owners are schema (stored on the template) but must also be readable from
-	// the user field: callers read owners from the returned CPAField (which is
-	// the user field), and enforceGroupPermissions needs them to pin PermissionValues.
-	if v, ok := attrs[model.PropertyAttrsOwners]; ok {
-		display[model.PropertyAttrsOwners] = v
-	}
-	return schema, display
-}
-
 func (api *API) InitCustomProfileAttributes() {
 	api.BaseRoutes.CustomProfileAttributesFields.Handle("", api.APISessionRequired(listCPAFields)).Methods(http.MethodGet)
 	api.BaseRoutes.CustomProfileAttributesFields.Handle("", api.APISessionRequired(createCPAField)).Methods(http.MethodPost)
@@ -111,101 +71,62 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field", pf)
 
-	// CPA fields are system-scoped; only a system administrator may create them.
+	// CPA fields are system-scoped; only a system administrator may create
+	// them. This mirrors the scope-based permission check the shared generic
+	// handler enforces for system-typed fields.
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
+	// Translate to PropertyField and route through the generic property API.
+	// Server-controlled fields (group, type, target shape, creator) are
+	// stamped here; ID/TargetID/Protected are stripped so a caller can't
+	// inject them. Permissions and timestamps are filled in by lower layers.
+	field := pf.ToPropertyField()
 	group, appErr := c.App.GetPropertyGroup(c.AppContext, model.AccessControlPropertyGroupName)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
+	field.ID = ""
+	field.GroupID = group.ID
+	field.ObjectType = model.PropertyFieldObjectTypeUser
+	field.TargetType = string(model.PropertyFieldTargetLevelSystem)
+	field.TargetID = ""
+	field.Protected = false
+	field.CreatedBy = c.AppContext.Session().UserId
+	field.UpdatedBy = c.AppContext.Session().UserId
+
+	// Nil-fill permission levels the generic property API would otherwise pin
+	// (createPropertyField in properties.go): without these, PermissionValues
+	// stays nil and SessionHasPermissionToSetPropertyFieldValues denies
+	// everyone -- including sysadmin -- from ever setting this field's value.
+	// Values uses its own default (DefaultPropertyFieldValuesPermissionLevel):
+	// unlike Field/Options, a value is gated by its own target rather than the
+	// field's TargetType, so the system-TargetType sysadmin clause doesn't apply.
+	defaultLevel := app.DefaultPropertyFieldPermissionLevel(field)
+	defaultValuesLevel := app.DefaultPropertyFieldValuesPermissionLevel(field)
+	if field.PermissionField == nil {
+		field.PermissionField = &defaultLevel
+	}
+	if field.PermissionValues == nil {
+		field.PermissionValues = &defaultValuesLevel
+	}
+	if field.PermissionOptions == nil {
+		field.PermissionOptions = &defaultLevel
+	}
 
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 	connectionID := r.Header.Get(model.ConnectionId)
-	callerID := c.AppContext.Session().UserId
 
-	rawField := pf.ToPropertyField()
-	schemaAttrs, displayAttrs := splitCPAAttrs(rawField.Attrs)
-
-	// Step 1: create the template — the canonical schema definition.
-	tmplField := &model.PropertyField{
-		GroupID:    group.ID,
-		Name:       pf.Name,
-		Type:       rawField.Type,
-		ObjectType: model.PropertyFieldObjectTypeTemplate,
-		TargetType: string(model.PropertyFieldTargetLevelSystem),
-		TargetID:   "",
-		Protected:  false,
-		CreatedBy:  callerID,
-		UpdatedBy:  callerID,
-		Attrs:      schemaAttrs,
-	}
-	defaultLevel := app.DefaultPropertyFieldPermissionLevel(tmplField)
-	if tmplField.PermissionField == nil {
-		tmplField.PermissionField = &defaultLevel
-	}
-	if tmplField.PermissionOptions == nil {
-		tmplField.PermissionOptions = &defaultLevel
-	}
-
-	createdTmpl, appErr := c.App.CreatePropertyField(rctx, tmplField, false, connectionID)
+	createdField, appErr := c.App.CreatePropertyField(rctx, field, false, connectionID)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	// Step 2: create the linked user field that binds the template to Users.
-	// The app layer copies Type, options, ldap, and saml from the template.
-	userField := &model.PropertyField{
-		GroupID:       group.ID,
-		Name:          pf.Name,
-		ObjectType:    model.PropertyFieldObjectTypeUser,
-		TargetType:    string(model.PropertyFieldTargetLevelSystem),
-		TargetID:      "",
-		LinkedFieldID: &createdTmpl.ID,
-		Protected:     false,
-		CreatedBy:     callerID,
-		UpdatedBy:     callerID,
-		Attrs:         displayAttrs,
-	}
-	// PermissionValues governs who can set values; unlike Field/Options it uses
-	// a per-object-type default because the system-TargetType sysadmin clause
-	// does not apply to value writes.
-	defaultValuesLevel := app.DefaultPropertyFieldValuesPermissionLevel(userField)
-	// Owner-managed fields must stay sysadmin-write even if the owners list is
-	// later dropped. splitCPAAttrs copies owners to displayAttrs so
-	// enforceGroupPermissions will also pin this, but set it here first so the
-	// nil-fill below is already at the right level as a safety net.
-	if model.HasPropertyFieldOwners(rawField) {
-		sysadmin := model.PermissionLevelSysadmin
-		defaultValuesLevel = sysadmin
-	}
-	userFieldPermLevel := app.DefaultPropertyFieldPermissionLevel(userField)
-	if userField.PermissionField == nil {
-		userField.PermissionField = &userFieldPermLevel
-	}
-	if userField.PermissionValues == nil {
-		userField.PermissionValues = &defaultValuesLevel
-	}
-	if userField.PermissionOptions == nil {
-		userField.PermissionOptions = &userFieldPermLevel
-	}
-
-	createdUserField, appErr := c.App.CreatePropertyField(rctx, userField, false, connectionID)
-	if appErr != nil {
-		// Best-effort rollback: remove the orphaned template.
-		if rbErr := c.App.DeletePropertyField(rctx, group.ID, createdTmpl.ID, false, connectionID); rbErr != nil {
-			c.Logger.Warn("Failed to roll back CPA template after user field creation failed",
-				mlog.String("template_id", createdTmpl.ID), mlog.Err(rbErr))
-		}
-		c.Err = appErr
-		return
-	}
-
-	cpaField, convErr := model.NewCPAFieldFromPropertyField(createdUserField)
+	cpaField, convErr := model.NewCPAFieldFromPropertyField(createdField)
 	if convErr != nil {
 		c.Err = model.NewAppError("createCPAField", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(convErr)
 		return
@@ -277,6 +198,11 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if existingField.LinkedFieldID != nil && *existingField.LinkedFieldID != "" {
+		c.Err = model.NewAppError("patchCPAField", "api.custom_profile_attributes.linked_field.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	// Permission branching (session-bound).
 	isOptionsOnly := isOptionsOnlyPatch(patch)
 	if isOptionsOnly && !existingField.Type.SupportsOptions() {
@@ -303,127 +229,14 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddEventPriorState(&orig)
 
+	existingField.Patch(patch, true)
+	existingField.UpdatedBy = c.AppContext.Session().UserId
 	connectionID := r.Header.Get(model.ConnectionId)
 
-	// If this user field is linked to a template, route schema changes to the
-	// template first. Linked user fields cannot have their Type or options
-	// changed directly — those are inherited from the template.
-	var (
-		updatedField *model.PropertyField
-		clearedIDs   []string
-	)
-	if existingField.LinkedFieldID != nil && *existingField.LinkedFieldID != "" {
-		typeIsChanging := patch.Type != nil && *patch.Type != existingField.Type
-
-		if typeIsChanging {
-			// Type changes cannot go through the template while the linked user field
-			// exists (the service blocks template type changes when count > 0). Instead:
-			// 1. Unlink the user field (allowed at any time).
-			// 2. Delete the now-orphaned template.
-			// 3. Fall through to apply the full patch (including Type) to the
-			//    now-unlinked user field — normal update rules apply.
-			templateID := *existingField.LinkedFieldID
-
-			unlinkField := *existingField
-			if existingField.Attrs != nil {
-				unlinkField.Attrs = maps.Clone(existingField.Attrs)
-			}
-			emptyStr := ""
-			unlinkField.LinkedFieldID = &emptyStr
-			unlinkField.UpdatedBy = c.AppContext.Session().UserId
-			if _, _, unlinkErr := c.App.UpdatePropertyField(rctx, group.ID, &unlinkField, false, connectionID); unlinkErr != nil {
-				c.Err = unlinkErr
-				return
-			}
-			existingField.LinkedFieldID = nil
-
-			if tmplDelErr := c.App.DeletePropertyField(rctx, group.ID, templateID, false, connectionID); tmplDelErr != nil {
-				c.Logger.Warn("Failed to delete CPA template after unlinking for type change",
-					mlog.String("template_id", templateID), mlog.Err(tmplDelErr))
-			}
-			// Fall through: patch (including Type) is now applied to the unlinked user field.
-		} else {
-			tmpl, tmplErr := c.App.GetPropertyField(rctx, group.ID, *existingField.LinkedFieldID)
-			if tmplErr != nil {
-				c.Err = tmplErr
-				return
-			}
-
-			// Build a template-specific patch: schema attrs only (options, ldap, saml,
-			// display_name, value_type, …). Display attrs (visibility, managed,
-			// sort_order) stay on the user field.
-			//
-			// Name is intentionally not forwarded. Template name management belongs
-			// to the Global Attributes admin page, which locks the name field
-			// whenever linked fields exist (nameLockedByAppliesTo). The CPA user
-			// field is a linked field, so the name lock always applies. Additionally,
-			// the System Properties UI sends patch.Name on every save regardless of
-			// whether the name changed, and for migrated fields the template may
-			// carry a different name (slugified or disambiguated), so forwarding
-			// blindly would attempt a spurious rename.
-			tmplPatch := &model.PropertyFieldPatch{
-				Type: patch.Type,
-			}
-			if patch.Attrs != nil {
-				schemaAttrs, _ := splitCPAAttrs(*patch.Attrs)
-				if len(schemaAttrs) > 0 {
-					tmplPatch.Attrs = &schemaAttrs
-				}
-			}
-
-			if tmplPatch.Type != nil || tmplPatch.Attrs != nil {
-				tmpl.Patch(tmplPatch, true)
-				tmpl.UpdatedBy = c.AppContext.Session().UserId
-				if _, _, tmplUpdateErr := c.App.UpdatePropertyField(rctx, group.ID, tmpl, false, connectionID); tmplUpdateErr != nil {
-					c.Err = tmplUpdateErr
-					return
-				}
-				// Re-fetch so existingField reflects the template-propagated state
-				// (e.g. options synced by syncPropertyFieldOptions). Without this, a
-				// mixed patch that also changes a display attr or name would hand a
-				// stale options snapshot to UpdatePropertyField, triggering the
-				// linked-field options-change guard.
-				refetched, fetchErr := c.App.GetPropertyField(rctx, group.ID, existingField.ID)
-				if fetchErr != nil {
-					c.Err = fetchErr
-					return
-				}
-				existingField = refetched
-			}
-
-			// Strip schema attrs from the user-field patch: options, ldap, saml,
-			// etc. belong on the template only; the linked user field inherits them.
-			if patch.Attrs != nil {
-				_, displayOnly := splitCPAAttrs(*patch.Attrs)
-				if len(displayOnly) > 0 {
-					patch.Attrs = &displayOnly
-				} else {
-					patch.Attrs = nil
-				}
-			}
-			// Type is inherited from the template; do not attempt to set it on the
-			// linked field (it would conflict with the stored value until a refresh).
-			patch.Type = nil
-
-			// If the patch has nothing left to apply to the user field, skip
-			// UpdatePropertyField entirely — use the already-fresh existingField
-			// (re-fetched above) as the response.
-			if patch.Attrs == nil && patch.Name == nil {
-				updatedField = existingField
-			}
-		}
-	}
-
-	if updatedField == nil {
-		existingField.Patch(patch, true)
-		existingField.UpdatedBy = c.AppContext.Session().UserId
-
-		var updateErr *model.AppError
-		updatedField, clearedIDs, updateErr = c.App.UpdatePropertyField(rctx, group.ID, existingField, false, connectionID)
-		if updateErr != nil {
-			c.Err = updateErr
-			return
-		}
+	updatedField, clearedIDs, updateErr := c.App.UpdatePropertyField(rctx, group.ID, existingField, false, connectionID)
+	if updateErr != nil {
+		c.Err = updateErr
+		return
 	}
 
 	cpaField, convErr := model.NewCPAFieldFromPropertyField(updatedField)
@@ -479,36 +292,20 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if existingField.LinkedFieldID != nil && *existingField.LinkedFieldID != "" {
+		c.Err = model.NewAppError("deleteCPAField", "api.custom_profile_attributes.linked_field.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	if !c.App.SessionHasPermissionToEditPropertyField(rctx, *c.AppContext.Session(), existingField) {
 		c.Err = model.NewAppError("deleteCPAField", "api.property_field.delete.no_permission.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
 	connectionID := r.Header.Get(model.ConnectionId)
-
-	// Capture the template ID before deleting the user field; the template
-	// cannot be deleted while it still has active linked dependents.
-	templateID := ""
-	if existingField.LinkedFieldID != nil && *existingField.LinkedFieldID != "" {
-		templateID = *existingField.LinkedFieldID
-	}
-
 	if deleteErr := c.App.DeletePropertyField(rctx, group.ID, c.Params.FieldId, false, connectionID); deleteErr != nil {
 		c.Err = deleteErr
 		return
-	}
-
-	// Now that the linked user field is gone, delete its template too.
-	if templateID != "" {
-		if deleteErr := c.App.DeletePropertyField(rctx, group.ID, templateID, false, connectionID); deleteErr != nil {
-			// Log but do not fail: the user field is already gone and the
-			// template is now orphaned; the admin can clean it up via the
-			// generic property API.
-			c.Logger.Warn("Failed to delete CPA template after deleting linked user field",
-				mlog.String("template_id", templateID),
-				mlog.Err(deleteErr),
-			)
-		}
 	}
 
 	// CPA-specific websocket event (backward compat)

@@ -152,12 +152,8 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 		}
 	}
 
-	// Template fields carry no display attrs — visibility belongs on the linked
-	// user field, not on the schema definition.
-	if field.ObjectType != model.PropertyFieldObjectTypeTemplate {
-		if v, _ := field.Attrs[model.PropertyFieldAttrVisibility].(string); v == "" {
-			field.Attrs[model.PropertyFieldAttrVisibility] = model.PropertyFieldVisibilityWhenSet
-		}
+	if v, _ := field.Attrs[model.PropertyFieldAttrVisibility].(string); v == "" {
+		field.Attrs[model.PropertyFieldAttrVisibility] = model.PropertyFieldVisibilityWhenSet
 	}
 
 	// Type-based attr clearing: select-shaped fields keep options, only text
