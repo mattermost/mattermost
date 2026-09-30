@@ -53,6 +53,15 @@ func (f *HealthFinding) IsMuted() bool {
 	return f != nil && f.MutedAt > 0
 }
 
+// PreSave normalizes mute state before persistence. Mute is owned by Mute/Unmute,
+// which set MutedAt and MutedBy together, so an unmuted finding must clear MutedBy
+// to match Unmute's canonical state and keep every store's upsert guard equivalent.
+func (f *HealthFinding) PreSave() {
+	if f.MutedAt == 0 {
+		f.MutedBy = ""
+	}
+}
+
 func (f *HealthFinding) Render(t i18n.TranslateFunc, text RuleText) *HealthFinding {
 	if f == nil {
 		return nil

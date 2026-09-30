@@ -11,6 +11,7 @@ import UserAccountMenu from './user_account_menu';
 import BrowseChannelsModal from './channels/browse_channels_modal';
 import ChannelsAppBar from './channels/app_bar';
 import ChannelsCenterView from './channels/center_view';
+import {ChannelAttributeLabels} from './channels/channel_attributes';
 import CreateTeamForm from './channels/create_team_form';
 import ChannelsHeader from './channels/header';
 import ChannelsPost from './channels/post';
@@ -59,6 +60,7 @@ import SearchBox from './channels/search_box';
 import SearchResultsPanel from './channels/search_results_panel';
 import SendMessageNowModal from './channels/send_message_now_modal';
 import SettingsModal from './channels/settings/settings_modal';
+import SwitchProductMenu from './channels/switch_product_menu';
 import TeamMenu from './channels/team_menu';
 import TeamSettingsModal from './channels/team_settings/team_settings_modal';
 import ThreadFooter from './channels/thread_footer';
@@ -101,6 +103,7 @@ const components = {
     UserAccountMenu,
 
     // Channels
+    ChannelAttributeLabels,
     ChannelsAppBar,
     ChannelsCenterView,
     CreateTeamForm,
@@ -152,6 +155,7 @@ const components = {
     SearchResultsPanel,
     SendMessageNowModal,
     SettingsModal,
+    SwitchProductMenu,
     TeamMenu,
     TeamSettingsModal,
     ThreadFooter,
@@ -197,6 +201,7 @@ export {
     UserAccountMenu,
 
     // Channels Page
+    ChannelAttributeLabels,
     ChannelsAppBar,
     ChannelsCenterView,
     CreateTeamForm,
@@ -248,6 +253,7 @@ export {
     SearchResultsPanel,
     SendMessageNowModal,
     SettingsModal,
+    SwitchProductMenu,
     TeamMenu,
     TeamSettingsModal,
     ThreadFooter,

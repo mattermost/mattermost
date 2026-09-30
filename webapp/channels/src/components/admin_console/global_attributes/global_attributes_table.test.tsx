@@ -161,6 +161,90 @@ describe('GlobalAttributesTable', () => {
         });
     });
 
+    it('paints template rows before resource-scope fetches settle', async () => {
+        let resolveUser: (value: PropertyField[]) => void;
+        const userPending = new Promise<PropertyField[]>((resolve) => {
+            resolveUser = resolve;
+        });
+
+        getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
+            if (opts?.cursorId) {
+                return Promise.resolve([]);
+            }
+            if (objectType === 'template') {
+                return Promise.resolve([makeField({id: 'template-1', name: 'department', attrs: {display_name: 'Department'}})]);
+            }
+            if (objectType === 'user') {
+                return userPending;
+            }
+            return Promise.resolve([]);
+        });
+
+        renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+        expect(await screen.findByText('Department')).toBeInTheDocument();
+        expect(screen.queryByTestId('loading-screen')).not.toBeInTheDocument();
+        expect(within(screen.getByTestId('global-attribute-applies-to')).getByTestId('loadingSpinner')).toBeInTheDocument();
+
+        await act(async () => {
+            resolveUser!([makeField({
+                id: 'user-1',
+                object_type: 'user',
+                linked_field_id: 'template-1',
+            })]);
+            await userPending;
+        });
+
+        await waitFor(() => {
+            expect(screen.getByTestId('global-attribute-applies-to')).toHaveTextContent('Users');
+        });
+        expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
+    });
+
+    it('keeps the loading screen when the template list is empty until resource scopes settle', async () => {
+        let resolveUser: (value: PropertyField[]) => void;
+        const userPending = new Promise<PropertyField[]>((resolve) => {
+            resolveUser = resolve;
+        });
+
+        getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
+            if (opts?.cursorId) {
+                return Promise.resolve([]);
+            }
+            if (objectType === 'template') {
+                return Promise.resolve([]);
+            }
+            if (objectType === 'user') {
+                return userPending;
+            }
+            return Promise.resolve([]);
+        });
+
+        renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+        await waitFor(() => {
+            expect(getPropertyFields).toHaveBeenCalledWith(
+                'access_control',
+                'template',
+                'system',
+                undefined,
+                expect.anything(),
+            );
+        });
+        expect(screen.getByTestId('loading-screen')).toBeInTheDocument();
+        expect(screen.queryByTestId('global-attributes-empty')).not.toBeInTheDocument();
+        expect(screen.queryByText('user_field')).not.toBeInTheDocument();
+
+        await act(async () => {
+            resolveUser!([makeField({id: 'u1', name: 'user_field', object_type: 'user'})]);
+            await userPending;
+        });
+
+        expect(await screen.findByText('user_field')).toBeInTheDocument();
+        expect(screen.queryByTestId('loading-screen')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('global-attributes-empty')).not.toBeInTheDocument();
+    });
+
     it('fetches access_control/template fields scoped to the system target type', async () => {
         getPropertyFields.mockResolvedValueOnce([]).mockResolvedValue([]);
 
@@ -252,7 +336,9 @@ describe('GlobalAttributesTable', () => {
 
             renderWithContext(<GlobalAttributesTable/>, getAllScopesState());
 
-            expect(await screen.findByText('user_field')).toBeInTheDocument();
+            await waitFor(() => {
+                expect(screen.getByText('user_field')).toBeInTheDocument();
+            });
             expect(screen.getByText('channel_field')).toBeInTheDocument();
             expect(screen.getByText('post_field')).toBeInTheDocument();
         });
@@ -414,7 +500,10 @@ describe('GlobalAttributesTable', () => {
 
         renderWithContext(<GlobalAttributesTable/>, getBaseState());
 
-        expect(await screen.findByTestId('global-attribute-applies-to')).toHaveTextContent('—');
+        await waitFor(() => {
+            expect(screen.getByTestId('global-attribute-applies-to')).toHaveTextContent('—');
+        });
+        expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
     });
 
     it('renders Applies-to chips for the resources a field is linked to', async () => {
@@ -445,11 +534,14 @@ describe('GlobalAttributesTable', () => {
 
         renderWithContext(<GlobalAttributesTable/>, getAllScopesState());
 
-        const appliesTo = await screen.findByTestId('global-attribute-applies-to');
-        expect(appliesTo).toHaveTextContent('Users');
+        await waitFor(() => {
+            expect(screen.getByTestId('global-attribute-applies-to')).toHaveTextContent('Users');
+        });
+        const appliesTo = screen.getByTestId('global-attribute-applies-to');
         expect(appliesTo).toHaveTextContent('Posts');
         expect(appliesTo).not.toHaveTextContent('Channels');
         expect(appliesTo).not.toHaveTextContent('—');
+        expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
     });
 
     // Channels stays fully enabled so the missing Posts chip is attributable to
@@ -528,9 +620,11 @@ describe('GlobalAttributesTable', () => {
 
         renderWithContext(<GlobalAttributesTable/>, state);
 
-        const appliesTo = await screen.findByTestId('global-attribute-applies-to');
-        expect(appliesTo).toHaveTextContent('—');
-        expect(appliesTo).not.toHaveTextContent('Users');
+        await waitFor(() => {
+            expect(screen.getByTestId('global-attribute-applies-to')).toHaveTextContent('—');
+        });
+        expect(screen.getByTestId('global-attribute-applies-to')).not.toHaveTextContent('Users');
+        expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
 
         consoleSpy.mockRestore();
     });
@@ -583,10 +677,13 @@ describe('GlobalAttributesTable', () => {
 
         renderWithContext(<GlobalAttributesTable/>, state);
 
-        const appliesTo = await screen.findByTestId('global-attribute-applies-to');
-        expect(appliesTo).toHaveTextContent('Users');
+        await waitFor(() => {
+            expect(screen.getByTestId('global-attribute-applies-to')).toHaveTextContent('Users');
+        });
+        const appliesTo = screen.getByTestId('global-attribute-applies-to');
         expect(appliesTo).not.toHaveTextContent('Channels');
         expect(appliesTo).not.toHaveTextContent('—');
+        expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
 
         consoleSpy.mockRestore();
     });
@@ -1562,6 +1659,26 @@ describe('GlobalAttributesTable', () => {
 
             expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
         });
+
+        it('treats a wrong-typed template named classification as an ordinary attribute, so it can be repaired', async () => {
+            // * An admin can create a text attribute called `classification` here, which
+            // the Classification Markings page then reports as a conflict. Deleting or
+            // renaming it in this table is the repair path that error points at, so the
+            // row must keep its Edit and Delete actions.
+            getPropertyFields.mockResolvedValueOnce([makeClassificationField({type: 'text', attrs: {}})]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getReachableState());
+
+            expect(await screen.findByTestId('global-attribute-name')).toHaveTextContent('Classification');
+            expect(screen.queryByTestId('global-attribute-classification-subtitle-field-1')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
+            expect(screen.getByTestId('global-attribute-source')).toHaveTextContent('Managed here');
+
+            await userEvent.click(screen.getByTestId('global-attribute-actions-field-1'));
+
+            const items = (await screen.findAllByRole('menuitem')).map((el) => el.textContent);
+            expect(items).toEqual(['Edit attribute', 'Delete attribute']);
+        });
     });
 });
 
@@ -1600,23 +1717,28 @@ describe('getSourceKind', () => {
 describe('isClassificationMarkingsField', () => {
     const groupId = 'accesscontrolgroupuuid001';
 
-    it('returns true only when name, object_type, and group_id all match', () => {
-        const field = makeField({name: CLASSIFICATIONS_TEMPLATE_FIELD_NAME, object_type: CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE, group_id: groupId});
+    it('returns true only when name, type, object_type, and group_id all match', () => {
+        const field = makeClassificationField({group_id: groupId});
         expect(isClassificationMarkingsField(field, groupId)).toBe(true);
     });
 
     it('returns false when the name matches but object_type does not', () => {
-        const field = makeField({name: CLASSIFICATIONS_TEMPLATE_FIELD_NAME, object_type: 'system', group_id: groupId});
+        const field = makeClassificationField({object_type: 'system', group_id: groupId});
         expect(isClassificationMarkingsField(field, groupId)).toBe(false);
     });
 
     it('returns false when the name and object_type match but group_id does not', () => {
-        const field = makeField({name: CLASSIFICATIONS_TEMPLATE_FIELD_NAME, object_type: CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE, group_id: 'some-other-group'});
+        const field = makeClassificationField({group_id: 'some-other-group'});
         expect(isClassificationMarkingsField(field, groupId)).toBe(false);
     });
 
     it('returns false when object_type and group_id match but the name does not', () => {
-        const field = makeField({name: 'not_classification', object_type: CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE, group_id: groupId});
+        const field = makeClassificationField({name: 'not_classification', group_id: groupId});
+        expect(isClassificationMarkingsField(field, groupId)).toBe(false);
+    });
+
+    it('returns false when only the type does not match, so it stays an ordinary attribute', () => {
+        const field = makeClassificationField({type: 'text', group_id: groupId});
         expect(isClassificationMarkingsField(field, groupId)).toBe(false);
     });
 });

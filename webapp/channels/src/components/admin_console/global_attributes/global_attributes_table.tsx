@@ -27,6 +27,7 @@ import {getPluginDisplayName} from 'selectors/plugins';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import {
+    CLASSIFICATIONS_FIELD_TYPE,
     CLASSIFICATIONS_MARKINGS_ADMIN_URL,
     CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
@@ -35,6 +36,7 @@ import AlertBanner from 'components/alert_banner';
 import {useIsFieldOrphaned, usePluginInventoryLoaded} from 'components/common/hooks/use_field_orphaned';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {getHistory} from 'utils/browser_history';
 import {LicenseSkus} from 'utils/constants';
@@ -67,11 +69,17 @@ export function getDisplayName(field: PropertyField): string {
 }
 
 // Identifies the single Classification Markings template field by its literal
-// name + object_type + group_id combo. There is no data-driven ownership flag
-// (attrs.protected/top-level `protected`) for this template field.
+// name + type + object_type + group_id combo. There is no data-driven ownership
+// flag (attrs.protected/top-level `protected`) for this template field.
+//
+// The type is part of it because the name alone is not reserved: an attribute
+// named `classification` of any other type is an ordinary attribute, and must
+// stay editable and deletable here — that is the only way to clear the conflict
+// the Classification Markings page reports.
 export function isClassificationMarkingsField(field: PropertyField, groupId: string): boolean {
     return (
         field.name === CLASSIFICATIONS_TEMPLATE_FIELD_NAME &&
+        field.type === CLASSIFICATIONS_FIELD_TYPE &&
         field.object_type === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE &&
         field.group_id === groupId
     );
@@ -190,7 +198,15 @@ function SourceCell({field, isClassificationRow}: ClassificationAwareCellProps) 
     );
 }
 
-function AppliesToCell({types}: {types: ResourceObjectType[]}) {
+function AppliesToCell({types, loading}: {types: ResourceObjectType[]; loading?: boolean}) {
+    if (loading && types.length === 0) {
+        return (
+            <span data-testid='global-attribute-applies-to'>
+                <LoadingSpinner/>
+            </span>
+        );
+    }
+
     if (types.length === 0) {
         return <span data-testid='global-attribute-applies-to'>{'—'}</span>;
     }
@@ -373,6 +389,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
     const dispatch = useDispatch();
 
     const [loaded, setLoaded] = useState(false);
+    const [resourcesLoaded, setResourcesLoaded] = useState(false);
     const [loadError, setLoadError] = useState(false);
     const [suppressedScopes, setSuppressedScopes] = useState<ReadonlySet<ResourceObjectType>>(() => new Set());
     const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -432,10 +449,16 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
 
         const load = async () => {
             try {
+                // Paint the table from template fields first; Applies-to chips and
+                // unlinked resource rows fill in once the background scope fetches
+                // settle.
                 await dispatch(fetchPropertyFields(GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE));
                 if (!active) {
                     return;
                 }
+                setLoadError(false);
+                setLoaded(true);
+                setResourcesLoaded(false);
 
                 // Both non-template rows and applies-to chips come from the
                 // per-resource fields. A rejected fetch does not replace that
@@ -461,16 +484,14 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                     }
                 });
                 setSuppressedScopes(suppressed);
-                setLoadError(false);
+                setResourcesLoaded(true);
             } catch (error) {
                 // Surface an error state instead of a misleading empty state.
                 console.error('GlobalAttributesTable-load: ', error); // eslint-disable-line no-console
                 if (active) {
                     setLoadError(true);
-                }
-            } finally {
-                if (active) {
                     setLoaded(true);
+                    setResourcesLoaded(true);
                 }
             }
         };
@@ -485,12 +506,17 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
     // getUnlinkedSystemFieldsForGroup reads every cached user/channel/post field.
     // Channel fields can already be in the store (channel-header labels, a prior
     // visit while licensed) after resourceTypesToFetch has dropped that scope, so
-    // keep the table in lockstep with what this page actually fetched.
+    // keep the table in lockstep with what this page actually fetched. Unlinked
+    // rows also wait on resourcesLoaded so they do not flash before suppressedScopes
+    // is known.
     const allRows = useMemo(
-        () => [...fields, ...unlinkedFields.filter((field) => !suppressedScopes.has(field.object_type as ResourceObjectType))].sort(
+        () => [
+            ...fields,
+            ...(resourcesLoaded ? unlinkedFields.filter((field) => !suppressedScopes.has(field.object_type as ResourceObjectType)) : []),
+        ].sort(
             (a, b) => getDisplayName(a).localeCompare(getDisplayName(b)),
         ),
-        [fields, unlinkedFields, suppressedScopes],
+        [fields, unlinkedFields, suppressedScopes, resourcesLoaded],
     );
 
     // The Source column resolves plugin-owned rows to a plugin display name, but
@@ -612,7 +638,10 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                 id: 'applies_to',
                 header: () => <FormattedMessage {...messages.appliesTo}/>,
                 cell: ({row}) => (
-                    <AppliesToCell types={appliesToFor(row.original)}/>
+                    <AppliesToCell
+                        types={appliesToFor(row.original)}
+                        loading={!resourcesLoaded}
+                    />
                 ),
                 enableHiding: false,
             }),
@@ -657,7 +686,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                 enableHiding: false,
             }),
         ];
-    }, [appliesToByTemplateId, groupId, classificationMarkingsReachable, isMobileView, handleDeleteModalExited]);
+    }, [appliesToByTemplateId, groupId, classificationMarkingsReachable, isMobileView, handleDeleteModalExited, resourcesLoaded]);
 
     const table = useReactTable<PropertyField>({
         data: rows,
@@ -691,6 +720,13 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
     }
 
     if (rows.length === 0) {
+        // Template list can be empty while unlinked resource fields are still
+        // in flight — stay on the loading screen so the empty state does not
+        // flash before those rows arrive.
+        if (!resourcesLoaded && allRows.length === 0) {
+            return <LoadingScreen/>;
+        }
+
         const isSearchEmpty = allRows.length > 0 && Boolean(searchQuery.trim());
         return (
             <div

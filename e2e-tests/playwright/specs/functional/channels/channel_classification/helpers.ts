@@ -5,12 +5,20 @@ import type {Client4} from '@mattermost/client';
 
 import {backfillAndRequireChannelAttribute} from '../channel_attributes/helpers';
 
+// Canonical values: webapp/channels/src/components/admin_console/classification_markings/utils/index.ts
+// (cross-package import not feasible between e2e-tests and webapp)
 const PROPERTY_GROUP = 'access_control';
 const TEMPLATE_OBJECT_TYPE = 'template';
 const CHANNEL_OBJECT_TYPE = 'channel';
 const TARGET_TYPE = 'system';
 const CLASSIFICATION_FIELD_NAME = 'classification';
 const CHANNEL_LINKED_FIELD_NAME = 'classification';
+// Classification levels are an ordered scale, so only a rank-typed field by this
+// name belongs to the feature. One of any other type is a different attribute that
+// happens to share the name, and the admin pages report it as a conflict rather
+// than adopting it — so seeding the wrong type here lands the test on that error
+// screen instead of the editor.
+const CLASSIFICATIONS_FIELD_TYPE = 'rank';
 
 export const TEST_LEVELS = [
     {name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
@@ -104,7 +112,7 @@ export async function setupClassificationWithChannelField(
     // Create template field
     const templateField = await adminClient.createPropertyField(PROPERTY_GROUP, TEMPLATE_OBJECT_TYPE, {
         name: CLASSIFICATION_FIELD_NAME,
-        type: 'select',
+        type: CLASSIFICATIONS_FIELD_TYPE,
         target_type: TARGET_TYPE,
         target_id: '',
         attrs: {
@@ -120,7 +128,7 @@ export async function setupClassificationWithChannelField(
     // including the creator, set a value on it.
     const channelField = await adminClient.createPropertyField(PROPERTY_GROUP, CHANNEL_OBJECT_TYPE, {
         name: CHANNEL_LINKED_FIELD_NAME,
-        type: 'select',
+        type: CLASSIFICATIONS_FIELD_TYPE,
         target_type: TARGET_TYPE,
         target_id: '',
         linked_field_id: templateField.id,

@@ -8,5 +8,7 @@ import "testing"
 func TestMemoryStore(t *testing.T) {
 	t.Parallel()
 
-	TestFindingStore(t, NewMemoryStore)
+	TestFindingStore(t, func(*testing.T) FindingStore {
+		return NewMemoryStore()
+	})
 }
