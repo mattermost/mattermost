@@ -6,16 +6,19 @@ package packet
 import (
 	"archive/zip"
 	"bytes"
+	"encoding/json"
 	"io/fs"
 	"maps"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -116,7 +119,6 @@ func evaluate(t *testing.T, snapshot *healthcheck.Snapshot) []finding {
 func TestReadGoldenPackets(t *testing.T) {
 	cases := []struct {
 		name     string
-		warnings int
 		expected []finding
 	}{
 		{
@@ -139,24 +141,13 @@ func TestReadGoldenPackets(t *testing.T) {
 				{Code: "SITE_URL_HTTP", State: healthcheck.StateResolved, Subject: siteURLSubject},
 			},
 		},
-		{
-			name:     "ha_legacy",
-			warnings: 1,
-			expected: []finding{
-				{Code: "PUSH_EMPTY_URL", State: healthcheck.StateResolved, Subject: pushSubject},
-				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateResolved, Subject: pushSubject},
-				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateResolved, Subject: pushSubject},
-				{Code: "SITE_URL_EMPTY", State: healthcheck.StateFiring, Subject: siteURLSubject},
-				{Code: "SITE_URL_HTTP", State: healthcheck.StateResolved, Subject: siteURLSubject},
-			},
-		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			p := readFiles(t, fixtureFiles(t, tc.name))
 
-			assert.Len(t, p.Warnings, tc.warnings)
+			assert.Empty(t, p.Warnings)
 			assert.ElementsMatch(t, tc.expected, evaluate(t, p.Snapshot))
 		})
 	}
@@ -260,12 +251,27 @@ func TestReadLeader(t *testing.T) {
 	})
 
 	t.Run("an older packet without is_leader falls back to the first hostname", func(t *testing.T) {
-		assert.Equal(t, "app-a.example.com", leaderOf(t, fixtureFiles(t, "ha_legacy")))
+		files := fixtureFiles(t, "ha")
+		name := "app-2.example.com/" + model.SupportPacketDiagnosticsFileName
+		require.Contains(t, string(files[name]), "  is_leader: true\n")
+		files[name] = bytes.Replace(files[name], []byte("  is_leader: true\n"), nil, 1)
+
+		assert.Equal(t, "app-1.example.com", leaderOf(t, files))
 	})
 
 	t.Run("a standalone packet's only node leads", func(t *testing.T) {
 		assert.Equal(t, "mm.example.com", leaderOf(t, fixtureFiles(t, "standalone")))
 	})
+}
+
+func TestReadMissingMetadata(t *testing.T) {
+	files := fixtureFiles(t, "standalone")
+	delete(files, model.PacketMetadataFileName)
+
+	p := readFiles(t, files)
+	assert.Len(t, p.Warnings, 1)
+	assert.True(t, p.Snapshot.CollectedAt.IsZero())
+	assert.Empty(t, p.Snapshot.Version.Current)
 }
 
 func TestReadCloud(t *testing.T) {
@@ -441,6 +447,66 @@ func TestSplitNodeFiles(t *testing.T) {
 		"app-1": {"diagnostics.yaml", "sanitized_config.json", "advancedLogs/audit.log"},
 		"app-2": {"diagnostics.yaml", "sanitized_config.json"},
 	}, byNode)
+}
+
+// The reader ignores unknown keys, so a fixture key the writer renamed or dropped would
+// silently decode to its zero value.
+func TestFixturesMatchTheModel(t *testing.T) {
+	strictYAML := func(data []byte, v any) error {
+		return yaml.UnmarshalWithOptions(data, v, yaml.Strict())
+	}
+	strictJSON := func(data []byte, v any) error {
+		decoder := json.NewDecoder(bytes.NewReader(data))
+		decoder.DisallowUnknownFields()
+		return decoder.Decode(v)
+	}
+
+	decoders := map[string]func([]byte) error{
+		model.SupportPacketDiagnosticsFileName: func(data []byte) error {
+			return strictYAML(data, &model.SupportPacketDiagnostics{})
+		},
+		model.SupportPacketConfigFileName: func(data []byte) error {
+			return strictJSON(data, &model.SupportPacketConfig{})
+		},
+		model.SupportPacketStatsFileName: func(data []byte) error {
+			return strictYAML(data, &model.SupportPacketStats{})
+		},
+		model.SupportPacketJobsFileName: func(data []byte) error {
+			return strictYAML(data, &model.SupportPacketJobList{})
+		},
+		model.SupportPacketPluginsFileName: func(data []byte) error {
+			return strictJSON(data, &model.SupportPacketPluginList{})
+		},
+		model.PacketMetadataFileName: func(data []byte) error {
+			return strictYAML(data, &model.PacketMetadata{})
+		},
+	}
+
+	for _, fixture := range []string{"standalone", "ha"} {
+		files := fixtureFiles(t, fixture)
+		root, byNode := splitNodeFiles(slices.Collect(maps.Keys(files)))
+
+		members := map[string]string{}
+		for _, name := range root {
+			members[name] = name
+		}
+		for node, names := range byNode {
+			for _, name := range names {
+				members[path.Join(node, name)] = name
+			}
+		}
+
+		for member, name := range members {
+			decode, ok := decoders[name]
+			if !ok {
+				// Plugin diagnostics are free-form, so there is no model to check them against.
+				continue
+			}
+			t.Run(fixture+"/"+member, func(t *testing.T) {
+				assert.NoError(t, decode(files[member]))
+			})
+		}
+	}
 }
 
 // The reader runs inside mmctl, so it must not pull in the server.
