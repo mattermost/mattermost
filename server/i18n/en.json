@@ -3334,6 +3334,11 @@
     "description": "Admin API error when the caller lacks permission for the given background job type; 'manage' means create/cancel."
   },
   {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
     "id": "api.ldap.test.reenter_password",
     "translation": "The AD/LDAP connection settings have changed. Please re-enter the bind password to test the connection.",
     "description": "Error shown when testing the AD/LDAP connection after the settings changed, asking the admin to re-enter the bind password because the saved one no longer applies."
@@ -10121,14 +10126,34 @@
     "description": "API error when fetching the access control attributes applied to a channel fails; admin-facing."
   },
   {
+    "id": "app.pap.get_channel_members_to_remove.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
     "id": "app.pap.get_masked_visual_ast.app_error",
     "translation": "Could not generate masked visual AST from expression.",
     "description": "Internal error when generating the visual (tree) representation of an access control policy expression with hidden values masked fails; 'AST' = abstract syntax tree, admin-facing."
   },
   {
+    "id": "app.pap.get_policies_for_field_ids.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
     "id": "app.pap.get_policy.app_error",
     "translation": "Unable to retrieve the access control policy.",
     "description": "API error shown to system admins when loading a single attribute-based access control policy fails."
+  },
+  {
+    "id": "app.pap.get_policy_attributes.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "app.pap.get_team_members_to_remove.app_error",
+    "translation": "",
+    "description": ""
   },
   {
     "id": "app.pap.has_masked_values.app_error",
@@ -10139,6 +10164,21 @@
     "id": "app.pap.hydrate_actions.app_error",
     "translation": "Could not load the action set declared by the channel's access control policy.",
     "description": "Internal error when loading the set of actions defined by a channel's access control policy fails; technical, admin-facing."
+  },
+  {
+    "id": "app.pap.init.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "app.pap.is_ready.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "app.pap.mask_expression.app_error",
+    "translation": "",
+    "description": ""
   },
   {
     "id": "app.pap.masking.ambiguous_sibling.app_error",
@@ -10161,9 +10201,44 @@
     "description": "API error for admins saving an access control policy when the edited expression cannot be recombined with previously masked (hidden) values."
   },
   {
+    "id": "app.pap.missing_attribute.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "app.pap.normalize_policy.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "app.pap.query_expression.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "app.pap.rehydrate_rank.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "app.pap.save_policy.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
     "id": "app.pap.save_policy.forbidden",
     "translation": "You do not have permission to make this change to the policy.",
     "description": "API error when an admin tries to make a change to an access control policy they are not permitted to make."
+  },
+  {
+    "id": "app.pap.save_policy.invalid_value",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "app.pap.save_policy.masked_condition_deleted",
+    "translation": "",
+    "description": ""
   },
   {
     "id": "app.pap.save_policy.masked_token_in_expression",
@@ -10171,9 +10246,29 @@
     "description": "API error when a saved access control policy expression still contains an unresolved masked-value placeholder; asks the admin to reload the policy and retry."
   },
   {
+    "id": "app.pap.save_policy.name_exists.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": "",
+    "description": ""
+  },
+  {
     "id": "app.pap.save_policy.resolver_error",
     "translation": "Could not initialise attribute resolver for policy save.",
     "description": "Internal error when initializing the attribute resolver component fails while saving an access control policy; technical, admin-facing."
+  },
+  {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "app.pap.save_policy.rule_name_unique.app_error",
+    "translation": "",
+    "description": ""
   },
   {
     "id": "app.pap.save_policy.self_exclusion",
@@ -10181,9 +10276,59 @@
     "description": "API error when saving an access control policy would lock the saving admin out because they do not satisfy the policy's conditions."
   },
   {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": "",
+    "description": ""
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Could not search access control policies.",
     "description": "API error when searching attribute-based access control policies fails; admin-facing."
+  },
+  {
+    "id": "app.pap.simulate.attribute_refresh",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "app.pap.simulate.compile_failed",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "app.pap.simulate.feature_disabled",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "app.pap.simulate.invalid_policy",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "app.pap.simulate.missing_actions",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "app.pap.simulate.missing_channel_id",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "app.pap.simulate.missing_policy",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "app.pap.simulate.missing_users",
+    "translation": "",
+    "description": ""
   },
   {
     "id": "app.pap.simulate.resolver_error",
@@ -10191,9 +10336,19 @@
     "description": "Internal error when initializing the attribute resolver component fails during access control policy simulation; technical, admin-facing."
   },
   {
+    "id": "app.pap.simulate.too_many_users",
+    "translation": "",
+    "description": ""
+  },
+  {
     "id": "app.pap.simulate.unavailable",
     "translation": "Policy Administration Point is not initialized.",
     "description": "API error when policy simulation is requested but the Policy Administration Point service is not initialized; technical, admin-facing."
+  },
+  {
+    "id": "app.pap.simulate.unsupported_type",
+    "translation": "",
+    "description": ""
   },
   {
     "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
@@ -10209,6 +10364,16 @@
     "id": "app.pap.update_access_control_policies_active.app_error",
     "translation": "Could not update active status of access control policies.",
     "description": "API error when enabling or disabling attribute-based access control policies fails; admin-facing."
+  },
+  {
+    "id": "app.pdp.access_evaluation.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "app.pdp.access_evaluation.permission_policy.app_error",
+    "translation": "",
+    "description": ""
   },
   {
     "id": "app.plugin.addon_not_licensed.app_error",
@@ -12992,9 +13157,174 @@
     "description": "Internal API error when a stored setting cannot be parsed as a number; {{.Value}} is the offending value and 'int64' is a numeric type name."
   },
   {
+    "id": "ent.access_control.job_data_conversion.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.access_control.sync_job.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.account_migration.get_all_failed",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.account_migration.get_saml_users_failed",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_id",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_type",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.add_task.nil_task",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.add_task.worker_stopped",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.create_translation_failed",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.detect_language.nil_context",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.detect_language.text_too_large",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.detect_remote.error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.extract_content.mask_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.extract_post.nil_post",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.feature_unavailable",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.invalid_input",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.mask_verification_failed",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.no_translatable_content",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.provider_not_available",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.provider_not_initialized",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.store_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.unmask.missing_mask",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.unmask.orphan_token",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_json",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.validate_content.invalid_type",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.validate_content.nil_content",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.validate_content.text_too_large",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.validate_id.empty",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.autotranslation.validate_id.invalid",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.cluster.config_changed.info",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.cluster.json_encode.error",
+    "translation": "",
+    "description": ""
+  },
+  {
     "id": "ent.cluster.save_config.error",
     "translation": "System Console is set to read-only when High Availability is enabled unless ReadOnlyConfig is disabled in the configuration file.",
     "description": "Error shown to admins trying to change settings from the System Console when the server runs in High Availability mode; 'System Console' is the admin UI and 'ReadOnlyConfig' is a config setting name that should stay untranslated."
+  },
+  {
+    "id": "ent.cluster.timeout.error",
+    "translation": "",
+    "description": ""
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -13002,9 +13332,29 @@
     "description": "Error shown to admins using compliance export features without a license that includes them."
   },
   {
+    "id": "ent.compliance.run_failed.error",
+    "translation": "",
+    "description": ""
+  },
+  {
     "id": "ent.data_retention.generic.license.error",
     "translation": "Your license does not support Data Retention.",
     "description": "Error shown to admins using the Data Retention feature (automatic deletion of old messages/files) without a supporting license."
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "",
+    "description": ""
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
@@ -13342,14 +13692,189 @@
     "description": "Error status for a maintenance job; {{.Backend}} is 'Elasticsearch' or 'OpenSearch'; it failed to update the channel type field on indexed posts."
   },
   {
+    "id": "ent.id_loaded.license_disable.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.intune.login.account_not_found.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.intune.login.extract_auth_data.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.intune.login.not_configured.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_token.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.intune.validate_token.jwks_init.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.intune.validate_token.missing_claims.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.intune.validate_token.token_expired.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.jobs.start_synchronize_job.timeout",
+    "translation": "",
+    "description": ""
+  },
+  {
     "id": "ent.ldap.app_error",
     "translation": "ldap interface was nil.",
     "description": "Internal server error logged/returned when the enterprise LDAP module is not loaded; mostly seen by admins/developers."
   },
   {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap.cpa_field_mapping.list_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap.create_fail",
+    "translation": "",
+    "description": ""
+  },
+  {
     "id": "ent.ldap.disabled.app_error",
     "translation": "AD/LDAP disabled or licence does not support AD/LDAP.",
     "description": "API error shown to admins when an AD/LDAP operation is attempted but AD/LDAP is disabled or unlicensed."
+  },
+  {
+    "id": "ent.ldap.do_login.bind_admin_user.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap.do_login.certificate.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_id",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap.do_login.invalid_password.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap.do_login.key.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap.do_login.licence_disable.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap.do_login.matched_to_many_users.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap.do_login.search_ldap_server.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap.do_login.unable_to_connect.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap.do_login.user_filtered.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap.do_login.user_not_registered.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap.do_login.x509.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap.get_user_by_auth.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap.no.users.checkcertificate",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap.syncronize.get_all.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap.syncronize.get_all_groups.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap.syncronize.populate_syncables",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap.syncronize.search_failure.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap.update_cpa.empty_attribute",
+    "translation": "",
+    "description": ""
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
@@ -13372,6 +13897,36 @@
     "description": "Config validation error shown to system admins when the AD/LDAP Guest Filter setting is not a valid LDAP search filter."
   },
   {
+    "id": "ent.ldap_groups.group_search_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap_groups.groups_search_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap_groups.invalid_ldap_id",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap_groups.members_of_group_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap_groups.no_rows",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.ldap_groups.reachable_groups_error",
+    "translation": "",
+    "description": ""
+  },
+  {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "unable to migrate.",
     "description": "API error shown to admins when the LDAP ID-attribute migration operation fails."
@@ -13385,6 +13940,286 @@
     "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
     "translation": "Exporting channel information for {{.NumChannels}} channels.",
     "description": "Progress status of the compliance message export job shown to admins; {{.NumChannels}} is the number of channels being exported."
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.message_export.run_export.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.migration.migratetoldap.duplicate_field",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.migration.migratetoldap.user_not_found",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.authenticate.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.feature_disabled",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.license_disable.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.push_proxy.delete.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.push_proxy.generate.bad_status.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.push_proxy.generate.create_request.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.push_proxy.generate.empty_token.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.push_proxy.generate.encrypt.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.push_proxy.generate.http_request.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal_request.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.push_proxy.generate.no_key.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.push_proxy.generate.parse_response.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.push_proxy.generate.save_system.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.push_proxy.worker.interface_nil.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.saml.attribute.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.saml.build_request.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.saml.configure.encryption_not_enabled.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.saml.configure.load_private_key.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.saml.configure.not_encrypted_response.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.saml.cpa_field_mapping.list_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.saml.do_login.empty_response.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.saml.do_login.invalid_signature.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.saml.do_login.invalid_time.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.saml.do_login.parse.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.saml.license_disable.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.saml.metadata.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.saml.save_user.email_exists.saml_app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.saml.save_user.username_exists.saml_app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.saml.service_disable.app_error",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.saml.update_cpa.empty_attribute_statement",
+    "translation": "",
+    "description": ""
+  },
+  {
+    "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+    "translation": "",
+    "description": ""
   },
   {
     "id": "error",
