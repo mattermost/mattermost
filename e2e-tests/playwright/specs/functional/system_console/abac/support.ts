@@ -1346,7 +1346,9 @@ export async function createPermissionPolicy(
     options: {
         name: string;
         celExpression: string;
-        permissions: Array<'Download Files' | 'Upload Files' | 'Channel Read Access' | 'Channel Write Access' | 'Manage Channel'>;
+        permissions: Array<
+            'Download Files' | 'Upload Files' | 'Channel Read Access' | 'Channel Write Access' | 'Manage Channel'
+        >;
         role?: 'system_guest' | 'system_user' | 'system_admin';
         adminClient?: Client4;
     },
