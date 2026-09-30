@@ -140,10 +140,10 @@ describe('AttributeAppliesTo', () => {
             expect(users).toHaveAttribute('aria-disabled', 'true');
             expect(users).toHaveTextContent('Name already in use');
 
-            // pointerEventsCheck off so the click really reaches the item: a
-            // disabled MUI item is pointer-events: none, and letting userEvent
-            // refuse the interaction would prove only that CSS, not that the
-            // component drops the click.
+            // pointerEventsCheck off so userEvent dispatches the click rather than
+            // refusing it over the item's pointer-events: none. What swallows the
+            // click is MUI's own `disabled` handling, which is as far as this goes:
+            // the option is offered, and choosing it adds nothing.
             await userEvent.click(users, {pointerEventsCheck: 0});
 
             // A live Menu.Item defers its onClick until the menu has finished

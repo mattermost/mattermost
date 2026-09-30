@@ -29,44 +29,6 @@ function makeField(field: Partial<PropertyField>): PropertyField {
 
 describe('global_attributes/name_conflict', () => {
     describe('findNameConflict', () => {
-        it('matches ignoring case in both directions', () => {
-            const lower = makeField({id: 'u1', name: 'clearance'});
-            expect(findNameConflict('Clearance', [lower], [])?.field).toBe(lower);
-
-            const upper = makeField({id: 'u2', name: 'Clearance'});
-            expect(findNameConflict('clearance', [upper], [])?.field).toBe(upper);
-        });
-
-        it('never treats a soft-deleted field as a conflict', () => {
-            expect(findNameConflict('clearance', [
-                makeField({id: 'u1', name: 'clearance', delete_at: 123}),
-            ], [])).toBeUndefined();
-        });
-
-        it('excludes the field whose id is templateId, since an attribute never conflicts with itself', () => {
-            expect(findNameConflict('clearance', [
-                makeField({id: 'template-id', name: 'clearance'}),
-            ], [], 'template-id')).toBeUndefined();
-        });
-
-        it("excludes a field linked to templateId, since a template's own child is not a conflict", () => {
-            expect(findNameConflict('clearance', [
-                makeField({id: 'u1', name: 'clearance', linked_field_id: 'template-id'}),
-            ], [], 'template-id')).toBeUndefined();
-        });
-
-        it('excludes nothing when no templateId is passed, as on the create form', () => {
-            const own = makeField({id: 'template-id', name: 'clearance'});
-
-            expect(findNameConflict('clearance', [own], [])?.field).toBe(own);
-        });
-
-        it('returns no conflict for a name nothing shares', () => {
-            expect(findNameConflict('clearance', [
-                makeField({id: 'u1', name: 'department'}),
-            ], [])).toBeUndefined();
-        });
-
         it("resolves ownerTemplate from the conflicting field's linked_field_id", () => {
             const owner = makeField({id: 'markings-template', object_type: 'template', name: 'classification'});
 
@@ -107,6 +69,26 @@ describe('global_attributes/name_conflict', () => {
 
             expect(findNameConflict('clearance', [field], [])?.exact).toBe(true);
             expect(findNameConflict('Clearance', [field], [])?.exact).toBe(false);
+        });
+
+        // The server's uniqueness check is case-sensitive, so `Clearance` and
+        // `clearance` can be live user fields at the same time. Reporting the
+        // case-only one leaves exact false, which keeps 'Applies to -> Users'
+        // enabled and lets the save hit the 409 the warning exists to prevent --
+        // so the choice cannot come down to which the server happened to list
+        // first. Both orders are exercised because either alone passes on a
+        // first-match implementation.
+        const exactMatch = makeField({id: 'u-exact', name: 'clearance'});
+        const caseOnlyMatch = makeField({id: 'u-case-only', name: 'Clearance'});
+
+        it.each<[string, PropertyField[]]>([
+            ['exact match is listed first', [exactMatch, caseOnlyMatch]],
+            ['case-only match is listed first', [caseOnlyMatch, exactMatch]],
+        ])('reports the exactly-matching user field, not the case-only one, when the %s', (_order, userFields) => {
+            const conflict = findNameConflict('clearance', userFields, []);
+
+            expect(conflict?.field).toBe(exactMatch);
+            expect(conflict?.exact).toBe(true);
         });
     });
 

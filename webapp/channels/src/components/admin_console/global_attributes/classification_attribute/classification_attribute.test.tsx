@@ -80,13 +80,20 @@ function mockLoad(existingChannelField?: PropertyField, linkedUserFields: Proper
     });
 }
 
+// Channels needs an Enterprise Advanced licence as well as its flag, or
+// useAllowedResourceTypes leaves the channel scope out of the linked-field
+// lookup altogether -- which would make every "no channel row" assertion below
+// true for the wrong reason.
 function render() {
     return renderWithContext(
         <>
             <ClassificationAttribute/>
             <ModalController/>
         </>,
-        {entities: {general: {config: {FeatureFlagChannelAttributes: 'true', FeatureFlagChannelAttributesRequired: 'true'}}}},
+        {entities: {general: {
+            config: {FeatureFlagChannelAttributes: 'true', FeatureFlagChannelAttributesRequired: 'true'},
+            license: {IsLicensed: 'true', SkuShortName: 'advanced'},
+        }}},
     );
 }
 
@@ -268,13 +275,22 @@ describe('ClassificationAttribute', () => {
         expect(rows[0]).not.toHaveTextContent('classification');
     });
 
-    it('lists no read-only resource when the template only applies to channels', async () => {
-        mockLoad(channelField({required: true, actions: ['display_label_header']}));
+    it('leaves the channel field out of the read-only list, since its own editable row already represents it', async () => {
+        const getPropertyFields = mockLoad(channelField({required: true, actions: ['display_label_header']}), [userField()]);
 
         render();
 
         expect(await screen.findByTestId('channelsResourceRow')).toBeInTheDocument();
-        expect(screen.queryByTestId('appliesToReadOnlyResources')).not.toBeInTheDocument();
+
+        // A check on the fixture rather than on behaviour: channel is among the
+        // scopes the linked-field lookup lists (that call passes no target id,
+        // unlike the by-name channel lookup), so the template's channel field
+        // really does come back and really is being excluded below.
+        expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'channel', 'system', undefined, expect.anything());
+
+        const rows = within(screen.getByTestId('appliesToReadOnlyResources')).getAllByRole('listitem');
+        expect(rows).toHaveLength(1);
+        expect(rows[0]).toHaveTextContent('Applied to Users as clearance');
     });
 
     it('keeps the empty state when the template applies to nothing yet', async () => {

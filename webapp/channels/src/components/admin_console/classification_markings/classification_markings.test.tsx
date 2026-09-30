@@ -2210,6 +2210,12 @@ describe('Clearance name shared with another attribute', () => {
         attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
     });
 
+    // Spelled out in full because the copy has to read correctly whether or not
+    // clearance is already on, which a partial match would not hold it to.
+    const WARNING_TEXT = 'An attribute named "Clearance" already exists in Attribute Management. ' +
+        'The clearance attribute here is a separate "clearance" user attribute that uses the ' +
+        "classification levels, not that attribute's options.";
+
     async function renderClearanceSection() {
         renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
         await screen.findByTestId('clearanceAttributeCheckbox');
@@ -2224,11 +2230,33 @@ describe('Clearance name shared with another attribute', () => {
         const section = await renderClearanceSection();
 
         expect(section.getByRole('heading', {name: 'Another attribute already uses this name'})).toBeInTheDocument();
-        expect(section.getByText(/An attribute named "Clearance" already exists in Attribute Management/)).toBeInTheDocument();
+        expect(section.getByText(WARNING_TEXT)).toBeInTheDocument();
 
         // The half that matters: this one warns, it does not block. The server
         // accepts the user field this page creates, so the admin is still allowed
         // to create it — unlike the same-named user field below.
+        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
+        expect(screen.getByTestId('clearanceAttributeCheckbox')).not.toBeChecked();
+        expect(section.queryByRole('heading', {name: 'Clearance attribute cannot be created'})).not.toBeInTheDocument();
+    });
+
+    test('should read the same way, and stay unblocking, once clearance is already enabled', async () => {
+        // The warning outlives the decision it describes: an admin who already
+        // turned clearance on still has two attributes called `clearance`, so the
+        // copy has to describe what exists rather than what enabling would create.
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [configuredTemplate, makeForeignClearanceTemplate()],
+            [CLASSIFICATIONS_USER_OBJECT_TYPE]: [makeUserLinkedField()],
+        });
+
+        const section = await renderClearanceSection();
+
+        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeChecked();
+        expect(section.getByRole('heading', {name: 'Another attribute already uses this name'})).toBeInTheDocument();
+        expect(section.getByText(WARNING_TEXT)).toBeInTheDocument();
+
+        // Still not a block: the checkbox stays live so clearance can be turned
+        // back off, which is the only action the warning leaves to take.
         expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
         expect(section.queryByRole('heading', {name: 'Clearance attribute cannot be created'})).not.toBeInTheDocument();
     });
@@ -2247,12 +2275,26 @@ describe('Clearance name shared with another attribute', () => {
         expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
     });
 
-    test('should stay quiet when no other attribute holds the name', async () => {
-        mockFieldsByObjectType({[CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [configuredTemplate]});
+    test('should stay quiet about an attribute whose name is something else', async () => {
+        // Attribute Management is rarely empty, and the classification template
+        // alone proves nothing: templateId drops it before any name is compared.
+        // `department` is the field that makes this a name check.
+        const unrelatedTemplate = makePropertyField({
+            id: 'department_template',
+            name: 'department',
+            type: 'text',
+            attrs: {},
+            create_at: 6000,
+            update_at: 6000,
+        });
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [configuredTemplate, unrelatedTemplate],
+        });
 
         const section = await renderClearanceSection();
 
         expect(section.queryByRole('heading', {name: 'Another attribute already uses this name'})).not.toBeInTheDocument();
+        expect(section.queryByText(/already exists in Attribute Management/)).not.toBeInTheDocument();
         expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
     });
 

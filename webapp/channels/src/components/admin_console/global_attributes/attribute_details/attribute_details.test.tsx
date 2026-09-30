@@ -1718,11 +1718,14 @@ describe('AttributeDetails', () => {
             expect(screen.queryByTestId('attributeAppliesToRow-user')).not.toBeInTheDocument();
         });
 
-        it('disables Save once an exact-match name is combined with Users in Applies to', async () => {
+        it('disables Save only for the Users row, and re-enables it for Channels alone under the same name', async () => {
             mockConflictFields([makeUserField('clearance')]);
 
             await renderCreate();
             await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Clearance Level');
+            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Channels'}));
+            await waitFor(() => expect(screen.getByTestId('attributeAppliesToRow-channel')).toBeInTheDocument());
             await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
             await userEvent.click(screen.getByRole('menuitem', {name: 'Users'}));
             await waitFor(() => expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument());
@@ -1741,6 +1744,19 @@ describe('AttributeDetails', () => {
             expect(await screen.findByTestId('attributeNameConflictWarning')).toBeVisible();
             expect(screen.queryByTestId('attributeUniqueNameError')).not.toBeInTheDocument();
             expect(screen.getByTestId('saveSetting')).toBeDisabled();
+
+            // Only the Users row is unsaveable: a template applied to Channels
+            // becomes resource.attributes.clearance, which CEL keeps apart from
+            // the user.attributes.clearance the existing field holds. So dropping
+            // Users is a repair on its own -- the name need not change.
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
+
+            expect(screen.queryByTestId('attributeAppliesToRow-user')).not.toBeInTheDocument();
+            expect(screen.getByTestId('attributeAppliesToRow-channel')).toBeInTheDocument();
+            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('clearance');
+            expect(screen.getByTestId('attributeNameConflictWarning')).toBeVisible();
+            expect(screen.getByTestId('saveSetting')).toBeEnabled();
         });
     });
 
@@ -2940,6 +2956,55 @@ describe('AttributeDetails', () => {
                 await userEvent.click(toggle);
                 expect(screen.queryByTestId('attributeAppliesToRow-user-remove')).not.toBeInTheDocument();
             });
+        });
+
+        it('warns once an existing template is renamed onto a user field another attribute owns', async () => {
+            // The collision is reachable by renaming, not only by creating: an
+            // attribute that has always been `department` can be pointed at the
+            // name Classification Markings gave its own linked user field.
+            const owner = makeTemplate({
+                id: 'markingstemplateid0123456789ab',
+                name: 'markings',
+                type: 'rank',
+                attrs: {display_name: 'Security Markings'},
+            });
+            const foreignUserField = makeLinked('user', 'foreignuserfieldid0123456789', {
+                name: 'clearance',
+                linked_field_id: owner.id,
+                attrs: {display_name: 'Clearance'},
+            });
+            jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType) => {
+                if (objectType === 'template') {
+                    return Promise.resolve([makeTemplate(), owner]);
+                }
+                if (objectType === 'user') {
+                    return Promise.resolve([foreignUserField]);
+                }
+                return Promise.resolve([]);
+            });
+
+            renderEdit();
+            await waitForForm();
+            await runPostRenderAct(3);
+
+            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('department');
+            expect(screen.queryByTestId('attributeNameConflictWarning')).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+            const nameInput = screen.getByTestId('attributeNameInput');
+            await userEvent.clear(nameInput);
+            await userEvent.type(nameInput, 'clearance');
+            await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+
+            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('clearance');
+
+            const warning = await screen.findByTestId('attributeNameConflictWarning');
+            expect(warning).toHaveTextContent('A user attribute named "clearance" already exists and is linked to Security Markings.');
+            expect(warning).toHaveTextContent('Applying this attribute to Users would need a second user attribute named "clearance", which the server does not allow.');
+
+            // Still saveable: this template applies to nothing, so the rename
+            // creates no second user field for the server to reject.
+            expect(screen.getByTestId('saveSetting')).toBeEnabled();
         });
 
         it('does not warn about the template\'s own linked user field, which shares its name by design', async () => {

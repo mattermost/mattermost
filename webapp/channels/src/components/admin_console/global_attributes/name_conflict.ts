@@ -36,10 +36,18 @@ export function findNameConflict(
     templates: PropertyField[],
     templateId?: string,
 ): NameConflict | undefined {
-    const field = findNameConflicts(name, userFields, templateId)[0];
-    if (!field) {
+    const conflicts = findNameConflicts(name, userFields, templateId);
+    if (conflicts.length === 0) {
         return undefined;
     }
+
+    // The server's own uniqueness check is case-sensitive, so `Clearance` and
+    // `clearance` can both exist as user fields. The exactly-matching one is the
+    // one a create would collide with, so it wins over a merely confusing
+    // case-only match -- otherwise whichever happened to be listed first would
+    // decide whether Users is blocked.
+    const field = conflicts.find((candidate) => candidate.name === name) ?? conflicts[0];
+
     return {
         field,
         ownerTemplate: templates.find((template) => template.id === field.linked_field_id),

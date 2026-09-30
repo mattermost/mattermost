@@ -3364,7 +3364,7 @@
     "description": ""
   },
   "admin.classification_markings.conflict.clearance_template": {
-    "defaultMessage": "An attribute named \"{name}\" already exists in Attribute Management. Enabling this creates a separate \"clearance\" user attribute that uses the classification levels, not that attribute's options.",
+    "defaultMessage": "An attribute named \"{name}\" already exists in Attribute Management. The clearance attribute here is a separate \"clearance\" user attribute that uses the classification levels, not that attribute's options.",
     "description": "Non-blocking warning shown next to the clearance checkbox in System Console > Classification Markings when an unrelated attribute in Attribute Management is already called 'clearance'. {name} is that attribute's name, as the admin typed it. \"clearance\" in quotes is the literal name of the user attribute this page creates, so it must stay English."
   },
   "admin.classification_markings.conflict.clearance_template_title": {
