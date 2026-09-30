@@ -15,6 +15,7 @@ import CoreMenuOptions from 'components/advanced_text_editor/send_button/send_po
 import * as Menu from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
+import type {RepeatDisabledReason} from 'utils/scheduled_post_repeat';
 
 import ScheduledPostCustomTimeModal from '../scheduled_post_custom_time_modal/scheduled_post_custom_time_modal';
 import useRecipientTimezone, {formatUTCOffset} from '../use_recipient_timezone';
@@ -25,10 +26,10 @@ type Props = {
     channelId: string;
     disabled?: boolean;
     onSelect: (schedulingInfo: SchedulingInfo) => void;
-    allowRecurring: boolean;
+    repeatDisabledReason?: RepeatDisabledReason;
 };
 
-export function SendPostOptions({disabled, onSelect, channelId, allowRecurring}: Props) {
+export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledReason}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const {
@@ -66,10 +67,10 @@ export function SendPostOptions({disabled, onSelect, channelId, allowRecurring}:
             dialogProps: {
                 channelId,
                 onConfirm: handleSelectCustomTime,
-                allowRecurring,
+                repeatDisabledReason,
             },
         }));
-    }, [allowRecurring, channelId, dispatch, handleSelectCustomTime]);
+    }, [repeatDisabledReason, channelId, dispatch, handleSelectCustomTime]);
 
     return (
         <Menu.Container

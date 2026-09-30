@@ -28499,6 +28499,10 @@
     "defaultMessage": "Messages with attachments can't repeat",
     "description": "Tooltip on the disabled \"Repeat weekly\" checkbox in the schedule-message custom time dialog, explaining that recurrence is unavailable when the draft has file attachments."
   },
+  "schedule_post.custom_time_modal.repeat_weekly.burn_on_read_tooltip": {
+    "defaultMessage": "Burn-on-read messages can't repeat",
+    "description": "Tooltip on the disabled \"Repeat weekly\" checkbox in the schedule-message custom time dialog, explaining that recurrence is unavailable when the draft is for a burn-on-read post."
+  },
   "schedule_post.custom_time_modal.title": {
     "defaultMessage": "Schedule message",
     "description": "Title of the modal where the user picks a custom date and time to schedule a message."
