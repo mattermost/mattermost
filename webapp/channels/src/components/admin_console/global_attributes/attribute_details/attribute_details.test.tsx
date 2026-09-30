@@ -899,6 +899,77 @@ describe('AttributeDetails', () => {
             await waitFor(() => expect(screen.queryByPlaceholderText('department')).not.toBeInTheDocument());
         };
 
+        const addResourceAndExpand = async (label: string, type: string) => {
+            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            await userEvent.click(screen.getByRole('menuitem', {name: label}));
+            await waitFor(() => expect(screen.getByTestId(`attributeAppliesToRow-${type}`)).toBeInTheDocument());
+            await userEvent.click(screen.getByTestId(`attributeAppliesToRow-${type}-toggle`));
+        };
+
+        it('names the linked source as the Users resource\'s Managed-by value, and drops the row once the link is removed', async () => {
+            renderComponent();
+            await addResourceAndExpand('Users', 'user');
+
+            expect(screen.queryByTestId('attributeAppliesToUserManagedBy')).not.toBeInTheDocument();
+
+            await linkViaMenu(/AD\/LDAP/, 'employeeID');
+
+            const managedBy = screen.getByTestId('attributeAppliesToUserManagedBy');
+            expect(managedBy).toHaveTextContent('AD/LDAP');
+            expect(screen.getByText('Not editable in Mattermost.')).toBeInTheDocument();
+
+            // Compared against the Definition block's chip rather than a hard-coded
+            // path, so the two glyphs cannot drift apart unnoticed.
+            const chipIcon = screen.getByTestId('attributeExternalSourceChip-ldap').querySelector('svg path');
+            expect(chipIcon).not.toBeNull();
+            expect(managedBy.querySelector('svg path')).toHaveAttribute('d', chipIcon!.getAttribute('d'));
+
+            await userEvent.click(screen.getByTestId('attributeExternalSourceChip-ldap-remove'));
+
+            expect(screen.queryByTestId('attributeAppliesToUserManagedBy')).not.toBeInTheDocument();
+            expect(screen.queryByText('Not editable in Mattermost.')).not.toBeInTheDocument();
+        });
+
+        it('shows SAML as the Managed-by value when SAML is the only linked source', async () => {
+            renderComponent();
+            await addResourceAndExpand('Users', 'user');
+            await linkViaMenu(/^SAML/, 'position');
+
+            const managedBy = screen.getByTestId('attributeAppliesToUserManagedBy');
+            expect(managedBy).toHaveTextContent('SAML');
+            expect(managedBy).not.toHaveTextContent('AD/LDAP');
+
+            const chipIcon = screen.getByTestId('attributeExternalSourceChip-saml').querySelector('svg path');
+            expect(chipIcon).not.toBeNull();
+            expect(managedBy.querySelector('svg path')).toHaveAttribute('d', chipIcon!.getAttribute('d'));
+        });
+
+        it('names AD/LDAP when both sources are linked, and falls back to the survivor once one is unlinked', async () => {
+            renderComponent();
+            await addResourceAndExpand('Users', 'user');
+            await linkViaMenu(/AD\/LDAP/, 'employeeID');
+            await linkViaMenu(/^SAML/, 'position');
+
+            expect(screen.getByTestId('attributeAppliesToUserManagedBy')).toHaveTextContent('AD/LDAP');
+
+            await userEvent.click(screen.getByTestId('attributeExternalSourceChip-ldap-remove'));
+
+            expect(screen.getByTestId('attributeAppliesToUserManagedBy')).toHaveTextContent('SAML');
+        });
+
+        it('reports the source on the Users card alone, leaving the Channels and Posts cards unmarked', async () => {
+            renderComponent();
+            await linkViaMenu(/AD\/LDAP/, 'employeeID');
+            await addResourceAndExpand('Users', 'user');
+            await addResourceAndExpand('Channels', 'channel');
+            await addResourceAndExpand('Posts', 'post');
+
+            expect(within(screen.getByTestId('attributeAppliesToRow-user-body')).getByTestId('attributeAppliesToUserManagedBy')).toBeInTheDocument();
+            expect(within(screen.getByTestId('attributeAppliesToRow-channel-body')).queryByText('Not editable in Mattermost.')).not.toBeInTheDocument();
+            expect(within(screen.getByTestId('attributeAppliesToRow-post-body')).queryByText('Not editable in Mattermost.')).not.toBeInTheDocument();
+            expect(screen.getAllByText('Not editable in Mattermost.')).toHaveLength(1);
+        });
+
         it('linking a source forces Type to Text and marks the page dirty', async () => {
             renderComponent();
 
@@ -2030,6 +2101,31 @@ describe('AttributeDetails', () => {
 
                 expect(screen.getByTestId('attributeExternalSource')).toBeInTheDocument();
             });
+
+            it('names the persisted attrs.saml source as the loaded Users row\'s Managed-by value', async () => {
+                mockLoadedField(
+                    makeTemplate({attrs: {display_name: 'Department', saml: 'position'}}),
+                    [makeLinked('user', 'user-field')],
+                );
+
+                renderEdit();
+                await waitForForm();
+                await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+                expect(screen.getByTestId('attributeAppliesToUserManagedBy')).toHaveTextContent('SAML');
+                expect(screen.getByText('Not editable in Mattermost.')).toBeInTheDocument();
+            });
+
+            it('omits the Managed-by row from a loaded Users row when the attribute is managed in Mattermost', async () => {
+                mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
+
+                renderEdit();
+                await waitForForm();
+                await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+                expect(screen.getByTestId('attributeAppliesToRow-user-body')).toBeInTheDocument();
+                expect(screen.queryByTestId('attributeAppliesToUserManagedBy')).not.toBeInTheDocument();
+            });
         });
 
         it('keeps existing option IDs on PATCH and sends an empty id for newly added options', async () => {
@@ -2579,6 +2675,20 @@ describe('AttributeDetails', () => {
                 expect(screen.getByTestId('attributeAppliesToRow-user-toggleLockWrap')).toBeInTheDocument();
             });
 
+            it('does not show Managed by when leftover ldap/saml attrs are present on a plugin-owned field', async () => {
+                mockPluginInstalled();
+                mockLoadedField(makePluginOwnedTemplate({
+                    attrs: {display_name: 'Plugin field', source_plugin_id: PLUGIN_ID, protected: true, ldap: 'dept', saml: 'department'},
+                }), [makeLinked('user', 'user-field')]);
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.queryByTestId('attributeAppliesToUserManagedBy')).not.toBeInTheDocument();
+                expect(screen.queryByText('Managed by')).not.toBeInTheDocument();
+                expect(screen.queryByText('Not editable in Mattermost.')).not.toBeInTheDocument();
+            });
+
             it('keeps Save disabled regardless of otherwise-valid field state', async () => {
                 mockPluginInstalled();
                 mockLoadedField(makePluginOwnedTemplate());
@@ -2648,10 +2758,24 @@ describe('AttributeDetails', () => {
         });
 
         it('redirects to the listing when the field is Classification Markings', async () => {
-            mockLoadedField(makeTemplate({name: 'classification'}));
+            mockLoadedField(makeTemplate({name: 'classification', type: 'rank'}));
             renderEdit();
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
             expect(screen.queryByTestId('attributeDetails')).not.toBeInTheDocument();
+        });
+
+        it('opens a wrong-typed template named classification here, since it is an ordinary attribute', async () => {
+            // * This editor is the repair path the Classification Markings conflict error
+            // points at: the name is only reserved for the rank-typed definition.
+            mockLoadedField(makeTemplate({name: 'classification', type: 'text'}));
+            renderEdit();
+            expect(await screen.findByTestId('attributeDetails')).toBeInTheDocument();
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+
+            // Reachable is not enough: the collision is on the unique name, so the
+            // repair is renaming that, not the display name.
+            expect(screen.getByTestId('attributeDisplayNameInput')).toBeEnabled();
+            expect(screen.getByTestId('attributeNameEditLink')).toBeEnabled();
         });
 
         it('redirects to the listing when the field is missing', async () => {
