@@ -177,6 +177,26 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
                         const isProtected = Boolean(attr.attrs?.protected);
                         const sourcePluginId = attr.attrs?.source_plugin_id;
                         const isLinkedNonText = Boolean(attr.linked_field_id) && attr.type !== 'text';
+                        let helpText;
+                        if (isLinkedNonText) {
+                            helpText = (
+                                <FormattedMessage
+                                    id='admin.customProfileAttributes.linkedNonText'
+                                    defaultMessage='This field is a management attribute of type {type} and cannot be synced via LDAP or SAML. Only text-type fields support sync.'
+                                    values={{type: attr.type}}
+                                />
+                            );
+                        } else if (isProtected) {
+                            helpText = <PluginManagedFieldHelpText pluginId={sourcePluginId}/>;
+                        } else {
+                            helpText = (
+                                <AttributeHelpText
+                                    attributeKey={attributeKey}
+                                    attributeName={getUserPropertyFieldLabel(attr)}
+                                    attributeType={attr.type}
+                                />
+                            );
+                        }
                         return (
                             <TextSetting
                                 key={attr.id}
@@ -201,23 +221,7 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
                                 setByEnv={false}
                                 disabled={props.isDisabled || isProtected || isLinkedNonText}
                                 placeholder={{id: 'admin.customProfileAttr.placeholder', defaultMessage: 'E.g.: "fieldName"'}}
-                                helpText={
-                                    isLinkedNonText ? (
-                                        <FormattedMessage
-                                            id='admin.customProfileAttributes.linkedNonText'
-                                            defaultMessage='This field is a management attribute of type {type} and cannot be synced via LDAP or SAML. Only text-type fields support sync.'
-                                            values={{type: attr.type}}
-                                        />
-                                    ) : isProtected ? (
-                                        <PluginManagedFieldHelpText pluginId={sourcePluginId}/>
-                                    ) : (
-                                        <AttributeHelpText
-                                            attributeKey={attributeKey}
-                                            attributeName={getUserPropertyFieldLabel(attr)}
-                                            attributeType={attr.type}
-                                        />
-                                    )
-                                }
+                                helpText={helpText}
                             />
                         );
                     })}
