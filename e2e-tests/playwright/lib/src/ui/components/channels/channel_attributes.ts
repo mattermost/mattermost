@@ -173,11 +173,15 @@ export class ChannelInfoAttributes {
     async add(name: string, option?: string) {
         await this.addButton.click();
         await this.addMenuItem(name).click();
-        await expect(this.editor(name)).toBeVisible();
+        await expect(this.row(name)).toBeVisible();
 
         if (option !== undefined) {
-            await this.editor(name).click();
-            await this.container.page().getByText(option, {exact: true}).click();
+            // Select/multiselect only reveal the row; select() opens the menu and picks.
+            await this.select(name, option);
+            return;
         }
+
+        // Text fields auto-enter edit mode (input testid); others show the edit trigger.
+        await expect(this.editButton(name).or(this.editor(name))).toBeVisible();
     }
 }
