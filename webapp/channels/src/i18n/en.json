@@ -4347,6 +4347,10 @@
     "defaultMessage": "(Optional) The attribute in the SAML Assertion that will be used to populate the {name} of users in Mattermost.",
     "description": "Help text for a user-attribute mapping field in SAML admin settings; {name} is the attribute's display name."
   },
+  "admin.customProfileAttributes.linkedNonText": {
+    "defaultMessage": "This field is a management attribute of type {type} and cannot be synced via LDAP or SAML. Only text-type fields support sync.",
+    "description": "Help text under a linked (Global Attribute) user-attribute field that is not text type; explains why the LDAP/SAML sync box is disabled."
+  },
   "admin.customProfileAttributes.managedByPlugin": {
     "defaultMessage": "This field is managed by the {pluginId} plugin and cannot be edited.",
     "description": "Help text under a user-attribute field that is read-only because a plugin owns it; {pluginId} is the plugin's display name."

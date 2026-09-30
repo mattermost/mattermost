@@ -318,6 +318,22 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
             expect(Client4.patchCustomProfileAttributeField).not.toHaveBeenCalled();
         });
 
+        test('should disable input and show tooltip for linked non-text field', async () => {
+            const linkedSelectAttr: UserPropertyField = {
+                ...linkedAttr,
+                type: 'select' as UserPropertyFieldType,
+            };
+
+            renderWithContext(
+                <CustomProfileAttributes {...baseProps}/>,
+                createInitialState({linkedAttr: linkedSelectAttr}),
+            );
+
+            const input = await screen.findByDisplayValue('title');
+            expect(input).toBeDisabled();
+            expect(await screen.findByText(/management attribute of type select/i)).toBeInTheDocument();
+        });
+
         test('should send null when the attribute value is cleared', async () => {
             jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as any);
 

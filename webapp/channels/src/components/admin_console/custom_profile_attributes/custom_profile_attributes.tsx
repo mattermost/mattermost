@@ -176,6 +176,7 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
                     {attributes.map((attr) => {
                         const isProtected = Boolean(attr.attrs?.protected);
                         const sourcePluginId = attr.attrs?.source_plugin_id;
+                        const isLinkedNonText = Boolean(attr.linked_field_id) && attr.type !== 'text';
                         return (
                             <TextSetting
                                 key={attr.id}
@@ -198,10 +199,16 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
                                     props.setSaveNeeded();
                                 }}
                                 setByEnv={false}
-                                disabled={props.isDisabled || isProtected}
+                                disabled={props.isDisabled || isProtected || isLinkedNonText}
                                 placeholder={{id: 'admin.customProfileAttr.placeholder', defaultMessage: 'E.g.: "fieldName"'}}
                                 helpText={
-                                    isProtected ? (
+                                    isLinkedNonText ? (
+                                        <FormattedMessage
+                                            id='admin.customProfileAttributes.linkedNonText'
+                                            defaultMessage='This field is a management attribute of type {type} and cannot be synced via LDAP or SAML. Only text-type fields support sync.'
+                                            values={{type: attr.type}}
+                                        />
+                                    ) : isProtected ? (
                                         <PluginManagedFieldHelpText pluginId={sourcePluginId}/>
                                     ) : (
                                         <AttributeHelpText
