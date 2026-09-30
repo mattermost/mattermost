@@ -1,0 +1,16 @@
+.markdown-phone-link {
+    display: inline-flex;
+    height: 20px;
+    align-items: center;
+    padding: 0 4px;
+    border-radius: 4px;
+    background: rgba(var(--button-bg-rgb), 0.08);
+    gap: 4px;
+    vertical-align: middle;
+
+    &:hover,
+    &:focus {
+        background: rgba(var(--button-bg-rgb), 0.16);
+        text-decoration: none;
+    }
+}

@@ -225,6 +225,43 @@ const myFunction = () => {
         });
     });
 
+    describe('phone links', () => {
+        test('should render markdown tel links using MarkdownPhoneLink', () => {
+            const input = 'Call [+34600517276](tel:+34600517276)';
+            const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
+
+            const {container} = renderWithContext(<>{messageHtmlToComponent(html)}</>);
+
+            const link = container.querySelector('a.markdown-phone-link');
+            expect(link).toBeInTheDocument();
+            expect(link).toHaveAttribute('href', 'tel:+34600517276');
+            expect(link).toHaveTextContent('+34600517276');
+            expect(link?.querySelector('svg')).toBeInTheDocument();
+        });
+
+        test('should render bare tel links using MarkdownPhoneLink without the scheme in the text', () => {
+            const input = 'Call tel:1-555-123-4567';
+            const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
+
+            const {container} = renderWithContext(<>{messageHtmlToComponent(html)}</>);
+
+            const link = container.querySelector('a.markdown-phone-link');
+            expect(link).toBeInTheDocument();
+            expect(link).toHaveAttribute('href', 'tel:1-555-123-4567');
+            expect(link).toHaveTextContent(/^1-555-123-4567$/);
+        });
+
+        test('should not render other links using MarkdownPhoneLink', () => {
+            const input = '[example](https://example.com)';
+            const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
+
+            const {container} = renderWithContext(<>{messageHtmlToComponent(html)}</>);
+
+            expect(container.querySelector('a.markdown-phone-link')).not.toBeInTheDocument();
+            expect(container.querySelector('a')).toHaveAttribute('href', 'https://example.com');
+        });
+    });
+
     describe('emojis', () => {
         test('should render valid named emojis as spans with background images', () => {
             const input = 'These are emojis: :taco: :astronaut:';
