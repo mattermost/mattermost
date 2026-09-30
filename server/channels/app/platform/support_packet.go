@@ -82,7 +82,8 @@ var diagnosticsYAMLComments = yaml.CommentMap{
 func (ps *PlatformService) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) ([]model.FileData, error) {
 	functions := map[string]func(request.CTX) (*model.FileData, error){
 		"diagnostics": func(rctx request.CTX) (*model.FileData, error) {
-			return supportPacketDiagnosticsFile(ps.getSupportPacketDiagnostics(rctx))
+			nodeDiagnostics, err := ps.GetSupportPacketDiagnostics(rctx)
+			return supportPacketDiagnosticsFile(nodeDiagnostics.Diagnostics, err)
 		},
 		"config": func(rctx request.CTX) (*model.FileData, error) {
 			return supportPacketConfigFile(ps.GetSupportPacketConfig(rctx))
@@ -148,12 +149,24 @@ func supportPacketConfigFile(c *model.SupportPacketConfig, err error) (*model.Fi
 	return JSONFile("sanitized_config.json", c, err)
 }
 
-func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model.SupportPacketDiagnostics, error) {
+// GetSupportPacketDiagnostics collects this node's diagnostics. Every node section is
+// recorded in Errors; a section is set to an error if any of its collection steps failed.
+// The returned error aggregates all failures.
+func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model.NodeDiagnostics, error) {
 	var (
 		rErr *multierror.Error
 		err  error
 		d    model.SupportPacketDiagnostics
 	)
+
+	sectionErrors := make(model.SectionErrors, len(model.AllNodeSections()))
+	for _, section := range model.AllNodeSections() {
+		sectionErrors[section] = nil
+	}
+	fail := func(section model.NodeSection, failure error) {
+		rErr = multierror.Append(rErr, failure)
+		sectionErrors[section] = multierror.Append(sectionErrors[section], failure)
+	}
 
 	d.Version = model.CurrentSupportPacketVersion
 
@@ -175,7 +188,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	d.Server.CPUCores = runtime.NumCPU()
 	totalMemoryBytes, err := getTotalMemory()
 	if err != nil {
-		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting total memory"))
+		fail(model.SectionServerHost, errors.Wrap(err, "error while getting total memory"))
 	}
 	d.Server.TotalMemoryMB = totalMemoryBytes / 1024 / 1024
 	containerLimits, err := getContainerLimits()
@@ -187,7 +200,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	}
 	d.Server.Hostname, err = os.Hostname()
 	if err != nil {
-		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting hostname"))
+		fail(model.SectionServerHost, errors.Wrap(err, "error while getting hostname"))
 	}
 	d.Server.ProcessID = os.Getpid()
 	d.Server.StartedAt = ps.startTime.UTC()
@@ -207,11 +220,11 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	d.Server.InstallationType = installationType
 	d.Server.OpenFileDescriptors, err = getOpenFileDescriptors()
 	if err != nil {
-		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting open file descriptor count"))
+		fail(model.SectionServerFDs, errors.Wrap(err, "error while getting open file descriptor count"))
 	}
 	d.Server.MaxFileDescriptors, err = getMaxFileDescriptors()
 	if err != nil {
-		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting max file descriptor limit"))
+		fail(model.SectionServerFDs, errors.Wrap(err, "error while getting max file descriptor limit"))
 	}
 
 	/* Config */
@@ -220,12 +233,12 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	/* DB */
 	d.Database.Type, d.Database.SchemaVersion, err = ps.DatabaseTypeAndSchemaVersion()
 	if err != nil {
-		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting DB type and schema version"))
+		fail(model.SectionDatabaseIdentity, errors.Wrap(err, "error while getting DB type and schema version"))
 	}
 
 	databaseVersion, err := ps.Store.GetDbVersion(false)
 	if err != nil {
-		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting DB version"))
+		fail(model.SectionDatabaseIdentity, errors.Wrap(err, "error while getting DB version"))
 	} else {
 		d.Database.Version = databaseVersion
 	}
@@ -235,7 +248,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 
 	err = ps.applyStoreDiagnostics(rctx, &d)
 	if err != nil {
-		rErr = multierror.Append(rErr, err)
+		fail(model.SectionDatabaseStats, err)
 	}
 
 	/* File store */
@@ -253,7 +266,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		}
 		di, diskErr := getDiskInfo(dir)
 		if diskErr != nil {
-			rErr = multierror.Append(rErr, errors.Wrap(diskErr, "error while getting disk space info"))
+			fail(model.SectionFilestoreDisk, errors.Wrap(diskErr, "error while getting disk space info"))
 		} else {
 			d.FileStore.FilesystemType = di.FilesystemType
 			d.FileStore.TotalMB = di.TotalMB
@@ -269,7 +282,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.Cluster.ID = cluster.GetClusterId()
 		clusterInfo, e := cluster.GetClusterInfos()
 		if e != nil {
-			rErr = multierror.Append(rErr, errors.Wrap(e, "error while getting cluster infos"))
+			fail(model.SectionCluster, errors.Wrap(e, "error while getting cluster infos"))
 		} else {
 			d.Cluster.NumberOfNodes = max(len(clusterInfo), 1) // clusterInfo is empty if the node is the only one in the cluster
 		}
@@ -289,7 +302,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		if d.LDAP.Status == model.StatusOk {
 			severName, serverVersion, err = ldap.GetVendorNameAndVendorVersion(rctx)
 			if err != nil {
-				rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting LDAP vendor info"))
+				fail(model.SectionLDAPProbe, errors.Wrap(err, "error while getting LDAP vendor info"))
 			}
 
 			if severName == "" {
@@ -389,7 +402,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.Notifications.Push.Status = model.StatusDisabled
 	}
 
-	return &d, rErr.ErrorOrNil()
+	return &model.NodeDiagnostics{Diagnostics: &d, Errors: sectionErrors}, rErr.ErrorOrNil()
 }
 
 func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *model.SupportPacketDiagnostics) error {
