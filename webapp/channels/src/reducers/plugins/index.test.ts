@@ -357,3 +357,22 @@ describe('components — ChannelIconOverride slot', () => {
         expect(state.components.ChannelIconOverride).toEqual([]);
     });
 });
+
+describe('components — ChannelView slot', () => {
+    it('initial state has an empty ChannelView array', () => {
+        const state = pluginReducers(undefined, {type: '@@INIT'} as any);
+        expect(state.components.ChannelView).toEqual([]);
+    });
+
+    it('LOGOUT_SUCCESS resets the slot to []', () => {
+        let state = pluginReducers(undefined, {
+            type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
+            name: 'ChannelView',
+            data: {id: 'id-1', pluginId: 'plugin-a', matcher: () => true, component: () => null},
+        });
+        expect(state.components.ChannelView).toHaveLength(1);
+
+        state = pluginReducers(state, {type: UserTypes.LOGOUT_SUCCESS} as any);
+        expect(state.components.ChannelView).toEqual([]);
+    });
+});

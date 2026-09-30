@@ -27,6 +27,9 @@ exports[`components/channel_view Should match snapshot if channel is archived 1`
       </div>
     </div>
     <div
+      data-testid="channel-header"
+    />
+    <div
       data-channel-id="channelId"
       data-testid="deferred-post-view"
     />
@@ -81,6 +84,9 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
       </div>
     </div>
     <div
+      data-testid="channel-header"
+    />
+    <div
       data-channel-id="channelId"
       data-testid="deferred-post-view"
     />
@@ -134,6 +140,9 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
       </div>
     </div>
     <div
+      data-testid="channel-header"
+    />
+    <div
       data-channel-id="channelId"
       data-testid="deferred-post-view"
     />
@@ -141,7 +150,11 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
       class="post-create__container AdvancedTextEditor__ctr"
       data-testid="post-create"
       id="post-create"
-    />
+    >
+      <div
+        data-testid="advanced-create-post"
+      />
+    </div>
   </div>
 </div>
 `;

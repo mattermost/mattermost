@@ -18,6 +18,7 @@ import PostView from 'components/post_view';
 import WebSocketClient from 'client/web_websocket_client';
 
 import {ChannelComposerBanner} from './channel_composer_banner';
+import ChannelViewPluginComponent from './channel_view_plugin_component';
 import InputLoading from './input_loading';
 
 import type {PropsFromRedux} from './index';
@@ -108,6 +109,27 @@ export default class ChannelView extends React.PureComponent<Props, State> {
     }
 
     render() {
+        const {channelViewPluginComponent} = this.props;
+        const {focusedPostId} = this.state;
+        if (channelViewPluginComponent && (!focusedPostId || channelViewPluginComponent.handlesPermalinks)) {
+            return (
+                <div
+                    ref={this.channelViewRef}
+                    id='app-content'
+                    className='app__content'
+                >
+                    <ChannelHeader/>
+                    <ChannelBanner channelId={this.props.channelId}/>
+                    {this.props.isChannelBookmarksEnabled && <ChannelBookmarks channelId={this.props.channelId}/>}
+                    <ChannelViewPluginComponent
+                        registration={channelViewPluginComponent}
+                        channelId={this.props.channelId}
+                        focusedPostId={focusedPostId}
+                    />
+                </div>
+            );
+        }
+
         let createPost;
         if (this.props.deactivatedChannel) {
             createPost = (
