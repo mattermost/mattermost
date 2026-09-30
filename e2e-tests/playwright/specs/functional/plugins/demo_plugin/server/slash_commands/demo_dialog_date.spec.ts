@@ -1,9 +1,32 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Page} from '@playwright/test';
+
 import {expect, test} from '@mattermost/playwright-lib';
 
 import {setupDemoPlugin} from '../../helpers';
+
+// The demo plugin rejects past meeting dates with "Submission failed". Days 20/22
+// of the current month are in the past once the calendar rolls past them, so
+// advance to next month in that case.
+async function selectDayInDatePicker(page: Page, dayOfMonth: number) {
+    const popper = page.getByTestId('date-picker-popper');
+    await expect(popper.getByRole('grid')).toBeVisible();
+
+    if (new Date().getDate() >= 20) {
+        const caption = popper.locator('.rdp-caption_label');
+        const displayed = (await caption.textContent())?.trim() ?? '';
+        await popper.getByRole('button', {name: /next month/i}).click();
+        await expect(caption).not.toHaveText(displayed);
+    }
+
+    await popper
+        .getByRole('gridcell', {name: String(dayOfMonth), exact: true})
+        .and(popper.locator('.rdp-day:not(.rdp-day_outside)'))
+        .click();
+    await popper.waitFor({state: 'hidden'});
+}
 
 test('should open /dialog date and post submit confirmation after selecting dates', async ({pw}) => {
     // Plugin installation can take up to 60 s; extend the test timeout to avoid
@@ -59,9 +82,7 @@ test('should open /dialog date and post submit confirmation after selecting date
 
     // 7. Select a date using the Meeting Date picker
     await dialog.getByRole('button', {name: /Select a meeting date/i}).click();
-    await expect(channelsPage.page.getByRole('grid')).toBeVisible();
-    // Click day 20 — reliably available in any month
-    await channelsPage.page.getByRole('grid').getByText('20', {exact: true}).click();
+    await selectDayInDatePicker(channelsPage.page, 20);
 
     // 8. Select date and time using the Meeting Date & Time picker.
     // The datetime field renders via DateTimeInput which wraps its date part in
@@ -71,8 +92,7 @@ test('should open /dialog date and post submit confirmation after selecting date
     // role="button" div, whose name includes a CSS icon-font glyph that browsers
     // include in accname but which is invisible to textContent inspection.
     await dialog.locator('.dateTime__date').getByRole('button').click();
-    await expect(channelsPage.page.getByRole('grid')).toBeVisible();
-    await channelsPage.page.getByRole('grid').getByText('22', {exact: true}).click();
+    await selectDayInDatePicker(channelsPage.page, 22);
 
     // Select a time from the time picker.  The time button carries aria-label="Time"
     // (set explicitly in DateTimeInput), so the name-based locator is reliable here.
