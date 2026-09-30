@@ -3134,7 +3134,6 @@
   "admin.webserverModeTitle": "ウェブサーバーのモード:",
   "admin.webserverModeUncompressed": "圧縮なし",
   "admin.webserverModeUncompressedDescription": "Mattermostサーバーは圧縮されていない静的なファイルを保持します。",
-  "adminConsole.list.table.exactTime.at": "at",
   "adminConsole.list.table.genericError": "データ読込み中にエラーが発生したため、再度試してください",
   "adminConsole.list.table.genericLoading": "読込み中",
   "adminConsole.list.table.genericNoData": "データなし",
