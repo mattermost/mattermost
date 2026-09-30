@@ -5904,7 +5904,7 @@
     "description": "Screen-reader label for the chevron button that collapses the Channels row in an attribute's 'Applies to' card in the System Console."
   },
   "admin.global_attributes.applies_to.channels.display.help": {
-    "defaultMessage": "Multiple locations can be selected. Uncheck all to keep it off the header and banner — Channel Info always shows the value.",
+    "defaultMessage": "Multiple display locations can be selected. You can always view and set the attribute value in the Channel Info sidebar. Unset values do not appear in the channel.",
     "description": "Help text under the 'Display location' checkboxes in an attribute's Channels settings in the System Console. 'header', 'banner' and 'Channel Info' refer to the Header, Banner and Channel Info checkbox options; 'it' is the attribute value. Use the same translations as those option labels."
   },
   "admin.global_attributes.applies_to.channels.display.label": {
@@ -18467,6 +18467,18 @@
     "defaultMessage": "URLs must start with a lowercase letter or number.",
     "description": "Validation error when the channel or team URL slug starts with an invalid character."
   },
+  "channel_attributes.banner.empty_notice": {
+    "defaultMessage": "There's nothing to display until the attributes in the banner text have values.",
+    "description": ""
+  },
+  "channel_attributes.banner.empty_notice.no_text": {
+    "defaultMessage": "Add banner text to display a banner.",
+    "description": ""
+  },
+  "channel_attributes.banner.empty_notice.title": {
+    "defaultMessage": "The banner will not be displayed",
+    "description": ""
+  },
   "channel_attributes.banner.insert_attribute": {
     "defaultMessage": "Attributes",
     "description": "Button text (after a + icon) under the Banner text editor in Channel Settings > Configuration. It opens a menu for inserting a channel attribute placeholder into the banner. Plural noun."
@@ -18483,9 +18495,13 @@
     "defaultMessage": "Remove {label}",
     "description": "Screen-reader label for the small X on an attribute chip inside the Banner text editor in Channel Settings > Configuration. {label} is the attribute's display name, as defined by an admin."
   },
-  "channel_attributes.banner.renders_as_empty": {
-    "defaultMessage": "nothing yet — no values are set",
-    "description": "Shown in the banner Preview area in Channel Settings > Configuration when the banner text contains only attribute placeholders and none of them has a value, so the banner would be blank."
+  "channel_attributes.banner.token_value_set": {
+    "defaultMessage": "Value on this channel: {value}",
+    "description": ""
+  },
+  "channel_attributes.banner.token_value_unset": {
+    "defaultMessage": "The attribute has no value set and won't render in the banner, but will appear automatically the moment a value is set.",
+    "description": ""
   },
   "channel_attributes.chip.label_prefix": {
     "defaultMessage": "{label}: ",
@@ -18531,6 +18547,10 @@
     "defaultMessage": "Not set",
     "description": "Placeholder shown in place of the value of a channel attribute that has no value, in the channel info right-hand panel. Describes an attribute value, not a person."
   },
+  "channel_attributes.info.remove_value": {
+    "defaultMessage": "Remove {value}",
+    "description": ""
+  },
   "channel_attributes.info.save_failed": {
     "defaultMessage": "Couldn't save {label}. Try again.",
     "description": "Inline error under a channel attribute in the channel info right-hand panel when saving its new value fails. {label} is the attribute's display name."
@@ -18566,6 +18586,10 @@
   "channel_banner.banner_preview.label": {
     "defaultMessage": "Preview",
     "description": "Label above the live preview of the channel banner in Channel Settings > Configuration, under the Banner text and Banner color settings. Noun."
+  },
+  "channel_banner.banner_text.help": {
+    "defaultMessage": "Any single- or double-character symbols between attributes (such as · . / ?) will be removed if those attribute values are not set. Empty attributes will not appear in the banner or elsewhere in the channel. The banner is hidden if there is no text available.",
+    "description": ""
   },
   "channel_banner.banner_text.label": {
     "defaultMessage": "Banner text",
@@ -19739,6 +19763,10 @@
     "defaultMessage": "Discoverable (Users can request to join)",
     "description": "Toggle title in channel creation/settings making a private channel discoverable so users can request to join."
   },
+  "channel_settings.error_attributes_save_failed": {
+    "defaultMessage": "Couldn't save one or more channel attributes. Try again.",
+    "description": ""
+  },
   "channel_settings.error_banner_color_required": {
     "defaultMessage": "Banner color is required",
     "description": "Validation error on the Configuration tab when the channel banner is enabled but no color is chosen."
@@ -20034,6 +20062,10 @@
   "channel_settings.remove_sharing_confirm.title": {
     "defaultMessage": "Remove sharing from {count, plural, one {this connection} other {these connections}}?",
     "description": "Title of the confirmation dialog for removing a shared channel from connected workspaces; plural branches on the number of connections."
+  },
+  "channel_settings.save_changes_panel.banner_text.empty_error": {
+    "defaultMessage": "Add banner text, or turn off the channel banner.",
+    "description": ""
   },
   "channel_settings.save_changes_panel.banner_text.required_error": {
     "defaultMessage": "Channel banner text cannot be empty when enabled",
