@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// The WysiwygEditor feature flag is read-only at runtime on local dev servers,
-// so it must be set at server start with MM_FEATUREFLAGS_WYSIWYGEDITOR=true.
-// These tests only toggle the per-user preference.
+// These tests only toggle the per-user preference; the server flag is enabled below.
 
 import {expect, setWysiwygUserPreference, test, WysiwygEditor} from '@mattermost/playwright-lib';
 
 const TAGS = {tag: ['@channels', '@wysiwyg_editor']};
+
+test.beforeEach(async ({pw}) => {
+    await pw.ensureFeatureFlag('WysiwygEditor', true);
+});
 
 test('MM-69305 WYSIWYG editor is not mounted when user preference is off', TAGS, async ({pw}) => {
     const {user, team} = await pw.initSetup();
