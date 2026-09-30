@@ -34,6 +34,10 @@ import {
     POSTGRES_PASSWORD,
     POSTGRES_PORT,
     POSTGRES_USER,
+    NGINX_ALIAS,
+    NGINX_PORT,
+    NGINX_SSL_PORT,
+    SUBPATH_DEFAULT,
     WEBHOOK_ALIAS,
     WEBHOOK_PORT,
 } from './constants';
@@ -43,6 +47,7 @@ import {
     INBUCKET_IMAGE,
     KEYCLOAK_IMAGE,
     MINIO_IMAGE,
+    NGINX_IMAGE,
     OPENLDAP_IMAGE,
     OPENSEARCH_VERSION,
     POSTGRES_IMAGE,
@@ -59,7 +64,7 @@ import {clearClientCache} from '@/server/client';
 import {defaultBootEnv, testConfig} from '@/test_config';
 import type {TestContainersServiceName} from '@/test_config';
 import {isUpgradeToPhaseProjectSelected, upgradeToStackNotRunningError} from '@/upgrade_env';
-import {duration} from '@/util';
+import {disableTlsVerificationForSelfSignedProxy, duration} from '@/util';
 
 const execFileAsync = promisify(execFile);
 
@@ -214,6 +219,11 @@ async function reuseExistingStack(): Promise<boolean> {
         await joinSelfToNetwork(testConfig.testcontainersNetworkName);
     }
 
+    // This process never ran the boot-time logic that would otherwise enable this.
+    if (testConfig.baseURL.startsWith('https:')) {
+        disableTlsVerificationForSelfSignedProxy();
+    }
+
     logTestcontainers(
         'reusing already-running server (with PW_TESTCONTAINERS_REUSE=true), see .env.testcontainers for stack information',
     );
@@ -240,6 +250,7 @@ function logStackReused(): void {
         opensearch: testConfig.opensearchUrl,
         minio: testConfig.minioUrl,
         azurite: testConfig.azuriteUrl,
+        nginx: testConfig.nginxUrl,
     };
     testConfig.testcontainersServices.forEach((name) => {
         lines.push(`  - ${name.padEnd(13)} = ${additionalUrls[name]}`);
@@ -470,11 +481,11 @@ async function joinSelfToNetwork(networkId: string): Promise<void> {
     }
 }
 
-function resolveUrl(container: StartedTestContainer, port: number, alias: string): string {
+function resolveUrl(container: StartedTestContainer, port: number, alias: string, scheme = 'http'): string {
     if (testConfig.containerRunner) {
-        return `http://${alias}:${port}`;
+        return `${scheme}://${alias}:${port}`;
     }
-    return `http://${container.getHost()}:${container.getMappedPort(port)}`;
+    return `${scheme}://${container.getHost()}:${container.getMappedPort(port)}`;
 }
 
 function resolveHostAndPort(container: StartedTestContainer, port: number, alias: string): [string, number] {
@@ -506,6 +517,11 @@ const ADDITIONAL_CONTAINER_METADATA: Record<TestContainersServiceName, Container
     opensearch: {alias: OPENSEARCH_ALIAS, port: OPENSEARCH_PORT, image: `built, OpenSearch ${OPENSEARCH_VERSION}`},
     minio: {alias: MINIO_ALIAS, port: MINIO_PORT, image: MINIO_IMAGE},
     azurite: {alias: AZURITE_ALIAS, port: AZURITE_BLOB_PORT, image: AZURITE_IMAGE},
+    nginx: {
+        alias: NGINX_ALIAS,
+        port: testConfig.sslServer ? NGINX_SSL_PORT : NGINX_PORT,
+        image: NGINX_IMAGE,
+    },
 };
 
 function containerEntries(stack: StartedStack): Array<[string, StartedTestContainer, ContainerMetadata]> {
@@ -660,6 +676,22 @@ function applyResolvedConfig(stack: StartedStack): void {
     if (stack.additional.azurite) {
         testConfig.azuriteUrl = resolveUrl(stack.additional.azurite, AZURITE_BLOB_PORT, AZURITE_ALIAS);
     }
+    if (stack.additional.nginx) {
+        testConfig.nginxUrl = testConfig.sslServer
+            ? resolveUrl(stack.additional.nginx, NGINX_SSL_PORT, NGINX_ALIAS, 'https')
+            : resolveUrl(stack.additional.nginx, NGINX_PORT, NGINX_ALIAS);
+
+        // Container already booted with this SiteURL (resolveMattermostBootEnv()) — reflect it here.
+        if (testConfig.subpathMode) {
+            const subpathUrl = `${testConfig.nginxUrl}${SUBPATH_DEFAULT}`;
+            testConfig.baseURL = subpathUrl;
+            testConfig.bootEnvOverrides = {...testConfig.bootEnvOverrides, MM_SERVICESETTINGS_SITEURL: subpathUrl};
+            if (testConfig.sslServer) {
+                // baseGlobalSetup() makes its own HTTPS calls right after this.
+                disableTlsVerificationForSelfSignedProxy();
+            }
+        }
+    }
 }
 
 // One block per write: a human-readable `# [timestamp] label` comment line (dotenv ignores
@@ -680,6 +712,7 @@ function envFileLines(label: string): string[] {
         `PW_OPENSEARCH_URL=${testConfig.opensearchUrl}`,
         `PW_MINIO_URL=${testConfig.minioUrl}`,
         `PW_AZURITE_URL=${testConfig.azuriteUrl}`,
+        `PW_NGINX_URL=${testConfig.nginxUrl}`,
         `PW_TESTCONTAINERS_NETWORK_NAME=${testConfig.testcontainersNetworkName}`,
         `PW_TESTCONTAINERS_MATTERMOST_CONTAINER_ID=${testConfig.mattermostContainerId}`,
         // Persist the image currently running (separate from process SERVER_IMAGE / to-image).
@@ -705,7 +738,7 @@ function resetEnvFile(label: string): void {
  * server-state drift after the fact, since in the CI dispatch model no single process ever sees
  * the whole picture on its own.
  */
-function appendEnvFile(label: string): void {
+export function appendEnvFile(label: string): void {
     fs.appendFileSync(ENV_FILE_PATH, envFileLines(label).join('\n') + '\n', 'utf-8');
 }
 

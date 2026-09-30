@@ -52,7 +52,6 @@ export default defineConfig({
         pushNotificationServer: 'https://push-test.mattermost.com',
         resetBeforeTest: false,
         runLDAPSync: true,
-        secondServerURL: 'http://localhost/s/p',
         serverEdition: 'Team',
         serverClusterEnabled: false,
         serverClusterName: 'mm_dev_cluster',

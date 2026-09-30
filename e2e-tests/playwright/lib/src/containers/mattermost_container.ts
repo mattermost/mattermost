@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {execFile} from 'node:child_process';
+import {promisify} from 'node:util';
+
 import {GenericContainer, Wait} from 'testcontainers';
 import type {StartedTestContainer} from 'testcontainers';
 
@@ -18,12 +21,15 @@ import {
     POSTGRES_PASSWORD,
     POSTGRES_PORT,
     POSTGRES_USER,
+    SUBPATH_DEFAULT,
     TESTCONTAINERS_LABELS,
 } from './constants';
 import {SERVER_ENV_BASELINE} from './env_baseline';
 import {startWithRetry} from './retry';
 
 import {testConfig} from '@/test_config';
+
+const execFileAsync = promisify(execFile);
 
 // Env this container computes itself from the stack Testcontainers just built. Must win over any
 // stray testConfig.serverEnv (MM_ENV) or bootEnvOverrides entry to avoid breaking the server's own
@@ -32,6 +38,9 @@ import {testConfig} from '@/test_config';
 export function resolveMattermostBootEnv(extraEnv: Record<string, string> = {}): Record<string, string> {
     return {
         ...SERVER_ENV_BASELINE,
+        // testConfig.subpathMode boots directly on the subpath; serverEnv/extraEnv can still
+        // override this explicitly.
+        ...(testConfig.subpathMode ? {MM_SERVICESETTINGS_SITEURL: `${testConfig.nginxUrl}${SUBPATH_DEFAULT}`} : {}),
         ...testConfig.serverEnv,
         ...extraEnv,
         ...structuralEnv(),
@@ -70,13 +79,42 @@ function structuralEnv(): Record<string, string> {
 // MM_LOGSETTINGS_CONSOLELEVEL=DEBUG, since the scheduler logs that line at Debug.
 //
 // Upgrade projects skip the log wait: they're API-only, and restarts/reuse can miss the log line
-// after the old container is removed.
+// after the old container is removed. Subpath specs skip it too: they never hit the two callers
+// gated by IsPhase2MigrationCompleted().
 function mattermostWaitStrategy() {
-    const ping = Wait.forHttp('/api/v4/system/ping', MATTERMOST_PORT).forStatusCode(200);
-    if (isUpgradeFromProjectSelected() || isUpgradeToPhaseProjectSelected()) {
+    // Subpath mode 302-redirects the bare path instead of returning 200.
+    const pingPath = testConfig.subpathMode ? `${SUBPATH_DEFAULT}/api/v4/system/ping` : '/api/v4/system/ping';
+    const ping = Wait.forHttp(pingPath, MATTERMOST_PORT).forStatusCode(200);
+    if (isUpgradeFromProjectSelected() || isUpgradeToPhaseProjectSelected() || testConfig.subpathMode) {
         return ping;
     }
     return Wait.forAll([ping, Wait.forLogMessage(/All migrations are complete\./, 1)]);
+}
+
+// Frees MATTERMOST_FIXED_HOST_PORT — withReuse() never auto-removes a container whose wait
+// strategy timed out, which would otherwise block retries. Scoped to this stack's own label so an
+// unrelated container that happens to publish the same host port is never touched.
+async function removeContainersHoldingFixedPort(): Promise<void> {
+    try {
+        const [labelKey, labelValue] = Object.entries(TESTCONTAINERS_LABELS)[0];
+        const {stdout} = await execFileAsync('docker', [
+            'ps',
+            '-q',
+            '--filter',
+            `publish=${MATTERMOST_FIXED_HOST_PORT}`,
+            '--filter',
+            `label=${labelKey}=${labelValue}`,
+        ]);
+        const ids = stdout
+            .split('\n')
+            .map((id) => id.trim())
+            .filter(Boolean);
+        if (ids.length > 0) {
+            await execFileAsync('docker', ['rm', '-f', ...ids]);
+        }
+    } catch {
+        // Best-effort.
+    }
 }
 
 // Joins the network by name (withNetworkMode) rather than a StartedNetwork object, since
@@ -88,6 +126,8 @@ export async function startMattermostContainer(
     const env = resolveMattermostBootEnv(extraEnv);
 
     return startWithRetry('server', async () => {
+        await removeContainersHoldingFixedPort();
+
         let builder = new GenericContainer(testConfig.serverImage)
             .withPlatform('linux/amd64') // The published server images are amd64-only.
             .withNetworkMode(networkName)

@@ -3,8 +3,8 @@
 
 export {test, expect, PlaywrightExtended} from './test_fixture';
 export type {ExtendedFixtures} from './test_fixture';
-export {testConfig, TESTCONTAINERS_SERVICE_NAMES} from './test_config';
-export type {TestContainersServiceName} from './test_config';
+export {testConfig, TESTCONTAINERS_SERVICE_NAMES, SERVER_DEPLOYMENTS} from './test_config';
+export type {TestContainersServiceName, ServerDeployment} from './test_config';
 export {
     assertUpgradeFromFreshStart,
     assertUpgradeToRequiresPriorFromRun,
@@ -56,6 +56,7 @@ export {
     listMattermostDataFiles,
     ensurePostgresSearch,
     ensureFeatureFlag,
+    requireSubpathServer,
     runMmctl,
     ensureMmctl,
     upgradeServerImage,

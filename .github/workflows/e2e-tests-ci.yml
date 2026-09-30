@@ -139,6 +139,7 @@ jobs:
       should_run: "${{ steps.check.outputs.should_run }}"
       should_run_fips: "${{ steps.check.outputs.should_run_fips }}"
       should_run_rolling_upgrades: "${{ steps.check.outputs.should_run_rolling_upgrades }}"
+      should_run_subpath: "${{ steps.check.outputs.should_run_subpath }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -240,6 +241,23 @@ jobs:
           echo "should_run_rolling_upgrades=${SHOULD_RUN_ROLLING_UPGRADES}" >> $GITHUB_OUTPUT
           echo "Should run rolling upgrades: ${SHOULD_RUN_ROLLING_UPGRADES}"
 
+          # Subpath: run the full suite against a server booted under a subpath when subpath-specific
+          # server code or test specs changed.
+          SHOULD_RUN_SUBPATH="false"
+          if echo "$CHANGED_FILES" | grep -qE '^server/channels/utils/subpath\.go$'; then
+            echo "Found server subpath.go changes"
+            SHOULD_RUN_SUBPATH="true"
+          elif echo "$CHANGED_FILES" | grep -qE '^e2e-tests/playwright/specs/functional/subpath/'; then
+            echo "Found subpath spec changes"
+            SHOULD_RUN_SUBPATH="true"
+          elif echo "$CHANGED_FILES" | grep -qE '^(\.github/workflows/e2e-tests-playwright(-template)?\.yml|e2e-tests/playwright/(playwright\.config\.ts|lib/src/(flag\.ts|test_config\.ts|browser_context\.ts|test_fixture\.ts|server/server_env\.ts|containers/(nginx_container\.ts|mattermost_container\.ts|stack\.ts|constants\.ts|default_images\.ts|requirements\.ts))))$'; then
+            echo "Found subpath deployment implementation changes"
+            SHOULD_RUN_SUBPATH="true"
+          fi
+
+          echo "should_run_subpath=${SHOULD_RUN_SUBPATH}" >> $GITHUB_OUTPUT
+          echo "Should run subpath E2E tests: ${SHOULD_RUN_SUBPATH}"
+
   e2e-cypress:
     needs:
       - resolve-pr
@@ -288,6 +306,32 @@ jobs:
       pr_number: "${{ needs.resolve-pr.outputs.PR_NUMBER }}"
       should_run: "${{ needs.check-changes.outputs.should_run }}"
       run_rolling_upgrades: "${{ needs.check-changes.outputs.should_run_rolling_upgrades }}"
+    secrets:
+      MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
+      REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+
+  # Full Playwright suite against a server booted under a subpath (PW_SERVER_DEPLOY=subpath).
+  # Only when subpath-specific server code or test specs changed.
+  e2e-playwright-subpath:
+    needs:
+      - resolve-pr
+      - check-changes
+    if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_subpath == 'true'
+    permissions:
+      contents: read
+      statuses: write
+      id-token: write
+      pull-requests: write
+    uses: ./.github/workflows/e2e-tests-playwright.yml
+    with:
+      commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
+      server: "onprem"
+      server_image_tag: "${{ needs.resolve-pr.outputs.SERVER_IMAGE_TAG }}"
+      enable_reporting: true
+      report_type: "PR"
+      pr_number: "${{ needs.resolve-pr.outputs.PR_NUMBER }}"
+      server_deploy: subpath
+      playwright_project: subpath
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"

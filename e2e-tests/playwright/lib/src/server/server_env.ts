@@ -3,11 +3,13 @@
 
 import {test} from '@playwright/test';
 
+import {SUBPATH_DEFAULT} from '../containers/constants';
 import {bootEnvMatches, restartMattermostContainer} from '../containers/stack';
 
 import {getAdminClient} from './init';
 
 import {testConfig} from '@/test_config';
+import {disableTlsVerificationForSelfSignedProxy} from '@/util';
 
 /**
  * Restarts the server with a single MM_* env var set to `value` if it isn't already, for boot-only
@@ -64,4 +66,31 @@ export async function ensureSiteUrl(): Promise<void> {
     } catch (error) {
         test.skip(true, `Skipping test - SiteURL check failed: ${String(error)}`);
     }
+}
+
+function subpathBaseURL(): string {
+    return `${testConfig.nginxUrl}${SUBPATH_DEFAULT}`;
+}
+
+/**
+ * Fails immediately unless the server booted with PW_SERVER_DEPLOY=subpath. Does not restart.
+ */
+export function requireSubpathServer(): string {
+    if (!testConfig.useTestContainers || !testConfig.nginxUrl) {
+        throw new Error('requireSubpathServer requires PW_USE_TESTCONTAINERS=true with the nginx service enabled.');
+    }
+
+    const target = subpathBaseURL();
+    if (testConfig.baseURL !== target) {
+        throw new Error(
+            `Server is not in subpath mode (baseURL is "${testConfig.baseURL}", expected "${target}"). ` +
+                'Run subpath specs with PW_SERVER_DEPLOY=subpath (e.g. via "--project subpath").',
+        );
+    }
+
+    if (testConfig.sslServer) {
+        disableTlsVerificationForSelfSignedProxy();
+    }
+
+    return target;
 }
