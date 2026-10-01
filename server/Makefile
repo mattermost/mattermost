@@ -166,7 +166,7 @@ PLUGIN_PACKAGES += mattermost-plugin-jira-v5.0.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.12.1
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v2.0.0
-PLUGIN_PACKAGES += mattermost-plugin-agents-v2.8.0
+PLUGIN_PACKAGES += mattermost-plugin-agents-v2.9.0
 PLUGIN_PACKAGES += mattermost-plugin-boards-v10.0.0
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v2.0.0
@@ -182,7 +182,7 @@ PLUGIN_PACKAGES += mattermost-plugin-legal-hold-v1.1.6
 # the way we pre-package FIPS and non-FIPS plugins.
 ifeq ($(FIPS_ENABLED),true)
 	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.12.1%2Bf370c05-fips
-	PLUGIN_PACKAGES += mattermost-plugin-agents-v2.8.0%2Baff1f42-fips
+	PLUGIN_PACKAGES += mattermost-plugin-agents-v2.9.0%2Bc234d17-fips
 	PLUGIN_PACKAGES += mattermost-plugin-boards-v10.0.0%2B05efecf-fips
 endif
 
