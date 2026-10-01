@@ -8,7 +8,7 @@ import {useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import {buttonClassNames} from '@mattermost/shared/components/button';
-import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
+import {ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ, type AccessControlPolicy, type AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {CHANNEL_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
@@ -57,6 +57,8 @@ const permissionMessages = defineMessages({
     downloadDescription: {id: 'admin.permission_policies.permission.download_file.description', defaultMessage: 'Allow users to download files to their device'},
     uploadLabel: {id: 'admin.permission_policies.permission.upload_file.label', defaultMessage: 'Upload Files'},
     uploadDescription: {id: 'admin.permission_policies.permission.upload_file.description', defaultMessage: 'Allow users to upload files while sending a message'},
+    createBorLabel: {id: 'admin.permission_policies.permission.create_bor.label', defaultMessage: 'Create Burn-on-Read Message'},
+    createBorDescription: {id: 'admin.permission_policies.permission.create_bor.description', defaultMessage: 'Allow users to send burn-on-read messages'},
 });
 
 const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
@@ -69,6 +71,11 @@ const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
         value: 'upload_file_attachment',
         label: permissionMessages.uploadLabel,
         description: permissionMessages.uploadDescription,
+    },
+    {
+        value: ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
+        label: permissionMessages.createBorLabel,
+        description: permissionMessages.createBorDescription,
     },
 ];
 
@@ -840,6 +847,7 @@ function PermissionPolicyDetails({
                             actionLabels={{
                                 upload_file_attachment: formatMessage(permissionMessages.uploadLabel),
                                 download_file_attachment: formatMessage(permissionMessages.downloadLabel),
+                                [ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ]: formatMessage(permissionMessages.createBorLabel),
                             }}
                             targetRole={selectedRole}
                             targetScope='system'
