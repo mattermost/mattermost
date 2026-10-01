@@ -981,12 +981,7 @@ func requireFieldTargetChannelAccess(c *Context, field *model.PropertyField) boo
 		return true
 	}
 
-	if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), field.TargetID, model.PermissionCreatePost); !hasPermission {
-		c.SetPermissionError(model.PermissionCreatePost)
-		return false
-	}
-
-	return true
+	return requireChannelWriteAccessByID(c, field.TargetID)
 }
 
 func requireFieldTargetChannelManagementAccess(c *Context, field *model.PropertyField) bool {
