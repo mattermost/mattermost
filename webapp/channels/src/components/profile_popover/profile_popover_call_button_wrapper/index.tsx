@@ -6,6 +6,9 @@ import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
+import PhoneIcon from '@mattermost/compass-icons/components/phone';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {getChannelByName} from 'mattermost-redux/selectors/entities/channels';
@@ -16,6 +19,7 @@ import {
 } from 'selectors/calls';
 
 import CallOptionsMenu, {useCanStartCall, usePhoneCallOptions, useStartDMCall} from 'components/call_options_menu';
+import type {MenuButtonComponentProps} from 'components/menu';
 import ProfilePopoverCallButton from 'components/profile_popover/profile_popover_calls_button';
 
 import {getDirectChannelName} from 'utils/utils';
@@ -77,19 +81,7 @@ const CallButton = ({
             <CallOptionsMenu
                 menuId='profilePopoverCallOptionsMenu'
                 buttonId='startCallButton'
-                buttonClass='btn btn-icon btn-sm style--none callOptionsPopoverButton'
-                buttonContent={
-                    <>
-                        <span
-                            className='icon icon-phone'
-                            aria-hidden='true'
-                        />
-                        <ChevronDownIcon
-                            size={14}
-                            aria-hidden={true}
-                        />
-                    </>
-                }
+                button={CallOptionsMenuButton}
                 phones={phones}
                 onStartCall={() => {
                     hide?.();
@@ -146,5 +138,17 @@ const CallButton = ({
         />
     );
 };
+
+const CallOptionsMenuButton = (props: MenuButtonComponentProps) => (
+    <Button
+        {...props}
+        emphasis='quaternary'
+        size='small'
+        leadingIcon={<Icon glyph={<PhoneIcon/>}/>}
+        trailingIcon={<Icon glyph={<ChevronDownIcon/>}/>}
+    >
+        {null}
+    </Button>
+);
 
 export default CallButton;

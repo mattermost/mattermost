@@ -4,11 +4,13 @@
 import classNames from 'classnames';
 import React, {useState, useEffect, useRef} from 'react';
 import type {CSSProperties} from 'react';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
 import PhoneOutlineIcon from '@mattermost/compass-icons/components/phone-outline';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
@@ -17,6 +19,7 @@ import {getUserIdFromChannelName, isDirectChannel} from 'mattermost-redux/utils/
 import {getSessionsInCalls} from 'selectors/calls';
 
 import CallOptionsMenu, {useCanStartCall, usePhoneCallOptions} from 'components/call_options_menu';
+import type {MenuButtonComponentProps} from 'components/menu';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
@@ -83,25 +86,8 @@ export default function CallButton({pluginCallComponents, currentChannel, channe
                 <CallOptionsMenu
                     menuId='callOptionsMenu'
                     buttonId='callOptionsButton'
-                    buttonClass='style--none call-button callOptionsHeaderButton'
+                    button={StartCallMenuButton}
                     disabled={!clickEnabled}
-                    buttonContent={
-                        <>
-                            <PhoneOutlineIcon
-                                color='inherit'
-                                aria-hidden={true}
-                            />
-                            <span className='call-button-label'>
-                                {formatMessage({id: 'call_button.start_call', defaultMessage: 'Start call'})}
-                            </span>
-                            <span className='callOptionsHeaderButton__chevron'>
-                                <ChevronDownIcon
-                                    color='inherit'
-                                    aria-hidden={true}
-                                />
-                            </span>
-                        </>
-                    }
                     phones={phones}
                     onStartCall={() => singleCallButton.action?.(currentChannel, channelMember)}
                     onPhoneCall={(phone) => phoneAction({number: phone.number, userId: dmUserId, label: phone.label, fieldId: phone.fieldId})}
@@ -175,3 +161,18 @@ export default function CallButton({pluginCallComponents, currentChannel, channe
         </div>
     );
 }
+
+const StartCallMenuButton = (props: MenuButtonComponentProps) => (
+    <Button
+        {...props}
+        emphasis='tertiary'
+        size='small'
+        leadingIcon={<Icon glyph={<PhoneOutlineIcon/>}/>}
+        trailingIcon={<Icon glyph={<ChevronDownIcon/>}/>}
+    >
+        <FormattedMessage
+            id='call_button.start_call'
+            defaultMessage='Start call'
+        />
+    </Button>
+);

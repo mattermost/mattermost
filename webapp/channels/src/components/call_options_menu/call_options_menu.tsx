@@ -3,13 +3,14 @@
 
 import type {PopoverOrigin} from '@mui/material/Popover';
 import React from 'react';
-import type {ReactNode} from 'react';
+import type {ComponentType} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import HeadphonesIcon from '@mattermost/compass-icons/components/headphones';
 import PhoneInTalkIcon from '@mattermost/compass-icons/components/phone-in-talk';
 
 import * as Menu from 'components/menu';
+import type {MenuButtonComponentProps} from 'components/menu';
 
 import type {DialablePhone} from './use_phone_call_options';
 
@@ -18,8 +19,7 @@ import './call_options_menu.scss';
 type Props = {
     menuId: string;
     buttonId: string;
-    buttonClass?: string;
-    buttonContent: ReactNode;
+    button: ComponentType<MenuButtonComponentProps>;
     disabled?: boolean;
     phones: DialablePhone[];
     onStartCall: () => void;
@@ -35,8 +35,7 @@ type Props = {
 const CallOptionsMenu = ({
     menuId,
     buttonId,
-    buttonClass,
-    buttonContent,
+    button,
     disabled,
     phones,
     onStartCall,
@@ -51,10 +50,9 @@ const CallOptionsMenu = ({
         <Menu.Container
             menuButton={{
                 id: buttonId,
-                class: buttonClass,
+                as: button,
                 'aria-label': ariaLabel,
                 disabled,
-                children: buttonContent,
             }}
             menu={{
                 id: menuId,

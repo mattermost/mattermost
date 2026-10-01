@@ -1,24 +1,5 @@
-// Channel header: the call-button pill, with the chevron set off by a divider.
-button.call-button.callOptionsHeaderButton {
-    background: rgba(var(--button-bg-rgb), 0.08);
-    gap: 6px;
-
-    &:hover {
-        background: rgba(var(--button-bg-rgb), 0.16);
-    }
-
-    .callOptionsHeaderButton__chevron {
-        display: flex;
-        align-items: center;
-        align-self: stretch;
-        padding-left: 6px;
-        border-left: 1px solid rgba(var(--button-bg-rgb), 0.16);
-    }
-}
-
-// Profile popover: the icon button, widened to fit the chevron.
-button.btn.btn-icon.callOptionsPopoverButton {
-    width: auto;
-    padding: 0 6px;
-    gap: 2px;
+// The profile popover's overlay sits above menus, so its call menu has to sit above the overlay
+// or clicks on the menu land on the overlay and close the popover instead.
+.MuiPopover-root:has(#profilePopoverCallOptionsMenu) {
+    z-index: calc(var(--z-index-popover) + 1);
 }
