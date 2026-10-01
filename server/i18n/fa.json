@@ -14541,5 +14541,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys نامعتبر است: از حد {{.MaxCount}} کلید یا {{.MaxLength}} بایت فراتر رفته است."
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "این فیلد به یک الگوی ویژگی سراسری پیوند دارد و نمی‌توان آن را از طریق API ویژگی‌های کاربر تغییر داد. به جای آن از API ویژگی‌های سراسری استفاده کنید."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "ایجاد ایموجی امکان‌پذیر نیست. تصویر برای پردازش بیش از حد بزرگ است. از تصویری با ابعاد کوچک‌تر یا فریم‌های کمتر استفاده کنید."
   }
 ]

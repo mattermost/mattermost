@@ -14559,5 +14559,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Nieprawidłowe mention_keys: przekroczono limit {{.MaxCount}} kluczy lub {{.MaxLength}} bajtów."
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "To pole jest powiązane z szablonem atrybutu globalnego i nie można go zmienić za pomocą API atrybutów użytkownika. Zamiast tego użyj API atrybutów globalnych."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Nie można utworzyć emoji. Obraz jest zbyt duży, aby go przetworzyć. Spróbuj użyć obrazu o mniejszych wymiarach lub z mniejszą liczbą klatek."
   }
 ]

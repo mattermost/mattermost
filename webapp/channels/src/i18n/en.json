@@ -3357,27 +3357,27 @@
   },
   "admin.classification_markings.conflict.channel_field": {
     "defaultMessage": "A channel attribute named \"{name}\" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management, then reload this page.",
-    "description": ""
+    "description": "Body of the warning notice on the System Console > Classification Markings page when a channel attribute with the required name exists but is not linked to the classification levels. {name} is the existing attribute's name exactly as an admin created it; it is never localized. 'Attribute Management' is the name of the System Console page (admin.sidebar.global_attributes) and is plain text here, not a link; use that page's existing translation."
   },
   "admin.classification_markings.conflict.clearance": {
     "defaultMessage": "A user attribute named \"{name}\" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management to enable the clearance attribute.",
-    "description": ""
+    "description": "Body of the warning notice on the System Console > Classification Markings page when a user attribute with the clearance attribute's name already exists but is not linked to the classification levels. 'The clearance attribute' is the user attribute holding each user's clearance level. {name} is the existing attribute's name exactly as an admin created it; it is never localized. 'Attribute Management' is the name of the System Console page (admin.sidebar.global_attributes) and is plain text here, not a link; use that page's existing translation."
   },
   "admin.classification_markings.conflict.clearance_title": {
     "defaultMessage": "Clearance attribute cannot be created",
-    "description": ""
+    "description": "Title of the warning notice on the System Console > Classification Markings page when the user clearance attribute (the user attribute holding each user's classification clearance level) cannot be created because of a name conflict."
   },
   "admin.classification_markings.conflict.system_field": {
     "defaultMessage": "A system attribute named \"{name}\" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management, then reload this page.",
-    "description": ""
+    "description": "Body of the warning notice on the System Console > Classification Markings page when a system-level attribute with the required name exists but is not linked to the classification levels. {name} is the existing attribute's name exactly as an admin created it; it is never localized. 'Attribute Management' is the name of the System Console page (admin.sidebar.global_attributes) and is plain text here, not a link; use that page's existing translation."
   },
   "admin.classification_markings.conflict.template": {
     "defaultMessage": "An attribute named \"{name}\" already exists with a different type, so it is not a set of classification levels. Rename or remove it in Attribute Management, then reload this page.",
-    "description": ""
+    "description": "Body of the warning notice on the System Console > Classification Markings page when an attribute with the required name exists but has a different type (it is not a select attribute holding classification levels). {name} is the existing attribute's name exactly as an admin created it; it is never localized. 'Attribute Management' is the name of the System Console page (admin.sidebar.global_attributes) and is plain text here, not a link; use that page's existing translation."
   },
   "admin.classification_markings.conflict.title": {
     "defaultMessage": "Classification markings cannot be configured",
-    "description": ""
+    "description": "Title of the warning notice on the System Console > Classification Markings page, shown when the page cannot be configured because an existing attribute's name collides with the one classification markings needs."
   },
   "admin.classification_markings.enable.description": {
     "defaultMessage": "Use this to enable classification markings as banners at the system and channel level. You can pre-select text and colors for your banner, as well as set a default option for consistency.",
@@ -3409,7 +3409,7 @@
   },
   "admin.classification_markings.error.create_name_conflict": {
     "defaultMessage": "Could not save because an attribute with a conflicting name already exists: {error} Rename or remove it in Attribute Management, then reload this page.",
-    "description": ""
+    "description": "Error shown on the System Console > Classification Markings page when saving fails because an attribute with a conflicting name already exists. {error} is the server's error message, a full sentence that is usually English; it is followed directly by the next sentence. 'Attribute Management' is the name of the System Console page (admin.sidebar.global_attributes) and is plain text here, not a link; use that page's existing translation."
   },
   "admin.classification_markings.error.delete_has_dependents": {
     "defaultMessage": "Cannot disable classification markings while channel classifications exist. Remove all channel classification markings first.",
@@ -6693,7 +6693,7 @@
   },
   "admin.global_attributes.classification.name_conflict": {
     "defaultMessage": "An attribute named \"{name}\" already exists but is not part of classification. Rename or remove it in Attribute Management, then reload this page.",
-    "description": ""
+    "description": "Message on the classification attribute's settings in System Console > Attribute Management when an attribute with the classification attribute's name exists but is not part of classification markings. {name} is the existing attribute's name exactly as an admin created it; it is never localized. 'Attribute Management' is the name of the System Console page (admin.sidebar.global_attributes) and is plain text here, not a link; use that page's existing translation."
   },
   "admin.global_attributes.classification.name_fallback": {
     "defaultMessage": "Classification",
@@ -18473,15 +18473,15 @@
   },
   "channel_attributes.banner.empty_notice": {
     "defaultMessage": "There's nothing to display until the attributes in the banner text have values.",
-    "description": ""
+    "description": "Body of the warning notice under the channel banner preview in Channel Settings, when the banner text consists of channel attribute placeholders that have no values on this channel yet, so nothing is displayed."
   },
   "channel_attributes.banner.empty_notice.no_text": {
     "defaultMessage": "Add banner text to display a banner.",
-    "description": ""
+    "description": "Body of the warning notice under the channel banner preview in Channel Settings, when the banner text is empty."
   },
   "channel_attributes.banner.empty_notice.title": {
     "defaultMessage": "The banner will not be displayed",
-    "description": ""
+    "description": "Title of the warning notice under the channel banner preview in Channel Settings, shown when the banner would currently render nothing."
   },
   "channel_attributes.banner.insert_attribute": {
     "defaultMessage": "Attributes",
@@ -18501,11 +18501,11 @@
   },
   "channel_attributes.banner.token_value_set": {
     "defaultMessage": "Value on this channel: {value}",
-    "description": ""
+    "description": "Screen-reader-only text announced for an attribute in the 'Channel attributes' menu used to insert an attribute into the channel banner text; {value} is that attribute's current value on this channel."
   },
   "channel_attributes.banner.token_value_unset": {
     "defaultMessage": "The attribute has no value set and won't render in the banner, but will appear automatically the moment a value is set.",
-    "description": ""
+    "description": "Tooltip on the warning icon next to an attribute with no value, and screen-reader text for it, in the menu used to insert channel attributes into the channel banner text. Explains that the inserted attribute renders nothing until it has a value."
   },
   "channel_attributes.chip.label_prefix": {
     "defaultMessage": "{label}: ",
@@ -18557,7 +18557,7 @@
   },
   "channel_attributes.info.remove_value": {
     "defaultMessage": "Remove {value}",
-    "description": ""
+    "description": "Accessibility label (not visible) for the small remove button inside a value chip on a multi-select channel attribute in the channel info panel; {value} is the value the button removes."
   },
   "channel_attributes.info.save_failed": {
     "defaultMessage": "Couldn't save {label}. Try again.",
@@ -18597,7 +18597,7 @@
   },
   "channel_banner.banner_text.help": {
     "defaultMessage": "Any single- or double-character symbols between attributes (such as · . / ?) will be removed if those attribute values are not set. Empty attributes will not appear in the banner or elsewhere in the channel. The banner is hidden if there is no text available.",
-    "description": ""
+    "description": "Help text under the banner text field in Channel Settings > Configuration. Explains that short separator symbols between channel attribute placeholders are dropped when the adjacent attribute has no value, and that a banner with no resulting text is hidden. Keep the example symbols as written."
   },
   "channel_banner.banner_text.label": {
     "defaultMessage": "Banner text",
@@ -19773,7 +19773,7 @@
   },
   "channel_settings.error_attributes_save_failed": {
     "defaultMessage": "Couldn't save one or more channel attributes. Try again.",
-    "description": ""
+    "description": "Error shown in the Channel Settings modal when saving the Info tab fails to save one or more channel attribute values."
   },
   "channel_settings.error_banner_color_required": {
     "defaultMessage": "Banner color is required",
@@ -20073,7 +20073,7 @@
   },
   "channel_settings.save_changes_panel.banner_text.empty_error": {
     "defaultMessage": "Add banner text, or turn off the channel banner.",
-    "description": ""
+    "description": "Validation error in the save-changes panel of Channel Settings > Configuration, when the channel banner is turned on but its text is empty. 'turn off' refers to the channel banner toggle on the same tab."
   },
   "channel_settings.save_changes_panel.banner_text.required_error": {
     "defaultMessage": "Channel banner text cannot be empty when enabled",

@@ -14532,5 +14532,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys 無效：超過 {{.MaxCount}} 個關鍵字或 {{.MaxLength}} 位元組的上限。"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "此欄位已連結至全域屬性範本，無法透過使用者屬性 API 修改。請改用全域屬性 API。"
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "無法建立表情符號。圖片過大，無法處理。請嘗試使用尺寸較小或影格較少的圖片。"
   }
 ]

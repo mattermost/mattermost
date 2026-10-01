@@ -14544,5 +14544,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys geçersiz: {{.MaxCount}} anahtar ya da {{.MaxLength}} bayt sınırı aşılıyor."
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Bu alan bir genel öznitelik kalıbına bağlı olduğundan Kullanıcı öznitelikleri API hizmeti ile değiştirilemez. Bunun yerine Genel öznitelikler API hizmetini kullanın."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Görsel ifade eklenemedi. Görsel işlenemeyecek kadar büyük. Daha küçük boyutlu ya da daha az kare içeren bir görsel kullanmayı deneyin."
   }
 ]

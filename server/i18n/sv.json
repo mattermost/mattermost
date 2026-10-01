@@ -14544,5 +14544,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Ogiltiga mention_keys: överskrider gränsen på {{.MaxCount}} nyckelord eller {{.MaxLength}} byte."
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Det här fältet är kopplat till en mall för globala attribut och kan inte ändras via API:et för användarattribut. Använd API:et för globala attribut i stället."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Det går inte att skapa emoji. Bilden är för stor för att kunna bearbetas. Försök med en bild med mindre dimensioner eller färre bildrutor."
   }
 ]

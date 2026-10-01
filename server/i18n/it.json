@@ -14541,5 +14541,13 @@
   {
     "id": "store.sql_file_info.search.disabled",
     "translation": "La ricerca dei file è stata disabilitata su questo server. Contatta il tuo Amministratore di Sistema."
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Questo campo è collegato a un modello di Attributo globale e non può essere modificato tramite l'API Attributi utente. Usa invece l'API Attributi globali."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Impossibile creare l'emoji. L'immagine è troppo grande per essere elaborata. Prova a usarne una con dimensioni minori o meno fotogrammi."
   }
 ]

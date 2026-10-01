@@ -14532,5 +14532,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "잘못된 mention_keys입니다: 키 {{.MaxCount}}개 또는 {{.MaxLength}}바이트 제한을 초과합니다."
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "이 필드는 전역 속성 템플릿에 연결되어 있어 사용자 속성 API를 통해 수정할 수 없습니다. 대신 전역 속성 API를 사용하세요."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "이모지를 만들 수 없습니다. 이미지가 너무 커서 처리할 수 없습니다. 크기가 더 작거나 프레임 수가 더 적은 이미지를 사용해 보세요."
   }
 ]

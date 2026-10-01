@@ -14556,5 +14556,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Ongeldige mention_keys: overschrijdt de limiet van {{.MaxCount}} sleutels of {{.MaxLength}} bytes."
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Dit veld is gekoppeld aan een sjabloon voor globale attributen en kan niet worden gewijzigd via de API voor gebruikersattributen. Gebruik in plaats daarvan de API voor globale attributen."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Kan geen emoticon aanmaken. De afbeelding is te groot om te verwerken. Probeer een afbeelding met kleinere afmetingen of minder frames."
   }
 ]

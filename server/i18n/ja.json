@@ -14532,5 +14532,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keysが不正です: {{.MaxCount}} 個のキーまたは {{.MaxLength}} バイトの上限を超えています。"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "このフィールドはグローバル属性テンプレートにリンクされているため、ユーザー属性APIでは変更できません。代わりにグローバル属性APIを使用してください。"
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "絵文字を作成できません。画像が大きすぎて処理できません。サイズが小さいか、フレーム数が少ない画像を使用してください。"
   }
 ]

@@ -14544,5 +14544,13 @@
   {
     "id": "store.sql_file_info.search.disabled",
     "translation": "La recherche de fichiers a été désactivée sur ce serveur. Veuillez contacter votre administrateur système."
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Ce champ est lié à un modèle d'attribut global et ne peut pas être modifié via l'API des attributs utilisateur. Utilisez plutôt l'API des attributs globaux."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Impossible de créer l'émoticône. L'image est trop volumineuse pour être traitée. Essayez une image de plus petites dimensions ou comportant moins d'images d'animation."
   }
 ]

@@ -14550,5 +14550,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys nevalid: depășește limita de {{.MaxCount}} chei sau {{.MaxLength}} octeți."
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Acest câmp este legat de un șablon de atribut global și nu poate fi modificat prin API-ul de atribute de utilizator. Utilizați în schimb API-ul de atribute globale."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Imposibil de creat emoji. Imaginea este prea mare pentru a fi procesată. Încercați una cu dimensiuni mai mici sau cu mai puține cadre."
   }
 ]

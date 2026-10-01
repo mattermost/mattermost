@@ -14532,5 +14532,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys 无效：超出了 {{.MaxCount}} 个关键词或 {{.MaxLength}} 字节的限制。"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "此字段已关联到全局属性模板，无法通过用户属性 API 修改。请改用全局属性 API。"
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "无法创建表情符。图片过大，无法处理。请尝试使用尺寸更小或帧数更少的图片。"
   }
 ]

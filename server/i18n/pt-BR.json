@@ -14541,5 +14541,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys inválido: excede o limite de {{.MaxCount}} chaves ou {{.MaxLength}} bytes."
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Este campo está vinculado a um modelo de Atributo Global e não pode ser modificado pela API de Atributos de Usuário. Use a API de Atributos Globais."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Não foi possível criar o emoji. A imagem é grande demais para ser processada. Tente usar uma com dimensões menores ou menos quadros."
   }
 ]

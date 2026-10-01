@@ -14559,5 +14559,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Неверное значение mention_keys: превышен предел в {{.MaxCount}} ключей или {{.MaxLength}} байт."
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Это поле связано с шаблоном глобального атрибута и не может быть изменено через API атрибутов пользователей. Используйте вместо этого API глобальных атрибутов."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Невозможно создать эмодзи. Изображение слишком велико для обработки. Попробуйте использовать изображение меньшего размера или с меньшим количеством кадров."
   }
 ]

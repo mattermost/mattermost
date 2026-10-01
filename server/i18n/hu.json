@@ -14541,5 +14541,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Érvénytelen mention_keys: túllépi a korlátot ({{.MaxCount}} kulcs vagy {{.MaxLength}} bájt)."
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Ez a mező egy globális attribútumsablonhoz kapcsolódik, ezért nem módosítható a felhasználói attribútumok API-n keresztül. Használja helyette a globális attribútumok API-t."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Nem lehet létrehozni az emoji-t. A kép túl nagy a feldolgozáshoz. Próbáljon kisebb méretű vagy kevesebb képkockából álló képet használni."
   }
 ]

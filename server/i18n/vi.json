@@ -14532,5 +14532,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys không hợp lệ: vượt quá giới hạn {{.MaxCount}} khóa hoặc {{.MaxLength}} byte."
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Trường này được liên kết với một mẫu Thuộc tính toàn cục và không thể được sửa đổi thông qua API Thuộc tính người dùng. Hãy sử dụng API Thuộc tính toàn cục thay thế."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Không thể tạo biểu tượng cảm xúc. Hình ảnh quá lớn để xử lý. Hãy thử sử dụng hình ảnh có kích thước nhỏ hơn hoặc ít khung hình hơn."
   }
 ]
