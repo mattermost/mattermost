@@ -4347,6 +4347,10 @@
     "defaultMessage": "(Optional) The attribute in the SAML Assertion that will be used to populate the {name} of users in Mattermost.",
     "description": "Help text for a user-attribute mapping field in SAML admin settings; {name} is the attribute's display name."
   },
+  "admin.customProfileAttributes.linkedNonText": {
+    "defaultMessage": "This field is a management attribute of type {type} and cannot be synced via LDAP or SAML. Only text-type fields support sync.",
+    "description": "Help text under a linked (Global Attribute) user-attribute field that is not text type; explains why the LDAP/SAML sync box is disabled."
+  },
   "admin.customProfileAttributes.managedByPlugin": {
     "defaultMessage": "This field is managed by the {pluginId} plugin and cannot be edited.",
     "description": "Help text under a user-attribute field that is read-only because a plugin owns it; {pluginId} is the plugin's display name."
@@ -9976,7 +9980,7 @@
     "description": "Destructive menu item in a policy's actions menu that deletes the permission policy."
   },
   "admin.permission_policies.description": {
-    "defaultMessage": "Create policies to control file upload and download permissions based on user attributes.",
+    "defaultMessage": "Create policies to control channel action permissions based on user attributes.",
     "description": "Description under the page title on the System Console > Permission Policies page."
   },
   "admin.permission_policies.edit": {
@@ -10170,6 +10174,14 @@
   "admin.permission_policies.page_title": {
     "defaultMessage": "Permission Policies",
     "description": "Page title of the System Console > Permission Policies page (attribute-based access control policies for permissions)."
+  },
+  "admin.permission_policies.permission.create_bor.description": {
+    "defaultMessage": "Allow users to send burn-on-read messages",
+    "description": "Description of the Send Burn-On-Read permission toggle in the permission policy editor."
+  },
+  "admin.permission_policies.permission.create_bor.label": {
+    "defaultMessage": "Create Burn-on-Read Message",
+    "description": "Name of the Send Burn-On-Read permission toggle in the permission policy editor; also used as a column value in the policies table."
   },
   "admin.permission_policies.permission.download_file.description": {
     "defaultMessage": "Allow users to download files to their device",
@@ -19834,6 +19846,14 @@
   "channel_settings.modal.title": {
     "defaultMessage": "Channel Settings",
     "description": "Title of the Channel Settings modal."
+  },
+  "channel_settings.permissions_policy.action.create_bor": {
+    "defaultMessage": "Create burn-on-read message",
+    "description": "Permission actioname inn the channel Permissions Policy rule editor; allows sending of burn-on-read messages."
+  },
+  "channel_settings.permissions_policy.action.create_bor.description": {
+    "defaultMessage": "Allow users to send burn-on-read messages in this channel",
+    "description": "Description shown under the `Create burn-on-read message` option in the permission picker of the channel permission rule editor."
   },
   "channel_settings.permissions_policy.action.download": {
     "defaultMessage": "Download files",
