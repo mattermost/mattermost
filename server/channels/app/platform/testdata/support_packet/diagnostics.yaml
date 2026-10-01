@@ -5,6 +5,7 @@ license:
   sku_short_name: enterprise
   is_trial: true
   is_non_production: true
+  expires_at: 1798859045000
 server:
   # Machine
   os: linux

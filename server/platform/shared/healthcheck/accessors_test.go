@@ -5,6 +5,7 @@ package healthcheck
 
 import (
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/assert"
@@ -91,52 +92,61 @@ func TestAccessorsReturnFalseWhenSectionAbsent(t *testing.T) {
 	require.False(t, ok)
 }
 
-func TestLicenseFeature(t *testing.T) {
+func TestLicenseSeats(t *testing.T) {
 	t.Parallel()
 
-	ldap := func(f *model.Features) *bool { return f.LDAP }
+	testCases := []struct {
+		name     string
+		snapshot *Snapshot
+		wantOK   bool
+	}{
+		{name: "nil snapshot", snapshot: nil},
+		{name: "nil license", snapshot: &Snapshot{}},
+		{name: "nil features", snapshot: &Snapshot{License: &model.License{}}},
+		{name: "nil users", snapshot: &Snapshot{License: &model.License{Features: &model.Features{}}}},
+		{name: "zero users", snapshot: &Snapshot{License: &model.License{Features: &model.Features{Users: new(0)}}}},
+		{name: "500 users", snapshot: &Snapshot{License: &model.License{Features: &model.Features{Users: new(500)}}}, wantOK: true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			seats, ok := tc.snapshot.LicenseSeats()
+			require.Equal(t, tc.wantOK, ok)
+			if tc.wantOK {
+				assert.Equal(t, 500, seats)
+			} else {
+				assert.Zero(t, seats)
+			}
+		})
+	}
+}
+
+func TestLicenseExpiresAt(t *testing.T) {
+	t.Parallel()
 
 	t.Run("nil snapshot", func(t *testing.T) {
 		var s *Snapshot
-		_, ok := s.LicenseFeature(ldap)
+		_, ok := s.LicenseExpiresAt()
 		require.False(t, ok)
 	})
 
 	t.Run("nil license", func(t *testing.T) {
-		_, ok := (&Snapshot{}).LicenseFeature(ldap)
+		_, ok := (&Snapshot{}).LicenseExpiresAt()
 		require.False(t, ok)
 	})
 
-	t.Run("nil features", func(t *testing.T) {
-		s := &Snapshot{License: &model.License{}}
-		_, ok := s.LicenseFeature(ldap)
+	t.Run("expiry not recorded", func(t *testing.T) {
+		_, ok := (&Snapshot{License: &model.License{}}).LicenseExpiresAt()
 		require.False(t, ok)
 	})
 
-	t.Run("nil getter", func(t *testing.T) {
-		s := &Snapshot{License: &model.License{Features: &model.Features{}}}
-		_, ok := s.LicenseFeature(nil)
-		require.False(t, ok)
-	})
-
-	t.Run("unset feature value", func(t *testing.T) {
-		s := &Snapshot{License: &model.License{Features: &model.Features{}}}
-		_, ok := s.LicenseFeature(ldap)
-		require.False(t, ok)
-	})
-
-	t.Run("feature enabled", func(t *testing.T) {
-		s := &Snapshot{License: &model.License{Features: &model.Features{LDAP: model.NewPointer(true)}}}
-		value, ok := s.LicenseFeature(ldap)
+	t.Run("millisecond expiry", func(t *testing.T) {
+		want := time.Date(2026, time.October, 15, 10, 30, 0, 123_000_000, time.UTC)
+		expiresAt, ok := (&Snapshot{License: &model.License{ExpiresAt: want.UnixMilli()}}).LicenseExpiresAt()
 		require.True(t, ok)
-		require.True(t, value)
-	})
-
-	t.Run("feature disabled", func(t *testing.T) {
-		s := &Snapshot{License: &model.License{Features: &model.Features{LDAP: model.NewPointer(false)}}}
-		value, ok := s.LicenseFeature(ldap)
-		require.True(t, ok)
-		require.False(t, value)
+		assert.Equal(t, want, expiresAt)
 	})
 }
 
