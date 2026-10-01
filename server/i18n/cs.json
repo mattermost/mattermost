@@ -7373,7 +7373,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": ""
+    "translation": "Platnost vaší licence {{.SkuName}} pro <a href=\"{{.SiteURL}}\">{{.SiteName}}</a> vyprší za {{.Days}} dní. Doufáme, že si užíváte bezpečnou spolupráci pro kritické úkoly, kterou Mattermost umožňuje."
   },
   {
     "id": "api.templates.welcome_body.subTitle2",
@@ -10601,1399 +10601,1399 @@
   },
   {
     "id": "api.access_control.assign.team_group_constrained",
-    "translation": ""
+    "translation": "Na tým se synchronizací skupin nelze uplatnit zásadu členství."
   },
   {
     "id": "api.access_control.decision.unsupported_resource_type.app_error",
-    "translation": ""
+    "translation": "Rozhodnutí řízení přístupu při vykreslování nejsou podporována pro typ prostředku „{{.Type}}“."
   },
   {
     "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
-    "translation": ""
+    "translation": "Funkce zásad oprávnění na úrovni kanálu není povolena."
   },
   {
     "id": "api.access_control_policy.permission_policies.feature_disabled",
-    "translation": ""
+    "translation": "Funkce zásad oprávnění není povolena."
   },
   {
     "id": "api.access_control_policy.policy_simulation.feature_disabled",
-    "translation": ""
+    "translation": "Funkce simulace zásad není povolena."
   },
   {
     "id": "api.access_control_policy.simulate.users_out_of_scope.app_error",
-    "translation": ""
+    "translation": "Všichni uživatelé v simulaci musí být členy týmu nebo kanálu uvedeného v požadavku."
   },
   {
     "id": "api.access_control_policy.team_membership.feature_disabled",
-    "translation": ""
+    "translation": "Funkce řízení přístupu k členství v týmu není povolena."
   },
   {
     "id": "api.admin.test_azure.missing_azure_field",
-    "translation": ""
+    "translation": "Některé nastavení Azure Blob Storage chybí nebo je neplatné."
   },
   {
     "id": "api.ai_bridge_test_helper.disabled.app_error",
-    "translation": ""
+    "translation": "Testovací pomocník AI Bridge je zakázán."
   },
   {
     "id": "api.channel.add_user.to.channel.abac_subject_build_failed.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se sestavit subjekt řízení přístupu pro uživatele."
   },
   {
     "id": "api.channel.board_channel.app_error",
-    "translation": ""
+    "translation": "Ke kanálům nástěnek nelze přistupovat přes koncové body /channels. Použijte místo toho API /boards."
   },
   {
     "id": "api.channel.bookmark.board.readonly.app_error",
-    "translation": ""
+    "translation": "Záložky nástěnek spravuje funkce nástěnek a nelze je vytvářet, aktualizovat ani mazat přes API záložek."
   },
   {
     "id": "api.channel.create_channel.attribute_no_permission.app_error",
-    "translation": ""
+    "translation": "Nemáte oprávnění nastavit jeden z odeslaných atributů kanálu."
   },
   {
     "id": "api.channel.create_channel.attributes_feature_disabled.app_error",
-    "translation": ""
+    "translation": "Atributy kanálu nejsou na tomto serveru povoleny."
   },
   {
     "id": "api.channel.create_channel.invalid_attribute.app_error",
-    "translation": ""
+    "translation": "Jeden z odeslaných atributů kanálu není pro tento kanál platný."
   },
   {
     "id": "api.channel.create_channel.missing_required_attributes.app_error",
-    "translation": ""
+    "translation": "Tomuto kanálu chybí povinné atributy."
   },
   {
     "id": "api.channel.discoverable_join_request.already_member.app_error",
-    "translation": ""
+    "translation": "Již jste členem tohoto kanálu."
   },
   {
     "id": "api.channel.discoverable_join_request.archived.app_error",
-    "translation": ""
+    "translation": "Nelze požádat o připojení k archivovanému kanálu."
   },
   {
     "id": "api.channel.discoverable_join_request.discoverable_requires_approval.app_error",
-    "translation": ""
+    "translation": "Připojení k tomuto kanálu vyžaduje schválení správcem. Odešlete prosím žádost z okna Procházet kanály."
   },
   {
     "id": "api.channel.discoverable_join_request.duplicate.app_error",
-    "translation": ""
+    "translation": "Pro tento kanál již máte čekající žádost o připojení."
   },
   {
     "id": "api.channel.discoverable_join_request.feature_disabled.app_error",
-    "translation": ""
+    "translation": "Dohledatelné kanály nejsou na tomto serveru povoleny."
   },
   {
     "id": "api.channel.discoverable_join_request.guest.app_error",
-    "translation": ""
+    "translation": "Hosté nemohou žádat o připojení k dohledatelným soukromým kanálům."
   },
   {
     "id": "api.channel.discoverable_join_request.invalid_patch.app_error",
-    "translation": ""
+    "translation": "Neplatná aktualizace žádosti o připojení ke kanálu."
   },
   {
     "id": "api.channel.discoverable_join_request.not_discoverable.app_error",
-    "translation": ""
+    "translation": "Tento kanál není dohledatelný."
   },
   {
     "id": "api.channel.discoverable_join_request.not_pending.app_error",
-    "translation": ""
+    "translation": "Žádost o připojení již nečeká na vyřízení."
   },
   {
     "id": "api.channel.discoverable_join_request.not_private.app_error",
-    "translation": ""
+    "translation": "Žádosti o připojení přijímají pouze soukromé kanály."
   },
   {
     "id": "api.channel.discoverable_join_request.policy_denied.app_error",
-    "translation": ""
+    "translation": "Nesplňujete pravidla přístupu vyžadovaná pro připojení k tomuto kanálu."
   },
   {
     "id": "api.channel.discoverable_join_request.shared.app_error",
-    "translation": ""
+    "translation": "Sdílené kanály nepřijímají žádosti o připojení k dohledatelným kanálům."
   },
   {
     "id": "api.channel.patch_update_channel.auto_translation_restricted.app_error",
-    "translation": ""
+    "translation": "Automatický překlad není pro tento kanál povolen."
   },
   {
     "id": "api.channel.patch_update_channel.cannot_update_managed_category.app_error",
-    "translation": ""
+    "translation": "Spravovanou kategorii tohoto kanálu nelze bez příslušných oprávnění aktualizovat."
   },
   {
     "id": "api.channel.patch_update_channel.feature_not_available.app_error",
-    "translation": ""
+    "translation": "Funkce automatického překladu není k dispozici."
   },
   {
     "id": "api.channel.patch_update_channel.group_constrained_not_allowed.app_error",
-    "translation": ""
+    "translation": "U tohoto typu kanálu nemáte povoleno nastavit group_constrained."
   },
   {
     "id": "api.channel.patch_update_channel.no_changes.app_error",
-    "translation": ""
+    "translation": "Aktualizace neobsahuje žádné změny."
   },
   {
     "id": "api.channel.post_update_channel_autotranslation_message.create_post.error",
-    "translation": ""
+    "translation": "Nepodařilo se odeslat zprávu o změně automatického překladu."
   },
   {
     "id": "api.channel.post_update_channel_autotranslation_message.disabled",
-    "translation": ""
+    "translation": "@%s zakázal(a) automatický překlad pro tento kanál. Všechny nové zprávy se budou zobrazovat v původním jazyce."
   },
   {
     "id": "api.channel.post_update_channel_autotranslation_message.enabled",
-    "translation": ""
+    "translation": "@%s povolil(a) automatický překlad pro tento kanál. Všechny nové zprávy se budou zobrazovat ve vašem preferovaném jazyce."
   },
   {
     "id": "api.channel.post_update_channel_autotranslation_message.retrieve_user.error",
-    "translation": ""
+    "translation": "Při aktualizaci stavu automatického překladu se nepodařilo načíst uživatele"
   },
   {
     "id": "api.channel.set_members.group_constrained.app_error",
-    "translation": ""
+    "translation": "U kanálu se synchronizací skupin nelze nastavit členy."
   },
   {
     "id": "api.channel.set_members.policy_enforced.app_error",
-    "translation": ""
+    "translation": "U kanálu s vynucovanou zásadou nelze nastavit členy."
   },
   {
     "id": "api.channel.set_members.type.app_error",
-    "translation": ""
+    "translation": "U tohoto typu kanálu nelze nastavit členy."
   },
   {
     "id": "api.channel.space_channel.app_error",
-    "translation": ""
+    "translation": "Ke kanálům typu Space nelze přistupovat přes koncové body /channels. Použijte místo toho API pro Spaces."
   },
   {
     "id": "api.channel.update_channel.policy_enforced_type_conversion.app_error",
-    "translation": ""
+    "translation": "Na tento kanál je uplatněna zásada členství založená na atributech. Před převodem mezi veřejným a soukromým kanálem zásadu odeberte."
   },
   {
     "id": "api.channel.update_channel_member_autotranslation.channel_not_enabled.app_error",
-    "translation": ""
+    "translation": "Automatický překlad není pro tento kanál povolen."
   },
   {
     "id": "api.channel.update_channel_member_autotranslation.feature_not_available.app_error",
-    "translation": ""
+    "translation": "Automatický překlad není k dispozici."
   },
   {
     "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
-    "translation": ""
+    "translation": "Neplatná aktualizace člena kanálu: Uživatel musí být buď host, nebo správce, ne obojí."
   },
   {
     "id": "api.command.execute_command.provided_site_url_different.app_error",
-    "translation": ""
+    "translation": "Název hostitele v požadavku se liší od nakonfigurované hodnoty SiteURL. Pro adresu URL odpovědi lomítkového příkazu bude použita nakonfigurovaná hodnota SiteURL."
   },
   {
     "id": "api.command.execute_command.site_url_required.app_error",
-    "translation": ""
+    "translation": "Pro používání lomítkových příkazů musí být nakonfigurována hodnota SiteURL"
   },
   {
     "id": "api.command_mobile_logs.cross_user_unavailable.app_error",
-    "translation": ""
+    "translation": "Nastavení protokolů mobilní aplikace pro tohoto uživatele nelze změnit."
   },
   {
     "id": "api.command_mobile_logs.desc",
-    "translation": ""
+    "translation": "Spravujte připojování protokolů mobilní aplikace pro sebe nebo pro jiného uživatele."
   },
   {
     "id": "api.command_mobile_logs.disabled",
-    "translation": ""
+    "translation": "Připojování protokolů mobilní aplikace je nyní zakázáno pro {{.User}}."
   },
   {
     "id": "api.command_mobile_logs.enabled",
-    "translation": ""
+    "translation": "Připojování protokolů mobilní aplikace je nyní povoleno pro {{.User}}."
   },
   {
     "id": "api.command_mobile_logs.hint",
-    "translation": ""
+    "translation": "[on|off|status] [@username]"
   },
   {
     "id": "api.command_mobile_logs.name",
-    "translation": ""
+    "translation": "mobile-logs"
   },
   {
     "id": "api.command_mobile_logs.status_off",
-    "translation": ""
+    "translation": "Připojování protokolů mobilní aplikace je momentálně zakázáno pro {{.User}}."
   },
   {
     "id": "api.command_mobile_logs.status_on",
-    "translation": ""
+    "translation": "Připojování protokolů mobilní aplikace je momentálně povoleno pro {{.User}}."
   },
   {
     "id": "api.command_mobile_logs.update_error.app_error",
-    "translation": ""
+    "translation": "Nastavení připojování protokolů mobilní aplikace se nepodařilo aktualizovat. Zkuste to prosím znovu."
   },
   {
     "id": "api.command_mobile_logs.usage",
-    "translation": ""
+    "translation": "Použití: /mobile-logs [on|off|status] [@username]"
   },
   {
     "id": "api.command_mobile_logs.user_not_found.app_error",
-    "translation": ""
+    "translation": "Uživatele „{{.Username}}“ se nepodařilo najít."
   },
   {
     "id": "api.command_mobile_logs.you",
-    "translation": ""
+    "translation": "vás"
   },
   {
     "id": "api.context.invalid_body.app_error",
-    "translation": ""
+    "translation": "Neplatné vlastnosti (props) příspěvku."
   },
   {
     "id": "api.context.session_cookie_not_allowed.app_error",
-    "translation": ""
+    "translation": "Ověřování pomocí souborů cookie není pro tento koncový bod povoleno. Použijte prosím ověřování pomocí hlavičky."
   },
   {
     "id": "api.custom_profile_attributes.linked_field.app_error",
-    "translation": ""
+    "translation": "Toto pole je propojeno se šablonou globálního atributu a nelze je upravovat přes API uživatelských atributů. Použijte místo toho API globálních atributů."
   },
   {
     "id": "api.data_spillage.error.comment_required",
-    "translation": ""
+    "translation": "Přidejte prosím komentář s vysvětlením, proč tuto zprávu nahlašujete."
   },
   {
     "id": "api.data_spillage.error.comment_too_long",
-    "translation": ""
+    "translation": "Důvod umístění zprávy do karantény nesmí být delší než {{.MaxLength}} znaků."
   },
   {
     "id": "api.data_spillage.error.disabled",
-    "translation": ""
+    "translation": "Funkce Řešení úniku dat je zakázána."
   },
   {
     "id": "api.data_spillage.error.invalid_channel_type",
-    "translation": ""
+    "translation": "Řešení úniku dat není k dispozici pro kanály přímých a skupinových zpráv."
   },
   {
     "id": "api.data_spillage.error.invalid_post_type",
-    "translation": ""
+    "translation": "Umístění příspěvku typu '{{.PostType}}' do karantény není povoleno."
   },
   {
     "id": "api.data_spillage.error.license",
-    "translation": ""
+    "translation": "Vaše licence nepodporuje Řešení úniku dat."
   },
   {
     "id": "api.data_spillage.error.not_available_on_team",
-    "translation": ""
+    "translation": "Funkce Řešení úniku dat není v tomto týmu povolena."
   },
   {
     "id": "api.data_spillage.error.post_not_in_progress",
-    "translation": ""
+    "translation": "Aby bylo možné příspěvek v karanténě ponechat nebo odstranit, musí být ve stavu čekající nebo přiřazený."
   },
   {
     "id": "api.data_spillage.error.reason_invalid",
-    "translation": ""
+    "translation": "Pro umístění zprávy do karantény byl zadán neznámý důvod."
   },
   {
     "id": "api.data_spillage.error.reason_required",
-    "translation": ""
+    "translation": "Vyberte prosím důvod umístění této zprávy do karantény."
   },
   {
     "id": "api.data_spillage.error.user_not_reviewer",
-    "translation": ""
+    "translation": "Uživatel není kontrolorem obsahu."
   },
   {
     "id": "api.data_spillage.exposure.write.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se zapsat report o expozici příspěvku."
   },
   {
     "id": "api.data_spillage.report.open.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se otevřít vygenerovaný soubor reportu o nahlášeném příspěvku."
   },
   {
     "id": "api.data_spillage.report.stat.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se načíst informace o souboru reportu o nahlášeném příspěvku."
   },
   {
     "id": "api.delivery_tracking.error.feature_flag",
-    "translation": ""
+    "translation": "Auditní protokolování doručení příspěvků není na tomto serveru povoleno."
   },
   {
     "id": "api.delivery_tracking.error.license",
-    "translation": ""
+    "translation": "Vaše licence nepodporuje auditní protokolování doručení příspěvků."
   },
   {
     "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
-    "translation": ""
+    "translation": "Emodži nelze vytvořit. Obrázek je příliš velký na zpracování. Zkuste použít obrázek s menšími rozměry nebo menším počtem snímků."
   },
   {
     "id": "api.emoji.upload.too_many_frames.app_error",
-    "translation": ""
+    "translation": "Emodži nelze vytvořit. Animovaný GIF může mít nejvýše {{.MaxFrames}} snímků."
   },
   {
     "id": "api.file.get_file.abac_denied.app_error",
-    "translation": ""
+    "translation": "Nemáte potřebný přístup ke stažení tohoto souboru."
   },
   {
     "id": "api.file.get_file.plugin_hook_timeout",
-    "translation": ""
+    "translation": "Vypršel časový limit háku pluginu"
   },
   {
     "id": "api.file.get_file.rejected_by_plugin",
-    "translation": ""
+    "translation": "Stažení souboru bylo odmítnuto pluginem"
   },
   {
     "id": "api.file.get_file_preview.rejected_by_plugin",
-    "translation": ""
+    "translation": "Stažení náhledu souboru bylo odmítnuto pluginem"
   },
   {
     "id": "api.file.get_file_thumbnail.rejected_by_plugin",
-    "translation": ""
+    "translation": "Stažení miniatury souboru bylo odmítnuto pluginem"
   },
   {
     "id": "api.file.get_public_file.rejected_by_plugin",
-    "translation": ""
+    "translation": "Stažení veřejného souboru bylo odmítnuto pluginem"
   },
   {
     "id": "api.file.test_connection_auth.app_error",
-    "translation": ""
+    "translation": "Nelze se ověřit vůči úložišti souborů. Zkontrolujte své přihlašovací údaje a nastavení ověřování."
   },
   {
     "id": "api.file.test_connection_no_bucket.app_error",
-    "translation": ""
+    "translation": "Nakonfigurovaný bucket nebo kontejner neexistuje. Zkontrolujte konfiguraci úložiště souborů a oprávnění."
   },
   {
     "id": "api.file.test_connection_settings_nil.app_error",
-    "translation": ""
+    "translation": "Nastavení úložiště souborů obsahuje nevyplněné hodnoty."
   },
   {
     "id": "api.file.test_connection_unsupported_driver.app_error",
-    "translation": ""
+    "translation": "Nepodporovaný ovladač úložiště souborů „{{.Driver}}“. Podporované hodnoty jsou \"local\", \"amazons3\" a \"azureblob\"."
   },
   {
     "id": "api.file.upload_file.abac_denied.app_error",
-    "translation": ""
+    "translation": "Nemáte potřebný přístup k nahrávání souborů do tohoto kanálu."
   },
   {
     "id": "api.ldap.test.reenter_password",
-    "translation": ""
+    "translation": "Nastavení připojení AD/LDAP se změnilo. Pro otestování připojení prosím znovu zadejte heslo pro bind."
   },
   {
     "id": "api.license.add_license.wrong_environment_production.app_error",
-    "translation": ""
+    "translation": "Toto je produkční licence, ale tento server běží v testovacím nebo vývojovém prostředí. Produkční licence lze použít pouze na produkčních serverech."
   },
   {
     "id": "api.license.add_license.wrong_environment_test.app_error",
-    "translation": ""
+    "translation": "Toto je testovací nebo vývojová licence, ale tento server běží v produkčním prostředí. Testovací nebo vývojové licence lze použít pouze na testovacích nebo vývojových serverech."
   },
   {
     "id": "api.license.parse_license.parse_form.app_error",
-    "translation": ""
+    "translation": "Formulář pro nahrání licence se nepodařilo zpracovat."
   },
   {
     "id": "api.mark_all_as_read.disabled.app_error",
-    "translation": ""
+    "translation": "Funkce označení všeho jako přečteného není povolena."
   },
   {
     "id": "api.oauth.get_access_token.client_id_mismatch.app_error",
-    "translation": ""
+    "translation": "invalid_grant: Udělení tokenu nebylo vydáno tomuto klientovi."
   },
   {
     "id": "api.plugin.install.check_directory.app_error",
-    "translation": ""
+    "translation": "Při kontrole konfigurace adresáře pluginů došlo k chybě."
   },
   {
     "id": "api.plugin.install.directory_conflict.app_error",
-    "translation": ""
+    "translation": "Plugin nelze nainstalovat: PluginSettings.Directory je v konfliktu s ImportSettings.Directory."
   },
   {
     "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
-    "translation": ""
+    "translation": "Nemáte oprávnění odesílat v tomto kanálu zprávy se zničením po přečtení."
   },
   {
     "id": "api.post.create_post.card_type_disabled.app_error",
-    "translation": ""
+    "translation": "Příspěvky typu karta nejsou na tomto serveru povoleny."
   },
   {
     "id": "api.post.create_post.silent_notification.app_error",
-    "translation": ""
+    "translation": "Tiše lze doručovat pouze příspěvky botů, webhooků, aplikací OAuth a pluginů."
   },
   {
     "id": "api.post.create_post.silent_persistent_notification.app_error",
-    "translation": ""
+    "translation": "Tiché příspěvky nemohou používat trvalá oznámení."
   },
   {
     "id": "api.post.do_action.query.app_error",
-    "translation": ""
+    "translation": "Neplatný dotaz akce."
   },
   {
     "id": "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error",
-    "translation": ""
+    "translation": "Příspěvky se zničením po přečtení nejsou povoleny v přímých zprávách s boty nebo agenty AI."
   },
   {
     "id": "api.post.fill_in_post_props.burn_on_read.channel.app_error",
-    "translation": ""
+    "translation": "Při ověřování kanálu pro příspěvek se zničením po přečtení došlo k chybě."
   },
   {
     "id": "api.post.fill_in_post_props.burn_on_read.self_dm.app_error",
-    "translation": ""
+    "translation": "Příspěvky se zničením po přečtení nejsou povoleny ve zprávách sobě samému."
   },
   {
     "id": "api.post.fill_in_post_props.burn_on_read.shared_channel.app_error",
-    "translation": ""
+    "translation": "Příspěvky se zničením po přečtení nejsou povoleny ve sdílených kanálech."
   },
   {
     "id": "api.post.fill_in_post_props.burn_on_read.user.app_error",
-    "translation": ""
+    "translation": "Při ověřování uživatele pro příspěvek se zničením po přečtení došlo k chybě."
   },
   {
     "id": "api.post.get_link_metadata_for_permalink.burn_on_read.app_error",
-    "translation": ""
+    "translation": "Pro trvalý odkaz na příspěvek se zničením po přečtení nelze načíst metadata odkazu."
   },
   {
     "id": "api.post.get_posts_for_reporting.channel_not_found",
-    "translation": ""
+    "translation": "Kanál nenalezen"
   },
   {
     "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
-    "translation": ""
+    "translation": "Příspěvky se zničením po přečtení nelze aktualizovat."
   },
   {
     "id": "api.post.reveal_post.cannot_reveal_own_post.app_error",
-    "translation": ""
+    "translation": "Nemůžete odhalit svůj vlastní příspěvek se zničením po přečtení."
   },
   {
     "id": "api.post.reveal_post.disabled.app_error",
-    "translation": ""
+    "translation": "Funkce zničení po přečtení není povolena nebo vyžaduje licenci Enterprise Advanced."
   },
   {
     "id": "api.post.reveal_post.invalid_request.app_error",
-    "translation": ""
+    "translation": "Neplatný požadavek: chybí nebo je neplatná hlavička X-Requested-With."
   },
   {
     "id": "api.post.reveal_post.user_not_in_channel.app_error",
-    "translation": ""
+    "translation": "Nemáte oprávnění odhalit tento příspěvek. Musíte být členem kanálu."
   },
   {
     "id": "api.post.update_post.burn_on_read.app_error",
-    "translation": ""
+    "translation": "Příspěvky se zničením po přečtení nelze upravovat."
   },
   {
     "id": "api.property.channel_attributes.license.app_error",
-    "translation": ""
+    "translation": "Atributy kanálu vyžadují licenci Enterprise Advanced."
   },
   {
     "id": "api.property.session_attributes.license.app_error",
-    "translation": ""
+    "translation": "Atributy relace vyžadují licenci Enterprise Advanced."
   },
   {
     "id": "api.property.v2_group_not_found.app_error",
-    "translation": ""
+    "translation": "Zadaná skupina vlastností nebyla nalezena."
   },
   {
     "id": "api.property_field.create.creator_cannot_edit.app_error",
-    "translation": ""
+    "translation": "Nemůžete vytvořit pole vlastnosti s úrovněmi oprávnění, které by vám znemožnily jeho úpravu."
   },
   {
     "id": "api.property_field.create.invalid_target_type.app_error",
-    "translation": ""
+    "translation": "Zadaný cílový typ není platný."
   },
   {
     "id": "api.property_field.create.protected_via_api.app_error",
-    "translation": ""
+    "translation": "Chráněné pole vlastnosti nelze vytvořit přes API."
   },
   {
     "id": "api.property_field.create.target_id_required.app_error",
-    "translation": ""
+    "translation": "Při vytváření pole vlastnosti v rozsahu kanálu nebo týmu je vyžadován parametr target_id."
   },
   {
     "id": "api.property_field.delete.no_permission.app_error",
-    "translation": ""
+    "translation": "Nemáte oprávnění smazat toto pole vlastnosti."
   },
   {
     "id": "api.property_field.get.invalid_opts.app_error",
-    "translation": ""
+    "translation": "Neplatné možnosti hledání polí vlastností."
   },
   {
     "id": "api.property_field.get.invalid_target_type.app_error",
-    "translation": ""
+    "translation": "Je vyžadován platný target_type (system, team nebo channel)."
   },
   {
     "id": "api.property_field.get.scope_conflict.app_error",
-    "translation": ""
+    "translation": "channel_id/team_id nelze kombinovat s target_type/target_id."
   },
   {
     "id": "api.property_field.get.scope_required.app_error",
-    "translation": ""
+    "translation": "Je vyžadován parametr rozsahu (channel_id, team_id nebo target_type)."
   },
   {
     "id": "api.property_field.get.target_id_required.app_error",
-    "translation": ""
+    "translation": "Při dotazování podle target_type kanálu nebo týmu je vyžadován parametr target_id."
   },
   {
     "id": "api.property_field.get.target_type_required.app_error",
-    "translation": ""
+    "translation": "Pokud je zadán target_id, je vyžadován i target_type."
   },
   {
     "id": "api.property_field.invalid_patch.app_error",
-    "translation": ""
+    "translation": "Neplatná aktualizace pole vlastnosti."
   },
   {
     "id": "api.property_field.object_type_mismatch.app_error",
-    "translation": ""
+    "translation": "Typ objektu pole vlastnosti neodpovídá adrese URL."
   },
   {
     "id": "api.property_field.options.empty_body.app_error",
-    "translation": ""
+    "translation": "Nebyly zadány žádné možnosti pole vlastnosti."
   },
   {
     "id": "api.property_field.options.invalid_cursor.app_error",
-    "translation": ""
+    "translation": "Kurzor možností pole vlastnosti musí obsahovat cursor_id i cursor_create_at."
   },
   {
     "id": "api.property_field.options.legacy_field.app_error",
-    "translation": ""
+    "translation": "Možnosti tohoto pole vlastnosti nelze spravovat jednotlivě."
   },
   {
     "id": "api.property_field.options.no_permission.app_error",
-    "translation": ""
+    "translation": "Nemáte oprávnění spravovat možnosti tohoto pole vlastnosti."
   },
   {
     "id": "api.property_field.options.too_many_items.request_error",
-    "translation": ""
+    "translation": "Tolik možností pole vlastnosti nelze změnit najednou. Najednou lze změnit nejvýše {{.Max}} možností."
   },
   {
     "id": "api.property_field.patch.legacy_field.app_error",
-    "translation": ""
+    "translation": "Pole vlastnosti verze v1 nelze přes toto API aktualizovat."
   },
   {
     "id": "api.property_field.patch.permission_values_invalid.app_error",
-    "translation": ""
+    "translation": "permission_values musí být buď member, nebo sysadmin."
   },
   {
     "id": "api.property_field.patch.permission_values_not_linked.app_error",
-    "translation": ""
+    "translation": "permission_values lze nastavit pouze u pole propojeného se šablonou."
   },
   {
     "id": "api.property_field.update.no_field_permission.app_error",
-    "translation": ""
+    "translation": "Nemáte oprávnění upravit toto pole vlastnosti."
   },
   {
     "id": "api.property_field.update.no_options_permission.app_error",
-    "translation": ""
+    "translation": "Nemáte oprávnění spravovat možnosti tohoto pole vlastnosti."
   },
   {
     "id": "api.property_value.get.invalid_opts.app_error",
-    "translation": ""
+    "translation": "Neplatné možnosti hledání hodnot vlastností."
   },
   {
     "id": "api.property_value.invalid_object_type.app_error",
-    "translation": ""
+    "translation": "Zadaný typ objektu není platný."
   },
   {
     "id": "api.property_value.patch.duplicate_field_id.app_error",
-    "translation": ""
+    "translation": "Požadavek obsahuje duplicitní ID polí."
   },
   {
     "id": "api.property_value.patch.empty_body.app_error",
-    "translation": ""
+    "translation": "Tělo požadavku musí obsahovat alespoň jednu aktualizaci hodnoty vlastnosti."
   },
   {
     "id": "api.property_value.patch.field_not_found.app_error",
-    "translation": ""
+    "translation": "Pole vlastnosti {{.FieldID}} nebylo v této skupině nalezeno."
   },
   {
     "id": "api.property_value.patch.invalid_field_id.app_error",
-    "translation": ""
+    "translation": "Jedno nebo více ID polí v požadavku je neplatných."
   },
   {
     "id": "api.property_value.patch.no_values_permission.app_error",
-    "translation": ""
+    "translation": "Nemáte oprávnění nastavovat hodnoty u jednoho nebo více polí."
   },
   {
     "id": "api.property_value.patch.too_many_items.request_error",
-    "translation": ""
+    "translation": "Tolik hodnot vlastností nelze aktualizovat najednou. Najednou lze aktualizovat nejvýše {{.Max}} hodnot vlastností."
   },
   {
     "id": "api.property_value.system_use_dedicated_route.app_error",
-    "translation": ""
+    "translation": "Systémové hodnoty musí používat vyhrazený koncový bod pro systémové hodnoty."
   },
   {
     "id": "api.property_value.template_no_values.app_error",
-    "translation": ""
+    "translation": "Pole šablony nemohou mít hodnoty."
   },
   {
     "id": "api.reaction.save.burn_on_read.app_error",
-    "translation": ""
+    "translation": "Na příspěvek se zničením po přečtení nelze reagovat."
   },
   {
     "id": "api.recap.disabled.app_error",
-    "translation": ""
+    "translation": "Tato funkce není povolena."
   },
   {
     "id": "api.recap.permission_denied",
-    "translation": ""
+    "translation": "Nemáte oprávnění k přístupu k této rekapitulaci."
   },
   {
     "id": "api.scheduled_recap.permission_denied",
-    "translation": ""
+    "translation": "Nemáte oprávnění k přístupu k této naplánované rekapitulaci."
   },
   {
     "id": "api.shared_channel.attachment.creator_id_required.app_error",
-    "translation": ""
+    "translation": "FileInfo.CreatorId je povinné."
   },
   {
     "id": "api.shared_channel.attachment.data_required.app_error",
-    "translation": ""
+    "translation": "Data souboru jsou povinná."
   },
   {
     "id": "api.shared_channel.attachment.file_info_required.app_error",
-    "translation": ""
+    "translation": "FileInfo je povinné."
   },
   {
     "id": "api.shared_channel.attachment.filename_required.app_error",
-    "translation": ""
+    "translation": "FileInfo.Name je povinné."
   },
   {
     "id": "api.team.access_control.added.system_message",
-    "translation": ""
+    "translation": "Byli jste přidáni do týmu **{{.TeamName}}**, protože nyní splňujete jeho požadavky na členství."
   },
   {
     "id": "api.team.access_control.removed.system_message",
-    "translation": ""
+    "translation": "Byli jste odebráni z týmu **{{.TeamName}}**, protože již nesplňujete jeho požadavky na členství."
   },
   {
     "id": "api.team.add_user.to.team.abac_subject_build_failed.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se sestavit subjekt řízení přístupu pro uživatele."
   },
   {
     "id": "api.team.add_user.to.team.rejected",
-    "translation": ""
+    "translation": "Uživatel nemá potřebné atributy pro připojení k týmu."
   },
   {
     "id": "api.team.get_team.flagged_post_mismatch.app_error",
-    "translation": ""
+    "translation": "ID týmu neodpovídá ID týmu nahlášeného příspěvku."
   },
   {
     "id": "api.team.invite_guests_to_channels.guest_magic_link_disabled.error",
-    "translation": ""
+    "translation": "Magický odkaz pro hosty není povolen"
   },
   {
     "id": "api.team.invite_members.account_deactivated.app_error",
-    "translation": ""
+    "translation": "Účet přidružený k {{.Addresses}} byl deaktivován. Pro podrobnosti se obraťte na správce systému."
   },
   {
     "id": "api.team.invite_members.profiles_disabled.app_error",
-    "translation": ""
+    "translation": "Přednastavení polí profilu v pozvánkách vyžaduje povolení uzamčených polí profilu."
   },
   {
     "id": "api.team.invite_members.profiles_graceful.app_error",
-    "translation": ""
+    "translation": "Přednastavení polí profilu v pozvánkách vyžaduje režim graceful."
   },
   {
     "id": "api.team.invite_members.profiles_license.app_error",
-    "translation": ""
+    "translation": "Přednastavení polí profilu v pozvánkách vyžaduje licenci Enterprise."
   },
   {
     "id": "api.team.invite_members.username_taken.app_error",
-    "translation": ""
+    "translation": "Uživatelské jméno {{.Username}} je již obsazené."
   },
   {
     "id": "api.team.update.group_constrained.policy_exists",
-    "translation": ""
+    "translation": "Synchronizaci skupin nelze povolit u týmu, na který je uplatněna zásada členství."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
-    "translation": ""
+    "translation": "Neplatná aktualizace člena týmu: Uživatel musí být buď host, nebo správce, ne obojí."
   },
   {
     "id": "api.templates.guest_magic_link_body.footer.info",
-    "translation": ""
+    "translation": "Tento e-mail vám byl zaslán, protože někdo požádal o přihlašovací odkaz do Mattermost. Pokud jste o něj nežádali, můžete tento e-mail bez obav ignorovat."
   },
   {
     "id": "api.templates.guest_magic_link_body.footer.title",
-    "translation": ""
+    "translation": "Nežádali jste o tento e-mail?"
   },
   {
     "id": "api.templates.guest_magic_link_body.subtitle",
-    "translation": ""
+    "translation": "Kliknutím na tlačítko níže se přihlásíte ke svému účtu. Nezapomeňte, že tento odkaz nesmíte s nikým sdílet."
   },
   {
     "id": "api.templates.guest_magic_link_body.title",
-    "translation": ""
+    "translation": "Přihlášení do Mattermost"
   },
   {
     "id": "api.templates.guest_magic_link_subject",
-    "translation": ""
+    "translation": "Přihlášení do {{ .SiteName }}"
   },
   {
     "id": "api.templates.license_need_help.info",
-    "translation": ""
+    "translation": "<a href=\"https://mattermost.com/contact-sales/\">Obraťte se na odborníka Mattermost</a>, který vám pomůže s plány a možnostmi obnovení."
   },
   {
     "id": "api.templates.license_need_help.title",
-    "translation": ""
+    "translation": "Potřebujete pomoc?"
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": ""
+    "translation": "Obnovte licenci včas, aby váš tým mohl tyto výhody nadále využívat."
   },
   {
     "id": "api.templates.remove_expired_license.body.heading",
-    "translation": ""
+    "translation": "Platnost vaší licence Mattermost vypršela"
   },
   {
     "id": "api.templates.remove_expired_license.body.subtitle",
-    "translation": ""
+    "translation": "Platnost vaší licence {{.SkuName}} pro <a href=\"{{.SiteURL}}\">{{.SiteName}}</a> vypršela a některé funkce mohou být zakázány."
   },
   {
     "id": "api.templates.remove_expired_license.body.subtitle_two",
-    "translation": ""
+    "translation": "Obnovte prosím svou licenci nyní, abyste mohli nadále využívat všechny možnosti Mattermost."
   },
   {
     "id": "api.templates.user_access_token_rotated_body.info",
-    "translation": ""
+    "translation": "Osobní přístupový token vašeho účtu na {{ .SiteURL }} byl znovu vygenerován. Předchozí tajný klíč tokenu již není platný."
   },
   {
     "id": "api.templates.user_access_token_rotated_body.title",
-    "translation": ""
+    "translation": "Osobní přístupový token byl znovu vygenerován"
   },
   {
     "id": "api.templates.user_access_token_rotated_subject",
-    "translation": ""
+    "translation": "[{{ .SiteName }}] Osobní přístupový token byl znovu vygenerován"
   },
   {
     "id": "api.upload.create.check_directory.app_error",
-    "translation": ""
+    "translation": "Při kontrole konfigurace adresáře pro import došlo k chybě."
   },
   {
     "id": "api.upload.create.directory_conflict.app_error",
-    "translation": ""
+    "translation": "Nahrávání pro import nelze vytvořit: ImportSettings.Directory je v konfliktu s PluginSettings.Directory."
   },
   {
     "id": "api.user.attach_device_id.invalid_device_id.app_error",
-    "translation": ""
+    "translation": "Neplatné ID zařízení."
   },
   {
     "id": "api.user.attach_device_id.invalid_voip_device_id.app_error",
-    "translation": ""
+    "translation": "Neplatné ID zařízení VoIP."
   },
   {
     "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
-    "translation": ""
+    "translation": "Funkce trvalého smazání kanálu není povolena. Pro použití tohoto příkazu musí být ServiceSettings.EnableAPIChannelDeletion nastaveno na true. Další informace naleznete na https://mattermost.com/pl/environment-configuration-settings"
   },
   {
     "id": "api.user.delete_team.not_enabled.for_admin.app_error",
-    "translation": ""
+    "translation": "Funkce trvalého smazání týmu není povolena. Pro použití tohoto příkazu musí být ServiceSettings.EnableAPITeamDeletion nastaveno na true. Další informace naleznete na https://mattermost.com/pl/environment-configuration-settings."
   },
   {
     "id": "api.user.delete_user.not_enabled.for_admin.app_error",
-    "translation": ""
+    "translation": "Funkce trvalého smazání uživatele není povolena. Pro použití tohoto příkazu musí být ServiceSettings.EnableAPIUserDeletion nastaveno na true. Další informace naleznete na https://mattermost.com/pl/environment-configuration-settings."
   },
   {
     "id": "api.user.demote_user_to_guest.bot_not_allowed.app_error",
-    "translation": ""
+    "translation": "Účty botů nelze převést na účty hostů."
   },
   {
     "id": "api.user.get_users_not_in_abac_team.access_control_unavailable.app_error",
-    "translation": ""
+    "translation": "Služba řízení přístupu není k dispozici. Nelze filtrovat uživatele pro tým s povoleným ABAC."
   },
   {
     "id": "api.user.guest_magic_link.expired_token.app_error",
-    "translation": ""
+    "translation": "Platnost tohoto odkazu s pozvánkou vypršela."
   },
   {
     "id": "api.user.guest_magic_link.invalid_token.app_error",
-    "translation": ""
+    "translation": "Neplatný odkaz s pozvánkou."
   },
   {
     "id": "api.user.guest_magic_link.missing_token.app_error",
-    "translation": ""
+    "translation": "Chybí token pozvánky."
   },
   {
     "id": "api.user.guest_magic_link.username_generation_failed.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se vygenerovat jedinečné uživatelské jméno. Obraťte se prosím na správce systému."
   },
   {
     "id": "api.user.login.guest_magic_link.disabled.error",
-    "translation": ""
+    "translation": "Přihlášení pomocí magického odkazu je zakázáno."
   },
   {
     "id": "api.user.login_by_intune.account_locked.app_error",
-    "translation": ""
+    "translation": "Váš účet byl deaktivován. Obraťte se prosím na správce systému."
   },
   {
     "id": "api.user.login_by_intune.bot_login_forbidden.app_error",
-    "translation": ""
+    "translation": "Účty botů se nemohou přihlašovat pomocí ověřování Microsoft."
   },
   {
     "id": "api.user.login_by_intune.not_available.app_error",
-    "translation": ""
+    "translation": "Ověřování Microsoft Intune není k dispozici."
   },
   {
     "id": "api.user.login_by_intune.not_configured.app_error",
-    "translation": ""
+    "translation": "Ověřování Microsoft Intune není nakonfigurováno."
   },
   {
     "id": "api.user.login_sso_code_exchange.deprecated.app_error",
-    "translation": ""
+    "translation": "Tento koncový bod je zastaralý a zakázaný. Aktualizujte prosím svou mobilní aplikaci."
   },
   {
     "id": "api.user.oauth.get_settings.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se načíst nastavení {{.Service}}"
   },
   {
     "id": "api.user.oauth_to_email.integration_session.app_error",
-    "translation": ""
+    "translation": "Pomocí relace integrace nelze přejít na ověřování e-mailem."
   },
   {
     "id": "api.user.oauth_to_email.magic_link.app_error",
-    "translation": ""
+    "translation": "Magický odkaz je jedinou dostupnou metodou přihlášení pro tento účet."
   },
   {
     "id": "api.user.oauth_to_email.not_oauth_user.app_error",
-    "translation": ""
+    "translation": "Nelze přejít na ověřování e-mailem, protože uživatel nepoužívá ověřování OAuth ani SAML."
   },
   {
     "id": "api.user.patch_user.profile_field_locked.app_error",
-    "translation": ""
+    "translation": "Pole {{.Field}} spravuje správce systému a nelze je změnit."
   },
   {
     "id": "api.user.promote_guest_to_user.magic_link_enabled.app_error",
-    "translation": ""
+    "translation": "Hosta nelze převést na běžného uživatele, protože se přihlašuje pomocí magického odkazu."
   },
   {
     "id": "api.user.rotate_user_access_token.disabled_token.app_error",
-    "translation": ""
+    "translation": "Zakázaný přístupový token nelze znovu vygenerovat."
   },
   {
     "id": "api.user.saml.relay_state_too_long.app_error",
-    "translation": ""
+    "translation": "Stav SAML relay state je příliš dlouhý."
   },
   {
     "id": "api.user.send_password_reset.guest_magic_link.app_error",
-    "translation": ""
+    "translation": "U účtů hostů s magickým odkazem nelze obnovit heslo."
   },
   {
     "id": "api.user.session_attributes.disabled.app_error",
-    "translation": ""
+    "translation": "Atributy relace nejsou povoleny."
   },
   {
     "id": "api.user.update_password.magic_link.app_error",
-    "translation": ""
+    "translation": "U účtů s magickým odkazem nelze změnit heslo."
   },
   {
     "id": "api.user.update_user.profile_field_locked.app_error",
-    "translation": ""
+    "translation": "Pole {{.Field}} spravuje správce systému a nelze je změnit."
   },
   {
     "id": "api.user.upload_profile_user.profile_field_locked.app_error",
-    "translation": ""
+    "translation": "Profilový obrázek spravuje správce systému a nelze jej změnit."
   },
   {
     "id": "api.view.create.deleted_channel.app_error",
-    "translation": ""
+    "translation": "Ve smazaném kanálu nelze vytvořit pohled."
   },
   {
     "id": "api.view.delete.channel_mismatch.app_error",
-    "translation": ""
+    "translation": "Pohled nepatří do zadaného kanálu."
   },
   {
     "id": "api.view.delete.deleted_channel.app_error",
-    "translation": ""
+    "translation": "Ve smazaném kanálu nelze smazat pohled."
   },
   {
     "id": "api.view.get.channel_mismatch.app_error",
-    "translation": ""
+    "translation": "Pohled nepatří do zadaného kanálu."
   },
   {
     "id": "api.view.get.deleted_channel.app_error",
-    "translation": ""
+    "translation": "Ze smazaného kanálu nelze načíst pohled."
   },
   {
     "id": "api.view.get_posts.channel_mismatch.app_error",
-    "translation": ""
+    "translation": "Pohled nepatří do zadaného kanálu."
   },
   {
     "id": "api.view.get_posts.deleted_channel.app_error",
-    "translation": ""
+    "translation": "Ze smazaného kanálu nelze načíst příspěvky pohledu."
   },
   {
     "id": "api.view.list.deleted_channel.app_error",
-    "translation": ""
+    "translation": "Pro smazaný kanál nelze vypsat pohledy."
   },
   {
     "id": "api.view.update.channel_mismatch.app_error",
-    "translation": ""
+    "translation": "Pohled nepatří do zadaného kanálu."
   },
   {
     "id": "api.view.update.deleted_channel.app_error",
-    "translation": ""
+    "translation": "Ve smazaném kanálu nelze aktualizovat pohled."
   },
   {
     "id": "api.view.update_sort_order.deleted_channel.app_error",
-    "translation": ""
+    "translation": "Ve smazaném kanálu nelze změnit pořadí pohledů."
   },
   {
     "id": "api.webhook.incoming.user_membership.app_error",
-    "translation": ""
+    "translation": "Uživatel webhooku musí být členem cílového týmu nebo kanálu."
   },
   {
     "id": "api.webhook.incoming.user_role.app_error",
-    "translation": ""
+    "translation": "Webhook nemůžete přiřadit uživateli s vyššími oprávněními, než máte sami."
   },
   {
     "id": "app.access_control.build_subject.get_subject.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se načíst subjekt řízení přístupu."
   },
   {
     "id": "app.access_control.build_subject.group_id.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se načíst skupinu atributů řízení přístupu."
   },
   {
     "id": "app.access_control.get_channel_role.app_error",
-    "translation": ""
+    "translation": "Nelze zjistit roli uživatele v kanálu. Zkuste to prosím znovu."
   },
   {
     "id": "app.access_control.get_session_attributes.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se načíst atributy relace."
   },
   {
     "id": "app.access_control.plugin.evaluation_unavailable.app_error",
-    "translation": ""
+    "translation": "Řízení přístupu pro tento prostředek nebylo možné vyhodnotit."
   },
   {
     "id": "app.access_control.plugin.invalid_acting_user.app_error",
-    "translation": ""
+    "translation": "Jednající uživatel je neplatný nebo neexistuje."
   },
   {
     "id": "app.access_control.plugin.invalid_action.app_error",
-    "translation": ""
+    "translation": "Akce není platnou akcí řízení přístupu."
   },
   {
     "id": "app.access_control.plugin.invalid_id.app_error",
-    "translation": ""
+    "translation": "Do API řízení přístupu byl předán neplatný identifikátor."
   },
   {
     "id": "app.access_control.plugin.invalid_resource_type.app_error",
-    "translation": ""
+    "translation": "Typ prostředku není platným typem prostředku řízení přístupu pro pluginy."
   },
   {
     "id": "app.access_control.plugin.policy_not_found.app_error",
-    "translation": ""
+    "translation": "Zásada řízení přístupu nebyla nalezena."
   },
   {
     "id": "app.access_control.plugin.resource_type_forbidden.app_error",
-    "translation": ""
+    "translation": "Volající plugin není vlastníkem tohoto typu prostředku."
   },
   {
     "id": "app.access_control.plugin.type_conflict.app_error",
-    "translation": ""
+    "translation": "Pro toto ID již existuje zásada řízení přístupu jiného typu."
   },
   {
     "id": "app.access_control_decision.subject_mismatch.app_error",
-    "translation": ""
+    "translation": "Subjekt neodpovídá uživateli ověřené relace."
   },
   {
     "id": "app.access_control_decision.unsupported_action.app_error",
-    "translation": ""
+    "translation": "Nepodporovaná akce pro rozhodnutí při vykreslování: {{.Action}}"
   },
   {
     "id": "app.agents.get_agents.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se načíst agenty."
   },
   {
     "id": "app.agents.get_agents.bridge_call_failed",
-    "translation": ""
+    "translation": "Volání bridge se nezdařilo."
   },
   {
     "id": "app.agents.get_services.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se načíst služby LLM."
   },
   {
     "id": "app.agents.get_services.bridge_call_failed",
-    "translation": ""
+    "translation": "Volání bridge se nezdařilo."
   },
   {
     "id": "app.ai.summarize.agent_call_failed",
-    "translation": ""
+    "translation": "Volání agenta AI se nezdařilo."
   },
   {
     "id": "app.ai.summarize.parse_failed",
-    "translation": ""
+    "translation": "Nepodařilo se zpracovat odpověď AI se shrnutím."
   },
   {
     "id": "app.ai_bridge_test_helper.invalid_config",
-    "translation": ""
+    "translation": "Neplatná konfigurace testovacího pomocníka AI Bridge."
   },
   {
     "id": "app.bot.createbot.reserved_username.app_error",
-    "translation": ""
+    "translation": "Toto uživatelské jméno je rezervováno pro systémového bota."
   },
   {
     "id": "app.bot.patchbot.reserved_username.app_error",
-    "translation": ""
+    "translation": "Toto uživatelské jméno je rezervováno pro systémového bota."
   },
   {
     "id": "app.bot.update.internal_error",
-    "translation": ""
+    "translation": "Bota nelze aktualizovat."
   },
   {
     "id": "app.bot.update_bot_active.protected_bot.app_error",
-    "translation": ""
+    "translation": "Systémového bota nelze zakázat."
   },
   {
     "id": "app.burn_post.not_burn_on_read.app_error",
-    "translation": ""
+    "translation": "Tento příspěvek není příspěvkem se zničením po přečtení a nelze jej zničit."
   },
   {
     "id": "app.burn_post.not_revealed.app_error",
-    "translation": ""
+    "translation": "Tento příspěvek se zničením po přečtení dosud nebyl odhalen. Před zničením jej musíte odhalit."
   },
   {
     "id": "app.burn_post.read_receipt.get.error",
-    "translation": ""
+    "translation": "Při načítání potvrzení o přečtení došlo k chybě."
   },
   {
     "id": "app.burn_post.read_receipt.update.error",
-    "translation": ""
+    "translation": "Při aktualizaci potvrzení o přečtení došlo k chybě."
   },
   {
     "id": "app.channel.add_user.to.channel.rejected_by_plugin",
-    "translation": ""
+    "translation": "Přidání člena kanálu bylo odmítnuto pluginem: {{.Reason}}"
   },
   {
     "id": "app.channel.create_board_channel.boards_not_enabled.app_error",
-    "translation": ""
+    "translation": "Funkce Integrated Boards není povolena."
   },
   {
     "id": "app.channel.create_board_channel.internal_error",
-    "translation": ""
+    "translation": "Kanál nástěnky nelze vytvořit."
   },
   {
     "id": "app.channel.create_board_channel.invalid.app_error",
-    "translation": ""
+    "translation": "Neplatná data kanálu nástěnky."
   },
   {
     "id": "app.channel.create_board_channel.limit.app_error",
-    "translation": ""
+    "translation": "Byl dosažen maximální počet kanálů na tým."
   },
   {
     "id": "app.channel.create_channel.board_type.app_error",
-    "translation": ""
+    "translation": "Kanály nástěnek nelze vytvářet pomocí CreateChannel. Použijte místo toho API /boards."
   },
   {
     "id": "app.channel.create_channel.space_type.app_error",
-    "translation": ""
+    "translation": "Kanály typu Space nelze vytvářet přes tento koncový bod."
   },
   {
     "id": "app.channel.create_channel.spaces_not_enabled.app_error",
-    "translation": ""
+    "translation": "Funkce Docs není povolena."
   },
   {
     "id": "app.channel.delete_channel.rejected_by_plugin",
-    "translation": ""
+    "translation": "Archivace kanálu byla odmítnuta pluginem: {{.Reason}}"
   },
   {
     "id": "app.channel.get_by_name.app_error",
-    "translation": ""
+    "translation": "Kanál se nepodařilo najít podle názvu."
   },
   {
     "id": "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error",
-    "translation": ""
+    "translation": "Nelze načíst kanály s nepřečtenými zprávami a zmínkami."
   },
   {
     "id": "app.channel.get_member_ids.app_error",
-    "translation": ""
+    "translation": "Nelze načíst ID členů kanálu."
   },
   {
     "id": "app.channel.join_request.get.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se načíst žádost o připojení ke kanálu."
   },
   {
     "id": "app.channel.join_request.not_found.app_error",
-    "translation": ""
+    "translation": "Žádost o připojení ke kanálu nebyla nalezena."
   },
   {
     "id": "app.channel.join_request.save.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se uložit žádost o připojení ke kanálu."
   },
   {
     "id": "app.channel.join_request.update.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se aktualizovat žádost o připojení ke kanálu."
   },
   {
     "id": "app.channel.move_channel.space.app_error",
-    "translation": ""
+    "translation": "Kanály typu Space nelze přesouvat přes tento koncový bod."
   },
   {
     "id": "app.channel.restore_channel.rejected_by_plugin",
-    "translation": ""
+    "translation": "Obnovení kanálu bylo odmítnuto pluginem: {{.Reason}}"
   },
   {
     "id": "app.channel.save_member.app_error",
-    "translation": ""
+    "translation": "Člena kanálu nelze uložit."
   },
   {
     "id": "app.channel.set_members.context_cancelled.app_error",
-    "translation": ""
+    "translation": "Operace nastavení členů kanálu byla zrušena."
   },
   {
     "id": "app.channel.set_members.empty_private.app_error",
-    "translation": ""
+    "translation": "Ze soukromého kanálu nelze odebrat všechny členy."
   },
   {
     "id": "app.channel.set_members.get_current.app_error",
-    "translation": ""
+    "translation": "Nelze načíst aktuální členy kanálu."
   },
   {
     "id": "app.channel.set_members.get_members.app_error",
-    "translation": ""
+    "translation": "Nelze načíst členy kanálu pro sjednocení rolí."
   },
   {
     "id": "app.channel.update_channel.plugin_type_mutation.app_error",
-    "translation": ""
+    "translation": "Plugin {{.PluginID}} se pokusil změnit typ kanálu prostřednictvím ChannelWillBeUpdated; změny typu musí procházet vyhrazenou cestou pro změnu typu"
   },
   {
     "id": "app.channel.update_channel.rejected_by_plugin",
-    "translation": ""
+    "translation": "Aktualizace kanálu byla odmítnuta pluginem: {{.Reason}}"
   },
   {
     "id": "app.channel.update_channel_privacy.space.app_error",
-    "translation": ""
+    "translation": "U kanálů typu Space nelze přes tento koncový bod měnit soukromí."
   },
   {
     "id": "app.channel_guard.invalid_channel.app_error",
-    "translation": ""
+    "translation": "ID kanálu není platným identifikátorem kanálu."
   },
   {
     "id": "app.channel_guard.register.app_error",
-    "translation": ""
+    "translation": "Ochranu kanálu nelze zaregistrovat."
   },
   {
     "id": "app.channel_guard.register.empty_channel.app_error",
-    "translation": ""
+    "translation": "K registraci ochrany kanálu je vyžadováno ID kanálu."
   },
   {
     "id": "app.channel_guard.unregister.app_error",
-    "translation": ""
+    "translation": "Registraci ochrany kanálu nelze zrušit."
   },
   {
     "id": "app.channel_guard.unregister.empty_channel.app_error",
-    "translation": ""
+    "translation": "Ke zrušení registrace ochrany kanálu je vyžadováno ID kanálu."
   },
   {
     "id": "app.command.validatecommandtriggeruniqueness.internal_error",
-    "translation": ""
+    "translation": "Zadané spouštěcí slovo již existuje."
   },
   {
     "id": "app.compile_csv_chunks.write_error",
-    "translation": ""
+    "translation": "Nepodařilo se zapsat data CSV."
   },
   {
     "id": "app.data_spillage.assign_reviewer.no_reviewer_field.app_error",
-    "translation": ""
+    "translation": "Pole vlastnosti ID kontrolora nebylo nalezeno."
   },
   {
     "id": "app.data_spillage.assign_reviewer.update_status_property_value.app_error",
-    "translation": ""
+    "translation": "Při nastavování kontrolora se nepodařilo aktualizovat hodnotu vlastnosti Stav."
   },
   {
     "id": "app.data_spillage.assign_reviewer.upsert_property_value.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se nastavit kontrolora nahlášeného příspěvku."
   },
   {
     "id": "app.data_spillage.can_flag_post.in_progress",
-    "translation": ""
+    "translation": "Tento příspěvek nelze umístit do karantény, protože již je v karanténě ke kontrole."
   },
   {
     "id": "app.data_spillage.can_flag_post.removed",
-    "translation": ""
+    "translation": "Tento příspěvek nelze umístit do karantény, protože byl při předchozí kontrole odstraněn."
   },
   {
     "id": "app.data_spillage.can_flag_post.retained",
-    "translation": ""
+    "translation": "Tento příspěvek nelze umístit do karantény, protože byl při předchozí kontrole ponechán."
   },
   {
     "id": "app.data_spillage.can_flag_post.unknown",
-    "translation": ""
+    "translation": "Tento příspěvek nelze umístit do karantény, protože je v neznámém stavu."
   },
   {
     "id": "app.data_spillage.create_property_values.app_error",
-    "translation": ""
+    "translation": "Hodnoty vlastností nahlášeného příspěvku nelze uložit."
   },
   {
     "id": "app.data_spillage.exposure.column.email",
-    "translation": ""
+    "translation": "E-mail"
   },
   {
     "id": "app.data_spillage.exposure.column.is_deactivated",
-    "translation": ""
+    "translation": "Deaktivován"
   },
   {
     "id": "app.data_spillage.exposure.column.is_guest",
-    "translation": ""
+    "translation": "Host"
   },
   {
     "id": "app.data_spillage.exposure.column.is_remote",
-    "translation": ""
+    "translation": "Vzdálený uživatel"
   },
   {
     "id": "app.data_spillage.exposure.column.last_activity_at",
-    "translation": ""
+    "translation": "Čas poslední aktivity uživatele (YYYY-MM-DDTHH:MM:SSZ)"
   },
   {
     "id": "app.data_spillage.exposure.column.last_viewed_at",
-    "translation": ""
+    "translation": "Kanál naposledy zobrazen (YYYY-MM-DDTHH:MM:SSZ)"
   },
   {
     "id": "app.data_spillage.exposure.column.user_id",
-    "translation": ""
+    "translation": "ID uživatele"
   },
   {
     "id": "app.data_spillage.exposure.column.username",
-    "translation": ""
+    "translation": "Uživatelské jméno"
   },
   {
     "id": "app.data_spillage.exposure.column.was_channel_member",
-    "translation": ""
+    "translation": "Byl členem kanálu"
   },
   {
     "id": "app.data_spillage.exposure.edit_history_post.app_error",
-    "translation": ""
+    "translation": "Pro revizi z historie úprav nelze vygenerovat report o expozici. Použijte ID aktuálního příspěvku."
   },
   {
     "id": "app.data_spillage.exposure.get_channel_members.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se načíst historii členství v kanálu pro nahlášený příspěvek."
   },
   {
     "id": "app.data_spillage.exposure.get_last_activity.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se načíst aktivitu relací pro nahlášený příspěvek."
   },
   {
     "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se načíst stav přečtení kanálu pro nahlášený příspěvek."
   },
   {
     "id": "app.data_spillage.exposure.meta.channel",
-    "translation": ""
+    "translation": "Kanál"
   },
   {
     "id": "app.data_spillage.exposure.meta.generated_at",
-    "translation": ""
+    "translation": "Vygenerováno"
   },
   {
     "id": "app.data_spillage.exposure.meta.post_id",
-    "translation": ""
+    "translation": "ID příspěvku"
   },
   {
     "id": "app.data_spillage.exposure.meta.report_version",
-    "translation": ""
+    "translation": "Verze reportu"
   },
   {
     "id": "app.data_spillage.exposure.meta.total_users",
-    "translation": ""
+    "translation": "Celkem uživatelů"
   },
   {
     "id": "app.data_spillage.exposure.meta.window_end",
-    "translation": ""
+    "translation": "Nahlášeno"
   },
   {
     "id": "app.data_spillage.exposure.meta.window_start",
-    "translation": ""
+    "translation": "Příspěvek vytvořen"
   },
   {
     "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
-    "translation": ""
+    "translation": "Nahlášený příspěvek nemá zaznamenaný čas nahlášení, takže nelze určit okno expozice."
   },
   {
     "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
-    "translation": ""
+    "translation": "Reporty o expozici nejsou podporovány pro přímé a skupinové zprávy."
   },
   {
     "id": "app.data_spillage.exposure.value.never_viewed",
-    "translation": ""
+    "translation": "N/A"
   },
   {
     "id": "app.data_spillage.exposure.value.no",
-    "translation": ""
+    "translation": "Ne"
   },
   {
     "id": "app.data_spillage.exposure.value.no_sessions",
-    "translation": ""
+    "translation": "Nenalezeny žádné relace"
   },
   {
     "id": "app.data_spillage.exposure.value.unknown",
-    "translation": ""
+    "translation": "Neznámé"
   },
   {
     "id": "app.data_spillage.exposure.value.yes",
-    "translation": ""
+    "translation": "Ano"
   },
   {
     "id": "app.data_spillage.flag_post.marshal_comment.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se serializovat komentář nahlašujícího uživatele"
   },
   {
     "id": "app.data_spillage.flag_post.marshal_reason.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se serializovat důvod nahlašujícího uživatele"
   },
   {
     "id": "app.data_spillage.flag_post_confirmation.message",
-    "translation": ""
+    "translation": "Zpráva od @{{.username}} byla umístěna do karantény ke kontrole. Jakmile ji kontrolor zkontroluje, budete informováni."
   },
   {
     "id": "app.data_spillage.get_group.error",
-    "translation": ""
+    "translation": "Nelze načíst skupinu vlastností pro nahlašování obsahu."
   },
   {
     "id": "app.data_spillage.get_reviewer_settings.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se načíst nastavení kontrolorů obsahu z databáze"
   },
   {
     "id": "app.data_spillage.get_status_property.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se načíst pole vlastnosti Stav."
   },
   {
     "id": "app.data_spillage.get_thread_replies.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se načíst odpovědi ve vláknu nahlášeného příspěvku."
   },
   {
     "id": "app.data_spillage.get_users_in_team.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se vyhledat kontrolory v týmu."
   },
   {
     "id": "app.data_spillage.keep_flag_post.marshal_comment.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se serializovat komentář kontrolora"
   },
   {
     "id": "app.data_spillage.keep_post.status_update.app_error",
-    "translation": ""
+    "translation": "Při obnovování nahlášeného příspěvku se nepodařilo aktualizovat jeho stav "
   },
   {
     "id": "app.data_spillage.keep_post.undelete.app_error",
-    "translation": ""
+    "translation": "Při pokusu o obnovení nahlášeného příspěvku a souvisejících dat se nepodařilo aktualizovat příspěvek v databázi."
   },
   {
     "id": "app.data_spillage.marshal_property_values.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se serializovat hodnoty vlastností nahlašování obsahu pro odeslání v události WebSocket."
   },
   {
     "id": "app.data_spillage.missing_flagged_post_id_field.app_error",
-    "translation": ""
+    "translation": "Nelze najít pole vlastnosti ID nahlášeného příspěvku."
   },
   {
     "id": "app.data_spillage.missing_manage_by_field.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se najít pole vlastnosti Spravuje."
   },
   {
     "id": "app.data_spillage.missing_reporting_user_id_field.app_error",
-    "translation": ""
+    "translation": "Nelze najít pole nahlašujícího uživatele."
   },
   {
     "id": "app.data_spillage.missing_reporting_user_id_property_value.app_error",
-    "translation": ""
+    "translation": "Nelze najít hodnotu pole nahlašujícího uživatele."
   },
   {
     "id": "app.data_spillage.missing_status_field.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se najít pole vlastnosti Stav."
   },
   {
     "id": "app.data_spillage.no_status_property.app_error",
-    "translation": ""
+    "translation": "Nahlášený příspěvek nelze načíst, protože příspěvek není nahlášen."
   },
   {
     "id": "app.data_spillage.permanently_delete.marshal_comment.app_error",
-    "translation": ""
+    "translation": "Nepodařilo se serializovat komentář kontrolora"
   },
   {
     "id": "app.data_spillage.permanently_delete.update_property_value.app_error",
