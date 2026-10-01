@@ -53,7 +53,7 @@ test.describe(
          */
         test('shows the definition read-only and links to Classification Markings', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const {levels} = await setupClassificationWithChannelField(adminClient);
 
@@ -67,9 +67,7 @@ test.describe(
                 await expect(globalAttributes.classificationLevels).toContainText(level.name);
             }
             // The display name is shown, but as a disabled field.
-            const displayName = systemConsolePage.page.getByTestId('classificationAttribute').getByRole('textbox');
-            await expect(displayName).toHaveCount(1);
-            await expect(displayName).not.toBeEditable();
+            await expect(systemConsolePage.page.getByTestId('classificationAttributeName')).toBeDisabled();
 
             // * The one place levels can be changed is a link away
             await expect(globalAttributes.classificationMarkingsLink).toHaveAttribute(
@@ -83,7 +81,7 @@ test.describe(
          */
         test('applies a header chip to channels once Header is chosen', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const {levels} = await setupClassificationWithChannelField(adminClient);
             const {team, user} = await pw.initSetup();
@@ -127,7 +125,11 @@ test.describe(
          */
         test('asks for classification at channel creation only once Required is on', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
+            // Courtesy path: classification is offered while optional only when
+            // ChannelAttributesRequired is off. Enable enforcement later, before
+            // marking the field required via the System Console toggle.
+            await pw.ensureFeatureFlag('ChannelAttributesRequired', false);
 
             const {levels} = await setupClassificationWithChannelField(adminClient);
             const {team} = await pw.initSetup();
@@ -143,7 +145,8 @@ test.describe(
             await expect(modal.createButton).toBeEnabled();
             await modal.cancel();
 
-            // # Mark it required on its attribute page
+            // # Enable enforcement so the Required toggle is available, then mark it required
+            await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.globalAttributes.gotoClassificationAttribute();
             await systemConsolePage.globalAttributes.appliesToChannels.setRequired(true);
@@ -173,7 +176,7 @@ test.describe(
          */
         test('stops bannering when the display locations exclude the banner', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const {levels} = await setupClassificationWithChannelField(adminClient);
             const {team, user} = await pw.initSetup();
@@ -212,7 +215,7 @@ test.describe(
          */
         test('removes the Channels resource only after confirming, and keeps it removed', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             await setupClassificationWithChannelField(adminClient);
 

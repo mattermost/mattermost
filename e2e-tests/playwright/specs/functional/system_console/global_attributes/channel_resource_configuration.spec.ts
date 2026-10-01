@@ -24,14 +24,13 @@ test.describe(
     'System Console - applying an attribute to channels',
     {tag: ['@system_console', '@channel_attributes']},
     () => {
-        test.describe.configure({mode: 'serial'});
-
         /**
          * @objective Ensure the Channels row writes every channel key onto a linked channel field.
          */
         test('creates a linked channel field carrying the configured keys', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
 
             const suffix = pw.random.id();
             const displayName = `Program ${suffix}`;
@@ -75,7 +74,8 @@ test.describe(
             pw,
         }) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
 
             const suffix = pw.random.id();
             let name = '';
@@ -117,11 +117,63 @@ test.describe(
         });
 
         /**
+         * @objective Ensure the Channel Info display location also renders the attribute as a
+         * header chip, alongside Channel Info.
+         *
+         * "Info" and "Header" are two independent triggers into the same merged header chip
+         * row (see ChannelAttributeLabels) — either one is enough to show a chip there.
+         * Channel Info shows every attribute regardless of display location.
+         */
+        test('shows an Info-designated attribute in the header chip row and in Channel Info', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
+
+            const suffix = pw.random.id();
+            let name = '';
+
+            try {
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+
+                name = await configureChannelAttribute(systemConsolePage, {
+                    displayName: `Info ${suffix}`,
+                    type: 'Select',
+                    options: ['INTERNAL'],
+                    required: true,
+                    displayLocations: ['display_label_info'],
+                });
+
+                const {team} = await pw.initSetup();
+                const {channelsPage} = await pw.testBrowser.login(adminUser);
+                await channelsPage.goto(team.name);
+                await channelsPage.toBeVisible();
+
+                const modal = await channelsPage.openNewChannelModal();
+                await modal.fillDisplayName(`Attr Info ${suffix}`);
+                await channelsPage.page.getByTestId(`channelAttribute-${name}`).click();
+                await channelsPage.page.getByText('INTERNAL', {exact: true}).click();
+                await modal.create();
+                await expect(modal.container).not.toBeVisible();
+
+                // * Info designation is enough on its own to show the header chip
+                await expect(channelsPage.centerView.header.attributes.chip('INTERNAL')).toBeVisible();
+
+                // * And Channel Info carries it, as it does for every attribute
+                const info = await channelsPage.openChannelInfo();
+                await expect(info.attributes.chip(name)).toHaveText('INTERNAL');
+            } finally {
+                await deleteChannelFieldIfExists(adminClient, name);
+                await deleteGlobalAttributeFieldIfExists(adminClient, name);
+            }
+        });
+
+        /**
          * @objective Ensure the Banner display location renders a banner and nothing else.
          */
         test('renders a Banner-only attribute as a banner, with no chip', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
 
             const suffix = pw.random.id();
             let name = '';
@@ -163,7 +215,8 @@ test.describe(
          */
         test('stores a value for an attribute with no display location and renders it nowhere', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
 
             const suffix = pw.random.id();
             let name = '';
@@ -219,7 +272,8 @@ test.describe(
          */
         test('locks the value in Channel Info when the change policy forbids changes', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
 
             const suffix = pw.random.id();
             let name = '';
@@ -272,7 +326,8 @@ test.describe(
          */
         test('keeps a console-configured attribute out of a plain member reach', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
 
             const suffix = pw.random.id();
             let name = '';
@@ -331,7 +386,7 @@ test.describe(
          */
         test('channel-linked field does not inherit ldap/saml sync attrs from the template', async ({pw}) => {
             const {adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             const name = `sync_attr_regression_${suffix}`;

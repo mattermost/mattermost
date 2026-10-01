@@ -53,18 +53,31 @@ export default class BrowseChannelsModal {
     }
 
     async clickRequestToJoin(channelDisplayName: string) {
-        await this.getChannelRow(channelDisplayName).getByText('Request to join').click();
+        const row = this.getChannelRow(channelDisplayName);
+        await row.scrollIntoViewIfNeeded();
+        // Join actions are visibility:hidden until the row is hovered/focused.
+        await row.hover();
+        await row.locator('#requestToJoinChannelButton').click();
     }
 
     async clickWithdraw(channelDisplayName: string) {
-        await this.getChannelRow(channelDisplayName).getByText('Withdraw', {exact: true}).click();
+        const row = this.getChannelRow(channelDisplayName);
+        await row.scrollIntoViewIfNeeded();
+        await row.hover();
+        await row.locator('#withdrawRequestButton').click();
     }
 
     async toHaveWithdrawButton(channelDisplayName: string) {
-        await expect(this.getChannelRow(channelDisplayName).getByText('Withdraw', {exact: true})).toBeVisible();
+        const row = this.getChannelRow(channelDisplayName);
+        await row.scrollIntoViewIfNeeded();
+        await row.hover();
+        await expect(row.locator('#withdrawRequestButton')).toBeVisible();
     }
 
     async toHaveRequestToJoinButton(channelDisplayName: string) {
-        await expect(this.getChannelRow(channelDisplayName).getByText('Request to join')).toBeVisible();
+        const row = this.getChannelRow(channelDisplayName);
+        await row.scrollIntoViewIfNeeded();
+        await row.hover();
+        await expect(row.locator('#requestToJoinChannelButton')).toBeVisible();
     }
 }
