@@ -30,6 +30,9 @@
         "PushNotificationServer": "https://push-test.mattermost.com",
         "PushNotificationContents": "full"
     },
+    "LdapSettings": {
+        "EnableSync": true
+    },
     "ClusterSettings": {
         "Enable": false,
         "ClusterName": "",
@@ -68,6 +71,9 @@
         "VaryByRemoteAddr": true,
         "VaryByUser": false,
         "VaryByHeader": ""
+    },
+    "MessageExportSettings": {
+        "EnableExport": false
     },
     "FeatureFlags": {
         "TestFeature": "off",

@@ -336,8 +336,11 @@ func healthTestPacketFiles() map[string]string {
     "ClusterSettings": {"Enable": false},
     "ElasticsearchSettings": {"EnableIndexing": false, "EnableSearching": false},
     "EmailSettings": {"SendPushNotifications": true, "PushNotificationServer": "http://push.example.com"},
-    "RateLimitSettings": {"Enable": true, "MemoryStoreSize": 10000}
+    "RateLimitSettings": {"Enable": true, "MemoryStoreSize": 10000},
+    "LdapSettings": {"EnableSync": false},
+    "MessageExportSettings": {"EnableExport": false}
 }`,
+		model.SupportPacketJobsFileName: "data_retention_jobs: []\n",
 	}
 }
 

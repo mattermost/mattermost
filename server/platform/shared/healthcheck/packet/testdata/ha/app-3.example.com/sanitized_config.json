@@ -30,6 +30,9 @@
         "PushNotificationServer": "http://push.example.com",
         "PushNotificationContents": "full"
     },
+    "LdapSettings": {
+        "EnableSync": true
+    },
     "ClusterSettings": {
         "Enable": true,
         "ClusterName": "production",
@@ -68,6 +71,9 @@
         "VaryByRemoteAddr": true,
         "VaryByUser": false,
         "VaryByHeader": ""
+    },
+    "MessageExportSettings": {
+        "EnableExport": true
     },
     "FeatureFlags": {
         "TestFeature": "off",
