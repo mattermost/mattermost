@@ -452,6 +452,12 @@ test.describe('Post height', () => {
                     `Not supported on ${testInfo.project.name}`,
                 );
 
+                if (testCase.name === 'post with a long post preview') {
+                    // The two sequential half_min waits below can approach the default
+                    // one_min test timeout on their own, leaving no budget for setup.
+                    test.setTimeout(duration.two_min);
+                }
+
                 const post = await testCase.makePost({
                     fileServerUrl,
                     siteUrl: testConfig.internalBaseURL,
