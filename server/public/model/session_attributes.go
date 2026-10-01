@@ -192,39 +192,49 @@ func (f *SAField) EnabledForPlatform(platform string) bool {
 // those lists, and an API caller may only change enabled, ttl_seconds, and
 // grace_period_seconds on a seeded field.
 func IsValidSessionAttributeValue(field *PropertyField, value any) bool {
-	if field == nil || value == nil {
+	return NewSessionAttributeValueValidator(field).IsValid(value)
+}
+
+// SessionAttributeValueValidator checks values for one session attribute field
+// against its option names and IDs, parsed once up front.
+type SessionAttributeValueValidator struct {
+	fieldType PropertyFieldType
+	options   map[string]struct{}
+}
+
+func NewSessionAttributeValueValidator(field *PropertyField) *SessionAttributeValueValidator {
+	if field == nil {
+		return nil
+	}
+
+	v := &SessionAttributeValueValidator{fieldType: field.Type}
+	if rawOptions := field.GetAttr(PropertyFieldAttributeOptions); field.Type == PropertyFieldTypeSelect && rawOptions != nil {
+		if options, err := NewPropertyOptionsFromFieldAttrs[*PluginPropertyOption](rawOptions); err == nil {
+			v.options = make(map[string]struct{}, 2*len(options))
+			for _, option := range options {
+				v.options[option.GetName()] = struct{}{}
+				v.options[option.GetID()] = struct{}{}
+			}
+		}
+	}
+	return v
+}
+
+func (v *SessionAttributeValueValidator) IsValid(value any) bool {
+	if v == nil {
+		return false
+	}
+	str, ok := value.(string)
+	if !ok || str == "" {
 		return false
 	}
 
-	switch field.Type {
+	switch v.fieldType {
 	case PropertyFieldTypeText:
-		str, ok := value.(string)
-		if !ok {
-			return false
-		}
-		if str == "" {
-			return false
-		}
 		return true
 	case PropertyFieldTypeSelect:
-		str, ok := value.(string)
-		if !ok || str == "" {
-			return false
-		}
-		rawOptions := field.GetAttr(PropertyFieldAttributeOptions)
-		if rawOptions == nil {
-			return false
-		}
-		options, err := NewPropertyOptionsFromFieldAttrs[*PluginPropertyOption](rawOptions)
-		if err != nil {
-			return false
-		}
-		for _, option := range options {
-			if option.GetName() == str || option.GetID() == str {
-				return true
-			}
-		}
-		return false
+		_, ok := v.options[str]
+		return ok
 	default:
 		return false
 	}
