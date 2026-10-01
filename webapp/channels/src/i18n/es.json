@@ -4643,6 +4643,7 @@
   "channel_attributes.description": "Configura los atributos y valores de este canal.",
   "channel_attributes.enter_value": "Introduce un valor",
   "channel_attributes.info.add": "Añadir atributo",
+  "channel_attributes.info.clear": "Borrar {label}",
   "channel_attributes.info.edit": "Editar {label}",
   "channel_attributes.info.heading": "Atributos del Canal",
   "channel_attributes.info.locked": "Este atributo no se puede cambiar una vez establecido",

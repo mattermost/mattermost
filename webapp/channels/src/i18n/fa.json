@@ -4643,6 +4643,7 @@
   "channel_attributes.description": "ویژگی‌ها و مقادیر این کانال را پیکربندی کنید.",
   "channel_attributes.enter_value": "یک مقدار وارد کنید",
   "channel_attributes.info.add": "افزودن ویژگی",
+  "channel_attributes.info.clear": "پاک کردن {label}",
   "channel_attributes.info.edit": "ویرایش {label}",
   "channel_attributes.info.heading": "ویژگی‌های کانال",
   "channel_attributes.info.locked": "این ویژگی پس از تنظیم قابل تغییر نیست",

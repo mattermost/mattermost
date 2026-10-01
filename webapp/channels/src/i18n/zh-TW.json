@@ -4643,6 +4643,7 @@
   "channel_attributes.description": "設定此頻道的屬性與值。",
   "channel_attributes.enter_value": "輸入值",
   "channel_attributes.info.add": "新增屬性",
+  "channel_attributes.info.clear": "清除 {label}",
   "channel_attributes.info.edit": "編輯 {label}",
   "channel_attributes.info.heading": "頻道屬性",
   "channel_attributes.info.locked": "此屬性設定後即無法變更",

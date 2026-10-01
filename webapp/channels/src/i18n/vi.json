@@ -4643,6 +4643,7 @@
   "channel_attributes.description": "Cấu hình thuộc tính và giá trị cho kênh này.",
   "channel_attributes.enter_value": "Nhập một giá trị",
   "channel_attributes.info.add": "Thêm thuộc tính",
+  "channel_attributes.info.clear": "Xóa giá trị {label}",
   "channel_attributes.info.edit": "Chỉnh sửa {label}",
   "channel_attributes.info.heading": "Thuộc tính kênh",
   "channel_attributes.info.locked": "Thuộc tính này không thể thay đổi sau khi đã đặt",
