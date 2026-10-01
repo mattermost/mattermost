@@ -12,7 +12,7 @@ Follow `webapp/STYLE_GUIDE.md` for canonical style, accessibility, and testing s
 - **New UI**: prefer `@mattermost/compass-ui` when a published (on npm) component exists. Import via subpaths:
   `import {Button} from '@mattermost/compass-ui/components/button';`
   Do not use the root barrel. Do not recreate Compass primitives.
-- **Do not mass-migrate** existing call sites to Compass. Only switch when building new UI or when the task is an intentional migration of the code you are already changing.
+- **Do not mass-migrate** existing UI components to Compass. Only switch when building new UI or when the task is an intentional migration of the code you are already changing.
 - **`@mattermost/compass-proto`**: prototyping package not published to npm (shells, call composites, hardcoded menu recipes, proto `WithTooltip`). Not for Mattermost webapp product code — do not add the dependency or import from it unless explicitly adopting that package. Prefer existing webapp / shared / MUI stacks for those surfaces.
 - **Exceptions (keep current stacks)**: icons → `@mattermost/compass-icons`; emoji → `Emoji` (`@mattermost/shared`); modals → existing shared / `GenericModal`; menus → existing MUI menus. Do not switch Modal/Menu to compass-ui yet.
 - **Tooltips**: use `WithTooltip` from `@mattermost/shared` instead of wiring up Floating UI, compass-proto `WithTooltip`, or other tooltip primitives directly.
