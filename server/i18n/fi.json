@@ -13436,1150 +13436,1150 @@
   },
   {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
-    "translation": ""
+    "translation": "Virheellinen kuvadekooderin rinnakkaisuusarvo {{.Value}}. On oltava positiivinen luku tai -1."
   },
   {
     "id": "model.config.is_valid.import.directory.app_error",
-    "translation": ""
+    "translation": "Virheellinen arvo asetukselle Directory."
   },
   {
     "id": "model.config.is_valid.import.retention_days_too_low.app_error",
-    "translation": ""
+    "translation": "Virheellinen arvo asetukselle RetentionDays. Arvo on liian pieni."
   },
   {
     "id": "model.config.is_valid.intune_auth_service.app_error",
-    "translation": ""
+    "translation": "Intune MAM Auth Service on pakollinen, kun Intune on käytössä."
   },
   {
     "id": "model.config.is_valid.intune_auth_service_invalid.app_error",
-    "translation": ""
+    "translation": "Intune MAM Auth Service -asetuksen on oltava joko 'office365' tai 'saml'."
   },
   {
     "id": "model.config.is_valid.intune_client_id.app_error",
-    "translation": ""
+    "translation": "Intune MAM Client ID on pakollinen, kun Intune on käytössä."
   },
   {
     "id": "model.config.is_valid.intune_client_id_format.app_error",
-    "translation": ""
+    "translation": "Intune MAM Client ID -arvon on oltava kelvollinen UUID."
   },
   {
     "id": "model.config.is_valid.intune_requires_office365.app_error",
-    "translation": ""
+    "translation": "Intune MAM edellyttää, että OpenID Connect (Office 365) on käytössä, kun Auth Service -asetuksen arvo on 'office365'."
   },
   {
     "id": "model.config.is_valid.intune_requires_saml.app_error",
-    "translation": ""
+    "translation": "Intune MAM edellyttää, että SAML on käytössä, kun Auth Service -asetuksen arvo on 'saml'."
   },
   {
     "id": "model.config.is_valid.intune_tenant_id.app_error",
-    "translation": ""
+    "translation": "Intune MAM Tenant ID on pakollinen, kun Intune on käytössä."
   },
   {
     "id": "model.config.is_valid.intune_tenant_id_format.app_error",
-    "translation": ""
+    "translation": "Intune MAM Tenant ID -arvon on oltava kelvollinen UUID."
   },
   {
     "id": "model.config.is_valid.invalid_redis_db.app_error",
-    "translation": ""
+    "translation": "Redis DB -arvon on oltava nolla tai suurempi."
   },
   {
     "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
-    "translation": ""
+    "translation": "Virheellinen kirjautumisyritysten enimmäismäärä AD/LDAP-asetuksissa. On oltava positiivinen luku."
   },
   {
     "id": "model.config.is_valid.link_metadata_timeout.app_error",
-    "translation": ""
+    "translation": "Virheellinen arvo linkin metatietojen aikakatkaisulle. On oltava positiivinen luku."
   },
   {
     "id": "model.config.is_valid.local_mode_socket.app_error",
-    "translation": ""
+    "translation": "Paikallisen socket-tiedoston hakemistoa ei löydy."
   },
   {
     "id": "model.config.is_valid.lock_profile_fields.app_error",
-    "translation": ""
+    "translation": "Virheellinen profiilikenttien lukitusasetus. On oltava 'none', 'name_and_username' tai 'all'."
   },
   {
     "id": "model.config.is_valid.log.advanced_logging.json",
-    "translation": ""
+    "translation": "JSON-jäsennys epäonnistui: {{.Error}}"
   },
   {
     "id": "model.config.is_valid.log.advanced_logging.parse",
-    "translation": ""
+    "translation": "Virheellinen muoto: {{.Error}}"
   },
   {
     "id": "model.config.is_valid.log_level.app_error",
-    "translation": ""
+    "translation": "Virheellinen lokitaso {{.Value}} asetukselle {{.Setting}}."
   },
   {
     "id": "model.config.is_valid.max_payload_size.app_error",
-    "translation": ""
+    "translation": "Virheellinen hyötykuorman enimmäiskoko palveluasetuksissa. On oltava nollaa suurempi kokonaisluku."
   },
   {
     "id": "model.config.is_valid.max_personal_access_token_lifetime_days.app_error",
-    "translation": ""
+    "translation": "Virheellinen MaximumPersonalAccessTokenLifetimeDays-arvo. On oltava välillä 0 (rajoittamaton) – {{.Max}} päivää."
   },
   {
     "id": "model.config.is_valid.max_url_length.app_error",
-    "translation": ""
+    "translation": "Virheellinen URL-osoitteen enimmäispituus palveluasetuksissa. On oltava nollaa suurempi kokonaisluku."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
-    "translation": ""
+    "translation": "Viestien viennin asetukset GlobalRelaySettings.CustomHeaderName ja CustomHeaderValue on joko molemmat asetettava tai molemmat jätettävä tyhjiksi."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
-    "translation": ""
+    "translation": "Viestien viennin asetuksen GlobalRelaySettings.CustomHeaderName on oltava kelvollinen otsakkeen nimi, jossa ei ole välilyöntejä, kaksoispisteitä, erotinmerkkejä tai rivinvaihtoja."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
-    "translation": ""
+    "translation": "Viestien viennin asetus GlobalRelaySettings.CustomHeaderName ei saa käyttää otsaketta, jonka Global Relay -vienti kirjoittaa jo itse."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
-    "translation": ""
+    "translation": "Viestien viennin asetus GlobalRelaySettings.CustomHeaderValue ei saa sisältää ohjausmerkkejä tai rivinvaihtoja."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.custom_smtp_port.app_error",
-    "translation": ""
+    "translation": "Viestien vientityön asetuksen GlobalRelaySettings.CustomSMTPPort on oltava kelvollinen porttinumero."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
-    "translation": ""
+    "translation": "Jos GlobalRelaySettings.CustomerType on 'CUSTOM', asetukset GlobalRelaySettings.CustomSMTPServerName ja GlobalRelaySettings.CustomSMTPPort on asetettava."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.sender_address.app_error",
-    "translation": ""
+    "translation": "Viestien viennin asetuksen GlobalRelaySettings.SenderAddress on oltava tyhjä tai kelvollinen sähköpostiosoite."
   },
   {
     "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
-    "translation": ""
+    "translation": "Virheellinen asiakaspuolen käyttäjä-id: {{.Id}}"
   },
   {
     "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
-    "translation": ""
+    "translation": "Asetuksen ClientSideUserIds alkioiden määrä {{.CurrentLength}} ylittää enimmäisrajan {{.MaxLength}}."
   },
   {
     "id": "model.config.is_valid.minimum_desktop_app_version.app_error",
-    "translation": ""
+    "translation": "Virheellinen versionumero. On oltava kelvollinen semanttinen versio (esim. 5.0.0)."
   },
   {
     "id": "model.config.is_valid.mobile_ephemeral_mode.auto_cache_cleanup.app_error",
-    "translation": ""
+    "translation": "Virheellinen välimuistin automaattisen tyhjennyksen arvo. On oltava välillä {{.Min}}–{{.Max}} päivää."
   },
   {
     "id": "model.config.is_valid.mobile_ephemeral_mode.disconnection_timeout.app_error",
-    "translation": ""
+    "translation": "Virheellinen yhteyden katkaisun aikakatkaisun arvo. On oltava välillä {{.Min}}–{{.Max}} sekuntia."
   },
   {
     "id": "model.config.is_valid.mobile_ephemeral_mode.offline_persistence.app_error",
-    "translation": ""
+    "translation": "Virheellinen offline-säilytysajastimen arvo. On oltava välillä {{.Min}}–{{.Max}} tuntia."
   },
   {
     "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
-    "translation": ""
+    "translation": "Virheellinen verkkotunnus ketjun siirtämisen asetuksissa"
   },
   {
     "id": "model.config.is_valid.native_app_settings.download_link.app_error",
-    "translation": ""
+    "translation": "Yksi tai useampi sovelluksen latauslinkki ei ole kelvollinen URL-osoite."
   },
   {
     "id": "model.config.is_valid.non_negative_number.app_error",
-    "translation": ""
+    "translation": "Asetuksen {{.Setting}} on oltava ei-negatiivinen luku."
   },
   {
     "id": "model.config.is_valid.notification_settings.invalid_event",
-    "translation": ""
+    "translation": "Määritetty liputustapahtuma on virheellinen."
   },
   {
     "id": "model.config.is_valid.notification_settings.invalid_target",
-    "translation": ""
+    "translation": "Määritetty liputustapahtuman kohde on virheellinen."
   },
   {
     "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
-    "translation": ""
+    "translation": "Ilmoituksia uusista liputetuista viesteistä ei voi poistaa käytöstä tarkastajilta."
   },
   {
     "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
-    "translation": ""
+    "translation": "Virheellinen lähtevien integraatioiden pyyntöjen aikakatkaisu palveluasetuksissa. On oltava positiivinen luku."
   },
   {
     "id": "model.config.is_valid.persistent_notifications_count.app_error",
-    "translation": ""
+    "translation": "Virheellinen pysyvien ilmoitusten kokonaismäärä viestiä kohden. On oltava positiivinen luku."
   },
   {
     "id": "model.config.is_valid.persistent_notifications_interval.app_error",
-    "translation": ""
+    "translation": "Virheellinen pysyvien ilmoitusten lähetysväli. On oltava vähintään kaksi minuuttia."
   },
   {
     "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
-    "translation": ""
+    "translation": "Virheellinen pysyvien ilmoitusten vastaanottajien enimmäismäärä. On oltava positiivinen luku."
   },
   {
     "id": "model.config.is_valid.port.app_error",
-    "translation": ""
+    "translation": "Asetuksen {{.Setting}} on oltava kelvollinen portti."
   },
   {
     "id": "model.config.is_valid.positive_number.app_error",
-    "translation": ""
+    "translation": "Asetuksen {{.Setting}} on oltava positiivinen luku."
   },
   {
     "id": "model.config.is_valid.report_a_problem_link.invalid.app_error",
-    "translation": ""
+    "translation": "Virheellinen ongelmanilmoituslinkki. On oltava kelvollinen URL-osoite, joka alkaa http:// tai https://."
   },
   {
     "id": "model.config.is_valid.report_a_problem_link.missing.app_error",
-    "translation": ""
+    "translation": "Ongelmanilmoituslinkki on pakollinen."
   },
   {
     "id": "model.config.is_valid.report_a_problem_mail.invalid.app_error",
-    "translation": ""
+    "translation": "Virheellinen ongelmanilmoitusten sähköpostiosoite. On oltava kelvollinen sähköpostiosoite."
   },
   {
     "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
-    "translation": ""
+    "translation": "Ongelmanilmoitusten sähköpostiosoite on pakollinen."
   },
   {
     "id": "model.config.is_valid.s3_upload_part_size.app_error",
-    "translation": ""
+    "translation": "Asetuksen {{.Setting}} on oltava vähintään {{.Min}} tavua."
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
-    "translation": ""
+    "translation": "Virheellinen Admin-attribuutti. On oltava muodossa 'field=value'."
   },
   {
     "id": "model.config.is_valid.saml_canonical_algorithm.app_error",
-    "translation": ""
+    "translation": "Virheellinen kanonisointialgoritmi."
   },
   {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
-    "translation": ""
+    "translation": "Virheellinen Guest-attribuutti. On oltava muodossa 'field=value'."
   },
   {
     "id": "model.config.is_valid.saml_signature_algorithm.app_error",
-    "translation": ""
+    "translation": "Virheellinen allekirjoitusalgoritmi."
   },
   {
     "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
-    "translation": ""
+    "translation": "Service Provider Identifier on pakollinen"
   },
   {
     "id": "model.config.is_valid.service_settings.burn_on_read_duration_seconds.app_error",
-    "translation": ""
+    "translation": "BurnOnReadDurationSeconds-arvon on oltava positiivinen luku."
   },
   {
     "id": "model.config.is_valid.service_settings.burn_on_read_maximum_time_to_live_seconds.app_error",
-    "translation": ""
+    "translation": "BurnOnReadMaximumTimeToLiveSeconds-arvon on oltava positiivinen luku."
   },
   {
     "id": "model.config.is_valid.service_settings.burn_on_read_scheduler_frequency_seconds.app_error",
-    "translation": ""
+    "translation": "BurnOnReadSchedulerFrequencySeconds-arvon on oltava positiivinen luku."
   },
   {
     "id": "model.config.is_valid.service_settings.feature_flag_sync_interval.app_error",
-    "translation": ""
+    "translation": "FeatureFlagSyncIntervalSeconds-arvon on oltava positiivinen luku."
   },
   {
     "id": "model.config.is_valid.service_settings.refresh_post_stats_run_time.app_error",
-    "translation": ""
+    "translation": "RefreshPostStatsRunTime-arvon on oltava kellonaika muodossa \"hh:mm\"."
   },
   {
     "id": "model.config.is_valid.sql_analytics_query_timeout.app_error",
-    "translation": ""
+    "translation": "Virheellinen analytiikkakyselyn aikakatkaisu SQL-asetuksissa. On oltava positiivinen luku."
   },
   {
     "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
-    "translation": ""
+    "translation": "Virheellinen yhteyden enimmäisjoutoaika SQL-asetuksissa. On oltava ei-negatiivinen luku."
   },
   {
     "id": "model.config.is_valid.sql_migrations_statement_timeout_seconds.app_error",
-    "translation": ""
+    "translation": "Virheellinen migraatiolauseiden aikakatkaisu SQL-asetuksissa. On oltava ei-negatiivinen luku."
   },
   {
     "id": "model.config.is_valid.sql_replica_monitor_interval_seconds.app_error",
-    "translation": ""
+    "translation": "Virheellinen replikoiden valvontaväli SQL-asetuksissa. On oltava positiivinen luku."
   },
   {
     "id": "model.config.is_valid.storage_class.app_error",
-    "translation": ""
+    "translation": "Virheellinen tallennusluokka {{.Value}}."
   },
   {
     "id": "model.config.is_valid.tls_cert_file_missing.app_error",
-    "translation": ""
+    "translation": "Virheellinen arvo TLS-varmennetiedostolle – käytä joko LetsEncryptiä tai anna polku olemassa olevaan varmennetiedostoon."
   },
   {
     "id": "model.config.is_valid.tls_key_file_missing.app_error",
-    "translation": ""
+    "translation": "Virheellinen arvo TLS-avaintiedostolle – käytä joko LetsEncryptiä tai anna polku olemassa olevaan avaintiedostoon."
   },
   {
     "id": "model.config.is_valid.tls_min_ver.app_error",
-    "translation": ""
+    "translation": "Virheellinen TLS:n vähimmäisversio {{.Value}}. On oltava '1.0', '1.1', '1.2' tai '1.3'."
   },
   {
     "id": "model.config.is_valid.user_status_away_timeout.app_error",
-    "translation": ""
+    "translation": "Virheellinen arvo käyttäjän poissa-tilan aikakatkaisulle. On oltava positiivinen luku."
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": ""
+    "translation": "Virheellinen web-palvelimen tila {{.Value}}. On oltava 'gzip', 'nogzip' tai 'disabled'."
   },
   {
     "id": "model.cpa_field.name.invalid_charset.app_error",
-    "translation": ""
+    "translation": "Virheellinen CPA-kentän nimi '{{.Name}}': on vastattava lauseketta ^[A-Za-z_][A-Za-z0-9_]*$ (CEL-tunnistesääntö)."
   },
   {
     "id": "model.cpa_field.name.reserved_word.app_error",
-    "translation": ""
+    "translation": "Virheellinen CPA-kentän nimi '{{.Name}}': se on CEL-kielen varattu sana, eikä sitä voi käyttää kentän tunnisteena."
   },
   {
     "id": "model.dcr.is_valid.client_name.app_error",
-    "translation": ""
+    "translation": "Asiakkaan nimi saa olla enintään 64 merkkiä."
   },
   {
     "id": "model.dcr.is_valid.client_uri_format.app_error",
-    "translation": ""
+    "translation": "Virheellinen asiakas-URI:n muoto."
   },
   {
     "id": "model.dcr.is_valid.client_uri_length.app_error",
-    "translation": ""
+    "translation": "Asiakas-URI:n on oltava alle 256 merkkiä."
   },
   {
     "id": "model.dcr.is_valid.redirect_uri_format.app_error",
-    "translation": ""
+    "translation": "Virheellinen uudelleenohjaus-URI:n muoto."
   },
   {
     "id": "model.dcr.is_valid.redirect_uris.app_error",
-    "translation": ""
+    "translation": "Vähintään yksi uudelleenohjaus-URI vaaditaan."
   },
   {
     "id": "model.dcr.is_valid.unsupported_auth_method.app_error",
-    "translation": ""
+    "translation": "Annettua token_endpoint_auth_method-arvoa ei tueta."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",
-    "translation": ""
+    "translation": "Valitse vähintään yksi kanava, jonka toimitukset kirjataan."
   },
   {
     "id": "model.delivery_tracking.is_valid.channel_id.app_error",
-    "translation": ""
+    "translation": "Viestien toimituksen auditointilokituksen asetuksissa on virheellinen kanavan ID."
   },
   {
     "id": "model.delivery_tracking.is_valid.missing_toggle.app_error",
-    "translation": ""
+    "translation": "Viestien toimituksen auditointilokituksen asetukset ovat puutteelliset."
   },
   {
     "id": "model.draft.is_valid.channel_id.app_error",
-    "translation": ""
+    "translation": "Virheellinen kanavan id."
   },
   {
     "id": "model.draft.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Create at -arvon on oltava kelvollinen aika."
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",
-    "translation": ""
+    "translation": "Virheelliset tiedosto-id:t."
   },
   {
     "id": "model.draft.is_valid.message_length.app_error",
-    "translation": ""
+    "translation": "Luonnoksen Message-ominaisuus on sallittua enimmäispituutta pidempi."
   },
   {
     "id": "model.draft.is_valid.priority.app_error",
-    "translation": ""
+    "translation": "Virheellinen prioriteetti"
   },
   {
     "id": "model.draft.is_valid.props.app_error",
-    "translation": ""
+    "translation": "Virheellinen props."
   },
   {
     "id": "model.draft.is_valid.root_id.app_error",
-    "translation": ""
+    "translation": "Virheellinen juuren id."
   },
   {
     "id": "model.draft.is_valid.update_at.app_error",
-    "translation": ""
+    "translation": "Update at -arvon on oltava kelvollinen aika."
   },
   {
     "id": "model.draft.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Virheellinen käyttäjä-id."
   },
   {
     "id": "model.emoji.system_emoji_name.app_error",
-    "translation": ""
+    "translation": "Nimi on ristiriidassa olemassa olevan järjestelmäemojin nimen kanssa."
   },
   {
     "id": "model.file_info.is_valid.name.app_error",
-    "translation": ""
+    "translation": "Virheellinen name-arvo."
   },
   {
     "id": "model.group.name.invalid_chars.app_error",
-    "translation": ""
+    "translation": "ryhmän name-ominaisuudessa on virheellisiä merkkejä"
   },
   {
     "id": "model.group.name.reserved_name.app_error",
-    "translation": ""
+    "translation": "ryhmän nimi on jo olemassa varattuna nimenä"
   },
   {
     "id": "model.license_record.is_valid.bytes.app_error",
-    "translation": ""
+    "translation": "Virheellinen bytes-arvo lisenssiä ladattaessa."
   },
   {
     "id": "model.link_metadata.is_valid.url_length.app_error",
-    "translation": ""
+    "translation": "Linkin metatietojen URL-osoitteen pituus on {{ .Length }} merkkiä, mikä ylittää enimmäisrajan {{ .MaxLength }} merkkiä."
   },
   {
     "id": "model.log_filter.is_valid.date_from.app_error",
-    "translation": ""
+    "translation": "Virheellinen date_from-suodatin. Odotettu muoto on \"{{.Layout}}\"."
   },
   {
     "id": "model.log_filter.is_valid.date_to.app_error",
-    "translation": ""
+    "translation": "Virheellinen date_to-suodatin. Odotettu muoto on \"{{.Layout}}\"."
   },
   {
     "id": "model.member.is_valid.channel.app_error",
-    "translation": ""
+    "translation": "Kanavan nimi ei ole kelvollinen"
   },
   {
     "id": "model.member.is_valid.emails.app_error",
-    "translation": ""
+    "translation": "Sähköpostiluettelo on tyhjä"
   },
   {
     "id": "model.member.is_valid.profile_email.app_error",
-    "translation": ""
+    "translation": "Profiilin sähköpostiosoite ei ole kutsuttujen sähköpostiosoitteiden luettelossa"
   },
   {
     "id": "model.member.is_valid.profile_email_duplicate.app_error",
-    "translation": ""
+    "translation": "Kutsuprofiileilla on oltava yksilölliset sähköpostiosoitteet"
   },
   {
     "id": "model.member.is_valid.profile_first_name.app_error",
-    "translation": ""
+    "translation": "Virheellinen etunimi kutsuprofiilissa"
   },
   {
     "id": "model.member.is_valid.profile_last_name.app_error",
-    "translation": ""
+    "translation": "Virheellinen sukunimi kutsuprofiilissa"
   },
   {
     "id": "model.member.is_valid.profile_nil.app_error",
-    "translation": ""
+    "translation": "Kutsuprofiili ei voi olla null"
   },
   {
     "id": "model.member.is_valid.profile_username.app_error",
-    "translation": ""
+    "translation": "Virheellinen käyttäjänimi kutsuprofiilissa"
   },
   {
     "id": "model.member.is_valid.profile_username_duplicate.app_error",
-    "translation": ""
+    "translation": "Kutsuprofiileilla on oltava yksilölliset käyttäjänimet"
   },
   {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
-    "translation": ""
+    "translation": "MattermostAppID-arvon enimmäispituus on 32 merkkiä."
   },
   {
     "id": "model.oauth.validate_grant.credentials.app_error",
-    "translation": ""
+    "translation": "Virheelliset asiakkaan tunnistetiedot."
   },
   {
     "id": "model.oauth.validate_grant.pkce_required.app_error",
-    "translation": ""
+    "translation": "PKCE (Proof Key for Code Exchange) vaaditaan julkisilta asiakkailta."
   },
   {
     "id": "model.oauth.validate_grant.public_client_refresh_token.app_error",
-    "translation": ""
+    "translation": "Julkiset asiakkaat eivät voi käyttää refresh token -valtuutustyyppiä."
   },
   {
     "id": "model.oauth.validate_grant.public_client_secret.app_error",
-    "translation": ""
+    "translation": "Julkiset asiakkaat eivät saa antaa asiakassalaisuutta."
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.audience.empty",
-    "translation": ""
+    "translation": "Audience ei saa olla tyhjä."
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.audience.error",
-    "translation": ""
+    "translation": "Audience-URL-osoite on virheellinen: {{ .Url }}"
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
-    "translation": ""
+    "translation": "Virheellinen asiakas-id."
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
-    "translation": ""
+    "translation": "Virheellinen asiakassalaisuus."
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
-    "translation": ""
+    "translation": "Create at -arvon on oltava kelvollinen aika."
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.creator_id.error",
-    "translation": ""
+    "translation": "Virheellinen luojan id."
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.grant_type.error",
-    "translation": ""
+    "translation": "Virheellinen valtuutustyyppi."
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.id.error",
-    "translation": ""
+    "translation": "Virheellinen id."
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.name.error",
-    "translation": ""
+    "translation": "Virheellinen nimi."
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.oauth_token_url.error",
-    "translation": ""
+    "translation": "Virheellinen OAuth-tunnuksen URL-osoite."
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.password_credentials.error",
-    "translation": ""
+    "translation": "Virheelliset salasanatunnistetiedot."
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
-    "translation": ""
+    "translation": "Update at -arvon on oltava kelvollinen aika."
   },
   {
     "id": "model.plugin_command_crash.error.app_error",
-    "translation": ""
+    "translation": "Komento /{{.Command}} kaatoi lisäosan {{.PluginId}}. Ota yhteyttä järjestelmänvalvojaasi"
   },
   {
     "id": "model.plugin_command_error.error.app_error",
-    "translation": ""
+    "translation": "Komennon /{{.Command}} lisäosa ei toimi. Ota yhteyttä järjestelmänvalvojaasi"
   },
   {
     "id": "model.plugin_kvset_options.is_valid.old_value.app_error",
-    "translation": ""
+    "translation": "Virheellinen vanha arvo: sitä ei pidä asettaa, kun toiminto ei ole atominen."
   },
   {
     "id": "model.post.channel_notifications_disabled_in_channel.message",
-    "translation": ""
+    "translation": "Kanavailmoitukset on poistettu käytöstä kanavassa {{.ChannelName}}. Maininta {{.Mention}} ei lähettänyt ilmoituksia."
   },
   {
     "id": "model.post.decode_cursor.invalid_base64",
-    "translation": ""
+    "translation": "Virheellinen kursorin muoto: base64-dekoodaus ei onnistu."
   },
   {
     "id": "model.post.decode_cursor.invalid_exclude_system_posts",
-    "translation": ""
+    "translation": "Virheellinen kursorin muoto: exclude_system_posts-arvon on oltava totuusarvo."
   },
   {
     "id": "model.post.decode_cursor.invalid_format",
-    "translation": ""
+    "translation": "Virheellinen kursorin muoto: odotettiin 8 osaa."
   },
   {
     "id": "model.post.decode_cursor.invalid_include_deleted",
-    "translation": ""
+    "translation": "Virheellinen kursorin muoto: include_deleted-arvon on oltava totuusarvo."
   },
   {
     "id": "model.post.decode_cursor.invalid_timestamp",
-    "translation": ""
+    "translation": "Virheellinen kursorin muoto: aikaleiman on oltava kokonaisluku."
   },
   {
     "id": "model.post.decode_cursor.invalid_version",
-    "translation": ""
+    "translation": "Virheellinen kursorin muoto: version on oltava kokonaisluku."
   },
   {
     "id": "model.post.decode_cursor.unsupported_version",
-    "translation": ""
+    "translation": "Kursorin versiota ei tueta."
   },
   {
     "id": "model.post.is_valid.message_length.app_error",
-    "translation": ""
+    "translation": "Viestin Message-ominaisuus on sallittua enimmäispituutta pidempi."
   },
   {
     "id": "model.post.query_params.invalid_channel_id",
-    "translation": ""
+    "translation": "Virheellinen kanavan id."
   },
   {
     "id": "model.post.query_params.invalid_cursor_id",
-    "translation": ""
+    "translation": "Virheellinen kursorin id."
   },
   {
     "id": "model.post.query_params.invalid_sort_direction",
-    "translation": ""
+    "translation": "Virheellinen lajittelusuunta."
   },
   {
     "id": "model.post.query_params.invalid_time_field",
-    "translation": ""
+    "translation": "Virheellinen aikakenttä."
   },
   {
     "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
-    "translation": ""
+    "translation": "Virheellinen arvo asetukselle limit_visible_dms_gms."
   },
   {
     "id": "model.property_field.is_valid.app_error",
-    "translation": ""
+    "translation": "Virheellinen ominaisuuskenttä: {{.FieldName}} ({{.Reason}})."
   },
   {
     "id": "model.property_group.is_valid.app_error",
-    "translation": ""
+    "translation": "Virheellinen ominaisuusryhmä: {{.FieldName}} ({{.Reason}})."
   },
   {
     "id": "model.property_value.is_valid.app_error",
-    "translation": ""
+    "translation": "Virheellinen ominaisuuden arvo: {{.FieldName}} ({{.Reason}})."
   },
   {
     "id": "model.reaction.is_valid.update_at.app_error",
-    "translation": ""
+    "translation": "Update at -arvon on oltava kelvollinen aika."
   },
   {
     "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
-    "translation": ""
+    "translation": "Virheellinen etäpalvelimen id."
   },
   {
     "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
-    "translation": ""
+    "translation": "Virheellinen sivuston URL-osoite."
   },
   {
     "id": "model.remote_cluster_invite.is_valid.token.app_error",
-    "translation": ""
+    "translation": "Virheellinen tunnus."
   },
   {
     "id": "model.reporting_base_options.is_valid.bad_date_range",
-    "translation": ""
+    "translation": "Annettu aikaväli on virheellinen."
   },
   {
     "id": "model.scheduled_post.is_valid.empty_post.app_error",
-    "translation": ""
+    "translation": "Tyhjää viestiä ei voi ajoittaa. Ajoitetussa viestissä on oltava vähintään tekstiä tai tiedostoliitteitä."
   },
   {
     "id": "model.scheduled_post.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Ajoitetulla viestillä on oltava ID."
   },
   {
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
-    "translation": ""
+    "translation": "Virheellinen käsittelyaika."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
-    "translation": ""
+    "translation": "Luettaessa tuhoutuvia viestejä ei voi lähettää toistuvina ajoitettuina viesteinä."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_files.app_error",
-    "translation": ""
+    "translation": "Toistuvissa ajoitetuissa viesteissä ei voi olla tiedostoliitteitä."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
-    "translation": ""
+    "translation": "Viikoittain toistuvat ajoitetut viestit edellyttävät kelvollista aikavyöhykettä."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
-    "translation": ""
+    "translation": "Virheellinen aikavyöhyke toistuvalle ajoitetulle viestille."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_type.app_error",
-    "translation": ""
+    "translation": "Virheellinen toistotyyppi ajoitetulle viestille."
   },
   {
     "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
-    "translation": ""
+    "translation": "Virheellinen ajoitettu lähetysaika."
   },
   {
     "id": "model.scheduled_recap.compute_next_run.days_of_week.app_error",
-    "translation": ""
+    "translation": "Virheelliset viikonpäivät ajoitetulle koosteelle."
   },
   {
     "id": "model.scheduled_recap.compute_next_run.no_valid_day.app_error",
-    "translation": ""
+    "translation": "Ajoitetulle koosteelle ei löytynyt kelvollista päivää."
   },
   {
     "id": "model.scheduled_recap.compute_next_run.time_format.app_error",
-    "translation": ""
+    "translation": "Virheellinen kellonajan muoto ajoitetulle koosteelle."
   },
   {
     "id": "model.scheduled_recap.compute_next_run.timezone.app_error",
-    "translation": ""
+    "translation": "Virheellinen aikavyöhyke ajoitetulle koosteelle."
   },
   {
     "id": "model.scheduled_recap.is_valid.agent_id.app_error",
-    "translation": ""
+    "translation": "Ajoitetulla koosteella on oltava agentin ID."
   },
   {
     "id": "model.scheduled_recap.is_valid.channel_id.app_error",
-    "translation": ""
+    "translation": "Virheellinen kanavan ID ajoitetulle koosteelle."
   },
   {
     "id": "model.scheduled_recap.is_valid.channel_ids_empty.app_error",
-    "translation": ""
+    "translation": "Ajoitettuun koosteeseen on sisällytettävä vähintään yksi kanava, kun käytetään tiettyjä kanavia."
   },
   {
     "id": "model.scheduled_recap.is_valid.channel_mode.app_error",
-    "translation": ""
+    "translation": "Virheellinen kanavien valintatila ajoitetulle koosteelle."
   },
   {
     "id": "model.scheduled_recap.is_valid.custom_instructions_length.app_error",
-    "translation": ""
+    "translation": "Ajoitetun koosteen mukautetut ohjeet ylittävät enimmäispituuden."
   },
   {
     "id": "model.scheduled_recap.is_valid.days_of_week.app_error",
-    "translation": ""
+    "translation": "Virheelliset viikonpäivät ajoitetulle koosteelle."
   },
   {
     "id": "model.scheduled_recap.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Ajoitetulla koosteella on oltava ID."
   },
   {
     "id": "model.scheduled_recap.is_valid.time_of_day.app_error",
-    "translation": ""
+    "translation": "Virheellinen kellonaika ajoitetulle koosteelle."
   },
   {
     "id": "model.scheduled_recap.is_valid.time_period.app_error",
-    "translation": ""
+    "translation": "Virheellinen ajanjakso ajoitetulle koosteelle."
   },
   {
     "id": "model.scheduled_recap.is_valid.timezone.app_error",
-    "translation": ""
+    "translation": "Virheellinen aikavyöhyke ajoitetulle koosteelle."
   },
   {
     "id": "model.scheduled_recap.is_valid.title_empty.app_error",
-    "translation": ""
+    "translation": "Ajoitetun koosteen otsikko ei voi olla tyhjä."
   },
   {
     "id": "model.scheduled_recap.is_valid.title_length.app_error",
-    "translation": ""
+    "translation": "Ajoitetun koosteen otsikko ylittää enimmäispituuden."
   },
   {
     "id": "model.scheduled_recap.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Ajoitetulla koosteella on oltava käyttäjän ID."
   },
   {
     "id": "model.scheme.is_valid.app_error",
-    "translation": ""
+    "translation": "Virheellinen käyttöoikeusmalli."
   },
   {
     "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
-    "translation": ""
+    "translation": "Kaikilla IncludeDeletedChannels-parametreilla on oltava sama arvo."
   },
   {
     "id": "model.session.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Virheellinen CreateAt-kenttä istunnolle."
   },
   {
     "id": "model.session.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Virheellinen Id-kenttä istunnolle."
   },
   {
     "id": "model.session.is_valid.roles_limit.app_error",
-    "translation": ""
+    "translation": "Virheelliset istunnon roolit: pituus ylittää {{.Limit}} merkkiä."
   },
   {
     "id": "model.session.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Virheellinen UserId-kenttä istunnolle."
   },
   {
     "id": "model.team_member.is_valid.roles_limit.app_error",
-    "translation": ""
+    "translation": "Virheelliset tiimin jäsenen roolit: pituus ylittää {{.Limit}} merkkiä."
   },
   {
     "id": "model.thread.is_valid.post_id.app_error",
-    "translation": ""
+    "translation": "Virheellinen viestin ID."
   },
   {
     "id": "model.thread.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Virheellinen käyttäjän ID."
   },
   {
     "id": "model.translation.is_valid.lang.app_error",
-    "translation": ""
+    "translation": "Virheellinen kielikoodi. Käytä standardia ISO-koodia, kuten 'en', 'ja' tai 'fr'."
   },
   {
     "id": "model.translation.is_valid.nil.app_error",
-    "translation": ""
+    "translation": "Käännösobjekti ei voi olla null."
   },
   {
     "id": "model.translation.is_valid.object_id.app_error",
-    "translation": ""
+    "translation": "Virheellinen objektin id."
   },
   {
     "id": "model.translation.is_valid.object_json.app_error",
-    "translation": ""
+    "translation": "Virheellinen objektin JSON."
   },
   {
     "id": "model.translation.is_valid.object_type.app_error",
-    "translation": ""
+    "translation": "Virheellinen objektin tyyppi."
   },
   {
     "id": "model.translation.is_valid.provider.app_error",
-    "translation": ""
+    "translation": "Virheellinen käännöspalvelun tarjoaja."
   },
   {
     "id": "model.translation.is_valid.text.app_error",
-    "translation": ""
+    "translation": "Virheellinen käännösteksti."
   },
   {
     "id": "model.translation.is_valid.type.app_error",
-    "translation": ""
+    "translation": "Virheellinen käännöksen tyyppi."
   },
   {
     "id": "model.translation.is_valid.type_invalid.app_error",
-    "translation": ""
+    "translation": "Virheellinen käännöksen tyyppi. On oltava 'string' tai 'object'."
   },
   {
     "id": "model.upload_session.is_valid.channel_id.app_error",
-    "translation": ""
+    "translation": "Virheellinen ChannelId-arvo."
   },
   {
     "id": "model.upload_session.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Virheellinen CreateAt-arvo"
   },
   {
     "id": "model.upload_session.is_valid.file_offset.app_error",
-    "translation": ""
+    "translation": "Virheellinen FileOffset-arvo"
   },
   {
     "id": "model.upload_session.is_valid.file_size.app_error",
-    "translation": ""
+    "translation": "Virheellinen FileSize-arvo"
   },
   {
     "id": "model.upload_session.is_valid.filename.app_error",
-    "translation": ""
+    "translation": "Virheellinen Filename-arvo"
   },
   {
     "id": "model.upload_session.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Virheellinen Id-arvo"
   },
   {
     "id": "model.upload_session.is_valid.path.app_error",
-    "translation": ""
+    "translation": "Virheellinen Path-arvo"
   },
   {
     "id": "model.upload_session.is_valid.type.app_error",
-    "translation": ""
+    "translation": "Virheellinen Type-arvo"
   },
   {
     "id": "model.upload_session.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Virheellinen UserId-arvo"
   },
   {
     "id": "model.user.is_valid.auth_data.app_error",
-    "translation": ""
+    "translation": "Virheelliset todennustiedot."
   },
   {
     "id": "model.user.is_valid.auth_data_pwd.app_error",
-    "translation": ""
+    "translation": "Virheellinen käyttäjä: salasanaa ja todennustietoja ei voi asettaa yhtä aikaa."
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": ""
+    "translation": "Virheellinen käyttäjä: todennustiedot voi asettaa vain, jos käyttäjä tunnistautuu ulkoisella todennuspalvelulla eikä sähköpostilla ja salasanalla."
   },
   {
     "id": "model.user.is_valid.invalidProperty.app_error",
-    "translation": ""
+    "translation": "Virheellinen props (mukautettu tila)"
   },
   {
     "id": "model.user.is_valid.marshal.app_error",
-    "translation": ""
+    "translation": "Kentän koodaus JSON-muotoon epäonnistui"
   },
   {
     "id": "model.user.is_valid.mention_keys.app_error",
-    "translation": ""
+    "translation": "Virheellinen mention_keys: ylittää rajan {{.MaxCount}} avainta tai {{.MaxLength}} tavua."
   },
   {
     "id": "model.user.is_valid.password_limit.app_error",
-    "translation": ""
+    "translation": "Yli 72 merkin pituista salasanaa ei voi asettaa bcryptin rajoitusten vuoksi."
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": ""
+    "translation": "Virheellinen tehtävänimike: saa olla enintään 128 merkkiä."
   },
   {
     "id": "model.user.is_valid.pwd_max_length.app_error",
-    "translation": ""
+    "translation": "Salasanassasi saa olla enintään 72 merkkiä."
   },
   {
     "id": "model.user.is_valid.pwd_min_length.app_error",
-    "translation": ""
+    "translation": "Salasanassasi on oltava vähintään {{.Min}} merkkiä."
   },
   {
     "id": "model.user.is_valid.roles_limit.app_error",
-    "translation": ""
+    "translation": "Virheelliset käyttäjän roolit: pituus ylittää {{.Limit}} merkkiä."
   },
   {
     "id": "model.user.pre_save.password_hash.app_error",
-    "translation": ""
+    "translation": "Salasanan tallentamisessa tapahtui sisäinen virhe."
   },
   {
     "id": "model.user.pre_save.password_too_long.app_error",
-    "translation": ""
+    "translation": "Salasanassasi saa olla enintään 72 merkkiä."
   },
   {
     "id": "model.user_access_token.is_valid.expires_at.app_error",
-    "translation": ""
+    "translation": "Virheellinen expires_at: on oltava nolla tai positiivinen Unix-aikaleima millisekunteina."
   },
   {
     "id": "model.user_report_options.is_valid.invalid_guest_filter",
-    "translation": ""
+    "translation": "Annettu vierassuodatin ei ole kelvollinen."
   },
   {
     "id": "model.user_report_options.is_valid.invalid_sort_column",
-    "translation": ""
+    "translation": "Annettu lajittelusarake ei ole kelvollinen."
   },
   {
     "id": "model.view.is_valid.channel_id.app_error",
-    "translation": ""
+    "translation": "Virheellinen näkymän kanavan ID."
   },
   {
     "id": "model.view.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Virheellinen näkymän luontiaika."
   },
   {
     "id": "model.view.is_valid.creator_id.app_error",
-    "translation": ""
+    "translation": "Virheellinen näkymän luojan ID."
   },
   {
     "id": "model.view.is_valid.description.app_error",
-    "translation": ""
+    "translation": "Näkymän kuvaus on liian pitkä."
   },
   {
     "id": "model.view.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Virheellinen näkymän ID."
   },
   {
     "id": "model.view.is_valid.props.kanban_column_id.app_error",
-    "translation": ""
+    "translation": "Kanban-sarakkeen ID on virheellinen tai puuttuu."
   },
   {
     "id": "model.view.is_valid.props.kanban_column_name.app_error",
-    "translation": ""
+    "translation": "Kanban-sarakkeen nimi ei saa olla tyhjä."
   },
   {
     "id": "model.view.is_valid.props.kanban_column_options.app_error",
-    "translation": ""
+    "translation": "Kanban-sarakkeella on oltava vähintään yksi vaihtoehdon ID."
   },
   {
     "id": "model.view.is_valid.props.kanban_columns_empty.app_error",
-    "translation": ""
+    "translation": "Kanban-näkymässä on oltava vähintään yksi sarake."
   },
   {
     "id": "model.view.is_valid.props.kanban_columns_max.app_error",
-    "translation": ""
+    "translation": "Kanban-näkymä ylittää sarakkeiden enimmäismäärän."
   },
   {
     "id": "model.view.is_valid.props.kanban_field_id.app_error",
-    "translation": ""
+    "translation": "Kanban-näkymän on viitattava kelvolliseen ominaisuuskentän ID:hen."
   },
   {
     "id": "model.view.is_valid.props.kanban_invalid.app_error",
-    "translation": ""
+    "translation": "Kanban-näkymän props-rakenne on virheellinen."
   },
   {
     "id": "model.view.is_valid.props.kanban_required.app_error",
-    "translation": ""
+    "translation": "Kanban-näkymä edellyttää props-arvoa, jossa on group_by-määritys."
   },
   {
     "id": "model.view.is_valid.title.app_error",
-    "translation": ""
+    "translation": "Näkymän otsikko on pakollinen, ja sen on oltava alle 256 merkkiä."
   },
   {
     "id": "model.view.is_valid.type.app_error",
-    "translation": ""
+    "translation": "Virheellinen näkymän tyyppi."
   },
   {
     "id": "model.view.is_valid.update_at.app_error",
-    "translation": ""
+    "translation": "Virheellinen näkymän päivitysaika."
   },
   {
     "id": "plugin.api.get_users_in_channel",
-    "translation": ""
+    "translation": "Käyttäjiä ei voitu hakea: virheelliset lajitteluehdot."
   },
   {
     "id": "plugin.api.update_post.mm_blocks_actions.app_error",
-    "translation": ""
+    "translation": "Virheellinen mm_blocks_actions lisäosan viestipäivityksessä."
   },
   {
     "id": "plugin_api.channel.space_notify_props.app_error",
-    "translation": ""
+    "translation": "Ilmoitusasetuksia ei voi asettaa space-tyyppisille kanaville."
   },
   {
     "id": "plugin_reattach_request.is_valid.manifest.app_error",
-    "translation": ""
+    "translation": "Manifesti puuttuu"
   },
   {
     "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
-    "translation": ""
+    "translation": "Lisäosan uudelleenliittämisen asetukset puuttuvat"
   },
   {
     "id": "shared_channel.system_message.no_longer_shared",
-    "translation": ""
+    "translation": "Tätä kanavaa ei enää jaeta työtilan {{.WorkspaceName}} kanssa."
   },
   {
     "id": "shared_channel.system_message.no_longer_shared_unknown",
-    "translation": ""
+    "translation": "Tätä kanavaa ei enää jaeta toisen työtilan kanssa."
   },
   {
     "id": "shared_channel.system_message.now_shared",
-    "translation": ""
+    "translation": "Tämä kanava on nyt jaettu työtilan {{.WorkspaceName}} kanssa."
   },
   {
     "id": "sharedchannel.cannot_deliver_post",
-    "translation": ""
+    "translation": "Yhtä tai useampaa viestiä ei voitu toimittaa etäsivustolle {{.Remote}}, koska se on offline-tilassa. Viestit toimitetaan, kun sivusto on taas verkossa."
   },
   {
     "id": "sharedchannel.permalink.not_found",
-    "translation": ""
+    "translation": "Tämä viesti sisältää pysyviä linkkejä muihin kanaviin, jotka eivät välttämättä näy muiden sivustojen käyttäjille."
   },
   {
     "id": "store.sql_command.get.missing.app_error",
-    "translation": ""
+    "translation": "Komentoa ei ole olemassa."
   },
   {
     "id": "store.sql_command.update.missing.app_error",
-    "translation": ""
+    "translation": "Komentoa ei ole olemassa."
   },
   {
     "id": "store.sql_file_info.search.disabled",
-    "translation": ""
+    "translation": "Tiedostojen haku on poistettu käytöstä tällä palvelimella. Ota yhteyttä järjestelmänvalvojaasi."
   },
   {
     "id": "store.sql_team.save_team.existing.app_error",
-    "translation": ""
+    "translation": "Tällä URL-osoitteella on jo olemassa tiimi."
   },
   {
     "id": "web.command_webhook.general.app_error",
-    "translation": ""
+    "translation": "Komennon webhookin {{.hook_id}} käsittely epäonnistui."
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
-    "translation": ""
+    "translation": "Hae uusin Chrome-selain"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.firefox",
-    "translation": ""
+    "translation": "Hae uusin Firefox-selain"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.safari",
-    "translation": ""
+    "translation": "Hae uusin Safari-selain"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.chrome",
-    "translation": ""
+    "translation": "Google Chrome"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.edge",
-    "translation": ""
+    "translation": "Microsoft Edge"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.firefox",
-    "translation": ""
+    "translation": "Firefox"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.safari",
-    "translation": ""
+    "translation": "Safari"
   },
   {
     "id": "web.error.unsupported_browser.download",
-    "translation": ""
+    "translation": "Lataa sovellus"
   },
   {
     "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
-    "translation": ""
+    "translation": "Lataa Mattermost-sovellus tai käytä tuettua selainta saadaksesi paremman käyttökokemuksen."
   },
   {
     "id": "web.error.unsupported_browser.download_the_app",
-    "translation": ""
+    "translation": "Lataa sovellus"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
-    "translation": ""
+    "translation": "Asennusohje"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.windows",
-    "translation": ""
+    "translation": "Asennusohje"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
-    "translation": ""
+    "translation": "Lue lisää tuetuista selaimista."
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": ""
+    "translation": "Versio 150+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": ""
+    "translation": "Versio 150+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": ""
+    "translation": "Versio 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": ""
+    "translation": "Versio 27+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": ""
+    "translation": "macOS 15+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": ""
+    "translation": "Windows 11+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
-    "translation": ""
+    "translation": "Mattermost ei enää tue tätä selainta"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
-    "translation": ""
+    "translation": "Mattermost ei enää tue tätä selaimesi versiota"
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",
-    "translation": ""
+    "translation": "Avaa Edge"
   },
   {
     "id": "web.error.unsupported_browser.system_browser_make_default",
-    "translation": ""
+    "translation": "Aseta oletukseksi"
   },
   {
     "id": "web.error.unsupported_desktop_app.assistance",
-    "translation": ""
+    "translation": "Ota yhteyttä järjestelmänvalvojaasi, jos tarvitset lisää apua."
   },
   {
     "id": "web.error.unsupported_desktop_app.download_button",
-    "translation": ""
+    "translation": "Lataa päivitetty sovellus"
   },
   {
     "id": "web.error.unsupported_desktop_app.footer_about",
-    "translation": ""
+    "translation": "Tietoja"
   },
   {
     "id": "web.error.unsupported_desktop_app.footer_help",
-    "translation": ""
+    "translation": "Ohje"
   },
   {
     "id": "web.error.unsupported_desktop_app.footer_privacy",
-    "translation": ""
+    "translation": "Tietosuojakäytäntö"
   },
   {
     "id": "web.error.unsupported_desktop_app.footer_terms",
-    "translation": ""
+    "translation": "Käyttöehdot"
   },
   {
     "id": "web.error.unsupported_desktop_app.message",
-    "translation": ""
+    "translation": "Käyttämäsi {{.SiteName}}-työpöytäsovelluksen versio ({{.CurrentVersion}}) on vaadittua vähimmäisversiota ({{.MinimumVersion}}) vanhempi. Päivitä sovellus tai avaa {{.SiteName}} verkkoselaimessa jatkaaksesi."
   },
   {
     "id": "web.error.unsupported_desktop_app.title",
-    "translation": ""
+    "translation": "Päivitys vaaditaan"
   },
   {
     "id": "web.incoming_webhook.decode.app_error",
-    "translation": ""
+    "translation": "Mediatyypin {{.media_type}} hyötykuorman dekoodaus epäonnistui saapuvalle webhookille {{.hook_id}}."
   },
   {
     "id": "web.incoming_webhook.general.app_error",
-    "translation": ""
+    "translation": "Mediatyypin {{.media_type}} hyötykuorman käsittely epäonnistui saapuvalle webhookille {{.hook_id}}."
   },
   {
     "id": "web.incoming_webhook.media_type.app_error",
-    "translation": ""
+    "translation": "Saapuvan webhookin {{.hook_id}} mediatyypin jäsennys epäonnistui."
   },
   {
     "id": "web.incoming_webhook.parse_form.app_error",
-    "translation": ""
+    "translation": "Lomakkeen jäsennys epäonnistui webhookille {{.hook_id}}."
   },
   {
     "id": "web.incoming_webhook.parse_multipart.app_error",
-    "translation": ""
+    "translation": "Moniosaisen lomakkeen jäsennys epäonnistui webhookille {{.hook_id}}."
   }
 ]
