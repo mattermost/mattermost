@@ -11,6 +11,7 @@ import {
     buildRulesWithMembership,
     getAutoAddFromRules,
     autoAddModeForToggle,
+    hasEffectiveRules,
 } from '@mattermost/types/access_control';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -386,20 +387,21 @@ function ChannelSettingsAccessRulesTab({
         try {
             setIsProcessingSave(true);
 
-            // Check if we're entering empty rules state
-            const willBeEmptyState = isEmptyRulesState;
+            const rules = buildRulesWithMembership(existingRules, expression, autoAddModeForToggle(autoSyncMembers));
+
+            // Channel permission rules (file upload/download) live on the same
+            // policy as the membership rule, so an empty membership expression
+            // does not make the policy empty. Only once nothing is left on it
+            // is the policy deleted, returning the channel to standard access.
+            const willBeEmptyState = !hasEffectiveRules(rules) && systemPolicies.length === 0;
 
             if (willBeEmptyState) {
-                // Edge case: Delete policy entirely to return to standard access
-                // When no rules AND no system policies exist, delete the channel policy
-                try {
-                    await actions.deleteChannelPolicy(channel.id);
-                } catch (deleteError: unknown) {
-                    // Ignore "not found" errors - policy might not exist yet
-                    const errorMessage = deleteError instanceof Error ? deleteError.message : String(deleteError);
-                    if (errorMessage && !errorMessage.includes('not found')) {
-                        throw new Error(errorMessage || 'Failed to delete channel policy');
-                    }
+                const deleteResult = await actions.deleteChannelPolicy(channel.id);
+
+                // A 404 means the policy was never persisted, which is an
+                // effective success for this flow.
+                if (deleteResult.error && deleteResult.error.status_code !== 404) {
+                    throw new Error(deleteResult.error.message);
                 }
 
                 // Update original values to reflect the empty state
@@ -420,7 +422,7 @@ function ChannelSettingsAccessRulesTab({
                 type: 'channel',
                 revision: 1,
                 created_at: Date.now(),
-                rules: buildRulesWithMembership(existingRules, expression, autoAddModeForToggle(autoSyncMembers)),
+                rules,
                 imports: systemPolicies.map((p) => p.id), // Include existing parent policies
             };
 
@@ -466,7 +468,7 @@ function ChannelSettingsAccessRulesTab({
         } finally {
             setIsProcessingSave(false);
         }
-    }, [channel.id, channel.display_name, expression, existingRules, autoSyncMembers, systemPolicies, actions, formatMessage, isEmptyRulesState]);
+    }, [channel.id, channel.display_name, expression, existingRules, autoSyncMembers, systemPolicies, actions, formatMessage]);
 
     // Handle save action
     const handleSave = useCallback(async (): Promise<SaveResult> => {
