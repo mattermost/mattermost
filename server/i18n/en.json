@@ -11696,6 +11696,10 @@
     "description": "API error shown (e.g. in the System Console) when saving the server configuration fails."
   },
   {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "The logging configuration contains a log or audit file path outside the logging root directory. Check the server logs for details."
+  },
+  {
     "id": "app.save_config.plugin_hook_error",
     "translation": "An error occurred running the plugin hook on configuration save.",
     "description": "API error when a plugin's configuration-change hook fails while the server config is being saved; shown to admins."
