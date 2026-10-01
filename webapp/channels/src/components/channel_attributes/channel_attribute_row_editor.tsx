@@ -4,7 +4,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {CheckIcon, ChevronDownIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
 
@@ -86,7 +86,9 @@ type Props = {
  * Enter; Escape abandons.
  *
  * The Menu trigger is a <div> so chip remove controls can be real <button>s
- * without nesting buttons (invalid HTML / broken VoiceOver).
+ * without nesting buttons (invalid HTML / broken VoiceOver). Select and
+ * multiselect share the borderless inline chip chrome used by the graph
+ * picker in Channel Info — no boxed input trigger, no Clear menu item.
  */
 const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubmit, onCancel, saving}: Props) => {
     const {formatMessage} = useIntl();
@@ -114,23 +116,19 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
 
     const clearable = getPropertyFieldChangePolicy(field) === 'any' || !isPropertyValueSet(rawValue);
     const hasDisplay = Boolean(displayValue);
-    const clearLabel = formatMessage(
-        {id: 'channel_attributes.info.clear', defaultMessage: 'Clear {label}'},
-        {label},
-    );
     const editLabel = formatMessage(
         {id: 'channel_attributes.info.edit', defaultMessage: 'Edit {label}'},
         {label},
     );
 
-    // Multiselect uses allowTriggerInteraction so chip removes stay clickable;
-    // that disables MUI backdrop close, so close on outside pointer ourselves.
+    // Chip removes need allowTriggerInteraction; that disables MUI backdrop
+    // close, so close on outside pointer ourselves for every option menu.
     const [menuOpen, setMenuOpen] = useState(false);
     const menuButtonId = `channelInfoAttributeEdit-${field.name}`;
     const menuId = `channelAttributeEdit-${field.name}`;
 
     useEffect(() => {
-        if (!isMultiselect || !menuOpen) {
+        if (!menuOpen) {
             return undefined;
         }
 
@@ -151,7 +149,7 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
 
         document.addEventListener('pointerdown', handlePointerDown);
         return () => document.removeEventListener('pointerdown', handlePointerDown);
-    }, [isMultiselect, menuOpen, menuButtonId, menuId]);
+    }, [menuOpen, menuButtonId, menuId]);
 
     const handlePick = useCallback((optionId: string) => {
         if (isMultiselect) {
@@ -160,7 +158,13 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
             return;
         }
         onSubmit(optionId);
+        setMenuOpen(false);
     }, [chosen, isMultiselect, onSubmit]);
+
+    const handleClear = useCallback(() => {
+        onSubmit(null);
+        setMenuOpen(false);
+    }, [onSubmit]);
 
     // Memoized: the picker keys its own memos on field identity.
     const graphField = useMemo(() => (field.type === 'graph' ? asGraphFieldRef(field) : null), [field]);
@@ -227,70 +231,61 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
         );
     }
 
-    // Multiselect renders one removable chip per value, boxed like the graph
-    // attribute picker; single-select shows its one chip and clears from the menu.
-    const triggerChildren = isMultiselect ? (
-        <span className='ChannelInfoAttributes__triggerInner'>
-            {chosen.length > 0 ? (
-                <span className='ChannelInfoAttributes__chips'>
-                    {chosen.map((optionId) => {
-                        const option = optionById.get(optionId);
-                        return (
-                            <RemovableChip
-                                key={optionId}
-                                label={label}
-                                value={option?.label ?? optionId}
-                                color={option?.color}
-                                disabled={saving}
-                                onRemove={() => handlePick(optionId)}
-                            />
-                        );
-                    })}
-                </span>
-            ) : (
-                <span
-                    className='ChannelInfoAttributes__empty'
-                    data-testid={`channelInfoAttributeUnset-${field.name}`}
-                >
-                    <FormattedMessage
-                        id='channel_attributes.info.not_set'
-                        defaultMessage='Not set'
-                    />
-                </span>
-            )}
-            <ChevronDownIcon
-                size={16}
-                aria-hidden={true}
-            />
-        </span>
-    ) : (
-        <span className='ChannelInfoAttributes__triggerInner'>
-            {hasDisplay ? (
-                <AttributeChip
-                    className='ChannelInfoAttributes__chip'
-                    label={label}
-                    value={displayValue!}
-                    color={color}
-                    size='medium'
-                    announceLabel={false}
-                />
-            ) : (
-                <span
-                    className='ChannelInfoAttributes__empty'
-                    data-testid={`channelInfoAttributeUnset-${field.name}`}
-                >
-                    <FormattedMessage
-                        id='channel_attributes.info.not_set'
-                        defaultMessage='Not set'
-                    />
-                </span>
-            )}
-            <ChevronDownIcon
-                size={16}
-                aria-hidden={true}
+    const emptyPlaceholder = (
+        <span
+            className='ChannelInfoAttributes__empty'
+            data-testid={`channelInfoAttributeUnset-${field.name}`}
+        >
+            <FormattedMessage
+                id='channel_attributes.info.not_set'
+                defaultMessage='Not set'
             />
         </span>
     );
+
+    // Inline chips only — same chrome as the Channel Info graph picker. Clear
+    // lives on the chip (AttributeChipRemoveButton), not as a menu item.
+    let triggerChildren: React.ReactNode;
+    if (isMultiselect) {
+        triggerChildren = chosen.length > 0 ? (
+            <span className='ChannelInfoAttributes__chips'>
+                {chosen.map((optionId) => {
+                    const option = optionById.get(optionId);
+                    return (
+                        <RemovableChip
+                            key={optionId}
+                            label={label}
+                            value={option?.label ?? optionId}
+                            color={option?.color}
+                            disabled={saving || !clearable}
+                            onRemove={() => handlePick(optionId)}
+                        />
+                    );
+                })}
+            </span>
+        ) : emptyPlaceholder;
+    } else if (hasDisplay) {
+        triggerChildren = clearable ? (
+            <RemovableChip
+                label={label}
+                value={displayValue!}
+                color={color}
+                disabled={saving}
+                onRemove={handleClear}
+            />
+        ) : (
+            <AttributeChip
+                className='ChannelInfoAttributes__chip'
+                label={label}
+                value={displayValue!}
+                color={color}
+                size='medium'
+                announceLabel={false}
+            />
+        );
+    } else {
+        triggerChildren = emptyPlaceholder;
+    }
 
     return (
         <span className='ChannelInfoAttributes__valueActive'>
@@ -304,24 +299,20 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                     class: 'ChannelInfoAttributes__valueTrigger',
                     disabled: saving,
                     'aria-label': editLabel,
-                    children: triggerChildren,
+                    children: (
+                        <span className='ChannelInfoAttributes__triggerInner'>
+                            {triggerChildren}
+                        </span>
+                    ),
                 }}
                 menu={{
                     id: menuId,
                     'aria-label': label,
-                    allowTriggerInteraction: isMultiselect,
-                    isMenuOpen: isMultiselect ? menuOpen : undefined,
-                    onToggle: isMultiselect ? setMenuOpen : undefined,
+                    allowTriggerInteraction: true,
+                    isMenuOpen: menuOpen,
+                    onToggle: setMenuOpen,
                 }}
             >
-                {clearable && hasDisplay && (
-                    <Menu.Item
-                        id={`channelAttributeClear-${field.name}`}
-                        data-testid={`channelAttributeClear-${field.name}`}
-                        onClick={() => onSubmit(null)}
-                        labels={<span>{clearLabel}</span>}
-                    />
-                )}
                 {options.map((option) => {
                     const selected = chosen.includes(option.value);
                     return (
