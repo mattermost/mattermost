@@ -213,7 +213,11 @@ export type UpdateAttributeFieldPatch = {
     name?: string;
     type: AttributeTypeId;
     displayName: string;
-    options: PropertyFieldOption[];
+
+    // Omitted to leave the options as the server has them: those of an
+    // attribute synced from an identity source belong to its sync, which may
+    // have added some since this editor loaded them.
+    options?: PropertyFieldOption[];
     ldapAttr: string;
     samlAttr: string;
 };
@@ -222,7 +226,8 @@ export type UpdateAttributeFieldPatch = {
 // null to unlink, Text sends options: null so a leftover options array is
 // dropped, and value_type sends null so a leftover phone/url/email subtype
 // is dropped when switching away. name is omitted when unchanged so the
-// server skips uniqueness re-validation.
+// server skips uniqueness re-validation, and options when the patch carries
+// none.
 export function updateAttributeField(
     objectType: string,
     fieldId: string,
@@ -235,7 +240,7 @@ export function updateAttributeField(
         type: fieldType as PropertyField['type'],
         attrs: {
             display_name: patch.displayName.trim() || undefined,
-            options: buildPatchOptionsAttr(fieldType, patch.options),
+            ...(patch.options === undefined ? {} : {options: buildPatchOptionsAttr(fieldType, patch.options)}),
             ldap: patch.ldapAttr || null,
             saml: patch.samlAttr || null,
             value_type: valueType || null,
