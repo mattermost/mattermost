@@ -175,10 +175,12 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             // count can be stable while the surviving chip is still a frame or two
             // from its final width, so poll rather than reading this once.
             await expect
-                .poll(() => row.evaluate((el: HTMLElement) => {
-                    const parent = el.parentElement!.parentElement!;
-                    return el.getBoundingClientRect().right - parent.getBoundingClientRect().right;
-                }))
+                .poll(() =>
+                    row.evaluate((el: HTMLElement) => {
+                        const parent = el.parentElement!.parentElement!;
+                        return el.getBoundingClientRect().right - parent.getBoundingClientRect().right;
+                    }),
+                )
                 .toBeLessThanOrEqual(1);
 
             await overflowButton.click();
