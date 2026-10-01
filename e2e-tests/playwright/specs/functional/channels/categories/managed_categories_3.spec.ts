@@ -20,7 +20,7 @@ test.describe('Managed Channel Categories', () => {
         // # Initialize setup and create two channels with the same managed category
         const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
         await skipIfNoEnterpriseLicense(adminClient);
-        await enableManagedCategories(adminClient);
+        await enableManagedCategories();
         await adminClient.addToTeam(team.id, adminUser.id);
 
         const suffix = Date.now();
@@ -76,7 +76,7 @@ test.describe('Managed Channel Categories', () => {
         // # Initialize setup and create a channel with a managed category
         const {adminUser, adminClient, team} = await setupManagedCategoriesTest(pw);
         await skipIfNoEnterpriseLicense(adminClient);
-        await enableManagedCategories(adminClient);
+        await enableManagedCategories();
         await adminClient.addToTeam(team.id, adminUser.id);
 
         const channel = await createChannelWithManagedCategory(adminClient, team.id, 'No Favorites', 'nofav');
@@ -112,7 +112,7 @@ test.describe('Managed Channel Categories', () => {
         // # Initialize setup and create a channel with a managed category
         const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
         await skipIfNoEnterpriseLicense(adminClient);
-        await enableManagedCategories(adminClient);
+        await enableManagedCategories();
         await adminClient.addToTeam(team.id, adminUser.id);
 
         const channel = await createChannelWithManagedCategory(adminClient, team.id, 'No Menu', 'nomenu');

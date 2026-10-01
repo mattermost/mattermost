@@ -21,7 +21,7 @@ test.describe('Managed Channel Categories', () => {
         // # Initialize setup and enable managed categories
         const {adminUser, adminClient, team} = await setupManagedCategoriesTest(pw);
         await skipIfNoEnterpriseLicense(adminClient);
-        await enableManagedCategories(adminClient);
+        await enableManagedCategories();
         await adminClient.addToTeam(team.id, adminUser.id);
 
         // # Log in and open the new channel modal
@@ -68,7 +68,7 @@ test.describe('Managed Channel Categories', () => {
             // # Initialize setup and create a channel with a managed category
             const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
-            await enableManagedCategories(adminClient);
+            await enableManagedCategories();
             await adminClient.addToTeam(team.id, adminUser.id);
 
             const channel = await createChannelWithManagedCategory(adminClient, team.id, 'Alpha Priority', 'alpha');
@@ -108,7 +108,7 @@ test.describe('Managed Channel Categories', () => {
             // # Initialize setup and create a channel with a managed category (without adding the user)
             const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
-            await enableManagedCategories(adminClient);
+            await enableManagedCategories();
             await adminClient.addToTeam(team.id, adminUser.id);
 
             await createChannelWithManagedCategory(adminClient, team.id, 'Secret Ops', 'secret');

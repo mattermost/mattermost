@@ -26,7 +26,7 @@ test.describe('Managed Channel Categories', () => {
             // # Initialize setup with admin user and enterprise license
             const {adminUser, adminClient, team} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
-            await enableManagedCategories(adminClient);
+            await enableManagedCategories();
             await adminClient.addToTeam(team.id, adminUser.id);
 
             // # Log in and navigate to town-square
@@ -84,7 +84,7 @@ test.describe('Managed Channel Categories', () => {
             // # Initialize setup and create a channel with a managed category
             const {adminUser, adminClient, team} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
-            await enableManagedCategories(adminClient);
+            await enableManagedCategories();
             await adminClient.addToTeam(team.id, adminUser.id);
 
             const channel = await createChannelWithManagedCategory(adminClient, team.id, 'Removable', 'remove');
@@ -148,7 +148,7 @@ test.describe('Managed Channel Categories', () => {
             // # Initialize setup and disable managed categories
             const {adminUser, adminClient, team} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
-            await disableManagedCategories(adminClient);
+            await disableManagedCategories();
             await adminClient.addToTeam(team.id, adminUser.id);
 
             // # Log in and open channel settings

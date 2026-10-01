@@ -25,7 +25,7 @@ test.describe('Managed Channel Categories', () => {
             // # Initialize setup and create a channel without a managed category
             const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
-            await enableManagedCategories(adminClient);
+            await enableManagedCategories();
             await adminClient.addToTeam(team.id, adminUser.id);
 
             const channel = await adminClient.createChannel({
@@ -76,7 +76,7 @@ test.describe('Managed Channel Categories', () => {
             // # Initialize setup and create a channel with a managed category
             const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
-            await enableManagedCategories(adminClient);
+            await enableManagedCategories();
             await adminClient.addToTeam(team.id, adminUser.id);
 
             const channel = await createChannelWithManagedCategory(adminClient, team.id, 'Locked', 'locked');
