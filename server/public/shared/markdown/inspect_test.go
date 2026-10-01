@@ -183,7 +183,7 @@ func TestInspect(t *testing.T) {
 
 		var wg sync.WaitGroup
 		wg.Add(goroutines)
-		for i := 0; i < goroutines; i++ {
+		for i := range goroutines {
 			go func(i int) {
 				defer wg.Done()
 				results[i] = MergeInlineText(inputs[i])
@@ -357,7 +357,7 @@ func adjacentTextInlines(count, size int) []Inline {
 	chunk := strings.Repeat("a", size)
 	inlines := make([]Inline, count)
 	pos := 0
-	for i := 0; i < count; i++ {
+	for i := range count {
 		inlines[i] = &Text{
 			Text:  chunk,
 			Range: Range{Position: pos, End: pos + size},
