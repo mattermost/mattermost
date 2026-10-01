@@ -38,6 +38,17 @@
         "ReadOnlyConfig": true,
         "GossipPort": 8074
     },
+    "ElasticsearchSettings": {
+        "ConnectionURL": "http://localhost:9200",
+        "Backend": "elasticsearch",
+        "Username": "elastic",
+        "Password": "********************************",
+        "EnableIndexing": false,
+        "EnableSearching": false,
+        "EnableAutocomplete": false,
+        "SkipTLSVerification": false,
+        "LiveIndexingBatchSize": 10
+    },
     "FeatureFlags": {
         "TestFeature": "off",
         "HealthDashboard": false

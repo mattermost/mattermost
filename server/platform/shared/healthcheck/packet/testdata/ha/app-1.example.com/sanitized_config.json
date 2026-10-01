@@ -38,6 +38,17 @@
         "ReadOnlyConfig": true,
         "GossipPort": 8074
     },
+    "ElasticsearchSettings": {
+        "ConnectionURL": "https://search.example.com:9200",
+        "Backend": "opensearch",
+        "Username": "mattermost",
+        "Password": "********************************",
+        "EnableIndexing": true,
+        "EnableSearching": true,
+        "EnableAutocomplete": true,
+        "SkipTLSVerification": false,
+        "LiveIndexingBatchSize": 1
+    },
     "FeatureFlags": {
         "TestFeature": "off",
         "HealthDashboard": false
