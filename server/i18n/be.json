@@ -5589,7 +5589,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": ""
+    "translation": "Тэрмін дзеяння вашай ліцэнзіі {{.SkuName}} для <a href=\"{{.SiteURL}}\">{{.SiteName}}</a> заканчваецца праз {{.Days}} дн. Спадзяемся, вам падабаецца бяспечная сумесная праца над крытычна важнымі задачамі, якую забяспечвае Mattermost."
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
@@ -5877,7 +5877,12 @@
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
-    "translation": ""
+    "translation": {
+      "one": "Адпраўлены {{.Count}} файл: {{.Filenames}}",
+      "few": "Адпраўлена {{.Count}} файлы: {{.Filenames}}",
+      "many": "Адпраўлена {{.Count}} файлаў: {{.Filenames}}",
+      "other": "Адпраўлена {{.Count}} файла: {{.Filenames}}"
+    }
   },
   {
     "id": "api.post.error_get_post_id.pending",
@@ -11101,2795 +11106,2805 @@
   },
   {
     "id": "api.access_control.assign.team_group_constrained",
-    "translation": ""
+    "translation": "Да каманды з сінхранізацыяй груп нельга прымяніць палітыку членства."
   },
   {
     "id": "api.access_control.decision.unsupported_resource_type.app_error",
-    "translation": ""
+    "translation": "Рашэнні кантролю доступу падчас адлюстравання не падтрымліваюцца для тыпу рэсурсу \"{{.Type}}\"."
   },
   {
     "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
-    "translation": ""
+    "translation": "Функцыя палітык дазволаў на ўзроўні канала не ўключана."
   },
   {
     "id": "api.access_control_policy.permission_policies.feature_disabled",
-    "translation": ""
+    "translation": "Функцыя палітык дазволаў не ўключана."
   },
   {
     "id": "api.access_control_policy.policy_simulation.feature_disabled",
-    "translation": ""
+    "translation": "Функцыя сімуляцыі палітык не ўключана."
   },
   {
     "id": "api.access_control_policy.simulate.users_out_of_scope.app_error",
-    "translation": ""
+    "translation": "Усе карыстальнікі ў сімуляцыі павінны быць удзельнікамі каманды або канала, указаных у запыце."
   },
   {
     "id": "api.access_control_policy.team_membership.feature_disabled",
-    "translation": ""
+    "translation": "Функцыя кантролю доступу да членства ў камандзе не ўключана."
   },
   {
     "id": "api.admin.test_azure.missing_azure_field",
-    "translation": ""
+    "translation": "Адна з налад Azure Blob Storage адсутнічае або несапраўдная."
   },
   {
     "id": "api.ai_bridge_test_helper.disabled.app_error",
-    "translation": ""
+    "translation": "Тэставы памочнік моста адключаны."
   },
   {
     "id": "api.channel.add_user.to.channel.abac_subject_build_failed.app_error",
-    "translation": ""
+    "translation": "Не ўдалося сфарміраваць суб’ект кантролю доступу для карыстальніка."
   },
   {
     "id": "api.channel.board_channel.app_error",
-    "translation": ""
+    "translation": "Да каналаў дошак нельга звяртацца праз канцавыя кропкі /channels. Замест гэтага выкарыстоўвайце API /boards."
   },
   {
     "id": "api.channel.bookmark.board.readonly.app_error",
-    "translation": ""
+    "translation": "Закладкамі дошак кіруе функцыя дошак, іх нельга ствараць, абнаўляць або выдаляць праз API закладак."
   },
   {
     "id": "api.channel.create_channel.attribute_no_permission.app_error",
-    "translation": ""
+    "translation": "У вас няма дазволу задаваць адзін з перададзеных атрыбутаў канала."
   },
   {
     "id": "api.channel.create_channel.attributes_feature_disabled.app_error",
-    "translation": ""
+    "translation": "Атрыбуты каналаў не ўключаны на гэтым серверы."
   },
   {
     "id": "api.channel.create_channel.invalid_attribute.app_error",
-    "translation": ""
+    "translation": "Адзін з перададзеных атрыбутаў канала несапраўдны для гэтага канала."
   },
   {
     "id": "api.channel.create_channel.missing_required_attributes.app_error",
-    "translation": ""
+    "translation": "У гэтага канала адсутнічаюць абавязковыя атрыбуты."
   },
   {
     "id": "api.channel.discoverable_join_request.already_member.app_error",
-    "translation": ""
+    "translation": "Вы ўжо з’яўляецеся ўдзельнікам гэтага канала."
   },
   {
     "id": "api.channel.discoverable_join_request.archived.app_error",
-    "translation": ""
+    "translation": "Немагчыма запытаць далучэнне да заархіваванага канала."
   },
   {
     "id": "api.channel.discoverable_join_request.discoverable_requires_approval.app_error",
-    "translation": ""
+    "translation": "Для далучэння да гэтага канала патрабуецца адабрэнне адміністратара. Калі ласка, адпраўце запыт з акна «Прагляд каналаў»."
   },
   {
     "id": "api.channel.discoverable_join_request.duplicate.app_error",
-    "translation": ""
+    "translation": "У вас ужо ёсць запыт у чаканні на далучэнне да гэтага канала."
   },
   {
     "id": "api.channel.discoverable_join_request.feature_disabled.app_error",
-    "translation": ""
+    "translation": "Даступныя для пошуку каналы не ўключаны на гэтым серверы."
   },
   {
     "id": "api.channel.discoverable_join_request.guest.app_error",
-    "translation": ""
+    "translation": "Госці не могуць запытваць далучэнне да даступных для пошуку прыватных каналаў."
   },
   {
     "id": "api.channel.discoverable_join_request.invalid_patch.app_error",
-    "translation": ""
+    "translation": "Несапраўднае абнаўленне запыту на далучэнне да канала."
   },
   {
     "id": "api.channel.discoverable_join_request.not_discoverable.app_error",
-    "translation": ""
+    "translation": "Гэты канал не з’яўляецца даступным для пошуку."
   },
   {
     "id": "api.channel.discoverable_join_request.not_pending.app_error",
-    "translation": ""
+    "translation": "Запыт на далучэнне больш не знаходзіцца ў чаканні."
   },
   {
     "id": "api.channel.discoverable_join_request.not_private.app_error",
-    "translation": ""
+    "translation": "Запыты на далучэнне прымаюць толькі прыватныя каналы."
   },
   {
     "id": "api.channel.discoverable_join_request.policy_denied.app_error",
-    "translation": ""
+    "translation": "Вы не адпавядаеце правілам доступу, неабходным для далучэння да гэтага канала."
   },
   {
     "id": "api.channel.discoverable_join_request.shared.app_error",
-    "translation": ""
+    "translation": "Супольныя каналы не прымаюць запыты на далучэнне."
   },
   {
     "id": "api.channel.patch_update_channel.auto_translation_restricted.app_error",
-    "translation": ""
+    "translation": "Аўтапераклад не дазволены для гэтага канала."
   },
   {
     "id": "api.channel.patch_update_channel.cannot_update_managed_category.app_error",
-    "translation": ""
+    "translation": "Немагчыма абнавіць кіраваную катэгорыю для гэтага канала без адпаведных дазволаў."
   },
   {
     "id": "api.channel.patch_update_channel.feature_not_available.app_error",
-    "translation": ""
+    "translation": "Функцыя аўтаперакладу недаступная."
   },
   {
     "id": "api.channel.patch_update_channel.group_constrained_not_allowed.app_error",
-    "translation": ""
+    "translation": "Вам не дазволена задаваць group_constrained для гэтага тыпу канала."
   },
   {
     "id": "api.channel.patch_update_channel.no_changes.app_error",
-    "translation": ""
+    "translation": "У патчы няма змен."
   },
   {
     "id": "api.channel.post_update_channel_autotranslation_message.create_post.error",
-    "translation": ""
+    "translation": "Не ўдалося апублікаваць паведамленне аб змене аўтаперакладу."
   },
   {
     "id": "api.channel.post_update_channel_autotranslation_message.disabled",
-    "translation": ""
+    "translation": "@%s выключыў(-ла) аўтапераклад для гэтага канала. Усе новыя паведамленні будуць адлюстроўвацца на мове арыгінала."
   },
   {
     "id": "api.channel.post_update_channel_autotranslation_message.enabled",
-    "translation": ""
+    "translation": "@%s уключыў(-ла) аўтапераклад для гэтага канала. Усе новыя паведамленні будуць адлюстроўвацца на вашай пераважнай мове."
   },
   {
     "id": "api.channel.post_update_channel_autotranslation_message.retrieve_user.error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць карыстальніка падчас абнаўлення статусу аўтаперакладу"
   },
   {
     "id": "api.channel.set_members.group_constrained.app_error",
-    "translation": ""
+    "translation": "Немагчыма задаць удзельнікаў канала, членства ў якім сінхранізуецца з групамі."
   },
   {
     "id": "api.channel.set_members.policy_enforced.app_error",
-    "translation": ""
+    "translation": "Немагчыма задаць удзельнікаў канала, членствам у якім кіруе палітыка."
   },
   {
     "id": "api.channel.set_members.type.app_error",
-    "translation": ""
+    "translation": "Немагчыма задаць удзельнікаў для гэтага тыпу канала."
   },
   {
     "id": "api.channel.space_channel.app_error",
-    "translation": ""
+    "translation": "Да каналаў прастор нельга звяртацца праз канцавыя кропкі /channels. Замест гэтага выкарыстоўвайце API прастор."
   },
   {
     "id": "api.channel.update_channel.policy_enforced_type_conversion.app_error",
-    "translation": ""
+    "translation": "Да гэтага канала прыменена палітыка членства на аснове атрыбутаў. Выдаліце палітыку, перш чым пераўтвараць канал з публічнага ў прыватны або наадварот."
   },
   {
     "id": "api.channel.update_channel_member_autotranslation.channel_not_enabled.app_error",
-    "translation": ""
+    "translation": "Аўтапераклад не ўключаны для гэтага канала."
   },
   {
     "id": "api.channel.update_channel_member_autotranslation.feature_not_available.app_error",
-    "translation": ""
+    "translation": "Аўтапераклад недаступны."
   },
   {
     "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
-    "translation": ""
+    "translation": "Несапраўднае абнаўленне ўдзельніка канала: карыстальнік павінен быць або госцем, або адміністратарам, але не абодвума адначасова."
   },
   {
     "id": "api.command.execute_command.provided_site_url_different.app_error",
-    "translation": ""
+    "translation": "Імя хоста запыту адрозніваецца ад наладжанага SiteURL. Для URL адказу слэш-каманды будзе выкарыстаны наладжаны SiteURL."
   },
   {
     "id": "api.command.execute_command.site_url_required.app_error",
-    "translation": ""
+    "translation": "Для выкарыстання слэш-каманд павінен быць наладжаны SiteURL"
   },
   {
     "id": "api.command_mobile_logs.cross_user_unavailable.app_error",
-    "translation": ""
+    "translation": "Немагчыма змяніць налады журналаў мабільнага дадатку для гэтага карыстальніка."
   },
   {
     "id": "api.command_mobile_logs.desc",
-    "translation": ""
+    "translation": "Кіраваць далучэннем журналаў мабільнага дадатку для сябе або іншага карыстальніка."
   },
   {
     "id": "api.command_mobile_logs.disabled",
-    "translation": ""
+    "translation": "Далучэнне журналаў мабільнага дадатку цяпер выключана для {{.User}}."
   },
   {
     "id": "api.command_mobile_logs.enabled",
-    "translation": ""
+    "translation": "Далучэнне журналаў мабільнага дадатку цяпер уключана для {{.User}}."
   },
   {
     "id": "api.command_mobile_logs.hint",
-    "translation": ""
+    "translation": "[on|off|status] [@імя_карыстальніка]"
   },
   {
     "id": "api.command_mobile_logs.name",
-    "translation": ""
+    "translation": "mobile-logs"
   },
   {
     "id": "api.command_mobile_logs.status_off",
-    "translation": ""
+    "translation": "Далучэнне журналаў мабільнага дадатку зараз выключана для {{.User}}."
   },
   {
     "id": "api.command_mobile_logs.status_on",
-    "translation": ""
+    "translation": "Далучэнне журналаў мабільнага дадатку зараз уключана для {{.User}}."
   },
   {
     "id": "api.command_mobile_logs.update_error.app_error",
-    "translation": ""
+    "translation": "Не ўдалося абнавіць наладу далучэння журналаў мабільнага дадатку. Калі ласка, паспрабуйце яшчэ раз."
   },
   {
     "id": "api.command_mobile_logs.usage",
-    "translation": ""
+    "translation": "Выкарыстанне: /mobile-logs [on|off|status] [@імя_карыстальніка]"
   },
   {
     "id": "api.command_mobile_logs.user_not_found.app_error",
-    "translation": ""
+    "translation": "Не ўдалося знайсці карыстальніка \"{{.Username}}\"."
   },
   {
     "id": "api.command_mobile_logs.you",
-    "translation": ""
+    "translation": "вас"
   },
   {
     "id": "api.context.invalid_body.app_error",
-    "translation": ""
+    "translation": "Несапраўдныя ўласцівасці паведамлення."
   },
   {
     "id": "api.context.session_cookie_not_allowed.app_error",
-    "translation": ""
+    "translation": "Аўтэнтыфікацыя на аснове cookie не дазволена для гэтай канцавой кропкі. Калі ласка, выкарыстоўвайце аўтэнтыфікацыю праз загаловак."
   },
   {
     "id": "api.custom_profile_attributes.linked_field.app_error",
-    "translation": ""
+    "translation": "Гэтае поле звязана з шаблонам глабальнага атрыбута, і яго нельга змяніць праз API атрыбутаў карыстальніка. Замест гэтага выкарыстоўвайце API глабальных атрыбутаў."
   },
   {
     "id": "api.data_spillage.error.comment_required",
-    "translation": ""
+    "translation": "Калі ласка, дадайце каментарый з тлумачэннем, чаму вы пазначаеце гэтае паведамленне."
   },
   {
     "id": "api.data_spillage.error.comment_too_long",
-    "translation": ""
+    "translation": "Прычына каранціну паведамлення не можа быць даўжэйшай за {{.MaxLength}} сімвалаў."
   },
   {
     "id": "api.data_spillage.error.disabled",
-    "translation": ""
+    "translation": "Функцыя апрацоўкі ўцечак даных выключана."
   },
   {
     "id": "api.data_spillage.error.invalid_channel_type",
-    "translation": ""
+    "translation": "Апрацоўка ўцечак даных недаступная для каналаў асабістых і групавых паведамленняў."
   },
   {
     "id": "api.data_spillage.error.invalid_post_type",
-    "translation": ""
+    "translation": "Змяшчэнне ў каранцін паведамлення тыпу '{{.PostType}}' не дазволена."
   },
   {
     "id": "api.data_spillage.error.license",
-    "translation": ""
+    "translation": "Ваша ліцэнзія не падтрымлівае апрацоўку ўцечак даных."
   },
   {
     "id": "api.data_spillage.error.not_available_on_team",
-    "translation": ""
+    "translation": "Функцыя апрацоўкі ўцечак даных не ўключана ў гэтай камандзе."
   },
   {
     "id": "api.data_spillage.error.post_not_in_progress",
-    "translation": ""
+    "translation": "Каб пакінуць або выдаліць паведамленне ў каранціне, яно павінна мець статус «у чаканні» або «прызначана»."
   },
   {
     "id": "api.data_spillage.error.reason_invalid",
-    "translation": ""
+    "translation": "Указана невядомая прычына змяшчэння паведамлення ў каранцін."
   },
   {
     "id": "api.data_spillage.error.reason_required",
-    "translation": ""
+    "translation": "Калі ласка, выберыце прычыну змяшчэння гэтага паведамлення ў каранцін."
   },
   {
     "id": "api.data_spillage.error.user_not_reviewer",
-    "translation": ""
+    "translation": "Карыстальнік не з’яўляецца рэцэнзентам змесціва."
   },
   {
     "id": "api.data_spillage.exposure.write.app_error",
-    "translation": ""
+    "translation": "Не ўдалося запісаць справаздачу аб ахопе паведамлення."
   },
   {
     "id": "api.data_spillage.report.open.app_error",
-    "translation": ""
+    "translation": "Не ўдалося адкрыць згенераваны файл справаздачы аб пазначаным паведамленні."
   },
   {
     "id": "api.data_spillage.report.stat.app_error",
-    "translation": ""
+    "translation": "Не ўдалося прачытаць звесткі аб файле справаздачы аб пазначаным паведамленні."
   },
   {
     "id": "api.delivery_tracking.error.feature_flag",
-    "translation": ""
+    "translation": "Аўдыт дастаўкі паведамленняў не ўключаны на гэтым серверы."
   },
   {
     "id": "api.delivery_tracking.error.license",
-    "translation": ""
+    "translation": "Ваша ліцэнзія не падтрымлівае аўдыт дастаўкі паведамленняў."
   },
   {
     "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
-    "translation": ""
+    "translation": "Немагчыма стварыць эмодзі. Выява занадта вялікая для апрацоўкі. Паспрабуйце выкарыстаць выяву з меншымі памерамі або меншай колькасцю кадраў."
   },
   {
     "id": "api.emoji.upload.too_many_frames.app_error",
-    "translation": ""
+    "translation": "Немагчыма стварыць эмодзі. Анімаваны GIF можа мець не больш за {{.MaxFrames}} кадраў."
   },
   {
     "id": "api.file.get_file.abac_denied.app_error",
-    "translation": ""
+    "translation": "У вас няма неабходнага доступу для спампоўвання гэтага файла."
   },
   {
     "id": "api.file.get_file.plugin_hook_timeout",
-    "translation": ""
+    "translation": "Перавышаны час чакання хука плагіна"
   },
   {
     "id": "api.file.get_file.rejected_by_plugin",
-    "translation": ""
+    "translation": "Спампоўванне файла адхілена плагінам"
   },
   {
     "id": "api.file.get_file_preview.rejected_by_plugin",
-    "translation": ""
+    "translation": "Спампоўванне перадпрагляду файла адхілена плагінам"
   },
   {
     "id": "api.file.get_file_thumbnail.rejected_by_plugin",
-    "translation": ""
+    "translation": "Спампоўванне мініяцюры файла адхілена плагінам"
   },
   {
     "id": "api.file.get_public_file.rejected_by_plugin",
-    "translation": ""
+    "translation": "Спампоўванне публічнага файла адхілена плагінам"
   },
   {
     "id": "api.file.test_connection_auth.app_error",
-    "translation": ""
+    "translation": "Немагчыма прайсці аўтэнтыфікацыю ў сховішчы файлаў. Праверце свае ўліковыя даныя і налады аўтэнтыфікацыі."
   },
   {
     "id": "api.file.test_connection_no_bucket.app_error",
-    "translation": ""
+    "translation": "Наладжаны бакет або кантэйнер не існуе. Праверце канфігурацыю сховішча файлаў і дазволы."
   },
   {
     "id": "api.file.test_connection_settings_nil.app_error",
-    "translation": ""
+    "translation": "Налады сховішча файлаў маюць незададзеныя значэнні."
   },
   {
     "id": "api.file.test_connection_unsupported_driver.app_error",
-    "translation": ""
+    "translation": "Непадтрымліваемы драйвер сховішча файлаў \"{{.Driver}}\". Падтрымліваюцца значэнні \"local\", \"amazons3\" і \"azureblob\"."
   },
   {
     "id": "api.file.upload_file.abac_denied.app_error",
-    "translation": ""
+    "translation": "У вас няма неабходнага доступу для запампоўвання файлаў у гэты канал."
   },
   {
     "id": "api.ldap.test.reenter_password",
-    "translation": ""
+    "translation": "Налады злучэння AD/LDAP змяніліся. Калі ласка, увядзіце пароль прывязкі (bind) паўторна, каб праверыць злучэнне."
   },
   {
     "id": "api.license.add_license.wrong_environment_production.app_error",
-    "translation": ""
+    "translation": "Гэта вытворчая ліцэнзія, але гэты сервер працуе ў тэставым асяроддзі або асяроддзі распрацоўкі. Вытворчыя ліцэнзіі можна выкарыстоўваць толькі на вытворчых серверах."
   },
   {
     "id": "api.license.add_license.wrong_environment_test.app_error",
-    "translation": ""
+    "translation": "Гэта ліцэнзія для тэставання або распрацоўкі, але гэты сервер працуе ў вытворчым асяроддзі. Ліцэнзіі для тэставання або распрацоўкі можна выкарыстоўваць толькі на тэставых серверах або серверах распрацоўкі."
   },
   {
     "id": "api.license.parse_license.parse_form.app_error",
-    "translation": ""
+    "translation": "Не ўдалося разабраць форму запампоўвання ліцэнзіі."
   },
   {
     "id": "api.mark_all_as_read.disabled.app_error",
-    "translation": ""
+    "translation": "Функцыя «Пазначыць усё як прачытанае» не ўключана."
   },
   {
     "id": "api.oauth.get_access_token.client_id_mismatch.app_error",
-    "translation": ""
+    "translation": "invalid_grant: токен быў выдадзены не гэтаму кліенту."
   },
   {
     "id": "api.plugin.install.check_directory.app_error",
-    "translation": ""
+    "translation": "Адбылася памылка падчас праверкі канфігурацыі каталога плагінаў."
   },
   {
     "id": "api.plugin.install.directory_conflict.app_error",
-    "translation": ""
+    "translation": "Немагчыма ўсталяваць плагін: PluginSettings.Directory канфліктуе з ImportSettings.Directory."
   },
   {
     "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
-    "translation": ""
+    "translation": "У вас няма дазволу адпраўляць паведамленні са спальваннем пасля прачытання ў гэтым канале."
   },
   {
     "id": "api.post.create_post.card_type_disabled.app_error",
-    "translation": ""
+    "translation": "Паведамленні тыпу «картка» не ўключаны на гэтым серверы."
   },
   {
     "id": "api.post.create_post.silent_notification.app_error",
-    "translation": ""
+    "translation": "Бязгучна могуць дастаўляцца толькі паведамленні ботаў, webhook, праграм OAuth і плагінаў."
   },
   {
     "id": "api.post.create_post.silent_persistent_notification.app_error",
-    "translation": ""
+    "translation": "Бязгучныя паведамленні не могуць выкарыстоўваць пастаянныя апавяшчэнні."
   },
   {
     "id": "api.post.do_action.query.app_error",
-    "translation": ""
+    "translation": "Несапраўдны запыт дзеяння."
   },
   {
     "id": "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error",
-    "translation": ""
+    "translation": "Паведамленні са спальваннем пасля прачытання не дазволены ў асабістых паведамленнях з ботамі або агентамі ШІ."
   },
   {
     "id": "api.post.fill_in_post_props.burn_on_read.channel.app_error",
-    "translation": ""
+    "translation": "Адбылася памылка падчас праверкі канала для паведамлення са спальваннем пасля прачытання."
   },
   {
     "id": "api.post.fill_in_post_props.burn_on_read.self_dm.app_error",
-    "translation": ""
+    "translation": "Паведамленні са спальваннем пасля прачытання не дазволены ў перапісцы з самім сабой."
   },
   {
     "id": "api.post.fill_in_post_props.burn_on_read.shared_channel.app_error",
-    "translation": ""
+    "translation": "Паведамленні са спальваннем пасля прачытання не дазволены ў супольных каналах."
   },
   {
     "id": "api.post.fill_in_post_props.burn_on_read.user.app_error",
-    "translation": ""
+    "translation": "Адбылася памылка падчас праверкі карыстальніка для паведамлення са спальваннем пасля прачытання."
   },
   {
     "id": "api.post.reveal_post.invalid_request.app_error",
-    "translation": ""
+    "translation": "Несапраўдны запыт: адсутнічае або несапраўдны загаловак X-Requested-With."
   },
   {
     "id": "api.property.channel_attributes.license.app_error",
-    "translation": ""
+    "translation": "Для атрыбутаў каналаў патрабуецца ліцэнзія Enterprise Advanced."
   },
   {
     "id": "api.property.session_attributes.license.app_error",
-    "translation": ""
+    "translation": "Для атрыбутаў сеанса патрабуецца ліцэнзія Enterprise Advanced."
   },
   {
     "id": "api.property.v2_group_not_found.app_error",
-    "translation": ""
+    "translation": "Указаная група ўласцівасцей не знойдзена."
   },
   {
     "id": "api.property_field.create.creator_cannot_edit.app_error",
-    "translation": ""
+    "translation": "Вы не можаце стварыць поле ўласцівасці з узроўнямі дазволаў, якія не дадуць вам яго рэдагаваць."
   },
   {
     "id": "api.property_field.create.invalid_target_type.app_error",
-    "translation": ""
+    "translation": "Указаны тып мэты несапраўдны."
   },
   {
     "id": "api.property_field.create.protected_via_api.app_error",
-    "translation": ""
+    "translation": "Немагчыма стварыць абароненае поле ўласцівасці праз API."
   },
   {
     "id": "api.property_field.create.target_id_required.app_error",
-    "translation": ""
+    "translation": "Пры стварэнні поля ўласцівасці ў межах канала або каманды патрабуецца target_id."
   },
   {
     "id": "api.property_field.delete.no_permission.app_error",
-    "translation": ""
+    "translation": "У вас няма дазволу выдаляць гэтае поле ўласцівасці."
   },
   {
     "id": "api.property_field.get.invalid_opts.app_error",
-    "translation": ""
+    "translation": "Несапраўдныя параметры пошуку палёў уласцівасцей."
   },
   {
     "id": "api.property_field.get.invalid_target_type.app_error",
-    "translation": ""
+    "translation": "Патрабуецца сапраўдны target_type (system, team або channel)."
   },
   {
     "id": "api.property_field.get.scope_conflict.app_error",
-    "translation": ""
+    "translation": "channel_id/team_id нельга спалучаць з target_type/target_id."
   },
   {
     "id": "api.property_field.get.scope_required.app_error",
-    "translation": ""
+    "translation": "Патрабуецца параметр вобласці (channel_id, team_id або target_type)."
   },
   {
     "id": "api.property_field.get.target_id_required.app_error",
-    "translation": ""
+    "translation": "Пры запыце па target_type канала або каманды патрабуецца target_id."
   },
   {
     "id": "api.property_field.get.target_type_required.app_error",
-    "translation": ""
+    "translation": "Калі ўказаны target_id, патрабуецца target_type."
   },
   {
     "id": "api.property_field.invalid_patch.app_error",
-    "translation": ""
+    "translation": "Несапраўдны патч поля ўласцівасці."
   },
   {
     "id": "api.property_field.object_type_mismatch.app_error",
-    "translation": ""
+    "translation": "Тып аб’екта поля ўласцівасці не адпавядае URL."
   },
   {
     "id": "api.property_field.options.empty_body.app_error",
-    "translation": ""
+    "translation": "Не ўказаны варыянты поля ўласцівасці."
   },
   {
     "id": "api.property_field.options.invalid_cursor.app_error",
-    "translation": ""
+    "translation": "Курсор варыянтаў поля ўласцівасці павінен змяшчаць і cursor_id, і cursor_create_at."
   },
   {
     "id": "api.property_field.options.legacy_field.app_error",
-    "translation": ""
+    "translation": "Варыянтамі гэтага поля ўласцівасці нельга кіраваць паасобку."
   },
   {
     "id": "api.property_field.options.no_permission.app_error",
-    "translation": ""
+    "translation": "У вас няма дазволу кіраваць варыянтамі гэтага поля ўласцівасці."
   },
   {
     "id": "api.property_field.options.too_many_items.request_error",
-    "translation": ""
+    "translation": "Немагчыма змяніць столькі варыянтаў поля ўласцівасці. За адзін раз можна змяніць не больш за {{.Max}} варыянтаў."
   },
   {
     "id": "api.property_field.patch.legacy_field.app_error",
-    "translation": ""
+    "translation": "Немагчыма змяніць поле ўласцівасці версіі v1 праз гэты API."
   },
   {
     "id": "api.property_field.patch.permission_values_invalid.app_error",
-    "translation": ""
+    "translation": "permission_values павінна быць member або sysadmin."
   },
   {
     "id": "api.property_field.patch.permission_values_not_linked.app_error",
-    "translation": ""
+    "translation": "permission_values можна задаць толькі для поля, звязанага з шаблонам."
   },
   {
     "id": "api.property_field.update.no_field_permission.app_error",
-    "translation": ""
+    "translation": "У вас няма дазволу рэдагаваць гэтае поле ўласцівасці."
   },
   {
     "id": "api.property_field.update.no_options_permission.app_error",
-    "translation": ""
+    "translation": "У вас няма дазволу кіраваць варыянтамі гэтага поля ўласцівасці."
   },
   {
     "id": "api.property_value.get.invalid_opts.app_error",
-    "translation": ""
+    "translation": "Несапраўдныя параметры пошуку значэнняў уласцівасцей."
   },
   {
     "id": "api.property_value.invalid_object_type.app_error",
-    "translation": ""
+    "translation": "Указаны тып аб’екта несапраўдны."
   },
   {
     "id": "api.property_value.patch.duplicate_field_id.app_error",
-    "translation": ""
+    "translation": "Запыт змяшчае паўторныя ідэнтыфікатары палёў."
   },
   {
     "id": "api.property_value.patch.empty_body.app_error",
-    "translation": ""
+    "translation": "Цела запыту павінна змяшчаць хаця б адно абнаўленне значэння ўласцівасці."
   },
   {
     "id": "api.property_value.patch.field_not_found.app_error",
-    "translation": ""
+    "translation": "Поле ўласцівасці {{.FieldID}} не знойдзена ў гэтай групе."
   },
   {
     "id": "api.property_value.patch.invalid_field_id.app_error",
-    "translation": ""
+    "translation": "Адзін або некалькі ідэнтыфікатараў палёў у запыце несапраўдныя."
   },
   {
     "id": "api.property_value.patch.no_values_permission.app_error",
-    "translation": ""
+    "translation": "У вас няма дазволу задаваць значэнні для аднаго або некалькіх палёў."
   },
   {
     "id": "api.property_value.patch.too_many_items.request_error",
-    "translation": ""
+    "translation": "Немагчыма абнавіць столькі значэнняў уласцівасцей. За адзін раз можна абнавіць не больш за {{.Max}} значэнняў уласцівасцей."
   },
   {
     "id": "api.property_value.system_use_dedicated_route.app_error",
-    "translation": ""
+    "translation": "Сістэмныя значэнні павінны выкарыстоўваць спецыяльную канцавую кропку сістэмных значэнняў."
   },
   {
     "id": "api.property_value.template_no_values.app_error",
-    "translation": ""
+    "translation": "Палі шаблонаў не могуць мець значэнняў."
   },
   {
     "id": "api.recap.disabled.app_error",
-    "translation": ""
+    "translation": "Гэтая функцыя не ўключана."
   },
   {
     "id": "api.recap.permission_denied",
-    "translation": ""
+    "translation": "У вас няма дазволу на доступ да гэтага агляду."
   },
   {
     "id": "api.scheduled_recap.permission_denied",
-    "translation": ""
+    "translation": "У вас няма дазволу на доступ да гэтага запланаванага агляду."
   },
   {
     "id": "api.shared_channel.attachment.creator_id_required.app_error",
-    "translation": ""
+    "translation": "Патрабуецца FileInfo.CreatorId."
   },
   {
     "id": "api.shared_channel.attachment.data_required.app_error",
-    "translation": ""
+    "translation": "Патрабуюцца даныя файла."
   },
   {
     "id": "api.shared_channel.attachment.file_info_required.app_error",
-    "translation": ""
+    "translation": "Патрабуецца FileInfo."
   },
   {
     "id": "api.shared_channel.attachment.filename_required.app_error",
-    "translation": ""
+    "translation": "Патрабуецца FileInfo.Name."
   },
   {
     "id": "api.team.access_control.added.system_message",
-    "translation": ""
+    "translation": "Вас дадалі ў каманду **{{.TeamName}}**, бо цяпер вы адпавядаеце яе патрабаванням да членства."
   },
   {
     "id": "api.team.access_control.removed.system_message",
-    "translation": ""
+    "translation": "Вас выдалілі з каманды **{{.TeamName}}**, бо вы больш не адпавядаеце яе патрабаванням да членства."
   },
   {
     "id": "api.team.add_user.to.team.abac_subject_build_failed.app_error",
-    "translation": ""
+    "translation": "Не ўдалося сфарміраваць суб’ект кантролю доступу для карыстальніка."
   },
   {
     "id": "api.team.add_user.to.team.rejected",
-    "translation": ""
+    "translation": "Карыстальнік не мае неабходных атрыбутаў для далучэння да каманды."
   },
   {
     "id": "api.team.invite_members.account_deactivated.app_error",
-    "translation": ""
+    "translation": "Уліковы запіс, звязаны з {{.Addresses}}, быў дэактываваны. Калі ласка, звярніцеся да сістэмнага адміністратара па падрабязнасці."
   },
   {
     "id": "api.team.invite_members.profiles_disabled.app_error",
-    "translation": ""
+    "translation": "Для папярэдняга задання палёў профілю ў запрашэннях павінны быць уключаны заблакіраваныя палі профілю."
   },
   {
     "id": "api.team.invite_members.profiles_graceful.app_error",
-    "translation": ""
+    "translation": "Для папярэдняга задання палёў профілю ў запрашэннях патрабуецца памяркоўны (graceful) рэжым."
   },
   {
     "id": "api.team.invite_members.profiles_license.app_error",
-    "translation": ""
+    "translation": "Для папярэдняга задання палёў профілю ў запрашэннях патрабуецца ліцэнзія Enterprise."
   },
   {
     "id": "api.team.invite_members.username_taken.app_error",
-    "translation": ""
+    "translation": "Імя карыстальніка {{.Username}} ужо занята."
   },
   {
     "id": "api.team.update.group_constrained.policy_exists",
-    "translation": ""
+    "translation": "Сінхранізацыю груп нельга ўключыць для каманды, да якой прыменена палітыка членства."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
-    "translation": ""
+    "translation": "Несапраўднае абнаўленне ўдзельніка каманды: карыстальнік павінен быць або госцем, або адміністратарам, але не абодвума адначасова."
   },
   {
     "id": "api.templates.license_need_help.info",
-    "translation": ""
+    "translation": "<a href=\"https://mattermost.com/contact-sales/\">Звярніцеся да эксперта Mattermost</a> па дапамогу з тарыфнымі планамі і варыянтамі падаўжэння."
   },
   {
     "id": "api.templates.license_need_help.title",
-    "translation": ""
+    "translation": "Патрэбна дапамога?"
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": ""
+    "translation": "Падоўжыце ліцэнзію як мага хутчэй, каб ваша каманда магла і далей карыстацца гэтымі перавагамі."
   },
   {
     "id": "api.templates.remove_expired_license.body.heading",
-    "translation": ""
+    "translation": "Тэрмін дзеяння вашай ліцэнзіі Mattermost скончыўся"
   },
   {
     "id": "api.templates.remove_expired_license.body.subtitle",
-    "translation": ""
+    "translation": "Тэрмін дзеяння вашай ліцэнзіі {{.SkuName}} для <a href=\"{{.SiteURL}}\">{{.SiteName}}</a> скончыўся, і некаторыя функцыі могуць быць адключаны."
   },
   {
     "id": "api.templates.remove_expired_license.body.subtitle_two",
-    "translation": ""
+    "translation": "Калі ласка, падоўжыце ліцэнзію зараз, каб і далей карыстацца ўсімі магчымасцямі Mattermost."
   },
   {
     "id": "api.templates.user_access_token_rotated_body.info",
-    "translation": ""
+    "translation": "Персанальны токен доступу вашага ўліковага запісу на {{ .SiteURL }} быў перагенераваны. Папярэдні сакрэт токена больш не дзейнічае."
   },
   {
     "id": "api.templates.user_access_token_rotated_body.title",
-    "translation": ""
+    "translation": "Персанальны токен доступу перагенераваны"
   },
   {
     "id": "api.templates.user_access_token_rotated_subject",
-    "translation": ""
+    "translation": "[{{ .SiteName }}] Персанальны токен доступу перагенераваны"
   },
   {
     "id": "api.upload.create.check_directory.app_error",
-    "translation": ""
+    "translation": "Адбылася памылка падчас праверкі канфігурацыі каталога імпарту."
   },
   {
     "id": "api.upload.create.directory_conflict.app_error",
-    "translation": ""
+    "translation": "Немагчыма стварыць запампоўванне для імпарту: ImportSettings.Directory канфліктуе з PluginSettings.Directory."
   },
   {
     "id": "api.user.attach_device_id.invalid_device_id.app_error",
-    "translation": ""
+    "translation": "Несапраўдны ідэнтыфікатар прылады."
   },
   {
     "id": "api.user.attach_device_id.invalid_voip_device_id.app_error",
-    "translation": ""
+    "translation": "Несапраўдны ідэнтыфікатар прылады VoIP."
   },
   {
     "id": "api.user.demote_user_to_guest.bot_not_allowed.app_error",
-    "translation": ""
+    "translation": "Уліковыя запісы ботаў нельга пераўтварыць у гасцявыя ўліковыя запісы."
   },
   {
     "id": "api.user.get_users_not_in_abac_team.access_control_unavailable.app_error",
-    "translation": ""
+    "translation": "Сэрвіс кантролю доступу недаступны. Немагчыма адфільтраваць карыстальнікаў для каманды з уключаным ABAC."
   },
   {
     "id": "api.user.login_sso_code_exchange.deprecated.app_error",
-    "translation": ""
+    "translation": "Гэтая канцавая кропка састарэла і адключана. Калі ласка, абнавіце свой мабільны дадатак."
   },
   {
     "id": "api.user.oauth.get_settings.app_error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць налады {{.Service}}"
   },
   {
     "id": "api.user.oauth_to_email.integration_session.app_error",
-    "translation": ""
+    "translation": "Немагчыма пераключыцца на аўтэнтыфікацыю праз электронную пошту, выкарыстоўваючы сеанс інтэграцыі."
   },
   {
     "id": "api.user.oauth_to_email.not_oauth_user.app_error",
-    "translation": ""
+    "translation": "Немагчыма пераключыцца на аўтэнтыфікацыю праз электронную пошту, бо карыстальнік не выкарыстоўвае аўтэнтыфікацыю OAuth або SAML."
   },
   {
     "id": "api.user.patch_user.profile_field_locked.app_error",
-    "translation": ""
+    "translation": "Полем {{.Field}} кіруе ваш сістэмны адміністратар, і яго нельга змяніць."
   },
   {
     "id": "api.user.rotate_user_access_token.disabled_token.app_error",
-    "translation": ""
+    "translation": "Немагчыма перагенераваць адключаны токен доступу."
   },
   {
     "id": "api.user.saml.relay_state_too_long.app_error",
-    "translation": ""
+    "translation": "Стан перадачы (relay state) SAML занадта доўгі."
   },
   {
     "id": "api.user.session_attributes.disabled.app_error",
-    "translation": ""
+    "translation": "Атрыбуты сеанса не ўключаны."
   },
   {
     "id": "api.user.update_user.profile_field_locked.app_error",
-    "translation": ""
+    "translation": "Полем {{.Field}} кіруе ваш сістэмны адміністратар, і яго нельга змяніць."
   },
   {
     "id": "api.user.upload_profile_user.profile_field_locked.app_error",
-    "translation": ""
+    "translation": "Выявай профілю кіруе ваш сістэмны адміністратар, і яе нельга змяніць."
   },
   {
     "id": "api.view.create.deleted_channel.app_error",
-    "translation": ""
+    "translation": "Немагчыма стварыць прадстаўленне ў выдаленым канале."
   },
   {
     "id": "api.view.delete.channel_mismatch.app_error",
-    "translation": ""
+    "translation": "Прадстаўленне не належыць указанаму каналу."
   },
   {
     "id": "api.view.delete.deleted_channel.app_error",
-    "translation": ""
+    "translation": "Немагчыма выдаліць прадстаўленне ў выдаленым канале."
   },
   {
     "id": "api.view.get.channel_mismatch.app_error",
-    "translation": ""
+    "translation": "Прадстаўленне не належыць указанаму каналу."
   },
   {
     "id": "api.view.get.deleted_channel.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць прадстаўленне з выдаленага канала."
   },
   {
     "id": "api.view.get_posts.channel_mismatch.app_error",
-    "translation": ""
+    "translation": "Прадстаўленне не належыць указанаму каналу."
   },
   {
     "id": "api.view.get_posts.deleted_channel.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць паведамленні прадстаўлення з выдаленага канала."
   },
   {
     "id": "api.view.list.deleted_channel.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць спіс прадстаўленняў для выдаленага канала."
   },
   {
     "id": "api.view.update.channel_mismatch.app_error",
-    "translation": ""
+    "translation": "Прадстаўленне не належыць указанаму каналу."
   },
   {
     "id": "api.view.update.deleted_channel.app_error",
-    "translation": ""
+    "translation": "Немагчыма абнавіць прадстаўленне ў выдаленым канале."
   },
   {
     "id": "api.view.update_sort_order.deleted_channel.app_error",
-    "translation": ""
+    "translation": "Немагчыма змяніць парадак прадстаўленняў у выдаленым канале."
   },
   {
     "id": "api.webhook.incoming.user_membership.app_error",
-    "translation": ""
+    "translation": "Карыстальнік webhook павінен быць удзельнікам мэтавай каманды або канала."
   },
   {
     "id": "api.webhook.incoming.user_role.app_error",
-    "translation": ""
+    "translation": "Вы не можаце прызначыць webhook карыстальніку з большымі прывілеямі, чым у вас."
   },
   {
     "id": "app.access_control.build_subject.get_subject.app_error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць суб’ект кантролю доступу."
   },
   {
     "id": "app.access_control.build_subject.group_id.app_error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць групу атрыбутаў кантролю доступу."
   },
   {
     "id": "app.access_control.get_channel_role.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць ролю карыстальніка ў канале. Калі ласка, паспрабуйце яшчэ раз."
   },
   {
     "id": "app.access_control.get_session_attributes.app_error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць атрыбуты сеанса."
   },
   {
     "id": "app.access_control.plugin.evaluation_unavailable.app_error",
-    "translation": ""
+    "translation": "Не ўдалося ацаніць кантроль доступу для гэтага рэсурсу."
   },
   {
     "id": "app.access_control.plugin.invalid_acting_user.app_error",
-    "translation": ""
+    "translation": "Дзеючы карыстальнік несапраўдны або не існуе."
   },
   {
     "id": "app.access_control.plugin.invalid_action.app_error",
-    "translation": ""
+    "translation": "Дзеянне не з’яўляецца сапраўдным дзеяннем кантролю доступу."
   },
   {
     "id": "app.access_control.plugin.invalid_id.app_error",
-    "translation": ""
+    "translation": "У API кантролю доступу перададзены несапраўдны ідэнтыфікатар."
   },
   {
     "id": "app.access_control.plugin.invalid_resource_type.app_error",
-    "translation": ""
+    "translation": "Тып рэсурсу не з’яўляецца сапраўдным тыпам рэсурсу кантролю доступу для плагінаў."
   },
   {
     "id": "app.access_control.plugin.policy_not_found.app_error",
-    "translation": ""
+    "translation": "Палітыка кантролю доступу не знойдзена."
   },
   {
     "id": "app.access_control.plugin.resource_type_forbidden.app_error",
-    "translation": ""
+    "translation": "Плагін, які выклікае API, не валодае гэтым тыпам рэсурсу."
   },
   {
     "id": "app.access_control.plugin.type_conflict.app_error",
-    "translation": ""
+    "translation": "Для гэтага ідэнтыфікатара ўжо існуе палітыка кантролю доступу іншага тыпу."
   },
   {
     "id": "app.access_control_decision.subject_mismatch.app_error",
-    "translation": ""
+    "translation": "Суб’ект не адпавядае аўтэнтыфікаванаму карыстальніку сеанса."
   },
   {
     "id": "app.access_control_decision.unsupported_action.app_error",
-    "translation": ""
+    "translation": "Непадтрымліваемае дзеянне для рашэнняў падчас адлюстравання: {{.Action}}"
   },
   {
     "id": "app.ai.summarize.agent_call_failed",
-    "translation": ""
+    "translation": "Не ўдалося выклікаць агента ШІ."
   },
   {
     "id": "app.ai.summarize.parse_failed",
-    "translation": ""
+    "translation": "Не ўдалося разабраць адказ ШІ з рэзюмэ."
   },
   {
     "id": "app.ai_bridge_test_helper.invalid_config",
-    "translation": ""
+    "translation": "Несапраўдная канфігурацыя тэставага памочніка моста ШІ."
   },
   {
     "id": "app.bot.createbot.reserved_username.app_error",
-    "translation": ""
+    "translation": "Гэтае імя карыстальніка зарэзервавана для сістэмнага бота."
   },
   {
     "id": "app.bot.patchbot.reserved_username.app_error",
-    "translation": ""
+    "translation": "Гэтае імя карыстальніка зарэзервавана для сістэмнага бота."
   },
   {
     "id": "app.bot.update.internal_error",
-    "translation": ""
+    "translation": "Немагчыма абнавіць бота."
   },
   {
     "id": "app.bot.update_bot_active.protected_bot.app_error",
-    "translation": ""
+    "translation": "Немагчыма адключыць сістэмнага бота."
   },
   {
     "id": "app.channel.add_user.to.channel.rejected_by_plugin",
-    "translation": ""
+    "translation": "Даданне ўдзельніка канала адхілена плагінам: {{.Reason}}"
   },
   {
     "id": "app.channel.create_board_channel.boards_not_enabled.app_error",
-    "translation": ""
+    "translation": "Функцыя інтэграваных дошак не ўключана."
   },
   {
     "id": "app.channel.create_board_channel.internal_error",
-    "translation": ""
+    "translation": "Немагчыма стварыць канал дошкі."
   },
   {
     "id": "app.channel.create_board_channel.invalid.app_error",
-    "translation": ""
+    "translation": "Несапраўдныя даныя канала дошкі."
   },
   {
     "id": "app.channel.create_board_channel.limit.app_error",
-    "translation": ""
+    "translation": "Дасягнута максімальная колькасць каналаў у камандзе."
   },
   {
     "id": "app.channel.create_channel.board_type.app_error",
-    "translation": ""
+    "translation": "Каналы дошак нельга ствараць праз CreateChannel. Замест гэтага выкарыстоўвайце API /boards."
   },
   {
     "id": "app.channel.create_channel.space_type.app_error",
-    "translation": ""
+    "translation": "Каналы прастор нельга ствараць праз гэтую канцавую кропку."
   },
   {
     "id": "app.channel.create_channel.spaces_not_enabled.app_error",
-    "translation": ""
+    "translation": "Функцыя Docs не ўключана."
   },
   {
     "id": "app.channel.delete_channel.rejected_by_plugin",
-    "translation": ""
+    "translation": "Архіваванне канала адхілена плагінам: {{.Reason}}"
   },
   {
     "id": "app.channel.get_by_name.app_error",
-    "translation": ""
+    "translation": "Немагчыма знайсці канал па назве."
   },
   {
     "id": "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць каналы з непрачытанымі паведамленнямі і згадкамі."
   },
   {
     "id": "app.channel.get_member_ids.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць ідэнтыфікатары ўдзельнікаў канала."
   },
   {
     "id": "app.channel.join_request.get.app_error",
-    "translation": ""
+    "translation": "Не ўдалося загрузіць запыт на далучэнне да канала."
   },
   {
     "id": "app.channel.join_request.not_found.app_error",
-    "translation": ""
+    "translation": "Запыт на далучэнне да канала не знойдзены."
   },
   {
     "id": "app.channel.join_request.save.app_error",
-    "translation": ""
+    "translation": "Не ўдалося захаваць запыт на далучэнне да канала."
   },
   {
     "id": "app.channel.join_request.update.app_error",
-    "translation": ""
+    "translation": "Не ўдалося абнавіць запыт на далучэнне да канала."
   },
   {
     "id": "app.channel.move_channel.space.app_error",
-    "translation": ""
+    "translation": "Прасторы нельга перамяшчаць праз гэтую канцавую кропку."
   },
   {
     "id": "app.channel.restore_channel.rejected_by_plugin",
-    "translation": ""
+    "translation": "Аднаўленне канала адхілена плагінам: {{.Reason}}"
   },
   {
     "id": "app.channel.save_member.app_error",
-    "translation": ""
+    "translation": "Немагчыма захаваць удзельніка канала."
   },
   {
     "id": "app.channel.set_members.context_cancelled.app_error",
-    "translation": ""
+    "translation": "Аперацыя задання ўдзельнікаў канала была скасавана."
   },
   {
     "id": "app.channel.set_members.empty_private.app_error",
-    "translation": ""
+    "translation": "Немагчыма выдаліць усіх удзельнікаў з прыватнага канала."
   },
   {
     "id": "app.channel.set_members.get_current.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць бягучых удзельнікаў канала."
   },
   {
     "id": "app.channel.set_members.get_members.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць удзельнікаў канала для ўзгаднення роляў."
   },
   {
     "id": "app.channel.update_channel.plugin_type_mutation.app_error",
-    "translation": ""
+    "translation": "Плагін {{.PluginID}} паспрабаваў змяніць тып канала праз ChannelWillBeUpdated; змены тыпу павінны выконвацца праз спецыяльны механізм змены тыпу"
   },
   {
     "id": "app.channel.update_channel.rejected_by_plugin",
-    "translation": ""
+    "translation": "Абнаўленне канала адхілена плагінам: {{.Reason}}"
   },
   {
     "id": "app.channel.update_channel_privacy.space.app_error",
-    "translation": ""
+    "translation": "Прыватнасць прастор нельга змяняць праз гэтую канцавую кропку."
   },
   {
     "id": "app.channel_guard.invalid_channel.app_error",
-    "translation": ""
+    "translation": "Ідэнтыфікатар канала не з’яўляецца сапраўдным ідэнтыфікатарам канала."
   },
   {
     "id": "app.channel_guard.register.app_error",
-    "translation": ""
+    "translation": "Немагчыма зарэгістраваць ахову канала."
   },
   {
     "id": "app.channel_guard.register.empty_channel.app_error",
-    "translation": ""
+    "translation": "Для рэгістрацыі аховы канала патрабуецца ідэнтыфікатар канала."
   },
   {
     "id": "app.channel_guard.unregister.app_error",
-    "translation": ""
+    "translation": "Немагчыма зняць рэгістрацыю аховы канала."
   },
   {
     "id": "app.channel_guard.unregister.empty_channel.app_error",
-    "translation": ""
+    "translation": "Для зняцця рэгістрацыі аховы канала патрабуецца ідэнтыфікатар канала."
   },
   {
     "id": "app.command.validatecommandtriggeruniqueness.internal_error",
-    "translation": ""
+    "translation": "Указанае слова-трыгер ужо існуе."
   },
   {
     "id": "app.compile_csv_chunks.write_error",
-    "translation": ""
+    "translation": "Не ўдалося запісаць даныя CSV."
   },
   {
     "id": "app.data_spillage.assign_reviewer.no_reviewer_field.app_error",
-    "translation": ""
+    "translation": "Поле ўласцівасці «Ідэнтыфікатар рэцэнзента» не знойдзена."
   },
   {
     "id": "app.data_spillage.assign_reviewer.update_status_property_value.app_error",
-    "translation": ""
+    "translation": "Не ўдалося абнавіць значэнне ўласцівасці «Статус» пры прызначэнні рэцэнзента."
   },
   {
     "id": "app.data_spillage.assign_reviewer.upsert_property_value.app_error",
-    "translation": ""
+    "translation": "Не ўдалося задаць рэцэнзента пазначанага паведамлення."
   },
   {
     "id": "app.data_spillage.can_flag_post.in_progress",
-    "translation": ""
+    "translation": "Немагчыма змясціць гэтае паведамленне ў каранцін, бо яно ўжо знаходзіцца ў каранціне на праверцы."
   },
   {
     "id": "app.data_spillage.can_flag_post.removed",
-    "translation": ""
+    "translation": "Немагчыма змясціць гэтае паведамленне ў каранцін, бо яно было выдалена падчас папярэдняй праверкі."
   },
   {
     "id": "app.data_spillage.can_flag_post.retained",
-    "translation": ""
+    "translation": "Немагчыма змясціць гэтае паведамленне ў каранцін, бо яно было пакінута падчас папярэдняй праверкі."
   },
   {
     "id": "app.data_spillage.can_flag_post.unknown",
-    "translation": ""
+    "translation": "Немагчыма змясціць гэтае паведамленне ў каранцін, бо яно мае невядомы статус."
   },
   {
     "id": "app.data_spillage.create_property_values.app_error",
-    "translation": ""
+    "translation": "Немагчыма захаваць значэнні ўласцівасцей для пазначанага паведамлення."
   },
   {
     "id": "app.data_spillage.exposure.column.email",
-    "translation": ""
+    "translation": "Электронная пошта"
   },
   {
     "id": "app.data_spillage.exposure.column.is_deactivated",
-    "translation": ""
+    "translation": "Дэактываваны"
   },
   {
     "id": "app.data_spillage.exposure.column.is_guest",
-    "translation": ""
+    "translation": "Госць"
   },
   {
     "id": "app.data_spillage.exposure.column.is_remote",
-    "translation": ""
+    "translation": "Аддалены карыстальнік"
   },
   {
     "id": "app.data_spillage.exposure.column.last_activity_at",
-    "translation": ""
+    "translation": "Час апошняй актыўнасці карыстальніка (YYYY-MM-DDTHH:MM:SSZ)"
   },
   {
     "id": "app.data_spillage.exposure.column.last_viewed_at",
-    "translation": ""
+    "translation": "Апошні прагляд канала (YYYY-MM-DDTHH:MM:SSZ)"
   },
   {
     "id": "app.data_spillage.exposure.column.user_id",
-    "translation": ""
+    "translation": "Ідэнтыфікатар карыстальніка"
   },
   {
     "id": "app.data_spillage.exposure.column.username",
-    "translation": ""
+    "translation": "Імя карыстальніка"
   },
   {
     "id": "app.data_spillage.exposure.column.was_channel_member",
-    "translation": ""
+    "translation": "Быў удзельнікам канала"
   },
   {
     "id": "app.data_spillage.exposure.edit_history_post.app_error",
-    "translation": ""
+    "translation": "Немагчыма згенераваць справаздачу аб ахопе для версіі з гісторыі рэдагавання. Выкарыстоўвайце ідэнтыфікатар бягучага паведамлення."
   },
   {
     "id": "app.data_spillage.exposure.get_channel_members.app_error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць гісторыю членства ў канале для пазначанага паведамлення."
   },
   {
     "id": "app.data_spillage.exposure.get_last_activity.app_error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць актыўнасць сеансаў для пазначанага паведамлення."
   },
   {
     "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць стан прачытання канала для пазначанага паведамлення."
   },
   {
     "id": "app.data_spillage.exposure.meta.channel",
-    "translation": ""
+    "translation": "Канал"
   },
   {
     "id": "app.data_spillage.exposure.meta.generated_at",
-    "translation": ""
+    "translation": "Згенеравана"
   },
   {
     "id": "app.data_spillage.exposure.meta.post_id",
-    "translation": ""
+    "translation": "Ідэнтыфікатар паведамлення"
   },
   {
     "id": "app.data_spillage.exposure.meta.report_version",
-    "translation": ""
+    "translation": "Версія справаздачы"
   },
   {
     "id": "app.data_spillage.exposure.meta.total_users",
-    "translation": ""
+    "translation": "Усяго карыстальнікаў"
   },
   {
     "id": "app.data_spillage.exposure.meta.window_end",
-    "translation": ""
+    "translation": "Пазначана"
   },
   {
     "id": "app.data_spillage.exposure.meta.window_start",
-    "translation": ""
+    "translation": "Паведамленне створана"
   },
   {
     "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
-    "translation": ""
+    "translation": "У пазначанага паведамлення не запісаны час пазначэння, таму немагчыма вызначыць акно ахопу."
   },
   {
     "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
-    "translation": ""
+    "translation": "Справаздачы аб ахопе не падтрымліваюцца для асабістых і групавых паведамленняў."
   },
   {
     "id": "app.data_spillage.exposure.value.never_viewed",
-    "translation": ""
+    "translation": "Н/Д"
   },
   {
     "id": "app.data_spillage.exposure.value.no",
-    "translation": ""
+    "translation": "Не"
   },
   {
     "id": "app.data_spillage.exposure.value.no_sessions",
-    "translation": ""
+    "translation": "Сеансы не знойдзены"
   },
   {
     "id": "app.data_spillage.exposure.value.unknown",
-    "translation": ""
+    "translation": "Невядома"
   },
   {
     "id": "app.data_spillage.exposure.value.yes",
-    "translation": ""
+    "translation": "Так"
   },
   {
     "id": "app.data_spillage.flag_post.marshal_comment.app_error",
-    "translation": ""
+    "translation": "Не ўдалося серыялізаваць каментарый карыстальніка, які пазначыў паведамленне"
   },
   {
     "id": "app.data_spillage.flag_post.marshal_reason.app_error",
-    "translation": ""
+    "translation": "Не ўдалося серыялізаваць прычыну карыстальніка, які пазначыў паведамленне"
   },
   {
     "id": "app.data_spillage.flag_post_confirmation.message",
-    "translation": ""
+    "translation": "Паведамленне ад @{{.username}} змешчана ў каранцін на праверку. Вы атрымаеце апавяшчэнне, калі рэцэнзент яго праверыць."
   },
   {
     "id": "app.data_spillage.get_group.error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць групу ўласцівасцей пазначэння змесціва."
   },
   {
     "id": "app.data_spillage.get_reviewer_settings.app_error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць налады рэцэнзентаў змесціва з базы даных"
   },
   {
     "id": "app.data_spillage.get_status_property.app_error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць поле ўласцівасці «Статус»."
   },
   {
     "id": "app.data_spillage.get_thread_replies.app_error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць адказы ў гілцы для пазначанага паведамлення."
   },
   {
     "id": "app.data_spillage.get_users_in_team.app_error",
-    "translation": ""
+    "translation": "Не ўдалося знайсці рэцэнзентаў у камандзе."
   },
   {
     "id": "app.data_spillage.keep_flag_post.marshal_comment.app_error",
-    "translation": ""
+    "translation": "Не ўдалося серыялізаваць каментарый рэцэнзента"
   },
   {
     "id": "app.data_spillage.keep_post.status_update.app_error",
-    "translation": ""
+    "translation": "Не ўдалося абнавіць статус пазначанага паведамлення падчас яго аднаўлення "
   },
   {
     "id": "app.data_spillage.keep_post.undelete.app_error",
-    "translation": ""
+    "translation": "Не ўдалося абнавіць паведамленне ў базе даных падчас спробы аднавіць пазначанае паведамленне і звязаныя з ім даныя."
   },
   {
     "id": "app.data_spillage.marshal_property_values.app_error",
-    "translation": ""
+    "translation": "Не ўдалося серыялізаваць значэнні ўласцівасцей пазначэння змесціва для адпраўкі ў падзеі WebSocket."
   },
   {
     "id": "app.data_spillage.missing_flagged_post_id_field.app_error",
-    "translation": ""
+    "translation": "Немагчыма знайсці поле ўласцівасці «Ідэнтыфікатар пазначанага паведамлення»."
   },
   {
     "id": "app.data_spillage.missing_manage_by_field.app_error",
-    "translation": ""
+    "translation": "Не ўдалося знайсці поле ўласцівасці «Кіруецца»."
   },
   {
     "id": "app.data_spillage.missing_reporting_user_id_field.app_error",
-    "translation": ""
+    "translation": "Немагчыма знайсці поле карыстальніка, які пазначыў паведамленне."
   },
   {
     "id": "app.data_spillage.missing_reporting_user_id_property_value.app_error",
-    "translation": ""
+    "translation": "Немагчыма знайсці значэнне поля карыстальніка, які пазначыў паведамленне."
   },
   {
     "id": "app.data_spillage.missing_status_field.app_error",
-    "translation": ""
+    "translation": "Не ўдалося знайсці поле ўласцівасці «Статус»."
   },
   {
     "id": "app.data_spillage.no_status_property.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць пазначанае паведамленне, бо паведамленне не пазначана."
   },
   {
     "id": "app.data_spillage.permanently_delete.marshal_comment.app_error",
-    "translation": ""
+    "translation": "Не ўдалося серыялізаваць каментарый рэцэнзента"
   },
   {
     "id": "app.data_spillage.permanently_delete.update_property_value.app_error",
-    "translation": ""
+    "translation": "Не ўдалося абнавіць статус пазначанага паведамлення падчас яго канчатковага выдалення."
   },
   {
     "id": "app.data_spillage.report.attachments_omitted.file_text",
-    "translation": ""
+    "translation": "Укладанні гэтага паведамлення не ўключаны ў гэтую справаздачу, бо вы не адпавядаеце палітыцы спампоўвання файлаў канала."
   },
   {
     "id": "app.data_spillage.report.attachments_omitted.notification",
-    "translation": ""
+    "translation": "Згенераваная вамі справаздача не ўключае файлавыя ўкладанні паведамлення ў каранціне, бо вы не адпавядаеце палітыцы спампоўвання файлаў канала."
   },
   {
     "id": "app.data_spillage.report.cleared",
-    "translation": ""
+    "translation": "Ачышчана"
   },
   {
     "id": "app.data_spillage.report.close.app_error",
-    "translation": ""
+    "translation": "Не ўдалося закрыць файл справаздачы аб пазначаным паведамленні."
   },
   {
     "id": "app.data_spillage.report.column.detail",
-    "translation": ""
+    "translation": "Падрабязнасці"
   },
   {
     "id": "app.data_spillage.report.column.status",
-    "translation": ""
+    "translation": "Статус"
   },
   {
     "id": "app.data_spillage.report.column.step",
-    "translation": ""
+    "translation": "Крок"
   },
   {
     "id": "app.data_spillage.report.detail.deleted",
-    "translation": ""
+    "translation": "Выдалена."
   },
   {
     "id": "app.data_spillage.report.detail.failed_retrieve_edit_history",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць гісторыю рэдагавання."
   },
   {
     "id": "app.data_spillage.report.detail.file_attachments_info_ids",
-    "translation": ""
+    "translation": "**Ідэнтыфікатары звестак аб файлах:** {{.FileInfoIDs}}"
   },
   {
     "id": "app.data_spillage.report.detail.file_names",
-    "translation": ""
+    "translation": {
+      "one": "З дыска выдалены {{.Count}} файл.",
+      "few": "З дыска выдалена {{.Count}} файлы.",
+      "many": "З дыска выдалена {{.Count}} файлаў.",
+      "other": "З дыска выдалена {{.Count}} файла."
+    }
   },
   {
     "id": "app.data_spillage.report.detail.no_data_found",
-    "translation": ""
+    "translation": "Даныя не знойдзены."
   },
   {
     "id": "app.data_spillage.report.detail.no_files",
-    "translation": ""
+    "translation": "Файлы не знойдзены."
   },
   {
     "id": "app.data_spillage.report.detail.no_rows_to_delete",
-    "translation": ""
+    "translation": "Няма радкоў для выдалення."
   },
   {
     "id": "app.data_spillage.report.detail.post_scrubbed_deleted",
-    "translation": ""
+    "translation": "Паведамленне ачышчана і выдалена."
   },
   {
     "id": "app.data_spillage.report.detail.revisions_cleared",
-    "translation": ""
+    "translation": {
+      "one": "Ачышчана {{.Count}} версія з {{.Total}}.",
+      "few": "Ачышчана {{.Count}} версіі з {{.Total}}.",
+      "many": "Ачышчана {{.Count}} версій з {{.Total}}.",
+      "other": "Ачышчана {{.Count}} версіі з {{.Total}}."
+    }
   },
   {
     "id": "app.data_spillage.report.detail.thread_data_deleted",
-    "translation": ""
+    "translation": "Гілкі, рэакцыі і звязаныя даныя выдалены."
   },
   {
     "id": "app.data_spillage.report.error_log",
-    "translation": ""
+    "translation": "Журнал памылак"
   },
   {
     "id": "app.data_spillage.report.generated",
-    "translation": ""
+    "translation": "Згенеравана:"
   },
   {
     "id": "app.data_spillage.report.incomplete_warning",
-    "translation": ""
+    "translation": "Выдаленне паведамлення не завершана. Праглядзіце журнал памылак і звярніцеся да сістэмнага адміністратара для выпраўлення ўручную."
   },
   {
     "id": "app.data_spillage.report.post_id",
-    "translation": ""
+    "translation": "Ідэнтыфікатар паведамлення:"
   },
   {
     "id": "app.data_spillage.report.revision",
-    "translation": ""
+    "translation": "Версія"
   },
   {
     "id": "app.data_spillage.report.revisions_found",
-    "translation": ""
+    "translation": "Знойдзена версій:"
   },
   {
     "id": "app.data_spillage.report.status.failed",
-    "translation": ""
+    "translation": "Не ўдалося"
   },
   {
     "id": "app.data_spillage.report.status.not_applicable",
-    "translation": ""
+    "translation": "Не прымяняецца"
   },
   {
     "id": "app.data_spillage.report.status.partial",
-    "translation": ""
+    "translation": "Часткова"
   },
   {
     "id": "app.data_spillage.report.status.removed",
-    "translation": ""
+    "translation": "Выдалена"
   },
   {
     "id": "app.data_spillage.report.status.unknown",
-    "translation": ""
+    "translation": "Невядома"
   },
   {
     "id": "app.data_spillage.report.step.acknowledgements",
-    "translation": ""
+    "translation": "Пацверджанні"
   },
   {
     "id": "app.data_spillage.report.step.edit_histories",
-    "translation": ""
+    "translation": "Гісторыя рэдагавання"
   },
   {
     "id": "app.data_spillage.report.step.file_attachments",
-    "translation": ""
+    "translation": "Файлавыя ўкладанні"
   },
   {
     "id": "app.data_spillage.report.step.fileinfo_rows",
-    "translation": ""
+    "translation": "Запісы аб файлавых укладаннях"
   },
   {
     "id": "app.data_spillage.report.step.persistent_notifications",
-    "translation": ""
+    "translation": "Пастаянныя апавяшчэнні"
   },
   {
     "id": "app.data_spillage.report.step.post_itself",
-    "translation": ""
+    "translation": "Запіс паведамлення"
   },
   {
     "id": "app.data_spillage.report.step.priority_data",
-    "translation": ""
+    "translation": "Метаданыя прыярытэту"
   },
   {
     "id": "app.data_spillage.report.step.reminders",
-    "translation": ""
+    "translation": "Напаміны"
   },
   {
     "id": "app.data_spillage.report.step.thread_data",
-    "translation": ""
+    "translation": "Гілка, адказы і рэакцыі"
   },
   {
     "id": "app.data_spillage.report.summary",
-    "translation": ""
+    "translation": "Зводка"
   },
   {
     "id": "app.data_spillage.report.sync.app_error",
-    "translation": ""
+    "translation": "Не ўдалося сінхранізаваць файл справаздачы аб пазначаным паведамленні з дыскам."
   },
   {
     "id": "app.data_spillage.report.tempfile.app_error",
-    "translation": ""
+    "translation": "Не ўдалося стварыць часовы файл для справаздачы аб пазначаным паведамленні."
   },
   {
     "id": "app.data_spillage.report.title",
-    "translation": ""
+    "translation": "Справаздача аб выдаленні паведамлення"
   },
   {
     "id": "app.data_spillage.report.total_steps",
-    "translation": ""
+    "translation": "Усяго крокаў:"
   },
   {
     "id": "app.data_spillage.report.write_attachments_omitted.app_error",
-    "translation": ""
+    "translation": "Не ўдалося запісаць паведамленне аб прапушчаных укладаннях у справаздачу аб пазначаным паведамленні."
   },
   {
     "id": "app.data_spillage.report.write_edit_yaml.app_error",
-    "translation": ""
+    "translation": "Не ўдалося запісаць запіс гісторыі рэдагавання ў справаздачу аб пазначаным паведамленні."
   },
   {
     "id": "app.data_spillage.report.write_exposure_csv.app_error",
-    "translation": ""
+    "translation": "Не ўдалося запісаць справаздачу аб ахопе ў справаздачу аб пазначаным паведамленні."
   },
   {
     "id": "app.data_spillage.report.write_metadata_yaml.app_error",
-    "translation": ""
+    "translation": "Не ўдалося запісаць метаданыя ў справаздачу аб пазначаным паведамленні."
   },
   {
     "id": "app.data_spillage.report.write_post_yaml.app_error",
-    "translation": ""
+    "translation": "Не ўдалося запісаць звесткі аб паведамленні ў справаздачу аб пазначаным паведамленні."
   },
   {
     "id": "app.data_spillage.report.write_review_yaml.app_error",
-    "translation": ""
+    "translation": "Не ўдалося запісаць звесткі аб праверцы змесціва ў справаздачу аб пазначаным паведамленні."
   },
   {
     "id": "app.data_spillage.report.zip_close.app_error",
-    "translation": ""
+    "translation": "Не ўдалося закрыць архіў справаздачы аб пазначаным паведамленні."
   },
   {
     "id": "app.data_spillage.report.zip_copy.app_error",
-    "translation": ""
+    "translation": "Не ўдалося скапіяваць змесціва ўкладання ў архіў справаздачы аб пазначаным паведамленні."
   },
   {
     "id": "app.data_spillage.report.zip_create.app_error",
-    "translation": ""
+    "translation": "Не ўдалося стварыць запіс у архіве справаздачы аб пазначаным паведамленні."
   },
   {
     "id": "app.data_spillage.save_reviewer_settings.app_error",
-    "translation": ""
+    "translation": "Не ўдалося захаваць налады рэцэнзентаў змесціва ў базе даных."
   },
   {
     "id": "app.data_spillage.search_common_reviewers.app_error",
-    "translation": ""
+    "translation": "Не ўдалося выканаць пошук сярод агульных рэцэнзентаў."
   },
   {
     "id": "app.data_spillage.search_property_fields.app_error",
-    "translation": ""
+    "translation": "Не ўдалося знайсці палі ўласцівасцей пазначэння змесціва."
   },
   {
     "id": "app.data_spillage.search_property_values.app_error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць з базы даных значэнні ўласцівасцей пазначэння змесціва для паведамлення."
   },
   {
     "id": "app.data_spillage.search_reviewer_posts.app_error",
-    "translation": ""
+    "translation": "Не ўдалося знайсці паведамленні рэцэнзентаў для пазначанага паведамлення."
   },
   {
     "id": "app.data_spillage.search_status_property.app_error",
-    "translation": ""
+    "translation": "Не ўдалося знайсці значэнні ўласцівасцей для пазначанага паведамлення."
   },
   {
     "id": "app.data_spillage.search_sysadmin_reviewers.app_error",
-    "translation": ""
+    "translation": "Не ўдалося выканаць пошук сярод рэцэнзентаў — сістэмных адміністратараў."
   },
   {
     "id": "app.data_spillage.search_team_admin_reviewers.app_error",
-    "translation": ""
+    "translation": "Не ўдалося выканаць пошук сярод рэцэнзентаў — адміністратараў каманды."
   },
   {
     "id": "app.data_spillage.search_team_reviewers.app_error",
-    "translation": ""
+    "translation": "Не ўдалося выканаць пошук сярод рэцэнзентаў каманды."
   },
   {
     "id": "app.data_spillage.set_thread_replies_properties.app_error",
-    "translation": ""
+    "translation": "Не ўдалося задаць значэнні ўласцівасцей для адказаў у гілцы пазначанага паведамлення."
   },
   {
     "id": "app.delivery_tracking.dm_gm_not_allowed.app_error",
-    "translation": ""
+    "translation": "Асабістыя і групавыя паведамленні нельга выбраць для аўдыту дастаўкі паведамленняў."
   },
   {
     "id": "app.delivery_tracking.get_config.app_error",
-    "translation": ""
+    "translation": "Не ўдалося прачытаць налады аўдыту дастаўкі паведамленняў з базы даных."
   },
   {
     "id": "app.delivery_tracking.invalid_channel.app_error",
-    "translation": ""
+    "translation": "Адзін або некалькі выбраных каналаў не знойдзены."
   },
   {
     "id": "app.delivery_tracking.save_config.app_error",
-    "translation": ""
+    "translation": "Не ўдалося захаваць налады аўдыту дастаўкі паведамленняў у базе даных."
   },
   {
     "id": "app.draft.upsert.rejected_by_plugin",
-    "translation": ""
+    "translation": "Чарнавік адхілены плагінам: {{.Reason}}"
   },
   {
     "id": "app.export.channel_requires_team.error",
-    "translation": ""
+    "translation": "Для назвы канала неабходна ўказаць назву каманды."
   },
   {
     "id": "app.export.export_all_channels.channel_not_found.error",
-    "translation": ""
+    "translation": "Указаны канал не знойдзены ні ў адной з указаных каманд."
   },
   {
     "id": "app.export.export_all_teams.team_deleted.error",
-    "translation": ""
+    "translation": "Указаная каманда была выдалена."
   },
   {
     "id": "app.export.export_all_teams.team_not_found.error",
-    "translation": ""
+    "translation": "Указаная каманда не знойдзена."
   },
   {
     "id": "app.export.export_version.scope_marshal.error",
-    "translation": ""
+    "translation": "Не ўдалося запісаць вобласць каманд і каналаў у экспарт. Аперацыя перарвана, каб не ствараць архіў, які імпартаваўся б як аднаўленне ўсяго асобніка."
   },
   {
     "id": "app.export.generate_presigned_url.config.app_error",
-    "translation": ""
+    "translation": "Для гэтага дзеяння патрабуецца асобнае сховішча экспарту."
   },
   {
     "id": "app.export.generate_presigned_url.direct_download.app_error",
-    "translation": ""
+    "translation": "Прамое спампоўванне экспарту даступнае толькі ў Mattermost Cloud."
   },
   {
     "id": "app.export.generate_presigned_url.driver.app_error",
-    "translation": ""
+    "translation": "Драйвер вашага сховішча экспарту не падтрымлівае генерацыю папярэдне падпісаных URL."
   },
   {
     "id": "app.export.generate_presigned_url.fileexist.app_error",
-    "translation": ""
+    "translation": "Немагчыма праверыць, ці існуе файл."
   },
   {
     "id": "app.export.generate_presigned_url.link.app_error",
-    "translation": ""
+    "translation": "Немагчыма згенераваць папярэдне падпісаны URL."
   },
   {
     "id": "app.export.generate_presigned_url.notfound.app_error",
-    "translation": ""
+    "translation": "Файл экспарту не знойдзены."
   },
   {
     "id": "app.file_info.not_found",
-    "translation": ""
+    "translation": "Файл не знойдзены ў сховішчы файлаў па ўказаным шляху."
   },
   {
     "id": "app.file_info.remove_file.app_error",
-    "translation": ""
+    "translation": "Не ўдалося выдаліць файл са сховішча файлаў."
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": ""
+    "translation": "Немагчыма заглушыць вынік праверкі стану."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
-    "translation": ""
+    "translation": "Вынік праверкі стану не знойдзены."
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": ""
+    "translation": "Немагчыма зняць заглушэнне з выніку праверкі стану."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": ""
+    "translation": "Вынік праверкі стану не знойдзены."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",
-    "translation": ""
+    "translation": "Для --destination-channel-name патрабуецца экспарт у межах канала."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_single_channel_scope.error",
-    "translation": ""
+    "translation": "Для --destination-channel-name патрабуецца экспарт аднаго канала; гэты экспарт змяшчае некалькі каналаў."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_single_team_scope.error",
-    "translation": ""
+    "translation": "Для --destination-channel-name патрабуецца экспарт у межах роўна адной каманды, інакш назва канала неадназначная."
   },
   {
     "id": "app.import.bulk_import.destination_team_requires_single_team_scope.error",
-    "translation": ""
+    "translation": "Для --destination-team-name патрабуецца экспарт адной каманды; гэты экспарт змяшчае некалькі каманд."
   },
   {
     "id": "app.import.bulk_import.imported_users_choice_required.error",
-    "translation": ""
+    "translation": "Гэта экспарт з абмежаванай вобласцю, таму --imported-users павінна мець значэнне \"active\" або \"inactive\"; бяспечнага значэння па змаўчанні няма. Выкарыстоўвайце --imported-users=active пры імпарце ў новы асобнік, на які пераходзяць гэтыя карыстальнікі, каб яны маглі ўвайсці — інакш кожны ўліковы запіс, створаны імпартам, будзе дэактываваны, і ніхто, уключаючы карыстальнікаў SSO, не зможа ўвайсці, пакуль адміністратар не актывуе іх па адным. Выкарыстоўвайце --imported-users=inactive пры імпарце ў існуючы асобнік, які ўжо змяшчае змесціва іншых людзей, каб уліковыя запісы, створаныя на аснове ненадзейных супадзенняў імя карыстальніка або электроннай пошты, заставаліся дэактываванымі, пакуль адміністратар іх не праверыць. У любым выпадку карыстальнікі, дэактываваныя на зыходным серверы, застаюцца дэактываванымі, а ўліковыя запісы, якія ўжо існуюць у месцы прызначэння, супастаўляюцца, а не ствараюцца, таму гэты выбар на іх не ўплывае."
   },
   {
     "id": "app.import.import_bot.lookup_error",
-    "translation": ""
+    "translation": "Не ўдалося знайсці існуючага бота"
   },
   {
     "id": "app.import.import_bot.user_not_found.error",
-    "translation": ""
+    "translation": "Карыстальнік для бота не знойдзены"
   },
   {
     "id": "app.import.import_direct_channel.get_ever_members.error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць гісторыю ўдзельнікаў, якія калі-небудзь належалі да канала асабістых паведамленняў"
   },
   {
     "id": "app.import.import_direct_channel.save_member.error",
-    "translation": ""
+    "translation": "Не ўдалося захаваць удзельніка канала падчас імпарту канала асабістых паведамленняў"
   },
   {
     "id": "app.import.pre_create_sso_user.missing_fields.app_error",
-    "translation": ""
+    "translation": "У даных імпарту карыстальніка SSO адсутнічаюць абавязковыя палі (імя карыстальніка або электронная пошта)."
   },
   {
     "id": "app.import.preflight.auth_provider_not_configured.error",
-    "translation": ""
+    "translation": "Пастаўшчык аўтэнтыфікацыі {{.Service}} не наладжаны на гэтым серверы: {{.Detail}}"
   },
   {
     "id": "app.import.validate_user_import_data.channel_guest_missing_system_guest_role.error",
-    "translation": ""
+    "translation": "Карыстальнік мае гасцявыя ролі ў каналах, але не з’яўляецца сістэмным госцем."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_mention_keys_invalid.error",
-    "translation": ""
+    "translation": "Несапраўднае значэнне mention_keys у Notify Props карыстальніка: перавышаны ліміт у {{.MaxCount}} ключоў або {{.MaxLength}} байтаў."
   },
   {
     "id": "app.import.validate_user_import_data.system_guest_missing_channel_guest_roles.error",
-    "translation": ""
+    "translation": "Карыстальнік з’яўляецца сістэмным госцем, але не мае гасцявых роляў ва ўсіх каналах. Гасцявых роляў у каналах: {{.ChannelGuestCount}}, усяго каналаў: {{.TotalChannels}}."
   },
   {
     "id": "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error",
-    "translation": ""
+    "translation": "Карыстальнік з’яўляецца сістэмным госцем, але не мае гасцявых роляў ва ўсіх камандах. Гасцявых роляў у камандах: {{.TeamGuestCount}}, усяго каманд: {{.TotalTeams}}."
   },
   {
     "id": "app.import.validate_user_import_data.team_guest_missing_system_guest_role.error",
-    "translation": ""
+    "translation": "Карыстальнік мае гасцявыя ролі ў камандах, але не з’яўляецца сістэмным госцем."
   },
   {
     "id": "app.limits.get_app_limits.single_channel_guest_count.store_error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць колькасць гасцей аднаго канала."
   },
   {
     "id": "app.managed_category.clear.app_error",
-    "translation": ""
+    "translation": "Не ўдалося выдаліць канал з кіраванай катэгорыі."
   },
   {
     "id": "app.managed_category.dm_gm_not_allowed.app_error",
-    "translation": ""
+    "translation": "Каналы асабістых і групавых паведамленняў нельга прызначыць у кіраваную катэгорыю."
   },
   {
     "id": "app.managed_category.empty_name.app_error",
-    "translation": ""
+    "translation": "Назва кіраванай катэгорыі не можа быць пустой."
   },
   {
     "id": "app.managed_category.get_mappings.app_error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць прывязкі кіраваных катэгорый."
   },
   {
     "id": "app.managed_category.search.app_error",
-    "translation": ""
+    "translation": "Не ўдалося знайсці кіраваную катэгорыю для канала."
   },
   {
     "id": "app.managed_category.set.app_error",
-    "translation": ""
+    "translation": "Не ўдалося задаць кіраваную катэгорыю для канала."
   },
   {
     "id": "app.notify_expiring_access_tokens.bot_dm",
-    "translation": ""
+    "translation": "Тэрмін дзеяння персанальнага токена доступу \"{{.Description}}\" для ўліковага запісу бота @{{.BotUsername}} скончыцца праз {{.Days}} дн. або раней. Адкрыйце **Інтэграцыі > Уліковыя запісы ботаў**, каб перагенераваць яго, перш чым ён перастане працаваць."
   },
   {
     "id": "app.notify_expiring_access_tokens.bot_dm_final",
-    "translation": ""
+    "translation": "Тэрмін дзеяння персанальнага токена доступу \"{{.Description}}\" для ўліковага запісу бота @{{.BotUsername}} скончыцца на працягу 24 гадзін. Адкрыйце **Інтэграцыі > Уліковыя запісы ботаў**, каб перагенераваць яго, перш чым ён перастане працаваць."
   },
   {
     "id": "app.notify_expiring_access_tokens.dm",
-    "translation": ""
+    "translation": "Тэрмін дзеяння вашага персанальнага токена доступу \"{{.Description}}\" скончыцца праз {{.Days}} дн. або раней. Адкрыйце **Профіль > Бяспека**, каб перагенераваць яго, перш чым ён перастане працаваць."
   },
   {
     "id": "app.notify_expiring_access_tokens.dm_final",
-    "translation": ""
+    "translation": "Тэрмін дзеяння вашага персанальнага токена доступу \"{{.Description}}\" скончыцца на працягу 24 гадзін. Адкрыйце **Профіль > Бяспека**, каб перагенераваць яго, перш чым ён перастане працаваць."
   },
   {
     "id": "app.notify_expiring_access_tokens.unnamed_token",
-    "translation": ""
+    "translation": "(без апісання)"
   },
   {
     "id": "app.pap.access_control.channel_default",
-    "translation": ""
+    "translation": "Палітыкі членства нельга прымяняць да каналаў каманды па змаўчанні."
   },
   {
     "id": "app.pap.access_control.channel_type_not_supported",
-    "translation": ""
+    "translation": "Палітыкі кантролю доступу можна прымяняць толькі да публічных або прыватных каналаў."
   },
   {
     "id": "app.pap.assign_access_control_policy_to_teams.app_error",
-    "translation": ""
+    "translation": "Немагчыма прызначыць палітыку кантролю доступу камандам."
   },
   {
     "id": "app.pap.delete_policy.masked_values",
-    "translation": ""
+    "translation": "Вы не можаце выдаліць гэтую палітыку, бо яна змяшчае значэнні атрыбутаў, якія вы не маеце дазволу праглядаць."
   },
   {
     "id": "app.pap.get_masked_visual_ast.app_error",
-    "translation": ""
+    "translation": "Не ўдалося згенераваць візуальнае AST з замаскіраванымі значэннямі з выразу."
   },
   {
     "id": "app.pap.get_policies_for_field_ids.app_error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць палітыкі для ўказаных ідэнтыфікатараў палёў."
   },
   {
     "id": "app.pap.get_team_members_to_remove.app_error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць удзельнікаў каманды для выдалення."
   },
   {
     "id": "app.pap.has_masked_values.app_error",
-    "translation": ""
+    "translation": "Не ўдалося вызначыць замаскіраваныя значэнні для выразу палітыкі."
   },
   {
     "id": "app.pap.hydrate_actions.app_error",
-    "translation": ""
+    "translation": "Не ўдалося загрузіць набор дзеянняў, аб’яўлены палітыкай кантролю доступу канала."
   },
   {
     "id": "app.pap.mask_expression.app_error",
-    "translation": ""
+    "translation": "Не ўдалося замаскіраваць выраз палітыкі."
   },
   {
     "id": "app.pap.masking.ambiguous_sibling.app_error",
-    "translation": ""
+    "translation": "Некалькі атрыбутаў карыстальніка звязаны з адным і тым жа шаблонам, таму бачнасць атрыбута канала немагчыма вызначыць адназначна."
   },
   {
     "id": "app.pap.masking.graph_value_unmarshal.app_error",
-    "translation": ""
+    "translation": "Не ўдалося прачытаць значэнне графавага поля карыстальніка, які выканаў запыт."
   },
   {
     "id": "app.pap.masking.unknown_object_type.app_error",
-    "translation": ""
+    "translation": "Немагчыма вызначыць бачнасць атрыбута для невядомага тыпу аб’екта."
   },
   {
     "id": "app.pap.merge_expression.app_error",
-    "translation": ""
+    "translation": "Не ўдалося аб’яднаць выраз палітыкі з захаванымі замаскіраванымі значэннямі."
   },
   {
     "id": "app.pap.rehydrate_rank.app_error",
-    "translation": ""
+    "translation": "Не ўдалося аднавіць ранжыраваныя аператары ў выразе палітыкі."
   },
   {
     "id": "app.pap.save_policy.forbidden",
-    "translation": ""
+    "translation": "У вас няма дазволу ўносіць гэтую змену ў палітыку."
   },
   {
     "id": "app.pap.save_policy.invalid_value",
-    "translation": ""
+    "translation": "Выраз палітыкі змяшчае недапушчальнае значэнне."
   },
   {
     "id": "app.pap.save_policy.masked_condition_deleted",
-    "translation": ""
+    "translation": "Умова з замаскіраванымі значэннямі была выдалена. Калі ласка, перазагрузіце палітыку і паспрабуйце яшчэ раз."
   },
   {
     "id": "app.pap.save_policy.masked_token_in_expression",
-    "translation": ""
+    "translation": "Выраз палітыкі змяшчае значэнне-запаўняльнік, якое не ўдалося вызначыць. Калі ласка, перазагрузіце палітыку і паспрабуйце яшчэ раз."
   },
   {
     "id": "app.pap.save_policy.name_exists.app_error",
-    "translation": ""
+    "translation": "Палітыка з такой назвай ужо існуе. Калі ласка, выберыце іншую назву."
   },
   {
     "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
-    "translation": ""
+    "translation": "Гэтае правіла доступу выкарыстоўвае атрыбуты каналаў, якіх у каманд няма. Перад захаваннем выдаліце каманды, прызначаныя гэтай палітыцы."
   },
   {
     "id": "app.pap.save_policy.resolver_error",
-    "translation": ""
+    "translation": "Не ўдалося ініцыялізаваць распазнавальнік атрыбутаў для захавання палітыкі."
   },
   {
     "id": "app.pap.save_policy.resource_attributes_disabled",
-    "translation": ""
+    "translation": "Правілы доступу не могуць выкарыстоўваць атрыбуты каналаў на гэтым серверы. Гэтая магчымасць не ўключана."
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
-    "translation": ""
+    "translation": "Назвы правілаў дазволаў павінны быць унікальнымі ў межах палітыкі."
   },
   {
     "id": "app.pap.save_policy.self_exclusion",
-    "translation": ""
+    "translation": "Вы не адпавядаеце адной або некалькім умовам гэтай палітыкі."
   },
   {
     "id": "app.pap.save_policy.team_resource_attributes",
-    "translation": ""
+    "translation": "Гэтае правіла доступу выкарыстоўвае атрыбуты каналаў, якіх у каманд няма. Правілы доступу з атрыбутамі каналаў можна прымяняць толькі да каналаў."
   },
   {
     "id": "app.pap.simulate.attribute_refresh",
-    "translation": ""
+    "translation": "Не ўдалося абнавіць атрыбуты для сімуляцыі."
   },
   {
     "id": "app.pap.simulate.channel_required_for_resource",
-    "translation": ""
+    "translation": "Для сімуляцыі палітыкі, якая спасылаецца на атрыбуты каналаў, патрабуецца канал."
   },
   {
     "id": "app.pap.simulate.compile_failed",
-    "translation": ""
+    "translation": "Не ўдалося скампіляваць палітыку для сімуляцыі."
   },
   {
     "id": "app.pap.simulate.feature_disabled",
-    "translation": ""
+    "translation": "Функцыя палітык дазволаў зараз выключана."
   },
   {
     "id": "app.pap.simulate.invalid_policy",
-    "translation": ""
+    "translation": "Палітыка несапраўдная."
   },
   {
     "id": "app.pap.simulate.missing_actions",
-    "translation": ""
+    "translation": "Для сімуляцыі патрабуецца хаця б адно дзеянне."
   },
   {
     "id": "app.pap.simulate.missing_channel_id",
-    "translation": ""
+    "translation": "Для сімуляцыі палітыкі ў межах канала патрабуецца канал."
   },
   {
     "id": "app.pap.simulate.missing_policy",
-    "translation": ""
+    "translation": "Для сімуляцыі патрабуецца палітыка."
   },
   {
     "id": "app.pap.simulate.missing_users",
-    "translation": ""
+    "translation": "Для сімуляцыі патрабуецца хаця б адзін карыстальнік."
   },
   {
     "id": "app.pap.simulate.resolver_error",
-    "translation": ""
+    "translation": "Не ўдалося ініцыялізаваць распазнавальнік атрыбутаў для сімуляцыі палітыкі."
   },
   {
     "id": "app.pap.simulate.too_many_users",
-    "translation": ""
+    "translation": "Запытана занадта шмат карыстальнікаў. Максімальна дазволена: {{.Max}}."
   },
   {
     "id": "app.pap.simulate.unavailable",
-    "translation": ""
+    "translation": "Пункт адміністравання палітык (Policy Administration Point) не ініцыялізаваны."
   },
   {
     "id": "app.pap.simulate.unsupported_type",
-    "translation": ""
+    "translation": "Тып палітыкі \"{{.Type}}\" не падтрымліваецца сімулятарам."
   },
   {
     "id": "app.pap.unassign_access_control_policy_from_teams.app_error",
-    "translation": ""
+    "translation": "Не ўдалося зняць прызначэнне палітыкі кантролю доступу з каманд."
   },
   {
     "id": "app.pdp.access_evaluation.permission_policy.app_error",
-    "translation": ""
+    "translation": "Не ўдалося ацаніць палітыку дазволаў."
   },
   {
     "id": "app.plugin.addon_not_licensed.app_error",
-    "translation": ""
+    "translation": "Для гэтага плагіна патрабуецца дадатак {{.AddOn}}, які не ўключаны ў вашу ліцэнзію."
   },
   {
     "id": "app.plugin.guard_hook_failed.app_error",
-    "translation": ""
+    "translation": "Аперацыя адхілена: выклік хука плагіна-аховы {{.PluginID}} завяршыўся памылкай"
   },
   {
     "id": "app.plugin.inactive_guard.app_error",
-    "translation": ""
+    "translation": "Аперацыя адхілена: неабходны плагін неактыўны"
   },
   {
     "id": "app.post.get_author_ids_for_channel.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць ідэнтыфікатары аўтараў паведамленняў для канала."
   },
   {
     "id": "app.post.get_author_ids_for_team.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць ідэнтыфікатары аўтараў паведамленняў для каманды."
   },
   {
     "id": "app.post.get_posts_for_view.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць паведамленні для прадстаўлення."
   },
   {
     "id": "app.post.property_values.field_bound_exceeded.app_error",
-    "translation": ""
+    "translation": "Колькасць атрыбутаў, якія прымяняюцца да гэтага паведамлення, перавышае падтрымліваемы ліміт."
   },
   {
     "id": "app.post.property_values.value_bound_exceeded.app_error",
-    "translation": ""
+    "translation": "Колькасць значэнняў атрыбутаў для гэтых паведамленняў перавышае падтрымліваемы ліміт."
   },
   {
     "id": "app.post_prority.get_for_post_with_context.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць прыярытэт паведамлення з кантэкстам"
   },
   {
     "id": "app.property.access_denied.app_error",
-    "translation": ""
+    "translation": "У вас няма дазволу на выкананне гэтай аперацыі."
   },
   {
     "id": "app.property.invalid_access_mode.app_error",
-    "translation": ""
+    "translation": "Атрыбут access_mode несапраўдны."
   },
   {
     "id": "app.property.invalid_input.app_error",
-    "translation": ""
+    "translation": "Змена ўласцівасці адхілена."
   },
   {
     "id": "app.property.license_error",
-    "translation": ""
+    "translation": "Ваша ліцэнзія не падтрымлівае гэтую групу ўласцівасцей."
   },
   {
     "id": "app.property.not_found.app_error",
-    "translation": ""
+    "translation": "Указаная ўласцівасць не існуе."
   },
   {
     "id": "app.property.sync_lock.app_error",
-    "translation": ""
+    "translation": "Гэтым полем уласцівасці кіруе знешняя сінхранізацыя, і яго нельга змяніць напрамую."
   },
   {
     "id": "app.property_field.count_for_group.app_error",
-    "translation": ""
+    "translation": "Немагчыма падлічыць палі ўласцівасцей для групы."
   },
   {
     "id": "app.property_field.count_for_target.app_error",
-    "translation": ""
+    "translation": "Немагчыма падлічыць палі ўласцівасцей для мэты."
   },
   {
     "id": "app.property_field.create.app_error",
-    "translation": ""
+    "translation": "Немагчыма стварыць поле ўласцівасці."
   },
   {
     "id": "app.property_field.create.group_limit_reached.app_error",
-    "translation": ""
+    "translation": "Дасягнута максімальная колькасць палёў уласцівасцей для гэтай групы."
   },
   {
     "id": "app.property_field.create.limit_reached.app_error",
-    "translation": ""
+    "translation": "Дасягнута максімальная колькасць палёў уласцівасцей для гэтага тыпу аб’екта."
   },
   {
     "id": "app.property_field.create.linked_source_cross_group.app_error",
-    "translation": ""
+    "translation": "Немагчыма звязаць з полем з іншай групы."
   },
   {
     "id": "app.property_field.create.linked_source_deleted.app_error",
-    "translation": ""
+    "translation": "Звязанае зыходнае поле было выдалена."
   },
   {
     "id": "app.property_field.create.linked_source_is_linked.app_error",
-    "translation": ""
+    "translation": "Немагчыма звязаць з полем, якое само з’яўляецца звязаным. Ланцужкі не дазволены."
   },
   {
     "id": "app.property_field.create.linked_source_not_found.app_error",
-    "translation": ""
+    "translation": "Звязанае зыходнае поле не знойдзена."
   },
   {
     "id": "app.property_field.create.linked_source_not_template.app_error",
-    "translation": ""
+    "translation": "Звязваць можна толькі з палямі шаблонаў."
   },
   {
     "id": "app.property_field.create.linked_source_protected.app_error",
-    "translation": ""
+    "translation": "Толькі зыходны плагін можа ствараць звязаныя палі з абароненага шаблона."
   },
   {
     "id": "app.property_field.create.linked_target_type_mismatch.app_error",
-    "translation": ""
+    "translation": "Тып мэты звязанага поля павінен супадаць з тыпам мэты зыходнага шаблона."
   },
   {
     "id": "app.property_field.create.name_conflict.app_error",
-    "translation": ""
+    "translation": "Немагчыма стварыць уласцівасць \"{{.Name}}\": уласцівасць з такой назвай ужо існуе на ўзроўні {{.ConflictLevel}}."
   },
   {
     "id": "app.property_field.create.protected.app_error",
-    "translation": ""
+    "translation": "Немагчыма стварыць абароненае поле ўласцівасці."
   },
   {
     "id": "app.property_field.create.target_limit_reached.app_error",
-    "translation": ""
+    "translation": "Дасягнута максімальная колькасць палёў уласцівасцей для гэтай мэты."
   },
   {
     "id": "app.property_field.create.template_cannot_be_linked.app_error",
-    "translation": ""
+    "translation": "Палі шаблонаў не могуць мець звязанага поля."
   },
   {
     "id": "app.property_field.delete.app_error",
-    "translation": ""
+    "translation": "Немагчыма выдаліць поле ўласцівасці."
   },
   {
     "id": "app.property_field.delete.get_existing.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць поле ўласцівасці для выдалення."
   },
   {
     "id": "app.property_field.delete.has_linked_dependents.app_error",
-    "translation": ""
+    "translation": "Немагчыма выдаліць поле, ад якога залежаць актыўныя звязаныя палі. Спачатку адвяжыце або выдаліце залежныя палі."
   },
   {
     "id": "app.property_field.delete.not_found.app_error",
-    "translation": ""
+    "translation": "Поле ўласцівасці не знойдзена."
   },
   {
     "id": "app.property_field.delete.protected.app_error",
-    "translation": ""
+    "translation": "Немагчыма выдаліць абароненае поле ўласцівасці."
   },
   {
     "id": "app.property_field.get.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць поле ўласцівасці."
   },
   {
     "id": "app.property_field.get_by_name.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць поле ўласцівасці па назве."
   },
   {
     "id": "app.property_field.get_for_group.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць палі ўласцівасцей для групы."
   },
   {
     "id": "app.property_field.get_many.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць палі ўласцівасцей."
   },
   {
     "id": "app.property_field.graph_disabled.app_error",
-    "translation": ""
+    "translation": "Палі ўласцівасцей тыпу graph не ўключаны."
   },
   {
     "id": "app.property_field.invalid_attrs.app_error",
-    "translation": ""
+    "translation": "Несапраўдныя атрыбуты поля ўласцівасці."
   },
   {
     "id": "app.property_field.invalid_input.app_error",
-    "translation": ""
+    "translation": "Перададзены несапраўдныя ўваходныя даныя."
   },
   {
     "id": "app.property_field.managed_admin.permission.app_error",
-    "translation": ""
+    "translation": "У вас няма дазволу пазначаць гэтае поле ўласцівасці як кіраванае адміністратарам."
   },
   {
     "id": "app.property_field.not_found.app_error",
-    "translation": ""
+    "translation": "Указанае поле ўласцівасці не існуе."
   },
   {
     "id": "app.property_field.options.create.app_error",
-    "translation": ""
+    "translation": "Немагчыма дадаць варыянты поля ўласцівасці."
   },
   {
     "id": "app.property_field.options.delete.app_error",
-    "translation": ""
+    "translation": "Немагчыма выдаліць варыянты поля ўласцівасці."
   },
   {
     "id": "app.property_field.options.get.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць варыянты поля ўласцівасці."
   },
   {
     "id": "app.property_field.options.invalid.app_error",
-    "translation": ""
+    "translation": "Варыянты поля ўласцівасці адхілены: {{.Reason}}."
   },
   {
     "id": "app.property_field.options.invalid_item.app_error",
-    "translation": ""
+    "translation": "Варыянт поля ўласцівасці з індэксам {{.Index}} {{.Reason}}."
   },
   {
     "id": "app.property_field.options.update.app_error",
-    "translation": ""
+    "translation": "Немагчыма абнавіць варыянты поля ўласцівасці."
   },
   {
     "id": "app.property_field.rank_disabled.app_error",
-    "translation": ""
+    "translation": "Палі ўласцівасцей тыпу rank не ўключаны."
   },
   {
     "id": "app.property_field.required_disabled.app_error",
-    "translation": ""
+    "translation": "Гэты атрыбут нельга пазначыць як абавязковы, пакуль выключана прымусовае выкананне абавязковых атрыбутаў."
   },
   {
     "id": "app.property_field.search.app_error",
-    "translation": ""
+    "translation": "Немагчыма выканаць пошук палёў уласцівасцей."
   },
   {
     "id": "app.property_field.update.app_error",
-    "translation": ""
+    "translation": "Немагчыма абнавіць палі ўласцівасцей."
   },
   {
     "id": "app.property_field.update.cannot_change_link_target.app_error",
-    "translation": ""
+    "translation": "Немагчыма змяніць мэту сувязі. Спачатку адвяжыце поле, а затым стварыце новае звязанае поле."
   },
   {
     "id": "app.property_field.update.cannot_link_existing.app_error",
-    "translation": ""
+    "translation": "Немагчыма задаць linked_field_id для існуючага поля. Яго можна задаць толькі пры стварэнні."
   },
   {
     "id": "app.property_field.update.conflict.app_error",
-    "translation": ""
+    "translation": "Немагчыма абнавіць поле ўласцівасці з-за канфлікту. Калі ласка, паўтарыце спробу."
   },
   {
     "id": "app.property_field.update.get_existing.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць палі ўласцівасцей для абнаўлення."
   },
   {
     "id": "app.property_field.update.graph_type_change.app_error",
-    "translation": ""
+    "translation": "Немагчыма пераўтварыць поле ўласцівасці ў тып graph або з яго. Замест гэтага стварыце поле патрэбнага тыпу."
   },
   {
     "id": "app.property_field.update.linked_options_change.app_error",
-    "translation": ""
+    "translation": "Немагчыма змяніць варыянты звязанага поля. Варыянты наследуюцца ад зыходнага поля."
   },
   {
     "id": "app.property_field.update.linked_type_change.app_error",
-    "translation": ""
+    "translation": "Немагчыма змяніць тып звязанага поля. Тып наследуецца ад зыходнага поля."
   },
   {
     "id": "app.property_field.update.name_conflict.app_error",
-    "translation": ""
+    "translation": "Немагчыма перайменаваць уласцівасць у \"{{.Name}}\": уласцівасць з такой назвай ужо існуе на ўзроўні {{.ConflictLevel}}."
   },
   {
     "id": "app.property_field.update.options_withheld.app_error",
-    "translation": ""
+    "translation": "Гэтая ўласцівасць мае больш за {{.Max}} варыянтаў, таму яе спіс варыянтаў не быў загружаны і не можа быць заменены. Замест гэтага рэдагуйце варыянты паасобку."
   },
   {
     "id": "app.property_field.update.protected.app_error",
-    "translation": ""
+    "translation": "Немагчыма абнавіць абароненае поле ўласцівасці."
   },
   {
     "id": "app.property_field.update.type_change_with_dependents.app_error",
-    "translation": ""
+    "translation": "Немагчыма змяніць тып поля, ад якога залежаць актыўныя звязаныя палі."
   },
   {
     "id": "app.property_field.version_mismatch.app_error",
-    "translation": ""
+    "translation": "Версіі поля ўласцівасці і групы несумяшчальныя."
   },
   {
     "id": "app.property_group.get.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць групу ўласцівасцей."
   },
   {
     "id": "app.property_group.register.app_error",
-    "translation": ""
+    "translation": "Немагчыма зарэгістраваць групу ўласцівасцей."
   },
   {
     "id": "app.property_value.change_policy.lower_only.app_error",
-    "translation": ""
+    "translation": "Гэты атрыбут можна толькі паніжаць, але не павышаць."
   },
   {
     "id": "app.property_value.change_policy.never.app_error",
-    "translation": ""
+    "translation": "Гэты атрыбут нельга змяніць пасля таго, як ён зададзены."
   },
   {
     "id": "app.property_value.change_policy.raise_only.app_error",
-    "translation": ""
+    "translation": "Гэты атрыбут можна толькі павышаць, але не паніжаць."
   },
   {
     "id": "app.property_value.create.app_error",
-    "translation": ""
+    "translation": "Немагчыма стварыць значэнне ўласцівасці."
   },
   {
     "id": "app.property_value.create_many.app_error",
-    "translation": ""
+    "translation": "Немагчыма стварыць значэнні ўласцівасцей."
   },
   {
     "id": "app.property_value.delete.app_error",
-    "translation": ""
+    "translation": "Немагчыма выдаліць значэнне ўласцівасці."
   },
   {
     "id": "app.property_value.delete_for_field.app_error",
-    "translation": ""
+    "translation": "Немагчыма выдаліць значэнні ўласцівасцей для поля."
   },
   {
     "id": "app.property_value.delete_for_target.app_error",
-    "translation": ""
+    "translation": "Немагчыма выдаліць значэнні ўласцівасцей для мэты."
   },
   {
     "id": "app.property_value.direct_channel.app_error",
-    "translation": ""
+    "translation": "Атрыбуты асабістых і групавых паведамленняў нельга задаваць напрамую."
   },
   {
     "id": "app.property_value.get.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць значэнне ўласцівасці."
   },
   {
     "id": "app.property_value.get_many.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць значэнні ўласцівасцей."
   },
   {
     "id": "app.property_value.invalid_input.app_error",
-    "translation": ""
+    "translation": "Перададзены несапраўдныя ўваходныя даныя."
   },
   {
     "id": "app.property_value.required.app_error",
-    "translation": ""
+    "translation": "Гэты атрыбут абавязковы, яго нельга пакінуць пустым."
   },
   {
     "id": "app.property_value.resolve_broadcast_params.unknown_object_type.app_error",
-    "translation": ""
+    "translation": "Нераспазнаны тып аб’екта \"{{.ObjectType}}\" для рассылкі значэння ўласцівасці."
   },
   {
     "id": "app.property_value.search.app_error",
-    "translation": ""
+    "translation": "Немагчыма выканаць пошук значэнняў уласцівасцей."
   },
   {
     "id": "app.property_value.template_no_values.app_error",
-    "translation": ""
+    "translation": "Палі шаблонаў не могуць мець значэнняў."
   },
   {
     "id": "app.property_value.update.app_error",
-    "translation": ""
+    "translation": "Немагчыма абнавіць значэнне ўласцівасці."
   },
   {
     "id": "app.property_value.update_many.app_error",
-    "translation": ""
+    "translation": "Немагчыма абнавіць значэнні ўласцівасцей."
   },
   {
     "id": "app.property_value.upsert.app_error",
-    "translation": ""
+    "translation": "Немагчыма стварыць або абнавіць значэнні ўласцівасцей."
   },
   {
     "id": "app.property_value.upsert.duplicate_field_id.app_error",
-    "translation": ""
+    "translation": "Паўторны ідэнтыфікатар поля ў пакеце значэнняў уласцівасцей."
   },
   {
     "id": "app.property_value.upsert.field_not_found.app_error",
-    "translation": ""
+    "translation": "Поле ўласцівасці {{.FieldID}} не знойдзена."
   },
   {
     "id": "app.property_value.upsert.invalid_field_id.app_error",
-    "translation": ""
+    "translation": "Несапраўдны ідэнтыфікатар поля ўласцівасці."
   },
   {
     "id": "app.property_value.upsert.mixed_groups.app_error",
-    "translation": ""
+    "translation": "Усе значэнні ўласцівасцей у пакеце павінны належаць да адной групы ўласцівасцей."
   },
   {
     "id": "app.property_value.upsert.object_type_mismatch.app_error",
-    "translation": ""
+    "translation": "Тып аб’екта поля ўласцівасці не адпавядае запыту."
   },
   {
     "id": "app.property_value.upsert_many.app_error",
-    "translation": ""
+    "translation": "Немагчыма стварыць або абнавіць значэнні ўласцівасцей."
   },
   {
     "id": "app.property_value.validate.app_error",
-    "translation": ""
+    "translation": "Значэнне ўласцівасці не прайшло праверку."
   },
   {
     "id": "app.reaction.get_author_ids_for_channel.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць ідэнтыфікатары аўтараў рэакцый для канала."
   },
   {
     "id": "app.recap.cooldown_active.app_error",
-    "translation": ""
+    "translation": "Палітыка вашай арганізацыі патрабуе перапынку ў {{.CooldownMinutes}} хв. паміж аглядамі. Вы зможаце стварыць наступны агляд праз {{.RetryAfterMinutes}} хв."
   },
   {
     "id": "app.recap.cooldown_check_failed.app_error",
-    "translation": ""
+    "translation": "Не ўдалося праверыць статус перапынку."
   },
   {
     "id": "app.recap.delete.app_error",
-    "translation": ""
+    "translation": "Не ўдалося выдаліць агляд."
   },
   {
     "id": "app.recap.delete_channels.app_error",
-    "translation": ""
+    "translation": "Не ўдалося выдаліць каналы агляду."
   },
   {
     "id": "app.recap.get.app_error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць агляд."
   },
   {
     "id": "app.recap.get_channel.app_error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць канал."
   },
   {
     "id": "app.recap.get_channels.app_error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць каналы агляду."
   },
   {
     "id": "app.recap.get_daily_count.app_error",
-    "translation": ""
+    "translation": "Не ўдалося праверыць ліміты аглядаў."
   },
   {
     "id": "app.recap.get_last_viewed.app_error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць час апошняга прагляду."
   },
   {
     "id": "app.recap.get_team.app_error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць каманду."
   },
   {
     "id": "app.recap.list.app_error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць агляды."
   },
   {
     "id": "app.recap.mark_read.app_error",
-    "translation": ""
+    "translation": "Не ўдалося пазначыць агляд як прачытаны."
   },
   {
     "id": "app.recap.mark_viewed.app_error",
-    "translation": ""
+    "translation": "Не ўдалося пазначыць агляды як прагледжаныя."
   },
   {
     "id": "app.recap.max_channels_exceeded.app_error",
-    "translation": ""
+    "translation": "Палітыка вашай арганізацыі абмяжоўвае агляды {{.Limit}} каналамі. Вы запыталі каналаў: {{.Requested}}."
   },
   {
     "id": "app.recap.max_recaps_reached.app_error",
-    "translation": ""
+    "translation": "Палітыка вашай арганізацыі абмяжоўвае вас {{.Limit}} аглядамі ў дзень. Калі ласка, паспрабуйце заўтра."
   },
   {
     "id": "app.recap.permission_denied",
-    "translation": ""
+    "translation": "Няма дазволу на агляд."
   },
   {
     "id": "app.recap.save.app_error",
-    "translation": ""
+    "translation": "Не ўдалося захаваць агляд."
   },
   {
     "id": "app.recap.save_channel.app_error",
-    "translation": ""
+    "translation": "Не ўдалося захаваць канал агляду."
   },
   {
     "id": "app.recap.sum_daily_posts.app_error",
-    "translation": ""
+    "translation": "Не ўдалося праверыць выкарыстанне паведамленняў у аглядах."
   },
   {
     "id": "app.recap.update.app_error",
-    "translation": ""
+    "translation": "Не ўдалося абнавіць агляд."
   },
   {
     "id": "app.role.send_updated_role_event.app_error",
-    "translation": ""
+    "translation": "Адбылася памылка падчас рассылкі абнаўлення ролі."
   },
   {
     "id": "app.role.send_updated_role_event.unknown_scope",
-    "translation": ""
+    "translation": "Адбылася памылка падчас рассылкі абнаўлення ролі: невядомая вобласць схемы."
   },
   {
     "id": "app.scheduled_post.recurring_disabled.app_error",
-    "translation": ""
+    "translation": "Паўторныя запланаваныя паведамленні выключаны на гэтым серверы."
   },
   {
     "id": "app.scheduled_post.save.rejected_by_plugin",
-    "translation": ""
+    "translation": "Запланаванае паведамленне адхілена плагінам: {{.Reason}}"
   },
   {
     "id": "app.scheduled_post.update.rejected_by_plugin",
-    "translation": ""
+    "translation": "Абнаўленне запланаванага паведамлення адхілена плагінам: {{.Reason}}"
   },
   {
     "id": "app.scheduled_recap.compute_next_run.app_error",
-    "translation": ""
+    "translation": "Немагчыма вылічыць наступны запуск запланаванага агляду."
   },
   {
     "id": "app.scheduled_recap.create.app_error",
-    "translation": ""
+    "translation": "Немагчыма стварыць запланаваны агляд."
   },
   {
     "id": "app.scheduled_recap.delete.app_error",
-    "translation": ""
+    "translation": "Немагчыма выдаліць запланаваны агляд."
   },
   {
     "id": "app.scheduled_recap.get.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць запланаваны агляд."
   },
   {
     "id": "app.scheduled_recap.get_unreads.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць каналы з непрачытанымі паведамленнямі для запланаванага агляду."
   },
   {
     "id": "app.scheduled_recap.list.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць запланаваныя агляды."
   },
   {
     "id": "app.scheduled_recap.max_channels_exceeded.app_error",
-    "translation": ""
+    "translation": "Палітыка вашай арганізацыі абмяжоўвае агляды {{.Limit}} каналамі. Вы запыталі каналаў: {{.Requested}}."
   },
   {
     "id": "app.scheduled_recap.max_scheduled_reached.app_error",
-    "translation": ""
+    "translation": "Палітыка вашай арганізацыі абмяжоўвае вас {{.Limit}} запланаванымі аглядамі. Калі ласка, выдаліце існуючы запланаваны агляд, перш чым ствараць новы."
   },
   {
     "id": "app.scheduled_recap.no_channels.app_error",
-    "translation": ""
+    "translation": "Запланаваны агляд павінен уключаць хаця б адзін канал."
   },
   {
     "id": "app.scheduled_recap.pause.app_error",
-    "translation": ""
+    "translation": "Немагчыма прыпыніць запланаваны агляд."
   },
   {
     "id": "app.scheduled_recap.resume.app_error",
-    "translation": ""
+    "translation": "Немагчыма ўзнавіць запланаваны агляд."
   },
   {
     "id": "app.scheduled_recap.save_recap.app_error",
-    "translation": ""
+    "translation": "Немагчыма захаваць агляд для запланаванага агляду."
   },
   {
     "id": "app.scheduled_recap.update.app_error",
-    "translation": ""
+    "translation": "Немагчыма абнавіць запланаваны агляд."
   },
   {
     "id": "app.session.revoke_other_sessions.empty_device_id.app_error",
-    "translation": ""
+    "translation": "Ідэнтыфікатар прылады не можа быць пустым."
   },
   {
     "id": "app.session.revoke_other_sessions.empty_voip_device_id.app_error",
-    "translation": ""
+    "translation": "Ідэнтыфікатар прылады VoIP не можа быць пустым."
   },
   {
     "id": "app.session_attributes.field_immutable.app_error",
-    "translation": ""
+    "translation": "Палі атрыбутаў сеанса нельга ствараць або выдаляць; змяняць можна толькі іх enabled, ttl_seconds і grace_period_seconds."
   },
   {
     "id": "app.submit_interactive_dialog.file_not_owned",
-    "translation": ""
+    "translation": "Файл {{.FileId}} не належыць карыстальніку, які адправіў форму."
   },
   {
     "id": "app.submit_interactive_dialog.get_file_info_error",
-    "translation": ""
+    "translation": "Немагчыма праверыць перададзеныя ідэнтыфікатары файлаў."
   },
   {
     "id": "app.submit_interactive_dialog.invalid_file_id",
-    "translation": ""
+    "translation": "Файл {{.FileId}} несапраўдны або недаступны."
   },
   {
     "id": "app.submit_interactive_dialog.too_many_file_ids",
-    "translation": ""
+    "translation": "Перададзена занадта шмат ідэнтыфікатараў файлаў. Максімальна дазволена: {{.Max}}."
   },
   {
     "id": "app.submit_interactive_dialog.too_many_submission_ids",
-    "translation": ""
+    "translation": "У адпраўленай форме занадта шмат значэнняў у выглядзе ідэнтыфікатараў. Максімальна дазволена: {{.Max}}."
   },
   {
     "id": "app.system.data_spillage_bot.bot_displayname",
-    "translation": ""
+    "translation": "Бот уцечак даных"
   },
   {
     "id": "app.team.access_policies.channel_not_found.app_error",
-    "translation": ""
+    "translation": "Адзін або некалькі каналаў не знойдзены."
   },
   {
     "id": "app.team.access_policies.channel_wrong_team.app_error",
-    "translation": ""
+    "translation": "Канал {{.ChannelId}} не належыць гэтай камандзе."
   },
   {
     "id": "app.team.access_policies.channels_required.app_error",
-    "translation": ""
+    "translation": "Патрабуецца хаця б адзін канал."
   },
   {
     "id": "app.team.access_policies.ownership_check.app_error",
-    "translation": ""
+    "translation": "Немагчыма праверыць прыналежнасць палітыкі гэтай камандзе."
   },
   {
     "id": "app.team.access_policies.reconcile_scope.app_error",
-    "translation": ""
+    "translation": "Не ўдалося ўзгадніць вобласць каманды ў палітыцы."
   },
   {
     "id": "app.team.access_policies.self_exclusion.app_error",
-    "translation": ""
+    "translation": "Вы не можаце стварыць палітыку, якая выключыла б вас саміх."
   },
   {
     "id": "app.team.access_policies.validation_error.app_error",
-    "translation": ""
+    "translation": "Не ўдалося праверыць правілы палітыкі."
   },
   {
     "id": "app.team.join_user_to_team.rejected_by_plugin",
-    "translation": ""
+    "translation": "Даданне ўдзельніка каманды адхілена плагінам: {{.Reason}}"
   },
   {
     "id": "app.thread.get_follower_ids_for_channel.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць ідэнтыфікатары падпісчыкаў гілак для канала."
   },
   {
     "id": "app.toast.send_toast_message.message.app_error",
-    "translation": ""
+    "translation": "Патрабуецца паведамленне"
   },
   {
     "id": "app.toast.send_toast_message.user_id.app_error",
-    "translation": ""
+    "translation": "Патрабуецца ідэнтыфікатар карыстальніка"
   },
   {
     "id": "app.upload.gen_file_info.invalid_filename.app_error",
-    "translation": ""
+    "translation": "Несапраўднае імя файла."
   },
   {
     "id": "app.user.analytics_get_single_channel_guest_count.app_error",
-    "translation": ""
+    "translation": "Не ўдалося атрымаць колькасць гасцей аднаго канала для аналітыкі."
   },
   {
     "id": "app.user.get_by_auth.app_error",
-    "translation": ""
+    "translation": "Немагчыма знайсці карыстальніка па даных аўтэнтыфікацыі."
   },
   {
     "id": "app.user.update.reserved_username.app_error",
-    "translation": ""
+    "translation": "Гэтае імя карыстальніка зарэзервавана для сістэмнага бота."
   },
   {
     "id": "app.user_access_token.bot_expired_deleted_notification",
-    "translation": ""
+    "translation": "Тэрмін дзеяння персанальнага токена доступу \"{{.Description}}\" для ўліковага запісу бота @{{.BotUsername}} скончыўся, і токен быў выдалены. Адкрыйце **Інтэграцыі > Уліковыя запісы ботаў**, каб стварыць новы токен."
   },
   {
     "id": "app.user_access_token.count_non_compliant.app_error",
-    "translation": ""
+    "translation": "Немагчыма падлічыць персанальныя токены доступу, якія парушаюць палітыку максімальнага тэрміну дзеяння."
   },
   {
     "id": "app.user_access_token.expired",
-    "translation": ""
+    "translation": "Тэрмін дзеяння персанальнага токена доступу скончыўся."
   },
   {
     "id": "app.user_access_token.expired_deleted_notification",
-    "translation": ""
+    "translation": "Тэрмін дзеяння вашага персанальнага токена доступу \"{{.Description}}\" скончыўся, і токен быў выдалены. Адкрыйце **Профіль → Бяспека**, каб стварыць новы токен."
   },
   {
     "id": "app.user_access_token.expires_at_in_past.app_error",
-    "translation": ""
+    "translation": "Указанае значэнне expires_at знаходзіцца ў мінулым."
   },
   {
     "id": "app.user_access_token.expires_at_required.app_error",
-    "translation": ""
+    "translation": "Персанальныя токены доступу павінны мець дату заканчэння, бо сервер прымусова абмяжоўвае максімальны тэрмін дзеяння токенаў."
   },
   {
     "id": "app.user_access_token.expires_at_too_far.app_error",
-    "translation": ""
+    "translation": "Указанае значэнне expires_at перавышае наладжаны максімальны тэрмін дзеяння персанальнага токена доступу ({{.Days}} дн.)."
   },
   {
     "id": "app.user_access_token.get_expiring.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць персанальныя токены доступу, тэрмін дзеяння якіх заканчваецца."
   },
   {
     "id": "app.user_access_token.revoke_non_compliant.no_policy.app_error",
-    "translation": ""
+    "translation": "Максімальны тэрмін дзеяння персанальных токенаў доступу не наладжаны, таму няма токенаў-парушальнікаў для адклікання."
   },
   {
     "id": "app.user_access_token.revoke_non_compliant.partial.app_error",
-    "translation": ""
+    "translation": "Ліміт пакета быў дасягнуты раней, чым удалося адклікаць усе токены-парушальнікі. Запусціце аперацыю яшчэ раз, каб працягнуць."
   },
   {
     "id": "app.user_access_token.rotate.app_error",
-    "translation": ""
+    "translation": "Немагчыма перагенераваць токен доступу."
   },
   {
     "id": "app.view.count_for_channel.app_error",
-    "translation": ""
+    "translation": "Не ўдалося падлічыць прадстаўленні для канала."
   },
   {
     "id": "app.view.create.app_error",
-    "translation": ""
+    "translation": "Немагчыма стварыць прадстаўленне."
   },
   {
     "id": "app.view.create.count.app_error",
-    "translation": ""
+    "translation": "Не ўдалося падлічыць прадстаўленні для канала."
   },
   {
     "id": "app.view.create.limit.app_error",
-    "translation": ""
+    "translation": "Гэты канал дасягнуў максімальнай колькасці прадстаўленняў."
   },
   {
     "id": "app.view.create.nil_view.app_error",
-    "translation": ""
+    "translation": "Патрабуецца прадстаўленне."
   },
   {
     "id": "app.view.delete.app_error",
-    "translation": ""
+    "translation": "Немагчыма выдаліць прадстаўленне."
   },
   {
     "id": "app.view.delete.nil_view.app_error",
-    "translation": ""
+    "translation": "Патрабуецца прадстаўленне."
   },
   {
     "id": "app.view.delete.not_found.app_error",
-    "translation": ""
+    "translation": "Прадстаўленне не знойдзена."
   },
   {
     "id": "app.view.get.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць прадстаўленне."
   },
   {
     "id": "app.view.get.not_found.app_error",
-    "translation": ""
+    "translation": "Прадстаўленне не знойдзена."
   },
   {
     "id": "app.view.get_for_channel.app_error",
-    "translation": ""
+    "translation": "Немагчыма атрымаць прадстаўленні для гэтага канала."
   },
   {
     "id": "app.view.get_for_channel.invalid_input.app_error",
-    "translation": ""
+    "translation": "Несапраўдныя ўваходныя даныя пры атрыманні прадстаўленняў для канала."
   },
   {
     "id": "app.view.update.app_error",
-    "translation": ""
+    "translation": "Немагчыма абнавіць прадстаўленне."
   },
   {
     "id": "app.view.update.nil_view.app_error",
-    "translation": ""
+    "translation": "Патрабуецца прадстаўленне."
   },
   {
     "id": "app.view.update.not_found.app_error",
-    "translation": ""
+    "translation": "Прадстаўленне не знойдзена."
   },
   {
     "id": "app.view.update_sort_order.app_error",
-    "translation": ""
+    "translation": "Немагчыма абнавіць парадак сартавання прадстаўленняў."
   },
   {
     "id": "app.view.update_sort_order.invalid_input.app_error",
-    "translation": ""
+    "translation": "Несапраўдныя ўваходныя даныя для абнаўлення парадку сартавання прадстаўленняў."
   },
   {
     "id": "app.view.update_sort_order.not_found.app_error",
-    "translation": ""
+    "translation": "Прадстаўленне не знойдзена."
   },
   {
     "id": "ent.autotranslation.add_task.missing_object_id",
-    "translation": ""
+    "translation": "Задача перакладу павінна змяшчаць ідэнтыфікатар аб’екта."
   },
   {
     "id": "ent.autotranslation.add_task.missing_object_type",
-    "translation": ""
+    "translation": "Задача перакладу павінна змяшчаць тып аб’екта."
   },
   {
     "id": "ent.autotranslation.add_task.nil_task",
-    "translation": ""
+    "translation": "Задача перакладу не можа быць пустой (null)."
   },
   {
     "id": "ent.autotranslation.add_task.worker_stopped",
-    "translation": ""
+    "translation": "Немагчыма дадаць задачу перакладу, бо апрацоўшчык быў спынены."
   },
   {
     "id": "ent.autotranslation.create_translation_failed",
-    "translation": ""
+    "translation": "Не ўдалося стварыць пераклад."
   },
   {
     "id": "ent.autotranslation.detect_language.nil_context",
-    "translation": ""
+    "translation": "Для вызначэння мовы патрабуецца кантэкст."
   },
   {
     "id": "ent.autotranslation.detect_language.text_too_large",
-    "translation": ""
+    "translation": "Тэкст перавышае максімальны памер для вызначэння мовы."
   },
   {
     "id": "ent.autotranslation.detect_remote.error",
-    "translation": ""
+    "translation": "Не ўдалося вызначыць мову з дапамогай пастаўшчыка перакладу."
   },
   {
     "id": "ent.autotranslation.extract_content.mask_error",
-    "translation": ""
+    "translation": "Не ўдалося замаскіраваць змесціва для перакладу."
   },
   {
     "id": "ent.autotranslation.extract_post.nil_post",
-    "translation": ""
+    "translation": "Аб’ект паведамлення не можа быць пустым (null)."
   },
   {
     "id": "ent.autotranslation.feature_unavailable",
-    "translation": ""
+    "translation": "Аўтапераклад недаступны. Калі ласка, звярніцеся да сістэмнага адміністратара наконт абнаўлення вашай карпаратыўнай ліцэнзіі."
   },
   {
     "id": "ent.autotranslation.invalid_input",
-    "translation": ""
+    "translation": "Указаны несапраўдны код мовы."
   },
   {
     "id": "ent.autotranslation.mask_verification_failed",
-    "translation": ""
+    "translation": "Не ўдалося абнавіць пераклад новымі значэннямі масак."
   },
   {
     "id": "ent.autotranslation.no_translatable_content",
-    "translation": ""
+    "translation": "Змесціва не ўтрымлівае тэксту для перакладу."
   },
   {
     "id": "ent.autotranslation.provider_not_available",
-    "translation": ""
+    "translation": "Пастаўшчык перакладу недаступны."
   },
   {
     "id": "ent.autotranslation.provider_not_initialized",
-    "translation": ""
+    "translation": "Пастаўшчык перакладу не ініцыялізаваны."
   },
   {
     "id": "ent.autotranslation.store_error",
-    "translation": ""
+    "translation": "Немагчыма апрацаваць запыт на аўтапераклад."
   },
   {
     "id": "ent.autotranslation.unmask.missing_mask",
-    "translation": ""
+    "translation": "Пераклад змяшчае нераспазнаныя токены."
   },
   {
     "id": "ent.autotranslation.unmask.orphan_token",
-    "translation": ""
+    "translation": "Пераклад змяшчае несапраўдныя токены."
   },
   {
     "id": "ent.autotranslation.validate_content.invalid_json",
-    "translation": ""
+    "translation": "Немагчыма разабраць змесціва JSON."
   },
   {
     "id": "ent.autotranslation.validate_content.invalid_type",
-    "translation": ""
+    "translation": "Непадтрымліваемы тып змесціва для перакладу."
   },
   {
     "id": "ent.autotranslation.validate_content.nil_content",
-    "translation": ""
+    "translation": "Змесціва не можа быць пустым (null)."
   },
   {
     "id": "ent.autotranslation.validate_content.text_too_large",
-    "translation": ""
+    "translation": "Змесціва перавышае максімальны памер для перакладу."
   },
   {
     "id": "ent.autotranslation.validate_id.empty",
-    "translation": ""
+    "translation": "Абавязковы ідэнтыфікатар не можа быць пустым."
   },
   {
     "id": "ent.autotranslation.validate_id.invalid",
-    "translation": ""
+    "translation": "Несапраўдны фармат ідэнтыфікатара."
   },
   {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
-    "translation": ""
+    "translation": "{{.Backend}} не ўдалося запоўніць тып канала ў паведамленнях"
   },
   {
     "id": "ent.elasticsearch.delete_files_batch.error",
-    "translation": ""
+    "translation": "Не ўдалося выдаліць пакет файлаў"
   },
   {
     "id": "ent.elasticsearch.healthcheck.not_started.app_error",
-    "translation": ""
+    "translation": "{{.Backend}} не запушчаны."
   },
   {
     "id": "ent.elasticsearch.healthcheck.unreachable.app_error",
-    "translation": ""
+    "translation": "Праверка стану {{.Backend}} не ўдалася: не атрымалася завершыць праверку."
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.bulk_failures.error",
-    "translation": ""
+    "translation": "Задача індэксавання завершана, але пошукавы сервер адхіліў і не праіндэксаваў дакументаў: {{.NumFailed}}"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.create_bulk_processor.error",
-    "translation": ""
+    "translation": "Апрацоўшчыку індэксавання не ўдалося ініцыялізаваць пакетны працэсар"
   },
   {
     "id": "ent.elasticsearch.update_posts_channel_type.error",
-    "translation": ""
+    "translation": "{{.Backend}} не ўдалося абнавіць тып канала ў паведамленнях"
   },
   {
     "id": "ent.ldap.validate_group_filter.app_error",
-    "translation": ""
+    "translation": "Несапраўдны фільтр груп AD/LDAP."
   },
   {
     "id": "model.access_control_decision.is_valid.action_empty.app_error",
-    "translation": ""
+    "translation": "Назвы дзеянняў не могуць быць пустымі."
   },
   {
     "id": "model.access_control_decision.is_valid.actions_too_many.app_error",
-    "translation": ""
+    "translation": "Запытана занадта шмат дзеянняў."
   },
   {
     "id": "model.access_control_decision.is_valid.resource_id.app_error",
-    "translation": ""
+    "translation": "Несапраўдны ідэнтыфікатар рэсурсу."
   },
   {
     "id": "model.access_control_decision.is_valid.resource_type.app_error",
-    "translation": ""
+    "translation": "Патрабуецца тып рэсурсу."
   },
   {
     "id": "model.access_control_decision.is_valid.subject_id.app_error",
-    "translation": ""
+    "translation": "Несапраўдны ідэнтыфікатар суб’екта."
   },
   {
     "id": "model.access_policy.inherit.parent_type.app_error",
-    "translation": ""
+    "translation": "Імпарты павінны спасылацца на бацькоўскую палітыку членства."
   },
   {
     "id": "model.access_policy.inherit.permission.app_error",
-    "translation": ""
+    "translation": "Палітыкі дазволаў не могуць наследаваць ад іншых палітык."
   },
   {
     "id": "model.access_policy.is_valid.actions.app_error",
-    "translation": ""
+    "translation": "Дзеянне(-і) несапраўднае(-ыя)."
   },
   {
     "id": "model.access_policy.is_valid.actions.membership_combined.app_error",
-    "translation": ""
+    "translation": "Членства нельга спалучаць з іншымі дзеяннямі ў адным правіле."
   },
   {
     "id": "model.access_policy.is_valid.actions.permission_type.app_error",
-    "translation": ""
+    "translation": "Правілы з дзеяннямі дазволаў дапускаюцца толькі ў палітыках каналаў."
   },
   {
     "id": "model.access_policy.is_valid.plugin_type.app_error",
-    "translation": ""
+    "translation": "Несапраўдная палітыка кантролю доступу: тып не з’яўляецца сапраўдным тыпам рэсурсу плагіна."
   },
   {
     "id": "model.access_policy.is_valid.roles.app_error",
-    "translation": ""
+    "translation": "Палітыкі дазволаў павінны прымяняцца роўна да адной ролі."
   },
   {
     "id": "model.access_policy.is_valid.rule_expression.app_error",
-    "translation": ""
+    "translation": "Толькі правіла членства можа не мець выразу."
   },
   {
     "id": "model.access_policy.is_valid.rule_metadata_auto_add.app_error",
-    "translation": ""
+    "translation": "Аўтаматычнае даданне ўдзельнікаў можна задаць толькі для правіла членства палітыкі."
   },
   {
     "id": "model.access_policy.is_valid.rule_metadata_auto_add_mode.app_error",
-    "translation": ""
+    "translation": "\"{{.Mode}}\" не з’яўляецца падтрымліваемым спосабам аўтаматычнага дадання ўдзельнікаў."
   },
   {
     "id": "model.access_policy.is_valid.rule_metadata_auto_add_type.app_error",
