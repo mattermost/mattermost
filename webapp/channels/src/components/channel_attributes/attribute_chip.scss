@@ -89,11 +89,11 @@
         padding: 0;
         border: none;
         border-radius: 50%;
-        margin-inline-start: 4px;
         background: transparent;
         color: inherit;
         cursor: pointer;
         line-height: 0;
+        margin-inline-start: 4px;
         opacity: 0.56;
 
         &:hover:not(:disabled) {
