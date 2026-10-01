@@ -14743,6 +14743,14 @@
     "defaultMessage": "AI Service",
     "description": "Setting label on the System Console Localization page for choosing the AI service used for auto-translation."
   },
+  "admin.site.localization.autoTranslationLLMServiceUnavailable": {
+    "defaultMessage": "The selected AI service is no longer available in the Agents plugin. Select an available service and save.",
+    "description": "Error shown under the AI Service setting on the System Console Localization page when the saved auto-translation service no longer exists in the Agents plugin."
+  },
+  "admin.site.localization.autoTranslationLLMServiceUnavailableOption": {
+    "defaultMessage": "Unavailable service ({serviceId})",
+    "description": "Dropdown option on the System Console Localization page representing the saved auto-translation AI service that no longer exists; {serviceId} is the saved service ID."
+  },
   "admin.site.localization.autoTranslationProviderDescription": {
     "defaultMessage": "<strong>NOTE:</strong> If using external translation services (e.g., cloud-based LLMs), message data may be processed outside your environment.",
     "description": "Cautionary note under the translation provider setting on the System Console Localization page; <strong> wraps 'NOTE:'."
