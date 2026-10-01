@@ -455,3 +455,5 @@ channels/db/migrations/postgres/000229_add_access_control_policies_imports_index
 channels/db/migrations/postgres/000229_add_access_control_policies_imports_index.up.sql
 channels/db/migrations/postgres/000233_strip_sync_attrs_from_non_user_fields.down.sql
 channels/db/migrations/postgres/000233_strip_sync_attrs_from_non_user_fields.up.sql
+channels/db/migrations/postgres/000234_recreate_posts_message_txt_index.down.sql
+channels/db/migrations/postgres/000234_recreate_posts_message_txt_index.up.sql
