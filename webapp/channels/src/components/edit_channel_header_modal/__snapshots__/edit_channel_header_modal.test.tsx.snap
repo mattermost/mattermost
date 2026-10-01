@@ -175,16 +175,24 @@ exports[`components/EditChannelHeaderModal edit direct message channel 1`] = `
           class="modal-footer"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
             type="button"
           >
-            Cancel
+            <span
+              class="_button__label_doayp_24"
+            >
+              Cancel
+            </span>
           </button>
           <button
-            class="btn btn-primary"
+            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
             type="button"
           >
-            Save
+            <span
+              class="_button__label_doayp_24"
+            >
+              Save
+            </span>
           </button>
         </div>
       </div>
@@ -378,16 +386,24 @@ exports[`components/EditChannelHeaderModal error with intl message 1`] = `
           class="modal-footer"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
             type="button"
           >
-            Cancel
+            <span
+              class="_button__label_doayp_24"
+            >
+              Cancel
+            </span>
           </button>
           <button
-            class="btn btn-primary"
+            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
             type="button"
           >
-            Save
+            <span
+              class="_button__label_doayp_24"
+            >
+              Save
+            </span>
           </button>
         </div>
       </div>
@@ -581,16 +597,24 @@ exports[`components/EditChannelHeaderModal error without intl message 1`] = `
           class="modal-footer"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
             type="button"
           >
-            Cancel
+            <span
+              class="_button__label_doayp_24"
+            >
+              Cancel
+            </span>
           </button>
           <button
-            class="btn btn-primary"
+            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
             type="button"
           >
-            Save
+            <span
+              class="_button__label_doayp_24"
+            >
+              Save
+            </span>
           </button>
         </div>
       </div>
@@ -774,16 +798,24 @@ exports[`components/EditChannelHeaderModal should match snapshot, init 1`] = `
           class="modal-footer"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
             type="button"
           >
-            Cancel
+            <span
+              class="_button__label_doayp_24"
+            >
+              Cancel
+            </span>
           </button>
           <button
-            class="btn btn-primary"
+            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
             type="button"
           >
-            Save
+            <span
+              class="_button__label_doayp_24"
+            >
+              Save
+            </span>
           </button>
         </div>
       </div>
@@ -967,17 +999,25 @@ exports[`components/EditChannelHeaderModal submitted 1`] = `
           class="modal-footer"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
             type="button"
           >
-            Cancel
+            <span
+              class="_button__label_doayp_24"
+            >
+              Cancel
+            </span>
           </button>
           <button
-            class="btn btn-primary"
+            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
             disabled=""
             type="button"
           >
-            Save
+            <span
+              class="_button__label_doayp_24"
+            >
+              Save
+            </span>
           </button>
         </div>
       </div>

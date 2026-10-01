@@ -127,7 +127,7 @@ test.describe('Permission Policies - Create Policy', () => {
         ).toBeVisible();
 
         // # Cancel navigates back to list without saving
-        await systemConsolePage.page.getByRole('link', {name: 'Cancel'}).click();
+        await systemConsolePage.page.getByRole('button', {name: 'Cancel'}).click();
         await systemConsolePage.page.waitForLoadState('networkidle');
 
         await expect(systemConsolePage.page.getByRole('heading', {name: 'Permission Policies'})).toBeVisible();

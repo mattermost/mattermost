@@ -121,16 +121,21 @@ export function SystemUsersFilterPopover(props: Props) {
 
     return (
         <div className='systemUsersFilterContainer'>
-            <Button
-                {...getReferenceProps()}
+            {/* compass-ui Button does not forward refs; wrap so Floating UI can anchor the popover. */}
+            <span
+                className='systemUsersFilterTrigger'
                 ref={floatingRefs.setReference}
-                emphasis='tertiary'
-                size='medium'
-                aria-controls='systemUsersFilterPopover'
-                leadingIcon={<Icon glyph={<FilterVariantIcon/>}/>}
+                {...getReferenceProps()}
             >
-                {formatMessage({id: 'admin.system_users.filtersMenu', defaultMessage: 'Filters ({count})'}, {count: filtersCount})}
-            </Button>
+                <Button
+                    emphasis='tertiary'
+                    size='medium'
+                    aria-controls='systemUsersFilterPopover'
+                    leadingIcon={<Icon glyph={<FilterVariantIcon/>}/>}
+                >
+                    {formatMessage({id: 'admin.system_users.filtersMenu', defaultMessage: 'Filters ({count})'}, {count: filtersCount})}
+                </Button>
+            </span>
             {isMounted && (
                 <FloatingFocusManager
                     context={floatingContext}

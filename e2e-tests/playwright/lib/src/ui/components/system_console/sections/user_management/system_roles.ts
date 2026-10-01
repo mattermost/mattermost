@@ -36,7 +36,7 @@ export default class SystemRoles {
         this.assignedPeoplePanel = new AssignedPeoplePanel(container.locator('#SystemRoleUsers'));
 
         this.saveButton = container.getByTestId('saveSetting');
-        this.cancelButton = container.getByRole('link', {name: 'Cancel'});
+        this.cancelButton = container.getByRole('button', {name: 'Cancel'});
         this.errorMessage = container.getByTestId('saveChangesPanel-errorMessage');
     }
 
