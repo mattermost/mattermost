@@ -6,8 +6,9 @@ import React from 'react';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
-import type {GlobalState} from 'types/store';
 import {getHistory} from 'utils/browser_history';
+
+import type {GlobalState} from 'types/store';
 
 import SaveChangesPanel from './save_changes_panel';
 

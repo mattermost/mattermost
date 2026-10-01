@@ -7,8 +7,8 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {CheckIcon, ChevronDownIcon} from '@mattermost/compass-icons/components';
-import {GenericModal} from '@mattermost/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {GenericModal} from '@mattermost/components';
 import type {
     AccessControlPolicy,
     PolicyEvaluationScope,
@@ -371,9 +371,7 @@ function SimulateAccessModal({
         // the last successful run while we report the failure.
         const actionRes = result as ActionResult<PolicySimulationResponse>;
         if (actionRes.error) {
-            const message = actionRes.error instanceof Error ?
-                actionRes.error.message :
-                String(actionRes.error);
+            const message = actionRes.error instanceof Error ? actionRes.error.message : String(actionRes.error);
             setSimulationError(message || 'Unknown error');
             setPending(false);
             return;
@@ -590,12 +588,10 @@ function SimulateAccessModal({
                             children: (
                                 <>
                                     <span className='SimulateAccessModal__filterButtonLabel'>
-                                        {selectedAction ?
-                                            (actionLabels?.[selectedAction] ?? selectedAction) :
-                                            formatMessage({
-                                                id: 'admin.access_control.simulate_access.permission_filter.all',
-                                                defaultMessage: 'All permissions',
-                                            })
+                                        {selectedAction ? (actionLabels?.[selectedAction] ?? selectedAction) : formatMessage({
+                                            id: 'admin.access_control.simulate_access.permission_filter.all',
+                                            defaultMessage: 'All permissions',
+                                        })
                                         }
                                     </span>
                                     <ChevronDownIcon
