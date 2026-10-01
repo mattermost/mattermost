@@ -32391,6 +32391,10 @@
     "defaultMessage": "Login done through Entra ID ({email})",
     "description": "Read-only text in the email row of Profile Settings when the account authenticates via Microsoft Entra ID; {email} is the linked address."
   },
+  "user.settings.general.loginOpenId": {
+    "defaultMessage": "Login done through OpenID Connect ({email})",
+    "description": "Profile settings, collapsed Email row for a user who signs in through OpenID Connect; {email} is the address Mattermost sends notifications to. 'OpenID Connect' is a product name and should stay as-is."
+  },
   "user.settings.general.loginSaml": {
     "defaultMessage": "Login done through SAML ({email})",
     "description": "Read-only text in the email row of Profile Settings when the account authenticates via SAML; {email} is the linked address."

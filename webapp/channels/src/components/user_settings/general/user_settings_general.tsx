@@ -904,6 +904,16 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     }}
                 />
             );
+        } else if (this.props.user.auth_service === Constants.OPENID_SERVICE) {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.general.loginOpenId'
+                    defaultMessage='Login done through OpenID Connect ({email})'
+                    values={{
+                        email: this.state.originalEmail,
+                    }}
+                />
+            );
         } else if (this.props.user.auth_service === Constants.LDAP_SERVICE) {
             describe = (
                 <FormattedMessage

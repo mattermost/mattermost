@@ -111,6 +111,18 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(updateMe).toHaveBeenCalledWith(requiredProps.user);
     });
 
+    test('names the login provider and the email of an OpenID Connect user', () => {
+        const openIdUser = {...user, auth_service: 'openid', email: 'alice@example.com'};
+        renderWithContext(
+            <UserSettingsGeneralTab
+                {...requiredProps}
+                user={openIdUser}
+            />,
+        );
+
+        expect(screen.getByText('Login done through OpenID Connect (alice@example.com)')).toBeInTheDocument();
+    });
+
     test('submitPicture() should not have called uploadProfileImage', () => {
         const uploadProfileImage = jest.fn().mockResolvedValue({});
         const props = {...requiredProps, actions: {...requiredProps.actions, uploadProfileImage}};
