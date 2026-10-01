@@ -66,27 +66,28 @@ func (u workflowUsage) firing(messageID string) healthcheck.Result {
 		WithDetail("bots", strconv.FormatInt(u.bots, 10))
 }
 
-func readWorkflowUsage(s *healthcheck.Snapshot) (workflowUsage, bool) {
+// readWorkflowUsage returns a non-empty reasonID when plugins or stats are unknown.
+func readWorkflowUsage(s *healthcheck.Snapshot) (usage workflowUsage, reasonID string) {
 	if !s.Has(model.SectionPlugins) || s.Plugins == nil {
-		return workflowUsage{}, false
+		return workflowUsage{}, healthcheck.ReasonPluginsUnavailable
 	}
 	webhooks, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 { return stats.IncomingWebhooks })
 	if !ok {
-		return workflowUsage{}, false
+		return workflowUsage{}, healthcheck.ReasonStatsUnavailable
 	}
 	bots, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 { return stats.BotAccounts })
 	if !ok {
-		return workflowUsage{}, false
+		return workflowUsage{}, healthcheck.ReasonStatsUnavailable
 	}
 
-	return workflowUsage{plugins: len(s.Plugins.Enabled), webhooks: webhooks, bots: bots}, true
+	return workflowUsage{plugins: len(s.Plugins.Enabled), webhooks: webhooks, bots: bots}, ""
 }
 
 func evalWorkflowChatOnly(s *healthcheck.Snapshot) []healthcheck.Result {
-	usage, ok := readWorkflowUsage(s)
+	usage, reasonID := readWorkflowUsage(s)
 	switch {
-	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown("")}
+	case reasonID != "":
+		return []healthcheck.Result{healthcheck.Unknown(reasonID)}
 	case usage.chatOnly():
 		return []healthcheck.Result{usage.firing(healthcheck.TranslationId("health.rule.workflow_usage_chat_only.message"))}
 	default:
@@ -95,10 +96,10 @@ func evalWorkflowChatOnly(s *healthcheck.Snapshot) []healthcheck.Result {
 }
 
 func evalWorkflowLight(s *healthcheck.Snapshot) []healthcheck.Result {
-	usage, ok := readWorkflowUsage(s)
+	usage, reasonID := readWorkflowUsage(s)
 	switch {
-	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown("")}
+	case reasonID != "":
+		return []healthcheck.Result{healthcheck.Unknown(reasonID)}
 	case usage.light():
 		return []healthcheck.Result{usage.firing(healthcheck.TranslationId("health.rule.workflow_usage_light.message"))}
 	default:

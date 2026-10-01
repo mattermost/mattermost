@@ -279,6 +279,7 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		for i, evaluation := range olderEvaluations {
 			if slices.Contains(needsExpiry, evaluation.Code) {
 				assert.Equal(t, healthcheck.StateUnknown, evaluation.Result.State, evaluation.Code)
+				assert.Equal(t, healthcheck.ReasonLicenseUnavailable, evaluation.Result.MessageID, evaluation.Code)
 			} else {
 				assert.Equal(t, liveEvaluations[i], evaluation, evaluation.Code)
 			}
