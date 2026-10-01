@@ -5,8 +5,10 @@ import classNames from 'classnames';
 import React, {useMemo} from 'react';
 
 import glyphMap from '@mattermost/compass-icons/components';
+import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 import {Button} from '@mattermost/compass-ui/components/button';
 import type {ButtonAppearance, ButtonSize} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import {useBooleanProp, useDropdownProp, useStringProp} from './hooks';
 import {buildComponent} from './utils';
@@ -22,11 +24,24 @@ type Props = {
     backgroundClass: string;
 };
 
+function iconFromName(name: string | undefined) {
+    if (!name) {
+        return undefined;
+    }
+
+    const Glyph = glyphMap[name as IconGlyphTypes];
+    if (!Glyph) {
+        return undefined;
+    }
+
+    return <Icon glyph={<Glyph/>}/>;
+}
+
 export default function ButtonComponentLibrary({backgroundClass}: Props) {
     const [label, labelSelector] = useStringProp('label', 'Label', false);
 
-    const [leadingIcon, leadingIconPossibilities, leadingIconSelector] = useDropdownProp('leadingIcon', 'mattermost', iconValues, false);
-    const [trailingIcon, trailingIconPossibilities, trailingIconSelector] = useDropdownProp('trailingIcon', '', iconValues, false);
+    const [leadingIcon, , leadingIconSelector] = useDropdownProp('leadingIcon', 'mattermost', iconValues, false);
+    const [trailingIcon, , trailingIconSelector] = useDropdownProp('trailingIcon', '', iconValues, false);
 
     const [emphasis, emphasisPossibilities, emphasisSelector] = useDropdownProp('emphasis', 'primary', emphasisValues, true);
     const [size, sizePossibilities, sizeSelector] = useDropdownProp('size', 'medium', sizeValues, true);
@@ -34,13 +49,17 @@ export default function ButtonComponentLibrary({backgroundClass}: Props) {
 
     const [disabled, disabledSelector] = useBooleanProp('disabled', false);
 
-    const children = useMemo(() => (
-        <>
-            {leadingIcon?.leadingIcon ? <i className={classNames('icon', `icon-${leadingIcon.leadingIcon}`)}/> : null}
-            {label.label}
-            {trailingIcon?.trailingIcon ? <i className={classNames('icon', `icon-${trailingIcon.trailingIcon}`)}/> : null}
-        </>
-    ), [label, leadingIcon, trailingIcon]);
+    const leadingIconProp = useMemo(() => {
+        const icon = iconFromName(leadingIcon?.leadingIcon);
+        return icon ? {leadingIcon: icon} : undefined;
+    }, [leadingIcon]);
+
+    const trailingIconProp = useMemo(() => {
+        const icon = iconFromName(trailingIcon?.trailingIcon);
+        return icon ? {trailingIcon: icon} : undefined;
+    }, [trailingIcon]);
+
+    const children = useMemo(() => label.label, [label]);
 
     const components = useMemo(
         () => buildComponent(
@@ -48,11 +67,11 @@ export default function ButtonComponentLibrary({backgroundClass}: Props) {
             propPossibilities,
             [
                 emphasisPossibilities,
-                leadingIconPossibilities,
                 sizePossibilities,
-                trailingIconPossibilities,
             ], [
                 {children},
+                leadingIconProp,
+                trailingIconProp,
                 emphasis,
                 size,
                 destructive,
@@ -65,10 +84,10 @@ export default function ButtonComponentLibrary({backgroundClass}: Props) {
             disabled,
             emphasis,
             emphasisPossibilities,
-            leadingIconPossibilities,
+            leadingIconProp,
             size,
             sizePossibilities,
-            trailingIconPossibilities,
+            trailingIconProp,
         ],
     );
 
