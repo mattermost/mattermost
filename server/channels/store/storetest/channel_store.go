@@ -130,6 +130,7 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("IncrementMentionCount", func(t *testing.T) { testChannelStoreIncrementMentionCount(t, rctx, ss) })
 	t.Run("UpdateChannelMember", func(t *testing.T) { testUpdateChannelMember(t, rctx, ss) })
 	t.Run("GetMember", func(t *testing.T) { testGetMember(t, rctx, ss) })
+	t.Run("GetAllChannelMemberRolesForUser", func(t *testing.T) { testGetAllChannelMemberRolesForUser(t, rctx, ss) })
 	t.Run("GetMemberLastViewedAt", func(t *testing.T) { testGetMemberLastViewedAt(t, rctx, ss) })
 	t.Run("GetMembersWithLastViewedAtSince", func(t *testing.T) { testGetMembersWithLastViewedAtSince(t, rctx, ss, s) })
 	t.Run("GetMemberForPost", func(t *testing.T) { testChannelStoreGetMemberForPost(t, rctx, ss) })
@@ -5348,6 +5349,87 @@ func testUpdateChannelMember(t *testing.T, rctx request.CTX, ss store.Store) {
 	m1.UserId = ""
 	_, err = ss.Channel().UpdateMember(rctx, m1)
 	require.Error(t, err, "bad user id - should fail")
+}
+
+func testGetAllChannelMemberRolesForUser(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamScheme, err := ss.Scheme().Save(&model.Scheme{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SchemeScopeTeam,
+	})
+	require.NoError(t, err)
+
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: "Name",
+		Name:        NewTestID(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+		SchemeId:    &teamScheme.Id,
+	})
+	require.NoError(t, err)
+
+	user, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
+	require.NoError(t, err)
+	otherUser, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: MakeEmail()})
+	require.NoError(t, err)
+
+	newChannelWithMember := func(member model.ChannelMember) *model.Channel {
+		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
+			DisplayName: "DisplayName",
+			Name:        "z-z-z" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+		}, -1)
+		require.NoError(t, nErr)
+		t.Cleanup(func() { _ = ss.Channel().PermanentDelete(rctx, channel.Id) })
+
+		member.ChannelId = channel.Id
+		member.NotifyProps = model.GetDefaultChannelNotifyProps()
+		_, nErr = ss.Channel().SaveMember(rctx, &member)
+		require.NoError(t, nErr)
+		t.Cleanup(func() { _ = ss.Channel().RemoveMember(rctx, channel.Id, member.UserId) })
+		return channel
+	}
+
+	adminChannel := newChannelWithMember(model.ChannelMember{UserId: user.Id, SchemeUser: true, SchemeAdmin: true})
+	// A row the scheme migration never reached: the admin role is still an explicit role name.
+	legacyAdminChannel := newChannelWithMember(model.ChannelMember{UserId: user.Id, SchemeUser: true, ExplicitRoles: model.ChannelAdminRoleId})
+	archivedChannel := newChannelWithMember(model.ChannelMember{UserId: user.Id, SchemeGuest: true})
+	require.NoError(t, ss.Channel().Delete(archivedChannel.Id, model.GetMillis()))
+	otherUsersChannel := newChannelWithMember(model.ChannelMember{UserId: otherUser.Id, SchemeUser: true})
+
+	memberRoles, err := ss.Channel().GetAllChannelMemberRolesForUser(rctx, user.Id, false)
+	require.NoError(t, err)
+	require.Len(t, memberRoles, 3)
+	assert.NotContains(t, memberRoles, otherUsersChannel.Id)
+
+	t.Run("each membership resolves the same as GetMember", func(t *testing.T) {
+		for _, channelID := range []string{adminChannel.Id, legacyAdminChannel.Id, archivedChannel.Id} {
+			member, err := ss.Channel().GetMember(rctx, channelID, user.Id)
+			require.NoError(t, err)
+			assert.Equal(t, store.ChannelMemberRoles{
+				Roles:       member.Roles,
+				SchemeGuest: member.SchemeGuest,
+				SchemeUser:  member.SchemeUser,
+				SchemeAdmin: member.SchemeAdmin,
+			}, memberRoles[channelID])
+		}
+	})
+
+	t.Run("scheme roles resolve against the team scheme", func(t *testing.T) {
+		roles := memberRoles[adminChannel.Id]
+		assert.True(t, roles.SchemeAdmin)
+		assert.ElementsMatch(t, []string{teamScheme.DefaultChannelUserRole, teamScheme.DefaultChannelAdminRole}, strings.Fields(roles.Roles))
+	})
+
+	t.Run("a legacy role name folds into its scheme flag", func(t *testing.T) {
+		assert.True(t, memberRoles[legacyAdminChannel.Id].SchemeAdmin)
+	})
+
+	t.Run("archived channels are included", func(t *testing.T) {
+		assert.True(t, memberRoles[archivedChannel.Id].SchemeGuest)
+	})
 }
 
 func testGetMember(t *testing.T, rctx request.CTX, ss store.Store) {

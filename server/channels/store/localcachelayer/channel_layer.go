@@ -61,6 +61,14 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelForUser(msg *mode
 	}
 }
 
+func (s *LocalCacheChannelStore) handleClusterInvalidateChannelMemberRolesForUser(msg *model.ClusterMessage) {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
+		s.rootStore.channelMemberRolesForUserCache.Purge()
+	} else {
+		s.rootStore.channelMemberRolesForUserCache.Remove(string(msg.Data))
+	}
+}
+
 func (s *LocalCacheChannelStore) handleClusterInvalidateChannelMembersNotifyProps(msg *model.ClusterMessage) {
 	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.channelMembersNotifyPropsCache.Purge()
@@ -79,6 +87,7 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelByName(msg *model
 
 func (s LocalCacheChannelStore) ClearMembersForUserCache() {
 	s.rootStore.doClearCacheCluster(s.rootStore.channelMembersForUserCache)
+	s.rootStore.doClearCacheCluster(s.rootStore.channelMemberRolesForUserCache)
 }
 
 func (s LocalCacheChannelStore) ClearCaches() {
@@ -87,6 +96,7 @@ func (s LocalCacheChannelStore) ClearCaches() {
 	s.rootStore.doClearCacheCluster(s.rootStore.channelGuestCountCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelByIdCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelMembersForUserCache)
+	s.rootStore.doClearCacheCluster(s.rootStore.channelMemberRolesForUserCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelMembersNotifyPropsCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelByNameCache)
 	if s.rootStore.metrics != nil {
@@ -95,6 +105,7 @@ func (s LocalCacheChannelStore) ClearCaches() {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelGuestCountCache.Name())
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelByIdCache.Name())
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMembersForUserCache.Name())
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMemberRolesForUserCache.Name())
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMembersNotifyPropsCache.Name())
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelByNameCache.Name())
 	}
@@ -132,8 +143,10 @@ func (s LocalCacheChannelStore) InvalidateChannel(channelId string) {
 func (s LocalCacheChannelStore) InvalidateAllChannelMembersForUser(userId string) {
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelMembersForUserCache, userId, nil)
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelMembersForUserCache, userId+"_deleted", nil)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelMemberRolesForUserCache, userId, nil)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMembersForUserCache.Name())
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMemberRolesForUserCache.Name())
 	}
 }
 
@@ -325,6 +338,26 @@ func (s LocalCacheChannelStore) GetAllChannelMembersForUser(rctx request.CTX, us
 	}
 
 	return ids, nil
+}
+
+func (s LocalCacheChannelStore) GetAllChannelMemberRolesForUser(rctx request.CTX, userID string, allowFromCache bool) (map[string]store.ChannelMemberRoles, error) {
+	if allowFromCache {
+		var memberRoles map[string]store.ChannelMemberRoles
+		if err := s.rootStore.doStandardReadCache(s.rootStore.channelMemberRolesForUserCache, userID, &memberRoles); err == nil {
+			return memberRoles, nil
+		}
+	}
+
+	memberRoles, err := s.ChannelStore.GetAllChannelMemberRolesForUser(rctx, userID, allowFromCache)
+	if err != nil {
+		return nil, err
+	}
+
+	if allowFromCache {
+		s.rootStore.doStandardAddToCache(s.rootStore.channelMemberRolesForUserCache, userID, memberRoles)
+	}
+
+	return memberRoles, nil
 }
 
 func (s LocalCacheChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) (map[string]model.StringMap, error) {

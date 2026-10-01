@@ -100,6 +100,12 @@
         flex-direction: column;
         padding-bottom: 60px;
 
+        // This container sets no flex gap, so the read-only banner needs its own space
+        // before the first heading. The tabs that do set a gap space it already.
+        .ChannelSettingsModal__readOnlyNotice {
+            margin-bottom: 16px;
+        }
+
         #PreviewInputTextButton {
             position: absolute;
             z-index: 10;

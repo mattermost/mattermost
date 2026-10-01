@@ -82,6 +82,11 @@ func (_m *MetricsInterface) IncrementAccessControlCacheInvalidation() {
 	_m.Called()
 }
 
+// IncrementAccessControlDecision provides a mock function with given fields: action, decision
+func (_m *MetricsInterface) IncrementAccessControlDecision(action string, decision string) {
+	_m.Called(action, decision)
+}
+
 // IncrementAutoTranslateNormHash provides a mock function with given fields: result
 func (_m *MetricsInterface) IncrementAutoTranslateNormHash(result string) {
 	_m.Called(result)

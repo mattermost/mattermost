@@ -3059,6 +3059,7 @@ func TestGetRecommendedChannelsForTeam(t *testing.T) {
 		// PermanentDeleteChannel during cleanup calls DeletePolicy on the ACS.
 		mockACS.On("DeletePolicy", mock.Anything, mock.AnythingOfType("string")).
 			Return((*model.AppError)(nil)).Maybe()
+		ungovernedChannelAccess(mockACS)
 
 		included, _, _ := th.SystemAdminClient.CreateChannel(context.Background(), &model.Channel{
 			TeamId:      th.BasicTeam.Id,

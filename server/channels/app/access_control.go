@@ -2498,10 +2498,12 @@ func (a *App) ValidateChannelAccessControlPermission(rctx request.CTX, userID, c
 		return appErr
 	}
 
-	// Check if user has channel admin permission for the specific channel
-	// RBACOnly: policy administration has to survive a policy that denies its own
-	// author, or a mis-scoped rule would be unrepairable through the API.
-	if ok, _ := a.HasPermissionToChannelRBACOnly(rctx, userID, channelID, model.PermissionManageChannelAccessRules); !ok {
+	// Check if user has channel admin permission for the specific channel.
+	// Policy administration has to survive a policy that denies its own author, or a
+	// mis-scoped rule would lock the channel admin out of the only API that can repair
+	// it. HasPermissionToChannel is RBAC-only, which is what makes that hold: do not
+	// switch this to SessionHasPermissionToChannel, which does evaluate the policy.
+	if ok, _ := a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionManageChannelAccessRules); !ok {
 		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.insufficient_channel_permissions", nil, "user_id="+userID+" channel_id="+channelID, http.StatusForbidden)
 	}
 
@@ -2548,9 +2550,10 @@ func (a *App) ValidateAccessControlPolicyPermissionWithOptions(rctx request.CTX,
 
 	// For read-only operations, allow access to system policies if they're applied to the specific channel
 	if opts.isReadOnly && policy.Type != model.AccessControlPolicyTypeChannel && opts.channelID != "" {
-		// Check if user has access to the channel
-		// RBACOnly: reached from the policy-administration surfaces above.
-		if ok, _ := a.HasPermissionToChannelRBACOnly(rctx, userID, opts.channelID, model.PermissionReadChannel); !ok {
+		// Check if user has access to the channel. Reached from the policy-administration
+		// surfaces, so it stays RBAC-only for the same reason as above: reading the policy
+		// that denies you is how you find out it needs fixing.
+		if ok, _ := a.HasPermissionToChannel(rctx, userID, opts.channelID, model.PermissionReadChannel); !ok {
 			return model.NewAppError("ValidateAccessControlPolicyPermissionWithOptions", "app.pap.access_control.insufficient_permissions", nil, "user_id="+userID+" channel_id="+opts.channelID, http.StatusForbidden)
 		}
 
@@ -2729,7 +2732,7 @@ func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression st
 func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles string, channelID string) (*model.Subject, *model.AppError) {
 	a.refreshAttributeViewIfStale(rctx)
 
-	group, err := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	group, err := a.Srv().propertyService.Group(model.AccessControlPropertyGroupName)
 	if err != nil {
 		return nil, model.NewAppError("BuildAccessControlSubject", "app.access_control.build_subject.group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2821,9 +2824,12 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 // the given channel.
 //
 // Resolution order:
-//  1. Look up ChannelMember; map SchemeAdmin → channel_admin, SchemeUser → channel_user,
+//  1. Look up the membership's role fields; map SchemeAdmin → channel_admin, SchemeUser → channel_user,
 //     SchemeGuest → channel_guest.
 //  2. Inspect the Roles tokens on the channel member for the channel role names.
+//
+// The role fields come from the user's cached channel memberships rather than a ChannelMember
+// read, because this runs for every recipient of every channel-scoped websocket event.
 //
 // Returns ("", nil) when no channel role can be determined — either
 // because the user is not a member of the channel, or because the
@@ -2834,21 +2840,21 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 // a fabricated role. Inconsistent-row cases are logged at WARN with the
 // row's flags and Roles for operator triage.
 func (a *App) GetSubjectChannelRole(rctx request.CTX, userID, channelID string) (string, *model.AppError) {
-	cm, err := a.Srv().Store().Channel().GetMember(rctx, channelID, userID)
+	memberRoles, err := a.Srv().Store().Channel().GetAllChannelMemberRolesForUser(rctx, userID, true)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
-			// Not a member: return an empty role and let the caller
-			// decide what "no resource role" means for them. We used
-			// to fabricate a role from the user's system roles here,
-			// but that synthesised channel-scope information from
-			// data the user has no actual channel membership behind —
-			// callers (e.g. attachChannelScopedRole in file.go) now
-			// gate on the empty string and skip the channel scope
-			// rather than evaluating against a guess.
-			return "", nil
-		}
 		return "", model.NewAppError("GetSubjectChannelRole", "app.access_control.get_channel_role.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	cm, ok := memberRoles[channelID]
+	if !ok {
+		// Not a member: return an empty role and let the caller
+		// decide what "no resource role" means for them. We used
+		// to fabricate a role from the user's system roles here,
+		// but that synthesised channel-scope information from
+		// data the user has no actual channel membership behind —
+		// callers (e.g. attachChannelScopedRole in file.go) now
+		// gate on the empty string and skip the channel scope
+		// rather than evaluating against a guess.
+		return "", nil
 	}
 
 	switch {

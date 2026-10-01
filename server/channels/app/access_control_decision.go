@@ -41,6 +41,16 @@ var renderableABACActions = map[string]renderableActionConfig{
 		DefaultWhenInactive: true,
 		FailClosedOnError:   true,
 	},
+	model.AccessControlPolicyActionChannelWriteAccess: {
+		ResourceType:        model.AccessControlPolicyTypeChannel,
+		DefaultWhenInactive: true,
+		FailClosedOnError:   true,
+	},
+	model.AccessControlPolicyActionChannelManagementAccess: {
+		ResourceType:        model.AccessControlPolicyTypeChannel,
+		DefaultWhenInactive: true,
+		FailClosedOnError:   true,
+	},
 }
 
 // SearchAllowedActionsForCurrentUser computes non-authoritative, render-time ABAC
@@ -114,11 +124,22 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 		return resp, nil
 	}
 
-	channelID := ""
-	if req.Resource.Type == model.AccessControlPolicyTypeChannel {
-		channelID = req.Resource.ID
+	exempt := slices.ContainsFunc(candidates, isChannelAccessAction) && a.channelAccessExemptByID(rctx, req.Resource.ID)
+	managementExempt := slices.Contains(candidates, model.AccessControlPolicyActionChannelManagementAccess) &&
+		a.SessionHasPermissionTo(*rctx.Session(), model.PermissionManageSystem)
+	recordIfExempt := func(action string) bool {
+		if !(exempt && isChannelAccessAction(action)) &&
+			!(managementExempt && action == model.AccessControlPolicyActionChannelManagementAccess) {
+			return false
+		}
+		record(action, model.RenderPermissionDecision{Allowed: true, Evaluated: true})
+		return true
 	}
-	subject, appErr := a.BuildAccessControlSubjectForSession(rctx, channelID)
+
+	// All currently registered resource types are channel-scoped, so req.Resource.ID
+	// is always a channel ID here. If a non-channel resource type is ever added to
+	// renderableABACActions, this call must be updated to pass the correct channel ID.
+	subject, appErr := a.BuildAccessControlSubjectForSession(rctx, req.Resource.ID)
 	if appErr != nil {
 		rctx.Logger().Info("Failed to build ABAC subject for render-decision search",
 			mlog.String("resource_type", req.Resource.Type),
@@ -126,12 +147,19 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 			mlog.Err(appErr),
 		)
 		for _, action := range candidates {
+			if recordIfExempt(action) {
+				continue
+			}
 			record(action, renderDecisionOnError(action))
 		}
 		return resp, nil
 	}
 
 	for _, action := range candidates {
+		if recordIfExempt(action) {
+			continue
+		}
+
 		decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
 			Subject:  *subject,
 			Resource: req.Resource,
@@ -153,6 +181,14 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 	}
 
 	return resp, nil
+}
+
+func (a *App) channelAccessExemptByID(rctx request.CTX, channelID string) bool {
+	channel, appErr := a.GetChannel(rctx, channelID)
+	if appErr != nil {
+		return false
+	}
+	return channelAccessExempt(channel)
 }
 
 // renderDecisionOnError returns the conservative decision for an action whose

@@ -13,6 +13,8 @@ import {
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
     ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+    ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
+    ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
 } from '@mattermost/types/access_control';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -23,7 +25,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SimulateAccessModal from 'components/admin_console/access_control/modals/simulate_access/simulate_access_modal';
 import BlockableLink from 'components/admin_console/blockable_link';
-import ChannelReadAccessConfirmModal from 'components/admin_console/permission_policies/modals/channel_read_access_confirm_modal';
+import ChannelAccessConfirmModal from 'components/admin_console/permission_policies/modals/channel_access_confirm_modal';
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import * as Menu from 'components/menu';
@@ -65,6 +67,10 @@ const permissionMessages = defineMessages({
     uploadDescription: {id: 'admin.permission_policies.permission.upload_file.description', defaultMessage: 'Allow users to upload files while sending a message'},
     channelReadAccessLabel: {id: 'admin.permission_policies.permission.channel_read_access.label', defaultMessage: 'Channel Read Access'},
     channelReadAccessDescription: {id: 'admin.permission_policies.permission.channel_read_access.description', defaultMessage: 'Allow users to read the channel and its content'},
+    channelWriteAccessLabel: {id: 'admin.permission_policies.permission.channel_write_access.label', defaultMessage: 'Channel Write Access'},
+    channelWriteAccessDescription: {id: 'admin.permission_policies.permission.channel_write_access.description', defaultMessage: 'Allow users to post in the channel and change its content'},
+    channelManagementAccessLabel: {id: 'admin.permission_policies.permission.channel_management_access.label', defaultMessage: 'Manage Channel'},
+    channelManagementAccessDescription: {id: 'admin.permission_policies.permission.channel_management_access.description', defaultMessage: "Allow users to change the channel's settings, bookmarks, members and access rules"},
 });
 
 const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
@@ -82,6 +88,16 @@ const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
         value: ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
         label: permissionMessages.channelReadAccessLabel,
         description: permissionMessages.channelReadAccessDescription,
+    },
+    {
+        value: ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
+        label: permissionMessages.channelWriteAccessLabel,
+        description: permissionMessages.channelWriteAccessDescription,
+    },
+    {
+        value: ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
+        label: permissionMessages.channelManagementAccessLabel,
+        description: permissionMessages.channelManagementAccessDescription,
     },
 ];
 
@@ -150,7 +166,7 @@ function PermissionPolicyDetails({
     const [autocompleteResult, setAutocompleteResult] = useState<UserPropertyField[]>([]);
     const [attributesLoaded, setAttributesLoaded] = useState(false);
     const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
-    const [showChannelReadAccessConfirmModal, setShowChannelReadAccessConfirmModal] = useState(false);
+    const [showChannelAccessConfirmModal, setShowChannelAccessConfirmModal] = useState(false);
     const [pageLoaded, setPageLoaded] = useState(false);
     const [loadFailed, setLoadFailed] = useState(false);
     const [showTest, setShowTest] = useState(false);
@@ -315,15 +331,21 @@ function PermissionPolicyDetails({
         }
     };
 
-    // Channel Read Access hides channels from users without telling them, so it gets
-    // a confirmation step. File-only policies save straight through.
+    // Channel Read Access hides channels from users without telling them, and Manage
+    // Channel can take editing away from the people maintaining them, so either gets a
+    // confirmation step. Other policies save straight through.
+    const confirmableActions = useMemo(() => selectedPermissions.filter((permission) =>
+        permission === ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS ||
+        permission === ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
+    ), [selectedPermissions]);
+
     const handleSubmit = async () => {
         if (!preSaveCheck()) {
             return;
         }
 
-        if (selectedPermissions.includes(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS)) {
-            setShowChannelReadAccessConfirmModal(true);
+        if (confirmableActions.length > 0) {
+            setShowChannelAccessConfirmModal(true);
             return;
         }
 
@@ -877,6 +899,8 @@ function PermissionPolicyDetails({
                                 [ACCESS_CONTROL_ACTION_UPLOAD_FILE]: formatMessage(permissionMessages.uploadLabel),
                                 [ACCESS_CONTROL_ACTION_DOWNLOAD_FILE]: formatMessage(permissionMessages.downloadLabel),
                                 [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS]: formatMessage(permissionMessages.channelReadAccessLabel),
+                                [ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS]: formatMessage(permissionMessages.channelWriteAccessLabel),
+                                [ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS]: formatMessage(permissionMessages.channelManagementAccessLabel),
                             }}
                             targetRole={selectedRole}
                             targetScope='system'
@@ -884,17 +908,18 @@ function PermissionPolicyDetails({
                         />
                     )}
 
-                    {showChannelReadAccessConfirmModal && (
-                        <ChannelReadAccessConfirmModal
+                    {showChannelAccessConfirmModal && (
+                        <ChannelAccessConfirmModal
                             show={true}
                             targetScope='system'
+                            actions={confirmableActions}
                             isSaving={saving}
-                            onHide={() => setShowChannelReadAccessConfirmModal(false)}
+                            onHide={() => setShowChannelAccessConfirmModal(false)}
                             onConfirm={async () => {
                                 // Close after the request, not before, so the
                                 // dialog's buttons are disabled while it runs.
                                 await savePolicy();
-                                setShowChannelReadAccessConfirmModal(false);
+                                setShowChannelAccessConfirmModal(false);
                             }}
                         />
                     )}
