@@ -27,6 +27,7 @@ import {
     hintOf,
     httpErrorOf,
     chevronOf,
+    labelOf,
     maybeRow,
     openMenu,
     opt,
@@ -837,6 +838,19 @@ describe('HierarchicalValueMenu chrome (mounted)', () => {
             expect(triggerButton()).toHaveAttribute('aria-disabled', 'true');
             expect(triggerButton()).toHaveClass('hierarchical-value-menu__button');
             expect(triggerButton()).toHaveClass('disabled');
+        });
+
+        test('the open menu caps at 320px so long labels can ellipsize', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            renderMenu();
+
+            await openMenu();
+            await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
+
+            const menu = screen.getByRole('menu');
+            expect(menu).toHaveClass('hierarchical-value-menu__menu');
+            expect(menu).toHaveStyle({maxWidth: '320px'});
+            expect(labelOf('Air Program')).toHaveClass('hierarchical-value-menu__label');
         });
 
         test('the trigger keeps its data-testid and the menu keeps its id', async () => {

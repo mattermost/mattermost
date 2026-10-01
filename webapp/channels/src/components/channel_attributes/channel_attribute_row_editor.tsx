@@ -308,6 +308,8 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                 menu={{
                     id: menuId,
                     'aria-label': label,
+                    className: 'ChannelInfoAttributes__valueMenu',
+                    maxWidth: '320px',
                     allowTriggerInteraction: true,
                     isMenuOpen: menuOpen,
                     onToggle: setMenuOpen,

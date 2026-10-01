@@ -193,10 +193,34 @@
         }
     }
 
+    // Select / multiselect option list — same 320px cap as hierarchical-value-menu.
+    &__valueMenu {
+        max-width: 320px;
+        overflow-x: hidden;
+
+        .MuiMenuItem-root {
+            max-width: 320px;
+            box-sizing: border-box;
+
+            > .label-elements {
+                overflow: hidden;
+                min-width: 0;
+                flex: 1 1 auto;
+            }
+
+            > .trailing-elements {
+                flex-shrink: 0;
+            }
+        }
+    }
+
     &__optionLabel {
-        display: inline-flex;
+        display: block;
+        overflow: hidden;
+        max-width: 100%;
         min-width: 0;
-        align-items: center;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     &__textValue {
@@ -246,4 +270,10 @@
             outline-offset: 2px;
         }
     }
+}
+
+// Menu portals outside .ChannelInfoAttributes; keep the paper at the same
+// 320px cap as the value list so long option labels cannot widen it.
+.menu_menuStyled .MuiPaper-root:has(> .ChannelInfoAttributes__valueMenu) {
+    max-width: 320px;
 }

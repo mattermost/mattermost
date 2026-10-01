@@ -473,6 +473,7 @@ export default function HierarchicalValueMenu({
                     id: menuId,
                     'aria-label': resolvedAriaLabel,
                     className: 'hierarchical-value-menu__menu',
+                    maxWidth: '320px',
                     isMenuOpen: isOpen,
                     onToggle: handleToggle,
                     autoFocusItem: false,
