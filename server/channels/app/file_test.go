@@ -9,9 +9,11 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"image/png"
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 
@@ -1319,4 +1321,145 @@ func TestSendFileUploadRejectedEvent(t *testing.T) {
 			}
 		}, 1*time.Second, 100*time.Millisecond, "should not publish file_upload_rejected event when userID is empty")
 	})
+}
+
+func miniPreviewTestPNG(tb testing.TB, width, height int) []byte {
+	tb.Helper()
+	img := image.NewRGBA(image.Rect(0, 0, width, height))
+	var buf bytes.Buffer
+	require.NoError(tb, png.Encode(&buf, img))
+	return buf.Bytes()
+}
+
+func miniPreviewTestPNGTruncatedBeforeIEND(tb testing.TB, width, height int) []byte {
+	tb.Helper()
+	data := miniPreviewTestPNG(tb, width, height)
+	const iendChunkLen = 12 // length + type + CRC
+	require.Greater(tb, len(data), iendChunkLen)
+	return data[:len(data)-iendChunkLen]
+}
+
+func TestGetFileInfo_MiniPreviewRecordedAfterDecodeAttempt(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	type readerKind int
+	const (
+		readerGetFileInfo readerKind = iota
+		readerGetFileInfos
+	)
+
+	tests := []struct {
+		name          string
+		completeImage bool
+		reader        readerKind
+		concurrent    int
+		wantBytes     bool
+	}{
+		{
+			name:       "GetFileInfo records decode attempt for incomplete image",
+			reader:     readerGetFileInfo,
+			concurrent: 1,
+		},
+		{
+			name:       "GetFileInfos records decode attempt for incomplete image",
+			reader:     readerGetFileInfos,
+			concurrent: 1,
+		},
+		{
+			name:       "concurrent GetFileInfo records decode attempt once",
+			reader:     readerGetFileInfo,
+			concurrent: 20,
+		},
+		{
+			name:          "GetFileInfo generates mini preview for complete image",
+			completeImage: true,
+			reader:        readerGetFileInfo,
+			concurrent:    1,
+			wantBytes:     true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			teamID := model.NewId()
+			channelID := model.NewId()
+			userID := model.NewId()
+
+			var data []byte
+			if tc.completeImage {
+				data = miniPreviewTestPNG(t, 8, 8)
+			} else {
+				data = miniPreviewTestPNGTruncatedBeforeIEND(t, 8, 8)
+			}
+
+			uploaded, appErr := th.App.DoUploadFile(th.Context, time.Now(), teamID, channelID, userID, "preview.png", data, false)
+			require.Nil(t, appErr)
+			require.NotNil(t, uploaded)
+			t.Cleanup(func() {
+				require.NoError(t, th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, uploaded.Id))
+				require.Nil(t, th.App.RemoveFile(uploaded.Path))
+			})
+			require.Equal(t, 8, uploaded.Width)
+			require.Equal(t, 8, uploaded.Height)
+			require.Nil(t, uploaded.MiniPreview)
+
+			read := func() *[]byte {
+				t.Helper()
+				switch tc.reader {
+				case readerGetFileInfo:
+					info, err := th.App.GetFileInfo(th.Context, uploaded.Id)
+					require.Nil(t, err)
+					require.NotNil(t, info)
+					return info.MiniPreview
+				case readerGetFileInfos:
+					infos, err := th.App.GetFileInfos(th.Context, 0, 10, &model.GetFileInfosOptions{
+						UserIds: []string{userID},
+					})
+					require.Nil(t, err)
+					require.Len(t, infos, 1)
+					return infos[0].MiniPreview
+				default:
+					t.Fatalf("unknown reader %v", tc.reader)
+					return nil
+				}
+			}
+
+			if tc.concurrent > 1 {
+				var wg sync.WaitGroup
+				errs := make(chan *model.AppError, tc.concurrent)
+				wg.Add(tc.concurrent)
+				for i := 0; i < tc.concurrent; i++ {
+					go func() {
+						defer wg.Done()
+						_, err := th.App.GetFileInfo(th.Context, uploaded.Id)
+						if err != nil {
+							errs <- err
+						}
+					}()
+				}
+				wg.Wait()
+				close(errs)
+				for err := range errs {
+					require.Nil(t, err)
+				}
+			} else {
+				first := read()
+				if tc.wantBytes {
+					require.NotNil(t, first)
+					require.NotEmpty(t, *first)
+				} else {
+					require.NotNil(t, first, "records that mini-preview generation was attempted so later reads skip decode")
+				}
+			}
+
+			// A later read must see the recorded attempt so decode work does not
+			// grow with the number of GetFileInfo / GetFileInfos calls.
+			later := read()
+			require.NotNil(t, later, "records that mini-preview generation was attempted so later reads skip decode")
+			if tc.wantBytes {
+				require.NotEmpty(t, *later)
+			}
+		})
+	}
 }
