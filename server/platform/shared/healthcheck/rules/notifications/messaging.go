@@ -152,7 +152,7 @@ func evalTypingMessagesAtScale(s *healthcheck.Snapshot) []healthcheck.Result {
 	users, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 { return stats.ActiveUsers })
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.TranslationId("health.rule.typing_messages_at_scale.message.stats_unavailable"))}
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)}
 	case users >= typingMessagesUserLimit:
 		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.typing_messages_at_scale.message")).WithValue(float64(users))}
 	default:
@@ -169,7 +169,7 @@ func evalSMTPUnreachable(s *healthcheck.Snapshot) []healthcheck.Result {
 		return []healthcheck.Result{healthcheck.Resolved()}
 	}
 
-	notCollected := []healthcheck.Result{healthcheck.Unknown(healthcheck.TranslationId("health.rule.smtp_unreachable.message.not_collected"))}
+	notCollected := []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
 	leader, ok := s.Leader()
 	if !ok {
 		return notCollected
