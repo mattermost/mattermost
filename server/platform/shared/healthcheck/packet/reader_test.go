@@ -31,6 +31,12 @@ import (
 const (
 	pushSubject    = "EmailSettings.PushNotificationServer"
 	siteURLSubject = "ServiceSettings.SiteURL"
+
+	expiresAtSubject  = "license.expires_at"
+	trialSubject      = "license.is_trial"
+	seatsSubject      = "license.users"
+	engagementSubject = "stats.monthly_active_users"
+	workflowSubject   = "plugins.enabled"
 )
 
 type finding struct {
@@ -127,12 +133,18 @@ func TestReadGoldenPackets(t *testing.T) {
 			expected: []finding{
 				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateFiring, Subject: pushSubject},
 				{Code: "SITE_URL_HTTP", State: healthcheck.StateFiring, Subject: siteURLSubject},
+				{Code: "LICENSE_EXPIRED", State: healthcheck.StateUnknown, Subject: expiresAtSubject},
+				{Code: "LICENSE_EXPIRING", State: healthcheck.StateUnknown, Subject: expiresAtSubject},
+				{Code: "SEATS_LIMIT_REACHED", State: healthcheck.StateUnknown, Subject: seatsSubject},
+				{Code: "WORKFLOW_USAGE_CHAT_ONLY", State: healthcheck.StateFiring, Subject: workflowSubject},
 			},
 		},
 		{
 			name: "ha",
 			expected: []finding{
 				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject},
+				{Code: "LICENSE_EXPIRING", State: healthcheck.StateFiring, Subject: expiresAtSubject},
+				{Code: "WORKFLOW_USAGE_CHAT_ONLY", State: healthcheck.StateFiring, Subject: workflowSubject},
 			},
 		},
 	}
