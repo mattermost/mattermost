@@ -128,6 +128,37 @@ describe('AttributeChip', () => {
         expect(onRemove).toHaveBeenCalledTimes(1);
     });
 
+    test('keeps medium box size whether or not the chip is dismissible', () => {
+        const {rerender} = renderWithContext(
+            <AttributeChip
+                label='Classification'
+                value='TOP SECRET'
+                color='#8B0000'
+                size='medium'
+            />,
+        );
+
+        expect(screen.getByTestId('attributeChip')).toHaveClass('AttributeChip--medium');
+        expect(screen.getByTestId('attributeChip')).not.toHaveClass('AttributeChip--dismissible');
+
+        rerender(
+            <AttributeChip
+                label='Classification'
+                value='TOP SECRET'
+                color='#8B0000'
+                size='medium'
+            >
+                <AttributeChipRemoveButton
+                    onRemove={jest.fn()}
+                    removeLabel='Clear Classification'
+                />
+            </AttributeChip>,
+        );
+
+        expect(screen.getByTestId('attributeChip')).toHaveClass('AttributeChip--medium');
+        expect(screen.getByTestId('attributeChip')).toHaveClass('AttributeChip--dismissible');
+    });
+
     test('keeps the remove control in sequential keyboard order', async () => {
         const onRemove = jest.fn();
         renderWithContext(

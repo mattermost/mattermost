@@ -90,7 +90,8 @@ export const AttributeChipRemoveButton = ({onRemove, removeLabel, disabled, clas
  * as the channel banner already does. That is what holds contrast in all themes.
  *
  * Dismissible chips follow Components — Chip: circular CloseCircle inside the chip
- * via children (typically AttributeChipRemoveButton).
+ * via children (typically AttributeChipRemoveButton). Medium chips keep option
+ * casing and a fixed 22px height whether or not a remove control is present.
  */
 const AttributeChip = ({
     label,

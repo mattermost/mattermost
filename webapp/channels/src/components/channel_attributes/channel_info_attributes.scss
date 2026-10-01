@@ -132,11 +132,10 @@
         gap: 2px;
     }
 
-    // Overrides AttributeChip's 22px medium height to the graph picker's 24px, so
-    // the two pickers' chips are the same object.
+    // AttributeChip medium owns height/padding (22px). Do not inflate to 24px —
+    // that leftover graph-picker metric made solid-colour classification chips
+    // read taller than severity/multiselect chips sharing the same component.
     &__chip.AttributeChip {
-        height: 24px;
-        padding: 0 4px 0 8px;
         margin: 2px;
     }
 

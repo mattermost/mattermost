@@ -24,6 +24,10 @@
         text-transform: uppercase;
     }
 
+    // Figma Components — Chip: option casing as authored (TOP SECRET stays
+    // uppercase because the option is; Potato stays title case). Do not force
+    // text-transform here — that made long classification labels look bulkier
+    // than sentence-case multiselect chips of the same box size.
     &--medium {
         height: 22px;
         box-sizing: border-box;
@@ -31,18 +35,12 @@
         border: 1px solid transparent;
         font-size: 10px;
         gap: 2px;
-        letter-spacing: 0.2px;
-        line-height: 12px;
-        text-transform: uppercase;
-    }
-
-    // Dismissible chips keep option casing (Figma Components — Chip) and leave
-    // room for the circular close control on the trailing edge.
-    &--dismissible {
         letter-spacing: normal;
-        text-transform: none;
+        line-height: 12px;
     }
 
+    // Tighten the trailing edge only; height/font stay identical to medium so a
+    // colored classification chip matches a neutral severity/multiselect chip.
     &--medium.AttributeChip--dismissible {
         padding: 4px 4px 4px 8px;
         gap: 0;
