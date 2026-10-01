@@ -69,13 +69,40 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="AdminChannelDetails_archiveContainer"
               >
                 <button
-                  class="btn btn-secondary btn-danger"
+                  class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47 _button--destructive_doayp_130"
                   type="button"
                 >
-                  <i
-                    class="icon icon-archive-outline"
-                  />
-                  Archive Channel
+                  <span
+                    aria-hidden="true"
+                    class="_button__icon-slot_doayp_27"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11M5 5V7H19V5H5Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Archive Channel
+                  </span>
                 </button>
               </div>
             </div>
@@ -418,23 +445,31 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
-          Save
+        <span
+          class="_button__label_doayp_24"
+        >
+          <span>
+            Save
+          </span>
         </span>
       </button>
-      <a
-        class="btn btn-quaternary"
-        href="/admin_console/user_management/channels"
+      <button
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
         id="cancelButtonSettings"
+        type="button"
       >
-        Cancel
-      </a>
+        <span
+          class="_button__label_doayp_24"
+        >
+          Cancel
+        </span>
+      </button>
       <div
         class="error-message"
         data-testid="saveChangesPanel-errorMessage"
@@ -512,13 +547,40 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="AdminChannelDetails_archiveContainer"
               >
                 <button
-                  class="btn btn-secondary btn-danger"
+                  class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47 _button--destructive_doayp_130"
                   type="button"
                 >
-                  <i
-                    class="icon icon-archive-outline"
-                  />
-                  Archive Channel
+                  <span
+                    aria-hidden="true"
+                    class="_button__icon-slot_doayp_27"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11M5 5V7H19V5H5Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Archive Channel
+                  </span>
                 </button>
               </div>
             </div>
@@ -861,23 +923,31 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
-          Save
+        <span
+          class="_button__label_doayp_24"
+        >
+          <span>
+            Save
+          </span>
         </span>
       </button>
-      <a
-        class="btn btn-quaternary"
-        href="/admin_console/user_management/channels"
+      <button
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
         id="cancelButtonSettings"
+        type="button"
       >
-        Cancel
-      </a>
+        <span
+          class="_button__label_doayp_24"
+        >
+          Cancel
+        </span>
+      </button>
       <div
         class="error-message"
         data-testid="saveChangesPanel-errorMessage"
@@ -956,13 +1026,40 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="AdminChannelDetails_archiveContainer"
               >
                 <button
-                  class="btn btn-secondary btn-danger"
+                  class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47 _button--destructive_doayp_130"
                   type="button"
                 >
-                  <i
-                    class="icon icon-archive-outline"
-                  />
-                  Archive Channel
+                  <span
+                    aria-hidden="true"
+                    class="_button__icon-slot_doayp_27"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11M5 5V7H19V5H5Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Archive Channel
+                  </span>
                 </button>
               </div>
             </div>
@@ -1148,23 +1245,31 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
-          Save
+        <span
+          class="_button__label_doayp_24"
+        >
+          <span>
+            Save
+          </span>
         </span>
       </button>
-      <a
-        class="btn btn-quaternary"
-        href="/admin_console/user_management/channels"
+      <button
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
         id="cancelButtonSettings"
+        type="button"
       >
-        Cancel
-      </a>
+        <span
+          class="_button__label_doayp_24"
+        >
+          Cancel
+        </span>
+      </button>
       <div
         class="error-message"
         data-testid="saveChangesPanel-errorMessage"
@@ -1242,13 +1347,40 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="AdminChannelDetails_archiveContainer"
               >
                 <button
-                  class="btn btn-secondary btn-danger"
+                  class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47 _button--destructive_doayp_130"
                   type="button"
                 >
-                  <i
-                    class="icon icon-archive-outline"
-                  />
-                  Archive Channel
+                  <span
+                    aria-hidden="true"
+                    class="_button__icon-slot_doayp_27"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11M5 5V7H19V5H5Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Archive Channel
+                  </span>
                 </button>
               </div>
             </div>
@@ -1434,23 +1566,31 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
-          Save
+        <span
+          class="_button__label_doayp_24"
+        >
+          <span>
+            Save
+          </span>
         </span>
       </button>
-      <a
-        class="btn btn-quaternary"
-        href="/admin_console/user_management/channels"
+      <button
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
         id="cancelButtonSettings"
+        type="button"
       >
-        Cancel
-      </a>
+        <span
+          class="_button__label_doayp_24"
+        >
+          Cancel
+        </span>
+      </button>
       <div
         class="error-message"
         data-testid="saveChangesPanel-errorMessage"
@@ -1529,13 +1669,40 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="AdminChannelDetails_archiveContainer"
               >
                 <button
-                  class="btn btn-secondary btn-danger"
+                  class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47 _button--destructive_doayp_130"
                   type="button"
                 >
-                  <i
-                    class="icon icon-archive-outline"
-                  />
-                  Archive Channel
+                  <span
+                    aria-hidden="true"
+                    class="_button__icon-slot_doayp_27"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11M5 5V7H19V5H5Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Archive Channel
+                  </span>
                 </button>
               </div>
             </div>
@@ -1680,23 +1847,31 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
-          Save
+        <span
+          class="_button__label_doayp_24"
+        >
+          <span>
+            Save
+          </span>
         </span>
       </button>
-      <a
-        class="btn btn-quaternary"
-        href="/admin_console/user_management/channels"
+      <button
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
         id="cancelButtonSettings"
+        type="button"
       >
-        Cancel
-      </a>
+        <span
+          class="_button__label_doayp_24"
+        >
+          Cancel
+        </span>
+      </button>
       <div
         class="error-message"
         data-testid="saveChangesPanel-errorMessage"
@@ -1774,13 +1949,40 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="AdminChannelDetails_archiveContainer"
               >
                 <button
-                  class="btn btn-secondary btn-danger"
+                  class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47 _button--destructive_doayp_130"
                   type="button"
                 >
-                  <i
-                    class="icon icon-archive-outline"
-                  />
-                  Archive Channel
+                  <span
+                    aria-hidden="true"
+                    class="_button__icon-slot_doayp_27"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11M5 5V7H19V5H5Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Archive Channel
+                  </span>
                 </button>
               </div>
             </div>
@@ -1925,23 +2127,31 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
-          Save
+        <span
+          class="_button__label_doayp_24"
+        >
+          <span>
+            Save
+          </span>
         </span>
       </button>
-      <a
-        class="btn btn-quaternary"
-        href="/admin_console/user_management/channels"
+      <button
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
         id="cancelButtonSettings"
+        type="button"
       >
-        Cancel
-      </a>
+        <span
+          class="_button__label_doayp_24"
+        >
+          Cancel
+        </span>
+      </button>
       <div
         class="error-message"
         data-testid="saveChangesPanel-errorMessage"

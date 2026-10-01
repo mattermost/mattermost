@@ -30,7 +30,7 @@ describe('components/admin_console/BlockableButton', () => {
                 admin: {
                     navigationBlock: {
                         blocked: options.navigationBlocked ?? false,
-                        onNavigationConfirmed: null,
+                        onNavigationConfirmed: undefined,
                         showNavigationPrompt: false,
                     },
                 },

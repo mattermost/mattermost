@@ -250,14 +250,24 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
             data-testid="adminUserCard-footer"
           >
             <button
-              class="btn btn-secondary"
+              class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47"
+              type="button"
             >
-              Reset Password
+              <span
+                class="_button__label_doayp_24"
+              >
+                Reset Password
+              </span>
             </button>
             <button
-              class="btn btn-secondary btn-danger"
+              class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+              type="button"
             >
-              Deactivate
+              <span
+                class="_button__label_doayp_24"
+              >
+                Deactivate
+              </span>
             </button>
           </div>
         </div>
@@ -285,10 +295,14 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                 class="add-team-button"
               >
                 <button
-                  class="btn btn-primary"
+                  class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
                   type="button"
                 >
-                  Add Team
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Add Team
+                  </span>
                 </button>
               </div>
             </div>
@@ -317,14 +331,18 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
         class="admin-console-save-buttons"
       >
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
-            Save
+          <span
+            class="_button__label_doayp_24"
+          >
+            <span>
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -588,14 +606,24 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
             data-testid="adminUserCard-footer"
           >
             <button
-              class="btn btn-secondary"
+              class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47"
+              type="button"
             >
-              Reset Password
+              <span
+                class="_button__label_doayp_24"
+              >
+                Reset Password
+              </span>
             </button>
             <button
-              class="btn btn-secondary btn-danger"
+              class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+              type="button"
             >
-              Deactivate
+              <span
+                class="_button__label_doayp_24"
+              >
+                Deactivate
+              </span>
             </button>
           </div>
         </div>
@@ -623,10 +651,14 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                 class="add-team-button"
               >
                 <button
-                  class="btn btn-primary"
+                  class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
                   type="button"
                 >
-                  Add Team
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Add Team
+                  </span>
                 </button>
               </div>
             </div>
@@ -655,14 +687,18 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
         class="admin-console-save-buttons"
       >
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
-            Save
+          <span
+            class="_button__label_doayp_24"
+          >
+            <span>
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -926,14 +962,24 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
             data-testid="adminUserCard-footer"
           >
             <button
-              class="btn btn-secondary"
+              class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47"
+              type="button"
             >
-              Reset Password
+              <span
+                class="_button__label_doayp_24"
+              >
+                Reset Password
+              </span>
             </button>
             <button
-              class="btn btn-secondary btn-danger"
+              class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+              type="button"
             >
-              Deactivate
+              <span
+                class="_button__label_doayp_24"
+              >
+                Deactivate
+              </span>
             </button>
           </div>
         </div>
@@ -961,10 +1007,14 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
                 class="add-team-button"
               >
                 <button
-                  class="btn btn-primary"
+                  class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
                   type="button"
                 >
-                  Add Team
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Add Team
+                  </span>
                 </button>
               </div>
             </div>
@@ -993,14 +1043,18 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
         class="admin-console-save-buttons"
       >
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
-            Save
+          <span
+            class="_button__label_doayp_24"
+          >
+            <span>
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -1264,14 +1318,24 @@ exports[`SystemUserDetail should not show manage user settings button when user 
             data-testid="adminUserCard-footer"
           >
             <button
-              class="btn btn-secondary"
+              class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47"
+              type="button"
             >
-              Reset Password
+              <span
+                class="_button__label_doayp_24"
+              >
+                Reset Password
+              </span>
             </button>
             <button
-              class="btn btn-secondary btn-danger"
+              class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+              type="button"
             >
-              Deactivate
+              <span
+                class="_button__label_doayp_24"
+              >
+                Deactivate
+              </span>
             </button>
           </div>
         </div>
@@ -1299,10 +1363,14 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                 class="add-team-button"
               >
                 <button
-                  class="btn btn-primary"
+                  class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
                   type="button"
                 >
-                  Add Team
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Add Team
+                  </span>
                 </button>
               </div>
             </div>
@@ -1331,14 +1399,18 @@ exports[`SystemUserDetail should not show manage user settings button when user 
         class="admin-console-save-buttons"
       >
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
-            Save
+          <span
+            class="_button__label_doayp_24"
+          >
+            <span>
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -1602,20 +1674,35 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
             data-testid="adminUserCard-footer"
           >
             <button
-              class="btn btn-secondary"
+              class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47"
+              type="button"
             >
-              Reset Password
+              <span
+                class="_button__label_doayp_24"
+              >
+                Reset Password
+              </span>
             </button>
             <button
-              class="btn btn-secondary btn-danger"
+              class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+              type="button"
             >
-              Deactivate
+              <span
+                class="_button__label_doayp_24"
+              >
+                Deactivate
+              </span>
             </button>
             <button
-              class="btn btn-tertiary manageUserSettingsBtn"
+              class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 manageUserSettingsBtn"
               id="manageUserSettingsBtn"
+              type="button"
             >
-              Manage User Settings
+              <span
+                class="_button__label_doayp_24"
+              >
+                Manage User Settings
+              </span>
             </button>
           </div>
         </div>
@@ -1643,10 +1730,14 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                 class="add-team-button"
               >
                 <button
-                  class="btn btn-primary"
+                  class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
                   type="button"
                 >
-                  Add Team
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Add Team
+                  </span>
                 </button>
               </div>
             </div>
@@ -1675,14 +1766,18 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
         class="admin-console-save-buttons"
       >
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
-            Save
+          <span
+            class="_button__label_doayp_24"
+          >
+            <span>
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -1946,14 +2041,24 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
             data-testid="adminUserCard-footer"
           >
             <button
-              class="btn btn-secondary"
+              class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47"
+              type="button"
             >
-              Reset Password
+              <span
+                class="_button__label_doayp_24"
+              >
+                Reset Password
+              </span>
             </button>
             <button
-              class="btn btn-secondary btn-danger"
+              class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+              type="button"
             >
-              Deactivate
+              <span
+                class="_button__label_doayp_24"
+              >
+                Deactivate
+              </span>
             </button>
           </div>
         </div>
@@ -1981,10 +2086,14 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                 class="add-team-button"
               >
                 <button
-                  class="btn btn-primary"
+                  class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
                   type="button"
                 >
-                  Add Team
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Add Team
+                  </span>
                 </button>
               </div>
             </div>
@@ -2013,14 +2122,18 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
         class="admin-console-save-buttons"
       >
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
-            Save
+          <span
+            class="_button__label_doayp_24"
+          >
+            <span>
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -2312,17 +2425,27 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
             data-testid="adminUserCard-footer"
           >
             <button
-              class="btn btn-secondary"
+              class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47"
+              type="button"
             >
-              Reset Password
+              <span
+                class="_button__label_doayp_24"
+              >
+                Reset Password
+              </span>
             </button>
             <button
-              class="btn btn-secondary btn-danger"
+              class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47 _button--destructive_doayp_130"
               disabled=""
+              type="button"
             >
-              Deactivate
-               
-              (Managed By LDAP)
+              <span
+                class="_button__label_doayp_24"
+              >
+                Deactivate
+                 
+                (Managed By LDAP)
+              </span>
             </button>
           </div>
         </div>
@@ -2350,10 +2473,14 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                 class="add-team-button"
               >
                 <button
-                  class="btn btn-primary"
+                  class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
                   type="button"
                 >
-                  Add Team
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Add Team
+                  </span>
                 </button>
               </div>
             </div>
@@ -2382,14 +2509,18 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
         class="admin-console-save-buttons"
       >
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
-            Save
+          <span
+            class="_button__label_doayp_24"
+          >
+            <span>
+              Save
+            </span>
           </span>
         </button>
       </div>

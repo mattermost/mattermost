@@ -13,8 +13,8 @@ export default class RestorePostConfirmationDialog {
     constructor(container: Locator) {
         this.container = container;
 
-        this.cancelButton = container.locator('button.btn.btn-tertiary');
-        this.confirmButton = container.locator('button.GenericModal__button.btn.btn-primary.confirm');
+        this.cancelButton = container.getByRole('button', {name: 'Cancel'});
+        this.confirmButton = container.locator('button.GenericModal__button.confirm');
     }
 
     async toBeVisible() {
