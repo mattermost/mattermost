@@ -66,7 +66,7 @@ func evalAuditLogOff(s *healthcheck.Snapshot) []healthcheck.Result {
 	users, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 { return stats.RegisteredUsers })
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.TranslationId("health.rule.audit_log_off.message.stats_unavailable"))}
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)}
 	case users > auditLogOffMinUsers:
 		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.audit_log_off.message")).
 			WithDetail("users", strconv.FormatInt(users, 10)).
