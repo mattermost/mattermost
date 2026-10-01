@@ -24,7 +24,7 @@ export {setupFileServer} from './file_server';
 export {decomposeKorean, koreanTestPhrase, typeHangulCharacterWithIme, typeHangulWithIme} from './ime';
 export {type SizeObservation, type SizeWatcher, watchElementSize} from './layout_shift';
 export {duration, getRandomId, wait, newTestPassword} from './util';
-export {LicenseSkus, appsPluginId, callsPluginId, playbooksPluginId} from './constant';
+export {LicenseSkus, appsPluginId, callsPluginId, demoPluginId, demoPluginUrl, playbooksPluginId} from './constant';
 
 export {
     getAdminClient,
@@ -60,11 +60,12 @@ export {
     ensureMmctl,
     upgradeServerImage,
     saveUpgradePhaseLogs,
+    ensureDemoPlugin,
     installAndEnablePlugin,
     getPluginStatus,
     isPluginActive,
 } from './server';
-export type {InbucketEmail, LdapUser, KeycloakUser, MmctlResult, UpgradeLogPhase} from './server';
+export type {EnsureDemoPluginOptions, InbucketEmail, LdapUser, KeycloakUser, MmctlResult, UpgradeLogPhase} from './server';
 
 export {startStack, stopStack} from './containers';
 

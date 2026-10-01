@@ -3,46 +3,47 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {assertRootModal, closeRootModal, setupDemoPlugin} from '../helpers';
+import {assertRootModal, closeRootModal} from '../helpers';
 
 test('should open Root Modal from team dropdown main menu', async ({pw}) => {
-    // 1. Setup
-    const {adminClient, user, team} = await pw.initSetup();
-    await setupDemoPlugin(adminClient, pw);
+    // # Setup
+    const {user, team} = await pw.initSetup();
+    await pw.ensureDemoPlugin();
 
-    // 2. Login and navigate to Town Square
+    // # Login and navigate to Town Square
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // 3. Open the team name dropdown in the left sidebar
+    // # Open the team name dropdown in the left sidebar
     await channelsPage.sidebarLeft.teamMenuButton.click();
 
-    // 4. Confirm Demo Plugin entries are visible and click "Demo Plugin"
+    // * Verify Demo Plugin entries are visible
     await expect(channelsPage.page.getByRole('menuitem', {name: 'Demo Plugin'})).toBeVisible();
+
+    // # Click "Demo Plugin"
     await channelsPage.page.getByRole('menuitem', {name: 'Demo Plugin'}).click();
 
-    // 5. Assert Root Modal (no "Element clicked" line for main menu)
+    // * Verify Root Modal opens (no "Element clicked" line for main menu)
     await assertRootModal(channelsPage.page);
 
-    // 6. Close
     await closeRootModal(channelsPage.page);
 });
 
 test('should open Root Modal from channel header dropdown More actions', async ({pw}) => {
-    // 1. Setup
-    const {adminClient, user, team} = await pw.initSetup();
-    await setupDemoPlugin(adminClient, pw);
+    // # Setup
+    const {user, team} = await pw.initSetup();
+    await pw.ensureDemoPlugin();
 
-    // 2. Login and navigate to Town Square
+    // # Login and navigate to Town Square
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // 3. Open channel header dropdown
+    // # Open channel header dropdown
     await channelsPage.centerView.header.openChannelMenu();
 
-    // 4. Hover "More actions" to reveal the submenu, then click "Demo Plugin"
+    // # Hover "More actions" to reveal the submenu, then click "Demo Plugin"
     const moreActionsItem = channelsPage.page.getByRole('menuitem', {name: 'More actions'});
     await expect(moreActionsItem).toBeVisible();
     await moreActionsItem.hover();
@@ -53,36 +54,30 @@ test('should open Root Modal from channel header dropdown More actions', async (
     await demoPluginItem.hover();
     await demoPluginItem.click();
 
-    // 5. Assert Root Modal base text
+    // * Verify Root Modal opens with base text
     await assertRootModal(channelsPage.page);
     // Channel header entry also shows "Element clicked in the menu: <channel_id>" (dynamic)
     await expect(channelsPage.page.getByText(/Element clicked in the menu:/)).toBeVisible();
 
-    // 6. Close
     await closeRootModal(channelsPage.page);
 });
 
-// Skipped: demo plugin v0.10.3 does not set a URL on the openInteractiveDialog call.
-// The webapp logs "Interactive dialog missing URL - this is a configuration error" and no dialog renders.
-// Re-enable once the demo plugin is fixed and the build URL in helpers.ts is updated.
-test.skip('should open Sample Confirmation Dialog from team dropdown and respond to Confirm and Cancel', async ({
-    pw,
-}) => {
-    // 1. Setup
-    const {adminClient, user, team} = await pw.initSetup();
-    await setupDemoPlugin(adminClient, pw);
+test('should open Sample Confirmation Dialog from team dropdown and respond to Confirm and Cancel', async ({pw}) => {
+    // # Setup
+    const {user, team} = await pw.initSetup();
+    await pw.ensureDemoPlugin();
 
-    // 2. Login and navigate to Town Square
+    // # Login and navigate to Town Square
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // 3. Open team dropdown and click "Sample Confirmation Dialog"
+    // # Open team dropdown and click "Sample Confirmation Dialog"
     await channelsPage.sidebarLeft.teamMenuButton.click();
     await expect(channelsPage.page.getByRole('menuitem', {name: 'Sample Confirmation Dialog'})).toBeVisible();
     await channelsPage.page.getByRole('menuitem', {name: 'Sample Confirmation Dialog'}).click();
 
-    // 4. Confirm dialog opens with title and action buttons but no form fields
+    // * Verify dialog opens with title and action buttons but no form fields
     const dialog = channelsPage.page.getByRole('dialog', {name: 'Sample Confirmation Dialog'});
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole('heading', {name: 'Sample Confirmation Dialog', level: 1})).toBeVisible();
@@ -90,8 +85,10 @@ test.skip('should open Sample Confirmation Dialog from team dropdown and respond
     await expect(dialog.getByRole('button', {name: 'Confirm'})).toBeVisible();
     await expect(dialog.getByRole('textbox')).not.toBeVisible();
 
-    // 5. Click Confirm — dialog closes and a post appears
+    // # Click Confirm
     await dialog.getByRole('button', {name: 'Confirm'}).click();
+
+    // * Verify the dialog closes and a confirmation post appears
     await expect(dialog).not.toBeVisible();
     await expect(
         channelsPage.centerView.container.locator('p').filter({hasText: 'confirmed an Interactive Dialog'}),
