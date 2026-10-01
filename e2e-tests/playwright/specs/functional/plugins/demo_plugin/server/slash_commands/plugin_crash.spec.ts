@@ -1,41 +1,37 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test, expect} from '@mattermost/playwright-lib';
-
-import {setupDemoPlugin} from '../../helpers';
+import {demoPluginId, duration, test, expect} from '@mattermost/playwright-lib';
 
 test('should crash plugin via /crash command and verify recovery', async ({pw}) => {
-    // Setup: Install and enable the demo plugin
+    // # Setup
     const {adminClient, user} = await pw.initSetup();
+    await pw.ensureDemoPlugin();
     const {channelsPage} = await pw.testBrowser.login(user);
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
-    await setupDemoPlugin(adminClient, pw);
 
-    // Test: Use autocomplete to select /crash command
+    // # Use autocomplete to select /crash command and send it
     await channelsPage.centerView.postCreate.selectSlashCommandFromAutocomplete('/cr', '/crash');
-
-    // Send the crash command
     await channelsPage.centerView.postCreate.sendMessage();
 
-    // Wait until post contains the crash message
+    // * Verify the post contains the crash message
     await channelsPage.centerView.waitUntilLastPostContains('Crashing plugin');
 
-    // Wait for plugin to recover (polls every 500ms by default)
+    // * Verify the plugin recovers (polls every 500ms by default)
     await expect
         .poll(
             async () => {
-                return pw.isPluginActive(adminClient, 'com.mattermost.demo-plugin');
+                return pw.isPluginActive(adminClient, demoPluginId);
             },
             {
-                timeout: 10000, // Max 10s to recover
-                intervals: [1000], // Check every 1s
+                timeout: duration.ten_sec, // Max 10s to recover
+                intervals: [duration.one_sec], // Check every 1s
             },
         )
         .toBe(true);
 
-    // Verify recovery by using /demo_plugin command
+    // * Verify recovery by using /demo_plugin command
     await channelsPage.centerView.postCreate.selectSlashCommandFromAutocomplete('/demo', '/demo_plugin');
 });

@@ -3,84 +3,84 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {setupDemoPlugin} from '../../helpers';
+import {sendDemoSlashCommand} from '../../helpers';
 
 test('should send ephemeral post with Update and Delete actions via /ephemeral command', async ({pw}) => {
-    test.setTimeout(120000);
+    // # Setup
+    const {user, team} = await pw.initSetup();
+    await pw.ensureDemoPlugin();
 
-    // 1. Setup
-    const {adminClient, user, team} = await pw.initSetup();
-    await setupDemoPlugin(adminClient, pw);
-
-    // 2. Login
+    // # Login
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
-    // 3. Navigate to Town Square — avoids noise from demo plugin's own ephemeral messages
+    // # Navigate to Town Square — avoids noise from demo plugin's own ephemeral messages
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // 4. Send /ephemeral command (retry once if the plugin is not yet ready)
+    // # Send /ephemeral command. sendDemoSlashCommand waits for the command's network
+    // response, so the retry below only fires on a genuine UI timing miss.
     const ephemeralPost = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: 'test ephemeral actions'})
         .last();
     for (let attempt = 0; attempt < 3; attempt++) {
-        await channelsPage.centerView.postCreate.input.fill('/ephemeral');
-        await channelsPage.centerView.postCreate.sendMessage();
+        await sendDemoSlashCommand(channelsPage.page, async () => {
+            await channelsPage.centerView.postCreate.input.fill('/ephemeral');
+            await channelsPage.centerView.postCreate.sendMessage();
+        });
         try {
-            await expect(ephemeralPost.getByText('(Only visible to you)', {exact: true})).toBeVisible({timeout: 45000});
+            await expect(ephemeralPost.getByText('(Only visible to you)', {exact: true})).toBeVisible();
             break;
         } catch (err) {
             if (attempt === 2) {
                 throw err;
             }
-            await setupDemoPlugin(adminClient, pw);
-            await new Promise((resolve) => setTimeout(resolve, 6000));
         }
     }
 
-    // 5. Verify ephemeral post appears with correct content and action buttons
+    // * Verify ephemeral post appears with correct content and action buttons
     await expect(ephemeralPost.getByText('(Only visible to you)', {exact: true})).toBeVisible();
     await expect(ephemeralPost.getByText('test ephemeral actions', {exact: true})).toBeVisible();
     await expect(ephemeralPost.getByRole('button', {name: 'Update', exact: true})).toBeVisible();
     await expect(ephemeralPost.getByRole('button', {name: 'Delete', exact: true})).toBeVisible();
 
-    // 6. Click Update and verify post text and button label change
+    // # Click Update.
     // After clicking Update the text changes — re-find the post by its new content.
-    // The virtual list can re-render immediately after the click, causing a brief DOM
-    // detachment window; wrap the assertion in toPass to ride out that re-render.
+    // toBeVisible() re-resolves the locator on every retry, so it rides out the virtual
+    // list's re-render on its own.
     await ephemeralPost.getByRole('button', {name: 'Update', exact: true}).click();
     const updatedPost = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: 'updated ephemeral action'})
         .last();
-    await expect
-        .poll(async () => updatedPost.getByText('updated ephemeral action', {exact: true}).isVisible(), {
-            timeout: 30000,
-            intervals: [500, 1000, 2000],
-        })
-        .toBe(true);
-    await expect(updatedPost.getByRole('button', {name: 'Update 1', exact: true})).toBeVisible({timeout: 15000});
-    await expect(updatedPost.getByRole('button', {name: 'Delete', exact: true})).toBeVisible({timeout: 15000});
 
-    // 7. Click Delete and verify post content is removed and buttons are gone
-    // After delete the text changes again — re-find by the new content
+    // * Verify post text and button label change
+    await expect(updatedPost.getByText('updated ephemeral action', {exact: true})).toBeVisible();
+    await expect(updatedPost.getByRole('button', {name: 'Update 1', exact: true})).toBeVisible();
+    await expect(updatedPost.getByRole('button', {name: 'Delete', exact: true})).toBeVisible();
+
+    // # Click Delete.
+    // After delete the text changes again — re-find by the new content.
     await updatedPost.getByRole('button', {name: 'Delete', exact: true}).click();
     const deletedPost = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: '(message deleted)'})
         .last();
+
+    // * Verify post content is removed and buttons are gone
     await expect(deletedPost.getByText('(message deleted)', {exact: true})).toBeVisible();
     await expect(deletedPost.getByRole('button', {name: 'Update 1', exact: true})).not.toBeVisible();
     await expect(deletedPost.getByRole('button', {name: 'Delete', exact: true})).not.toBeVisible();
 
-    // 8. Send /ephemeral_override command (still in Town Square)
-    await channelsPage.centerView.postCreate.input.fill('/ephemeral_override');
-    await channelsPage.centerView.postCreate.sendMessage();
+    // # Send /ephemeral_override command (still in Town Square)
+    await sendDemoSlashCommand(channelsPage.page, async () => {
+        await channelsPage.centerView.postCreate.input.fill('/ephemeral_override');
+        await channelsPage.centerView.postCreate.sendMessage();
+    });
 
-    // 9. Verify the override ephemeral post appears
+    // * Verify the override ephemeral post appears
     const overridePost = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: 'This is a demo of overriding an ephemeral post.'})

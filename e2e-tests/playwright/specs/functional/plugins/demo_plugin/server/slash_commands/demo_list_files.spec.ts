@@ -4,9 +4,7 @@
 import type {Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 
-import {expect, getFileFromAsset, test} from '@mattermost/playwright-lib';
-
-import {setupDemoPlugin, DEMO_PLUGIN_ID} from '../../helpers';
+import {demoPluginId, duration, expect, getFileFromAsset, test} from '@mattermost/playwright-lib';
 
 async function sendSlashCommand(page: Page, send: () => Promise<void>, adminClient: Client4): Promise<void> {
     // Slash commands hit POST /api/v4/commands/execute — not POST /posts (see web client executeCommand).
@@ -14,16 +12,16 @@ async function sendSlashCommand(page: Page, send: () => Promise<void>, adminClie
     for (let attempt = 0; attempt < 2; attempt++) {
         const responsePromise = page.waitForResponse(
             (r) => r.url().includes('/api/v4/commands/execute') && r.request().method() === 'POST',
-            {timeout: 30_000},
+            {timeout: duration.half_min},
         );
         const [, response] = await Promise.all([send(), responsePromise]);
         if (response.ok()) {
             return;
         }
         if (attempt === 0 && response.status() === 500) {
-            // Plugin may have been deactivated by a concurrent initSetup() — re-enable and retry.
+            // Plugin may be transiently inactive — re-enable and retry.
             try {
-                await adminClient.enablePlugin(DEMO_PLUGIN_ID);
+                await adminClient.enablePlugin(demoPluginId);
                 await new Promise((r) => setTimeout(r, 1500));
             } catch {
                 // Ignore; retry the slash command anyway.
@@ -59,13 +57,11 @@ async function uploadAndPostFiles(client: Client4, channelId: string, filenames:
 }
 
 test('should list uploaded files with running total via /list_files command', async ({pw}) => {
-    test.setTimeout(120000);
-
-    // 1. Setup
+    // # Setup
     const {adminClient, user, team} = await pw.initSetup();
-    await setupDemoPlugin(adminClient, pw);
+    await pw.ensureDemoPlugin();
 
-    // 2. Create a dedicated channel for file isolation
+    // # Create a dedicated channel for file isolation
     const channel = pw.random.channel({
         teamId: team.id,
         name: 'list-files-test',
@@ -74,14 +70,14 @@ test('should list uploaded files with running total via /list_files command', as
     const createdChannel = await adminClient.createChannel(channel);
     await adminClient.addToChannel(user.id, createdChannel.id);
 
-    // 3. Login and navigate to the channel
+    // # Login and navigate to the channel
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, 'list-files-test');
     await channelsPage.toBeVisible();
 
     const page = channelsPage.page;
 
-    // 4. /list_files with no files — wait for server round-trip, then assert bot reply
+    // # Send /list_files with no files
     await sendSlashCommand(
         page,
         async () => {
@@ -90,15 +86,17 @@ test('should list uploaded files with running total via /list_files command', as
         },
         adminClient,
     );
+
+    // * Verify the bot reply shows 0 files
     await expect(
         channelsPage.centerView.container.getByText('Last 0 Files uploaded to this channel', {exact: true}),
     ).toBeVisible();
 
-    // 5. Upload first batch of 2 files via API
+    // # Upload first batch of 2 files via API
     // (avoids demo plugin's custom attachment menu intercepting the UI)
     await uploadAndPostFiles(adminClient, createdChannel.id, ['sample_text_file.txt', 'mattermost-icon_128x128.png']);
 
-    // 6. Send /list_files — expect count of 2 and both file names
+    // # Send /list_files again
     await sendSlashCommand(
         page,
         async () => {
@@ -107,6 +105,8 @@ test('should list uploaded files with running total via /list_files command', as
         },
         adminClient,
     );
+
+    // * Verify the bot reply shows a count of 2 and both file names
     const response2 = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: 'Last 2 Files uploaded to this channel'})
@@ -115,10 +115,10 @@ test('should list uploaded files with running total via /list_files command', as
     await expect(response2.getByRole('link', {name: 'mattermost-icon_128x128.png'})).toBeVisible();
     await expect(response2.getByRole('link', {name: 'sample_text_file.txt'})).toBeVisible();
 
-    // 7. Upload second batch of 2 more files via API
+    // # Upload second batch of 2 more files via API
     await uploadAndPostFiles(adminClient, createdChannel.id, ['mattermost.png', 'archive.zip']);
 
-    // 8. Send /list_files — expect count of 4 and all file names
+    // # Send /list_files again
     await sendSlashCommand(
         page,
         async () => {
@@ -127,6 +127,8 @@ test('should list uploaded files with running total via /list_files command', as
         },
         adminClient,
     );
+
+    // * Verify the bot reply shows a count of 4 and all file names
     const response4 = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: 'Last 4 Files uploaded to this channel'})

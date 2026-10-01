@@ -13,6 +13,20 @@ setup('ensure server deployment', async ({pw}) => {
     await pw.ensureServerDeployment();
 });
 
+setup('ensure demo plugin', async ({pw}) => {
+    // Upgrade-path runs install and version-pin the demo plugin themselves (see
+    // upgrade-specs/upgrade_fixtures.ts) to exercise it across the upgrade boundary —
+    // skip the generic setup here so it doesn't fight that.
+    if (isUpgradePathProjectSelected()) {
+        return;
+    }
+
+    // Installed and configured once for the entire run, but left inactive — activation is
+    // a cheap, idempotent enablePlugin call, so individual specs call pw.ensureDemoPlugin()
+    // themselves to activate it rather than inheriting already-on state from setup.
+    await pw.ensureDemoPlugin({activate: false});
+});
+
 setup('ensure ABAC is configured', async ({pw}) => {
     // Upgrade-path runs do not exercise ABAC; patching AccessControlSettings on older
     // from-images also logs unrecognized sysconsole permission tags and attachment-sanitization noise.
