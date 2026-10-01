@@ -108,8 +108,8 @@ func TestSearchAccessControlDecisionActions(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Len(t, out.Decisions, 2)
-		require.Len(t, out.Results, 2)
+		require.Len(t, out.Decisions, 3)
+		require.Len(t, out.Results, 3)
 	})
 
 	t.Run("subject not matching session user returns 403", func(t *testing.T) {
