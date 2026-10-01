@@ -41,6 +41,7 @@ Platform and OS scope reflects reported and tested environments and may not repr
  - Fixed an intermittent issue where answering an incoming call from the iOS lock screen immediately disconnected (reported on iOS).
  - Fixed an issue where the tool approval user interface briefly offered **Accept**/**Reject** for AI tool calls configured to run automatically, which could race with server-side auto-execution. Interrupted auto-run tool rounds now show a **Run tools** option instead of approval buttons.
  - Fixed an issue with deeplink routing (reported on Android).
+ - Fixed an issue where session attributes always reported a VPN as active and sent an incorrect client IP address (reported on iOS).
 
 ### Known Issues
  - Users are unable to adjust the font size via the OS font size setting.
