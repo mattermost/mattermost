@@ -1102,6 +1102,34 @@ describe('AttributeDetails', () => {
             expect(mockSetNavigationBlocked).not.toHaveBeenCalled();
         });
 
+        it('sends attrs.openid in the create payload when an OpenID Connect claim is linked', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            renderWithContext(
+                <div>
+                    <AttributeDetails/>
+                    <ModalController/>
+                </div>,
+                mergeObjects(ALL_RESOURCES_STATE, {
+                    entities: {
+                        admin: {config: {FeatureFlags: {OpenIdAttributeSync: true}, OpenIdSettings: {Enable: true}}},
+                        general: {license: {IsLicensed: 'true', OpenId: 'true'}},
+                    },
+                }),
+            );
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Country');
+
+            await linkViaMenu(/^OpenID Connect/, 'address.country');
+
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            const attrs = createPropertyField.mock.calls[0][2].attrs as Record<string, unknown>;
+            expect(attrs).toEqual(expect.objectContaining({openid: 'address.country'}));
+            expect(attrs).not.toHaveProperty('ldap');
+            expect(attrs).not.toHaveProperty('saml');
+        });
+
         it('sends attrs.ldap and attrs.saml in the create payload when linked, omitting both when not', async () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
 
@@ -2582,6 +2610,45 @@ describe('AttributeDetails', () => {
             }));
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'user-field', {
                 attrs: {ldap: 'newDept'},
+            });
+        });
+
+        it('PATCHes a newly linked OpenID Connect claim onto the template and the already-persisted Users field', async () => {
+            mockLoadedField(
+                makeTemplate({type: 'multiselect', attrs: {display_name: 'Groups'}}),
+                [makeLinked('user', 'user-field', {type: 'multiselect', attrs: {display_name: 'Groups'}})],
+            );
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockImplementation((_group, objectType) => (
+                Promise.resolve(objectType === 'user' ?
+                    makeLinked('user', 'user-field', {attrs: {openid: 'groups'}}) :
+                    makeTemplate({type: 'multiselect', attrs: {display_name: 'Groups', openid: 'groups'}}))
+            ));
+
+            renderEdit({
+                entities: {
+                    admin: {config: {FeatureFlags: {OpenIdAttributeSync: true}, OpenIdSettings: {Enable: true}}},
+                    general: {license: {IsLicensed: 'true', OpenId: 'true'}},
+                },
+            });
+            await waitForForm();
+
+            await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
+            await userEvent.click(screen.getByRole('menuitem', {name: /^OpenID Connect/}));
+            await userEvent.type(await screen.findByPlaceholderText('department'), 'groups');
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+            await waitFor(() => expect(screen.queryByPlaceholderText('department')).not.toBeInTheDocument());
+
+            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Multiselect');
+            expect(screen.getByTestId('attributeOptionsSyncedHelp')).toHaveTextContent('Options are managed by the OpenID Connect sync.');
+
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', FIELD_ID, expect.objectContaining({
+                attrs: expect.objectContaining({ldap: null, saml: null, openid: 'groups'}),
+            }));
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'user-field', {
+                attrs: {openid: 'groups'},
             });
         });
 

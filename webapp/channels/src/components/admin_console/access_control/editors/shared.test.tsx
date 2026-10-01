@@ -262,6 +262,33 @@ describe('hasUsableAttributes', () => {
         expect(hasUsableAttributes(userAttributes, false)).toBe(true);
     });
 
+    test('should return true when attributes are OpenID Connect synced', () => {
+        const userAttributes: UserPropertyField[] = [
+            {
+                id: 'attr1',
+                name: 'department',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                    openid: 'org.department',
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+            },
+        ];
+
+        expect(hasUsableAttributes(userAttributes, false)).toBe(true);
+    });
+
     test('should return true when attributes are SAML synced', () => {
         const userAttributes: UserPropertyField[] = [
             {

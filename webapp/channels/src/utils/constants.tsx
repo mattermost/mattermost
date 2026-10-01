@@ -508,6 +508,7 @@ export const ModalIdentifiers = {
 
     ATTRIBUTE_MODAL_LDAP: 'attribute_modal_ldap',
     ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
+    ATTRIBUTE_MODAL_OPENID: 'attribute_modal_openid',
     RANKED_SCHEMA_MODAL: 'ranked_schema_modal',
     FLAG_POST: 'flag_post',
     REMOVE_FLAGGED_POST: 'remove_flagged_post',

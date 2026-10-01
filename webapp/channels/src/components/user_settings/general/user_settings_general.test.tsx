@@ -952,6 +952,50 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(await screen.findByText('This field is handled through your login provider. If you want to change it, you need to do so through your login provider.')).toBeInTheDocument();
     });
 
+    test('should not show custom attribute input field when an OpenID Connect claim is linked for an OpenID Connect user', async () => {
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [
+                {
+                    ...customProfileAttribute,
+                    attrs: {
+                        ...customProfileAttribute.attrs,
+                        openid: 'org.department',
+                    },
+                },
+            ],
+            user: {...user, auth_service: 'openid'},
+            activeSection: 'customAttribute_field1',
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+        expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('textbox', {name: customProfileAttribute.name})).not.toBeInTheDocument();
+        expect(await screen.findByText('This field is handled through your login provider. If you want to change it, you need to do so through your login provider.')).toBeInTheDocument();
+    });
+
+    test('should show custom attribute input field when an OpenID Connect claim is linked but the user signs in another way', async () => {
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [
+                {
+                    ...customProfileAttribute,
+                    attrs: {
+                        ...customProfileAttribute.attrs,
+                        openid: 'org.department',
+                    },
+                },
+            ],
+            user: {...user, auth_service: 'saml'},
+            activeSection: 'customAttribute_field1',
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+        expect(await screen.findByRole('button', {name: 'Save'})).toBeInTheDocument();
+    });
+
     test('should show custom attribute input field when LDAP auth but no LDAP attribute set', async () => {
         const props = {
             ...requiredProps,
@@ -1513,6 +1557,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         test('A10: keeps synced, owner-managed and protected graph fields read-only', async () => {
             const cases: Array<[Partial<UserPropertyField['attrs']>, string, Partial<UserProfile>]> = [
                 [{ldap: 'dept'}, 'This field is handled through your login provider. If you want to change it, you need to do so through your login provider.', {auth_service: 'ldap'}],
+                [{openid: 'groups'}, 'This field is handled through your login provider. If you want to change it, you need to do so through your login provider.', {auth_service: 'openid'}],
                 [{owners: [{id: 'plugin.x', type: 'plugin', scopes: []}]}, 'This field is managed by an external integration and cannot be edited here.', {}],
                 [{protected: true, access_mode: 'shared_only', source_plugin_id: 'plugin.x'}, 'This field is managed by a plugin and cannot be edited.', {}],
             ];

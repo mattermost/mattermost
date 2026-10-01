@@ -13,6 +13,7 @@ import {isSessionAttributeField} from '@mattermost/types/properties_user';
 
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import type {ActionResult} from 'mattermost-redux/types/actions';
+import {isPropertyFieldSynced} from 'mattermost-redux/utils/property_utils';
 
 import Markdown from 'components/markdown';
 
@@ -241,11 +242,11 @@ export function isNativeField(field?: Pick<UserPropertyField, 'attrs'>): boolean
     return Boolean(field?.attrs?.native);
 }
 
-// True when an attribute's values come from a controlled source (LDAP/SAML sync,
+// True when an attribute's values come from a controlled source (AD/LDAP, SAML or OpenID Connect sync,
 // admin-managed, plugin-protected, or owner-managed integration) and so cannot be
 // set by users. Such attributes are safe to reference in access control policies.
 export function hasControlledAttributeValues(field: Pick<UserPropertyField, 'attrs'>): boolean {
-    const isSynced = Boolean(field.attrs?.ldap || field.attrs?.saml);
+    const isSynced = isPropertyFieldSynced(field);
     const isAdminManaged = field.attrs?.managed === 'admin';
     const isProtected = Boolean(field.attrs?.protected);
     const isOwnerManaged = (field.attrs?.owners?.length ?? 0) > 0;

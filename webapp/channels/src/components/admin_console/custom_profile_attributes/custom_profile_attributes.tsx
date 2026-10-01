@@ -7,7 +7,7 @@
 
 import React, {useEffect, useState, type JSX} from 'react';
 import './custom_profile_attributes.scss';
-import {FormattedMessage, defineMessage} from 'react-intl';
+import {FormattedList, FormattedMessage, defineMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
@@ -19,6 +19,8 @@ import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/ge
 
 import {getPluginDisplayName} from 'selectors/plugins';
 
+import {conflictingExternalSources, externalSourceLinksFromField, externalSourceMessages} from 'components/admin_console/global_attributes/attribute_details/external_source';
+import type {ExternalSource} from 'components/admin_console/global_attributes/attribute_details/external_source';
 import {GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from 'components/admin_console/global_attributes/constants';
 import SettingsGroup from 'components/admin_console/settings_group';
 import TextSetting from 'components/admin_console/text_setting';
@@ -28,7 +30,7 @@ import {getUserPropertyFieldLabel} from 'utils/properties';
 import type {GlobalState} from 'types/store';
 
 type AttributeHelpTextProps = {
-    attributeKey: string;
+    attributeKey: ExternalSource;
     attributeName: string;
     attributeType: string;
 };
@@ -69,6 +71,15 @@ const AttributeHelpText = ({attributeKey, attributeName, attributeType}: Attribu
                 }}
             />
         )}
+        {attributeKey === 'openid' && (
+            <FormattedMessage
+                id='admin.customProfileAttribDesc.openid'
+                defaultMessage='(Optional) The claim in the ID token or userinfo response used to populate the {name} of users in Mattermost. Use dots for nested claims, such as address.country. If the claim is missing at sign-in, the value is removed.'
+                values={{
+                    name: attributeName,
+                }}
+            />
+        )}
         {!supportsExternalSync({type: attributeType as UserPropertyFieldType}) && (
             <div className='help-text-warning'>
                 <FormattedMessage
@@ -83,7 +94,7 @@ const AttributeHelpText = ({attributeKey, attributeName, attributeType}: Attribu
 AttributeHelpText.displayName = 'AttributeHelpText';
 
 type Props = {
-    isDisabled?: boolean;
+    disabled?: boolean;
     setSaveNeeded: () => void;
     registerSaveAction: (saveAction: () => Promise<unknown>) => void;
     unRegisterSaveAction: (saveAction: () => Promise<unknown>) => void;
@@ -94,8 +105,16 @@ type SaveActionResult = {
     error?: Error;
 };
 
-const getAttributeKey = (id?: string) => {
-    return id === 'SamlSettings.CustomProfileAttributes' ? 'saml' : 'ldap';
+// The sync source each settings page links attributes to, by the id of the
+// setting that mounts this component there.
+const SOURCE_BY_SETTING_ID: Record<string, ExternalSource> = {
+    'LdapSettings.CustomProfileAttributes': 'ldap',
+    'SamlSettings.CustomProfileAttributes': 'saml',
+    'OpenIdSettings.CustomProfileAttributes': 'openid',
+};
+
+const getAttributeKey = (id?: string): ExternalSource => {
+    return (id && SOURCE_BY_SETTING_ID[id]) || 'ldap';
 };
 
 const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | null => {
@@ -191,13 +210,39 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
                         // so it cannot be converted to text here the way an
                         // unlinked field is.
                         const isLinkedUnsyncable = Boolean(attr.linked_field_id) && !supportsExternalSync(attr);
+
+                        // OpenID Connect and the other sources exclude each other,
+                        // judged on the links as saved: a link typed on this page
+                        // is not saved until the page is.
+                        const original = originalAttributes.find((o) => o.id === attr.id) ?? attr;
+                        const conflicts = conflictingExternalSources(attributeKey, externalSourceLinksFromField(original));
                         let helpText;
                         if (isLinkedUnsyncable) {
                             helpText = (
                                 <FormattedMessage
                                     id='admin.customProfileAttributes.linkedNonText'
-                                    defaultMessage='This field is a management attribute of type {type} and cannot be synced via LDAP or SAML. Only text, select and multiselect attributes support sync.'
+                                    defaultMessage='This field is a management attribute of type {type} and cannot be synced from an identity source. Only text, select and multiselect attributes support sync.'
                                     values={{type: attr.type}}
+                                />
+                            );
+                        } else if (conflicts.length > 0) {
+                            helpText = (
+                                <FormattedMessage
+                                    id='admin.customProfileAttributes.exclusiveSource'
+                                    defaultMessage="This attribute is synced from {sources}. An attribute synced from OpenID Connect can't also sync from AD/LDAP or SAML."
+                                    values={{
+                                        sources: (
+                                            <FormattedList
+                                                type='conjunction'
+                                                value={conflicts.map((source) => (
+                                                    <FormattedMessage
+                                                        key={source}
+                                                        {...externalSourceMessages[source].title}
+                                                    />
+                                                ))}
+                                            />
+                                        ),
+                                    }}
                                 />
                             );
                         } else if (isProtected) {
@@ -233,7 +278,7 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
                                     props.setSaveNeeded();
                                 }}
                                 setByEnv={false}
-                                disabled={props.isDisabled || isProtected || isLinkedUnsyncable}
+                                disabled={props.disabled || isProtected || isLinkedUnsyncable || conflicts.length > 0}
                                 placeholder={{id: 'admin.customProfileAttr.placeholder', defaultMessage: 'E.g.: "fieldName"'}}
                                 helpText={helpText}
                             />

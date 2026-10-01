@@ -745,6 +745,25 @@ describe('SystemUserDetail', () => {
             expect(input).toBeDisabled();
         });
 
+        test('should show an OpenID Connect chip and lock the input for an OpenID Connect-synced CPA field', async () => {
+            const cpaField = buildCPAField({openid: 'org.department'});
+            const props = {
+                ...defaultProps,
+                customProfileAttributeFields: [cpaField],
+                getCustomProfileAttributeFields: jest.fn().mockResolvedValue({data: [cpaField]}),
+            };
+
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForLoadingToFinish();
+
+            expect(screen.getByTestId('user-detail-cpa-field__openid-department')).toHaveTextContent('OpenID Connect: org.department');
+            expect(screen.getByText('Synced with:')).toBeInTheDocument();
+
+            const input = screen.getByTestId('user-detail-custom-attribute-label-cpa-1').querySelector('input');
+            expect(input).toBeDisabled();
+        });
+
         test('should render a graph field\'s stored option ids as names', async () => {
             const graphField = {
                 ...buildCPAField({
