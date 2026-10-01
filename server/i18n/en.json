@@ -14292,6 +14292,161 @@
     "description": "Health dashboard reason shown when a health check could not run because the usage statistics it inspects (for example user or post counts) were not collected, so the check's status is unknown."
   },
   {
+    "id": "health.rule.ldap_id_is_email.message",
+    "translation": "IdAttribute is {{.attribute}}. Mattermost links each account to its directory entry by this attribute, so when a user's email changes (marriage, rebrand, department move) the link breaks and the user can no longer reach their existing account.",
+    "description": "Health dashboard finding detail when the AD/LDAP ID attribute is an email attribute. {{.attribute}} is the configured attribute name. 'IdAttribute', 'objectGUID', 'entryUUID' and the command 'mmctl ldap idmigrate' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.remediation",
+    "translation": "Switch IdAttribute to a stable attribute such as objectGUID (AD) or entryUUID (OpenLDAP), then migrate existing accounts with mmctl ldap idmigrate.",
+    "description": "Health dashboard fix-it step when the AD/LDAP ID attribute is an email attribute. 'IdAttribute', 'objectGUID', 'entryUUID' and the command 'mmctl ldap idmigrate' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_id_is_email.title",
+    "translation": "LDAP IdAttribute is an email attribute",
+    "description": "Health dashboard finding title when the AD/LDAP ID attribute is an email attribute. 'IdAttribute', 'objectGUID', 'entryUUID' and the command 'mmctl ldap idmigrate' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.message",
+    "translation": "Port 636 conventionally expects implicit TLS (LDAPS), but ConnectionSecurity is None or STARTTLS. This combination is usually a misconfiguration, but it can be valid behind a TLS-terminating proxy. Verify that LDAP sign-in and sync are succeeding.",
+    "description": "Health dashboard finding detail when the AD/LDAP port is 636 but the connection security is None or STARTTLS. 'ConnectionSecurity', 'None', 'TLS', 'STARTTLS' and 'LDAPS' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.remediation",
+    "translation": "If LDAP sign-in or sync is failing, set ConnectionSecurity to TLS for port 636. If they are working, no change is needed.",
+    "description": "Health dashboard fix-it step when the AD/LDAP port is 636 but the connection security is None or STARTTLS. 'ConnectionSecurity', 'None', 'TLS', 'STARTTLS' and 'LDAPS' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_port_plain_mismatch.title",
+    "translation": "LDAP port 636 configured without ConnectionSecurity=TLS",
+    "description": "Health dashboard finding title when the AD/LDAP port is 636 but the connection security is None or STARTTLS. 'ConnectionSecurity', 'None', 'TLS', 'STARTTLS' and 'LDAPS' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.message",
+    "translation": "Port 389 is conventionally plaintext or STARTTLS, while implicit TLS (LDAPS) conventionally uses 636. This combination is usually a misconfiguration, but it can be valid behind a TLS-terminating proxy or a deliberately reconfigured server. Verify that LDAP sign-in and sync are succeeding.",
+    "description": "Health dashboard finding detail when the AD/LDAP port is 389 but the connection security is TLS. 'ConnectionSecurity', 'TLS', 'STARTTLS' and 'LDAPS' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.remediation",
+    "translation": "If LDAP sign-in or sync is failing, use port 636 for TLS or switch ConnectionSecurity to STARTTLS for port 389. If they are working, no change is needed.",
+    "description": "Health dashboard fix-it step when the AD/LDAP port is 389 but the connection security is TLS. 'ConnectionSecurity', 'TLS', 'STARTTLS' and 'LDAPS' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_port_tls_mismatch.title",
+    "translation": "LDAP port 389 configured with ConnectionSecurity=TLS",
+    "description": "Health dashboard finding title when the AD/LDAP port is 389 but the connection security is TLS. 'ConnectionSecurity', 'TLS', 'STARTTLS' and 'LDAPS' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message",
+    "translation": "The leader node's LDAP test (connect, bind and a user search) failed, so LDAP sign-in and sync may be failing.",
+    "description": "Health dashboard finding detail when the AD/LDAP connection test run by the server failed. 'LdapServer', 'LdapPort', 'ConnectionSecurity' and the button label 'Test Connection' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.remediation",
+    "translation": "Check the error details, then confirm LdapServer, LdapPort, ConnectionSecurity and the bind credentials, and that the Mattermost servers can reach the LDAP server. Use Test Connection on the AD/LDAP page to check again.",
+    "description": "Health dashboard fix-it step when the AD/LDAP connection test run by the server failed. 'LdapServer', 'LdapPort', 'ConnectionSecurity' and the button label 'Test Connection' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.title",
+    "translation": "LDAP connection test failed",
+    "description": "Health dashboard finding title when the AD/LDAP connection test run by the server failed. 'LdapServer', 'LdapPort', 'ConnectionSecurity' and the button label 'Test Connection' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.message",
+    "translation": "QueryTimeout is {{.timeout}} seconds. Tight timeouts cause spurious LDAP sign-in and sync failures on slow directories.",
+    "description": "Health dashboard finding detail when the AD/LDAP query timeout is shorter than 10 seconds. {{.timeout}} is the configured timeout in seconds. 'QueryTimeout' and 'LdapSettings.QueryTimeout' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.remediation",
+    "translation": "Raise LdapSettings.QueryTimeout to 60 seconds (the default).",
+    "description": "Health dashboard fix-it step when the AD/LDAP query timeout is shorter than 10 seconds. 'QueryTimeout' and 'LdapSettings.QueryTimeout' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_query_timeout_low.title",
+    "translation": "LDAP QueryTimeout is below 10 seconds",
+    "description": "Health dashboard finding title when the AD/LDAP query timeout is shorter than 10 seconds. 'QueryTimeout' and 'LdapSettings.QueryTimeout' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.message",
+    "translation": "{{.users}} user accounts are managed manually. Mattermost recommends AD/LDAP once a workspace has more than 100 users: manual account management at this scale leads to stale accounts, onboarding lag, and offboarding drift, each of which is a security and licensing risk.",
+    "description": "Health dashboard finding detail when a workspace with more than 100 users uses neither AD/LDAP nor SAML. {{.users}} is the number of user accounts. 'AD/LDAP' and 'SAML' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.remediation",
+    "translation": "If you run an AD/LDAP directory, enable and configure AD/LDAP. Otherwise consider SAML for centralized identity.",
+    "description": "Health dashboard fix-it step when a workspace with more than 100 users uses neither AD/LDAP nor SAML. 'AD/LDAP' and 'SAML' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_recommended_at_scale.title",
+    "translation": "Over 100 users with no AD/LDAP or SAML integration",
+    "description": "Health dashboard finding title when a workspace with more than 100 users uses neither AD/LDAP nor SAML. 'AD/LDAP' and 'SAML' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.message",
+    "translation": "Mattermost does not verify the LDAP server's TLS certificate, so connections to the directory are open to man-in-the-middle attacks. This is acceptable only for development and testing.",
+    "description": "Health dashboard finding detail when AD/LDAP certificate verification is turned off. 'SkipCertificateVerification' is a config name and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.remediation",
+    "translation": "Install the LDAP server's CA chain on the Mattermost servers and set SkipCertificateVerification to false.",
+    "description": "Health dashboard fix-it step when AD/LDAP certificate verification is turned off. 'SkipCertificateVerification' is a config name and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_skip_cert.title",
+    "translation": "LDAP SkipCertificateVerification is enabled",
+    "description": "Health dashboard finding title when AD/LDAP certificate verification is turned off. 'SkipCertificateVerification' is a config name and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message",
+    "translation": "SyncIntervalMinutes is {{.interval_minutes}}, and recent LDAP sync runs averaged {{.avg_run_seconds}} seconds, {{.duty_pct}}% of the interval. With almost no quiet window, the continuous directory walk adds steady database load and replica lag.",
+    "description": "Health dashboard finding detail when each AD/LDAP sync run takes at least a quarter of the sync interval. {{.interval_minutes}} is the sync interval in minutes, {{.avg_run_seconds}} the average run length in seconds and {{.duty_pct}} the percentage of the interval. 'SyncIntervalMinutes', 'LdapSettings.UserFilter' and 'BaseDN' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.message.no_runs",
+    "translation": "No LDAP sync run with a measurable duration was found.",
+    "description": "Health dashboard reason shown when the AD/LDAP sync duration check found no finished sync runs to measure, so its status is unknown."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.remediation",
+    "translation": "Narrow LdapSettings.UserFilter and BaseDN to scope the directory walk, or lengthen SyncIntervalMinutes. Aim for sync runs that take less than 25% of the interval.",
+    "description": "Health dashboard fix-it step when each AD/LDAP sync run takes at least a quarter of the sync interval. 'SyncIntervalMinutes', 'LdapSettings.UserFilter' and 'BaseDN' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_sync_duty_cycle.title",
+    "translation": "LDAP sync runs for a large share of its interval",
+    "description": "Health dashboard finding title when each AD/LDAP sync run takes at least a quarter of the sync interval. 'SyncIntervalMinutes', 'LdapSettings.UserFilter' and 'BaseDN' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_sync_interval_low.message",
+    "translation": "SyncIntervalMinutes is {{.interval}}. Each sync walks the directory and updates users and groups, so short intervals keep the LDAP server and the database busy almost continuously.",
+    "description": "Health dashboard finding detail when AD/LDAP sync is scheduled more often than every 10 minutes. {{.interval}} is the configured interval in minutes. 'SyncIntervalMinutes' is a config name and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_sync_interval_low.remediation",
+    "translation": "Raise SyncIntervalMinutes to 60 (the default) unless directory changes must reach Mattermost faster than that.",
+    "description": "Health dashboard fix-it step when AD/LDAP sync is scheduled more often than every 10 minutes. 'SyncIntervalMinutes' is a config name and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_sync_interval_low.title",
+    "translation": "LDAP SyncIntervalMinutes is below 10 minutes",
+    "description": "Health dashboard finding title when AD/LDAP sync is scheduled more often than every 10 minutes. 'SyncIntervalMinutes' is a config name and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.message",
+    "translation": "LDAP sync searches the directory from BaseDN, so with it empty the sync cannot find the users it should update.",
+    "description": "Health dashboard finding detail when AD/LDAP sync is enabled but no base DN is set. 'BaseDN' and 'LdapSettings.BaseDN' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.remediation",
+    "translation": "Set LdapSettings.BaseDN to the directory root you want to sync.",
+    "description": "Health dashboard fix-it step when AD/LDAP sync is enabled but no base DN is set. 'BaseDN' and 'LdapSettings.BaseDN' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_sync_no_basedn.title",
+    "translation": "LDAP sync enabled but BaseDN is empty",
+    "description": "Health dashboard finding title when AD/LDAP sync is enabled but no base DN is set. 'BaseDN' and 'LdapSettings.BaseDN' are config or product names and should not be translated."
+  },
+  {
     "id": "health.rule.push_bad_scheme.message.http",
     "translation": "PushNotificationServer {{.url}} uses http://, so push notifications are sent in cleartext.",
     "description": "Health dashboard finding detail when the push notification server URL starts with http:// instead of https://; {{.url}} is the configured URL. 'PushNotificationServer' is a config setting name and should not be translated."
@@ -14340,6 +14495,111 @@
     "id": "health.rule.push_test_proxy.title",
     "translation": "PushNotificationServer points at push-test.mattermost.com",
     "description": "Health dashboard finding title when the push notification server is Mattermost's test push proxy; 'PushNotificationServer' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.message",
+    "translation": "Assertions travel unencrypted at the SAML layer. TLS still protects the connection, so this is not a baseline security failure, but if your IdP supports assertion encryption, enabling it adds defense in depth.",
+    "description": "Health dashboard finding detail when SAML assertion encryption is turned off. 'SamlSettings.Encrypt' is a config name and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.remediation",
+    "translation": "If your IdP supports assertion encryption, enable SamlSettings.Encrypt and configure the service provider private key and public certificate.",
+    "description": "Health dashboard fix-it step when SAML assertion encryption is turned off. 'SamlSettings.Encrypt' is a config name and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_encrypt_off.title",
+    "translation": "SAML assertion encryption is disabled",
+    "description": "Health dashboard finding title when SAML assertion encryption is turned off. 'SamlSettings.Encrypt' is a config name and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.message",
+    "translation": "Mattermost keys SAML accounts by email address, either because IdAttribute is empty or because it names an email attribute. When a user's email changes at the IdP, the link to their existing account breaks.",
+    "description": "Health dashboard finding detail when the SAML ID attribute is empty or an email attribute. 'IdAttribute', 'SamlSettings.IdAttribute' and 'objectGUID' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.remediation",
+    "translation": "Configure the IdP to send a stable identifier (such as objectGUID or an immutable ID), then set SamlSettings.IdAttribute to that attribute's name.",
+    "description": "Health dashboard fix-it step when the SAML ID attribute is empty or an email attribute. 'IdAttribute', 'SamlSettings.IdAttribute' and 'objectGUID' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_id_is_email.title",
+    "translation": "SAML IdAttribute is empty or an email attribute",
+    "description": "Health dashboard finding title when the SAML ID attribute is empty or an email attribute. 'IdAttribute', 'SamlSettings.IdAttribute' and 'objectGUID' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.message",
+    "translation": "IdAttribute is {{.attribute}}. Usernames and uids are often recycled across employees, and when that happens the second person inherits the first person's Mattermost account.",
+    "description": "Health dashboard finding detail when the SAML ID attribute is a username or uid that the identity provider can reassign. {{.attribute}} is the configured attribute name. 'IdAttribute', 'objectGUID' and 'Microsoft Entra ID' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.remediation",
+    "translation": "Prefer an identifier that is never reassigned, such as objectGUID (AD) or an immutable ID (Microsoft Entra ID), and review the IdP policy on identifier reuse.",
+    "description": "Health dashboard fix-it step when the SAML ID attribute is a username or uid that the identity provider can reassign. 'IdAttribute', 'objectGUID' and 'Microsoft Entra ID' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_id_mutable.title",
+    "translation": "SAML IdAttribute can be reassigned at the IdP",
+    "description": "Health dashboard finding title when the SAML ID attribute is a username or uid that the identity provider can reassign. 'IdAttribute', 'objectGUID' and 'Microsoft Entra ID' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_metadata_unreachable.message",
+    "translation": "The leader node could not fetch the IdP metadata from IdpMetadataURL. Sign-in uses the IdP certificate already configured, so it can keep working, but the URL is wrong, blocked, or the IdP is down.",
+    "description": "Health dashboard finding detail when the server could not download the SAML identity provider metadata. 'IdpMetadataURL' is a config name and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_metadata_unreachable.remediation",
+    "translation": "Check the error details, then confirm IdpMetadataURL is correct and that the Mattermost servers can reach it.",
+    "description": "Health dashboard fix-it step when the server could not download the SAML identity provider metadata. 'IdpMetadataURL' is a config name and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_metadata_unreachable.title",
+    "translation": "SAML IdP metadata URL is unreachable",
+    "description": "Health dashboard finding title when the server could not download the SAML identity provider metadata. 'IdpMetadataURL' is a config name and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.message",
+    "translation": "SSO uses the SHA-1 signature algorithm, which is deprecated. SSO works today, but some identity providers are beginning to reject SHA-1, so this is a compatibility and security improvement to schedule, particularly before any IdP change or upgrade.",
+    "description": "Health dashboard finding detail when SAML uses the SHA-1 signature algorithm. 'SamlSettings.SignatureAlgorithm' and 'RSAwithSHA256' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.remediation",
+    "translation": "When convenient, and in coordination with your IdP, set SamlSettings.SignatureAlgorithm to RSAwithSHA256.",
+    "description": "Health dashboard fix-it step when SAML uses the SHA-1 signature algorithm. 'SamlSettings.SignatureAlgorithm' and 'RSAwithSHA256' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_signature_sha1.title",
+    "translation": "SAML SignatureAlgorithm is SHA-1",
+    "description": "Health dashboard finding title when SAML uses the SHA-1 signature algorithm. 'SamlSettings.SignatureAlgorithm' and 'RSAwithSHA256' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_verify_off.message",
+    "translation": "Mattermost accepts SAML responses without verifying your IdP's signature, so it cannot tell a genuine authentication response from a forged one.",
+    "description": "Health dashboard finding detail when SAML signature verification is turned off. 'SamlSettings.Verify' and 'AssertionConsumerServiceURL' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_verify_off.remediation",
+    "translation": "Set SamlSettings.Verify to true and make sure AssertionConsumerServiceURL is set. Enable it in coordination with your IdP and test sign-in, since verification requires the IdP certificate to be configured correctly.",
+    "description": "Health dashboard fix-it step when SAML signature verification is turned off. 'SamlSettings.Verify' and 'AssertionConsumerServiceURL' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_verify_off.title",
+    "translation": "SAML signature verification is disabled",
+    "description": "Health dashboard finding title when SAML signature verification is turned off. 'SamlSettings.Verify' and 'AssertionConsumerServiceURL' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.session_extend_off.message",
+    "translation": "Sessions expire on a fixed schedule regardless of activity, so active users are signed out. Most deployments benefit from keeping active users signed in.",
+    "description": "Health dashboard finding detail when sessions are not extended while users are active. 'ExtendSessionLengthWithActivity' and 'ServiceSettings.ExtendSessionLengthWithActivity' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.session_extend_off.remediation",
+    "translation": "Enable ServiceSettings.ExtendSessionLengthWithActivity unless your security policy forbids it.",
+    "description": "Health dashboard fix-it step when sessions are not extended while users are active. 'ExtendSessionLengthWithActivity' and 'ServiceSettings.ExtendSessionLengthWithActivity' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.session_extend_off.title",
+    "translation": "ExtendSessionLengthWithActivity is disabled",
+    "description": "Health dashboard finding title when sessions are not extended while users are active. 'ExtendSessionLengthWithActivity' and 'ServiceSettings.ExtendSessionLengthWithActivity' are config or product names and should not be translated."
   },
   {
     "id": "health.rule.site_url_empty.message",
