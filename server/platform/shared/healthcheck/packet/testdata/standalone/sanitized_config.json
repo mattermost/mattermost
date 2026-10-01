@@ -7,7 +7,12 @@
         "TLSMinVer": "1.2",
         "Forward80To443": false,
         "EnableIncomingWebhooks": true,
-        "EnableOutgoingWebhooks": true
+        "EnableOutgoingWebhooks": true,
+        "EnableLinkPreviews": true,
+        "EnableUserTypingMessages": true
+    },
+    "TeamSettings": {
+        "MaxNotificationsPerChannel": 1000
     },
     "SqlSettings": {
         "DriverName": "postgres",
