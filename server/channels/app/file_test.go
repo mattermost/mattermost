@@ -1502,7 +1502,7 @@ func TestGetFileInfo_MiniPreviewRecordedAfterDecodeAttempt(t *testing.T) {
 				var wg sync.WaitGroup
 				errs := make(chan *model.AppError, tc.concurrent)
 				wg.Add(tc.concurrent)
-				for i := 0; i < tc.concurrent; i++ {
+				for range tc.concurrent {
 					go func() {
 						defer wg.Done()
 						_, err := th.App.GetFileInfo(th.Context, uploaded.Id)
