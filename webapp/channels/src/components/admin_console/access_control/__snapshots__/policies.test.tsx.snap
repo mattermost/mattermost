@@ -23,14 +23,35 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
         type="button"
       >
         <span
+          aria-hidden="true"
+          class="_button__icon-slot_doayp_27"
+        >
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
+          >
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"
+                />
+              </svg>
+            </div>
+          </div>
+        </span>
+        <span
           class="_button__label_doayp_24"
         >
-          <i
-            class="icon icon-plus"
-          />
-          <span>
-            Add policy
-          </span>
+          Add policy
         </span>
       </button>
     </div>
@@ -136,14 +157,35 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
         type="button"
       >
         <span
+          aria-hidden="true"
+          class="_button__icon-slot_doayp_27"
+        >
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
+          >
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"
+                />
+              </svg>
+            </div>
+          </div>
+        </span>
+        <span
           class="_button__label_doayp_24"
         >
-          <i
-            class="icon icon-plus"
-          />
-          <span>
-            Add policy
-          </span>
+          Add policy
         </span>
       </button>
     </div>
@@ -371,14 +413,35 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
         type="button"
       >
         <span
+          aria-hidden="true"
+          class="_button__icon-slot_doayp_27"
+        >
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
+          >
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"
+                />
+              </svg>
+            </div>
+          </div>
+        </span>
+        <span
           class="_button__label_doayp_24"
         >
-          <i
-            class="icon icon-plus"
-          />
-          <span>
-            Add policy
-          </span>
+          Add policy
         </span>
       </button>
     </div>

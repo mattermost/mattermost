@@ -7,11 +7,13 @@ import type {JSX, RefObject} from 'react';
 import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, defineMessage, defineMessages, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {UploadOutlineIcon} from '@mattermost/compass-icons/components';
 import AlertOutlineIcon from '@mattermost/compass-icons/components/alert-outline';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ClientLicense} from '@mattermost/types/config';
 
-import {Button} from '@mattermost/compass-ui/components/button';
 import {Client4} from 'mattermost-redux/client';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getServerLimits} from 'mattermost-redux/selectors/entities/limits';
@@ -167,8 +169,8 @@ const EnterpriseEditionLeftPanel = ({
                                 emphasis='primary'
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={isLicenseSetByEnvVar}
+                                leadingIcon={<Icon glyph={<UploadOutlineIcon/>}/>}
                             >
-                                <i className='icon icon-upload-outline'/>
                                 <FormattedMessage
                                     id='admin.license.uploadLicense'
                                     defaultMessage='Upload license'

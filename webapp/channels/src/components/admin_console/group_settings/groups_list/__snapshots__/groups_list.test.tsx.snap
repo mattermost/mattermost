@@ -43,13 +43,40 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-link-unlink"
       >
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           type="button"
         >
-          <i
-            class="icon icon-link-variant"
-          />
-          Link Selected Groups
+          <span
+            aria-hidden="true"
+            class="_button__icon-slot_doayp_27"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+          <span
+            class="_button__label_doayp_24"
+          >
+            Link Selected Groups
+          </span>
         </button>
       </div>
     </div>
@@ -153,22 +180,54 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           </span>
         </div>
         <button
-          class="btn btn-primary search-groups-btn"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 search-groups-btn"
+          type="button"
         >
-          Search
+          <span
+            class="_button__label_doayp_24"
+          >
+            Search
+          </span>
         </button>
       </div>
       <div
         class="group-list-link-unlink"
       >
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           type="button"
         >
-          <i
-            class="icon icon-link-variant"
-          />
-          Link Selected Groups
+          <span
+            aria-hidden="true"
+            class="_button__icon-slot_doayp_27"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+          <span
+            class="_button__label_doayp_24"
+          >
+            Link Selected Groups
+          </span>
         </button>
       </div>
     </div>
@@ -229,13 +288,40 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-link-unlink"
       >
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           type="button"
         >
-          <i
-            class="icon fa fa-link"
-          />
-          Link Selected Groups
+          <span
+            aria-hidden="true"
+            class="_button__icon-slot_doayp_27"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+          <span
+            class="_button__label_doayp_24"
+          >
+            Link Selected Groups
+          </span>
         </button>
       </div>
     </div>
@@ -471,24 +557,32 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 2 of 2
       </div>
       <button
-        class="btn btn-tertiary disabled"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 disabled"
         disabled=""
         type="button"
       >
-        <i
-          class="icon icon-chevron-left"
-          title="Previous Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </span>
       </button>
       <button
-        class="btn btn-tertiary disabled"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 disabled"
         disabled=""
         type="button"
       >
-        <i
-          class="icon icon-chevron-right"
-          title="Next Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -538,13 +632,40 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-link-unlink"
       >
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           type="button"
         >
-          <i
-            class="icon fa fa-unlink"
-          />
-          Unlink Selected Groups
+          <span
+            aria-hidden="true"
+            class="_button__icon-slot_doayp_27"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M2,5.27L3.28,4L20,20.72L18.73,22L13.9,17.17L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L12.5,15.76L10.88,14.15C10.87,14.39 10.77,14.64 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C8.12,13.77 7.63,12.37 7.72,11L2,5.27M12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.79,8.97L9.38,7.55L12.71,4.22M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.2,10.54 16.61,12.5 16.06,14.23L14.28,12.46C14.23,11.78 13.94,11.11 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+          <span
+            class="_button__label_doayp_24"
+          >
+            Unlink Selected Groups
+          </span>
         </button>
       </div>
     </div>
@@ -724,24 +845,32 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 2 of 2
       </div>
       <button
-        class="btn btn-tertiary disabled"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 disabled"
         disabled=""
         type="button"
       >
-        <i
-          class="icon icon-chevron-left"
-          title="Previous Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </span>
       </button>
       <button
-        class="btn btn-tertiary disabled"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 disabled"
         disabled=""
         type="button"
       >
-        <i
-          class="icon icon-chevron-right"
-          title="Next Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -791,13 +920,40 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-link-unlink"
       >
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           type="button"
         >
-          <i
-            class="icon fa fa-link"
-          />
-          Link Selected Groups
+          <span
+            aria-hidden="true"
+            class="_button__icon-slot_doayp_27"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+          <span
+            class="_button__label_doayp_24"
+          >
+            Link Selected Groups
+          </span>
         </button>
       </div>
     </div>
@@ -977,24 +1133,32 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 2 of 2
       </div>
       <button
-        class="btn btn-tertiary disabled"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 disabled"
         disabled=""
         type="button"
       >
-        <i
-          class="icon icon-chevron-left"
-          title="Previous Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </span>
       </button>
       <button
-        class="btn btn-tertiary disabled"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 disabled"
         disabled=""
         type="button"
       >
-        <i
-          class="icon icon-chevron-right"
-          title="Next Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -1044,13 +1208,40 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-link-unlink"
       >
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           type="button"
         >
-          <i
-            class="icon icon-link-variant"
-          />
-          Link Selected Groups
+          <span
+            aria-hidden="true"
+            class="_button__icon-slot_doayp_27"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+          <span
+            class="_button__label_doayp_24"
+          >
+            Link Selected Groups
+          </span>
         </button>
       </div>
     </div>
@@ -1220,24 +1411,32 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 3 of 3
       </div>
       <button
-        class="btn btn-tertiary disabled"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 disabled"
         disabled=""
         type="button"
       >
-        <i
-          class="icon icon-chevron-left"
-          title="Previous Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </span>
       </button>
       <button
-        class="btn btn-tertiary disabled"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 disabled"
         disabled=""
         type="button"
       >
-        <i
-          class="icon icon-chevron-right"
-          title="Next Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -1287,13 +1486,40 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-link-unlink"
       >
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           type="button"
         >
-          <i
-            class="icon icon-link-variant"
-          />
-          Link Selected Groups
+          <span
+            aria-hidden="true"
+            class="_button__icon-slot_doayp_27"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+          <span
+            class="_button__label_doayp_24"
+          >
+            Link Selected Groups
+          </span>
         </button>
       </div>
     </div>
@@ -1736,23 +1962,31 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 200 of 401
       </div>
       <button
-        class="btn btn-tertiary disabled"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 disabled"
         disabled=""
         type="button"
       >
-        <i
-          class="icon icon-chevron-left"
-          title="Previous Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </span>
       </button>
       <button
-        class="btn btn-tertiary"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
         type="button"
       >
-        <i
-          class="icon icon-chevron-right"
-          title="Next Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -1802,13 +2036,40 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-link-unlink"
       >
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           type="button"
         >
-          <i
-            class="icon icon-link-variant"
-          />
-          Link Selected Groups
+          <span
+            aria-hidden="true"
+            class="_button__icon-slot_doayp_27"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+          <span
+            class="_button__label_doayp_24"
+          >
+            Link Selected Groups
+          </span>
         </button>
       </div>
     </div>
@@ -2251,22 +2512,30 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         201 - 400 of 401
       </div>
       <button
-        class="btn btn-tertiary"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
         type="button"
       >
-        <i
-          class="icon icon-chevron-left"
-          title="Previous Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </span>
       </button>
       <button
-        class="btn btn-tertiary"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
         type="button"
       >
-        <i
-          class="icon icon-chevron-right"
-          title="Next Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -2316,13 +2585,40 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-link-unlink"
       >
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           type="button"
         >
-          <i
-            class="icon icon-link-variant"
-          />
-          Link Selected Groups
+          <span
+            aria-hidden="true"
+            class="_button__icon-slot_doayp_27"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+          <span
+            class="_button__label_doayp_24"
+          >
+            Link Selected Groups
+          </span>
         </button>
       </div>
     </div>
@@ -2492,22 +2788,30 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         201 - 400 of 401
       </div>
       <button
-        class="btn btn-tertiary"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
         type="button"
       >
-        <i
-          class="icon icon-chevron-left"
-          title="Previous Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </span>
       </button>
       <button
-        class="btn btn-tertiary"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
         type="button"
       >
-        <i
-          class="icon icon-chevron-right"
-          title="Next Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -2557,13 +2861,40 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-link-unlink"
       >
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           type="button"
         >
-          <i
-            class="icon icon-link-variant"
-          />
-          Link Selected Groups
+          <span
+            aria-hidden="true"
+            class="_button__icon-slot_doayp_27"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+          <span
+            class="_button__label_doayp_24"
+          >
+            Link Selected Groups
+          </span>
         </button>
       </div>
     </div>
@@ -2624,13 +2955,40 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-link-unlink"
       >
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           type="button"
         >
-          <i
-            class="icon icon-link-variant"
-          />
-          Link Selected Groups
+          <span
+            aria-hidden="true"
+            class="_button__icon-slot_doayp_27"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+          <span
+            class="_button__label_doayp_24"
+          >
+            Link Selected Groups
+          </span>
         </button>
       </div>
     </div>
@@ -2754,24 +3112,32 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 2 of 2
       </div>
       <button
-        class="btn btn-tertiary disabled"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 disabled"
         disabled=""
         type="button"
       >
-        <i
-          class="icon icon-chevron-left"
-          title="Previous Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </span>
       </button>
       <button
-        class="btn btn-tertiary disabled"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 disabled"
         disabled=""
         type="button"
       >
-        <i
-          class="icon icon-chevron-right"
-          title="Next Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </span>
       </button>
     </div>
   </div>

@@ -52,11 +52,34 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
             type="button"
           >
             <span
+              aria-hidden="true"
+              class="_button__icon-slot_doayp_27"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-16_1i355_38"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="18"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="18"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11M5 5V7H19V5H5Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <span
               class="_button__label_doayp_24"
             >
-              <i
-                class="icon icon-archive-outline"
-              />
               Archive Channel
             </span>
           </button>
@@ -132,11 +155,34 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
             type="button"
           >
             <span
+              aria-hidden="true"
+              class="_button__icon-slot_doayp_27"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-16_1i355_38"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="18"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="18"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11M5 5V7H19V5H5Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <span
               class="_button__label_doayp_24"
             >
-              <i
-                class="icon icon-archive-outline"
-              />
               Archive Channel
             </span>
           </button>

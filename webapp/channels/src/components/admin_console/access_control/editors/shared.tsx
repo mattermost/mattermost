@@ -5,12 +5,14 @@ import React, {type JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
+import {LockOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {AccessControlTestResult} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {isSessionAttributeField} from '@mattermost/types/properties_user';
 
-import {Button} from '@mattermost/compass-ui/components/button';
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -516,8 +518,8 @@ export function TestButton({onClick, disabled, disabledTooltip, label}: TestButt
             size='small'
             onClick={onClick}
             disabled={disabled}
+            leadingIcon={<Icon glyph={<LockOutlineIcon/>}/>}
         >
-            <i className='icon icon-lock-outline'/>
             {label ?? (
                 <FormattedMessage
                     id='admin.access_control.table_editor.test_access_rule'
@@ -605,8 +607,8 @@ export function AddAttributeButton({onClick, disabled}: AddAttributeButtonProps)
             size='small'
             onClick={onClick}
             disabled={disabled}
+            leadingIcon={<Icon glyph={<PlusIcon/>}/>}
         >
-            <i className='icon icon-plus'/>
             <FormattedMessage
                 id='admin.access_control.table_editor.add_attribute'
                 defaultMessage='Add attribute'
