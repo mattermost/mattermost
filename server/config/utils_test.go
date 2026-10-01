@@ -277,6 +277,37 @@ func TestFixLegacyImageProxyType(t *testing.T) {
 	}
 }
 
+func TestFixRetiredFeatureFlags(t *testing.T) {
+	t.Run("nil feature flags", func(t *testing.T) {
+		assert.False(t, fixRetiredFeatureFlags(&model.Config{}))
+	})
+
+	t.Run("retired flags off", func(t *testing.T) {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+
+		assert.False(t, fixRetiredFeatureFlags(cfg))
+	})
+
+	t.Run("AppsEnabled on", func(t *testing.T) {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.FeatureFlags.AppsEnabled = true
+
+		assert.True(t, fixRetiredFeatureFlags(cfg))
+		assert.False(t, cfg.FeatureFlags.AppsEnabled)
+	})
+
+	t.Run("MoveThreadsEnabled on", func(t *testing.T) {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.FeatureFlags.MoveThreadsEnabled = true
+
+		assert.True(t, fixRetiredFeatureFlags(cfg))
+		assert.False(t, cfg.FeatureFlags.MoveThreadsEnabled)
+	})
+}
+
 func TestIsDatabaseDSN(t *testing.T) {
 	testCases := []struct {
 		Name     string
