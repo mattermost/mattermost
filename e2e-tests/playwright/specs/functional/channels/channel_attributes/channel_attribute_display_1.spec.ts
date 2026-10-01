@@ -226,7 +226,21 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             await page.setViewportSize({width: 900, height: 800});
 
             // * Whatever no longer fits is reachable through +N instead of being clipped
-            await expect(threadsPage.attributes.overflowButton).toBeVisible();
+            const overflowButton = threadsPage.attributes.overflowButton;
+            await expect(overflowButton).toBeVisible();
+
+            // The row keeps re-measuring itself for a moment after the resize; wait for
+            // the overflow count to settle before reading it or clicking it.
+            let lastLabel: string | null = null;
+            await expect
+                .poll(async () => {
+                    const label = await overflowButton.getAttribute('aria-label');
+                    const isStable = lastLabel !== null && label === lastLabel;
+                    lastLabel = label;
+                    return isStable;
+                })
+                .toBe(true);
+
             expect(await threadsPage.attributes.chips.count()).toBeLessThan(5);
 
             // * The row yields to the thread controls rather than growing over them,

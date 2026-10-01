@@ -143,9 +143,22 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             // overflow:hidden with no +N beside it is a marking silently hidden.
             // Narrow, but still desktop: below 768px the header switches to the mobile
             // layout and the icon row is not rendered at all.
-            await page.setViewportSize({width: 800, height: 800});
+            await page.setViewportSize({width: 900, height: 800});
 
-            await expect(page.getByTestId('channelAttributeLabelsOverflow-info-header')).toBeVisible();
+            const overflowButton = page.getByTestId('channelAttributeLabelsOverflow-info-header');
+            await expect(overflowButton).toBeVisible();
+
+            // The row keeps re-measuring itself for a moment after the resize; wait for
+            // the overflow count to settle before reading it or clicking it.
+            let lastLabel: string | null = null;
+            await expect
+                .poll(async () => {
+                    const label = await overflowButton.getAttribute('aria-label');
+                    const isStable = lastLabel !== null && label === lastLabel;
+                    lastLabel = label;
+                    return isStable;
+                })
+                .toBe(true);
 
             // Fewer chips shown than exist, and the remainder is reachable.
             const shown = await page.getByTestId('attributeChip').count();
@@ -158,14 +171,17 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             expect(narrowX).toBeLessThanOrEqual(wideX);
 
             // The row is bounded by its container: whatever it cannot show goes to
-            // the popover rather than spilling across the header.
-            const spill = await row.evaluate((el: HTMLElement) => {
-                const parent = el.parentElement!.parentElement!;
-                return el.getBoundingClientRect().right - parent.getBoundingClientRect().right;
-            });
-            expect(spill).toBeLessThanOrEqual(1);
+            // the popover rather than spilling across the header. The overflow
+            // count can be stable while the surviving chip is still a frame or two
+            // from its final width, so poll rather than reading this once.
+            await expect
+                .poll(() => row.evaluate((el: HTMLElement) => {
+                    const parent = el.parentElement!.parentElement!;
+                    return el.getBoundingClientRect().right - parent.getBoundingClientRect().right;
+                }))
+                .toBeLessThanOrEqual(1);
 
-            await page.getByTestId('channelAttributeLabelsOverflow-info-header').click();
+            await overflowButton.click();
             await expect(page.getByTestId('channelAttributeLabelsPopover-info-header')).toBeVisible();
         } finally {
             await deleteAttributes(adminClient, created);
