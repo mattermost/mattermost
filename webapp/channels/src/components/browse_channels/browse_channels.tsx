@@ -4,8 +4,9 @@
 import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
+import type {ButtonEmphasis, ButtonSize} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
-import {Button, type ButtonEmphasis, type ButtonSize} from '@mattermost/shared/components/button';
 import type {Channel, ChannelJoinRequest, ChannelMembership, ChannelSearchOpts, ChannelsWithTotalCount, GetChannelJoinRequestsOptions} from '@mattermost/types/channels';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
@@ -546,6 +547,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                         type='button'
                         id='createNewChannelButton'
                         emphasis={emphasis}
+                        size={size}
                         onClick={this.handleNewChannel}
                         aria-label={localizeMessage({id: 'more_channels.create', defaultMessage: 'Create New Channel'})}
                     >
@@ -567,7 +569,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                         defaultMessage='Try searching different keywords, checking for typos or adjusting the filters.'
                     />
                 </p>
-                {createNewChannelButton('primary', 'md', <i className='icon-plus'/>)}
+                {createNewChannelButton('primary', 'medium', <i className='icon-plus'/>)}
             </>
         );
 
@@ -614,7 +616,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                 onExited={this.handleExit}
                 compassDesign={true}
                 modalHeaderText={title}
-                headerButton={createNewChannelButton('secondary', 'sm')}
+                headerButton={createNewChannelButton('tertiary', 'small')}
                 autoCloseOnConfirmButton={false}
                 aria-modal={true}
                 enforceFocus={false}
