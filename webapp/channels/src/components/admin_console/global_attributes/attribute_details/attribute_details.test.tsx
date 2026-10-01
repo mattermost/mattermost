@@ -2560,6 +2560,62 @@ describe('AttributeDetails', () => {
             expect(patchPropertyField.mock.calls.filter((call) => call[1] === 'user')).toHaveLength(1);
         });
 
+        it('PATCHes ldap/saml onto an already-persisted Users field when the template sync source changes', async () => {
+            // Sync reads attrs.ldap/attrs.saml on the Users field, not the template.
+            // Those attrs are only copied at linked-field create time, so Save must
+            // cascade a later template edit onto the existing Users row.
+            mockLoadedField(
+                makeTemplate({attrs: {display_name: 'Department', ldap: 'oldDept'}}),
+                [makeLinked('user', 'user-field', {attrs: {display_name: 'Department', ldap: 'oldDept'}})],
+            );
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockImplementation((_group, objectType) => (
+                Promise.resolve(objectType === 'user' ?
+                    makeLinked('user', 'user-field', {attrs: {ldap: 'newDept'}}) :
+                    makeTemplate({attrs: {display_name: 'Department', ldap: 'newDept'}}))
+            ));
+
+            renderEdit();
+            await waitForForm();
+
+            await userEvent.click(screen.getByTestId('attributeExternalSourceChip-ldap-edit'));
+            const input = await screen.findByPlaceholderText('department');
+            await userEvent.clear(input);
+            await userEvent.type(input, 'newDept');
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+            await waitFor(() => expect(screen.queryByPlaceholderText('department')).not.toBeInTheDocument());
+
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', FIELD_ID, expect.objectContaining({
+                attrs: expect.objectContaining({ldap: 'newDept'}),
+            }));
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'user-field', {
+                attrs: {ldap: 'newDept'},
+            });
+        });
+
+        it('clears ldap/saml on an already-persisted Users field when the template sync source is removed', async () => {
+            mockLoadedField(
+                makeTemplate({attrs: {display_name: 'Department', ldap: 'oldDept'}}),
+                [makeLinked('user', 'user-field', {attrs: {display_name: 'Department', ldap: 'oldDept'}})],
+            );
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockImplementation((_group, objectType) => (
+                Promise.resolve(objectType === 'user' ? makeLinked('user', 'user-field') : makeTemplate())
+            ));
+
+            renderEdit();
+            await waitForForm();
+
+            await userEvent.click(screen.getByTestId('attributeExternalSourceChip-ldap-remove'));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'user-field', {
+                attrs: {ldap: null},
+            });
+        });
+
         it('renders a distinct "settings couldn\'t be updated" banner (not "couldn\'t be applied") when the config patch fails, since the row is already linked', async () => {
             mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
             jest.spyOn(Client4, 'patchPropertyField').mockImplementation((_group, objectType) => (
@@ -3177,10 +3233,24 @@ describe('AttributeDetails', () => {
         });
 
         it('redirects to the listing when the field is Classification Markings', async () => {
-            mockLoadedField(makeTemplate({name: 'classification'}));
+            mockLoadedField(makeTemplate({name: 'classification', type: 'rank'}));
             renderEdit();
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
             expect(screen.queryByTestId('attributeDetails')).not.toBeInTheDocument();
+        });
+
+        it('opens a wrong-typed template named classification here, since it is an ordinary attribute', async () => {
+            // * This editor is the repair path the Classification Markings conflict error
+            // points at: the name is only reserved for the rank-typed definition.
+            mockLoadedField(makeTemplate({name: 'classification', type: 'text'}));
+            renderEdit();
+            expect(await screen.findByTestId('attributeDetails')).toBeInTheDocument();
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+
+            // Reachable is not enough: the collision is on the unique name, so the
+            // repair is renaming that, not the display name.
+            expect(screen.getByTestId('attributeDisplayNameInput')).toBeEnabled();
+            expect(screen.getByTestId('attributeNameEditLink')).toBeEnabled();
         });
 
         it('redirects to the listing when the field is missing', async () => {

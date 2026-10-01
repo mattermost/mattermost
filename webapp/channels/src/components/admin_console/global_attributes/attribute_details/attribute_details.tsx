@@ -428,6 +428,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const originalUserVisibilityRef = useRef<FieldVisibility>('when_set');
     const originalUserManagedRef = useRef<UserManagedValue>('');
 
+    // Template ldap/saml as loaded (or last successfully saved). Sync reads the
+    // linked Users field's own attrs, which are only copied from the template at
+    // create time, so a change here must be patched onto that field on Save.
+    const originalLdapAttrRef = useRef('');
+    const originalSamlAttrRef = useRef('');
+
     // Compared against the live *server* field type at Save time to pick which
     // order DELETE/PATCH run in (see handleSave) -- the server rejects a type-
     // changing PATCH while linked fields of the old type still exist
@@ -539,8 +545,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 setIsNameManuallyEdited(true);
                 setFieldType(getAttributeTypeDescriptor(field).id);
                 setOptions(loadedOptions);
-                setLdapAttr(typeof field.attrs?.ldap === 'string' ? field.attrs.ldap : '');
-                setSamlAttr(typeof field.attrs?.saml === 'string' ? field.attrs.saml : '');
+                const loadedLdap = typeof field.attrs?.ldap === 'string' ? field.attrs.ldap : '';
+                const loadedSaml = typeof field.attrs?.saml === 'string' ? field.attrs.saml : '';
+                originalLdapAttrRef.current = loadedLdap;
+                originalSamlAttrRef.current = loadedSaml;
+                setLdapAttr(loadedLdap);
+                setSamlAttr(loadedSaml);
 
                 // A non-template field has no linked children: Applies-to is its
                 // own object type, so there is no other resource to add or remove.
@@ -1152,9 +1162,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             if (userIsUpdateCandidate) {
                 const visibilityChanged = userVisibility !== originalUserVisibilityRef.current;
                 const managedChanged = userManaged !== originalUserManagedRef.current;
+                const ldapChanged = ldapAttr !== originalLdapAttrRef.current;
+                const samlChanged = samlAttr !== originalSamlAttrRef.current;
+                const syncSourceChanged = ldapChanged || samlChanged;
                 const existingUserField = persistedLinkedFieldsRef.current.user;
                 const cascadeDisplayName = existingUserField ? shouldCascadeLinkedDisplayName(existingUserField) : false;
-                if (existingUserField && (visibilityChanged || managedChanged || cascadeDisplayName)) {
+                if (existingUserField && (visibilityChanged || managedChanged || cascadeDisplayName || syncSourceChanged)) {
                     try {
                         const updatedUserField = await patchLinkedAttributeField(
                             'user',
@@ -1162,6 +1175,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                             {
                                 ...(visibilityChanged || managedChanged ? userConfigAttrs : {}),
                                 ...(cascadeDisplayName ? displayNamePatchAttrs : {}),
+
+                                // null unlinks, matching updateAttributeField's
+                                // template patch — sync reads these attrs on the
+                                // Users field, not the template.
+                                ...(ldapChanged ? {ldap: ldapAttr || null} : {}),
+                                ...(samlChanged ? {saml: samlAttr || null} : {}),
                             },
                             (visibilityChanged || managedChanged) ? userConfigPermissionValues : undefined,
                         );
@@ -1169,6 +1188,10 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         if (visibilityChanged || managedChanged) {
                             originalUserVisibilityRef.current = userVisibility;
                             originalUserManagedRef.current = userManaged;
+                        }
+                        if (syncSourceChanged) {
+                            originalLdapAttrRef.current = ldapAttr;
+                            originalSamlAttrRef.current = samlAttr;
                         }
                     } catch {
                         // Distinct from applies_to_partial_save -- the Users row is
@@ -1180,7 +1203,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         // Display-name-only failures get their own copy: the config
                         // banner names Profile display / Who can set the value, which
                         // is wrong when neither control was part of this PATCH.
-                        const configChanged = visibilityChanged || managedChanged;
+                        const configChanged = visibilityChanged || managedChanged || syncSourceChanged;
                         finalizeSave({
                             success: false,
                             errorKind: configChanged ? 'applies_to_config_save_failed' : 'applies_to_display_name_save_failed',
@@ -1243,6 +1266,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             }
 
             originalDisplayNameRef.current = nextDisplayName;
+            originalLdapAttrRef.current = ldapAttr;
+            originalSamlAttrRef.current = samlAttr;
             finalizeSave({success: true});
             return;
         }
@@ -1436,7 +1461,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                             data-testid='attributeDetailsBackLink'
                         >
                             <ChevronLeftIcon
-                                size={20}
+                                size={28}
                                 aria-hidden={true}
                             />
                         </BlockableLink>
