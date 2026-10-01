@@ -39,7 +39,7 @@ describe('components/admin_console/SaveChangesPanel', () => {
                 admin: {
                     navigationBlock: {
                         blocked: options.navigationBlocked ?? false,
-                        onNavigationConfirmed: null,
+                        onNavigationConfirmed: undefined,
                         showNavigationPrompt: false,
                     },
                 },
