@@ -259,6 +259,24 @@ func TestFixInvalidLocales(t *testing.T) {
 	assert.Contains(t, *cfg.LocalizationSettings.AvailableLocales, *cfg.LocalizationSettings.DefaultClientLocale, "DefaultClientLocale should have been added to AvailableLocales")
 }
 
+func TestFixLegacyImageProxyType(t *testing.T) {
+	for _, enable := range []bool{false, true} {
+		t.Run(fmt.Sprintf("enable=%t", enable), func(t *testing.T) {
+			cfg := &model.Config{}
+			cfg.SetDefaults()
+			*cfg.ImageProxySettings.Enable = enable
+
+			assert.False(t, fixLegacyImageProxyType(cfg))
+			assert.Equal(t, model.ImageProxyTypeLocal, *cfg.ImageProxySettings.ImageProxyType)
+
+			*cfg.ImageProxySettings.ImageProxyType = model.ImageProxyTypeLegacyAtmosCamo
+			assert.True(t, fixLegacyImageProxyType(cfg))
+			assert.Equal(t, model.ImageProxyTypeLocal, *cfg.ImageProxySettings.ImageProxyType)
+			assert.Equal(t, enable, *cfg.ImageProxySettings.Enable)
+		})
+	}
+}
+
 func TestIsDatabaseDSN(t *testing.T) {
 	testCases := []struct {
 		Name     string

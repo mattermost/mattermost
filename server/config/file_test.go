@@ -646,6 +646,27 @@ func TestFileStoreLoad(t *testing.T) {
 		assertFileNotEqualsConfig(t, emptyConfig, path)
 	})
 
+	t.Run("migrate legacy atmos/camo image proxy type", func(t *testing.T) {
+		cfg := minimalConfig.Clone()
+		cfg.ImageProxySettings.Enable = new(true)
+		cfg.ImageProxySettings.ImageProxyType = new(model.ImageProxyTypeLegacyAtmosCamo)
+
+		path, tearDown := setupConfigFile(t, cfg)
+		defer tearDown()
+
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.True(t, *fs.Get().ImageProxySettings.Enable)
+		assert.Equal(t, model.ImageProxyTypeLocal, *fs.Get().ImageProxySettings.ImageProxyType)
+
+		actualConfig := getActualFileConfig(t, path)
+		assert.Equal(t, model.ImageProxyTypeLocal, *actualConfig.ImageProxySettings.ImageProxyType)
+	})
+
 	t.Run("honour environment", func(t *testing.T) {
 		configStore, tearDown := setupConfigFileStore(t, minimalConfig)
 		defer tearDown()
