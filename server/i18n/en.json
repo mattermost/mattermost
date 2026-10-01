@@ -14312,6 +14312,126 @@
     "description": "Health dashboard reason shown when a health check could not run because the usage statistics it inspects (for example user or post counts) were not collected, so the check's status is unknown."
   },
   {
+    "id": "health.rule.es_live_batch_sync.message",
+    "translation": "Each new post is indexed synchronously with its own request. On busy servers this overloads the search cluster and delays indexing.",
+    "description": "Health dashboard finding detail when LiveIndexingBatchSize is 1."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.remediation",
+    "translation": "Raise LiveIndexingBatchSize to between 10 and 20 (the default is 10), and tune within that range based on the observed post rate.",
+    "description": "Health dashboard fix-it step when LiveIndexingBatchSize is 1; 'LiveIndexingBatchSize' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.es_live_batch_sync.title",
+    "translation": "Elasticsearch LiveIndexingBatchSize is 1",
+    "description": "Health dashboard finding title when live indexing is configured to index each post on its own; 'LiveIndexingBatchSize' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.message",
+    "translation": "LiveIndexingBatchSize is {{.size}}. Large _bulk requests can exceed the search cluster's http.max_content_length and fail with 413 errors, causing retries and indexing lag.",
+    "description": "Health dashboard finding detail when LiveIndexingBatchSize is above 100; {{.size}} is the configured value. '_bulk', 'http.max_content_length' and '413' are literal technical terms and should not be translated."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.remediation",
+    "translation": "Lower LiveIndexingBatchSize to between 10 and 20, or raise http.max_content_length on the search cluster if very large batches are intentional.",
+    "description": "Health dashboard fix-it step when LiveIndexingBatchSize is above 100; 'LiveIndexingBatchSize' and 'http.max_content_length' are setting names and should not be translated."
+  },
+  {
+    "id": "health.rule.es_live_batch_too_high.title",
+    "translation": "Elasticsearch LiveIndexingBatchSize is above 100",
+    "description": "Health dashboard finding title when live indexing batches are large; 'LiveIndexingBatchSize' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.es_localhost_url.message",
+    "translation": "ConnectionURL points to {{.host}}, which each app node resolves to itself. Nodes without a local search engine cannot index or search.",
+    "description": "Health dashboard finding detail for a loopback search engine URL in a cluster; {{.host}} is the configured host name or IP address. 'ConnectionURL' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.es_localhost_url.remediation",
+    "translation": "Set ConnectionURL to a hostname or service DNS name that every app node can reach.",
+    "description": "Health dashboard fix-it step for a loopback search engine URL in a cluster; 'ConnectionURL' is a config setting name and 'app node' is a Mattermost application server."
+  },
+  {
+    "id": "health.rule.es_localhost_url.title",
+    "translation": "Elasticsearch ConnectionURL points to localhost",
+    "description": "Health dashboard finding title when the search engine connection URL points to the local machine on a clustered server; 'ConnectionURL' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.es_missing_icu.message",
+    "translation": "The search cluster does not report the analysis-icu plugin. The post index template uses the ICU tokenizer and normalizer, so post indexing may fail without it.",
+    "description": "Health dashboard finding detail when the analysis-icu plugin is missing; 'analysis-icu' is a plugin name and 'ICU' a technical term, neither should be translated."
+  },
+  {
+    "id": "health.rule.es_missing_icu.message.unavailable",
+    "translation": "The plugin list was not collected because the server could not read the search cluster version.",
+    "description": "Health dashboard reason shown when the search engine plugin list is missing, so the check's status is unknown."
+  },
+  {
+    "id": "health.rule.es_missing_icu.remediation",
+    "translation": "Install the analysis-icu plugin on every search node (elasticsearch-plugin install analysis-icu, or opensearch-plugin install analysis-icu), then restart the nodes. Post indexing requires it, not only multilingual search.",
+    "description": "Health dashboard fix-it step when the analysis-icu plugin is missing; the commands in parentheses are literal and should not be translated."
+  },
+  {
+    "id": "health.rule.es_missing_icu.title",
+    "translation": "Search engine is missing the analysis-icu plugin",
+    "description": "Health dashboard finding title when the Elasticsearch or OpenSearch cluster does not report the analysis-icu plugin; 'analysis-icu' is a plugin name and should not be translated."
+  },
+  {
+    "id": "health.rule.es_server_error.message",
+    "translation": "The connection test to the search engine failed: {{.error}}",
+    "description": "Health dashboard finding detail when the search engine connection test failed; {{.error}} is the error the server reported, with URL credentials masked."
+  },
+  {
+    "id": "health.rule.es_server_error.message.unavailable",
+    "translation": "The search engine connection test result was not collected.",
+    "description": "Health dashboard reason shown when the search engine connection test result is missing, so the check's status is unknown."
+  },
+  {
+    "id": "health.rule.es_server_error.remediation",
+    "translation": "Verify ElasticsearchSettings.ConnectionURL reachability, TLS, and credentials. Check the search cluster health (GET /_cluster/health).",
+    "description": "Health dashboard fix-it step for a failed search engine connection test; 'ElasticsearchSettings.ConnectionURL' is a config setting name and 'GET /_cluster/health' is a literal API call, neither should be translated."
+  },
+  {
+    "id": "health.rule.es_server_error.title",
+    "translation": "Server reports an Elasticsearch cluster error",
+    "description": "Health dashboard finding title when the server's connection test to the Elasticsearch or OpenSearch cluster failed."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.message",
+    "translation": "SkipTLSVerification is true on an https connection, so the server does not validate the search engine's certificate. This is acceptable on a trusted internal network, but removes protection against a man-in-the-middle elsewhere.",
+    "description": "Health dashboard finding detail when TLS verification is skipped for the search engine; 'SkipTLSVerification' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.remediation",
+    "translation": "If the search endpoint is on an untrusted path, install its CA so the certificate validates and set SkipTLSVerification to false. On a trusted internal network, confirm the setting is intentional.",
+    "description": "Health dashboard fix-it step when TLS verification is skipped for the search engine; 'SkipTLSVerification' is a config setting name and 'CA' means certificate authority."
+  },
+  {
+    "id": "health.rule.es_skip_tls_verify.title",
+    "translation": "Elasticsearch connection skips TLS certificate verification",
+    "description": "Health dashboard finding title when the server does not verify the search engine's TLS certificate."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message",
+    "translation": "{{.backend}} {{.version}} is outside the supported major versions ({{.min}} to {{.max}}). The server still connects, but search and indexing may behave unexpectedly.",
+    "description": "Health dashboard finding detail for an unsupported search engine version; {{.backend}} is elasticsearch or opensearch, {{.version}} the reported version, {{.min}} and {{.max}} the supported major versions."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.message.unavailable",
+    "translation": "The search engine backend or version was not reported, or could not be recognized.",
+    "description": "Health dashboard reason shown when the search engine version cannot be read, so the check's status is unknown."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.remediation",
+    "translation": "Upgrade the search cluster to a supported major version.",
+    "description": "Health dashboard fix-it step for an unsupported Elasticsearch or OpenSearch version."
+  },
+  {
+    "id": "health.rule.es_version_unsupported.title",
+    "translation": "Search engine version is unsupported",
+    "description": "Health dashboard finding title when the Elasticsearch or OpenSearch cluster runs a major version the server does not support."
+  },
+  {
     "id": "health.rule.push_bad_scheme.message.http",
     "translation": "PushNotificationServer {{.url}} uses http://, so push notifications are sent in cleartext.",
     "description": "Health dashboard finding detail when the push notification server URL starts with http:// instead of https://; {{.url}} is the configured URL. 'PushNotificationServer' is a config setting name and should not be translated."
@@ -14360,6 +14480,46 @@
     "id": "health.rule.push_test_proxy.title",
     "translation": "PushNotificationServer points at push-test.mattermost.com",
     "description": "Health dashboard finding title when the push notification server is Mattermost's test push proxy; 'PushNotificationServer' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.message",
+    "translation": "The workspace has {{.posts}} posts and search runs against the database. Elasticsearch is recommended above 2,500,000 posts and required above 5,000,000.",
+    "description": "Health dashboard finding detail when database search is used at 2,500,000 to 4,999,999 posts; {{.posts}} is the post count."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.message.unavailable",
+    "translation": "The post count was not collected.",
+    "description": "Health dashboard reason shown when the workspace post count is missing, so the check's status is unknown."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.remediation",
+    "translation": "Plan an Elasticsearch deployment before the next major growth period, or before reaching 5,000,000 posts.",
+    "description": "Health dashboard fix-it step for a growing workspace without Elasticsearch search."
+  },
+  {
+    "id": "health.rule.scale_es_recommended.title",
+    "translation": "Post count is approaching the Elasticsearch threshold",
+    "description": "Health dashboard finding title when a workspace with 2,500,000 to 4,999,999 posts searches the database instead of Elasticsearch or OpenSearch."
+  },
+  {
+    "id": "health.rule.scale_es_required.message",
+    "translation": "The workspace has {{.posts}} posts and search runs against the database. At this scale, expect slow searches, timeouts, and database CPU spikes.",
+    "description": "Health dashboard finding detail when database search is used at 5,000,000 posts or more; {{.posts}} is the post count."
+  },
+  {
+    "id": "health.rule.scale_es_required.message.unavailable",
+    "translation": "The post count was not collected.",
+    "description": "Health dashboard reason shown when the workspace post count is missing, so the check's status is unknown."
+  },
+  {
+    "id": "health.rule.scale_es_required.remediation",
+    "translation": "Deploy Elasticsearch or OpenSearch, run a full initial index, then enable EnableIndexing, EnableSearching, and EnableAutocomplete.",
+    "description": "Health dashboard fix-it step for a large workspace without Elasticsearch search; 'EnableIndexing', 'EnableSearching' and 'EnableAutocomplete' are config setting names and should not be translated."
+  },
+  {
+    "id": "health.rule.scale_es_required.title",
+    "translation": "Elasticsearch is required above 5,000,000 posts",
+    "description": "Health dashboard finding title when a workspace with at least 5,000,000 posts searches the database instead of Elasticsearch or OpenSearch."
   },
   {
     "id": "health.rule.site_url_empty.message",
