@@ -166,6 +166,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - Updated team filter handling in the users listing API.
  - [Session attributes](https://docs.mattermost.com/administration-guide/manage/admin/session-attributes) (user agent, IP address, device/network posture) are now collected by default.
  - Updated file metadata preparation for post retrieval, channel bookmarks, and notification delivery.
+ - Updated custom emoji image processing to use the shared image decoder, so animated GIF sources are subject to the configured maximum image resolution and image decoder concurrency.
 
 #### mmctl
  - Added ``--expires-in`` flag to ``mmctl bot create --with-token`` for personal access token lifetime enforcement on user-owned bot accounts.
@@ -232,6 +233,8 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - Fixed an issue where extracting content from ZIP archives could lead to excessive memory consumption.
  - Fixed blank server messages in Spanish, French, Italian and Japanese, which now show in English until translated.
  - Fixed an issue where file attachments could stay hidden or visible after a session attribute changed until the client cache was cleared.
+ - Fixed issues in **Attribute Management** where non-system admins saw edit and delete actions instead of read-only ones, the Classification attribute was shown without the Enterprise Advanced license that Classification Markings requires, Attribute-Based Access links did not lead to Attribute Management, and changing a template's LDAP or SAML sync source did not update the linked user attribute.
+ - Fixed an issue where changing the AI service used for auto-translation did not take effect until the server was restarted.
 
 ### API Changes
  - Added ``POST /access_control/decisions/actions/search (searchAccessControlDecisionActions)`` API endpoint.
@@ -244,6 +247,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - Added ``POST /properties/groups/{group_name}/{object_type}/fields/{field_id}/options (createPropertyFieldOptions)`` API endpoint.
  - Added ``PATCH /properties/groups/{group_name}/{object_type}/fields/{field_id}/options (patchPropertyFieldOptions)`` API endpoint.
  - Added ``DELETE /properties/groups/{group_name}/{object_type}/fields/{field_id}/options (deletePropertyFieldOptions)`` API endpoint.
+ - ``PATCH`` and ``DELETE`` requests to ``/api/v4/custom_profile_attributes/fields/{field_id}`` now return HTTP 400 for User Attribute fields linked to an Attribute Management template, with an error pointing to the Global Attributes API. This prevents the template and user copies of an attribute from diverging.
 
 ### Audit Log Event Changes
  - Added ``AuditEventAutoCacheCleanupRun`` audit log event.
