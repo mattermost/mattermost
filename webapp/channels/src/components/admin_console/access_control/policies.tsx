@@ -4,10 +4,10 @@
 import React, {useState, useEffect, useMemo, useCallback, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {GenericModal} from '@mattermost/components';
 import {PlusIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
+import {GenericModal} from '@mattermost/components';
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 import {getAutoAddFromRules} from '@mattermost/types/access_control';
 
