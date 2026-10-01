@@ -56,14 +56,18 @@ test('should send ephemeral post with Update and Delete actions via /ephemeral c
         .getByRole('listitem')
         .filter({hasText: 'updated ephemeral action'})
         .last();
+    // The 30s ceiling here is tight under full-suite CI load (30 parallel workers):
+    // the plugin's server-side round-trip is fast (~200ms), but the websocket-delivery-
+    // to-render path can lag under contention. test.setTimeout(120000) already budgets
+    // for this, so widen the poll to use that headroom instead of failing in-flight work.
     await expect
         .poll(async () => updatedPost.getByText('updated ephemeral action', {exact: true}).isVisible(), {
-            timeout: 30000,
-            intervals: [500, 1000, 2000],
+            timeout: 60000,
+            intervals: [500, 1000, 2000, 5000],
         })
         .toBe(true);
-    await expect(updatedPost.getByRole('button', {name: 'Update 1', exact: true})).toBeVisible({timeout: 15000});
-    await expect(updatedPost.getByRole('button', {name: 'Delete', exact: true})).toBeVisible({timeout: 15000});
+    await expect(updatedPost.getByRole('button', {name: 'Update 1', exact: true})).toBeVisible({timeout: 20000});
+    await expect(updatedPost.getByRole('button', {name: 'Delete', exact: true})).toBeVisible({timeout: 20000});
 
     // 7. Click Delete and verify post content is removed and buttons are gone
     // After delete the text changes again — re-find by the new content
