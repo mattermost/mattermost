@@ -159,8 +159,9 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
             await configuration.enableChannelBanner();
             await configuration.insertBannerToken(marking.name);
 
-            // * The preview names the empty result instead of rendering nothing
-            await expect(configuration.bannerTokenPreview).toContainText('no values are set');
+            // * A warning notice replaces the preview instead of rendering nothing
+            await expect(configuration.bannerTokenPreviewEmptyNotice).toContainText('The banner will not be displayed');
+            await expect(configuration.bannerTokenPreview).not.toBeVisible();
 
             await settings.close();
 

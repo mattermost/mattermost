@@ -138,10 +138,10 @@ test.describe(
             await channelsPage.goto(team.name);
             await channelsPage.toBeVisible();
 
-            // * Optional attributes are not asked for at creation, so Create is free
+            // * Classification is offered as a courtesy while optional, but Create stays free
             let modal = await channelsPage.openNewChannelModal();
             await modal.fillDisplayName(`Optional Classification ${pw.random.id()}`);
-            await expect(channelsPage.page.getByTestId('channelAttribute-classification')).toHaveCount(0);
+            await expect(channelsPage.page.getByTestId('channelAttribute-classification')).toBeVisible();
             await expect(modal.createButton).toBeEnabled();
             await modal.cancel();
 

@@ -70,9 +70,9 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
 
     /**
      * @objective Verify every banner-designated attribute shares one banner, and that
-     * Channel Settings shows them as chips the channel cannot remove.
+     * Channel Settings seeds them as chips the channel is free to edit afterward.
      */
-    test('composes one banner from every designated attribute and locks their chips', async ({pw}) => {
+    test('composes one banner from every designated attribute', async ({pw}) => {
         await pw.skipIfNoLicense();
         await pw.ensureFeatureFlag('ChannelAttributes', true);
 
@@ -114,10 +114,6 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
             // * The composer opens showing what the banner is made of
             await expect(configuration.bannerTokenChip(marking.name)).toBeVisible();
             await expect(configuration.bannerTokenChip(programme.name)).toBeVisible();
-
-            // * Designated attributes cannot be taken out of the banner
-            await expect(configuration.bannerTokenChipRemove(marking.name)).toHaveCount(0);
-            await expect(configuration.bannerTokenChipRemove(programme.name)).toHaveCount(0);
 
             // * Seeding those chips is not an edit, so the tab opens clean
             await expect(configuration.container.getByTestId('SaveChangesPanel__save-btn')).toHaveCount(0);
