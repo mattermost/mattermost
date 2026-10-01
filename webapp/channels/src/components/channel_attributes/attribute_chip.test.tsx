@@ -159,6 +159,27 @@ describe('AttributeChip', () => {
         expect(screen.getByTestId('attributeChip')).toHaveClass('AttributeChip--dismissible');
     });
 
+    test('truncates long values on the value span so the remove control stays visible', () => {
+        const longValue = 'Potato What to eatWhat to eatWhat to eatWhat to eat';
+        renderWithContext(
+            <AttributeChip
+                label='What to eat'
+                value={longValue}
+                size='medium'
+            >
+                <AttributeChipRemoveButton
+                    onRemove={jest.fn()}
+                    removeLabel='Remove Potato'
+                />
+            </AttributeChip>,
+        );
+
+        const chip = screen.getByTestId('attributeChip');
+        const value = chip.querySelector('.AttributeChip__value');
+        expect(value).toHaveTextContent(longValue);
+        expect(chip).toContainElement(screen.getByRole('button', {name: 'Remove Potato'}));
+    });
+
     test('keeps the remove control in sequential keyboard order', async () => {
         const onRemove = jest.fn();
         renderWithContext(

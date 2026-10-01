@@ -28,8 +28,15 @@
     // uppercase because the option is; Potato stays title case). Do not force
     // text-transform here — that made long classification labels look bulkier
     // than sentence-case multiselect chips of the same box size.
+    //
+    // max-width 148px is the Channel Info value column budget; long option
+    // names ellipsize on __value. min/max-height clamp the flex auto-minimum
+    // that the 14px remove control would otherwise push past 22px.
     &--medium {
+        max-width: 148px;
         height: 22px;
+        min-height: 22px;
+        max-height: 22px;
         box-sizing: border-box;
         padding: 4px 8px;
         border: 1px solid transparent;
