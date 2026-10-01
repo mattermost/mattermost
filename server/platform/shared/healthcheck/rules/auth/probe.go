@@ -65,10 +65,10 @@ func leaderDiagnostics(s *healthcheck.Snapshot) (*model.SupportPacketDiagnostics
 	return leader.Diag()
 }
 
-func probeResult(status, probeErr, firingID, unavailableID string) healthcheck.Result {
+func probeResult(status, probeErr, firingID string) healthcheck.Result {
 	switch status {
 	case "":
-		return healthcheck.Unknown(unavailableID)
+		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	case model.StatusFail:
 		return healthcheck.Firing(firingID).WithDetail("error", probeErr)
 	default:
@@ -77,21 +77,19 @@ func probeResult(status, probeErr, firingID, unavailableID string) healthcheck.R
 }
 
 func evalLdapProbeFailed(s *healthcheck.Snapshot) healthcheck.Result {
-	unavailableID := healthcheck.TranslationId("health.rule.ldap_probe_failed.message.unavailable")
 	diag, ok := leaderDiagnostics(s)
 	if !ok {
-		return healthcheck.Unknown(unavailableID)
+		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	}
 
-	return probeResult(diag.LDAP.Status, diag.LDAP.Error, healthcheck.TranslationId("health.rule.ldap_probe_failed.message"), unavailableID)
+	return probeResult(diag.LDAP.Status, diag.LDAP.Error, healthcheck.TranslationId("health.rule.ldap_probe_failed.message"))
 }
 
 func evalSamlMetadataUnreachable(s *healthcheck.Snapshot) healthcheck.Result {
-	unavailableID := healthcheck.TranslationId("health.rule.saml_metadata_unreachable.message.unavailable")
 	diag, ok := leaderDiagnostics(s)
 	if !ok {
-		return healthcheck.Unknown(unavailableID)
+		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	}
 
-	return probeResult(diag.SAML.Status, diag.SAML.Error, healthcheck.TranslationId("health.rule.saml_metadata_unreachable.message"), unavailableID)
+	return probeResult(diag.SAML.Status, diag.SAML.Error, healthcheck.TranslationId("health.rule.saml_metadata_unreachable.message"))
 }

@@ -295,7 +295,7 @@ func evalLdapRecommendedAtScale(s *healthcheck.Snapshot) []healthcheck.Result {
 
 	users, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 { return stats.RegisteredUsers })
 	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.TranslationId("health.rule.ldap_recommended_at_scale.message.stats_unavailable"))}
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)}
 	}
 
 	result := healthcheck.Resolved()
@@ -316,7 +316,7 @@ func evalLdapSyncDutyCycle(s *healthcheck.Snapshot) healthcheck.Result {
 
 	jobs, ok := s.JobsFor(model.JobTypeLdapSync)
 	if !ok {
-		return healthcheck.Unknown(healthcheck.TranslationId("health.rule.ldap_sync_duty_cycle.message.jobs_unavailable"))
+		return healthcheck.Unknown(healthcheck.ReasonJobsUnavailable)
 	}
 
 	var totalMillis, runs int64

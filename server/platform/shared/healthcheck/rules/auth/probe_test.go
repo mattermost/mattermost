@@ -41,8 +41,7 @@ func leaderWith(status, probeErr string) []*healthcheck.NodeSnapshot {
 func TestProbeRules(t *testing.T) {
 	t.Parallel()
 
-	ldapUnavailable := want{state: healthcheck.StateUnknown, messageID: "health.rule.ldap_probe_failed.message.unavailable"}
-	samlUnavailable := want{state: healthcheck.StateUnknown, messageID: "health.rule.saml_metadata_unreachable.message.unavailable"}
+	diagnosticsUnavailable := want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonDiagnosticsUnavailable}
 	details := map[string]string{"error": "connection refused"}
 
 	testCases := []struct {
@@ -71,17 +70,17 @@ func TestProbeRules(t *testing.T) {
 		{
 			name:     "empty status",
 			snapshot: probeSnapshot(leaderWith("", ""), nil),
-			want:     map[string]want{"LDAP_PROBE_FAILED": ldapUnavailable, "SAML_METADATA_UNREACHABLE": samlUnavailable},
+			want:     map[string]want{"LDAP_PROBE_FAILED": diagnosticsUnavailable, "SAML_METADATA_UNREACHABLE": diagnosticsUnavailable},
 		},
 		{
 			name:     "leader without diagnostics",
 			snapshot: probeSnapshot([]*healthcheck.NodeSnapshot{{Hostname: "app-1.example.com", IsLeader: true}}, nil),
-			want:     map[string]want{"LDAP_PROBE_FAILED": ldapUnavailable, "SAML_METADATA_UNREACHABLE": samlUnavailable},
+			want:     map[string]want{"LDAP_PROBE_FAILED": diagnosticsUnavailable, "SAML_METADATA_UNREACHABLE": diagnosticsUnavailable},
 		},
 		{
 			name:     "no leader",
 			snapshot: probeSnapshot(nil, nil),
-			want:     map[string]want{"LDAP_PROBE_FAILED": ldapUnavailable, "SAML_METADATA_UNREACHABLE": samlUnavailable},
+			want:     map[string]want{"LDAP_PROBE_FAILED": diagnosticsUnavailable, "SAML_METADATA_UNREACHABLE": diagnosticsUnavailable},
 		},
 		{
 			name:     "empty metadata URL with a failing probe",
