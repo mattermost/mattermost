@@ -3,8 +3,10 @@
 
 import classNames from 'classnames';
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
 import {PhoneIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import PluginLinkTooltip from 'components/plugin_link_tooltip';
 
@@ -50,7 +52,22 @@ export default function MarkdownPhoneLink(props: Props) {
         );
     }
 
-    return <a {...anchorProps}>{content}</a>;
+    return (
+        <WithTooltip
+            title={
+                <FormattedMessage
+                    id='markdown_phone_link.tooltip'
+                    defaultMessage='Click to call {phoneNumber}'
+                    description='Tooltip shown when hovering a phone number link in a message.'
+                    values={{
+                        phoneNumber: props.href.slice(TEL_PREFIX.length),
+                    }}
+                />
+            }
+        >
+            <a {...anchorProps}>{content}</a>
+        </WithTooltip>
+    );
 }
 
 // Auto-linked numbers show the raw href as their text, so drop the scheme to show just the number.

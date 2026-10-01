@@ -240,15 +240,27 @@ const myFunction = () => {
         });
 
         test('should render bare tel links using MarkdownPhoneLink without the scheme in the text', () => {
-            const input = 'Call tel:1-555-123-4567';
+            const input = 'Call tel:+34600517276';
             const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
             const {container} = renderWithContext(<>{messageHtmlToComponent(html)}</>);
 
             const link = container.querySelector('a.markdown-phone-link');
             expect(link).toBeInTheDocument();
-            expect(link).toHaveAttribute('href', 'tel:1-555-123-4567');
-            expect(link).toHaveTextContent(/^1-555-123-4567$/);
+            expect(link).toHaveAttribute('href', 'tel:+34600517276');
+            expect(link).toHaveTextContent(/^\+34600517276$/);
+        });
+
+        test('should keep trailing punctuation outside bare tel links that start with +', () => {
+            const input = 'Call me at tel:+34600517276.';
+            const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
+
+            const {container} = renderWithContext(<>{messageHtmlToComponent(html)}</>);
+
+            const link = container.querySelector('a.markdown-phone-link');
+            expect(link).toHaveAttribute('href', 'tel:+34600517276');
+            expect(link).toHaveTextContent(/^\+34600517276$/);
+            expect(container).toHaveTextContent('Call me at +34600517276.');
         });
 
         test('should render a single phone link anchor when plugin tooltips are enabled', () => {
