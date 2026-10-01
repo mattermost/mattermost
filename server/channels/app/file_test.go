@@ -1341,20 +1341,29 @@ func miniPreviewTestPNGTruncatedBeforeIEND(tb testing.TB, width, height int) []b
 
 func TestGetFileInfo_MiniPreviewRecordedAfterDecodeAttempt(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t)
+	th := Setup(t).InitBasic(t)
 
 	type readerKind int
 	const (
 		readerGetFileInfo readerKind = iota
 		readerGetFileInfos
+		readerGetFileInfosForPost
+	)
+
+	type uploaderKind int
+	const (
+		uploaderDoUploadFile uploaderKind = iota
+		uploaderUploadFileX
 	)
 
 	tests := []struct {
-		name          string
-		completeImage bool
-		reader        readerKind
-		concurrent    int
-		wantBytes     bool
+		name                string
+		completeImage       bool
+		uploader            uploaderKind
+		reader              readerKind
+		concurrent          int
+		wantBytes           bool
+		replaceWithComplete bool
 	}{
 		{
 			name:       "GetFileInfo records decode attempt for incomplete image",
@@ -1378,6 +1387,26 @@ func TestGetFileInfo_MiniPreviewRecordedAfterDecodeAttempt(t *testing.T) {
 			concurrent:    1,
 			wantBytes:     true,
 		},
+		{
+			name:       "UploadFileX records decode attempt for incomplete image",
+			uploader:   uploaderUploadFileX,
+			reader:     readerGetFileInfo,
+			concurrent: 1,
+		},
+		{
+			name:          "UploadFileX generates mini preview for complete image",
+			completeImage: true,
+			uploader:      uploaderUploadFileX,
+			reader:        readerGetFileInfo,
+			concurrent:    1,
+			wantBytes:     true,
+		},
+		{
+			name:                "GetFileInfosForPost records decode attempt for incomplete image",
+			reader:              readerGetFileInfosForPost,
+			concurrent:          1,
+			replaceWithComplete: true,
+		},
 	}
 
 	for _, tc := range tests {
@@ -1385,6 +1414,11 @@ func TestGetFileInfo_MiniPreviewRecordedAfterDecodeAttempt(t *testing.T) {
 			teamID := model.NewId()
 			channelID := model.NewId()
 			userID := model.NewId()
+			if tc.uploader == uploaderUploadFileX || tc.reader == readerGetFileInfosForPost {
+				teamID = th.BasicTeam.Id
+				channelID = th.BasicChannel.Id
+				userID = th.BasicUser.Id
+			}
 
 			var data []byte
 			if tc.completeImage {
@@ -1393,7 +1427,19 @@ func TestGetFileInfo_MiniPreviewRecordedAfterDecodeAttempt(t *testing.T) {
 				data = miniPreviewTestPNGTruncatedBeforeIEND(t, 8, 8)
 			}
 
-			uploaded, appErr := th.App.DoUploadFile(th.Context, time.Now(), teamID, channelID, userID, "preview.png", data, false)
+			var uploaded *model.FileInfo
+			var appErr *model.AppError
+			switch tc.uploader {
+			case uploaderUploadFileX:
+				uploaded, appErr = th.App.UploadFileX(th.Context, channelID, "preview.png",
+					bytes.NewReader(data),
+					UploadFileSetTeamId(teamID),
+					UploadFileSetUserId(userID),
+					UploadFileSetTimestamp(time.Now()),
+				)
+			default:
+				uploaded, appErr = th.App.DoUploadFile(th.Context, time.Now(), teamID, channelID, userID, "preview.png", data, false)
+			}
 			require.Nil(t, appErr)
 			require.NotNil(t, uploaded)
 			t.Cleanup(func() {
@@ -1402,7 +1448,29 @@ func TestGetFileInfo_MiniPreviewRecordedAfterDecodeAttempt(t *testing.T) {
 			})
 			require.Equal(t, 8, uploaded.Width)
 			require.Equal(t, 8, uploaded.Height)
-			require.Nil(t, uploaded.MiniPreview)
+			if tc.uploader == uploaderUploadFileX {
+				require.NotNil(t, uploaded.MiniPreview)
+				if tc.wantBytes {
+					require.NotEmpty(t, *uploaded.MiniPreview)
+				}
+			} else {
+				require.Nil(t, uploaded.MiniPreview)
+			}
+
+			var post *model.Post
+			if tc.reader == readerGetFileInfosForPost {
+				// Attach after CreatePost so the first GetFileInfosForPost is
+				// the first post file-info read of this file.
+				post, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+					Message:   "preview",
+					ChannelId: channelID,
+					UserId:    userID,
+				}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+				require.Nil(t, appErr)
+				require.NotNil(t, post)
+				require.NoError(t, th.App.Srv().Store().FileInfo().AttachToPost(th.Context, uploaded.Id, post.Id, channelID, userID))
+				post.FileIds = []string{uploaded.Id}
+			}
 
 			read := func() *[]byte {
 				t.Helper()
@@ -1416,6 +1484,11 @@ func TestGetFileInfo_MiniPreviewRecordedAfterDecodeAttempt(t *testing.T) {
 					infos, err := th.App.GetFileInfos(th.Context, 0, 10, &model.GetFileInfosOptions{
 						UserIds: []string{userID},
 					})
+					require.Nil(t, err)
+					require.Len(t, infos, 1)
+					return infos[0].MiniPreview
+				case readerGetFileInfosForPost:
+					infos, _, err := th.App.GetFileInfosForPost(th.Context, post, false, false)
 					require.Nil(t, err)
 					require.Len(t, infos, 1)
 					return infos[0].MiniPreview
@@ -1453,12 +1526,19 @@ func TestGetFileInfo_MiniPreviewRecordedAfterDecodeAttempt(t *testing.T) {
 				}
 			}
 
+			if tc.replaceWithComplete {
+				_, writeErr := th.App.WriteFile(bytes.NewReader(miniPreviewTestPNG(t, 8, 8)), uploaded.Path)
+				require.Nil(t, writeErr)
+			}
+
 			// A later read must see the recorded attempt so decode work does not
 			// grow with the number of GetFileInfo / GetFileInfos calls.
 			later := read()
 			require.NotNil(t, later, "records that mini-preview generation was attempted so later reads skip decode")
 			if tc.wantBytes {
 				require.NotEmpty(t, *later)
+			} else if tc.replaceWithComplete {
+				require.Empty(t, *later, "records that mini-preview generation was attempted so later reads skip decode")
 			}
 		})
 	}
