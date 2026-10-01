@@ -2696,6 +2696,11 @@
     "description": "Lowercase API validation error when a partial update to a User Attribute field is malformed; 'User Attribute' is the custom profile attributes feature name."
   },
   {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "This field is linked to a Global Attribute template and cannot be modified through the User Attributes API. Use the Global Attributes API instead.",
+    "description": "API error when an admin tries to patch or delete a User Attribute field that is linked to a Global Attribute template; directs them to use the Global Attributes (property field) API instead."
+  },
+  {
     "id": "api.custom_status.disabled",
     "translation": "Custom status feature has been disabled. Please contact your system administrator for details.",
     "description": "API error when a user tries to set a custom status (emoji + text status message) while the feature is disabled by the admin."
@@ -2940,7 +2945,8 @@
   },
   {
     "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
-    "translation": "Unable to create emoji. The image is too large to process. Try using one with smaller dimensions or fewer frames."
+    "translation": "Unable to create emoji. The image is too large to process. Try using one with smaller dimensions or fewer frames.",
+    "description": "API error shown when a custom emoji image cannot be decoded because its pixel dimensions or animation frames exceed server processing limits."
   },
   {
     "id": "api.emoji.upload.open.app_error",
@@ -3771,6 +3777,11 @@
     "id": "api.post.check_for_out_of_team_mentions.message.one",
     "translation": "@{{.Username}} didn't get notified by this mention because they aren't a member of this team.",
     "description": "Ephemeral system message to the poster when an @-mentioned user is not a team member; {{.Username}} is that user's username, rendered after a literal @."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "You do not have permission to send burn-on-read messages in this channel.",
+    "description": "API error when a user does not have permission to send a burn-on-read message in a channel due to an attribute-based-access-control (ABAC) permission policy."
   },
   {
     "id": "api.post.create_post.burn_on_read.app_error",

@@ -2020,8 +2020,8 @@
     "description": "Admin console setting label (toggle) on the Attribute-Based Access Control page controlling whether end users see access-policy indicators."
   },
   "admin.accesscontrol.enableDesc": {
-    "defaultMessage": "Allow access restrictions based on user attributes using custom access policies. To effectively use this feature, you must define user attributes in the {userAttributes} section.",
-    "description": "Admin console help text for the main attribute-based access control toggle; {userAttributes} is replaced by a link labeled 'User Attributes'."
+    "defaultMessage": "Allow access restrictions based on user attributes using custom access policies. To effectively use this feature, you must define attributes in the {userAttributes} section.",
+    "description": "Admin console help text for the main attribute-based access control toggle; {userAttributes} is replaced by a link labeled 'Attribute Management'."
   },
   "admin.accesscontrol.enableTitle": {
     "defaultMessage": "Allow attribute based access controls on this server",
@@ -2052,8 +2052,8 @@
     "description": "Label of a true/false toggle in System Console > System Attributes > Attribute-Based Access > Session Attributes. 'Trust' is a verb; refers to an HTTP header set by a reverse proxy."
   },
   "admin.accesscontrol.user_properties.link.label": {
-    "defaultMessage": "User Attributes",
-    "description": "Link text inserted into the attribute-based access control help text; links to the User Attributes settings section."
+    "defaultMessage": "Attribute Management",
+    "description": "Link text inserted into the attribute-based access control help text; links to the Attribute Management settings section."
   },
   "admin.advance.cluster": {
     "defaultMessage": "High Availability",
@@ -4346,6 +4346,10 @@
   "admin.customProfileAttribDesc.saml": {
     "defaultMessage": "(Optional) The attribute in the SAML Assertion that will be used to populate the {name} of users in Mattermost.",
     "description": "Help text for a user-attribute mapping field in SAML admin settings; {name} is the attribute's display name."
+  },
+  "admin.customProfileAttributes.linkedNonText": {
+    "defaultMessage": "This field is a management attribute of type {type} and cannot be synced via LDAP or SAML. Only text-type fields support sync.",
+    "description": "Help text under a linked (Global Attribute) user-attribute field that is not text type; explains why the LDAP/SAML sync box is disabled."
   },
   "admin.customProfileAttributes.managedByPlugin": {
     "defaultMessage": "This field is managed by the {pluginId} plugin and cannot be edited.",
@@ -9976,7 +9980,7 @@
     "description": "Destructive menu item in a policy's actions menu that deletes the permission policy."
   },
   "admin.permission_policies.description": {
-    "defaultMessage": "Create policies to control file upload and download permissions based on user attributes.",
+    "defaultMessage": "Create policies to control channel action permissions based on user attributes.",
     "description": "Description under the page title on the System Console > Permission Policies page."
   },
   "admin.permission_policies.edit": {
@@ -10170,6 +10174,14 @@
   "admin.permission_policies.page_title": {
     "defaultMessage": "Permission Policies",
     "description": "Page title of the System Console > Permission Policies page (attribute-based access control policies for permissions)."
+  },
+  "admin.permission_policies.permission.create_bor.description": {
+    "defaultMessage": "Allow users to send burn-on-read messages",
+    "description": "Description of the Send Burn-On-Read permission toggle in the permission policy editor."
+  },
+  "admin.permission_policies.permission.create_bor.label": {
+    "defaultMessage": "Create Burn-on-Read Message",
+    "description": "Name of the Send Burn-On-Read permission toggle in the permission policy editor; also used as a column value in the policies table."
   },
   "admin.permission_policies.permission.download_file.description": {
     "defaultMessage": "Allow users to download files to their device",
@@ -18563,6 +18575,10 @@
     "defaultMessage": "This attribute can only be raised, never lowered",
     "description": "Screen-reader label for the lock icon next to a ranked channel attribute in the channel info panel, such as a classification level. The value can only move to a higher rank."
   },
+  "channel_attributes.info.locked_source_managed": {
+    "defaultMessage": "This attribute is managed by an integration and cannot be changed here",
+    "description": "Screen-reader label for the lock icon next to a channel attribute in the channel info panel, when the value is set by an integration and cannot be edited here."
+  },
   "channel_attributes.info.not_set": {
     "defaultMessage": "Not set",
     "description": "Placeholder shown in place of the value of a channel attribute that has no value, in the channel info right-hand panel. Describes an attribute value, not a person."
@@ -19830,6 +19846,14 @@
   "channel_settings.modal.title": {
     "defaultMessage": "Channel Settings",
     "description": "Title of the Channel Settings modal."
+  },
+  "channel_settings.permissions_policy.action.create_bor": {
+    "defaultMessage": "Create burn-on-read message",
+    "description": "Permission actioname inn the channel Permissions Policy rule editor; allows sending of burn-on-read messages."
+  },
+  "channel_settings.permissions_policy.action.create_bor.description": {
+    "defaultMessage": "Allow users to send burn-on-read messages in this channel",
+    "description": "Description shown under the `Create burn-on-read message` option in the permission picker of the channel permission rule editor."
   },
   "channel_settings.permissions_policy.action.download": {
     "defaultMessage": "Download files",
