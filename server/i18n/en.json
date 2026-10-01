@@ -2696,6 +2696,11 @@
     "description": "Lowercase API validation error when a partial update to a User Attribute field is malformed; 'User Attribute' is the custom profile attributes feature name."
   },
   {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "This field is linked to a Global Attribute template and cannot be modified through the User Attributes API. Use the Global Attributes API instead.",
+    "description": "API error when an admin tries to patch or delete a User Attribute field that is linked to a Global Attribute template; directs them to use the Global Attributes (property field) API instead."
+  },
+  {
     "id": "api.custom_status.disabled",
     "translation": "Custom status feature has been disabled. Please contact your system administrator for details.",
     "description": "API error when a user tries to set a custom status (emoji + text status message) while the feature is disabled by the admin."

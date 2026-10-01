@@ -194,6 +194,11 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if existingField.LinkedFieldID != nil && *existingField.LinkedFieldID != "" {
+		c.Err = model.NewAppError("patchCPAField", "api.custom_profile_attributes.linked_field.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	// Permission branching (session-bound).
 	isOptionsOnly := isOptionsOnlyPatch(patch)
 	if isOptionsOnly && !existingField.Type.SupportsOptions() {
@@ -280,6 +285,11 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if existingField.ObjectType != model.PropertyFieldObjectTypeUser {
 		c.Err = model.NewAppError("deleteCPAField", "api.property_field.object_type_mismatch.app_error", nil, "", http.StatusNotFound)
+		return
+	}
+
+	if existingField.LinkedFieldID != nil && *existingField.LinkedFieldID != "" {
+		c.Err = model.NewAppError("deleteCPAField", "api.custom_profile_attributes.linked_field.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
