@@ -30,8 +30,33 @@ Follow these steps to configure a service provider using OpenID Connect.
 
 </Note>
 
+## Sync user attributes from OpenID Connect claims
+
+<PlanAvailability slug="ent-plus" />
+
+From Mattermost v12.1, a [user attribute](/administration-guide/manage/admin/user-attributes) can be linked to a claim your OpenID Connect provider sends about the user, the same way attributes are linked to AD/LDAP or SAML attributes. The linked attributes are written every time a user signs in through **OpenID Connect (Other)**, including the sign-in that creates their account, and they can then drive [attribute-based access control](/administration-guide/manage/admin/attribute-based-access-control) policies.
+
+1.  Configure the provider through its **Discovery Endpoint**. Mattermost reads the provider's signing keys from the discovery document to verify the ID token before it uses any of its claims. Without a discovery endpoint, only the userinfo response is used.
+2.  Go to **System Console \> System Attributes \> Attribute Management**, open the attribute, select **Link to external source \> OpenID Connect**, and enter the claim name.
+3.  Save your changes. The attribute is filled in at each user's next sign-in.
+
+How claims are read:
+
+- Mattermost reads the claims of the verified ID token merged with the userinfo response. When both carry a claim, the userinfo response wins.
+- Enter the claim name as the provider sends it. Namespaced claims such as `https://example.com/claims/department` work as typed. Use dots to reach into a nested claim, for example `address.country`.
+- Strings, numbers and booleans are stored as text. A claim that holds a list fills a multi-select attribute with all its values, and a text or select attribute with its first value. Values the provider sends that are not yet options of a select or multi-select attribute are added as options automatically.
+- A claim that is missing, empty, or null at sign-in clears the attribute. Values are only as current as the user's last sign-in, so a change at the provider reaches Mattermost the next time the user signs in. Shorten [session lengths](/administration-guide/configure/environment-configuration-settings#session-lengths) if attribute changes must take effect sooner.
+- An attribute linked to OpenID Connect can't also be linked to AD/LDAP or SAML, and users can't edit it in Mattermost.
+- If the ID token can't be verified at a sign-in, for example because the provider's keys can't be fetched, no attribute is changed and the sign-in proceeds. The server log records why.
+
+<Note>
+
+\- Link only attributes that users can't change themselves at the provider, because their values feed access decisions. In Keycloak, for example, make the user profile attribute editable by admins only. - If the provider releases a claim only for a specific scope, add that scope in [Additional scopes](/administration-guide/configure/authentication-configuration-settings#openid-connect-other-additional-scopes). - Microsoft Entra ID omits the `groups` claim for users in more than 200 groups and sends a reference to Microsoft Graph instead. Mattermost treats such a claim as missing, which clears the attribute, so use group filtering or app roles instead. - Claim values are never written to the server log.
+
+</Note>
+
 ## Frequently Asked Questions
 
 ### How can I use LDAP attributes or Groups with OpenID?
 
-At this time, LDAP data isn't compatible with OpenID. If you currently rely on LDAP to manage your users' teams, channels, groups, or attributes, you won't be able to do this automatically with users who have logged in with OpenID. If you need LDAP synced to each user, we suggest using SAML or LDAP as the login provider. Some OpenID providers can use SAML instead, like Keycloak.
+At this time, LDAP data isn't compatible with OpenID. If you currently rely on LDAP to manage your users' teams, channels, groups, or attributes, you won't be able to do this automatically with users who have logged in with OpenID. From Mattermost v12.1, you can instead [sync user attributes from OpenID Connect claims](#sync-user-attributes-from-openid-connect-claims) and use them in attribute-based access control policies. If you need LDAP synced to each user, we suggest using SAML or LDAP as the login provider. Some OpenID providers can use SAML instead, like Keycloak.
