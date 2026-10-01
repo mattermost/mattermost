@@ -226,7 +226,7 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 			firing[evaluation.Code] = true
 		}
 	}
-	assert.Equal(t, map[string]bool{"PUSH_BAD_SCHEME": true, "SITE_URL_HTTP": true}, firing)
+	assert.Equal(t, map[string]bool{"PUSH_BAD_SCHEME": true, "PUSH_ID_ONLY": true, "SITE_URL_HTTP": true}, firing)
 }
 
 func TestClusterNodes(t *testing.T) {
