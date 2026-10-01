@@ -1,0 +1,611 @@
+[
+  {
+    "id": "api.team.get_all_teams.insufficient_permissions",
+    "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+  },
+  {
+    "id": "api.command_remove.permission.app_error",
+    "translation": "Du har ikke de nødvendige tillatelsene til å fjerne medlemmet."
+  },
+  {
+    "id": "api.command_msg.permission.app_error",
+    "translation": "Du har ikke de nødvendige tillatelsene til å sende direktemeldinger til denne brukeren."
+  },
+  {
+    "id": "api.command_channel_rename.permission.app_error",
+    "translation": "Du har ikke de nødvendige tillatelsene til å gi kanalen nytt navn."
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "Du har ikke de nødvendige tillatelsene til å redigere kanalformålet."
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "Группыг зохистой ашиглах тухай мэдээлэл өөрчлөх"
+  },
+  {
+    "id": "api.command_channel_header.permission.app_error",
+    "translation": "Du har ikke de nødvendige tillatelsene til å redigere kanaloverskriften."
+  },
+  {
+    "id": "api.command_channel_header.desc",
+    "translation": "Rediger kanaloverskriften"
+  },
+  {
+    "id": "api.command.invite_people.name",
+    "translation": "invite_people"
+  },
+  {
+    "id": "September",
+    "translation": "September"
+  },
+  {
+    "id": "October",
+    "translation": "Oktober"
+  },
+  {
+    "id": "November",
+    "translation": "November"
+  },
+  {
+    "id": "May",
+    "translation": "Mai"
+  },
+  {
+    "id": "March",
+    "translation": "Mars"
+  },
+  {
+    "id": "June",
+    "translation": "Juni"
+  },
+  {
+    "id": "July",
+    "translation": "Juli"
+  },
+  {
+    "id": "January",
+    "translation": "Januar"
+  },
+  {
+    "id": "February",
+    "translation": "Februar"
+  },
+  {
+    "id": "December",
+    "translation": "Desember"
+  },
+  {
+    "id": "August",
+    "translation": "August"
+  },
+  {
+    "id": "April",
+    "translation": "April"
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Du kan ikke fjerne en anerkjennelse i en arkivert kanal."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Du kan ikke slette en anerkjennelse etter at det har gått 5 minutter."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Du kan ikke gi en anerkjennelse i en arkivert kanal."
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "Kunne ikke åpne sertifikat fil."
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "Kunne ikke lagre sertifikat fil."
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "Kan ikke slette merkevarebilde, ikke funnet."
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "Feil ved lesing av loggfil."
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "Bildelagring er ikke konfigurert."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP er ikke tilgjengelig."
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "Det oppstod en feil under sletting av sertifikatet."
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Kunne ikke tilbakestille AuthData-feltet til e-post."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "Kunne ikke lagre sertifikatfilen."
+  },
+  {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "SAML 2.0 er ikke konfigurert eller støttet på denne serveren."
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "Ingen fil under \"sertifikat\" i forespørslen."
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Din lisens åpner ikke for kanalbokmerker."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Brukeren har ikke lov til å opprette et kanalbokmerke."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunne ikke opprette kanalbokmerket."
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "Ingen fil under \"sertifikat\" i forespørsel."
+  },
+  {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v lagt til kanalen som gjest av %v."
+  },
+  {
+    "id": "api.channel.add_member.added",
+    "translation": "%v lagt til kanalen av %v."
+  },
+  {
+    "id": "api.channel.add_members.error",
+    "translation": "Feil oppstod med å legge til kanalmedlem(mer)."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.app_error",
+    "translation": "Kunne ikke legge til brukeren til kanalen."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "Kunne ikke legge til brukeren i kanalen fordi vedkommende er fjernet fra teamet."
+  },
+  {
+    "id": "api.channel.add_user_to_channel.type.app_error",
+    "translation": "Kan ikke legge til bruker til denne kanaltypen."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "Last ned"
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Kunne ikke opprette kanalbokmerket."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Kunne ikke slette kanalbokmerket."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunne ikke slette kanalbokmerket."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Kunne ikke slette kanalbokmerket."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Kunne ikke oppdatere kanalbokmerket."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunne ikke oppdatere kanalbokmerket."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Kunne ikke oppdatere kanalbokmerket."
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "S3 Bucket er påkrevd"
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Tilbake til {{.SiteName}}"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "Kan ikke sende meldingen"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Tråden har blitt slettet"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Ukjent feil"
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Ukjent kanal"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Kontakt support"
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Privat kanal"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_contact_sales",
+    "translation": "Kontakt salgsavdelingen"
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "Feil ved henting av gjeldende kanal."
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[tekst]"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "borte"
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "Du er nå borte"
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "Denne tråden ble flyttet fra en annen kanal"
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Webhook-hendelsen ble ikke håndtert. Enten mangler den, eller så er den ikke gyldig."
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "Intern feil oppsto under cloud api-forespørsel."
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "Lisensen din støtter ikke skyforespørsler."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Har allerede varslet admin"
+  },
+  {
+    "id": "api.channel.remove.default.app_error",
+    "translation": "Kan ikke fjerne brukeren fra standardkanalen {{.Channel}}."
+  },
+  {
+    "id": "app.channel.remove_member.app_error",
+    "translation": "Kan ikke fjerne kanalmedlemmet."
+  },
+  {
+    "id": "app.channel.remove_all_deactivated_members.app_error",
+    "translation": "Vi kunne ikke fjerne de deaktiverte brukerne fra kanalen."
+  },
+  {
+    "id": "app.channel.restore.app_error",
+    "translation": "Kan ikke gjenopprette kanalen."
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_to",
+    "translation": "%s oppdaterte kanalens formål til: %s"
+  },
+  {
+    "id": "api.templates.invite_body_footer.learn_more",
+    "translation": "Lær mer"
+  },
+  {
+    "id": "api.templates.invite_body_footer.title",
+    "translation": "Hva er Mattermost?"
+  },
+  {
+    "id": "api.templates.invite_body_guest.subTitle",
+    "translation": "Du ble invitert som gjest for å samarbeide med teamet"
+  },
+  {
+    "id": "api.channel.join_channel.post_and_forget",
+    "translation": "%v ble med i kanalen."
+  },
+  {
+    "id": "api.channel.leave.default.app_error",
+    "translation": "Det er ikke mulig å forlate standardkanalen {{.Channel}}."
+  },
+  {
+    "id": "api.channel.join_channel.permissions.app_error",
+    "translation": "Du har ikke de riktige tillatelsene."
+  },
+  {
+    "id": "api.channel.leave.direct.app_error",
+    "translation": "Kan ikke forlate en direkte meldingskanal."
+  },
+  {
+    "id": "api.channel.patch_update_channel.forbidden.app_error",
+    "translation": "Kunne ikke oppdatere kanalen."
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Kunne ikke legge til sertifikat."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "For mange filer under 'sertifikat' i forespørselen."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Kunne ikke fjerne sertifikatet."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "Ugyldig innholdstype."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "Manglende innholdstype."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "Ugyldig tekst i sertifikatet."
+  },
+  {
+    "id": "api.channel.leave.left",
+    "translation": "%v forlot kanalen."
+  },
+  {
+    "id": "api.channel.guest_join_channel.post_and_forget",
+    "translation": "%v ble med i kanalen som gjest."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.license.error",
+    "translation": "Lisensen din støtter ikke moderering av kanaler"
+  },
+  {
+    "id": "api.command_invite_people.permission.app_error",
+    "translation": "Du har ikke tillatelse til å invitere nye brukere til denne serveren."
+  },
+  {
+    "id": "api.command_join.missing.app_error",
+    "translation": "Kan ikke finne kanalen."
+  },
+  {
+    "id": "api.command_join.list.app_error",
+    "translation": "Det oppstod en feil under opplisting av kanaler."
+  },
+  {
+    "id": "api.command_join.name",
+    "translation": "bli med"
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "marketplace"
+  },
+  {
+    "id": "api.command_logout.desc",
+    "translation": "Logg av Mattermost"
+  },
+  {
+    "id": "api.command_leave.name",
+    "translation": "forlat"
+  },
+  {
+    "id": "api.channel.update_channel.tried.app_error",
+    "translation": "Prøvde å utføre en ugyldig oppdatering av standardkanalen {{.Channel}}."
+  },
+  {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Kanaltype kan ikke oppdateres."
+  },
+  {
+    "id": "api.command_leave.desc",
+    "translation": "Forlat nåværende kanal"
+  },
+  {
+    "id": "api.command_kick.name",
+    "translation": "spark"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Åpne Marketplace"
+  },
+  {
+    "id": "api.command_logout.name",
+    "translation": "Logg av"
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "Marketplace-kommandoen er ikke støttet på enheten din."
+  },
+  {
+    "id": "api.command_msg.dm_fail.app_error",
+    "translation": "Det oppstod en feil under opprettelse av direktemeldingen."
+  },
+  {
+    "id": "api.command_msg.fail.app_error",
+    "translation": "Det oppstod en feil under sending av en melding til brukeren."
+  },
+  {
+    "id": "api.command_msg.missing.app_error",
+    "translation": "Kan ikke finne brukeren."
+  },
+  {
+    "id": "api.command_msg.name",
+    "translation": "melding"
+  },
+  {
+    "id": "api.command_join.fail.app_error",
+    "translation": "Det oppstod en feil under tilkoblingen til kanalen."
+  },
+  {
+    "id": "api.command_join.desc",
+    "translation": "Bli med i den åpne kanalen"
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": {
+      "one": "{{.User}} er allerede i kanalen.",
+      "other": "{{.User}} er allerede i kanalen."
+    }
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "one": "Kan ikke finne brukeren: {{.Users}}",
+      "other": "Kan ikke finne brukerne: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subject",
+    "translation": {
+      "one": "[{{.SiteName}}] Nytt varsel for {{.Month}} {{.Day}}, {{.Year}}",
+      "other": "[{{.SiteName}}] Nye varsler for {{.Month}} {{.Day}}, {{.Year}}"
+    }
+  },
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "SMTP-server er påkrevd"
+  },
+  {
+    "id": "api.admin.test_email.subject",
+    "translation": "Mattermost - Testing av e-postinnstillinger"
+  },
+  {
+    "id": "api.channel.channel_member_counts_by_group.license.error",
+    "translation": "Lisensen din støtter ikke grupper"
+  },
+  {
+    "id": "api.post.get_message_for_notification.files_sent",
+    "translation": {
+      "one": "{{.Count}} fil sendt: {{.Filenames}}",
+      "other": "{{.Count}} filer sendt: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.get_message_for_notification.images_sent",
+    "translation": {
+      "one": "{{.Count}} bilde sendt: {{.Filenames}}",
+      "other": "{{.Count}} bilder sendt: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "one": "- {{.Count}} i kanal {{.ChannelName}}. Årsak: {{.ErrorReason}}",
+      "other": "- {{.Count}} i kanaler {{.ChannelName}}. Årsak: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "Kunne ikke sende {{.Count}} planlagt innlegg.",
+      "other": "Kunne ikke sende {{.Count}} planlagte innlegg."
+    }
+  },
+  {
+    "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
+    "translation": "Kunne ikke hente metadata fra URL-adressen til Identity Provider."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Feil ved ugyldiggjøring av cache"
+  },
+  {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "Kan ikke oppdatere en begrenset direktemeldingskanal."
+  },
+  {
+    "id": "api.channel.post_channel_privacy_message.error",
+    "translation": "Kunne ikke legge ut melding om personvernoppdatering for kanalen."
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
+    "translation": "Kunne ikke legge ut melding om oppdatering av visningsnavn"
+  },
+  {
+    "id": "api.admin.test_email.body",
+    "translation": "Det ser ut til at Mattermost e-posten din er riktig konfigurert!"
+  },
+  {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "SMTP-serveren, porten eller brukernavnet er endret. Skriv inn SMTP-passordet på nytt for å teste forbindelsen."
+  },
+  {
+    "id": "api.admin.upload_brand_image.storage.app_error",
+    "translation": "Kan ikke laste opp bilde. Bildelagring er ikke konfigurert."
+  },
+  {
+    "id": "api.admin.upload_brand_image.too_large.app_error",
+    "translation": "Kan ikke laste opp filen. Filen er for stor."
+  },
+  {
+    "id": "api.bot.create_disabled",
+    "translation": "Oppretting av boter er deaktivert."
+  },
+  {
+    "id": "api.bot.teams_channels.add_message_mobile",
+    "translation": "Legg meg til i teamene og kanalene du vil at jeg skal samhandle i. Bruk nettleseren eller Mattermost Desktop-appen for å gjøre dette."
+  },
+  {
+    "id": "api.command.invite_people.sent",
+    "translation": "E-postinvitasjon(er) sendt"
+  },
+  {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "Kan ikke oppdatere kommandoer på tvers av team."
+  },
+  {
+    "id": "api.command_channel_header.message.app_error",
+    "translation": "Teksten må oppgis med kommandoen /header."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.app_error",
+    "translation": "Feil ved oppdatering av kanalens overskrift."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_sso",
+    "translation": "Skriv inn en gyldig e-postadresse eller brukernavn og/eller passord, eller logg inn med en annen metode."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_username",
+    "translation": "Skriv inn et gyldig brukernavn og/eller passord."
+  },
+  {
+    "id": "api.user.login.not_verified.app_error",
+    "translation": "Innlogging mislyktes da e-postadressen ikke har blitt bekreftet."
+  },
+  {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "Innlogging mislyktes fordi eksterne brukere ikke har tillatelse til å logge inn."
+  },
+  {
+    "id": "api.user.login.use_auth_service.app_error",
+    "translation": "Vennligst logg inn med {{.AuthService}}."
+  },
+  {
+    "id": "api.user.login_by_cws.invalid_token.app_error",
+    "translation": "CWS-tokenet er ikke gyldig"
+  },
+  {
+    "id": "api.user.login_by_oauth.not_available.app_error",
+    "translation": "{{.Service}} SSO via OAuth 2.0 er ikke tilgjengelig på denne serveren."
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "Grensen for henting av kanaler er ikke gyldig."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Feil ved analyse av multiform forespørsel"
+  }
+]
