@@ -1358,6 +1358,10 @@ type SSOSettings struct {
 	ButtonText           *string `access:"authentication_openid"` // telemetry: none
 	ButtonColor          *string `access:"authentication_openid"` // telemetry: none
 	UsePreferredUsername *bool   `access:"authentication_openid"` // telemetry: none
+	// AdditionalScopes are requested on top of Scope, space-separated, so that a
+	// provider releases claims it only sends for those scopes. Applied to OpenID
+	// Connect only.
+	AdditionalScopes *string `access:"authentication_openid"` // telemetry: none
 }
 
 func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userAPIEndpoint, buttonColor string) {
@@ -1405,6 +1409,49 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userAPIEnd
 	if s.UsePreferredUsername == nil {
 		s.UsePreferredUsername = new(false)
 	}
+
+	if s.AdditionalScopes == nil {
+		s.AdditionalScopes = new("")
+	}
+}
+
+// SSOSettingsAdditionalScopesMaxLength bounds SSOSettings.AdditionalScopes.
+const SSOSettingsAdditionalScopesMaxLength = 1024
+
+func (s *SSOSettings) isValid() *AppError {
+	if s.AdditionalScopes != nil {
+		if len(*s.AdditionalScopes) > SSOSettingsAdditionalScopesMaxLength || !isValidOAuthScopeList(*s.AdditionalScopes) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.sso_additional_scopes.app_error", map[string]any{"MaxLength": SSOSettingsAdditionalScopesMaxLength}, "", http.StatusBadRequest)
+		}
+	}
+	return nil
+}
+
+// isValidOAuthScopeList reports whether scopes is a space-separated list of
+// scope tokens as defined by RFC 6749 section 3.3. An empty list is valid.
+func isValidOAuthScopeList(scopes string) bool {
+	for scope := range strings.SplitSeq(scopes, " ") {
+		for _, c := range scope {
+			if c != 0x21 && (c < 0x23 || c > 0x5B) && (c < 0x5D || c > 0x7E) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// JoinOAuthScopes returns the space-separated union of the given scope lists,
+// in order of first appearance.
+func JoinOAuthScopes(scopeLists ...string) string {
+	var scopes []string
+	for _, list := range scopeLists {
+		for scope := range strings.FieldsSeq(list) {
+			if !slices.Contains(scopes, scope) {
+				scopes = append(scopes, scope)
+			}
+		}
+	}
+	return strings.Join(scopes, " ")
 }
 
 type Office365Settings struct {
@@ -4469,6 +4516,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.SamlSettings.isValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.OpenIdSettings.isValid(); appErr != nil {
 		return appErr
 	}
 

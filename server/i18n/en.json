@@ -16222,6 +16222,11 @@
     "description": "Configuration validation error shown when saving the System Console or starting the server with a zero or negative SqlSettings.ReplicaMonitorIntervalSeconds (database replica health check interval)."
   },
   {
+    "id": "model.config.is_valid.sso_additional_scopes.app_error",
+    "translation": "Additional scopes must be OAuth scope names separated by spaces, at most {{.MaxLength}} characters in total.",
+    "description": "Config validation error shown to system admins when the OpenID Connect 'Additional scopes' setting holds characters a scope name can't contain or is too long; {{.MaxLength}} is the character limit."
+  },
+  {
     "id": "model.config.is_valid.storage_class.app_error",
     "translation": "Invalid storage class {{.Value}}.",
     "description": "Config validation error shown to system admins for the Amazon S3 storage class setting; {{.Value}} is the rejected storage class value."
