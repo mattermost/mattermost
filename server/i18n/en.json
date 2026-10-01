@@ -14442,11 +14442,6 @@
     "description": "Health dashboard finding detail when the server could not connect to its SMTP server; {{.error}} is the error returned by the connection test and should not be translated."
   },
   {
-    "id": "health.rule.smtp_unreachable.message.not_collected",
-    "translation": "SMTP connection test result unavailable.",
-    "description": "Health dashboard reason shown when no SMTP connection test result was collected, so the status of this check is unknown."
-  },
-  {
     "id": "health.rule.smtp_unreachable.remediation",
     "translation": "Email notifications, invitations and password reset emails may not be delivered. Check the SMTP server, port, connection security and credentials in the System Console, confirm the Mattermost server can reach the SMTP host, then use Test Connection to verify.",
     "description": "Health dashboard fix-it step when the SMTP connection test failed; 'Test Connection' is the name of the button on the SMTP page of the System Console."
@@ -14460,11 +14455,6 @@
     "id": "health.rule.typing_messages_at_scale.message",
     "translation": "Typing events are the leading cause of 'websocket.slow: dropping message' errors and websocket churn on large deployments.",
     "description": "Health dashboard finding detail when typing indicators are on in a workspace with 5000 or more active users; 'websocket.slow: dropping message' is a literal log message and should not be translated."
-  },
-  {
-    "id": "health.rule.typing_messages_at_scale.message.stats_unavailable",
-    "translation": "Active user count unavailable.",
-    "description": "Health dashboard reason shown when the active user count was not collected, so the status of this check is unknown."
   },
   {
     "id": "health.rule.typing_messages_at_scale.remediation",
