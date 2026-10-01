@@ -12,7 +12,7 @@ Follow `webapp/STYLE_GUIDE.md` for canonical style, accessibility, and testing s
 - **New UI**: prefer `@mattermost/compass-ui` when a component exists. Import via subpaths:
   `import {Button} from '@mattermost/compass-ui/components/button';`
   Do not use the root barrel. Do not recreate Compass primitives.
-- **Exceptions (keep current stacks)**: icons → `@mattermost/compass-icons`; tooltips → `WithTooltip` (`@mattermost/shared`); modals → existing shared / `GenericModal`; menus → existing MUI menus. Do not switch Modal/Menu to compass-ui yet.
+- **Exceptions (keep current stacks)**: icons → `@mattermost/compass-icons`; tooltips → `WithTooltip` (`@mattermost/shared`); emoji → `Emoji` (`@mattermost/shared`); modals → existing shared / `GenericModal`; menus → existing MUI menus. Do not switch Modal/Menu to compass-ui yet.
 - **Tokens**: Compass foundation CSS variables are global via `@mattermost/compass-ui/styles`. Prefer `var(--…)` over hard-coded radius/spacing/elevation/font/motion values. Theme colors stay on app semantic vars (`--center-channel-*`, etc.).
 - **Standards**: `webapp/STYLE_GUIDE.md`.
 
