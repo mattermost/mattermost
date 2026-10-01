@@ -123,7 +123,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
     };
 
     visibleSections = () => {
-        const {config, license, buildEnterpriseReady, consoleAccess, adminDefinition, cloud} = this.props;
+        const {config, license, buildEnterpriseReady, consoleAccess, adminDefinition, cloud, isCurrentUserSystemAdmin} = this.props;
         const isVisible = (item: any) => {
             if (!item.schema) {
                 return false;
@@ -133,7 +133,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                 return false;
             }
 
-            if (item.isHidden && item.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud)) {
+            if (item.isHidden && item.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin)) {
                 return false;
             }
             return true;
@@ -150,12 +150,12 @@ class AdminSidebar extends React.PureComponent<Props, State> {
     };
 
     renderRootMenu = (definition: typeof AdminDefinition) => {
-        const {config, license, buildEnterpriseReady, consoleAccess, cloud, subscriptionProduct} = this.props;
+        const {config, license, buildEnterpriseReady, consoleAccess, cloud, subscriptionProduct, isCurrentUserSystemAdmin} = this.props;
         const sidebarSections: JSX.Element[] = [];
         Object.entries(definition).forEach(([key, section]) => {
             let isSectionHidden = false;
             if (section.isHidden) {
-                isSectionHidden = typeof section.isHidden === 'function' ? section.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud) : Boolean(section.isHidden);
+                isSectionHidden = typeof section.isHidden === 'function' ? section.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin) : Boolean(section.isHidden);
             }
             if (!isSectionHidden) {
                 const sidebarItems: JSX.Element[] = [];
@@ -165,7 +165,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                     }
 
                     if (item.isHidden) {
-                        if (typeof item.isHidden === 'function' ? item.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud) : Boolean(item.isHidden)) {
+                        if (typeof item.isHidden === 'function' ? item.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin) : Boolean(item.isHidden)) {
                             return;
                         }
                     }
