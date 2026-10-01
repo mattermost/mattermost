@@ -163,14 +163,18 @@ exports[`component/add_users_to_group_modal should match snapshot 1`] = `
                       Back
                     </button>
                     <button
-                      class="btn btn-primary"
+                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
                       data-testid="saveSetting"
                       disabled=""
                       id="saveItems"
                       type="submit"
                     >
-                      <span>
-                        Add People
+                      <span
+                        class="_button__label_doayp_24"
+                      >
+                        <span>
+                          Add People
+                        </span>
                       </span>
                     </button>
                   </div>

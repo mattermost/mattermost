@@ -88,13 +88,17 @@ exports[`components/multiselect/multiselect MultiSelectList should match snapsho
           </div>
         </div>
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           data-testid="saveSetting"
           id="saveItems"
           type="submit"
         >
-          <span>
-            Save
+          <span
+            class="_button__label_doayp_24"
+          >
+            <span>
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -253,13 +257,17 @@ exports[`components/multiselect/multiselect should match snapshot 1`] = `
           </div>
         </div>
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           data-testid="saveSetting"
           id="saveItems"
           type="submit"
         >
-          <span>
-            Save
+          <span
+            class="_button__label_doayp_24"
+          >
+            <span>
+              Save
+            </span>
           </span>
         </button>
       </div>
@@ -418,13 +426,17 @@ exports[`components/multiselect/multiselect should match snapshot for page 2 1`]
           </div>
         </div>
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           data-testid="saveSetting"
           id="saveItems"
           type="submit"
         >
-          <span>
-            Save
+          <span
+            class="_button__label_doayp_24"
+          >
+            <span>
+              Save
+            </span>
           </span>
         </button>
       </div>

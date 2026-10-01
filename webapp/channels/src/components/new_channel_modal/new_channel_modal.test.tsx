@@ -1641,6 +1641,14 @@ describe('components/new_channel_modal - channel attributes', () => {
             await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
             await userEvent.click(screen.getByTestId('channelAttribute-program'));
             await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'VALUE_PROGRAM'}));
+
+            // Graph attribute menus stay open for multi-select; close so the confirm
+            // button is no longer aria-hidden by the floating focus manager.
+            await userEvent.keyboard('{Escape}');
+            await waitFor(() => {
+                expect(screen.queryByRole('menuitemcheckbox', {name: 'VALUE_PROGRAM'})).not.toBeInTheDocument();
+            });
+
             await userEvent.click(screen.getByRole('button', {name: 'Create channel'}));
 
             await waitFor(() => expect(createChannel).toHaveBeenCalledTimes(1));

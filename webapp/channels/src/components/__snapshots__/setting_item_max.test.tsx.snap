@@ -3,7 +3,7 @@
 exports[`components/SettingItemMax should match snapshot 1`] = `
 <DocumentFragment>
   <section
-    class="section-max form-horizontal "
+    class="section-max form-horizontal a11y--active a11y--focused"
   >
     <h4
       class="col-sm-12 section-title"
@@ -31,13 +31,17 @@ exports[`components/SettingItemMax should match snapshot 1`] = `
             role="alert"
           />
           <button
-            class="btn btn-primary a11y--active a11y--focused"
+            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
             data-testid="saveSetting"
             id="saveSetting"
             type="submit"
           >
-            <span>
-              Save
+            <span
+              class="_button__label_doayp_24"
+            >
+              <span>
+                Save
+              </span>
             </span>
           </button>
           <button
@@ -57,7 +61,7 @@ exports[`components/SettingItemMax should match snapshot 1`] = `
 exports[`components/SettingItemMax should match snapshot, on clientError 1`] = `
 <DocumentFragment>
   <section
-    class="section-max form-horizontal "
+    class="section-max form-horizontal a11y--active a11y--focused"
   >
     <h4
       class="col-sm-12 section-title"
@@ -85,13 +89,17 @@ exports[`components/SettingItemMax should match snapshot, on clientError 1`] = `
             role="alert"
           />
           <button
-            class="btn btn-primary a11y--active a11y--focused"
+            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
             data-testid="saveSetting"
             id="saveSetting"
             type="submit"
           >
-            <span>
-              Save
+            <span
+              class="_button__label_doayp_24"
+            >
+              <span>
+                Save
+              </span>
             </span>
           </button>
           <button
@@ -111,7 +119,7 @@ exports[`components/SettingItemMax should match snapshot, on clientError 1`] = `
 exports[`components/SettingItemMax should match snapshot, on serverError 1`] = `
 <DocumentFragment>
   <section
-    class="section-max form-horizontal "
+    class="section-max form-horizontal a11y--active a11y--focused"
   >
     <h4
       class="col-sm-12 section-title"
@@ -162,13 +170,17 @@ exports[`components/SettingItemMax should match snapshot, on serverError 1`] = `
             </div>
           </div>
           <button
-            class="btn btn-primary a11y--active a11y--focused"
+            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
             data-testid="saveSetting"
             id="saveSetting"
             type="submit"
           >
-            <span>
-              Save
+            <span
+              class="_button__label_doayp_24"
+            >
+              <span>
+                Save
+              </span>
             </span>
           </button>
           <button
@@ -216,13 +228,17 @@ exports[`components/SettingItemMax should match snapshot, with new saveTextButto
             role="alert"
           />
           <button
-            class="btn btn-primary"
+            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
             data-testid="saveSetting"
             id="saveSetting"
             type="submit"
           >
-            <span>
-              CustomText
+            <span
+              class="_button__label_doayp_24"
+            >
+              <span>
+                CustomText
+              </span>
             </span>
           </button>
           <button
