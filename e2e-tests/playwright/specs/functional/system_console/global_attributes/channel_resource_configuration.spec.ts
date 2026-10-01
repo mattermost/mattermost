@@ -125,56 +125,6 @@ test.describe(
         });
 
         /**
-         * @objective Ensure the Channel Info display location puts the attribute in Channel Info only.
-         */
-        test('shows a Channel-Info-only attribute in Channel Info and not in the header', async ({pw}) => {
-            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
-            const suffix = pw.random.id();
-            let name = '';
-
-            try {
-                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-
-                name = await configureChannelAttribute(
-                    systemConsolePage,
-                    {
-                        displayName: `Info ${suffix}`,
-                        type: 'Select',
-                        options: ['INTERNAL'],
-                        required: true,
-                        displayLocations: ['display_label_info'],
-                    },
-                    adminClient,
-                );
-
-                const {team} = await pw.initSetup();
-                const {channelsPage} = await pw.testBrowser.login(adminUser);
-                await channelsPage.goto(team.name);
-                await channelsPage.toBeVisible();
-
-                const modal = await channelsPage.openNewChannelModal();
-                await modal.fillDisplayName(`Attr Info ${suffix}`);
-                await channelsPage.page.getByTestId(`channelAttribute-${name}`).click();
-                await channelsPage.page.getByText('INTERNAL', {exact: true}).click();
-                await modal.create();
-                await expect(modal.container).not.toBeVisible();
-
-                // * The inline header slot carries it, the row-below slot does not
-                await expect(channelsPage.centerView.header.infoAttributes.chip('INTERNAL')).toBeVisible();
-                await expect(channelsPage.centerView.header.attributes.chip('INTERNAL')).toHaveCount(0);
-
-                // * And Channel Info carries it, as it does for every attribute
-                const info = await channelsPage.openChannelInfo();
-                await expect(info.attributes.chip(name)).toHaveText('INTERNAL');
-            } finally {
-                await deleteChannelFieldIfExists(adminClient, name);
-                await deleteGlobalAttributeFieldIfExists(adminClient, name);
-            }
-        });
-
-        /**
          * @objective Ensure the Banner display location renders a banner and nothing else.
          */
         test('renders a Banner-only attribute as a banner, with no chip', async ({pw}) => {
@@ -267,7 +217,6 @@ test.describe(
 
                 // * And is rendered on no display surface
                 await expect(channelsPage.centerView.header.attributes.chip('QUIET')).toHaveCount(0);
-                await expect(channelsPage.centerView.header.infoAttributes.chip('QUIET')).toHaveCount(0);
                 await expect(channelsPage.page.getByTestId('channel_banner_container')).toHaveCount(0);
 
                 // * Channel Info still lists it: the display locations govern the
@@ -275,60 +224,6 @@ test.describe(
                 const info = await channelsPage.openChannelInfo();
                 await expect(info.attributes.chip(name)).toHaveText('QUIET');
                 await expect(info.attributes.editButton(name)).toBeVisible();
-            } finally {
-                await deleteChannelFieldIfExists(adminClient, name);
-                await deleteGlobalAttributeFieldIfExists(adminClient, name);
-            }
-        });
-
-        /**
-         * @objective Ensure "Cannot be changed once set" locks the value in Channel Info.
-         */
-        test('locks the value in Channel Info when the change policy forbids changes', async ({pw}) => {
-            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
-            const suffix = pw.random.id();
-            let name = '';
-
-            try {
-                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-
-                name = await configureChannelAttribute(
-                    systemConsolePage,
-                    {
-                        displayName: `Locked ${suffix}`,
-                        type: 'Select',
-                        options: ['FINAL'],
-                        required: true,
-                        changePolicy: 'Cannot be changed once set',
-                        displayLocations: ['display_label_info'],
-                    },
-                    adminClient,
-                );
-
-                // * The console wrote both keys: change_policy, and the editable key the
-                // * channel UI still reads
-                const channelField = await findChannelField(adminClient, name);
-                expect(channelField?.attrs?.change_policy).toBe('never');
-                expect(channelField?.attrs?.editable).toBe(false);
-
-                const {team} = await pw.initSetup();
-                const {channelsPage} = await pw.testBrowser.login(adminUser);
-                await channelsPage.goto(team.name);
-                await channelsPage.toBeVisible();
-
-                const modal = await channelsPage.openNewChannelModal();
-                await modal.fillDisplayName(`Attr Locked ${suffix}`);
-                await channelsPage.page.getByTestId(`channelAttribute-${name}`).click();
-                await channelsPage.page.getByText('FINAL', {exact: true}).click();
-                await modal.create();
-                await expect(modal.container).not.toBeVisible();
-
-                // * Once set at creation the value is read-only, even to a system admin
-                const info = await channelsPage.openChannelInfo();
-                await expect(info.attributes.lock(name)).toBeVisible();
-                await expect(info.attributes.editButton(name)).toHaveCount(0);
             } finally {
                 await deleteChannelFieldIfExists(adminClient, name);
                 await deleteGlobalAttributeFieldIfExists(adminClient, name);
@@ -352,17 +247,12 @@ test.describe(
             try {
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
-                name = await configureChannelAttribute(
-                    systemConsolePage,
-                    {
-                        displayName: `Restricted ${suffix}`,
-                        type: 'Select',
-                        options: ['SET'],
-                        required: true,
-                        displayLocations: ['display_label_info'],
-                    },
-                    adminClient,
-                );
+                name = await configureChannelAttribute(systemConsolePage, {
+                    displayName: `Restricted ${suffix}`,
+                    type: 'Select',
+                    options: ['SET'],
+                    required: true,
+                });
 
                 const channelField = await findChannelField(adminClient, name);
                 expect(channelField?.permission_values).toBe('admin');

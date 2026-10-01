@@ -2020,8 +2020,8 @@
     "description": "Admin console setting label (toggle) on the Attribute-Based Access Control page controlling whether end users see access-policy indicators."
   },
   "admin.accesscontrol.enableDesc": {
-    "defaultMessage": "Allow access restrictions based on user attributes using custom access policies. To effectively use this feature, you must define user attributes in the {userAttributes} section.",
-    "description": "Admin console help text for the main attribute-based access control toggle; {userAttributes} is replaced by a link labeled 'User Attributes'."
+    "defaultMessage": "Allow access restrictions based on user attributes using custom access policies. To effectively use this feature, you must define attributes in the {userAttributes} section.",
+    "description": "Admin console help text for the main attribute-based access control toggle; {userAttributes} is replaced by a link labeled 'Attribute Management'."
   },
   "admin.accesscontrol.enableTitle": {
     "defaultMessage": "Allow attribute based access controls on this server",
@@ -2052,8 +2052,8 @@
     "description": "Label of a true/false toggle in System Console > System Attributes > Attribute-Based Access > Session Attributes. 'Trust' is a verb; refers to an HTTP header set by a reverse proxy."
   },
   "admin.accesscontrol.user_properties.link.label": {
-    "defaultMessage": "User Attributes",
-    "description": "Link text inserted into the attribute-based access control help text; links to the User Attributes settings section."
+    "defaultMessage": "Attribute Management",
+    "description": "Link text inserted into the attribute-based access control help text; links to the Attribute Management settings section."
   },
   "admin.advance.cluster": {
     "defaultMessage": "High Availability",
@@ -4363,6 +4363,10 @@
     "defaultMessage": "(Optional) The attribute in the SAML Assertion that will be used to populate the {name} of users in Mattermost.",
     "description": "Help text for a user-attribute mapping field in SAML admin settings; {name} is the attribute's display name."
   },
+  "admin.customProfileAttributes.linkedNonText": {
+    "defaultMessage": "This field is a management attribute of type {type} and cannot be synced via LDAP or SAML. Only text-type fields support sync.",
+    "description": "Help text under a linked (Global Attribute) user-attribute field that is not text type; explains why the LDAP/SAML sync box is disabled."
+  },
   "admin.customProfileAttributes.managedByPlugin": {
     "defaultMessage": "This field is managed by the {pluginId} plugin and cannot be edited.",
     "description": "Help text under a user-attribute field that is read-only because a plugin owns it; {pluginId} is the plugin's display name."
@@ -5920,7 +5924,7 @@
     "description": "Screen-reader label for the chevron button that collapses the Channels row in an attribute's 'Applies to' card in the System Console."
   },
   "admin.global_attributes.applies_to.channels.display.help": {
-    "defaultMessage": "Multiple locations can be selected. Uncheck all to keep it off the header and banner — Channel Info always shows the value.",
+    "defaultMessage": "Multiple display locations can be selected. You can always view and set the attribute value in the Channel Info sidebar. Unset values do not appear in the channel.",
     "description": "Help text under the 'Display location' checkboxes in an attribute's Channels settings in the System Console. 'header', 'banner' and 'Channel Info' refer to the Header, Banner and Channel Info checkbox options; 'it' is the attribute value. Use the same translations as those option labels."
   },
   "admin.global_attributes.applies_to.channels.display.label": {
@@ -10116,7 +10120,7 @@
     "description": "Destructive menu item in a policy's actions menu that deletes the permission policy."
   },
   "admin.permission_policies.description": {
-    "defaultMessage": "Create policies to control file upload and download permissions based on user attributes.",
+    "defaultMessage": "Create policies to control channel action permissions based on user attributes.",
     "description": "Description under the page title on the System Console > Permission Policies page."
   },
   "admin.permission_policies.edit": {
@@ -10310,6 +10314,14 @@
   "admin.permission_policies.page_title": {
     "defaultMessage": "Permission Policies",
     "description": "Page title of the System Console > Permission Policies page (attribute-based access control policies for permissions)."
+  },
+  "admin.permission_policies.permission.create_bor.description": {
+    "defaultMessage": "Allow users to send burn-on-read messages",
+    "description": "Description of the Send Burn-On-Read permission toggle in the permission policy editor."
+  },
+  "admin.permission_policies.permission.create_bor.label": {
+    "defaultMessage": "Create Burn-on-Read Message",
+    "description": "Name of the Send Burn-On-Read permission toggle in the permission policy editor; also used as a column value in the policies table."
   },
   "admin.permission_policies.permission.download_file.description": {
     "defaultMessage": "Allow users to download files to their device",
@@ -17135,9 +17147,9 @@
     "defaultMessage": "Reorder row",
     "description": "Accessibility label for the drag handle button used to reorder rows in admin console tables."
   },
-  "adminConsole.list.table.exactTime.at": {
-    "defaultMessage": "at",
-    "description": "The word 'at' inserted between the date and the time in exact-timestamp tooltips of admin console tables (e.g. 'July 30, 2026 at 08:00:00 PM')."
+  "adminConsole.list.table.exactTime": {
+    "defaultMessage": "{date, date, long} at {date, time, medium}",
+    "description": "Tooltip on the relative dates (e.g. 'Today', '3 days') in admin console tables such as System Users, showing the exact date and time. {date} is a timestamp; the date and time are formatted for the reader's locale, so only the connecting word needs translating, and it may be dropped where the language needs none."
   },
   "adminConsole.list.table.genericError": {
     "defaultMessage": "There was an error loading the data, please try again",
@@ -18627,6 +18639,18 @@
     "defaultMessage": "URLs must start with a lowercase letter or number.",
     "description": "Validation error when the channel or team URL slug starts with an invalid character."
   },
+  "channel_attributes.banner.empty_notice": {
+    "defaultMessage": "There's nothing to display until the attributes in the banner text have values.",
+    "description": ""
+  },
+  "channel_attributes.banner.empty_notice.no_text": {
+    "defaultMessage": "Add banner text to display a banner.",
+    "description": ""
+  },
+  "channel_attributes.banner.empty_notice.title": {
+    "defaultMessage": "The banner will not be displayed",
+    "description": ""
+  },
   "channel_attributes.banner.insert_attribute": {
     "defaultMessage": "Attributes",
     "description": "Button text (after a + icon) under the Banner text editor in Channel Settings > Configuration. It opens a menu for inserting a channel attribute placeholder into the banner. Plural noun."
@@ -18643,9 +18667,13 @@
     "defaultMessage": "Remove {label}",
     "description": "Screen-reader label for the small X on an attribute chip inside the Banner text editor in Channel Settings > Configuration. {label} is the attribute's display name, as defined by an admin."
   },
-  "channel_attributes.banner.renders_as_empty": {
-    "defaultMessage": "nothing yet — no values are set",
-    "description": "Shown in the banner Preview area in Channel Settings > Configuration when the banner text contains only attribute placeholders and none of them has a value, so the banner would be blank."
+  "channel_attributes.banner.token_value_set": {
+    "defaultMessage": "Value on this channel: {value}",
+    "description": ""
+  },
+  "channel_attributes.banner.token_value_unset": {
+    "defaultMessage": "The attribute has no value set and won't render in the banner, but will appear automatically the moment a value is set.",
+    "description": ""
   },
   "channel_attributes.chip.label_prefix": {
     "defaultMessage": "{label}: ",
@@ -18687,9 +18715,17 @@
     "defaultMessage": "This attribute can only be raised, never lowered",
     "description": "Screen-reader label for the lock icon next to a ranked channel attribute in the channel info panel, such as a classification level. The value can only move to a higher rank."
   },
+  "channel_attributes.info.locked_source_managed": {
+    "defaultMessage": "This attribute is managed by an integration and cannot be changed here",
+    "description": "Screen-reader label for the lock icon next to a channel attribute in the channel info panel, when the value is set by an integration and cannot be edited here."
+  },
   "channel_attributes.info.not_set": {
     "defaultMessage": "Not set",
     "description": "Placeholder shown in place of the value of a channel attribute that has no value, in the channel info right-hand panel. Describes an attribute value, not a person."
+  },
+  "channel_attributes.info.remove_value": {
+    "defaultMessage": "Remove {value}",
+    "description": ""
   },
   "channel_attributes.info.save_failed": {
     "defaultMessage": "Couldn't save {label}. Try again.",
@@ -18726,6 +18762,10 @@
   "channel_banner.banner_preview.label": {
     "defaultMessage": "Preview",
     "description": "Label above the live preview of the channel banner in Channel Settings > Configuration, under the Banner text and Banner color settings. Noun."
+  },
+  "channel_banner.banner_text.help": {
+    "defaultMessage": "Any single- or double-character symbols between attributes (such as · . / ?) will be removed if those attribute values are not set. Empty attributes will not appear in the banner or elsewhere in the channel. The banner is hidden if there is no text available.",
+    "description": ""
   },
   "channel_banner.banner_text.label": {
     "defaultMessage": "Banner text",
@@ -19903,6 +19943,10 @@
     "defaultMessage": "Discoverable (Users can request to join)",
     "description": "Toggle title in channel creation/settings making a private channel discoverable so users can request to join."
   },
+  "channel_settings.error_attributes_save_failed": {
+    "defaultMessage": "Couldn't save one or more channel attributes. Try again.",
+    "description": ""
+  },
   "channel_settings.error_banner_color_required": {
     "defaultMessage": "Banner color is required",
     "description": "Validation error on the Configuration tab when the channel banner is enabled but no color is chosen."
@@ -19942,6 +19986,14 @@
   "channel_settings.modal.title": {
     "defaultMessage": "Channel Settings",
     "description": "Title of the Channel Settings modal."
+  },
+  "channel_settings.permissions_policy.action.create_bor": {
+    "defaultMessage": "Create burn-on-read message",
+    "description": "Permission actioname inn the channel Permissions Policy rule editor; allows sending of burn-on-read messages."
+  },
+  "channel_settings.permissions_policy.action.create_bor.description": {
+    "defaultMessage": "Allow users to send burn-on-read messages in this channel",
+    "description": "Description shown under the `Create burn-on-read message` option in the permission picker of the channel permission rule editor."
   },
   "channel_settings.permissions_policy.action.download": {
     "defaultMessage": "Download files",
@@ -20198,6 +20250,10 @@
   "channel_settings.remove_sharing_confirm.title": {
     "defaultMessage": "Remove sharing from {count, plural, one {this connection} other {these connections}}?",
     "description": "Title of the confirmation dialog for removing a shared channel from connected workspaces; plural branches on the number of connections."
+  },
+  "channel_settings.save_changes_panel.banner_text.empty_error": {
+    "defaultMessage": "Add banner text, or turn off the channel banner.",
+    "description": ""
   },
   "channel_settings.save_changes_panel.banner_text.required_error": {
     "defaultMessage": "Channel banner text cannot be empty when enabled",

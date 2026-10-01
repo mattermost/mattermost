@@ -36,6 +36,11 @@ var renderableABACActions = map[string]renderableActionConfig{
 		DefaultWhenInactive: true,
 		FailClosedOnError:   true,
 	},
+	model.AccessControlPolicyActionCreateBurnOnReadPost: {
+		ResourceType:        model.AccessControlPolicyTypeChannel,
+		DefaultWhenInactive: true,
+		FailClosedOnError:   true,
+	},
 }
 
 // SearchAllowedActionsForCurrentUser computes non-authoritative, render-time ABAC
