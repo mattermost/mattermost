@@ -811,30 +811,27 @@ func isMachineCaller(pluginChecker PluginChecker, callerID string) bool {
 		return false
 	}
 	return isCallerPlugin(pluginChecker, callerID) ||
-		callerID == model.CallerIDLDAPSync ||
-		callerID == model.CallerIDSAMLSync
+		model.PropertySyncSourceForCallerID(callerID) != ""
 }
 
 // callerOwnerIdentity maps a machine caller (and its acting-as scope) to the
 // owner identity it would match in a field's owners list. A built-in sync
-// service is a singleton (one LDAP, one SAML), so its owner type is "service"
-// and it carries no scope; for a plugin the manifest ID is the owner ID and the
-// scope is whatever the plugin declared on the request context.
+// service is a singleton (one LDAP, one SAML, one OpenID Connect), so its owner
+// type is "service" and it carries no scope; for a plugin the manifest ID is
+// the owner ID and the scope is whatever the plugin declared on the request
+// context.
 func (h *AccessControlHook) callerOwnerIdentity(callerID, scope string) (ownerID, ownerType, effectiveScope string) {
-	switch callerID {
-	case model.CallerIDLDAPSync:
-		return model.PropertyFieldAttrLDAP, model.PropertyOwnerTypeService, ""
-	case model.CallerIDSAMLSync:
-		return model.PropertyFieldAttrSAML, model.PropertyOwnerTypeService, ""
-	default:
-		return callerID, model.PropertyOwnerTypePlugin, scope
+	if source := model.PropertySyncSourceForCallerID(callerID); source != "" {
+		return model.PropertySyncSourceAttr(source), model.PropertyOwnerTypeService, ""
 	}
+	return callerID, model.PropertyOwnerTypePlugin, scope
 }
 
 // effectiveOwners returns the owners list used for value-write access checks on
 // an owner-managed field. Explicit owners from the attrs blob are augmented
-// with implicit service owners derived from attrs.ldap / attrs.saml so a field
-// can be written by both a listed plugin/scope and its legacy sync source.
+// with implicit service owners derived from attrs.ldap / attrs.saml /
+// attrs.openid so a field can be written by both a listed plugin/scope and its
+// sync source.
 // Implicit service owners are only added when explicit owners are present;
 // legacy synced-only fields continue through checkSyncLock instead.
 func (h *AccessControlHook) effectiveOwners(field *model.PropertyField) []model.PropertyOwner {
@@ -843,15 +840,9 @@ func (h *AccessControlHook) effectiveOwners(field *model.PropertyField) []model.
 		return owners
 	}
 
-	if ldap, _ := field.Attrs[model.PropertyFieldAttrLDAP].(string); ldap != "" {
+	for _, source := range model.GetPropertyFieldSyncSources(field) {
 		owners = append(owners, model.PropertyOwner{
-			ID:   model.PropertyFieldAttrLDAP,
-			Type: model.PropertyOwnerTypeService,
-		})
-	}
-	if saml, _ := field.Attrs[model.PropertyFieldAttrSAML].(string); saml != "" {
-		owners = append(owners, model.PropertyOwner{
-			ID:   model.PropertyFieldAttrSAML,
+			ID:   model.PropertySyncSourceAttr(source),
 			Type: model.PropertyOwnerTypeService,
 		})
 	}
@@ -1048,23 +1039,17 @@ func (h *AccessControlHook) checkFieldDeleteAccess(field *model.PropertyField, c
 }
 
 // checkSyncLock checks whether the caller is allowed to write values for a
-// synced field. Synced fields have an ldap or saml attr set, and only the
-// corresponding sync service (identified by well-known caller IDs) may write
-// their values.
+// synced field. Synced fields have an ldap, saml or openid attr set, and only
+// the corresponding sync service (identified by well-known caller IDs) may
+// write their values.
 func (h *AccessControlHook) checkSyncLock(field *model.PropertyField, callerID string) error {
 	syncSource := model.GetPropertyFieldSyncSource(field)
 	if syncSource == "" {
 		return nil
 	}
 
-	// Map sync source to the expected caller ID
-	var expectedCallerID string
-	switch syncSource {
-	case "ldap":
-		expectedCallerID = model.CallerIDLDAPSync
-	case "saml":
-		expectedCallerID = model.CallerIDSAMLSync
-	default:
+	expectedCallerID := model.PropertySyncCallerID(syncSource)
+	if expectedCallerID == "" {
 		return fmt.Errorf("field %s has unknown sync source %q: %w", field.ID, syncSource, ErrInvalidFieldAttrs)
 	}
 

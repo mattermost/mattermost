@@ -32,6 +32,7 @@ const AccessControlScopeContextKey AccessControlContextKey = "access_control_sco
 const (
 	CallerIDLDAPSync   = "system:ldap_sync"
 	CallerIDSAMLSync   = "system:saml_sync"
+	CallerIDOpenIDSync = "system:openid_sync"
 	CallerIDLocalAdmin = "system:local_admin"
 )
 

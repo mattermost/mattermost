@@ -175,6 +175,14 @@ type FeatureFlags struct {
 	// Gates post delivery audit logging. Enabling it requires a server restart, since it
 	// controls whether the /api/v4/delivery_tracking routes are registered.
 	PostDeliveryTracking bool
+
+	// FEATURE_FLAG_REMOVAL: OpenIdAttributeSync - Remove this kill switch once
+	// OpenID Connect attribute sync is proven in production. Gates syncing user
+	// attributes from OpenID Connect claims at sign-in: when off, no claims are
+	// read and no values are written, and new openid links are refused. Fields
+	// already linked keep their link, and their values stay sync-locked and
+	// untouched.
+	OpenIdAttributeSync bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -245,6 +253,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.RecurringScheduledPosts = false
 
 	f.PostDeliveryTracking = false
+
+	f.OpenIdAttributeSync = true
 }
 
 // isValid rejects feature flag combinations that are no longer supported.

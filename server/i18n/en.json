@@ -11141,6 +11141,11 @@
     "description": "API error when a requested custom property field (attribute definition) does not exist."
   },
   {
+    "id": "app.property_field.openid_sync_disabled.app_error",
+    "translation": "An attribute can't be linked to an OpenID Connect claim while OpenID Connect attribute sync is turned off.",
+    "description": "API error (400) when an admin links a custom attribute to an OpenID Connect claim, or changes the claim, while the OpenIdAttributeSync feature flag is off. 'OpenID Connect' is a product name and should stay as-is."
+  },
+  {
     "id": "app.property_field.options.create.app_error",
     "translation": "Unable to add the property field options.",
     "description": "Server error when adding new selectable options to a custom property field fails in the database."
@@ -11184,6 +11189,11 @@
     "id": "app.property_field.search.app_error",
     "translation": "Unable to search property fields.",
     "description": "API error returned when a search query over property fields (custom attribute definitions) fails."
+  },
+  {
+    "id": "app.property_field.sync_source_exclusive.app_error",
+    "translation": "An attribute synced from OpenID Connect can't also be synced from AD/LDAP or SAML.",
+    "description": "API error (400) when an admin links one custom attribute to both an OpenID Connect claim and an AD/LDAP or SAML attribute. 'OpenID Connect', 'AD/LDAP' and 'SAML' should stay as-is."
   },
   {
     "id": "app.property_field.synced_options_locked.app_error",

@@ -388,6 +388,56 @@ func TestOwnerValueWriteWithImplicitSyncOwners(t *testing.T) {
 	})
 }
 
+func TestOwnerValueWriteWithImplicitOpenIDSyncOwner(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
+		return pluginID == "plugin-owner"
+	})
+
+	rctxHuman := RequestContextWithCallerID(th.Context, model.NewId())
+	created, err := th.service.CreatePropertyField(rctxHuman, &model.PropertyField{
+		GroupID:    th.CPAGroupID,
+		Name:       "OpenIDAndScim",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyAttrsOwners: []model.PropertyOwner{
+				{ID: "plugin-owner", Type: model.PropertyOwnerTypePlugin},
+			},
+			model.CustomProfileAttributesPropertyAttrsOpenID: "department",
+		},
+	})
+	require.NoError(t, err)
+
+	newValue := func() *model.PropertyValue {
+		return &model.PropertyValue{
+			GroupID:    th.CPAGroupID,
+			FieldID:    created.ID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"v"`),
+		}
+	}
+
+	t.Run("OpenID Connect sync caller can write via implicit service owner", func(t *testing.T) {
+		_, upErr := th.service.UpsertPropertyValue(RequestContextWithCallerID(th.Context, model.CallerIDOpenIDSync), newValue())
+		require.NoError(t, upErr)
+	})
+
+	t.Run("the other sync services are denied", func(t *testing.T) {
+		for _, callerID := range []string{model.CallerIDLDAPSync, model.CallerIDSAMLSync} {
+			_, upErr := th.service.UpsertPropertyValue(RequestContextWithCallerID(th.Context, callerID), newValue())
+			require.Error(t, upErr, "caller %q", callerID)
+		}
+	})
+
+	t.Run("a human caller is denied", func(t *testing.T) {
+		_, upErr := th.service.UpsertPropertyValue(rctxHuman, newValue())
+		require.Error(t, upErr)
+	})
+}
+
 func TestMultipleDistinctPluginOwners(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	th.service.setPluginCheckerForTests(func(pluginID string) bool {
