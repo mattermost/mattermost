@@ -57,6 +57,20 @@ func (s *Snapshot) ConfigInt(get func(*model.Config) *int) (int, bool) {
 	return *value, true
 }
 
+// ConfigInt64 is ConfigInt for *int64 settings. ok is false when the config section is absent or the field is nil.
+func (s *Snapshot) ConfigInt64(get func(*model.Config) *int64) (int64, bool) {
+	if get == nil || !s.Has(model.SectionConfig) || s.Config == nil || s.Config.Config == nil {
+		return 0, false
+	}
+
+	value := get(s.Config.Config)
+	if value == nil {
+		return 0, false
+	}
+
+	return *value, true
+}
+
 // Stat returns a workspace stat, or ok=false when stats were not collected or the query for this stat failed.
 func (s *Snapshot) Stat(get func(*model.SupportPacketStats) *int64) (int64, bool) {
 	if get == nil || s == nil || s.Stats == nil {
