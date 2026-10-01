@@ -328,11 +328,13 @@ const healthTestPacketGeneratedAt = 1790330400000
 func healthTestPacketFiles() map[string]string {
 	return map[string]string{
 		model.PacketMetadataFileName:           "version: 1\ntype: support-packet\ngenerated_at: 1790330400000\nserver_version: 11.0.4\n",
-		model.SupportPacketDiagnosticsFileName: "version: 2\nserver:\n  hostname: mm.example.com\n  version: 11.0.4\n",
+		model.SupportPacketDiagnosticsFileName: "version: 2\nlicense:\n  users: 500\n  sku_short_name: enterprise\n  expires_at: 1821866400000\nserver:\n  hostname: mm.example.com\n  version: 11.0.4\n",
 		model.SupportPacketConfigFileName: `{
     "ServiceSettings": {"SiteURL": "https://chat.example.com"},
     "EmailSettings": {"SendPushNotifications": true, "PushNotificationServer": "http://push.example.com"}
 }`,
+		model.SupportPacketStatsFileName:   "active_users: 300\nmonthly_active_users: 250\nsingle_channel_guests: 0\nbot_accounts: 10\nincoming_webhooks: 20\n",
+		model.SupportPacketPluginsFileName: `{"enabled": [{"id": "com.mattermost.calls"}, {"id": "playbooks"}, {"id": "mattermost-ai"}], "disabled": []}`,
 	}
 }
 
