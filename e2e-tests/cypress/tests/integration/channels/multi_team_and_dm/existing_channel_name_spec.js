@@ -62,7 +62,7 @@ describe('Channel', () => {
             cy.get('.url-input-error').should('not.exist');
 
             // * 'Create Channel' button should be enabled
-            cy.findByText('Create channel').should('not.have.class', 'disabled');
+            cy.findByRole('button', {name: 'Create channel'}).should('not.be.disabled');
 
             // # Click on Cancel button to move out of New Channel Modal
             cy.findByText('Cancel').click();
@@ -92,7 +92,7 @@ function verifyExistingChannelError(newChannelName, makePrivate = false) {
     cy.get('.url-input-error').contains('A channel with that URL already exists');
 
     // * 'Create Channel' button should be disabled
-    cy.findByText('Create channel').should('have.class', 'disabled');
+    cy.findByRole('button', {name: 'Create channel'}).should('be.disabled');
 }
 
 /**
