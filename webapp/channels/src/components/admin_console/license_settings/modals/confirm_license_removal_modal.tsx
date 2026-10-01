@@ -5,8 +5,8 @@ import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {GenericModal} from '@mattermost/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {GenericModal} from '@mattermost/components';
 
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';

@@ -5,10 +5,10 @@ import React, {useEffect, useCallback, type JSX} from 'react';
 import {defineMessage, FormattedDate, FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
 import type {ClientLicense, License} from '@mattermost/types/config';
 
-import {Button} from '@mattermost/compass-ui/components/button';
 import {previewLicense, uploadLicense} from 'mattermost-redux/actions/admin';
 import {getLicenseConfig} from 'mattermost-redux/actions/general';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';

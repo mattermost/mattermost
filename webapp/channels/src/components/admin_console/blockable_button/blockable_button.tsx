@@ -8,6 +8,7 @@ import {Button, type ButtonEmphasis, type ButtonSize} from '@mattermost/compass-
 
 import {deferNavigation} from 'actions/admin_actions';
 import {getNavigationBlocked} from 'selectors/views/admin';
+
 import {getHistory} from 'utils/browser_history';
 
 type Props = {
