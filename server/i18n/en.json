@@ -14292,6 +14292,56 @@
     "description": "Health dashboard reason shown when a health check could not run because the usage statistics it inspects (for example user or post counts) were not collected, so the check's status is unknown."
   },
   {
+    "id": "health.rule.job_failed.message",
+    "translation": "The latest finished {{.job_type}} run ({{.job_id}}) ended in error: {{.error}}",
+    "description": "Health dashboard finding detail when a background job's most recent finished run failed; {{.job_type}} is the job type identifier (such as ldap_sync) and {{.job_id}} is the job's ID, neither should be translated; {{.error}} is the error message the job recorded."
+  },
+  {
+    "id": "health.rule.job_failed.message.no_error",
+    "translation": "The latest finished {{.job_type}} run ({{.job_id}}) ended in error without recording an error message.",
+    "description": "Health dashboard finding detail when a background job's most recent finished run failed and no error message was recorded; {{.job_type}} is the job type identifier (such as ldap_sync) and {{.job_id}} is the job's ID, neither should be translated."
+  },
+  {
+    "id": "health.rule.job_failed.remediation",
+    "translation": "Review the job's error and the server logs at the failed run's start time to find the cause. Common causes to rule out: database load, connection pool limits, network or failover events, and statement timeouts. Resolve it, then run the job again and confirm it completes. Until a run succeeds, the job's work (directory sync, compliance export, data retention or search indexing) is not being done.",
+    "description": "Health dashboard fix-it step for a background job whose latest run failed."
+  },
+  {
+    "id": "health.rule.job_failed.title",
+    "translation": "Latest job run failed",
+    "description": "Health dashboard finding title when the most recent finished run of a background job (such as AD/LDAP sync or data retention) ended in error."
+  },
+  {
+    "id": "health.rule.job_stuck.message",
+    "translation": "The {{.job_type}} job {{.job_id}} is in progress but has recorded no activity for {{.hours}} hours. This usually means the worker died mid-run or the scheduler is wedged.",
+    "description": "Health dashboard finding detail for a background job that is still marked in progress but has stopped reporting activity; {{.job_type}} is the job type identifier (such as ldap_sync) and {{.job_id}} is the job's ID, neither should be translated; {{.hours}} is a whole number of hours."
+  },
+  {
+    "id": "health.rule.job_stuck.remediation",
+    "translation": "Cancel the stuck job from its System Console page, with mmctl job cancel, or through the API. Check the server logs around the job's last activity, then run it again.",
+    "description": "Health dashboard fix-it step for a background job stuck in progress; 'mmctl job cancel' is a command and should not be translated."
+  },
+  {
+    "id": "health.rule.job_stuck.title",
+    "translation": "Job stuck in progress for more than 24 hours",
+    "description": "Health dashboard finding title when a background job has been marked in progress with no activity for over 24 hours."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.message",
+    "translation": "The {{.job_type}} job {{.job_id}} started {{.hours}} hours ago and has reported no progress. This usually means the worker died, deadlocked, or lost its database connection before the first batch.",
+    "description": "Health dashboard finding detail for a background job that has been running for hours without any progress; {{.job_type}} is the job type identifier (such as ldap_sync) and {{.job_id}} is the job's ID, neither should be translated; {{.hours}} is a whole number of hours."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.remediation",
+    "translation": "Cancel the job from its System Console page, with mmctl job cancel, or through the API. Check the server logs from the job's start time for panics or connection errors, then run it again. If it recurs, capture a goroutine profile from /debug/pprof/goroutine on the metrics server while the job is stuck.",
+    "description": "Health dashboard fix-it step for a background job running with no progress; 'mmctl job cancel' is a command and '/debug/pprof/goroutine' is a URL path, neither should be translated. 'Goroutine profile' is a Go debugging snapshot of running threads."
+  },
+  {
+    "id": "health.rule.job_wedged_at_zero.title",
+    "translation": "Job in progress for more than 6 hours with no progress",
+    "description": "Health dashboard finding title when a background job has been running for over 6 hours without reporting any progress."
+  },
+  {
     "id": "health.rule.push_bad_scheme.message.http",
     "translation": "PushNotificationServer {{.url}} uses http://, so push notifications are sent in cleartext.",
     "description": "Health dashboard finding detail when the push notification server URL starts with http:// instead of https://; {{.url}} is the configured URL. 'PushNotificationServer' is a config setting name and should not be translated."
