@@ -408,6 +408,28 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Contains(t, string(fileData.Body), "is_cloud: true")
 	})
 
+	t.Run("enforced license writes expiry and seat limit", func(t *testing.T) {
+		enforcedLicense := model.NewTestLicense("ldap")
+		enforcedLicense.IsSeatCountEnforced = true
+		enforcedLicense.ExtraUsers = new(5)
+		require.True(t, th.Service.SetLicense(enforcedLicense))
+		t.Cleanup(func() {
+			require.True(t, th.Service.SetLicense(license))
+		})
+
+		d := getDiagnostics(t)
+		assert.Equal(t, enforcedLicense.ExpiresAt, d.License.ExpiresAt)
+		assert.True(t, d.License.IsSeatCountEnforced)
+		assert.Equal(t, new(5), d.License.ExtraUsers)
+
+		fileData, err := supportPacketDiagnosticsFile(d, nil)
+		require.NoError(t, err)
+		body := string(fileData.Body)
+		assert.Contains(t, body, "expires_at: "+strconv.FormatInt(enforcedLicense.ExpiresAt, 10)+"\n")
+		assert.Contains(t, body, "is_seat_count_enforced: true\n")
+		assert.Contains(t, body, "extra_users: 5\n")
+	})
+
 	t.Run("filestore fails", func(t *testing.T) {
 		fb := &fmocks.FileBackend{}
 		err := SetFileStore(fb)(th.Service)
@@ -1521,6 +1543,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.License.SkuShortName = "enterprise"
 	diagnostics.License.IsTrial = true
 	diagnostics.License.IsNonProduction = true
+	diagnostics.License.ExpiresAt = time.Date(2027, 1, 2, 3, 4, 5, 0, time.UTC).UnixMilli()
 	diagnostics.Server.OS = "linux"
 	diagnostics.Server.Architecture = "amd64"
 	diagnostics.Server.Hostname = "mm-host"
