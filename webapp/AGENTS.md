@@ -9,16 +9,16 @@ Follow `webapp/STYLE_GUIDE.md` for canonical style, accessibility, and testing s
 ## UI components (Compass)
 
 - **Catalog / APIs**: inspect `@mattermost/compass-ui` (package exports / component types) before inventing UI or props.
-- **New UI**: prefer `@mattermost/compass-ui` when a **published** component exists. Import via subpaths:
+- **New UI**: prefer `@mattermost/compass-ui` when the component is exported from that installed npm package. Import via subpaths:
   `import {Button} from '@mattermost/compass-ui/components/button';`
   Do not use the root barrel. Do not recreate Compass primitives.
-- **`@mattermost/compass-proto`**: unpublished prototyping package (shells, call composites, hardcoded menu recipes, proto `WithTooltip`). Not for Mattermost webapp product code — do not add the dependency or import from it unless explicitly adopting that package. Prefer existing webapp / shared / MUI stacks for those surfaces.
+- **`@mattermost/compass-proto`**: separate unpublished prototyping package (not on npm; shells, call composites, hardcoded menu recipes, proto `WithTooltip`). Not for Mattermost webapp product code — do not add the dependency or import from it unless explicitly adopting that package. Prefer existing webapp / shared / MUI stacks for those surfaces.
 - **Exceptions (keep current stacks)**: icons → `@mattermost/compass-icons`; emoji → `Emoji` (`@mattermost/shared`); modals → existing shared / `GenericModal`; menus → existing MUI menus. Do not switch Modal/Menu to compass-ui yet.
 - **Tooltips**: use `WithTooltip` from `@mattermost/shared` instead of wiring up Floating UI, compass-proto `WithTooltip`, or other tooltip primitives directly.
   `import {WithTooltip} from '@mattermost/shared/components/tooltip';`
-- Always import via the full package name (`@mattermost/compass-ui/...`, `@mattermost/shared/...`), never via relative paths into the package (e.g. `platform/shared/` or `node_modules/@mattermost/compass-ui/`).
 - **Tokens**: Compass foundation CSS variables are global via `@mattermost/compass-ui/styles`. Prefer `var(--…)` over hard-coded radius/spacing/elevation/font/motion values. Theme colors stay on app semantic vars (`--center-channel-*`, etc.).
 - **Standards**: `webapp/STYLE_GUIDE.md`.
+- Always import via the full package name (`@mattermost/compass-ui/...`, `@mattermost/shared/...`), never via relative paths into the package (e.g. `platform/shared/` or `node_modules/@mattermost/compass-ui/`).
 
 ## Plugin-facing surface on `window.WebappUtils`
 
