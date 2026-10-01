@@ -151,43 +151,27 @@ func TestJobRulesUnknownWithoutData(t *testing.T) {
 	testCases := []struct {
 		name     string
 		snapshot *healthcheck.Snapshot
-		reasons  map[string]string
+		reason   string
 	}{
 		{
 			name:     "config section absent",
 			snapshot: &healthcheck.Snapshot{CollectedAt: collectedAt, Jobs: full.Jobs, Sections: map[model.WorkspaceSection]error{model.SectionJobs: nil}},
-			reasons: map[string]string{
-				"JOB_STUCK":          healthcheck.ReasonConfigUnavailable,
-				"JOB_WEDGED_AT_ZERO": healthcheck.ReasonConfigUnavailable,
-				"JOB_FAILED":         healthcheck.ReasonConfigUnavailable,
-			},
+			reason:   healthcheck.ReasonConfigUnavailable,
 		},
 		{
 			name:     "config section failed",
 			snapshot: configErrored,
-			reasons: map[string]string{
-				"JOB_STUCK":          healthcheck.ReasonConfigUnavailable,
-				"JOB_WEDGED_AT_ZERO": healthcheck.ReasonConfigUnavailable,
-				"JOB_FAILED":         healthcheck.ReasonConfigUnavailable,
-			},
+			reason:   healthcheck.ReasonConfigUnavailable,
 		},
 		{
 			name:     "jobs section absent",
 			snapshot: jobsAbsent,
-			reasons: map[string]string{
-				"JOB_STUCK":          "health.rule.job_stuck.message.jobs_unavailable",
-				"JOB_WEDGED_AT_ZERO": "health.rule.job_wedged_at_zero.message.jobs_unavailable",
-				"JOB_FAILED":         "health.rule.job_failed.message.jobs_unavailable",
-			},
+			reason:   healthcheck.ReasonJobsUnavailable,
 		},
 		{
 			name:     "jobs section failed",
 			snapshot: jobsErrored,
-			reasons: map[string]string{
-				"JOB_STUCK":          "health.rule.job_stuck.message.jobs_unavailable",
-				"JOB_WEDGED_AT_ZERO": "health.rule.job_wedged_at_zero.message.jobs_unavailable",
-				"JOB_FAILED":         "health.rule.job_failed.message.jobs_unavailable",
-			},
+			reason:   healthcheck.ReasonJobsUnavailable,
 		},
 	}
 
@@ -197,7 +181,7 @@ func TestJobRulesUnknownWithoutData(t *testing.T) {
 
 			for _, rule := range []healthcheck.Rule{jobStuck, jobWedgedAtZero, jobFailed} {
 				for subject, result := range resultsBySubject(t, rule, tc.snapshot) {
-					assertResult(t, jobWant{state: healthcheck.StateUnknown, messageID: tc.reasons[rule.Code]}, result, rule.Code, subject)
+					assertResult(t, jobWant{state: healthcheck.StateUnknown, messageID: tc.reason}, result, rule.Code, subject)
 				}
 			}
 		})
@@ -339,12 +323,12 @@ func TestJobStuck(t *testing.T) {
 		{
 			name:     "zero CollectedAt",
 			snapshot: withoutCollectedAt(jobsSnapshot(&model.Job{Id: "job1", Status: model.JobStatusInProgress, StartAt: ago(48 * time.Hour), LastActivityAt: ago(48 * time.Hour)})),
-			want:     jobWant{state: healthcheck.StateUnknown, messageID: "health.rule.job_stuck.message.collected_at_unknown"},
+			want:     jobWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonCollectedAtUnknown},
 		},
 		{
 			name:     "zero CollectedAt with no runs",
 			snapshot: withoutCollectedAt(jobsSnapshot()),
-			want:     jobWant{state: healthcheck.StateUnknown, messageID: "health.rule.job_stuck.message.collected_at_unknown"},
+			want:     jobWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonCollectedAtUnknown},
 		},
 	}
 
@@ -401,7 +385,7 @@ func TestJobWedgedAtZero(t *testing.T) {
 		{
 			name:     "zero CollectedAt",
 			snapshot: withoutCollectedAt(jobsSnapshot(&model.Job{Id: "job1", Status: model.JobStatusInProgress, StartAt: ago(30 * time.Hour), LastActivityAt: ago(30 * time.Hour)})),
-			want:     jobWant{state: healthcheck.StateUnknown, messageID: "health.rule.job_wedged_at_zero.message.collected_at_unknown"},
+			want:     jobWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonCollectedAtUnknown},
 		},
 	}
 
