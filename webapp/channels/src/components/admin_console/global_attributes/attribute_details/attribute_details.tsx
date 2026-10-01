@@ -24,7 +24,6 @@ import Card from 'components/card/card';
 import {useIsFieldOrphaned, usePluginInventoryLoaded} from 'components/common/hooks/use_field_orphaned';
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import LoadingScreen from 'components/loading_screen';
-import * as Menu from 'components/menu';
 import {pageAllAccessControlFieldOptions} from 'components/property_fields/graph/page_all_access_control_field_options';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
@@ -39,11 +38,13 @@ import AttributeAppliesTo from './attribute_applies_to';
 import {ALL_RESOURCE_TYPES, ATTRIBUTE_APPLIES_TO_ADD_HEADER_TRIGGER_ID, resourceTypeLabels} from './attribute_applies_to_constants';
 import type {ResourceObjectType, UserManagedValue} from './attribute_applies_to_constants';
 import AttributeExternalSource from './attribute_external_source';
-import type {ExternalSource} from './attribute_external_source';
 import AttributeOptionsRankValues from './attribute_options_rank_values';
 import AttributeOptionsValues from './attribute_options_values';
 import AttributePluginSource from './attribute_plugin_source';
 import {useConfirmRemoveAppliesTo} from './attribute_remove_applies_to_warning_modal';
+import AttributeSelect from './attribute_select';
+import type {ExternalSource} from './external_source';
+import {resolveExternalSource} from './external_source';
 import {GraphValues, hasBlankTrimmedOptionName, hasCaseInsensitiveDuplicateNames} from './graph';
 
 import {CHANNEL_VALUE_SETTER, DEFAULT_CHANNEL_RESOURCE_CONFIG, buildChannelFieldAttrs, buildChannelFieldPatch, isOrderedChangePolicy, parseChannelFieldConfig} from '../applies_to/channels';
@@ -424,6 +425,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const originalUserVisibilityRef = useRef<FieldVisibility>('when_set');
     const originalUserManagedRef = useRef<UserManagedValue>('');
 
+    // Template ldap/saml as loaded (or last successfully saved). Sync reads the
+    // linked Users field's own attrs, which are only copied from the template at
+    // create time, so a change here must be patched onto that field on Save.
+    const originalLdapAttrRef = useRef('');
+    const originalSamlAttrRef = useRef('');
+
     // Compared against the live *server* field type at Save time to pick which
     // order DELETE/PATCH run in (see handleSave) -- the server rejects a type-
     // changing PATCH while linked fields of the old type still exist
@@ -535,8 +542,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 setIsNameManuallyEdited(true);
                 setFieldType(getAttributeTypeDescriptor(field).id);
                 setOptions(loadedOptions);
-                setLdapAttr(typeof field.attrs?.ldap === 'string' ? field.attrs.ldap : '');
-                setSamlAttr(typeof field.attrs?.saml === 'string' ? field.attrs.saml : '');
+                const loadedLdap = typeof field.attrs?.ldap === 'string' ? field.attrs.ldap : '';
+                const loadedSaml = typeof field.attrs?.saml === 'string' ? field.attrs.saml : '';
+                originalLdapAttrRef.current = loadedLdap;
+                originalSamlAttrRef.current = loadedSaml;
+                setLdapAttr(loadedLdap);
+                setSamlAttr(loadedSaml);
 
                 // A non-template field has no linked children: Applies-to is its
                 // own object type, and AttributeAppliesTo locks it via isNonTemplate.
@@ -838,6 +849,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     }, [handleDoneClick, handleCancelEdit]);
 
     const hasExternalSource = Boolean(ldapAttr || samlAttr);
+    const managedByExternalSource = isPluginOwned ? undefined : resolveExternalSource(ldapAttr, samlAttr);
 
     // External source (LDAP/SAML) is a user-identity concept. A template's linked
     // children can include a user field, so every template keeps the editor
@@ -1146,9 +1158,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             if (userIsUpdateCandidate) {
                 const visibilityChanged = userVisibility !== originalUserVisibilityRef.current;
                 const managedChanged = userManaged !== originalUserManagedRef.current;
+                const ldapChanged = ldapAttr !== originalLdapAttrRef.current;
+                const samlChanged = samlAttr !== originalSamlAttrRef.current;
+                const syncSourceChanged = ldapChanged || samlChanged;
                 const existingUserField = persistedLinkedFieldsRef.current.user;
                 const cascadeDisplayName = existingUserField ? shouldCascadeLinkedDisplayName(existingUserField) : false;
-                if (existingUserField && (visibilityChanged || managedChanged || cascadeDisplayName)) {
+                if (existingUserField && (visibilityChanged || managedChanged || cascadeDisplayName || syncSourceChanged)) {
                     try {
                         const updatedUserField = await patchLinkedAttributeField(
                             'user',
@@ -1156,6 +1171,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                             {
                                 ...(visibilityChanged || managedChanged ? userConfigAttrs : {}),
                                 ...(cascadeDisplayName ? displayNamePatchAttrs : {}),
+
+                                // null unlinks, matching updateAttributeField's
+                                // template patch — sync reads these attrs on the
+                                // Users field, not the template.
+                                ...(ldapChanged ? {ldap: ldapAttr || null} : {}),
+                                ...(samlChanged ? {saml: samlAttr || null} : {}),
                             },
                             (visibilityChanged || managedChanged) ? userConfigPermissionValues : undefined,
                         );
@@ -1164,6 +1185,10 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         if (visibilityChanged || managedChanged) {
                             originalUserVisibilityRef.current = userVisibility;
                             originalUserManagedRef.current = userManaged;
+                        }
+                        if (syncSourceChanged) {
+                            originalLdapAttrRef.current = ldapAttr;
+                            originalSamlAttrRef.current = samlAttr;
                         }
                     } catch {
                         // Distinct from applies_to_partial_save -- the Users row is
@@ -1175,7 +1200,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         // Display-name-only failures get their own copy: the config
                         // banner names Profile display / Who can set the value, which
                         // is wrong when neither control was part of this PATCH.
-                        const configChanged = visibilityChanged || managedChanged;
+                        const configChanged = visibilityChanged || managedChanged || syncSourceChanged;
                         finalizeSave({
                             success: false,
                             errorKind: configChanged ? 'applies_to_config_save_failed' : 'applies_to_display_name_save_failed',
@@ -1238,6 +1263,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             }
 
             originalDisplayNameRef.current = nextDisplayName;
+            originalLdapAttrRef.current = ldapAttr;
+            originalSamlAttrRef.current = samlAttr;
             finalizeSave({success: true});
             return;
         }
@@ -1317,48 +1344,17 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const typeLockTooltip = formatMessage(TYPE_LOCK_MESSAGES[typeLockReason ?? 'appliesTo'].tooltip);
     const typeButtonAriaLabel = typeLockReason ? formatMessage(TYPE_LOCK_MESSAGES[typeLockReason].ariaLabel, {value: formatMessage(getTypeLabel(fieldType))}) : formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(getTypeLabel(fieldType))});
     const typeMenu = (
-        <Menu.Container
-            menuButton={{
-                id: 'attribute-type-menu-button',
-                class: 'AttributeDetails__typeButton',
-                disabled: saving || effectiveDisabled || typeLocked,
-                'aria-label': typeButtonAriaLabel,
-                children: (
-                    <>
-                        <span className='AttributeDetails__typeButtonInner'>
-                            <TypeIcon size={18}/>
-                            <FormattedMessage {...getTypeLabel(fieldType)}/>
-                        </span>
-                        {!typeLocked && (
-                            <i className='icon icon-chevron-down'/>
-                        )}
-                    </>
-                ),
-                dataTestId: 'attributeTypeMenuButton',
-            }}
-            menu={{
-                id: 'attribute-type-menu',
-                'aria-label': formatMessage(messages.typeMenuAriaLabel),
-            }}
-        >
-            {selectableTypes.map((descriptor) => {
-                const ItemIcon = descriptor.icon;
-                const isCurrentType = descriptor.id === fieldType;
-
-                return (
-                    <Menu.Item
-                        id={`attribute-type-${descriptor.id}`}
-                        key={descriptor.id}
-                        role='menuitemradio'
-                        forceCloseOnSelect={true}
-                        aria-checked={isCurrentType}
-                        onClick={() => handleTypeChange(descriptor.id)}
-                        leadingElement={<ItemIcon size={18}/>}
-                        labels={<FormattedMessage {...descriptor.label}/>}
-                    />
-                );
-            })}
-        </Menu.Container>
+        <AttributeSelect
+            idPrefix='attribute-type'
+            dataTestId='attributeTypeMenuButton'
+            selected={{id: fieldType, icon: TypeIcon, label: getTypeLabel(fieldType)}}
+            options={selectableTypes}
+            ariaLabel={typeButtonAriaLabel}
+            menuAriaLabel={formatMessage(messages.typeMenuAriaLabel)}
+            onChange={handleTypeChange}
+            disabled={saving || effectiveDisabled}
+            locked={typeLocked}
+        />
     );
 
     if (loading) {
@@ -1459,7 +1455,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                             data-testid='attributeDetailsBackLink'
                         >
                             <ChevronLeftIcon
-                                size={20}
+                                size={28}
                                 aria-hidden={true}
                             />
                         </BlockableLink>
@@ -1695,6 +1691,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         onUserVisibilityChange={handleUserVisibilityChange}
                         userManaged={userManaged}
                         onUserManagedChange={handleUserManagedChange}
+                        externalSource={managedByExternalSource}
                         channelResource={channelResource}
                         onChannelResourceChange={handleChannelResourceChange}
                         ordered={fieldType === 'rank'}

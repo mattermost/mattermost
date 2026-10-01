@@ -75,8 +75,9 @@ test.describe('System Console - Session Attributes', () => {
             // * Verify a seeded-but-client-native field does NOT carry the Server label
             await expect(sa.serverLabel(clientIpAddress.id)).toHaveCount(0);
 
-            // * Verify the derived Type column maps text/select fields correctly.
-            // IP/Version display types were removed; getDisplayType is String | Boolean | Enum.
+            // * Verify the derived Type column maps text/select fields correctly. getDisplayType()
+            // (session_attributes/utils.ts) only distinguishes Boolean/Enum via select options;
+            // every other field type, including ip_address and os_version, renders as String.
             await expect(sa.type(ipAddress.id)).toContainText('String');
             await expect(sa.type(vpnActive.id)).toContainText('Boolean');
             await expect(sa.type(networkInterfaceType.id)).toContainText('Enum');

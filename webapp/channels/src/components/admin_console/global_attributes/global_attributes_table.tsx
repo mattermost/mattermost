@@ -27,6 +27,7 @@ import {getPluginDisplayName} from 'selectors/plugins';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import {
+    CLASSIFICATIONS_FIELD_TYPE,
     CLASSIFICATIONS_MARKINGS_ADMIN_URL,
     CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
@@ -68,28 +69,34 @@ export function getDisplayName(field: PropertyField): string {
 }
 
 // Identifies the single Classification Markings template field by its literal
-// name + object_type + group_id combo. There is no data-driven ownership flag
-// (attrs.protected/top-level `protected`) for this template field.
+// name + type + object_type + group_id combo. There is no data-driven ownership
+// flag (attrs.protected/top-level `protected`) for this template field.
+//
+// The type is part of it because the name alone is not reserved: an attribute
+// named `classification` of any other type is an ordinary attribute, and must
+// stay editable and deletable here — that is the only way to clear the conflict
+// the Classification Markings page reports.
 export function isClassificationMarkingsField(field: PropertyField, groupId: string): boolean {
     return (
         field.name === CLASSIFICATIONS_TEMPLATE_FIELD_NAME &&
+        field.type === CLASSIFICATIONS_FIELD_TYPE &&
         field.object_type === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE &&
         field.group_id === groupId
     );
 }
 
 // Mirrors admin_definition.tsx's own `classification_markings` route visibility rule
-// (isHidden: it.any(it.not(it.minLicenseTier(Enterprise)), it.not(it.configIsTrue('FeatureFlags',
-// 'ClassificationMarkings')))) by calling the exact same `it.minLicenseTier`/`it.configIsTrue`
-// helpers the route rule itself calls — not a re-implementation of their bodies, so the two can
-// never drift — reading from the same entities/admin config tree the route rule itself reads.
-// Without this, the chevron/subtitle could point at a route that's actually hidden (independent
-// flag from the one gating this listing page).
+// (isHidden: it.any(it.not(it.minLicenseTier(EnterpriseAdvanced)), it.not(it.configIsTrue(
+// 'FeatureFlags', 'ClassificationMarkings')))) by calling the exact same `it.minLicenseTier`/
+// `it.configIsTrue` helpers the route rule itself calls — not a re-implementation of their
+// bodies, so the two can never drift — reading from the same entities/admin config tree the
+// route rule itself reads. Without this, the chevron/subtitle could point at a route that's
+// actually hidden (independent flag from the one gating this listing page).
 function useClassificationMarkingsReachable(): boolean {
     return useSelector((state: GlobalState) => {
         const config = getAdminConfig(state);
         const license = getLicense(state);
-        return it.minLicenseTier(LicenseSkus.Enterprise)(config, state, license) &&
+        return it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)(config, state, license) &&
             it.configIsTrue('FeatureFlags', 'ClassificationMarkings')(config);
     });
 }
@@ -268,11 +275,12 @@ function AttributeCell({field, isClassificationRow}: ClassificationAwareCellProp
 type ActionsCellProps = ClassificationAwareCellProps & {
     isMobileView: boolean;
     pluginInventoryLoaded: boolean;
+    disabled: boolean;
     onDeleteError: (message: string | null) => void;
     onDeleteModalExited: () => void;
 };
 
-function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryLoaded, onDeleteError, onDeleteModalExited}: ActionsCellProps) {
+function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryLoaded, disabled, onDeleteError, onDeleteModalExited}: ActionsCellProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const promptDelete = useGlobalAttributeFieldDelete();
@@ -288,6 +296,12 @@ function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryL
     const isPluginOwned = getSourceKind(field) === 'plugin';
     const isOrphaned = pluginInventoryLoaded && fieldLooksOrphaned;
     const isPluginManaged = isPluginOwned && !isOrphaned;
+
+    // Page-level read-only (non-sysadmin via schema isDisabled) and plugin-owned
+    // fields both open the details page as view-only; Delete stays off for those
+    // plus still-installed plugin-managed rows.
+    const isViewOnly = disabled || isPluginOwned;
+    const isDeleteDisabled = disabled || isPluginManaged;
 
     const handleConfirmed = useCallback(async () => {
         onDeleteError(null);
@@ -348,16 +362,16 @@ function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryL
         >
             <Menu.Item
                 id={`${menuId}-edit`}
-                leadingElement={isPluginOwned ? <EyeOutlineIcon size={18}/> : <PencilOutlineIcon size={18}/>}
+                leadingElement={isViewOnly ? <EyeOutlineIcon size={18}/> : <PencilOutlineIcon size={18}/>}
                 onClick={() => getHistory().push(attributeDetailsRoute(field.id))}
-                labels={<FormattedMessage {...(isPluginOwned ? actionsLabels.view : actionsLabels.edit)}/>}
+                labels={<FormattedMessage {...(isViewOnly ? actionsLabels.view : actionsLabels.edit)}/>}
             />
             <Menu.Item
                 id={`${menuId}-delete`}
-                disabled={isPluginManaged}
+                disabled={isDeleteDisabled}
                 isDestructive={true}
                 leadingElement={<TrashCanOutlineIcon size={18}/>}
-                onClick={isPluginManaged ? undefined : () => promptDelete(
+                onClick={isDeleteDisabled ? undefined : () => promptDelete(
                     getDisplayName(field),
                     handleConfirmed,
                     isOrphaned ? {sourcePluginId: field.attrs?.source_plugin_id as string | undefined} : undefined,
@@ -376,9 +390,10 @@ function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryL
 
 type GlobalAttributesTableProps = {
     searchQuery?: string;
+    disabled?: boolean;
 };
 
-export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttributesTableProps) {
+export default function GlobalAttributesTable({searchQuery = '', disabled = false}: GlobalAttributesTableProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -503,14 +518,21 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
     // keep the table in lockstep with what this page actually fetched. Unlinked
     // rows also wait on resourcesLoaded so they do not flash before suppressedScopes
     // is known.
+    // Hide the Classification template when Classification Markings is not reachable
+    // (below Enterprise Advanced, or flag off). Showing it as an ordinary editable row
+    // would offer Edit/Delete for a system field whose real home page is hidden.
     const allRows = useMemo(
         () => [
             ...fields,
             ...(resourcesLoaded ? unlinkedFields.filter((field) => !suppressedScopes.has(field.object_type as ResourceObjectType)) : []),
-        ].sort(
-            (a, b) => getDisplayName(a).localeCompare(getDisplayName(b)),
-        ),
-        [fields, unlinkedFields, suppressedScopes, resourcesLoaded],
+        ].
+            filter((field) =>
+                !isClassificationMarkingsField(field, groupId) || classificationMarkingsReachable,
+            ).
+            sort(
+                (a, b) => getDisplayName(a).localeCompare(getDisplayName(b)),
+            ),
+        [classificationMarkingsReachable, fields, groupId, unlinkedFields, suppressedScopes, resourcesLoaded],
     );
 
     // The Source column resolves plugin-owned rows to a plugin display name, but
@@ -672,6 +694,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                             isClassificationRow={isClassificationRow(row.original)}
                             isMobileView={isMobileView}
                             pluginInventoryLoaded={pluginInventoryLoadedRef.current}
+                            disabled={disabled}
                             onDeleteError={setDeleteError}
                             onDeleteModalExited={handleDeleteModalExited}
                         />
@@ -680,7 +703,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                 enableHiding: false,
             }),
         ];
-    }, [appliesToByTemplateId, groupId, classificationMarkingsReachable, isMobileView, handleDeleteModalExited, resourcesLoaded]);
+    }, [appliesToByTemplateId, groupId, classificationMarkingsReachable, isMobileView, handleDeleteModalExited, resourcesLoaded, disabled]);
 
     const table = useReactTable<PropertyField>({
         data: rows,
