@@ -381,6 +381,18 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       # Is this red run the PR's fault? History rules plus a second judge with
       # checkable evidence; writes the required status only in enforce mode.
+      # Answers from an earlier attempt at the same commit, so a re-run does not
+      # pay for the same question twice. Restore and save are separate steps:
+      # the cache action saves only when the job succeeds, and a red run is the
+      # one most likely to be re-run.
+      - name: Restore triage answers
+        if: always() && steps.summary.outcome != 'success'
+        continue-on-error: true
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: e2e-triage-answers.json
+          key: e2e-triage-answers-${{ inputs.context_name }}-${{ fromJSON(needs.prepare-run.outputs.composite-identity-json).commit_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: e2e-triage-answers-${{ inputs.context_name }}-${{ fromJSON(needs.prepare-run.outputs.composite-identity-json).commit_sha }}-
       - name: ci/e2e-triage
         id: triage
         # Runs on master as well as on PRs. On master the question changes from
@@ -394,7 +406,7 @@ jobs:
         # it to change.
         if: always() && steps.summary.outcome != 'success'
         continue-on-error: true
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-triage@b22f85821d4fa0e724f9b7c2308e2a05879e1910 # actions/e2e-triage
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-triage@440ae09a9b204a89f4ca5e164ce2724000cfd5c0 # actions/e2e-triage
         with:
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
           status-context: ${{ inputs.context_name }}
@@ -402,7 +414,15 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           mode: ${{ vars.E2E_TRIAGE_MODE || 'enforce' }}
+          answers-cache: e2e-triage-answers.json
           post-pr-comment: "false"
+      - name: Save triage answers
+        if: always() && steps.summary.outcome != 'success' && hashFiles('e2e-triage-answers.json') != ''
+        continue-on-error: true
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: e2e-triage-answers.json
+          key: e2e-triage-answers-${{ inputs.context_name }}-${{ fromJSON(needs.prepare-run.outputs.composite-identity-json).commit_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: ci/publish-webhook
         if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
         env:
