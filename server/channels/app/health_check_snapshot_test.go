@@ -185,6 +185,8 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		cfg.ServiceSettings.SiteURL = model.NewPointer("http://chat.example.com")
 		cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
 		cfg.EmailSettings.PushNotificationServer = model.NewPointer("http://push.example.com")
+		cfg.ComplianceSettings.Enable = model.NewPointer(true)
+		cfg.ComplianceSettings.Directory = model.NewPointer("")
 	})
 
 	// Without it the permissions collector fails and the packet carries a warning.txt.
@@ -226,7 +228,7 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 			firing[evaluation.Code] = true
 		}
 	}
-	assert.Equal(t, map[string]bool{"PUSH_BAD_SCHEME": true, "SITE_URL_HTTP": true}, firing)
+	assert.Equal(t, map[string]bool{"PUSH_BAD_SCHEME": true, "SITE_URL_HTTP": true, "COMPLIANCE_NO_DIR": true}, firing)
 }
 
 func TestClusterNodes(t *testing.T) {
