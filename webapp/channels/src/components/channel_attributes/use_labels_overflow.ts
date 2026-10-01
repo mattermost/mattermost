@@ -116,6 +116,14 @@ export function useLabelsOverflow(ids: string[], {allowEmptyVisible = false}: Ov
     const overflowElRef = useRef<HTMLElement | null>(null);
     const observerRef = useRef<ResizeObserver | null>(null);
 
+    // A chip can report a momentary zero width right after mount (e.g. the id
+    // just changed shape, such as a multiselect collapsing from two chips to
+    // one). Retry a few frames before giving up, so a single bad measurement
+    // does not wedge the row in its hidden, unmeasured state with nothing left
+    // to retrigger it.
+    const measureRetriesRef = useRef(0);
+    const MAX_MEASURE_RETRIES = 5;
+
     const idsRef = useLatest(ids);
     const allowEmptyVisibleRef = useLatest(allowEmptyVisible);
     const [overflowStartIndex, setOverflowStartIndex] = useState(ids.length);
@@ -135,11 +143,23 @@ export function useLabelsOverflow(ids: string[], {allowEmptyVisible = false}: Ov
 
         const availableWidth = availableWidthForLabels(containerEl);
 
-        // Not laid out yet. Show everything rather than bailing: the row holds only
-        // the chips it is allowed to show, so bailing deadlocks — no visible chips
-        // means no width, means no measurement, means the chips never come back.
         if (availableWidth <= 0) {
-            setOverflowStartIndex(currentIds.length);
+            const titleOrParent = containerEl.closest(TITLE_SELECTOR) || containerEl.parentElement;
+            if (!titleOrParent || titleOrParent.getBoundingClientRect().width <= 0) {
+                // Not laid out yet (e.g. the very first paint): show everything so
+                // chip refs attach and a later resize can measure for real, rather
+                // than deadlocking on an empty, unmeasurable row.
+                setOverflowStartIndex(currentIds.length);
+                return;
+            }
+
+            // Laid out, but genuinely no room left for chips at all. "Show
+            // everything" here would force the row far past its container — and,
+            // since nothing then changes, nothing re-triggers a recalculation to
+            // recover. Use the same floor as the per-chip loop below instead.
+            measureRetriesRef.current = 0;
+            setOverflowStartIndex(allowEmptyVisibleRef.current ? 0 : Math.min(1, currentIds.length));
+            setMeasured(true);
             return;
         }
 
@@ -160,12 +180,25 @@ export function useLabelsOverflow(ids: string[], {allowEmptyVisible = false}: Ov
                 // chips look like they fit, then hide them, then fit, forever.
                 contentWidth = Math.max(chipEl.getBoundingClientRect().width, chipEl.scrollWidth);
                 if (contentWidth <= 0) {
+                    // Not laid out yet, most likely a chip that just mounted. Retry a
+                    // few frames rather than waiting indefinitely for some unrelated
+                    // resize to retrigger the observer; if it is still zero after
+                    // that, leave the last-known-good split alone instead of forcing
+                    // a possibly-wrong one.
+                    if (measureRetriesRef.current < MAX_MEASURE_RETRIES) {
+                        measureRetriesRef.current += 1;
+                        requestAnimationFrame(calculateOverflow);
+                    }
                     return;
                 }
                 chipWidthCache.current.set(currentIds[i], contentWidth);
             } else {
                 const cached = chipWidthCache.current.get(currentIds[i]);
                 if (cached === undefined) {
+                    if (measureRetriesRef.current < MAX_MEASURE_RETRIES) {
+                        measureRetriesRef.current += 1;
+                        requestAnimationFrame(calculateOverflow);
+                    }
                     return;
                 }
                 contentWidth = cached;
@@ -189,6 +222,7 @@ export function useLabelsOverflow(ids: string[], {allowEmptyVisible = false}: Ov
             usedWidth += chipWidth;
         }
 
+        measureRetriesRef.current = 0;
         setOverflowStartIndex(nextIndex);
         setMeasured(true);
     }, [containerEl, idsRef, allowEmptyVisibleRef]);
