@@ -5,16 +5,24 @@ import classNames from 'classnames';
 import React, {useState, useEffect, useRef} from 'react';
 import type {CSSProperties} from 'react';
 import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
 import PhoneOutlineIcon from '@mattermost/compass-icons/components/phone-outline';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {getUserIdFromChannelName, isDirectChannel} from 'mattermost-redux/utils/channel_utils';
+
+import {getSessionsInCalls} from 'selectors/calls';
+
+import CallOptionsMenu, {useCanStartCall, usePhoneCallOptions} from 'components/call_options_menu';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {Constants} from 'utils/constants';
 
+import type {GlobalState} from 'types/store';
 import type {CallButtonAction} from 'types/store/plugins';
 
 import './call_button.scss';
@@ -31,6 +39,17 @@ export default function CallButton({pluginCallComponents, currentChannel, channe
     const [clickEnabled, setClickEnabled] = useState(true);
     const prevSidebarOpen = useRef(sidebarOpen);
     const {formatMessage} = useIntl();
+
+    // In a DM with someone who has a phone number, the button opens a menu offering a call or a
+    // phone call. That needs a single call plugin that can dial, and no call already going on.
+    const currentUserId = useSelector(getCurrentUserId);
+    const singleCallButton = pluginCallComponents.length === 1 ? pluginCallComponents[0] : undefined;
+    const isOpenDM = Boolean(currentChannel && isDirectChannel(currentChannel) && !currentChannel.delete_at);
+    const dmUserId = isOpenDM && currentChannel ? getUserIdFromChannelName(currentUserId, currentChannel.name) : undefined;
+    const mayOfferPhone = Boolean(singleCallButton?.phoneAction && dmUserId);
+    const callOngoing = useSelector((state: GlobalState) => mayOfferPhone && Object.keys(getSessionsInCalls(state)[currentChannel?.id ?? ''] ?? {}).length > 0);
+    const canCall = useCanStartCall(currentChannel?.id ?? '', currentUserId, mayOfferPhone);
+    const phones = usePhoneCallOptions(dmUserId, mayOfferPhone && canCall && !callOngoing);
 
     useEffect(() => {
         if (prevSidebarOpen.current && !sidebarOpen) {
@@ -52,6 +71,46 @@ export default function CallButton({pluginCallComponents, currentChannel, channe
             height: 32,
         } as CSSProperties,
     };
+
+    if (singleCallButton?.phoneAction && dmUserId && phones.length > 0) {
+        const phoneAction = singleCallButton.phoneAction;
+
+        return (
+            <div
+                style={style.container}
+                className='flex-child'
+            >
+                <CallOptionsMenu
+                    menuId='callOptionsMenu'
+                    buttonId='callOptionsButton'
+                    buttonClass='style--none call-button callOptionsHeaderButton'
+                    disabled={!clickEnabled}
+                    buttonContent={
+                        <>
+                            <PhoneOutlineIcon
+                                color='inherit'
+                                aria-hidden={true}
+                            />
+                            <span className='call-button-label'>
+                                {formatMessage({id: 'call_button.start_call', defaultMessage: 'Start call'})}
+                            </span>
+                            <span className='callOptionsHeaderButton__chevron'>
+                                <ChevronDownIcon
+                                    color='inherit'
+                                    aria-hidden={true}
+                                />
+                            </span>
+                        </>
+                    }
+                    phones={phones}
+                    onStartCall={() => singleCallButton.action?.(currentChannel, channelMember)}
+                    onPhoneCall={(phone) => phoneAction({number: phone.number, userId: dmUserId, label: phone.label, fieldId: phone.fieldId})}
+                    anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
+                    transformOrigin={{vertical: 'top', horizontal: 'right'}}
+                />
+            </div>
+        );
+    }
 
     if (pluginCallComponents.length === 1) {
         const item = pluginCallComponents[0];
