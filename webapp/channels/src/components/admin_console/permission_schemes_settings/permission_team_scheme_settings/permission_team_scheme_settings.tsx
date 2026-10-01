@@ -6,7 +6,6 @@ import {defineMessage, FormattedMessage} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
 import type {Scheme, SchemePatch} from '@mattermost/types/schemes';
@@ -15,6 +14,7 @@ import type {Team} from '@mattermost/types/teams';
 import GeneralConstants from 'mattermost-redux/constants/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import BlockableButton from 'components/admin_console/blockable_button';
 import BlockableLink from 'components/admin_console/blockable_link';
 import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
@@ -817,8 +817,7 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                             />
                         }
                     />
-                    <BlockableLink
-                        className={buttonClassNames({emphasis: 'tertiary'})}
+                    <BlockableButton
                         to='/admin_console/user_management/permissions'
                         data-testid='permission-scheme-cancel-button'
                     >
@@ -826,7 +825,7 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                             id='admin.permissions.permissionSchemes.cancel'
                             defaultMessage='Cancel'
                         />
-                    </BlockableLink>
+                    </BlockableButton>
                     <div className='error-message'>
                         <FormError error={this.state.serverError}/>
                     </div>

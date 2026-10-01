@@ -60,7 +60,10 @@ describe('components/admin_console/SaveChangesPanel', () => {
         const cancel = screen.getByRole('button', {name: 'Cancel'});
         expect(cancel).toBeInTheDocument();
         expect(cancel).toHaveAttribute('id', 'cancelButtonSettings');
+        expect(cancel.tagName).toBe('BUTTON');
         expect(cancel.className).toMatch(/button--emphasis-tertiary/);
+        expect(cancel.className).not.toMatch(/\bbtn-tertiary\b/);
+        expect(cancel.className).not.toMatch(/\bbtn-quaternary\b/);
     });
 
     test('navigates immediately on Cancel when navigation is not blocked', async () => {
@@ -90,7 +93,10 @@ describe('components/admin_console/SaveChangesPanel', () => {
         const onCancel = jest.fn();
         renderPanel({onCancel});
 
-        await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
+        const cancel = screen.getByRole('button', {name: 'Cancel'});
+        expect(cancel.className).toMatch(/button--emphasis-tertiary/);
+
+        await userEvent.click(cancel);
         expect(onCancel).toHaveBeenCalled();
         expect(push).not.toHaveBeenCalled();
     });

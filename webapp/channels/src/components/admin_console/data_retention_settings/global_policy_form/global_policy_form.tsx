@@ -4,12 +4,12 @@
 import React, {type JSX} from 'react';
 import {defineMessages, FormattedMessage} from 'react-intl';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import BlockableButton from 'components/admin_console/blockable_button';
 import BlockableLink from 'components/admin_console/blockable_link';
 import {keepForeverOption, yearsOption, daysOption, FOREVER, YEARS, DAYS, hoursOption} from 'components/admin_console/data_retention_settings/dropdown_options/dropdown_options';
 import SetByEnv from 'components/admin_console/set_by_env';
@@ -273,15 +273,12 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
                             />
                         )}
                     />
-                    <BlockableLink
-                        className={buttonClassNames({emphasis: 'tertiary'})}
-                        to='/admin_console/compliance/data_retention_settings'
-                    >
+                    <BlockableButton to='/admin_console/compliance/data_retention_settings'>
                         <FormattedMessage
                             id='admin.data_retention.custom_policy.cancel'
                             defaultMessage='Cancel'
                         />
-                    </BlockableLink>
+                    </BlockableButton>
                     {this.state.serverError &&
                         <span className='CustomPolicy__error'>
                             <i className='icon icon-alert-outline'/>

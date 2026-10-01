@@ -7,7 +7,6 @@ import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -17,6 +16,7 @@ import {isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/gen
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SimulateAccessModal from 'components/admin_console/access_control/modals/simulate_access/simulate_access_modal';
+import BlockableButton from 'components/admin_console/blockable_button';
 import BlockableLink from 'components/admin_console/blockable_link';
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
@@ -859,15 +859,12 @@ function PermissionPolicyDetails({
                                 />
                             }
                         />
-                        <BlockableLink
-                            className={buttonClassNames({emphasis: 'quaternary'})}
-                            to='/admin_console/system_attributes/permission_policies'
-                        >
+                        <BlockableButton to='/admin_console/system_attributes/permission_policies'>
                             <FormattedMessage
                                 id='admin.permission_policies.edit.cancel'
                                 defaultMessage='Cancel'
                             />
-                        </BlockableLink>
+                        </BlockableButton>
                         {serverError && (
                             <span className='pp-error'>
                                 <i className='icon icon-alert-outline'/>
