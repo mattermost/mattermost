@@ -18,6 +18,7 @@ import ErrorTypes from './errors';
 import FileTypes from './files';
 import GeneralTypes from './general';
 import GroupTypes from './groups';
+import HealthTypes from './health';
 import HostedCustomerTypes from './hosted_customer';
 import IntegrationTypes from './integrations';
 import JobTypes from './jobs';
@@ -74,6 +75,7 @@ export {
     PropertyTypes,
     AgentTypes,
     RenderPermissionTypes,
+    HealthTypes,
     WebSocketTypes,
 };
 
