@@ -6519,1403 +6519,1408 @@
   },
   {
     "id": "app.data_spillage.report.detail.no_data_found",
-    "translation": ""
+    "translation": "Duomenų nerasta."
   },
   {
     "id": "app.data_spillage.report.detail.no_files",
-    "translation": ""
+    "translation": "Failų nerasta."
   },
   {
     "id": "app.data_spillage.report.detail.no_rows_to_delete",
-    "translation": ""
+    "translation": "Nėra eilučių, kurias reikėtų ištrinti."
   },
   {
     "id": "app.data_spillage.report.detail.post_scrubbed_deleted",
-    "translation": ""
+    "translation": "Pranešimas išvalytas ir ištrintas."
   },
   {
     "id": "app.data_spillage.report.detail.revisions_cleared",
-    "translation": ""
+    "translation": {
+      "one": "Išvalyta {{.Count}} versija iš {{.Total}}.",
+      "few": "Išvalytos {{.Count}} versijos iš {{.Total}}.",
+      "many": "Išvalyta {{.Count}} versijos iš {{.Total}}.",
+      "other": "Išvalyta {{.Count}} versijų iš {{.Total}}."
+    }
   },
   {
     "id": "app.data_spillage.report.detail.thread_data_deleted",
-    "translation": ""
+    "translation": "Gijos, reakcijos ir susiję duomenys ištrinti."
   },
   {
     "id": "app.data_spillage.report.error_log",
-    "translation": ""
+    "translation": "Klaidų žurnalas"
   },
   {
     "id": "app.data_spillage.report.generated",
-    "translation": ""
+    "translation": "Sugeneruota:"
   },
   {
     "id": "app.data_spillage.report.incomplete_warning",
-    "translation": ""
+    "translation": "Pranešimo ištrynimas nebaigtas. Peržiūrėkite klaidų žurnalą ir kreipkitės į sistemos administratorių, kad problema būtų pašalinta rankiniu būdu."
   },
   {
     "id": "app.data_spillage.report.post_id",
-    "translation": ""
+    "translation": "Pranešimo ID:"
   },
   {
     "id": "app.data_spillage.report.revision",
-    "translation": ""
+    "translation": "Versija"
   },
   {
     "id": "app.data_spillage.report.revisions_found",
-    "translation": ""
+    "translation": "Rasta versijų:"
   },
   {
     "id": "app.data_spillage.report.status.failed",
-    "translation": ""
+    "translation": "Nepavyko"
   },
   {
     "id": "app.data_spillage.report.status.not_applicable",
-    "translation": ""
+    "translation": "Netaikoma"
   },
   {
     "id": "app.data_spillage.report.status.partial",
-    "translation": ""
+    "translation": "Iš dalies"
   },
   {
     "id": "app.data_spillage.report.status.removed",
-    "translation": ""
+    "translation": "Pašalinta"
   },
   {
     "id": "app.data_spillage.report.status.unknown",
-    "translation": ""
+    "translation": "Nežinoma"
   },
   {
     "id": "app.data_spillage.report.step.acknowledgements",
-    "translation": ""
+    "translation": "Patvirtinimai"
   },
   {
     "id": "app.data_spillage.report.step.edit_histories",
-    "translation": ""
+    "translation": "Redagavimo istorija"
   },
   {
     "id": "app.data_spillage.report.step.file_attachments",
-    "translation": ""
+    "translation": "Failų priedai"
   },
   {
     "id": "app.data_spillage.report.step.fileinfo_rows",
-    "translation": ""
+    "translation": "Failų priedų įrašai"
   },
   {
     "id": "app.data_spillage.report.step.persistent_notifications",
-    "translation": ""
+    "translation": "Nuolatiniai pranešimai"
   },
   {
     "id": "app.data_spillage.report.step.post_itself",
-    "translation": ""
+    "translation": "Pranešimo įrašas"
   },
   {
     "id": "app.data_spillage.report.step.priority_data",
-    "translation": ""
+    "translation": "Prioriteto metaduomenys"
   },
   {
     "id": "app.data_spillage.report.step.reminders",
-    "translation": ""
+    "translation": "Priminimai"
   },
   {
     "id": "app.data_spillage.report.step.thread_data",
-    "translation": ""
+    "translation": "Gija, atsakymai ir reakcijos"
   },
   {
     "id": "app.data_spillage.report.summary",
-    "translation": ""
+    "translation": "Santrauka"
   },
   {
     "id": "app.data_spillage.report.sync.app_error",
-    "translation": ""
+    "translation": "Nepavyko sinchronizuoti pažymėto pranešimo ataskaitos failo su disku."
   },
   {
     "id": "app.data_spillage.report.tempfile.app_error",
-    "translation": ""
+    "translation": "Nepavyko sukurti laikinojo failo pažymėto pranešimo ataskaitai."
   },
   {
     "id": "app.data_spillage.report.title",
-    "translation": ""
+    "translation": "Pranešimo ištrynimo ataskaita"
   },
   {
     "id": "app.data_spillage.report.total_steps",
-    "translation": ""
+    "translation": "Iš viso veiksmų:"
   },
   {
     "id": "app.data_spillage.report.write_attachments_omitted.app_error",
-    "translation": ""
+    "translation": "Nepavyko įrašyti pranešimo apie neįtrauktus priedus į pažymėto pranešimo ataskaitą."
   },
   {
     "id": "app.data_spillage.report.write_edit_yaml.app_error",
-    "translation": ""
+    "translation": "Nepavyko įrašyti redagavimo istorijos įrašo į pažymėto pranešimo ataskaitą."
   },
   {
     "id": "app.data_spillage.report.write_exposure_csv.app_error",
-    "translation": ""
+    "translation": "Nepavyko įrašyti matomumo ataskaitos į pažymėto pranešimo ataskaitą."
   },
   {
     "id": "app.data_spillage.report.write_metadata_yaml.app_error",
-    "translation": ""
+    "translation": "Nepavyko įrašyti metaduomenų į pažymėto pranešimo ataskaitą."
   },
   {
     "id": "app.data_spillage.report.write_post_yaml.app_error",
-    "translation": ""
+    "translation": "Nepavyko įrašyti pranešimo duomenų į pažymėto pranešimo ataskaitą."
   },
   {
     "id": "app.data_spillage.report.write_review_yaml.app_error",
-    "translation": ""
+    "translation": "Nepavyko įrašyti turinio peržiūros duomenų į pažymėto pranešimo ataskaitą."
   },
   {
     "id": "app.data_spillage.report.zip_close.app_error",
-    "translation": ""
+    "translation": "Nepavyko uždaryti pažymėto pranešimo ataskaitos archyvo."
   },
   {
     "id": "app.data_spillage.report.zip_copy.app_error",
-    "translation": ""
+    "translation": "Nepavyko nukopijuoti priedo turinio į pažymėto pranešimo ataskaitos archyvą."
   },
   {
     "id": "app.data_spillage.report.zip_create.app_error",
-    "translation": ""
+    "translation": "Nepavyko sukurti įrašo pažymėto pranešimo ataskaitos archyve."
   },
   {
     "id": "app.data_spillage.save_reviewer_settings.app_error",
-    "translation": ""
+    "translation": "Nepavyko išsaugoti turinio peržiūrėtojų nustatymų duomenų bazėje."
   },
   {
     "id": "app.data_spillage.search_common_reviewers.app_error",
-    "translation": ""
+    "translation": "Nepavyko ieškoti termino bendrųjų peržiūrėtojų sąraše."
   },
   {
     "id": "app.data_spillage.search_property_fields.app_error",
-    "translation": ""
+    "translation": "Nepavyko ieškoti turinio žymėjimo savybių laukų."
   },
   {
     "id": "app.data_spillage.search_property_values.app_error",
-    "translation": ""
+    "translation": "Nepavyko gauti pranešimo turinio žymėjimo savybių reikšmių iš duomenų bazės."
   },
   {
     "id": "app.data_spillage.search_reviewer_posts.app_error",
-    "translation": ""
+    "translation": "Nepavyko ieškoti pažymėto pranešimo peržiūrėtojų pranešimų."
   },
   {
     "id": "app.data_spillage.search_status_property.app_error",
-    "translation": ""
+    "translation": "Nepavyko ieškoti pažymėto pranešimo savybių reikšmių."
   },
   {
     "id": "app.data_spillage.search_sysadmin_reviewers.app_error",
-    "translation": ""
+    "translation": "Nepavyko ieškoti paieškos termino sistemos administratorių peržiūrėtojų sąraše."
   },
   {
     "id": "app.data_spillage.search_team_admin_reviewers.app_error",
-    "translation": ""
+    "translation": "Nepavyko ieškoti paieškos termino komandos administratorių peržiūrėtojų sąraše."
   },
   {
     "id": "app.data_spillage.search_team_reviewers.app_error",
-    "translation": ""
+    "translation": "Nepavyko ieškoti paieškos termino komandos peržiūrėtojų sąraše."
   },
   {
     "id": "app.data_spillage.set_thread_replies_properties.app_error",
-    "translation": ""
+    "translation": "Nepavyko nustatyti pažymėto pranešimo gijos atsakymų savybių reikšmių."
   },
   {
     "id": "app.delete_scheduled_post.delete_error",
-    "translation": ""
+    "translation": "Nepavyko ištrinti suplanuoto pranešimo iš duomenų bazės."
   },
   {
     "id": "app.delete_scheduled_post.delete_permission.error",
-    "translation": ""
+    "translation": "Neturite leidimo ištrinti šio ištekliaus."
   },
   {
     "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
-    "translation": ""
+    "translation": "Suplanuotas pranešimas neegzistuoja."
   },
   {
     "id": "app.delete_scheduled_post.get_scheduled_post.error",
-    "translation": ""
+    "translation": "Nepavyksta gauti esamo suplanuoto pranešimo iš duomenų bazės."
   },
   {
     "id": "app.delivery_tracking.dm_gm_not_allowed.app_error",
-    "translation": ""
+    "translation": "Tiesioginių ir grupės pranešimų negalima pasirinkti pranešimų pristatymo audito registravimui."
   },
   {
     "id": "app.delivery_tracking.get_config.app_error",
-    "translation": ""
+    "translation": "Nepavyko perskaityti pranešimų pristatymo audito registravimo nustatymų iš duomenų bazės."
   },
   {
     "id": "app.delivery_tracking.invalid_channel.app_error",
-    "translation": ""
+    "translation": "Vieno ar kelių pasirinktų kanalų rasti nepavyko."
   },
   {
     "id": "app.delivery_tracking.save_config.app_error",
-    "translation": ""
+    "translation": "Nepavyko išsaugoti pranešimų pristatymo audito registravimo nustatymų duomenų bazėje."
   },
   {
     "id": "app.desktop_token.generateServerToken.invalid_or_expired",
-    "translation": ""
+    "translation": "Raktas neegzistuoja arba nebegalioja"
   },
   {
     "id": "app.desktop_token.validate.invalid",
-    "translation": ""
+    "translation": "Raktas netinkamas arba nebegalioja"
   },
   {
     "id": "app.desktop_token.validate.no_user",
-    "translation": ""
+    "translation": "Nepavyksta rasti šio rakto naudotojo"
   },
   {
     "id": "app.draft.delete.app_error",
-    "translation": ""
+    "translation": "Nepavyksta ištrinti juodraščio."
   },
   {
     "id": "app.draft.feature_disabled",
-    "translation": ""
+    "translation": "Juodraščių funkcija išjungta."
   },
   {
     "id": "app.draft.get.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti juodraščio."
   },
   {
     "id": "app.draft.get_drafts.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti naudotojo juodraščių."
   },
   {
     "id": "app.draft.get_for_draft.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti juodraščio failų."
   },
   {
     "id": "app.draft.save.app_error",
-    "translation": ""
+    "translation": "Nepavyksta išsaugoti juodraščio."
   },
   {
     "id": "app.draft.upsert.rejected_by_plugin",
-    "translation": ""
+    "translation": "Papildinys atmetė juodraštį: {{.Reason}}"
   },
   {
     "id": "app.drafts.permanent_delete_by_user.app_error",
-    "translation": ""
+    "translation": "Nepavyksta ištrinti naudotojo juodraščių."
   },
   {
     "id": "app.email.no_rate_limiter.app_error",
-    "translation": ""
+    "translation": "Spartos ribotuvas nenustatytas."
   },
   {
     "id": "app.email.rate_limit_exceeded.app_error",
-    "translation": ""
+    "translation": "Viršytas kvietimų el. paštu spartos limitas. Laikmatis bus nustatytas iš naujo po {{.ResetAfter}} sek. Bandykite dar kartą po {{.RetryAfter}} sek."
   },
   {
     "id": "app.email.setup_rate_limiter.app_error",
-    "translation": ""
+    "translation": "Spartos ribotuve įvyko klaida."
   },
   {
     "id": "app.emoji.create.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta išsaugoti jaustuko."
   },
   {
     "id": "app.emoji.delete.app_error",
-    "translation": ""
+    "translation": "Nepavyksta ištrinti jaustuko."
   },
   {
     "id": "app.emoji.delete.no_results",
-    "translation": ""
+    "translation": "Neradome jaustuko, kurį reikėtų ištrinti."
   },
   {
     "id": "app.emoji.get.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti jaustuko."
   },
   {
     "id": "app.emoji.get.no_result",
-    "translation": ""
+    "translation": "Neradome jaustuko."
   },
   {
     "id": "app.emoji.get_by_name.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti jaustuko."
   },
   {
     "id": "app.emoji.get_by_name.no_result",
-    "translation": ""
+    "translation": "Neradome jaustuko."
   },
   {
     "id": "app.emoji.get_list.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti jaustukų."
   },
   {
     "id": "app.export.channel_requires_team.error",
-    "translation": ""
+    "translation": "Nurodant kanalo pavadinimą, būtina nurodyti ir komandos pavadinimą."
   },
   {
     "id": "app.export.export_all_channels.channel_not_found.error",
-    "translation": ""
+    "translation": "Nurodytas kanalas nerastas nė vienoje iš nurodytų komandų."
   },
   {
     "id": "app.export.export_all_teams.team_deleted.error",
-    "translation": ""
+    "translation": "Nurodyta komanda buvo ištrinta."
   },
   {
     "id": "app.export.export_all_teams.team_not_found.error",
-    "translation": ""
+    "translation": "Nurodyta komanda nerasta."
   },
   {
     "id": "app.export.export_attachment.copy_file.error",
-    "translation": ""
+    "translation": "Eksportuojant nepavyko nukopijuoti failo."
   },
   {
     "id": "app.export.export_attachment.create_file.error",
-    "translation": ""
+    "translation": "Eksportuojant nepavyko sukurti failo."
   },
   {
     "id": "app.export.export_attachment.mkdirall.error",
-    "translation": ""
+    "translation": "Eksportuojant nepavyko sukurti katalogo."
   },
   {
     "id": "app.export.export_attachment.zip_create_header.error",
-    "translation": ""
+    "translation": "Eksportuojant nepavyko sukurti zip antraštės."
   },
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
-    "translation": ""
+    "translation": "Nepavyksta nukopijuoti tinkintų jaustukų paveikslėlių"
   },
   {
     "id": "app.export.export_custom_emoji.mkdir.error",
-    "translation": ""
+    "translation": "Nepavyksta sukurti katalogo tinkintų jaustukų paveikslėliams"
   },
   {
     "id": "app.export.export_version.scope_marshal.error",
-    "translation": ""
+    "translation": "Nepavyko įrašyti komandos ir kanalo aprėpties į eksportą. Nutraukiama, kad nebūtų sukurtas archyvas, kuris būtų importuojamas kaip viso serverio atkūrimas."
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
-    "translation": ""
+    "translation": "Rašant eksporto duomenis įvyko klaida."
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": ""
+    "translation": "Serializuojant JSON duomenis eksportui įvyko klaida."
   },
   {
     "id": "app.export.generate_presigned_url.config.app_error",
-    "translation": ""
+    "translation": "Šiam veiksmui reikalinga atskira eksporto saugykla."
   },
   {
     "id": "app.export.generate_presigned_url.direct_download.app_error",
-    "translation": ""
+    "translation": "Tiesioginis eksportų atsisiuntimas galimas tik Mattermost Cloud."
   },
   {
     "id": "app.export.generate_presigned_url.driver.app_error",
-    "translation": ""
+    "translation": "Jūsų eksporto saugyklos tvarkyklė nepalaiko iš anksto pasirašytų (presigned) URL generavimo."
   },
   {
     "id": "app.export.generate_presigned_url.fileexist.app_error",
-    "translation": ""
+    "translation": "Nepavyksta patikrinti, ar failas egzistuoja."
   },
   {
     "id": "app.export.generate_presigned_url.link.app_error",
-    "translation": ""
+    "translation": "Nepavyksta sugeneruoti iš anksto pasirašyto (presigned) URL."
   },
   {
     "id": "app.export.generate_presigned_url.notfound.app_error",
-    "translation": ""
+    "translation": "Eksporto failas nerastas."
   },
   {
     "id": "app.export.marshal.app_error",
-    "translation": ""
+    "translation": "Nepavyksta serializuoti atsakymo."
   },
   {
     "id": "app.export.zip_create.error",
-    "translation": ""
+    "translation": "Eksportuojant nepavyko pridėti failo į zip archyvą."
   },
   {
     "id": "app.file.cloud.get.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti failo, nes jis viršija debesijos plano limitą."
   },
   {
     "id": "app.file_info.delete_for_post_ids.app_error",
-    "translation": ""
+    "translation": "Nepavyko pašalinti nurodytų failų iš duomenų bazės"
   },
   {
     "id": "app.file_info.get.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti failo informacijos."
   },
   {
     "id": "app.file_info.get.gif.app_error",
-    "translation": ""
+    "translation": "Nepavyko dekoduoti gif."
   },
   {
     "id": "app.file_info.get_by_ids.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti failų informacijos pagal ID pranešimo redagavimo istorijai."
   },
   {
     "id": "app.file_info.get_by_post_id.app_error",
-    "translation": ""
+    "translation": "Nepavyko rasti pranešimo failų."
   },
   {
     "id": "app.file_info.get_count.app_error",
-    "translation": ""
+    "translation": "Nepavyko gauti visų failų skaičiaus."
   },
   {
     "id": "app.file_info.get_for_post.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti pranešimo failų informacijos."
   },
   {
     "id": "app.file_info.get_storage_usage.app_error",
-    "translation": ""
+    "translation": "Nepavyko gauti visų failų užimamos saugyklos vietos."
   },
   {
     "id": "app.file_info.get_with_options.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti failų informacijos su parinktimis"
   },
   {
     "id": "app.file_info.not_found",
-    "translation": ""
+    "translation": "Failas nurodytu keliu failų saugykloje nerastas."
   },
   {
     "id": "app.file_info.permanent_delete_by_user.app_error",
-    "translation": ""
+    "translation": "Nepavyksta ištrinti naudotojo priedų."
   },
   {
     "id": "app.file_info.permanent_delete_for_post.app_error",
-    "translation": ""
+    "translation": "Nepavyko negrįžtamai ištrinti pranešimo failo."
   },
   {
     "id": "app.file_info.remove_file.app_error",
-    "translation": ""
+    "translation": "Nepavyko pašalinti failo iš failų saugyklos."
   },
   {
     "id": "app.file_info.save.app_error",
-    "translation": ""
+    "translation": "Nepavyksta išsaugoti failo informacijos."
   },
   {
     "id": "app.file_info.seek.gif.app_error",
-    "translation": ""
+    "translation": "Nepavyksta pereiti į GIF duomenų pradžią."
   },
   {
     "id": "app.file_info.set_searchable_content.app_error",
-    "translation": ""
+    "translation": "Nepavyksta nustatyti failo ieškomo turinio."
   },
   {
     "id": "app.file_info.undelete_for_post_ids.app_error",
-    "translation": ""
+    "translation": "Nepavyko atkurti pranešimų failų priedų."
   },
   {
     "id": "app.get_user_team_scheduled_posts.error",
-    "translation": ""
+    "translation": "Gaunant suplanuotus pranešimus įvyko klaida."
   },
   {
     "id": "app.group.create_syncable_memberships.error",
-    "translation": ""
+    "translation": "Nepavyksta sukurti grupių sinchronizuojamų narysčių."
   },
   {
     "id": "app.group.crud_permission",
-    "translation": ""
+    "translation": "Nepavyksta atlikti operacijos šio šaltinio tipo grupei."
   },
   {
     "id": "app.group.delete_invalid_syncable_memberships.error",
-    "translation": ""
+    "translation": "Nepavyksta ištrinti netinkamų grupių sinchronizuojamų narysčių."
   },
   {
     "id": "app.group.group_syncable_already_deleted",
-    "translation": ""
+    "translation": "grupės sinchronizuojamas susiejimas jau ištrintas"
   },
   {
     "id": "app.group.id.app_error",
-    "translation": ""
+    "translation": "netinkama grupės id savybė."
   },
   {
     "id": "app.group.license_error",
-    "translation": ""
+    "translation": "Reikalinga LDAP licencija."
   },
   {
     "id": "app.group.no_rows",
-    "translation": ""
+    "translation": "atitinkančių grupių nerasta"
   },
   {
     "id": "app.group.permanent_delete_members_by_user.app_error",
-    "translation": ""
+    "translation": "Nepavyksta pašalinti grupės nario, kurio UserID yra \"{{.UserId}}\"."
   },
   {
     "id": "app.group.uniqueness_error",
-    "translation": ""
+    "translation": "grupės narys jau egzistuoja"
   },
   {
     "id": "app.group.user_not_found",
-    "translation": ""
+    "translation": "Klaida atnaujinant grupę. Naudotojas, kurio naudotojo vardas \"{{.Username}}\", nerastas."
   },
   {
     "id": "app.group.username_conflict",
-    "translation": ""
+    "translation": "naudotojas, kurio naudotojo vardas \"{{.Username}}\", jau egzistuoja."
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": ""
+    "translation": "Nepavyksta nutildyti būklės patikros radinio."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
-    "translation": ""
+    "translation": "Būklės patikros radinys nerastas."
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": ""
+    "translation": "Nepavyksta atšaukti būklės patikros radinio nutildymo."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": ""
+    "translation": "Būklės patikros radinys nerastas."
   },
   {
     "id": "app.import.attachment.bad_file.error",
-    "translation": ""
+    "translation": "Klaida skaitant failą: \"{{.FilePath}}\""
   },
   {
     "id": "app.import.attachment.file_stat.error",
-    "translation": ""
+    "translation": "Klaida skaitant failo būseną: \"{{.FilePath}}\""
   },
   {
     "id": "app.import.attachment.file_upload.error",
-    "translation": ""
+    "translation": "Klaida įkeliant failą: \"{{.FilePath}}\""
   },
   {
     "id": "app.import.attachment.seek_file.error",
-    "translation": ""
+    "translation": "Klaida pereinant failu: \"{{.FilePath}}\""
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",
-    "translation": ""
+    "translation": "--destination-channel-name reikalauja kanalo aprėpties eksporto."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_single_channel_scope.error",
-    "translation": ""
+    "translation": "--destination-channel-name reikalauja vieno kanalo eksporto; šiame eksporte yra keli kanalai."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_single_team_scope.error",
-    "translation": ""
+    "translation": "--destination-channel-name reikalauja eksporto, kurio aprėptis yra lygiai viena komanda, kitaip kanalo pavadinimas dviprasmiškas."
   },
   {
     "id": "app.import.bulk_import.destination_team_requires_single_team_scope.error",
-    "translation": ""
+    "translation": "--destination-team-name reikalauja vienos komandos eksporto; šiame eksporte yra kelios komandos."
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
-    "translation": ""
+    "translation": "Klaida skaitant importo duomenų failą."
   },
   {
     "id": "app.import.bulk_import.imported_users_choice_required.error",
-    "translation": ""
+    "translation": "Tai apribotos aprėpties eksportas, todėl --imported-users turi būti nustatytas į \"active\" arba \"inactive\"; saugios numatytosios reikšmės nėra. Naudokite --imported-users=active, kai importuojate į naują serverį, į kurį šie naudotojai persikelia, kad jie galėtų prisijungti. Kitu atveju kiekviena importo sukurta paskyra bus išaktyvinta ir niekas, įskaitant SSO naudotojus, negalės prisijungti, kol administratorius jų neaktyvins po vieną. Naudokite --imported-users=inactive, kai importuojate į esamą serverį, kuriame jau yra kitų žmonių turinio, kad paskyros, sukurtos pagal silpnas naudotojo vardo ar el. pašto atitiktis, liktų išaktyvintos, kol administratorius jas peržiūrės. Bet kuriuo atveju naudotojai, kurie buvo išaktyvinti šaltinio serveryje, lieka išaktyvinti, o paskyros, jau egzistuojančios paskirties serveryje, yra sutapatinamos, o ne kuriamos, todėl šis pasirinkimas joms įtakos neturi."
   },
   {
     "id": "app.import.bulk_import.json_decode.error",
-    "translation": ""
+    "translation": "Nepavyko dekoduoti eilutės JSON."
   },
   {
     "id": "app.import.bulk_import.unsupported_version.error",
-    "translation": ""
+    "translation": "Duomenų importo faile versija neteisinga arba jos trūksta. Įsitikinkite, kad versija yra pirmasis importo failo objektas, ir bandykite dar kartą."
   },
   {
     "id": "app.import.custom_status.error",
-    "translation": ""
+    "translation": "Nepavyksta nustatyti tinkintos būsenos."
   },
   {
     "id": "app.import.emoji.bad_file.error",
-    "translation": ""
+    "translation": "Klaida skaitant importuojamo jaustuko paveikslėlio failą. Jaustuko pavadinimas: \"{{.EmojiName}}\""
   },
   {
     "id": "app.import.generate_password.app_error",
-    "translation": ""
+    "translation": "Klaida generuojant slaptažodį."
   },
   {
     "id": "app.import.get_teams_by_names.some_teams_not_found.error",
-    "translation": ""
+    "translation": "Kai kurios komandos nerastos"
   },
   {
     "id": "app.import.get_users_by_username.some_users_not_found.error",
-    "translation": ""
+    "translation": "Kai kurie naudotojai nerasti"
   },
   {
     "id": "app.import.import_bot.lookup_error",
-    "translation": ""
+    "translation": "Nepavyko patikrinti, ar robotas jau egzistuoja"
   },
   {
     "id": "app.import.import_bot.owner_could_not_found.error",
-    "translation": ""
+    "translation": "Nepavyksta rasti roboto savininko"
   },
   {
     "id": "app.import.import_bot.user_not_found.error",
-    "translation": ""
+    "translation": "Roboto naudotojas nerastas"
   },
   {
     "id": "app.import.import_channel.deleting.app_error",
-    "translation": ""
+    "translation": "Nepavyksta archyvuoti importuoto kanalo."
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
-    "translation": ""
+    "translation": "Nepavyksta nustatyti kanalui ištrintos schemos."
   },
   {
     "id": "app.import.import_channel.scheme_wrong_scope.error",
-    "translation": ""
+    "translation": "Kanalui turi būti priskirta kanalo aprėpties schema."
   },
   {
     "id": "app.import.import_channel.team_not_found.error",
-    "translation": ""
+    "translation": "Klaida importuojant kanalą. Komanda pavadinimu \"{{.TeamName}}\" nerasta."
   },
   {
     "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": ""
+    "translation": "Nepavyko sukurti tiesioginio kanalo"
   },
   {
     "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": ""
+    "translation": "Nepavyko sukurti grupės kanalo"
   },
   {
     "id": "app.import.import_direct_channel.get_channel_members.error",
-    "translation": ""
+    "translation": "Nepavyko gauti tiesioginio kanalo narių"
   },
   {
     "id": "app.import.import_direct_channel.get_ever_members.error",
-    "translation": ""
+    "translation": "Nepavyko gauti narių, kada nors priklausiusių tiesioginiam kanalui, istorijos"
   },
   {
     "id": "app.import.import_direct_channel.no_members.error",
-    "translation": ""
+    "translation": "Tiesioginis kanalas neturi narių"
   },
   {
     "id": "app.import.import_direct_channel.save_member.error",
-    "translation": ""
+    "translation": "Importuojant tiesioginį kanalą nepavyko išsaugoti kanalo nario"
   },
   {
     "id": "app.import.import_direct_channel.update_header_failed.error",
-    "translation": ""
+    "translation": "Nepavyko atnaujinti tiesioginio kanalo antraštės"
   },
   {
     "id": "app.import.import_direct_post.create_direct_channel.error",
-    "translation": ""
+    "translation": "Nepavyko gauti tiesioginio kanalo"
   },
   {
     "id": "app.import.import_direct_post.create_group_channel.error",
-    "translation": ""
+    "translation": "Nepavyko gauti grupės kanalo"
   },
   {
     "id": "app.import.import_line.null_bot.error",
-    "translation": ""
+    "translation": "Importo duomenų eilutės tipas yra \"bot\", bet roboto objektas tuščias (null)"
   },
   {
     "id": "app.import.import_line.null_channel.error",
-    "translation": ""
+    "translation": "Importo duomenų eilutės tipas yra \"channel\", bet kanalo objektas tuščias (null)."
   },
   {
     "id": "app.import.import_line.null_direct_channel.error",
-    "translation": ""
+    "translation": "Importo duomenų eilutės tipas yra \"direct_channel\", bet direct_channel objektas tuščias (null)."
   },
   {
     "id": "app.import.import_line.null_direct_post.error",
-    "translation": ""
+    "translation": "Importo duomenų eilutės tipas yra \"direct_post\", bet direct_post objektas tuščias (null)."
   },
   {
     "id": "app.import.import_line.null_emoji.error",
-    "translation": ""
+    "translation": "Importo duomenų eilutės tipas yra \"emoji\", bet jaustuko objektas tuščias (null)."
   },
   {
     "id": "app.import.import_line.null_post.error",
-    "translation": ""
+    "translation": "Importo duomenų eilutės tipas yra \"post\", bet pranešimo objektas tuščias (null)."
   },
   {
     "id": "app.import.import_line.null_role.error",
-    "translation": ""
+    "translation": "Importo duomenų eilutės tipas yra \"role\", bet vaidmens objektas tuščias (null)."
   },
   {
     "id": "app.import.import_line.null_scheme.error",
-    "translation": ""
+    "translation": "Importo duomenų eilutės tipas yra \"scheme\", bet schemos objektas tuščias (null)."
   },
   {
     "id": "app.import.import_line.null_team.error",
-    "translation": ""
+    "translation": "Importo duomenų eilutės tipas yra \"team\", bet komandos objektas tuščias (null)."
   },
   {
     "id": "app.import.import_line.null_user.error",
-    "translation": ""
+    "translation": "Importo duomenų eilutės tipas yra \"user\", bet naudotojo objektas tuščias (null)."
   },
   {
     "id": "app.import.import_line.unknown_line_type.error",
-    "translation": ""
+    "translation": "Importo duomenų eilutės tipas \"{{.Type}}\" nežinomas."
   },
   {
     "id": "app.import.import_post.channel_not_found.error",
-    "translation": ""
+    "translation": "Klaida importuojant pranešimą. Kanalas pavadinimu \"{{.ChannelName}}\" nerastas."
   },
   {
     "id": "app.import.import_post.save_preferences.error",
-    "translation": ""
+    "translation": "Klaida importuojant pranešimą. Nepavyko išsaugoti nuostatų."
   },
   {
     "id": "app.import.import_post.user_not_found.error",
-    "translation": ""
+    "translation": "Klaida importuojant pranešimą. Naudotojas, kurio naudotojo vardas \"{{.Username}}\", nerastas."
   },
   {
     "id": "app.import.import_scheme.scope_change.error",
-    "translation": ""
+    "translation": "Masinis importas negali pakeisti jau egzistuojančios schemos aprėpties."
   },
   {
     "id": "app.import.import_team.scheme_deleted.error",
-    "translation": ""
+    "translation": "Nepavyksta nustatyti komandai ištrintos schemos."
   },
   {
     "id": "app.import.import_team.scheme_wrong_scope.error",
-    "translation": ""
+    "translation": "Komandai turi būti priskirta komandos aprėpties schema."
   },
   {
     "id": "app.import.import_user.save_preferences.error",
-    "translation": ""
+    "translation": "Klaida importuojant naudotojo nuostatas. Nepavyko išsaugoti nuostatų."
   },
   {
     "id": "app.import.import_user_channels.channel_not_found.error",
-    "translation": ""
+    "translation": "Klaida importuojant naudotojo kanalus. Kanalas nerastas."
   },
   {
     "id": "app.import.import_user_channels.save_preferences.error",
-    "translation": ""
+    "translation": "Klaida importuojant naudotojo kanalų narystes. Nepavyko išsaugoti nuostatų."
   },
   {
     "id": "app.import.import_user_teams.save_members.conflict.app_error",
-    "translation": ""
+    "translation": "Nepavyksta importuoti naujos komandos narystės, nes ji jau egzistuoja"
   },
   {
     "id": "app.import.import_user_teams.save_members.error",
-    "translation": ""
+    "translation": "Nepavyksta importuoti komandų narysčių"
   },
   {
     "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
-    "translation": ""
+    "translation": "Nepavyksta importuoti komandos narystės, nes toje komandoje daugiau narių neleidžiama"
   },
   {
     "id": "app.import.import_user_teams.save_preferences.error",
-    "translation": ""
+    "translation": "Nepavyksta išsaugoti komandos temos nuostatų"
   },
   {
     "id": "app.import.pre_create_sso_user.missing_fields.app_error",
-    "translation": ""
+    "translation": "SSO naudotojo importo duomenyse trūksta privalomų laukų (naudotojo vardo arba el. pašto)."
   },
   {
     "id": "app.import.preflight.auth_provider_not_configured.error",
-    "translation": ""
+    "translation": "Autentifikavimo teikėjas {{.Service}} šiame serveryje nesukonfigūruotas: {{.Detail}}"
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
-    "translation": ""
+    "translation": "Nepavyksta perskaityti duomenų importo failo versijos."
   },
   {
     "id": "app.import.profile_image.open.app_error",
-    "translation": ""
+    "translation": "Nepavyko atidaryti profilio paveikslėlio failo: {{.FileName}}"
   },
   {
     "id": "app.import.profile_image.read_data.app_error",
-    "translation": ""
+    "translation": "Nepavyko perskaityti profilio paveikslėlio duomenų."
   },
   {
     "id": "app.import.validate_attachment_import_data.invalid_path.error",
-    "translation": ""
+    "translation": "Nepavyko patikrinti priedo importo duomenų. Netinkamas kelias: \"{{.Path}}\""
   },
   {
     "id": "app.import.validate_bot_import_data.owner_missing.error",
-    "translation": ""
+    "translation": "Trūksta roboto savininko"
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
-    "translation": ""
+    "translation": "Kanalo display_name neatitinka leidžiamų ilgio apribojimų."
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
-    "translation": ""
+    "translation": "Kanalo antraštė per ilga."
   },
   {
     "id": "app.import.validate_channel_import_data.name_characters.error",
-    "translation": ""
+    "translation": "Kanalo pavadinime yra netinkamų simbolių."
   },
   {
     "id": "app.import.validate_channel_import_data.name_length.error",
-    "translation": ""
+    "translation": "Kanalo pavadinimas per ilgas."
   },
   {
     "id": "app.import.validate_channel_import_data.name_missing.error",
-    "translation": ""
+    "translation": "Trūksta privalomos kanalo savybės: name"
   },
   {
     "id": "app.import.validate_channel_import_data.purpose_length.error",
-    "translation": ""
+    "translation": "Kanalo paskirtis per ilga."
   },
   {
     "id": "app.import.validate_channel_import_data.scheme_invalid.error",
-    "translation": ""
+    "translation": "Netinkamas kanalo schemos pavadinimas."
   },
   {
     "id": "app.import.validate_channel_import_data.team_missing.error",
-    "translation": ""
+    "translation": "Trūksta privalomos kanalo savybės: team"
   },
   {
     "id": "app.import.validate_channel_import_data.type_invalid.error",
-    "translation": ""
+    "translation": "Kanalo tipas netinkamas."
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
-    "translation": ""
+    "translation": "Trūksta privalomos kanalo savybės: type."
   },
   {
     "id": "app.import.validate_direct_channel_import_data.header_length.error",
-    "translation": ""
+    "translation": "Tiesioginio kanalo antraštė per ilga"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_required.error",
-    "translation": ""
+    "translation": "Trūksta privalomos tiesioginio kanalo savybės: members"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
-    "translation": ""
+    "translation": "Tiesioginio kanalo narių sąraše per mažai elementų"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
-    "translation": ""
+    "translation": "Tiesioginio kanalo narių sąraše per daug elementų"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
-    "translation": ""
+    "translation": "Tiesioginį kanalą prie mėgstamiausių gali pridėti tik jo nariai. \"{{.Username}}\" nėra narys."
   },
   {
     "id": "app.import.validate_direct_post_import_data.attachment.error",
-    "translation": ""
+    "translation": "Nepavyko patikrinti tiesioginio pranešimo priedo duomenų."
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
-    "translation": ""
+    "translation": "Trūksta privalomos tiesioginio pranešimo savybės: channel_members"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
-    "translation": ""
+    "translation": "Tiesioginio pranešimo kanalo narių sąraše per mažai elementų"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
-    "translation": ""
+    "translation": "Tiesioginio pranešimo kanalo narių sąraše per daug elementų"
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
-    "translation": ""
+    "translation": "Trūksta privalomos tiesioginio pranešimo savybės: create_at"
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
-    "translation": ""
+    "translation": "CreateAt turi būti didesnis nei 0"
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_length.error",
-    "translation": ""
+    "translation": "Pranešimas per ilgas"
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
-    "translation": ""
+    "translation": "Trūksta privalomos tiesioginio pranešimo savybės: message"
   },
   {
     "id": "app.import.validate_direct_post_import_data.thread_follower.error",
-    "translation": ""
+    "translation": "Nepavyko patikrinti tiesioginio pranešimo gijos sekėjo duomenų."
   },
   {
     "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
-    "translation": ""
+    "translation": "Tiesioginį pranešimą gali pažymėti tik kanalo, kuriame jis yra, nariai. \"{{.Username}}\" nėra narys."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
-    "translation": ""
+    "translation": "Trūksta privalomos tiesioginio pranešimo savybės: user"
   },
   {
     "id": "app.import.validate_emoji_import_data.empty.error",
-    "translation": ""
+    "translation": "Importuojamo jaustuko duomenys tušti."
   },
   {
     "id": "app.import.validate_emoji_import_data.image_missing.error",
-    "translation": ""
+    "translation": "Importuojamo jaustuko paveikslėlio lauko trūksta arba jis tuščias."
   },
   {
     "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
-    "translation": ""
+    "translation": "Importuojamo jaustuko paveikslėlio lauke nurodytas netinkamas kelias: \"{{.Path}}\""
   },
   {
     "id": "app.import.validate_emoji_import_data.name_missing.error",
-    "translation": ""
+    "translation": "Importuojamo jaustuko pavadinimo lauko trūksta arba jis tuščias."
   },
   {
     "id": "app.import.validate_post_import_data.attachment.error",
-    "translation": ""
+    "translation": "Nepavyko patikrinti pranešimo priedo duomenų."
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
-    "translation": ""
+    "translation": "Trūksta privalomos Post savybės: Channel."
   },
   {
     "id": "app.import.validate_post_import_data.create_at_missing.error",
-    "translation": ""
+    "translation": "Trūksta privalomos Post savybės: create_at."
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": ""
+    "translation": "Post savybė CreateAt negali būti lygi nuliui."
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
-    "translation": ""
+    "translation": "Post savybė Message ilgesnė nei didžiausias leidžiamas ilgis."
   },
   {
     "id": "app.import.validate_post_import_data.message_missing.error",
-    "translation": ""
+    "translation": "Trūksta privalomos Post savybės: Message."
   },
   {
     "id": "app.import.validate_post_import_data.props_too_large.error",
-    "translation": ""
+    "translation": "Post savybės Props ilgesnės nei didžiausias leidžiamas ilgis."
   },
   {
     "id": "app.import.validate_post_import_data.team_missing.error",
-    "translation": ""
+    "translation": "Trūksta privalomos Post savybės: Team."
   },
   {
     "id": "app.import.validate_post_import_data.thread_follower.error",
-    "translation": ""
+    "translation": "Nepavyko patikrinti pranešimo gijos sekėjo duomenų."
   },
   {
     "id": "app.import.validate_post_import_data.user_missing.error",
-    "translation": ""
+    "translation": "Trūksta privalomos Post savybės: User."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
-    "translation": ""
+    "translation": "Reaction savybė CreateAt turi būti didesnė nei pirminio pranešimo CreateAt."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_missing.error",
-    "translation": ""
+    "translation": "Trūksta privalomos Reaction savybės: create_at."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_zero.error",
-    "translation": ""
+    "translation": "Reaction savybė CreateAt negali būti lygi nuliui."
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": ""
+    "translation": "Reaction savybė EmojiName ilgesnė nei didžiausias leidžiamas ilgis."
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
-    "translation": ""
+    "translation": "Trūksta privalomos Reaction savybės: EmojiName."
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
-    "translation": ""
+    "translation": "Trūksta privalomos Reaction savybės: User."
   },
   {
     "id": "app.import.validate_reply_import_data.attachment.error",
-    "translation": ""
+    "translation": "Nepavyko patikrinti atsakymo priedo duomenų."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
-    "translation": ""
+    "translation": "Trūksta privalomos Reply savybės: create_at."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_zero.error",
-    "translation": ""
+    "translation": "Reply savybė CreateAt negali būti lygi nuliui."
   },
   {
     "id": "app.import.validate_reply_import_data.message_length.error",
-    "translation": ""
+    "translation": "Reply savybė Message ilgesnė nei didžiausias leidžiamas ilgis."
   },
   {
     "id": "app.import.validate_reply_import_data.message_missing.error",
-    "translation": ""
+    "translation": "Trūksta privalomos Reply savybės: Message."
   },
   {
     "id": "app.import.validate_reply_import_data.user_missing.error",
-    "translation": ""
+    "translation": "Trūksta privalomos Reply savybės: User."
   },
   {
     "id": "app.import.validate_role_import_data.description_invalid.error",
-    "translation": ""
+    "translation": "Netinkamas vaidmens aprašas."
   },
   {
     "id": "app.import.validate_role_import_data.display_name_invalid.error",
-    "translation": ""
+    "translation": "Netinkamas vaidmens rodomas pavadinimas."
   },
   {
     "id": "app.import.validate_role_import_data.invalid_permission.error",
-    "translation": ""
+    "translation": "Netinkamas vaidmens leidimas."
   },
   {
     "id": "app.import.validate_role_import_data.name_invalid.error",
-    "translation": ""
+    "translation": "Netinkamas vaidmens pavadinimas."
   },
   {
     "id": "app.import.validate_scheme_import_data.description_invalid.error",
-    "translation": ""
+    "translation": "Netinkamas schemos aprašas."
   },
   {
     "id": "app.import.validate_scheme_import_data.display_name_invalid.error",
-    "translation": ""
+    "translation": "Netinkamas schemos rodomas pavadinimas."
   },
   {
     "id": "app.import.validate_scheme_import_data.name_invalid.error",
-    "translation": ""
+    "translation": "Netinkamas schemos pavadinimas."
   },
   {
     "id": "app.import.validate_scheme_import_data.null_scope.error",
-    "translation": ""
+    "translation": "Schemos aprėptis privaloma."
   },
   {
     "id": "app.import.validate_scheme_import_data.unknown_scheme.error",
-    "translation": ""
+    "translation": "Nežinoma schemos aprėptis."
   },
   {
     "id": "app.import.validate_scheme_import_data.wrong_roles_for_scope.error",
-    "translation": ""
+    "translation": "Šios aprėpties schemai pateikti netinkami vaidmenys."
   },
   {
     "id": "app.import.validate_team_import_data.description_length.error",
-    "translation": ""
+    "translation": "Komandos aprašas per ilgas."
   },
   {
     "id": "app.import.validate_team_import_data.display_name_length.error",
-    "translation": ""
+    "translation": "Komandos display_name neatitinka leidžiamų ilgio apribojimų."
   },
   {
     "id": "app.import.validate_team_import_data.display_name_missing.error",
-    "translation": ""
+    "translation": "Trūksta privalomos komandos savybės: display_name."
   },
   {
     "id": "app.import.validate_team_import_data.name_characters.error",
-    "translation": ""
+    "translation": "Komandos pavadinime yra netinkamų simbolių."
   },
   {
     "id": "app.import.validate_team_import_data.name_length.error",
-    "translation": ""
+    "translation": "Komandos pavadinimas per ilgas."
   },
   {
     "id": "app.import.validate_team_import_data.name_missing.error",
-    "translation": ""
+    "translation": "Trūksta privalomos komandos savybės: name."
   },
   {
     "id": "app.import.validate_team_import_data.name_reserved.error",
-    "translation": ""
+    "translation": "Komandos pavadinime yra rezervuotų žodžių."
   },
   {
     "id": "app.import.validate_team_import_data.scheme_invalid.error",
-    "translation": ""
+    "translation": "Netinkamas komandos schemos pavadinimas."
   },
   {
     "id": "app.import.validate_team_import_data.type_invalid.error",
-    "translation": ""
+    "translation": "Komandos tipas netinkamas."
   },
   {
     "id": "app.import.validate_team_import_data.type_missing.error",
-    "translation": ""
+    "translation": "Trūksta privalomos komandos savybės: type."
   },
   {
     "id": "app.import.validate_thread_follower_data.empty.error",
-    "translation": ""
+    "translation": "Importuojamo sekėjo duomenys tušti."
   },
   {
     "id": "app.import.validate_thread_follower_data.user_missing.error",
-    "translation": ""
+    "translation": "Trūksta privalomos sekėjo savybės: user."
   },
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
-    "translation": ""
+    "translation": "Naudotojo kanalo narystėje trūksta kanalo pavadinimo."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
-    "translation": ""
+    "translation": "Netinkamas naudotojo kanalo narystės Desktop NotifyProps."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
-    "translation": ""
+    "translation": "Netinkamas naudotojo kanalo narystės MarkUnread NotifyProps."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mobile.error",
-    "translation": ""
+    "translation": "Netinkamas naudotojo kanalo narystės Mobile NotifyProps."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
-    "translation": ""
+    "translation": "Netinkami naudotojo kanalo narystės vaidmenys."
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
-    "translation": ""
+    "translation": "Netinkamas naudotojo el. laiškų grupavimo intervalo nustatymas"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": ""
+    "translation": "Netinkamas naudotojo Markdown peržiūros nustatymas"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
-    "translation": ""
+    "translation": "Netinkamas naudotojo pranešimų formatavimo nustatymas"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
-    "translation": ""
+    "translation": "Netinkamas naudotojo neskaitytų skilties rodymo nustatymas"
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
-    "translation": ""
+    "translation": "Naudotojo AuthData ir Password negali būti nurodyti kartu."
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
-    "translation": ""
+    "translation": "Naudotojo AuthService ir AuthData turi būti nurodyti kartu."
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
-    "translation": ""
+    "translation": "Naudotojo AuthData per ilgas."
   },
   {
     "id": "app.import.validate_user_import_data.channel_guest_missing_system_guest_role.error",
-    "translation": ""
+    "translation": "Naudotojas turi kanalo svečio vaidmenis, bet nėra sistemos svečias."
   },
   {
     "id": "app.import.validate_user_import_data.email_length.error",
-    "translation": ""
+    "translation": "Naudotojo el. pašto adreso ilgis netinkamas."
   },
   {
     "id": "app.import.validate_user_import_data.email_missing.error",
-    "translation": ""
+    "translation": "Trūksta privalomos naudotojo savybės: email."
   },
   {
     "id": "app.import.validate_user_import_data.first_name_length.error",
-    "translation": ""
+    "translation": "Naudotojo vardas per ilgas."
   },
   {
     "id": "app.import.validate_user_import_data.invalid_image_path.error",
-    "translation": ""
+    "translation": "Naudotojo profilio paveikslėlio kelias netinkamas: \"{{.Path}}\""
   },
   {
     "id": "app.import.validate_user_import_data.last_name_length.error",
-    "translation": ""
+    "translation": "Naudotojo pavardė per ilga."
   },
   {
     "id": "app.import.validate_user_import_data.nickname_length.error",
-    "translation": ""
+    "translation": "Naudotojo slapyvardis per ilgas."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error",
-    "translation": ""
+    "translation": "Netinkama naudotojo kanalo suaktyvinimo pranešimų nuostata (Notify Prop)."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_comments_trigger_invalid.error",
-    "translation": ""
+    "translation": "Netinkama naudotojo komentarų nuostatos (Comments Prop) reikšmė."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
-    "translation": ""
+    "translation": "Netinkama naudotojo darbalaukio pranešimų nuostatos (Desktop Notify Prop) reikšmė."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error",
-    "translation": ""
+    "translation": "Netinkama naudotojo darbalaukio garso pranešimų nuostatos (Desktop Sound Notify Prop) reikšmė."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
-    "translation": ""
+    "translation": "Netinkama naudotojo el. pašto pranešimų nuostatos (Email Notify Prop) reikšmė."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_mention_keys_invalid.error",
-    "translation": ""
+    "translation": "Netinkama naudotojo mention_keys pranešimų nuostata: viršytas {{.MaxCount}} raktažodžių arba {{.MaxLength}} baitų limitas."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_mobile_invalid.error",
-    "translation": ""
+    "translation": "Netinkama naudotojo mobiliųjų pranešimų nuostatos (Mobile Notify Prop) reikšmė."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_mobile_push_status_invalid.error",
-    "translation": ""
+    "translation": "Netinkama naudotojo mobiliųjų tiesioginių pranešimų būsenos nuostata (Mobile Push Status Notify Prop)."
   },
   {
     "id": "app.import.validate_user_import_data.password_length.error",
-    "translation": ""
+    "translation": "Naudotojo Password ilgis netinkamas."
   },
   {
     "id": "app.import.validate_user_import_data.position_length.error",
-    "translation": ""
+    "translation": "Naudotojo pareigos per ilgos."
   },
   {
     "id": "app.import.validate_user_import_data.profile_image.error",
-    "translation": ""
+    "translation": "Netinkamas profilio paveikslėlis."
   },
   {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
-    "translation": ""
+    "translation": "Naudotojo vaidmenys netinkami."
   },
   {
     "id": "app.import.validate_user_import_data.system_guest_missing_channel_guest_roles.error",
-    "translation": ""
+    "translation": "Naudotojas yra sistemos svečias, bet neturi kanalo svečio vaidmenų visuose kanaluose. Kanalo svečio vaidmenų skaičius: {{.ChannelGuestCount}}, iš viso kanalų: {{.TotalChannels}}."
   },
   {
     "id": "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error",
-    "translation": ""
+    "translation": "Naudotojas yra sistemos svečias, bet neturi komandos svečio vaidmenų visose komandose. Komandos svečio vaidmenų skaičius: {{.TeamGuestCount}}, iš viso komandų: {{.TotalTeams}}."
   },
   {
     "id": "app.import.validate_user_import_data.team_guest_missing_system_guest_role.error",
-    "translation": ""
+    "translation": "Naudotojas turi komandos svečio vaidmenis, bet nėra sistemos svečias."
   },
   {
     "id": "app.import.validate_user_import_data.username_invalid.error",
-    "translation": ""
+    "translation": "Naudotojo vardas netinkamas."
   },
   {
     "id": "app.import.validate_user_import_data.username_missing.error",
-    "translation": ""
+    "translation": "Trūksta privalomos naudotojo savybės: username."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
-    "translation": ""
+    "translation": "Netinkama autentifikavimo paslauga: {{.AuthService}}"
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
-    "translation": ""
+    "translation": "Netinkami naudotojo komandos narystės vaidmenys."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
-    "translation": ""
+    "translation": "Netinkama naudotojo komandos tema"
   },
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
-    "translation": ""
+    "translation": "Naudotojo komandos narystėje trūksta komandos pavadinimo."
   },
   {
     "id": "app.insert_error",
-    "translation": ""
+    "translation": "įterpimo klaida"
   },
   {
     "id": "app.job.download_export_results_not_enabled",
-    "translation": ""
+    "translation": "DownloadExportResults faile config.json yra false. Norėdami atsisiųsti šios užduoties rezultatus, nustatykite jį į true."
   },
   {
     "id": "app.job.error",
-    "translation": ""
+    "translation": "Klaida vykdant užduotį."
   },
   {
     "id": "app.job.get.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti užduoties."
   },
   {
     "id": "app.job.get_all.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti užduočių."
   },
   {
     "id": "app.job.get_all_jobs_by_type_and_status.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti visų užduočių pagal tipą ir būseną."
   },
   {
     "id": "app.job.get_count_by_status_and_type.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti užduočių skaičiaus pagal būseną ir tipą."
   },
   {
     "id": "app.job.get_newest_job_by_status_and_type.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti naujausios užduoties pagal būseną ir tipą."
   },
   {
     "id": "app.job.save.app_error",
-    "translation": ""
+    "translation": "Nepavyksta išsaugoti užduoties."
   },
   {
     "id": "app.job.update.app_error",
-    "translation": ""
+    "translation": "Nepavyksta atnaujinti užduoties."
   },
   {
     "id": "app.job.update_status.app_error",
-    "translation": ""
+    "translation": "Nepavyksta atnaujinti užduoties būsenos. Nustatyta netinkama būsena"
   },
   {
     "id": "app.last_accessible_file.app_error",
-    "translation": ""
+    "translation": "Klaida gaunant paskutinį pasiekiamą failą"
   },
   {
     "id": "app.last_accessible_post.app_error",
-    "translation": ""
+    "translation": "Klaida gaunant paskutinį pasiekiamą pranešimą"
   },
   {
     "id": "app.limits.get_app_limits.single_channel_guest_count.store_error",
-    "translation": ""
+    "translation": "Nepavyko gauti vieno kanalo svečių skaičiaus."
   },
   {
     "id": "app.limits.get_app_limits.user_count.store_error",
-    "translation": ""
+    "translation": "Nepavyko gauti naudotojų skaičiaus"
   },
   {
     "id": "app.login.doLogin.updateLastLogin.error",
-    "translation": ""
+    "translation": "Nepavyko atnaujinti paskutinio prisijungimo laiko žymos"
   },
   {
     "id": "app.lookup_interactive_dialog.decode_json_error",
-    "translation": ""
+    "translation": "Dekoduojant interaktyviojo dialogo paieškos JSON atsakymą įvyko klaida."
   },
   {
     "id": "app.lookup_interactive_dialog.json_error",
-    "translation": ""
+    "translation": "Apdorojant interaktyviojo dialogo paieškos JSON atsakymą įvyko klaida."
   },
   {
     "id": "app.lookup_interactive_dialog.read_body_error",
-    "translation": ""
+    "translation": "Skaitant interaktyviojo dialogo paieškos atsakymo turinį įvyko klaida."
   },
   {
     "id": "app.managed_category.clear.app_error",
-    "translation": ""
+    "translation": "Nepavyko pašalinti kanalo iš valdomos kategorijos."
   },
   {
     "id": "app.managed_category.dm_gm_not_allowed.app_error",
-    "translation": ""
+    "translation": "Tiesioginių ir grupės pranešimų kanalų negalima priskirti valdomai kategorijai."
   },
   {
     "id": "app.managed_category.empty_name.app_error",
-    "translation": ""
+    "translation": "Valdomos kategorijos pavadinimas negali būti tuščias."
   },
   {
     "id": "app.managed_category.get_mappings.app_error",
-    "translation": ""
+    "translation": "Nepavyko gauti valdomų kategorijų susiejimų."
   },
   {
     "id": "app.managed_category.search.app_error",
-    "translation": ""
+    "translation": "Nepavyko rasti kanalo valdomos kategorijos."
   },
   {
     "id": "app.managed_category.set.app_error",
-    "translation": ""
+    "translation": "Nepavyko priskirti kanalui valdomos kategorijos."
   },
   {
     "id": "app.member_count",
-    "translation": ""
+    "translation": "klaida gaunant narių skaičių"
   },
   {
     "id": "app.notification.body.dm.subTitle",
-    "translation": ""
+    "translation": "Kol Jūsų nebuvo, {{.SenderName}} išsiuntė Jums naują tiesioginį pranešimą."
   },
   {
     "id": "app.notification.body.dm.time",
-    "translation": ""
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
   },
   {
     "id": "app.notification.body.dm.title",
-    "translation": ""
+    "translation": "{{.SenderName}} išsiuntė Jums naują pranešimą"
   },
   {
     "id": "app.notification.body.group.subTitle",
-    "translation": ""
+    "translation": "Kol Jūsų nebuvo, {{.SenderName}} išsiuntė pranešimą Jūsų grupei."
   },
   {
     "id": "app.notification.body.group.title",
-    "translation": ""
+    "translation": "{{.SenderName}} išsiuntė Jums naują pranešimą"
   },
   {
     "id": "app.notification.body.mention.subTitle",
-    "translation": ""
+    "translation": "Kol Jūsų nebuvo, {{.SenderName}} paminėjo Jus kanale {{.ChannelName}}."
   },
   {
     "id": "app.notification.body.mention.title",
-    "translation": ""
+    "translation": "{{.SenderName}} paminėjo Jus pranešime"
   },
   {
     "id": "app.notification.body.thread.title",
-    "translation": ""
+    "translation": "{{.SenderName}} atsakė gijoje"
   },
   {
     "id": "app.notification.body.thread_channel.subTitle",
-    "translation": ""
+    "translation": "Kol Jūsų nebuvo, {{.SenderName}} atsakė Jūsų sekamoje gijoje."
   },
   {
     "id": "app.notification.body.thread_channel_full.subTitle",
-    "translation": ""
+    "translation": "Kol Jūsų nebuvo, {{.SenderName}} atsakė Jūsų sekamoje gijoje kanale {{.ChannelName}}."
   },
   {
     "id": "app.notification.body.thread_dm.subTitle",
-    "translation": ""
+    "translation": "Kol Jūsų nebuvo, {{.SenderName}} atsakė gijoje Jūsų tiesioginiame pranešime."
   },
   {
     "id": "app.notification.body.thread_gm.subTitle",
