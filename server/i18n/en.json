@@ -2944,6 +2944,11 @@
     "description": "API error shown when a custom emoji image exceeds the allowed dimensions; {{.MaxWidth}} and {{.MaxHeight}} are the pixel limits."
   },
   {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Unable to create emoji. The image is too large to process. Try using one with smaller dimensions or fewer frames.",
+    "description": "API error shown when a custom emoji image cannot be decoded because its pixel dimensions or animation frames exceed server processing limits."
+  },
+  {
     "id": "api.emoji.upload.open.app_error",
     "translation": "Unable to create the emoji. An error occurred when trying to open the attached image.",
     "description": "API error shown when the uploaded custom emoji image file cannot be opened on the server."
