@@ -964,6 +964,7 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 		decoded, imgType, release, err = t.imgDecoder.DecodeMemBounded(file)
 		if err != nil {
 			t.Logger.Error("Unable to decode image", mlog.Err(err))
+			t.fileinfo.MiniPreview = &[]byte{}
 			return
 		}
 		defer release()
@@ -1020,6 +1021,7 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 			if miniPreview, err := imaging.GenerateMiniPreviewImage(decoded,
 				miniPreviewImageWidth, miniPreviewImageHeight, jpegEncQuality); err != nil {
 				t.Logger.Info("Unable to generate mini preview image", mlog.Err(err))
+				t.fileinfo.MiniPreview = &[]byte{}
 			} else {
 				t.fileinfo.MiniPreview = &miniPreview
 			}
@@ -1265,15 +1267,17 @@ func (a *App) generateMiniPreview(rctx request.CTX, fi *model.FileInfo) {
 			rctx.Logger().Debug("generateMiniPreview: prepareImage failed", mlog.Err(err),
 				mlog.String("fileinfo_id", fi.Id), mlog.String("channel_id", fi.ChannelId),
 				mlog.String("creator_id", fi.CreatorId))
-			return
-		}
-		defer release()
-		var miniPreview []byte
-		if miniPreview, err = imaging.GenerateMiniPreviewImage(img,
-			miniPreviewImageWidth, miniPreviewImageHeight, jpegEncQuality); err != nil {
-			rctx.Logger().Info("Unable to generate mini preview image", mlog.Err(err))
+			fi.MiniPreview = &[]byte{}
 		} else {
-			fi.MiniPreview = &miniPreview
+			defer release()
+			var miniPreview []byte
+			if miniPreview, err = imaging.GenerateMiniPreviewImage(img,
+				miniPreviewImageWidth, miniPreviewImageHeight, jpegEncQuality); err != nil {
+				rctx.Logger().Info("Unable to generate mini preview image", mlog.Err(err))
+				fi.MiniPreview = &[]byte{}
+			} else {
+				fi.MiniPreview = &miniPreview
+			}
 		}
 		if _, err = a.Srv().Store().FileInfo().Upsert(rctx, fi); err != nil {
 			rctx.Logger().Debug("Creating mini preview failed", mlog.Err(err))
