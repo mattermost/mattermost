@@ -12994,20 +12994,12 @@
     "translation": "LDAP 連線測試失敗。伺服器：{{.Server}}:{{.Port}}，ConnectionSecurity：{{.ConnectionType}}，PrivateKeyFilename：{{.PrivateKeyFilename}}，PublicCertificateFilename：{{.PublicCertFilename}}，BindUsername：{{.BindUsername}}。錯誤：{{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "取得 CPA 欄位失敗"
-  },
-  {
     "id": "ent.ldap.do_login.invalid_id",
     "translation": "AD/LDAP Id 無效"
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
     "translation": "無法取得使用者。"
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "LDAP 屬性值為空"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -13076,10 +13068,6 @@
   {
     "id": "ent.push_proxy.worker.interface_nil.app_error",
     "translation": "推播代理介面為 nil。"
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "取得 CPA 欄位失敗"
   },
   {
     "id": "ent.saml.login.ldap_user_missing",

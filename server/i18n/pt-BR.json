@@ -12767,20 +12767,12 @@
     "translation": "O teste de conexão LDAP falhou. Servidor: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Erro: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Falha ao recuperar os campos de CPA"
-  },
-  {
     "id": "ent.ldap.do_login.invalid_id",
     "translation": "ID AD/LDAP inválido"
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
     "translation": "Falha ao obter o usuário."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Valor de atributo LDAP vazio"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -12849,10 +12841,6 @@
   {
     "id": "ent.push_proxy.worker.interface_nil.app_error",
     "translation": "A interface do push proxy é nula."
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Falha ao recuperar o(s) campo(s) de CPA"
   },
   {
     "id": "ent.saml.login.ldap_user_missing",
