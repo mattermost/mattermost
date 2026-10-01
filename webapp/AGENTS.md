@@ -8,7 +8,7 @@ Follow `webapp/STYLE_GUIDE.md` for canonical style, accessibility, and testing s
 
 ## UI components (Compass)
 
-- **Catalog / APIs**: https://mattermost.github.io/compass-design/storybook — check here before inventing UI or props.
+- **Catalog / APIs**: inspect `@mattermost/compass-ui` (package exports / component types) before inventing UI or props.
 - **New UI**: prefer `@mattermost/compass-ui` when a component exists. Import via subpaths:
   `import {Button} from '@mattermost/compass-ui/components/button';`
   Do not use the root barrel. Do not recreate Compass primitives.
