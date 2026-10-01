@@ -1,0 +1,17 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React from 'react';
+
+import Timestamp from 'components/timestamp';
+
+const RelativeTime = ({value}: {value: number}) => (
+    <Timestamp
+        value={value}
+        units={['now', 'minute', 'hour', 'day', 'week', 'month', 'year']}
+        useDate={false}
+        useTime={false}
+    />
+);
+
+export default RelativeTime;
