@@ -34,6 +34,11 @@ const (
 
 	// The fixtures run 11.0, which has ended.
 	versionSubject = "11.0"
+
+	complianceDirSubject      = "ComplianceSettings.Directory"
+	auditSubject              = "ExperimentalAuditSettings.FileEnabled"
+	retentionSubject          = "DataRetentionSettings.TimeBetweenBatchesMilliseconds"
+	globalRelayTimeoutSubject = "MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout"
 )
 
 type finding struct {
@@ -131,6 +136,7 @@ func TestReadGoldenPackets(t *testing.T) {
 				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateFiring, Subject: pushSubject},
 				{Code: "SITE_URL_HTTP", State: healthcheck.StateFiring, Subject: siteURLSubject},
 				{Code: "VERSION_EOL", State: healthcheck.StateFiring, Subject: versionSubject},
+				{Code: "COMPLIANCE_NO_DIR", State: healthcheck.StateFiring, Subject: complianceDirSubject},
 			},
 		},
 		{
@@ -138,6 +144,7 @@ func TestReadGoldenPackets(t *testing.T) {
 			expected: []finding{
 				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject},
 				{Code: "VERSION_EOL", State: healthcheck.StateFiring, Subject: versionSubject},
+				{Code: "EXPORT_GR_TIMEOUT_LOW", State: healthcheck.StateFiring, Subject: globalRelayTimeoutSubject},
 			},
 		},
 	}

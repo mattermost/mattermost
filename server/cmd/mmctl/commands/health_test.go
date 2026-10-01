@@ -334,7 +334,11 @@ func healthTestPacketFiles() map[string]string {
     "ServiceSettings": {"SiteURL": "https://chat.example.com"},
     "EmailSettings": {"SendPushNotifications": true, "PushNotificationServer": "http://push.example.com"},
     "ClusterSettings": {"Enable": false},
-    "RateLimitSettings": {"Enable": true, "MemoryStoreSize": 10000}
+    "RateLimitSettings": {"Enable": true, "MemoryStoreSize": 10000},
+    "ExperimentalAuditSettings": {"FileEnabled": true},
+    "ComplianceSettings": {"Enable": false},
+    "DataRetentionSettings": {"EnableMessageDeletion": false, "EnableFileDeletion": false},
+    "MessageExportSettings": {"EnableExport": false}
 }`,
 	}
 }
