@@ -89,6 +89,7 @@ import type {
     GroupStats,
     GroupMember,
 } from '@mattermost/types/groups';
+import type {HealthFinding, HealthFindingFilter} from '@mattermost/types/health';
 import type {PostActionResponse} from '@mattermost/types/integration_actions';
 import type {
     Command,
@@ -592,6 +593,10 @@ export default class Client4 {
 
     getDeliveryTrackingRoute() {
         return `${this.getBaseRoute()}/delivery_tracking`;
+    }
+
+    getHealthFindingsRoute() {
+        return `${this.getBaseRoute()}/health/findings`;
     }
 
     getCSRFFromCookie() {
@@ -5483,6 +5488,13 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getDeliveryTrackingRoute()}/config`,
             {method: 'put', body: JSON.stringify(config)},
+        );
+    };
+
+    getHealthFindings = (filter: HealthFindingFilter = {}) => {
+        return this.doFetch<HealthFinding[]>(
+            `${this.getHealthFindingsRoute()}${buildQueryString(filter)}`,
+            {method: 'get'},
         );
     };
 
