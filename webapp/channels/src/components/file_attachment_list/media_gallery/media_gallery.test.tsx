@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act, screen, waitFor} from '@testing-library/react';
+import {act, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
@@ -275,6 +275,7 @@ describe('MediaGallery', () => {
             await waitFor(() => expect(button).toBeDisabled());
             expect(button).toHaveAttribute('aria-busy', 'true');
             expect(button).toHaveTextContent('Preparing 0 of 2...');
+            expect(within(button).getByTestId('loadingSpinner')).toBeInTheDocument();
             expect(mockBuildFileArchive.mock.calls[0][0].map((f) => f.id)).toEqual(['a', 'b']);
 
             act(() => reportProgress(1));

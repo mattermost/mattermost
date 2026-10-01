@@ -13,6 +13,8 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+
 import {FileTypes} from 'utils/constants';
 import {getFileType} from 'utils/utils';
 
@@ -239,7 +241,7 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
                         aria-label={downloading ? preparingLabel : downloadAllLabel}
                         onClick={handleDownloadAll}
                     >
-                        <DownloadOutlineIcon size={14}/>
+                        {downloading ? <LoadingSpinner/> : <DownloadOutlineIcon size={14}/>}
                         {downloading ? preparingLabel : (
                             <FormattedMessage
                                 id='media_gallery.download_all'
