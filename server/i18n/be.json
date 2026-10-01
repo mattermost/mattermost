@@ -13908,702 +13908,702 @@
   },
   {
     "id": "model.access_policy.is_valid.rule_metadata_auto_add_type.app_error",
-    "translation": ""
+    "translation": "Спосаб аўтаматычнага дадавання ўдзельнікаў павінен быць зададзены як тэкст."
   },
   {
     "id": "model.access_policy.is_valid.rule_metadata_key.app_error",
-    "translation": ""
+    "translation": "Метаданыя правіла змяшчаюць нераспазнаны ключ."
   },
   {
     "id": "model.access_policy.is_valid.rule_name.app_error",
-    "translation": ""
+    "translation": "Правілы дазволаў павінны мець непустую назву, якая не перавышае максімальную даўжыню для палітыкі."
   },
   {
     "id": "model.access_policy.is_valid.rule_name_unique.app_error",
-    "translation": ""
+    "translation": "Назвы правілаў дазволаў павінны быць унікальнымі ў межах палітыкі."
   },
   {
     "id": "model.access_policy.is_valid.rule_role.app_error",
-    "translation": ""
+    "translation": "Несапраўдная роля для правіла."
   },
   {
     "id": "model.access_policy.is_valid.scope.app_error",
-    "translation": ""
+    "translation": "Несапраўднае значэнне вобласці для гэтай палітыкі кантролю доступу."
   },
   {
     "id": "model.access_policy.is_valid.scope_id.app_error",
-    "translation": ""
+    "translation": "Ідэнтыфікатар вобласці павінен быць сапраўдным ідэнтыфікатарам, калі вобласць зададзена."
   },
   {
     "id": "model.access_policy.is_valid.scope_id_without_scope.app_error",
-    "translation": ""
+    "translation": "Ідэнтыфікатар вобласці нельга задаць без вобласці."
   },
   {
     "id": "model.access_policy.is_valid.session_attribute_on_membership.app_error",
-    "translation": ""
+    "translation": "Правілы членства не могуць спасылацца на атрыбуты сеанса (user.session). Замест гэтага выкарыстоўвайце палітыку дазволаў."
   },
   {
     "id": "model.channel.is_valid.discoverable.app_error",
-    "translation": ""
+    "translation": "Толькі прыватныя каналы можна пазначыць як даступныя для пошуку."
   },
   {
     "id": "model.channel.is_valid.group_constrained.app_error",
-    "translation": ""
+    "translation": "Сінхранізацыю груп можна ўключыць толькі для публічных і прыватных каналаў."
   },
   {
     "id": "model.channel.is_valid_board.display_name.app_error",
-    "translation": ""
+    "translation": "Адлюстраваная назва дошкі не можа быць пустой."
   },
   {
     "id": "model.channel.is_valid_board.team_id.app_error",
-    "translation": ""
+    "translation": "Каналы дошак павінны належаць камандзе."
   },
   {
     "id": "model.channel.is_valid_board.type.app_error",
-    "translation": ""
+    "translation": "Тып канала павінен быць BO (адкрытая дошка) або BP (прыватная дошка)."
   },
   {
     "id": "model.channel_bookmark.is_valid.board.file_id.app_error",
-    "translation": ""
+    "translation": "Закладкі дошак не могуць спасылацца на файл."
   },
   {
     "id": "model.channel_bookmark.is_valid.board.image_url.app_error",
-    "translation": ""
+    "translation": "Для закладак дошак нельга задаць URL выявы."
   },
   {
     "id": "model.channel_bookmark.is_valid.board.link_url.app_error",
-    "translation": ""
+    "translation": "URL спасылкі закладкі дошкі павінен быць адносным шляхам у межах сайта, які пачынаецца з /, не змяшчае :// і не перавышае максімальную даўжыню."
   },
   {
     "id": "model.channel_bookmark.is_valid.board.target_id.app_error",
-    "translation": ""
+    "translation": "Закладкі дошак патрабуюць сапраўднага ідэнтыфікатара мэты."
   },
   {
     "id": "model.channel_bookmark.is_valid.target_id.app_error",
-    "translation": ""
+    "translation": "Ідэнтыфікатар мэты дазволены толькі для тых тыпаў закладак, якія спасылаюцца на іншы аб’ект."
   },
   {
     "id": "model.channel_join_request.is_valid.channel_id.app_error",
-    "translation": ""
+    "translation": "Несапраўдны ідэнтыфікатар канала."
   },
   {
     "id": "model.channel_join_request.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Час стварэння павінен быць сапраўдным часам."
   },
   {
     "id": "model.channel_join_request.is_valid.denial_reason.app_error",
-    "translation": ""
+    "translation": "Прычына адмовы занадта доўгая."
   },
   {
     "id": "model.channel_join_request.is_valid.denial_reason_status.app_error",
-    "translation": ""
+    "translation": "Прычыну адмовы можна задаць толькі для адхіленага запыту на далучэнне."
   },
   {
     "id": "model.channel_join_request.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Несапраўдны ідэнтыфікатар."
   },
   {
     "id": "model.channel_join_request.is_valid.message.app_error",
-    "translation": ""
+    "translation": "Паведамленне запыту на далучэнне занадта доўгае."
   },
   {
     "id": "model.channel_join_request.is_valid.reviewed_by.app_error",
-    "translation": ""
+    "translation": "Несапраўдны ідэнтыфікатар рэцэнзента."
   },
   {
     "id": "model.channel_join_request.is_valid.reviewer.app_error",
-    "translation": ""
+    "translation": "Ухвалены або адхілены запыт на далучэнне павінен змяшчаць звесткі пра рэцэнзента і час праверкі."
   },
   {
     "id": "model.channel_join_request.is_valid.status.app_error",
-    "translation": ""
+    "translation": "Несапраўдны статус запыту на далучэнне."
   },
   {
     "id": "model.channel_join_request.is_valid.update_at.app_error",
-    "translation": ""
+    "translation": "Час абнаўлення павінен быць сапраўдным часам."
   },
   {
     "id": "model.channel_join_request.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Несапраўдны ідэнтыфікатар карыстальніка."
   },
   {
     "id": "model.cluster.is_valid.site_url.app_error",
-    "translation": ""
+    "translation": "SiteURL павінен быць зададзены."
   },
   {
     "id": "model.command_response.is_valid.attachment.app_error",
-    "translation": ""
+    "translation": "Несапраўднае ўкладанне."
   },
   {
     "id": "model.command_response.is_valid.goto_location.app_error",
-    "translation": ""
+    "translation": "Несапраўднае значэнне goto_location."
   },
   {
     "id": "model.command_response.is_valid.icon_url.app_error",
-    "translation": ""
+    "translation": "Несапраўдны URL значка."
   },
   {
     "id": "model.command_response.is_valid.response_type.app_error",
-    "translation": ""
+    "translation": "Несапраўдны тып адказу."
   },
   {
     "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
-    "translation": ""
+    "translation": "Несапраўдны інтэрвал абнаўлення атрыбутаў кантролю доступу. Павінен быць большы або роўны 0."
   },
   {
     "id": "model.config.is_valid.access_control_sync_interval.app_error",
-    "translation": ""
+    "translation": "Несапраўдны інтэрвал задачы сінхранізацыі кантролю доступу. Павінен быць не менш за 60 секунд."
   },
   {
     "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
-    "translation": ""
+    "translation": "Несапраўдны час чакання паміж аглядамі ШІ (у хвілінах). Павінен быць большы або роўны 0."
   },
   {
     "id": "model.config.is_valid.ai_recap.max_channels_per_recap.app_error",
-    "translation": ""
+    "translation": "Несапраўдная максімальная колькасць каналаў на адзін агляд ШІ. Павінна быць большай або роўнай 1 або -1 для неабмежаванай колькасці."
   },
   {
     "id": "model.config.is_valid.ai_recap.max_posts_per_day.app_error",
-    "translation": ""
+    "translation": "Несапраўдная максімальная колькасць паведамленняў у дзень для аглядаў ШІ. Павінна быць большай або роўнай 1 або -1 для неабмежаванай колькасці."
   },
   {
     "id": "model.config.is_valid.ai_recap.max_posts_per_recap.app_error",
-    "translation": ""
+    "translation": "Несапраўдная максімальная колькасць паведамленняў на адзін агляд ШІ. Павінна быць большай або роўнай 1 або -1 для неабмежаванай колькасці."
   },
   {
     "id": "model.config.is_valid.ai_recap.max_recaps_per_day.app_error",
-    "translation": ""
+    "translation": "Несапраўдная максімальная колькасць аглядаў ШІ у дзень. Павінна быць большай або роўнай 1 або -1 для неабмежаванай колькасці."
   },
   {
     "id": "model.config.is_valid.ai_recap.max_scheduled_recaps.app_error",
-    "translation": ""
+    "translation": "Несапраўдная максімальная колькасць запланаваных аглядаў ШІ. Павінна быць большай або роўнай 1 або -1 для неабмежаванай колькасці."
   },
   {
     "id": "model.config.is_valid.ai_recap.max_tokens_per_recap.app_error",
-    "translation": ""
+    "translation": "Несапраўдная максімальная колькасць токенаў на адзін агляд ШІ. Павінна быць большай або роўнай 1 або -1 для неабмежаванай колькасці."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
-    "translation": ""
+    "translation": "Тып проксі выяў 'atmos/camo' быў выдалены ў Mattermost v12.0. Задайце ImageProxySettings.ImageProxyType значэнне 'local' або задайце ImageProxySettings.Enable значэнне false, каб адключыць проксі выяў."
   },
   {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
-    "translation": ""
+    "translation": "Несапраўдная канфігурацыя агентаў аўтаперакладу: служба ШІ не можа быць пустой."
   },
   {
     "id": "model.config.is_valid.autotranslation.timeout.app_error",
-    "translation": ""
+    "translation": "Несапраўдны час чакання для налад аўтаперакладу. Павінен быць станоўчым лікам."
   },
   {
     "id": "model.config.is_valid.autotranslation.workers.app_error",
-    "translation": ""
+    "translation": "Колькасць апрацоўшчыкаў павінна быць ад 1 да 64."
   },
   {
     "id": "model.config.is_valid.azure_auth_mode.app_error",
-    "translation": ""
+    "translation": "Несапраўдны рэжым аўтэнтыфікацыі Azure {{.Value}}. Павінен быць 'shared_key' або 'default_credential'."
   },
   {
     "id": "model.config.is_valid.azure_cloud.app_error",
-    "translation": ""
+    "translation": "Несапраўднае значэнне {{.Value}} для {{.Setting}}. Павінна быць 'commercial', 'government' або 'custom'."
   },
   {
     "id": "model.config.is_valid.azure_custom_endpoint.app_error",
-    "translation": ""
+    "translation": "{{.Setting}} павінна быць зададзена, калі адпаведнае значэнне AzureCloud роўнае 'custom'."
   },
   {
     "id": "model.config.is_valid.azure_storage_account.app_error",
-    "translation": ""
+    "translation": "Несапраўднае значэнне {{.Value}} для {{.Setting}}. Назва ўліковага запісу сховішча Azure павінна мець даўжыню ад 3 да 24 сімвалаў і змяшчаць толькі малыя літары і лічбы."
   },
   {
     "id": "model.config.is_valid.azure_timeout.app_error",
-    "translation": ""
+    "translation": "Несапраўднае значэнне часу чакання {{.Value}}. Павінна быць станоўчым лікам."
   },
   {
     "id": "model.config.is_valid.cluster_gossip_port.app_error",
-    "translation": ""
+    "translation": "ClusterSettings.GossipPort павінен быць сапраўдным нумарам порта."
   },
   {
     "id": "model.config.is_valid.connected_workspaces.batch_size.app_error",
-    "translation": ""
+    "translation": "{{.Setting}} павінна быць станоўчым лікам."
   },
   {
     "id": "model.config.is_valid.dcr_redirect_uri_allowlist.app_error",
-    "translation": ""
+    "translation": "Спіс дазволеных URI перанакіравання DCR змяшчае несапраўдны шаблон. Кожны шаблон павінен быць сапраўдным URI са схемай і хостам (напрыклад, https://example.com/** або cursor://app/callback) і не можа быць пустым або складацца толькі з прабелаў."
   },
   {
     "id": "model.config.is_valid.directory_traversal.app_error",
-    "translation": ""
+    "translation": "Паслядоўнасці пераходу па шляху (\"..\") не дазволены ў {{.Setting}}. Знойдзена \"{{.Value}}\"."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_cjk_analyzers.app_error",
-    "translation": ""
+    "translation": "Налада {{.Searching}} павінна быць устаноўлена на true, калі {{.EnableCJKAnalyzers}} устаноўлена на true"
   },
   {
     "id": "model.config.is_valid.elastic_search.index_replicas.app_error",
-    "translation": ""
+    "translation": "{{.Setting}} павінна быць большай або роўнай 0."
   },
   {
     "id": "model.config.is_valid.elastic_search.index_shards.app_error",
-    "translation": ""
+    "translation": "{{.Setting}} павінна быць большай або роўнай 1."
   },
   {
     "id": "model.config.is_valid.email_address.app_error",
-    "translation": ""
+    "translation": "{{.Setting}} павінна быць сапраўдным адрасам электроннай пошты."
   },
   {
     "id": "model.config.is_valid.email_push_notification_buffer.app_error",
-    "translation": ""
+    "translation": "Несапраўдны памер буфера push-апавяшчэнняў для налад электроннай пошты. Павінен быць станоўчым лікам."
   },
   {
     "id": "model.config.is_valid.export_azure_auth_mode.app_error",
-    "translation": ""
+    "translation": "Несапраўдны рэжым аўтэнтыфікацыі Azure {{.Value}} для асобнага сховішча экспарту. Павінен быць 'shared_key' або 'default_credential'."
   },
   {
     "id": "model.config.is_valid.export_azure_timeout.app_error",
-    "translation": ""
+    "translation": "Несапраўднае значэнне часу чакання {{.Value}}. Павінна быць станоўчым лікам."
   },
   {
     "id": "model.config.is_valid.export_file_driver.app_error",
-    "translation": ""
+    "translation": "Несапраўдная назва драйвера экспарту для налад файлаў. Павінна быць 'local', 'amazons3' або 'azureblob'."
   },
   {
     "id": "model.config.is_valid.extract_content_timeout.app_error",
-    "translation": ""
+    "translation": "Несапраўдны час чакання вымання змесціва для налад файлаў. Павінен быць цэлым лікам секунд, большым або роўным нулю."
   },
   {
     "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
-    "translation": ""
+    "translation": "Сцяг функцыі AppsEnabled больш не падтрымліваецца і павінен быць адключаны."
   },
   {
     "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
-    "translation": ""
+    "translation": "Сцяг функцыі MoveThreadsEnabled больш не падтрымліваецца і павінен быць адключаны."
   },
   {
     "id": "model.config.is_valid.lock_profile_fields.app_error",
-    "translation": ""
+    "translation": "Несапраўдная налада блакіравання палёў профілю. Павінна быць 'none', 'name_and_username' або 'all'."
   },
   {
     "id": "model.config.is_valid.log_level.app_error",
-    "translation": ""
+    "translation": "Несапраўдны ўзровень журналявання {{.Value}} для {{.Setting}}."
   },
   {
     "id": "model.config.is_valid.max_personal_access_token_lifetime_days.app_error",
-    "translation": ""
+    "translation": "Несапраўднае значэнне MaximumPersonalAccessTokenLifetimeDays. Павінна быць ад 0 (неабмежавана) да {{.Max}} дзён."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
-    "translation": ""
+    "translation": "GlobalRelaySettings.CustomHeaderName і CustomHeaderValue экспарту паведамленняў павінны быць або абодва зададзены, або абодва пустыя."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
-    "translation": ""
+    "translation": "GlobalRelaySettings.CustomHeaderName экспарту паведамленняў павінна быць сапраўднай назвай загалоўка без прабелаў, двукроп’яў, раздзяляльнікаў і пераносаў радкоў."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
-    "translation": ""
+    "translation": "GlobalRelaySettings.CustomHeaderName экспарту паведамленняў не павінна паўтараць загаловак, які экспарт Global Relay ужо запісвае."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
-    "translation": ""
+    "translation": "GlobalRelaySettings.CustomHeaderValue экспарту паведамленняў не павінна змяшчаць кіруючых сімвалаў або пераносаў радкоў."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.custom_smtp_port.app_error",
-    "translation": ""
+    "translation": "GlobalRelaySettings.CustomSMTPPort задачы экспарту паведамленняў павінен быць сапраўдным нумарам порта."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.sender_address.app_error",
-    "translation": ""
+    "translation": "GlobalRelaySettings.SenderAddress экспарту паведамленняў павінен быць пустым або сапраўдным адрасам электроннай пошты."
   },
   {
     "id": "model.config.is_valid.minimum_desktop_app_version.app_error",
-    "translation": ""
+    "translation": "Несапраўдны нумар версіі. Павінен быць сапраўднай семантычнай версіяй (напрыклад, 5.0.0)."
   },
   {
     "id": "model.config.is_valid.mobile_ephemeral_mode.auto_cache_cleanup.app_error",
-    "translation": ""
+    "translation": "Несапраўднае значэнне аўтаматычнай ачысткі кэша. Павінна быць ад {{.Min}} да {{.Max}} дзён."
   },
   {
     "id": "model.config.is_valid.mobile_ephemeral_mode.disconnection_timeout.app_error",
-    "translation": ""
+    "translation": "Несапраўднае значэнне часу чакання адключэння. Павінна быць ад {{.Min}} да {{.Max}} секунд."
   },
   {
     "id": "model.config.is_valid.mobile_ephemeral_mode.offline_persistence.app_error",
-    "translation": ""
+    "translation": "Несапраўднае значэнне таймера захоўвання даных у аўтаномным рэжыме. Павінна быць ад {{.Min}} да {{.Max}} гадзін."
   },
   {
     "id": "model.config.is_valid.native_app_settings.download_link.app_error",
-    "translation": ""
+    "translation": "Адна або некалькі спасылак для спампоўвання праграм не з’яўляюцца сапраўднымі URL."
   },
   {
     "id": "model.config.is_valid.non_negative_number.app_error",
-    "translation": ""
+    "translation": "{{.Setting}} павінна быць неадмоўным лікам."
   },
   {
     "id": "model.config.is_valid.port.app_error",
-    "translation": ""
+    "translation": "{{.Setting}} павінна быць сапраўдным портам."
   },
   {
     "id": "model.config.is_valid.positive_number.app_error",
-    "translation": ""
+    "translation": "{{.Setting}} павінна быць станоўчым лікам."
   },
   {
     "id": "model.config.is_valid.s3_upload_part_size.app_error",
-    "translation": ""
+    "translation": "{{.Setting}} павінна быць не менш за {{.Min}} байт."
   },
   {
     "id": "model.config.is_valid.service_settings.burn_on_read_duration_seconds.app_error",
-    "translation": ""
+    "translation": "BurnOnReadDurationSeconds павінна быць станоўчым лікам."
   },
   {
     "id": "model.config.is_valid.service_settings.burn_on_read_maximum_time_to_live_seconds.app_error",
-    "translation": ""
+    "translation": "BurnOnReadMaximumTimeToLiveSeconds павінна быць станоўчым лікам."
   },
   {
     "id": "model.config.is_valid.service_settings.burn_on_read_scheduler_frequency_seconds.app_error",
-    "translation": ""
+    "translation": "BurnOnReadSchedulerFrequencySeconds павінна быць станоўчым лікам."
   },
   {
     "id": "model.config.is_valid.service_settings.feature_flag_sync_interval.app_error",
-    "translation": ""
+    "translation": "FeatureFlagSyncIntervalSeconds павінна быць станоўчым лікам."
   },
   {
     "id": "model.config.is_valid.service_settings.refresh_post_stats_run_time.app_error",
-    "translation": ""
+    "translation": "RefreshPostStatsRunTime павінна быць часам у фармаце \"hh:mm\"."
   },
   {
     "id": "model.config.is_valid.sql_analytics_query_timeout.app_error",
-    "translation": ""
+    "translation": "Несапраўдны час чакання аналітычных запытаў для налад SQL. Павінен быць станоўчым лікам."
   },
   {
     "id": "model.config.is_valid.sql_migrations_statement_timeout_seconds.app_error",
-    "translation": ""
+    "translation": "Несапраўдны час чакання выканання інструкцый міграцый для налад SQL. Павінен быць неадмоўным лікам."
   },
   {
     "id": "model.config.is_valid.sql_replica_monitor_interval_seconds.app_error",
-    "translation": ""
+    "translation": "Несапраўдны інтэрвал маніторынгу рэплік для налад SQL. Павінен быць станоўчым лікам."
   },
   {
     "id": "model.config.is_valid.tls_min_ver.app_error",
-    "translation": ""
+    "translation": "Несапраўдная мінімальная версія TLS {{.Value}}. Павінна быць '1.0', '1.1', '1.2' або '1.3'."
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": ""
+    "translation": "Несапраўдны рэжым вэб-сервера {{.Value}}. Павінен быць 'gzip', 'nogzip' або 'disabled'."
   },
   {
     "id": "model.cpa_field.name.invalid_charset.app_error",
-    "translation": ""
+    "translation": "Несапраўдная назва поля CPA '{{.Name}}': павінна адпавядаць ^[A-Za-z_][A-Za-z0-9_]*$ (правіла ідэнтыфікатараў CEL)."
   },
   {
     "id": "model.cpa_field.name.reserved_word.app_error",
-    "translation": ""
+    "translation": "Несапраўдная назва поля CPA '{{.Name}}': гэта зарэзерваванае слова CEL, і яго нельга выкарыстоўваць як ідэнтыфікатар поля."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",
-    "translation": ""
+    "translation": "Выберыце хаця б адзін канал, у якім трэба запісваць дастаўкі."
   },
   {
     "id": "model.delivery_tracking.is_valid.channel_id.app_error",
-    "translation": ""
+    "translation": "У наладах аўдыту дастаўкі паведамленняў указаны несапраўдны ідэнтыфікатар канала."
   },
   {
     "id": "model.delivery_tracking.is_valid.missing_toggle.app_error",
-    "translation": ""
+    "translation": "Налады аўдыту дастаўкі паведамленняў няпоўныя."
   },
   {
     "id": "model.file_info.is_valid.name.app_error",
-    "translation": ""
+    "translation": "Несапраўднае значэнне для name."
   },
   {
     "id": "model.log_filter.is_valid.date_from.app_error",
-    "translation": ""
+    "translation": "Несапраўдны фільтр date_from. Чакаўся фармат \"{{.Layout}}\"."
   },
   {
     "id": "model.log_filter.is_valid.date_to.app_error",
-    "translation": ""
+    "translation": "Несапраўдны фільтр date_to. Чакаўся фармат \"{{.Layout}}\"."
   },
   {
     "id": "model.member.is_valid.profile_email.app_error",
-    "translation": ""
+    "translation": "Адрас электроннай пошты профілю адсутнічае ў спісе запрошаных адрасоў"
   },
   {
     "id": "model.member.is_valid.profile_email_duplicate.app_error",
-    "translation": ""
+    "translation": "Профілі запрашэнняў павінны мець унікальныя адрасы электроннай пошты"
   },
   {
     "id": "model.member.is_valid.profile_first_name.app_error",
-    "translation": ""
+    "translation": "Несапраўднае імя ў профілі запрашэння"
   },
   {
     "id": "model.member.is_valid.profile_last_name.app_error",
-    "translation": ""
+    "translation": "Несапраўднае прозвішча ў профілі запрашэння"
   },
   {
     "id": "model.member.is_valid.profile_nil.app_error",
-    "translation": ""
+    "translation": "Профіль запрашэння не можа быць пустым (null)"
   },
   {
     "id": "model.member.is_valid.profile_username.app_error",
-    "translation": ""
+    "translation": "Несапраўднае імя карыстальніка ў профілі запрашэння"
   },
   {
     "id": "model.member.is_valid.profile_username_duplicate.app_error",
-    "translation": ""
+    "translation": "Профілі запрашэнняў павінны мець унікальныя імёны карыстальнікаў"
   },
   {
     "id": "model.property_group.is_valid.app_error",
-    "translation": ""
+    "translation": "Несапраўдная група ўласцівасцей: {{.FieldName}} ({{.Reason}})."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
-    "translation": ""
+    "translation": "Паведамленні са спальваннем пасля прачытання нельга адпраўляць як паўторныя запланаваныя паведамленні."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_files.app_error",
-    "translation": ""
+    "translation": "Паўторныя запланаваныя паведамленні не могуць мець укладанняў."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
-    "translation": ""
+    "translation": "Для штотыднёвых паўторных запланаваных паведамленняў патрабуецца сапраўдны часавы пояс."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
-    "translation": ""
+    "translation": "Несапраўдны часавы пояс для паўторнага запланаванага паведамлення."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_type.app_error",
-    "translation": ""
+    "translation": "Несапраўдны тып паўтору для запланаванага паведамлення."
   },
   {
     "id": "model.scheduled_recap.compute_next_run.days_of_week.app_error",
-    "translation": ""
+    "translation": "Несапраўдныя дні тыдня запланаванага агляду."
   },
   {
     "id": "model.scheduled_recap.compute_next_run.no_valid_day.app_error",
-    "translation": ""
+    "translation": "Не знойдзена прыдатнага дня для запланаванага агляду."
   },
   {
     "id": "model.scheduled_recap.compute_next_run.time_format.app_error",
-    "translation": ""
+    "translation": "Несапраўдны фармат часу запланаванага агляду."
   },
   {
     "id": "model.scheduled_recap.compute_next_run.timezone.app_error",
-    "translation": ""
+    "translation": "Несапраўдны часавы пояс запланаванага агляду."
   },
   {
     "id": "model.scheduled_recap.is_valid.agent_id.app_error",
-    "translation": ""
+    "translation": "Запланаваны агляд павінен мець ідэнтыфікатар агента."
   },
   {
     "id": "model.scheduled_recap.is_valid.channel_id.app_error",
-    "translation": ""
+    "translation": "Несапраўдны ідэнтыфікатар канала запланаванага агляду."
   },
   {
     "id": "model.scheduled_recap.is_valid.channel_ids_empty.app_error",
-    "translation": ""
+    "translation": "Запланаваны агляд павінен уключаць хаця б адзін канал, калі выбраны пэўныя каналы."
   },
   {
     "id": "model.scheduled_recap.is_valid.channel_mode.app_error",
-    "translation": ""
+    "translation": "Несапраўдны рэжым выбару каналаў запланаванага агляду."
   },
   {
     "id": "model.scheduled_recap.is_valid.custom_instructions_length.app_error",
-    "translation": ""
+    "translation": "Уласныя інструкцыі запланаванага агляду перавышаюць максімальную даўжыню."
   },
   {
     "id": "model.scheduled_recap.is_valid.days_of_week.app_error",
-    "translation": ""
+    "translation": "Несапраўдныя дні тыдня запланаванага агляду."
   },
   {
     "id": "model.scheduled_recap.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Запланаваны агляд павінен мець ідэнтыфікатар."
   },
   {
     "id": "model.scheduled_recap.is_valid.time_of_day.app_error",
-    "translation": ""
+    "translation": "Несапраўдны час дня запланаванага агляду."
   },
   {
     "id": "model.scheduled_recap.is_valid.time_period.app_error",
-    "translation": ""
+    "translation": "Несапраўдны перыяд часу запланаванага агляду."
   },
   {
     "id": "model.scheduled_recap.is_valid.timezone.app_error",
-    "translation": ""
+    "translation": "Несапраўдны часавы пояс запланаванага агляду."
   },
   {
     "id": "model.scheduled_recap.is_valid.title_empty.app_error",
-    "translation": ""
+    "translation": "Назва запланаванага агляду не можа быць пустой."
   },
   {
     "id": "model.scheduled_recap.is_valid.title_length.app_error",
-    "translation": ""
+    "translation": "Назва запланаванага агляду перавышае максімальную даўжыню."
   },
   {
     "id": "model.scheduled_recap.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Запланаваны агляд павінен мець ідэнтыфікатар карыстальніка."
   },
   {
     "id": "model.translation.is_valid.lang.app_error",
-    "translation": ""
+    "translation": "Несапраўдны код мовы. Выкарыстоўвайце стандартны код ISO, напрыклад 'en', 'ja' або 'fr'."
   },
   {
     "id": "model.translation.is_valid.nil.app_error",
-    "translation": ""
+    "translation": "Аб’ект перакладу не можа быць пустым (null)."
   },
   {
     "id": "model.translation.is_valid.object_id.app_error",
-    "translation": ""
+    "translation": "Несапраўдны ідэнтыфікатар аб’екта."
   },
   {
     "id": "model.translation.is_valid.object_json.app_error",
-    "translation": ""
+    "translation": "Несапраўдны JSON аб’екта."
   },
   {
     "id": "model.translation.is_valid.object_type.app_error",
-    "translation": ""
+    "translation": "Несапраўдны тып аб’екта."
   },
   {
     "id": "model.translation.is_valid.provider.app_error",
-    "translation": ""
+    "translation": "Несапраўдны пастаўшчык перакладу."
   },
   {
     "id": "model.translation.is_valid.text.app_error",
-    "translation": ""
+    "translation": "Несапраўдны тэкст перакладу."
   },
   {
     "id": "model.translation.is_valid.type.app_error",
-    "translation": ""
+    "translation": "Несапраўдны тып перакладу."
   },
   {
     "id": "model.translation.is_valid.type_invalid.app_error",
-    "translation": ""
+    "translation": "Несапраўдны тып перакладу. Павінен быць 'string' або 'object'."
   },
   {
     "id": "model.user.is_valid.mention_keys.app_error",
-    "translation": ""
+    "translation": "Несапраўднае значэнне mention_keys: перавышае ліміт у {{.MaxCount}} ключоў або {{.MaxLength}} байт."
   },
   {
     "id": "model.user_access_token.is_valid.expires_at.app_error",
-    "translation": ""
+    "translation": "Несапраўднае значэнне expires_at: павінна быць нулём або станоўчай меткай часу Unix у мілісекундах."
   },
   {
     "id": "model.user_report_options.is_valid.invalid_guest_filter",
-    "translation": ""
+    "translation": "Указаны фільтр гасцей несапраўдны."
   },
   {
     "id": "model.view.is_valid.channel_id.app_error",
-    "translation": ""
+    "translation": "Несапраўдны ідэнтыфікатар канала прадстаўлення."
   },
   {
     "id": "model.view.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Несапраўдны час стварэння прадстаўлення."
   },
   {
     "id": "model.view.is_valid.creator_id.app_error",
-    "translation": ""
+    "translation": "Несапраўдны ідэнтыфікатар стваральніка прадстаўлення."
   },
   {
     "id": "model.view.is_valid.description.app_error",
-    "translation": ""
+    "translation": "Апісанне прадстаўлення занадта доўгае."
   },
   {
     "id": "model.view.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Несапраўдны ідэнтыфікатар прадстаўлення."
   },
   {
     "id": "model.view.is_valid.props.kanban_column_id.app_error",
-    "translation": ""
+    "translation": "Слупок Kanban мае несапраўдны ідэнтыфікатар або не мае яго."
   },
   {
     "id": "model.view.is_valid.props.kanban_column_name.app_error",
-    "translation": ""
+    "translation": "Назва слупка Kanban не можа быць пустой."
   },
   {
     "id": "model.view.is_valid.props.kanban_column_options.app_error",
-    "translation": ""
+    "translation": "Слупок Kanban павінен мець хаця б адзін ідэнтыфікатар варыянта."
   },
   {
     "id": "model.view.is_valid.props.kanban_columns_empty.app_error",
-    "translation": ""
+    "translation": "Прадстаўленне Kanban павінна мець хаця б адзін слупок."
   },
   {
     "id": "model.view.is_valid.props.kanban_columns_max.app_error",
-    "translation": ""
+    "translation": "Прадстаўленне Kanban перавышае максімальную колькасць слупкоў."
   },
   {
     "id": "model.view.is_valid.props.kanban_field_id.app_error",
-    "translation": ""
+    "translation": "Прадстаўленне Kanban павінна спасылацца на сапраўдны ідэнтыфікатар поля ўласцівасці."
   },
   {
     "id": "model.view.is_valid.props.kanban_invalid.app_error",
-    "translation": ""
+    "translation": "Прадстаўленне Kanban мае несапраўдную структуру props."
   },
   {
     "id": "model.view.is_valid.props.kanban_required.app_error",
-    "translation": ""
+    "translation": "Прадстаўленне Kanban патрабуе props з канфігурацыяй group_by."
   },
   {
     "id": "model.view.is_valid.title.app_error",
-    "translation": ""
+    "translation": "Назва прадстаўлення абавязковая і павінна быць карацейшай за 256 сімвалаў."
   },
   {
     "id": "model.view.is_valid.type.app_error",
-    "translation": ""
+    "translation": "Несапраўдны тып прадстаўлення."
   },
   {
     "id": "model.view.is_valid.update_at.app_error",
-    "translation": ""
+    "translation": "Несапраўдны час абнаўлення прадстаўлення."
   },
   {
     "id": "plugin.api.update_post.mm_blocks_actions.app_error",
-    "translation": ""
+    "translation": "Несапраўднае значэнне mm_blocks_actions у абнаўленні паведамлення плагінам."
   },
   {
     "id": "plugin_api.channel.space_notify_props.app_error",
-    "translation": ""
+    "translation": "Уласцівасці апавяшчэнняў нельга задаць для каналаў тыпу space."
   },
   {
     "id": "shared_channel.system_message.no_longer_shared",
-    "translation": ""
+    "translation": "Гэты канал больш не з’яўляецца супольным з {{.WorkspaceName}}."
   },
   {
     "id": "shared_channel.system_message.no_longer_shared_unknown",
-    "translation": ""
+    "translation": "Гэты канал больш не з’яўляецца супольным з іншай працоўнай прасторай."
   },
   {
     "id": "shared_channel.system_message.now_shared",
-    "translation": ""
+    "translation": "Гэты канал цяпер з’яўляецца супольным з {{.WorkspaceName}}."
   },
   {
     "id": "web.error.unsupported_desktop_app.assistance",
-    "translation": ""
+    "translation": "Звярніцеся да сістэмнага адміністратара, калі вам патрэбна дадатковая дапамога."
   },
   {
     "id": "web.error.unsupported_desktop_app.download_button",
-    "translation": ""
+    "translation": "Спампаваць абноўленую праграму"
   },
   {
     "id": "web.error.unsupported_desktop_app.footer_about",
-    "translation": ""
+    "translation": "Пра праграму"
   },
   {
     "id": "web.error.unsupported_desktop_app.footer_help",
-    "translation": ""
+    "translation": "Дапамога"
   },
   {
     "id": "web.error.unsupported_desktop_app.footer_privacy",
-    "translation": ""
+    "translation": "Палітыка прыватнасці"
   },
   {
     "id": "web.error.unsupported_desktop_app.footer_terms",
-    "translation": ""
+    "translation": "Умовы"
   },
   {
     "id": "web.error.unsupported_desktop_app.message",
-    "translation": ""
+    "translation": "Версія вашай настольнай праграмы {{.SiteName}} ({{.CurrentVersion}}) ніжэйшая за мінімальна неабходную ({{.MinimumVersion}}). Калі ласка, абнавіце праграму або адкрыйце {{.SiteName}} у вэб-браўзеры, каб працягнуць."
   },
   {
     "id": "web.error.unsupported_desktop_app.title",
-    "translation": ""
+    "translation": "Патрабуецца абнаўленне"
   }
 ]
