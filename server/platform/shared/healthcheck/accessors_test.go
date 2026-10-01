@@ -91,6 +91,48 @@ func TestAccessorsReturnFalseWhenSectionAbsent(t *testing.T) {
 	require.False(t, ok)
 }
 
+func TestConfigInt64(t *testing.T) {
+	t.Parallel()
+
+	maxNotifications := func(cfg *model.Config) *int64 { return cfg.TeamSettings.MaxNotificationsPerChannel }
+	newSnapshot := func(value *int64) *Snapshot {
+		cfg := &model.Config{}
+		cfg.TeamSettings.MaxNotificationsPerChannel = value
+		return &Snapshot{
+			Config:   &model.SupportPacketConfig{Config: cfg},
+			Sections: map[model.WorkspaceSection]error{model.SectionConfig: nil},
+		}
+	}
+
+	t.Run("config absent", func(t *testing.T) {
+		_, ok := (&Snapshot{}).ConfigInt64(maxNotifications)
+		require.False(t, ok)
+	})
+
+	t.Run("config section failed", func(t *testing.T) {
+		s := newSnapshot(new(int64(1000)))
+		s.Sections[model.SectionConfig] = assert.AnError
+		_, ok := s.ConfigInt64(maxNotifications)
+		require.False(t, ok)
+	})
+
+	t.Run("nil field", func(t *testing.T) {
+		_, ok := newSnapshot(nil).ConfigInt64(maxNotifications)
+		require.False(t, ok)
+	})
+
+	t.Run("nil getter", func(t *testing.T) {
+		_, ok := newSnapshot(new(int64(1000))).ConfigInt64(nil)
+		require.False(t, ok)
+	})
+
+	t.Run("set", func(t *testing.T) {
+		value, ok := newSnapshot(new(int64(1000))).ConfigInt64(maxNotifications)
+		require.True(t, ok)
+		require.Equal(t, int64(1000), value)
+	})
+}
+
 func TestLicenseFeature(t *testing.T) {
 	t.Parallel()
 

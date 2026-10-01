@@ -129,6 +129,11 @@ func TestReadGoldenPackets(t *testing.T) {
 				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateFiring, Subject: pushSubject},
 				{Code: "SITE_URL_EMPTY", State: healthcheck.StateResolved, Subject: siteURLSubject},
 				{Code: "SITE_URL_HTTP", State: healthcheck.StateFiring, Subject: siteURLSubject},
+				{Code: "PUSH_ID_ONLY", State: healthcheck.StateFiring, Subject: "EmailSettings.PushNotificationContents"},
+				{Code: "LINK_PREVIEWS_DISABLED", State: healthcheck.StateResolved, Subject: "ServiceSettings.EnableLinkPreviews"},
+				{Code: "MAX_NOTIFICATIONS_PER_CHANNEL", State: healthcheck.StateResolved, Subject: "TeamSettings.MaxNotificationsPerChannel"},
+				{Code: "TYPING_MESSAGES_AT_SCALE", State: healthcheck.StateResolved, Subject: "ServiceSettings.EnableUserTypingMessages"},
+				{Code: "SMTP_UNREACHABLE", State: healthcheck.StateResolved, Subject: "EmailSettings.SMTPServer"},
 			},
 		},
 		{
@@ -139,6 +144,11 @@ func TestReadGoldenPackets(t *testing.T) {
 				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateResolved, Subject: pushSubject},
 				{Code: "SITE_URL_EMPTY", State: healthcheck.StateResolved, Subject: siteURLSubject},
 				{Code: "SITE_URL_HTTP", State: healthcheck.StateResolved, Subject: siteURLSubject},
+				{Code: "PUSH_ID_ONLY", State: healthcheck.StateFiring, Subject: "EmailSettings.PushNotificationContents"},
+				{Code: "LINK_PREVIEWS_DISABLED", State: healthcheck.StateResolved, Subject: "ServiceSettings.EnableLinkPreviews"},
+				{Code: "MAX_NOTIFICATIONS_PER_CHANNEL", State: healthcheck.StateResolved, Subject: "TeamSettings.MaxNotificationsPerChannel"},
+				{Code: "TYPING_MESSAGES_AT_SCALE", State: healthcheck.StateResolved, Subject: "ServiceSettings.EnableUserTypingMessages"},
+				{Code: "SMTP_UNREACHABLE", State: healthcheck.StateResolved, Subject: "EmailSettings.SMTPServer"},
 			},
 		},
 	}
