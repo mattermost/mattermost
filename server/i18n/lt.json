@@ -5114,1403 +5114,1408 @@
   },
   {
     "id": "api.user.saml.relay_state_too_long.app_error",
-    "translation": ""
+    "translation": "SAML perdavimo būsena (relay state) per ilga."
   },
   {
     "id": "api.user.send_cloud_welcome_email.error",
-    "translation": ""
+    "translation": "Nepavyko išsiųsti debesijos pasveikinimo el. laiško"
   },
   {
     "id": "api.user.send_deactivate_email_and_forget.failed.error",
-    "translation": ""
+    "translation": "Nepavyko sėkmingai išsiųsti paskyros išaktyvinimo el. laiško"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
-    "translation": ""
+    "translation": "Nepavyko sėkmingai išsiųsti el. pašto adreso pakeitimo patvirtinimo laiško"
   },
   {
     "id": "api.user.send_password_reset.guest_magic_link.app_error",
-    "translation": ""
+    "translation": "Svečių paskyrų, naudojančių magišką nuorodą, slaptažodžio iš naujo nustatyti negalima."
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
-    "translation": ""
+    "translation": "Nepavyko sėkmingai išsiųsti slaptažodžio nustatymo iš naujo el. laiško."
   },
   {
     "id": "api.user.send_password_reset.sso.app_error",
-    "translation": ""
+    "translation": "SSO paskyrų slaptažodžio iš naujo nustatyti negalima."
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
-    "translation": ""
+    "translation": "Nepavyko sėkmingai išsiųsti slaptažodžio atnaujinimo el. laiško"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
-    "translation": ""
+    "translation": "Nepavyko sėkmingai išsiųsti patvirtinimo el. laiško"
   },
   {
     "id": "api.user.session_attributes.disabled.app_error",
-    "translation": ""
+    "translation": "Seanso atributai neįjungti."
   },
   {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
-    "translation": ""
+    "translation": "Negalite aktyvinti svečio paskyros, nes svečių prieigos funkcija neįjungta."
   },
   {
     "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
-    "translation": ""
+    "translation": "Negalite keisti naudotojo būsenos. Naudotoją valdo LDAP"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
-    "translation": ""
+    "translation": "Negalite išaktyvinti savo paskyros, nes ši funkcija neįjungta. Kreipkitės į sistemos administratorių."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
-    "translation": ""
+    "translation": "Neturite tinkamų leidimų."
   },
   {
     "id": "api.user.update_oauth_user_attrs.get_user.app_error",
-    "translation": ""
+    "translation": "Nepavyko gauti naudotojo iš {{.Service}} naudotojo objekto."
   },
   {
     "id": "api.user.update_password.context.app_error",
-    "translation": ""
+    "translation": "Slaptažodžio atnaujinti nepavyko, nes konteksto user_id nesutapo su props user_id."
   },
   {
     "id": "api.user.update_password.failed.app_error",
-    "translation": ""
+    "translation": "Slaptažodžio atnaujinti nepavyko."
   },
   {
     "id": "api.user.update_password.incorrect.app_error",
-    "translation": ""
+    "translation": "Įvestas „Dabartinis slaptažodis“ neteisingas. Patikrinkite, ar neįjungtas Caps Lock, ir bandykite dar kartą."
   },
   {
     "id": "api.user.update_password.magic_link.app_error",
-    "translation": ""
+    "translation": "Paskyrų, naudojančių magišką nuorodą (Magic Link), slaptažodžio atnaujinti negalima."
   },
   {
     "id": "api.user.update_password.menu",
-    "translation": ""
+    "translation": "naudojant nustatymų meniu"
   },
   {
     "id": "api.user.update_password.oauth.app_error",
-    "translation": ""
+    "translation": "Slaptažodžio atnaujinti nepavyko, nes naudotojas prisijungęs per OAuth paslaugą."
   },
   {
     "id": "api.user.update_password.password_hash.app_error",
-    "translation": ""
+    "translation": "Išsaugant slaptažodį įvyko vidinė klaida."
   },
   {
     "id": "api.user.update_password.user_and_hashed.app_error",
-    "translation": ""
+    "translation": "Tik sistemos administratoriai gali nustatyti jau užmaišytus slaptažodžius."
   },
   {
     "id": "api.user.update_password.valid_account.app_error",
-    "translation": ""
+    "translation": "Slaptažodžio atnaujinti nepavyko, nes neradome galiojančios paskyros."
   },
   {
     "id": "api.user.update_user.accepted_domain.app_error",
-    "translation": ""
+    "translation": "Jūsų pateiktas el. pašto adresas nepriklauso leidžiamam domenui. Kreipkitės į administratorių arba registruokitės kitu el. pašto adresu."
   },
   {
     "id": "api.user.update_user.accepted_guest_domain.app_error",
-    "translation": ""
+    "translation": "Jūsų pateiktas el. pašto adresas nepriklauso svečių paskyroms leidžiamam domenui. Kreipkitės į administratorių arba registruokitės kitu el. pašto adresu."
   },
   {
     "id": "api.user.update_user.login_provider_attribute_set.app_error",
-    "translation": ""
+    "translation": "Laukas '{{.Field}}' turi būti nustatomas per naudotojo prisijungimo teikėją."
   },
   {
     "id": "api.user.update_user.profile_field_locked.app_error",
-    "translation": ""
+    "translation": "Lauką {{.Field}} valdo sistemos administratorius, jo keisti negalima."
   },
   {
     "id": "api.user.update_user_auth.invalid_request",
-    "translation": ""
+    "translation": "Užklausoje trūksta AuthData arba AuthService parametro."
   },
   {
     "id": "api.user.update_user_roles.license.app_error",
-    "translation": ""
+    "translation": "Dabartinė licencija nepalaiko tinkintų leidimų schemų"
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
-    "translation": ""
+    "translation": "Užklausoje laukas 'image' yra tuščias masyvas."
   },
   {
     "id": "api.user.upload_profile_user.check_image_limits.app_error",
-    "translation": ""
+    "translation": "Vaizdo apribojimų patikra nepavyko. Skiriamoji geba per didelė."
   },
   {
     "id": "api.user.upload_profile_user.decode.app_error",
-    "translation": ""
+    "translation": "Nepavyko dekoduoti profilio paveikslėlio."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
-    "translation": ""
+    "translation": "Nepavyko užkoduoti profilio paveikslėlio."
   },
   {
     "id": "api.user.upload_profile_user.login_provider_attribute_set.app_error",
-    "translation": ""
+    "translation": "Profilio nuotrauka turi būti nustatoma per naudotojo prisijungimo teikėją."
   },
   {
     "id": "api.user.upload_profile_user.no_file.app_error",
-    "translation": ""
+    "translation": "Užklausoje nėra failo lauke 'image'."
   },
   {
     "id": "api.user.upload_profile_user.open.app_error",
-    "translation": ""
+    "translation": "Nepavyko atidaryti vaizdo failo."
   },
   {
     "id": "api.user.upload_profile_user.parse.app_error",
-    "translation": ""
+    "translation": "Nepavyko išanalizuoti kelių dalių formos."
   },
   {
     "id": "api.user.upload_profile_user.profile_field_locked.app_error",
-    "translation": ""
+    "translation": "Profilio nuotrauką valdo sistemos administratorius, jos keisti negalima."
   },
   {
     "id": "api.user.upload_profile_user.storage.app_error",
-    "translation": ""
+    "translation": "Nepavyksta įkelti failo. Vaizdų saugykla nesukonfigūruota."
   },
   {
     "id": "api.user.upload_profile_user.too_large.app_error",
-    "translation": ""
+    "translation": "Nepavyksta įkelti profilio paveikslėlio. Failas per didelis."
   },
   {
     "id": "api.user.upload_profile_user.upload_profile.app_error",
-    "translation": ""
+    "translation": "Nepavyko įkelti profilio paveikslėlio."
   },
   {
     "id": "api.user.verify_email.bad_link.app_error",
-    "translation": ""
+    "translation": "Netinkama el. pašto patvirtinimo nuoroda."
   },
   {
     "id": "api.user.verify_email.broken_token.app_error",
-    "translation": ""
+    "translation": "Netinkamas el. pašto patvirtinimo rakto tipas."
   },
   {
     "id": "api.user.verify_email.link_expired.app_error",
-    "translation": ""
+    "translation": "El. pašto patvirtinimo nuoroda nebegalioja."
   },
   {
     "id": "api.user.verify_email.token_parse.error",
-    "translation": ""
+    "translation": "Nepavyko išanalizuoti el. pašto patvirtinimo rakto duomenų"
   },
   {
     "id": "api.view.create.deleted_channel.app_error",
-    "translation": ""
+    "translation": "Negalima sukurti rodinio ištrintame kanale."
   },
   {
     "id": "api.view.delete.channel_mismatch.app_error",
-    "translation": ""
+    "translation": "Rodinys nepriklauso nurodytam kanalui."
   },
   {
     "id": "api.view.delete.deleted_channel.app_error",
-    "translation": ""
+    "translation": "Negalima ištrinti rodinio ištrintame kanale."
   },
   {
     "id": "api.view.get.channel_mismatch.app_error",
-    "translation": ""
+    "translation": "Rodinys nepriklauso nurodytam kanalui."
   },
   {
     "id": "api.view.get.deleted_channel.app_error",
-    "translation": ""
+    "translation": "Negalima gauti rodinio iš ištrinto kanalo."
   },
   {
     "id": "api.view.get_posts.channel_mismatch.app_error",
-    "translation": ""
+    "translation": "Rodinys nepriklauso nurodytam kanalui."
   },
   {
     "id": "api.view.get_posts.deleted_channel.app_error",
-    "translation": ""
+    "translation": "Negalima gauti rodinio pranešimų iš ištrinto kanalo."
   },
   {
     "id": "api.view.list.deleted_channel.app_error",
-    "translation": ""
+    "translation": "Negalima pateikti ištrinto kanalo rodinių sąrašo."
   },
   {
     "id": "api.view.update.channel_mismatch.app_error",
-    "translation": ""
+    "translation": "Rodinys nepriklauso nurodytam kanalui."
   },
   {
     "id": "api.view.update.deleted_channel.app_error",
-    "translation": ""
+    "translation": "Negalima atnaujinti rodinio ištrintame kanale."
   },
   {
     "id": "api.view.update_sort_order.deleted_channel.app_error",
-    "translation": ""
+    "translation": "Negalima atnaujinti rodinių rikiavimo tvarkos ištrintame kanale."
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": ""
+    "translation": "URL užblokuotas dėl CORS. URL: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
-    "translation": ""
+    "translation": "Nežinomas WebSocket veiksmas."
   },
   {
     "id": "api.web_socket_router.bad_seq.app_error",
-    "translation": ""
+    "translation": "Netinkama WebSocket pranešimo seka."
   },
   {
     "id": "api.web_socket_router.no_action.app_error",
-    "translation": ""
+    "translation": "Nėra WebSocket veiksmo."
   },
   {
     "id": "api.web_socket_router.not_authenticated.app_error",
-    "translation": ""
+    "translation": "WebSocket ryšys neautentifikuotas. Prisijunkite ir bandykite dar kartą."
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
-    "translation": ""
+    "translation": "To paties kanalo siunčiamieji žiniatinklio kabliai negali turėti tų pačių suaktyvinimo žodžių ir atgalinio iškvietimo URL."
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
-    "translation": ""
+    "translation": "Siunčiamuosius žiniatinklio kablius galima kurti tik viešiesiems kanalams."
   },
   {
     "id": "api.webhook.create_outgoing.permissions.app_error",
-    "translation": ""
+    "translation": "Netinkami leidimai siunčiamajam žiniatinklio kabliui kurti."
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
-    "translation": ""
+    "translation": "Turi būti nustatytas trigger_words arba channel_id."
   },
   {
     "id": "api.webhook.incoming.user_membership.app_error",
-    "translation": ""
+    "translation": "Žiniatinklio kablio naudotojas turi būti paskirties komandos arba kanalo narys."
   },
   {
     "id": "api.webhook.incoming.user_role.app_error",
-    "translation": ""
+    "translation": "Negalite priskirti žiniatinklio kablio naudotojui, turinčiam daugiau teisių nei Jūs."
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
-    "translation": ""
+    "translation": "Nepavyksta atnaujinti žiniatinklio kablio perkeliant tarp komandų."
   },
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
-    "translation": ""
+    "translation": "To paties kanalo siunčiamieji žiniatinklio kabliai negali turėti tų pačių suaktyvinimo žodžių ir atgalinio iškvietimo URL."
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
-    "translation": ""
+    "translation": "Netinkamas parametras {{.Name}}."
   },
   {
     "id": "api.websocket_handler.server_busy.app_error",
-    "translation": ""
+    "translation": "Serveris užimtas, nekritinės paslaugos laikinai nepasiekiamos."
   },
   {
     "id": "api4.plugin.reattachPlugin.invalid_request",
-    "translation": ""
+    "translation": "Nepavyko išanalizuoti užklausos"
   },
   {
     "id": "app.access_control.build_subject.get_subject.app_error",
-    "translation": ""
+    "translation": "Nepavyko gauti prieigos kontrolės subjekto."
   },
   {
     "id": "app.access_control.build_subject.group_id.app_error",
-    "translation": ""
+    "translation": "Nepavyko gauti prieigos kontrolės atributų grupės."
   },
   {
     "id": "app.access_control.get_channel_role.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti naudotojo kanalo vaidmens. Bandykite dar kartą."
   },
   {
     "id": "app.access_control.get_session_attributes.app_error",
-    "translation": ""
+    "translation": "Nepavyko gauti seanso atributų."
   },
   {
     "id": "app.access_control.insufficient_permissions",
-    "translation": ""
+    "translation": "Neturite leidimo valdyti šios prieigos kontrolės politikos."
   },
   {
     "id": "app.access_control.plugin.evaluation_unavailable.app_error",
-    "translation": ""
+    "translation": "Nepavyko įvertinti šio ištekliaus prieigos kontrolės."
   },
   {
     "id": "app.access_control.plugin.invalid_acting_user.app_error",
-    "translation": ""
+    "translation": "Veikiantis naudotojas netinkamas arba neegzistuoja."
   },
   {
     "id": "app.access_control.plugin.invalid_action.app_error",
-    "translation": ""
+    "translation": "Veiksmas nėra tinkamas prieigos kontrolės veiksmas."
   },
   {
     "id": "app.access_control.plugin.invalid_id.app_error",
-    "translation": ""
+    "translation": "Prieigos kontrolės API pateiktas netinkamas identifikatorius."
   },
   {
     "id": "app.access_control.plugin.invalid_resource_type.app_error",
-    "translation": ""
+    "translation": "Ištekliaus tipas nėra tinkamas papildinio prieigos kontrolės ištekliaus tipas."
   },
   {
     "id": "app.access_control.plugin.policy_not_found.app_error",
-    "translation": ""
+    "translation": "Prieigos kontrolės politika nerasta."
   },
   {
     "id": "app.access_control.plugin.resource_type_forbidden.app_error",
-    "translation": ""
+    "translation": "Iškviečiantis papildinys nėra šio ištekliaus tipo savininkas."
   },
   {
     "id": "app.access_control.plugin.type_conflict.app_error",
-    "translation": ""
+    "translation": "Su šiuo ID jau egzistuoja kito tipo prieigos kontrolės politika."
   },
   {
     "id": "app.access_control_decision.subject_mismatch.app_error",
-    "translation": ""
+    "translation": "Subjektas nesutampa su autentifikuotu seanso naudotoju."
   },
   {
     "id": "app.access_control_decision.unsupported_action.app_error",
-    "translation": ""
+    "translation": "Nepalaikomas atvaizdavimo sprendimų veiksmas: {{.Action}}"
   },
   {
     "id": "app.acknowledgement.batch_save.app_error",
-    "translation": ""
+    "translation": "Nepavyko išsaugoti patvirtinimo objektų paketo"
   },
   {
     "id": "app.acknowledgement.delete.app_error",
-    "translation": ""
+    "translation": "Nepavyksta ištrinti patvirtinimo."
   },
   {
     "id": "app.acknowledgement.delete.missing_post.app_error",
-    "translation": ""
+    "translation": "Negalima ištrinti neegzistuojančio pranešimo patvirtinimo"
   },
   {
     "id": "app.acknowledgement.get.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti patvirtinimo."
   },
   {
     "id": "app.acknowledgement.getforpost.get.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti pranešimo patvirtinimų."
   },
   {
     "id": "app.acknowledgement.save.missing_post.app_error",
-    "translation": ""
+    "translation": "Negalima išsaugoti neegzistuojančio pranešimo patvirtinimo"
   },
   {
     "id": "app.acknowledgement.save.save.app_error",
-    "translation": ""
+    "translation": "Nepavyksta išsaugoti pranešimo patvirtinimo."
   },
   {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
-    "translation": ""
+    "translation": "Nepavyko dekoduoti iš tapatybės teikėjo gautų XML metaduomenų."
   },
   {
     "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
-    "translation": ""
+    "translation": "Skaitant iš tapatybės teikėjo gautą atsakymo turinį įvyko klaida."
   },
   {
     "id": "app.admin.saml.invalid_response_from_idp.app_error",
-    "translation": ""
+    "translation": "Nepavyko perskaityti iš tapatybės teikėjo gauto atsakymo."
   },
   {
     "id": "app.admin.test_email.failure",
-    "translation": ""
+    "translation": "Ryšys nepavyko: {{.Error}}"
   },
   {
     "id": "app.admin.test_site_url.failure",
-    "translation": ""
+    "translation": "Tai nėra galiojantis veikiantis URL"
   },
   {
     "id": "app.agents.get_agents.app_error",
-    "translation": ""
+    "translation": "Nepavyko gauti agentų."
   },
   {
     "id": "app.agents.get_agents.bridge_call_failed",
-    "translation": ""
+    "translation": "Tilto iškvietimas nepavyko."
   },
   {
     "id": "app.agents.get_services.app_error",
-    "translation": ""
+    "translation": "Nepavyko gauti LLM paslaugų."
   },
   {
     "id": "app.agents.get_services.bridge_call_failed",
-    "translation": ""
+    "translation": "Tilto iškvietimas nepavyko."
   },
   {
     "id": "app.ai.summarize.agent_call_failed",
-    "translation": ""
+    "translation": "DI agento iškvietimas nepavyko."
   },
   {
     "id": "app.ai.summarize.parse_failed",
-    "translation": ""
+    "translation": "Nepavyko išanalizuoti DI apibendrinimo atsakymo."
   },
   {
     "id": "app.ai_bridge_test_helper.invalid_config",
-    "translation": ""
+    "translation": "Netinkama DI tilto testavimo pagalbinės priemonės konfigūracija."
   },
   {
     "id": "app.analytics.getanalytics.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti analitikos duomenų."
   },
   {
     "id": "app.audit.get.finding.app_error",
-    "translation": ""
+    "translation": "Ieškant audito įrašų įvyko klaida."
   },
   {
     "id": "app.audit.get.limit.app_error",
-    "translation": ""
+    "translation": "Viršytas puslapiavimo limitas."
   },
   {
     "id": "app.audit.permanent_delete_by_user.app_error",
-    "translation": ""
+    "translation": "Trinant audito įrašus įvyko klaida."
   },
   {
     "id": "app.audit.save.saving.app_error",
-    "translation": ""
+    "translation": "Išsaugant audito įrašą įvyko klaida."
   },
   {
     "id": "app.bot.createbot.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta išsaugoti roboto."
   },
   {
     "id": "app.bot.createbot.reserved_username.app_error",
-    "translation": ""
+    "translation": "Šis naudotojo vardas rezervuotas sistemai priklausančiam robotui."
   },
   {
     "id": "app.bot.get_disable_bot_sysadmin_message",
-    "translation": ""
+    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} buvo išaktyvintas. Šis naudotojas valdė toliau nurodytas robotų paskyras, kurios dabar išjungtos.\n\n{{.BotNames}}{{else}}{{.UserName}} buvo išaktyvintas. Šis naudotojas valdė {{.NumBots}} robotų paskyras, kurios dabar išjungtos, įskaitant šias:\n\n{{.BotNames}}{{end}}Galite perimti kiekvieno roboto valdymą įjungdami jį skiltyje **Integracijos > Robotų paskyros** ir sukurdami robotui naujus prieigos raktus.\n\nDaugiau informacijos rasite mūsų [dokumentacijoje](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} buvo išaktyvintas. Šis naudotojas valdė toliau nurodytas robotų paskyras, kurios vis dar įjungtos.\n\n{{.BotNames}}\n{{else}}{{.UserName}} buvo išaktyvintas. Šis naudotojas valdė {{.NumBots}} robotų paskyras, kurios vis dar įjungtos, įskaitant šias:\n\n{{.BotNames}}{{end}}Primygtinai rekomenduojame perimti kiekvieno roboto valdymą iš naujo įjungiant jį skiltyje **Integracijos > Robotų paskyros** ir sukuriant robotui naujus prieigos raktus.\n\nDaugiau informacijos rasite mūsų [dokumentacijoje](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nJei norite, kad robotų paskyros būtų automatiškai išjungiamos išaktyvinus jų savininką, skiltyje **Sistemos konsolė > Integracijos > Robotų paskyros** nustatykite parinktį „Išjungti robotų paskyras, kai savininkas išaktyvinamas“ į „true“.{{end}}"
   },
   {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
-    "translation": ""
+    "translation": "Administratorių sąrašas tuščias."
   },
   {
     "id": "app.bot.getbot.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti roboto."
   },
   {
     "id": "app.bot.getbots.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti robotų."
   },
   {
     "id": "app.bot.patchbot.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta atnaujinti roboto."
   },
   {
     "id": "app.bot.patchbot.reserved_username.app_error",
-    "translation": ""
+    "translation": "Šis naudotojo vardas rezervuotas sistemai priklausančiam robotui."
   },
   {
     "id": "app.bot.permanent_delete.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta negrįžtamai ištrinti roboto."
   },
   {
     "id": "app.bot.permenent_delete.bad_id",
-    "translation": ""
+    "translation": "Nepavyksta ištrinti roboto."
   },
   {
     "id": "app.bot.update.app_error",
-    "translation": ""
+    "translation": "Nepavyksta atnaujinti roboto."
   },
   {
     "id": "app.bot.update.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta atnaujinti roboto."
   },
   {
     "id": "app.bot.update_bot_active.protected_bot.app_error",
-    "translation": ""
+    "translation": "Negalima išjungti sistemai priklausančio roboto."
   },
   {
     "id": "app.burn_post.not_burn_on_read.app_error",
-    "translation": ""
+    "translation": "Šis pranešimas nėra perskaičius išnykstantis pranešimas, todėl jo negalima sunaikinti."
   },
   {
     "id": "app.burn_post.not_revealed.app_error",
-    "translation": ""
+    "translation": "Šis perskaičius išnykstantis pranešimas dar neatskleistas. Prieš sunaikindami turite jį atskleisti."
   },
   {
     "id": "app.burn_post.read_receipt.get.error",
-    "translation": ""
+    "translation": "Gaunant perskaitymo įrašą įvyko klaida."
   },
   {
     "id": "app.burn_post.read_receipt.update.error",
-    "translation": ""
+    "translation": "Atnaujinant perskaitymo įrašą įvyko klaida."
   },
   {
     "id": "app.channel.add_member.deleted_user.app_error",
-    "translation": ""
+    "translation": "Nepavyksta pridėti naudotojo kaip kanalo nario."
   },
   {
     "id": "app.channel.add_user.to.channel.rejected_by_plugin",
-    "translation": ""
+    "translation": "Papildinys atmetė kanalo nario pridėjimą: {{.Reason}}"
   },
   {
     "id": "app.channel.analytics_type_count.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti kanalų skaičiaus pagal tipą."
   },
   {
     "id": "app.channel.autofollow.app_error",
-    "translation": ""
+    "translation": "Nepavyko atnaujinti paminėto naudotojo gijos narystės"
   },
   {
     "id": "app.channel.bookmark.delete.app_error",
-    "translation": ""
+    "translation": "Nepavyko ištrinti žymelės."
   },
   {
     "id": "app.channel.bookmark.get.app_error",
-    "translation": ""
+    "translation": "Nepavyko gauti žymelės."
   },
   {
     "id": "app.channel.bookmark.get_existing.app_err",
-    "translation": ""
+    "translation": "Nepavyko gauti esamos žymelės, kurią reikia atnaujinti."
   },
   {
     "id": "app.channel.bookmark.save.app_error",
-    "translation": ""
+    "translation": "Nepavyko išsaugoti žymelės."
   },
   {
     "id": "app.channel.bookmark.update.app_error",
-    "translation": ""
+    "translation": "Nepavyko atnaujinti žymelės."
   },
   {
     "id": "app.channel.bookmark.update_sort.app_error",
-    "translation": ""
+    "translation": "Nepavyko pakeisti žymelės eilės tvarkos."
   },
   {
     "id": "app.channel.bookmark.update_sort.invalid_input.app_error",
-    "translation": ""
+    "translation": "Nepavyko pakeisti žymelės eilės tvarkos. Netinkama įvestis."
   },
   {
     "id": "app.channel.bookmark.update_sort.missing_bookmark.app_error",
-    "translation": ""
+    "translation": "Nepavyko pakeisti žymelės eilės tvarkos. Žymelė nerasta."
   },
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": ""
+    "translation": "Nepavyko gauti kanalo narių."
   },
   {
     "id": "app.channel.count_posts_since.app_error",
-    "translation": ""
+    "translation": "Nepavyksta suskaičiuoti pranešimų nuo nurodytos datos."
   },
   {
     "id": "app.channel.count_urgent_posts_since.app_error",
-    "translation": ""
+    "translation": "Nepavyksta suskaičiuoti skubių pranešimų nuo nurodytos datos."
   },
   {
     "id": "app.channel.create_board_channel.boards_not_enabled.app_error",
-    "translation": ""
+    "translation": "Integruotų Boards funkcija neįjungta."
   },
   {
     "id": "app.channel.create_board_channel.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta sukurti lentos kanalo."
   },
   {
     "id": "app.channel.create_board_channel.invalid.app_error",
-    "translation": ""
+    "translation": "Netinkami lentos kanalo duomenys."
   },
   {
     "id": "app.channel.create_board_channel.limit.app_error",
-    "translation": ""
+    "translation": "Pasiektas didžiausias kanalų skaičius komandoje."
   },
   {
     "id": "app.channel.create_channel.board_type.app_error",
-    "translation": ""
+    "translation": "Lentos kanalų negalima kurti per CreateChannel. Naudokite /boards API."
   },
   {
     "id": "app.channel.create_channel.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta išsaugoti kanalo."
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
-    "translation": ""
+    "translation": "Norint sukurti kanalą, būtina nurodyti komandos ID."
   },
   {
     "id": "app.channel.create_channel.space_type.app_error",
-    "translation": ""
+    "translation": "Space tipo kanalų negalima kurti per šį galinį tašką."
   },
   {
     "id": "app.channel.create_channel.spaces_not_enabled.app_error",
-    "translation": ""
+    "translation": "Docs funkcija neįjungta."
   },
   {
     "id": "app.channel.create_direct_channel.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta išsaugoti tiesioginio kanalo."
   },
   {
     "id": "app.channel.create_initial_sidebar_categories.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta sukurti pradinių naudotojo šoninės juostos kategorijų."
   },
   {
     "id": "app.channel.delete.app_error",
-    "translation": ""
+    "translation": "Nepavyksta ištrinti kanalo."
   },
   {
     "id": "app.channel.delete_channel.rejected_by_plugin",
-    "translation": ""
+    "translation": "Papildinys atmetė kanalo archyvavimą: {{.Reason}}"
   },
   {
     "id": "app.channel.get.app_error",
-    "translation": ""
+    "translation": "Nepavyko gauti kanalo."
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": ""
+    "translation": "Nepavyksta rasti esamo kanalo {{.channel_id}}."
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": ""
+    "translation": "Ieškant kanalo {{.channel_id}} įvyko klaida."
   },
   {
     "id": "app.channel.get_all.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti visų kanalų."
   },
   {
     "id": "app.channel.get_all_channels.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti visų kanalų."
   },
   {
     "id": "app.channel.get_all_channels_count.app_error",
-    "translation": ""
+    "translation": "Nepavyksta suskaičiuoti visų kanalų."
   },
   {
     "id": "app.channel.get_all_direct.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti visų tiesioginių kanalų."
   },
   {
     "id": "app.channel.get_by_name.app_error",
-    "translation": ""
+    "translation": "Nepavyksta rasti kanalo pagal pavadinimą."
   },
   {
     "id": "app.channel.get_by_name.existing.app_error",
-    "translation": ""
+    "translation": "Nepavyksta rasti esamo kanalo."
   },
   {
     "id": "app.channel.get_by_name.missing.app_error",
-    "translation": ""
+    "translation": "Kanalas neegzistuoja."
   },
   {
     "id": "app.channel.get_by_scheme.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti nurodytos schemos kanalų."
   },
   {
     "id": "app.channel.get_channels.get.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti kanalų."
   },
   {
     "id": "app.channel.get_channels.not_found.app_error",
-    "translation": ""
+    "translation": "Kanalų nerasta."
   },
   {
     "id": "app.channel.get_channels_by_ids.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti kanalų pagal ID."
   },
   {
     "id": "app.channel.get_channels_by_ids.get.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti kanalų."
   },
   {
     "id": "app.channel.get_channels_by_ids.not_found.app_error",
-    "translation": ""
+    "translation": "Kanalas nerastas."
   },
   {
     "id": "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti kanalų su neskaitytais pranešimais ir paminėjimais."
   },
   {
     "id": "app.channel.get_channels_member_count.existing.app_error",
-    "translation": ""
+    "translation": "Nepavyksta rasti nurodytų kanalų narių skaičiaus."
   },
   {
     "id": "app.channel.get_channels_member_count.find.app_error",
-    "translation": ""
+    "translation": "Nepavyksta rasti narių skaičiaus."
   },
   {
     "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
-    "translation": ""
+    "translation": "Nepavyksta patikrinti neskaitytų pranešimų ir paminėjimų"
   },
   {
     "id": "app.channel.get_common_teams.app_error",
-    "translation": ""
+    "translation": "Klaida gaunant bendras kanalo komandas"
   },
   {
     "id": "app.channel.get_common_teams.incorrect_channel_type",
-    "translation": ""
+    "translation": "Kanalas nėra grupės pranešimas."
   },
   {
     "id": "app.channel.get_common_teams.store_get_common_teams_error",
-    "translation": ""
+    "translation": "Nepavyko gauti bendrų komandų."
   },
   {
     "id": "app.channel.get_deleted.existing.app_error",
-    "translation": ""
+    "translation": "Nepavyksta rasti esamo ištrinto kanalo."
   },
   {
     "id": "app.channel.get_deleted.missing.app_error",
-    "translation": ""
+    "translation": "Ištrintų kanalų nėra."
   },
   {
     "id": "app.channel.get_file_count.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti kanalo failų skaičiaus"
   },
   {
     "id": "app.channel.get_for_post.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti nurodyto pranešimo kanalo."
   },
   {
     "id": "app.channel.get_member.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti kanalo nario."
   },
   {
     "id": "app.channel.get_member.missing.app_error",
-    "translation": ""
+    "translation": "Pagal šį naudotojo ID ir kanalo ID kanalo narys nerastas."
   },
   {
     "id": "app.channel.get_member_count.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti kanalo narių skaičiaus."
   },
   {
     "id": "app.channel.get_member_ids.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti kanalo narių ID."
   },
   {
     "id": "app.channel.get_members.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti kanalo narių."
   },
   {
     "id": "app.channel.get_members_by_ids.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti kanalo narių."
   },
   {
     "id": "app.channel.get_more_channels.get.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti kanalų."
   },
   {
     "id": "app.channel.get_pinnedpost_count.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti kanalo prisegtų pranešimų skaičiaus."
   },
   {
     "id": "app.channel.get_priority_for_posts.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti pranešimų prioriteto"
   },
   {
     "id": "app.channel.get_private_channels.get.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti privačių kanalų."
   },
   {
     "id": "app.channel.get_public_channels.get.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti viešųjų kanalų."
   },
   {
     "id": "app.channel.get_unread.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti kanalo neskaitytų pranešimų."
   },
   {
     "id": "app.channel.gm_conversion_set_categories.delete_all.error",
-    "translation": ""
+    "translation": "Nepavyko ištrinti konvertuoto grupės pranešimo esamų šoninės juostos kategorijų."
   },
   {
     "id": "app.channel.group_message_conversion.channel_member_missing",
-    "translation": ""
+    "translation": "Nepavyksta rasti naudotojo kanalo narystės"
   },
   {
     "id": "app.channel.group_message_conversion.incorrect_team",
-    "translation": ""
+    "translation": "Konvertavimo užklausoje nurodytoje komandoje nėra visų grupės pranešimo narių"
   },
   {
     "id": "app.channel.group_message_conversion.original_channel_not_gm",
-    "translation": ""
+    "translation": "Konvertuojamas kanalas nėra grupės pranešimas. Konvertuoti galima tik grupės pranešimus"
   },
   {
     "id": "app.channel.group_message_conversion.post_message.error",
-    "translation": ""
+    "translation": "Nepavyko sukurti grupės pranešimo konvertavimo į kanalą pranešimo"
   },
   {
     "id": "app.channel.join_request.get.app_error",
-    "translation": ""
+    "translation": "Nepavyko įkelti prašymo prisijungti prie kanalo."
   },
   {
     "id": "app.channel.join_request.not_found.app_error",
-    "translation": ""
+    "translation": "Prašymas prisijungti prie kanalo nerastas."
   },
   {
     "id": "app.channel.join_request.save.app_error",
-    "translation": ""
+    "translation": "Nepavyko išsaugoti prašymo prisijungti prie kanalo."
   },
   {
     "id": "app.channel.join_request.update.app_error",
-    "translation": ""
+    "translation": "Nepavyko atnaujinti prašymo prisijungti prie kanalo."
   },
   {
     "id": "app.channel.migrate_channel_members.select.app_error",
-    "translation": ""
+    "translation": "Nepavyko pasirinkti kanalo narių paketo."
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
-    "translation": ""
+    "translation": "Kanalo perkelti negalima, kol visi jo nariai nėra paskirties komandos nariai."
   },
   {
     "id": "app.channel.move_channel.space.app_error",
-    "translation": ""
+    "translation": "Space tipo kanalų negalima perkelti per šį galinį tašką."
   },
   {
     "id": "app.channel.patch_channel_members_notify_props.app_error",
-    "translation": ""
+    "translation": "Nepavyksta atnaujinti kanalo narių pranešimų nuostatų."
   },
   {
     "id": "app.channel.patch_channel_members_notify_props.too_many",
-    "translation": ""
+    "translation": "Nepavyksta atnaujinti tiek kanalo narių. Vienu metu galima atnaujinti ne daugiau kaip {{.Max}} kanalo narių."
   },
   {
     "id": "app.channel.permanent_delete.app_error",
-    "translation": ""
+    "translation": "Nepavyksta ištrinti kanalo."
   },
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
-    "translation": ""
+    "translation": "Nepavyksta pašalinti kanalo nario."
   },
   {
     "id": "app.channel.pinned_posts.app_error",
-    "translation": ""
+    "translation": "Nepavyksta rasti prisegtų pranešimų."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
-    "translation": ""
+    "translation": "Nepavyko paskelbti kanalo paskirties pranešimo"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.removed",
-    "translation": ""
+    "translation": "%s pašalino kanalo paskirtį (buvo: %s)"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
-    "translation": ""
+    "translation": "Nepavyko gauti naudotojo atnaujinant kanalo paskirties pranešimą %v"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.updated_from",
-    "translation": ""
+    "translation": "%s atnaujino kanalo paskirtį iš: %s į: %s"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.updated_to",
-    "translation": ""
+    "translation": "%s atnaujino kanalo paskirtį į: %s"
   },
   {
     "id": "app.channel.remove_all_deactivated_members.app_error",
-    "translation": ""
+    "translation": "Nepavyko pašalinti išaktyvintų naudotojų iš kanalo."
   },
   {
     "id": "app.channel.remove_member.app_error",
-    "translation": ""
+    "translation": "Nepavyksta pašalinti kanalo nario."
   },
   {
     "id": "app.channel.reset_all_channel_schemes.app_error",
-    "translation": ""
+    "translation": "Nepavyko iš naujo nustatyti kanalų schemų."
   },
   {
     "id": "app.channel.restore.app_error",
-    "translation": ""
+    "translation": "Nepavyksta atkurti kanalo."
   },
   {
     "id": "app.channel.restore_channel.rejected_by_plugin",
-    "translation": ""
+    "translation": "Papildinys atmetė kanalo atkūrimą: {{.Reason}}"
   },
   {
     "id": "app.channel.save_member.app_error",
-    "translation": ""
+    "translation": "Nepavyksta išsaugoti kanalo nario."
   },
   {
     "id": "app.channel.save_member.exists.app_error",
-    "translation": ""
+    "translation": "Kanalo narys su tokiu ID jau egzistuoja."
   },
   {
     "id": "app.channel.search.app_error",
-    "translation": ""
+    "translation": "Ieškant kanalų įvyko klaida."
   },
   {
     "id": "app.channel.search_group_channels.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti nurodyto naudotojo ir paieškos termino grupės kanalų."
   },
   {
     "id": "app.channel.set_members.context_cancelled.app_error",
-    "translation": ""
+    "translation": "Kanalo narių nustatymo operacija atšaukta."
   },
   {
     "id": "app.channel.set_members.empty_private.app_error",
-    "translation": ""
+    "translation": "Negalima pašalinti visų privataus kanalo narių."
   },
   {
     "id": "app.channel.set_members.get_current.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti dabartinių kanalo narių."
   },
   {
     "id": "app.channel.set_members.get_members.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti kanalo narių vaidmenims suderinti."
   },
   {
     "id": "app.channel.sidebar_categories.app_error",
-    "translation": ""
+    "translation": "Nepavyko įterpti įrašo į duomenų bazę."
   },
   {
     "id": "app.channel.update.bad_id",
-    "translation": ""
+    "translation": "Nepavyksta atnaujinti kanalo."
   },
   {
     "id": "app.channel.update_channel.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta atnaujinti kanalo."
   },
   {
     "id": "app.channel.update_channel.plugin_type_mutation.app_error",
-    "translation": ""
+    "translation": "Papildinys {{.PluginID}} bandė pakeisti kanalo tipą per ChannelWillBeUpdated; tipo pakeitimai turi būti atliekami per tam skirtą tipo keitimo kelią"
   },
   {
     "id": "app.channel.update_channel.rejected_by_plugin",
-    "translation": ""
+    "translation": "Papildinys atmetė kanalo atnaujinimą: {{.Reason}}"
   },
   {
     "id": "app.channel.update_channel_privacy.space.app_error",
-    "translation": ""
+    "translation": "Space tipo kanalų privatumo negalima keisti per šį galinį tašką."
   },
   {
     "id": "app.channel.update_last_viewed_at.app_error",
-    "translation": ""
+    "translation": "Nepavyksta atnaujinti paskutinės peržiūros laiko."
   },
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
-    "translation": ""
+    "translation": "Nepavyksta pažymėti kanalo kaip neskaityto."
   },
   {
     "id": "app.channel.update_member.app_error",
-    "translation": ""
+    "translation": "Nepavyksta atnaujinti kanalo nario."
   },
   {
     "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
-    "translation": ""
+    "translation": "Nepavyksta atnaujinti kanalo nario, viršytas pranešimų nuostatų dydžio limitas."
   },
   {
     "id": "app.channel.user_belongs_to_channels.app_error",
-    "translation": ""
+    "translation": "Nepavyksta nustatyti, ar naudotojas priklauso kanalų sąrašui."
   },
   {
     "id": "app.channel_guard.invalid_channel.app_error",
-    "translation": ""
+    "translation": "Kanalo ID nėra tinkamas kanalo identifikatorius."
   },
   {
     "id": "app.channel_guard.register.app_error",
-    "translation": ""
+    "translation": "Nepavyksta užregistruoti kanalo apsaugos."
   },
   {
     "id": "app.channel_guard.register.empty_channel.app_error",
-    "translation": ""
+    "translation": "Norint užregistruoti kanalo apsaugą, reikalingas kanalo ID."
   },
   {
     "id": "app.channel_guard.unregister.app_error",
-    "translation": ""
+    "translation": "Nepavyksta išregistruoti kanalo apsaugos."
   },
   {
     "id": "app.channel_guard.unregister.empty_channel.app_error",
-    "translation": ""
+    "translation": "Norint išregistruoti kanalo apsaugą, reikalingas kanalo ID."
   },
   {
     "id": "app.channel_member_history.log_join_event.internal_error",
-    "translation": ""
+    "translation": "Nepavyko įrašyti kanalo narių istorijos."
   },
   {
     "id": "app.channel_member_history.log_leave_event.internal_error",
-    "translation": ""
+    "translation": "Nepavyko įrašyti kanalo narių istorijos. Nepavyko atnaujinti esamo prisijungimo įrašo"
   },
   {
     "id": "app.cloud.preview_modal_bucket_url_not_configured",
-    "translation": ""
+    "translation": "Peržiūros saugyklos (bucket) URL nesukonfigūruotas"
   },
   {
     "id": "app.cloud.preview_modal_data_fetch_error",
-    "translation": ""
+    "translation": "Nepavyko gauti peržiūros lango duomenų"
   },
   {
     "id": "app.cloud.preview_modal_data_parse_error",
-    "translation": ""
+    "translation": "Nepavyko išanalizuoti peržiūros lango duomenų"
   },
   {
     "id": "app.cloud.trial_plan_bot_message",
-    "translation": ""
+    "translation": "{{.UsersNum}} darbo srities {{.WorkspaceName}} nariai (-ių) paprašė pradėti Enterprise bandomąjį laikotarpį, kad gautų prieigą prie: "
   },
   {
     "id": "app.cloud.trial_plan_bot_message_single",
-    "translation": ""
+    "translation": "{{.UsersNum}} darbo srities {{.WorkspaceName}} narys paprašė pradėti Enterprise bandomąjį laikotarpį, kad gautų prieigą prie: "
   },
   {
     "id": "app.cloud.upgrade_plan_bot_message",
-    "translation": ""
+    "translation": "{{.UsersNum}} darbo srities {{.WorkspaceName}} nariai (-ių) paprašė atnaujinti darbo srities planą dėl: "
   },
   {
     "id": "app.cloud.upgrade_plan_bot_message_single",
-    "translation": ""
+    "translation": "{{.UsersNum}} darbo srities {{.WorkspaceName}} narys paprašė atnaujinti darbo srities planą dėl: "
   },
   {
     "id": "app.command.createcommand.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta išsaugoti komandos."
   },
   {
     "id": "app.command.deletecommand.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta ištrinti komandos."
   },
   {
     "id": "app.command.getcommand.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti komandos."
   },
   {
     "id": "app.command.listallcommands.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta pateikti komandų sąrašo."
   },
   {
     "id": "app.command.listautocompletecommands.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta pateikti automatinio užbaigimo komandų sąrašo."
   },
   {
     "id": "app.command.listteamcommands.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta pateikti komandos pasvirojo brūkšnio komandų sąrašo."
   },
   {
     "id": "app.command.movecommand.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta perkelti komandos."
   },
   {
     "id": "app.command.regencommandtoken.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta iš naujo sugeneruoti komandos prieigos rakto."
   },
   {
     "id": "app.command.tryexecutecustomcommand.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta įvykdyti tinkintos komandos."
   },
   {
     "id": "app.command.updatecommand.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta atnaujinti komandos."
   },
   {
     "id": "app.command.validatecommandtriggeruniqueness.internal_error",
-    "translation": ""
+    "translation": "Nurodytas suaktyvinimo žodis jau egzistuoja."
   },
   {
     "id": "app.command_webhook.create_command_webhook.existing",
-    "translation": ""
+    "translation": "Negalite atnaujinti esamo CommandWebhook."
   },
   {
     "id": "app.command_webhook.create_command_webhook.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta išsaugoti CommandWebhook."
   },
   {
     "id": "app.command_webhook.get.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti žiniatinklio kablio."
   },
   {
     "id": "app.command_webhook.get.missing",
-    "translation": ""
+    "translation": "Nepavyksta rasti žiniatinklio kablio."
   },
   {
     "id": "app.command_webhook.handle_command_webhook.parse",
-    "translation": ""
+    "translation": "Nepavyksta išanalizuoti gaunamų duomenų."
   },
   {
     "id": "app.command_webhook.try_use.internal_error",
-    "translation": ""
+    "translation": "Nepavyksta naudoti žiniatinklio kablio."
   },
   {
     "id": "app.command_webhook.try_use.invalid",
-    "translation": ""
+    "translation": "Netinkamas žiniatinklio kablys."
   },
   {
     "id": "app.compile_csv_chunks.header_error",
-    "translation": ""
+    "translation": "Nepavyko įrašyti CSV antraščių."
   },
   {
     "id": "app.compile_csv_chunks.write_error",
-    "translation": ""
+    "translation": "Nepavyko įrašyti CSV duomenų."
   },
   {
     "id": "app.compile_report_chunks.unsupported_format",
-    "translation": ""
+    "translation": "Nepalaikomas ataskaitos formatas."
   },
   {
     "id": "app.compliance.get.finding.app_error",
-    "translation": ""
+    "translation": "Gaunant atitikties ataskaitas įvyko klaida."
   },
   {
     "id": "app.compliance.save.saving.app_error",
-    "translation": ""
+    "translation": "Išsaugant atitikties ataskaitą įvyko klaida."
   },
   {
     "id": "app.create_basic_user.save_member.app_error",
-    "translation": ""
+    "translation": "Nepavyksta sukurti numatytųjų komandos narysčių"
   },
   {
     "id": "app.create_basic_user.save_member.conflict.app_error",
-    "translation": ""
+    "translation": "Nepavyksta sukurti numatytosios komandos narystės, nes ji jau egzistuoja"
   },
   {
     "id": "app.create_basic_user.save_member.max_accounts.app_error",
-    "translation": ""
+    "translation": "Nepavyksta sukurti numatytosios komandos narystės, nes toje komandoje daugiau narių neleidžiama"
   },
   {
     "id": "app.custom_group.unique_name",
-    "translation": ""
+    "translation": "grupės pavadinimas nėra unikalus"
   },
   {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
-    "translation": ""
+    "translation": "Nepavyksta konvertuoti savybės lauko į naudotojo atributo lauką"
   },
   {
     "id": "app.data_spillage.assign_reviewer.no_reviewer_field.app_error",
-    "translation": ""
+    "translation": "Savybės laukas „Reviewer ID“ nerastas."
   },
   {
     "id": "app.data_spillage.assign_reviewer.update_status_property_value.app_error",
-    "translation": ""
+    "translation": "Priskiriant peržiūrėtoją nepavyko atnaujinti savybės „Status“ reikšmės."
   },
   {
     "id": "app.data_spillage.assign_reviewer.upsert_property_value.app_error",
-    "translation": ""
+    "translation": "Nepavyko nustatyti pažymėto pranešimo peržiūrėtojo."
   },
   {
     "id": "app.data_spillage.can_flag_post.in_progress",
-    "translation": ""
+    "translation": "Negalima perkelti šio pranešimo į karantiną, nes jis jau karantine ir laukia peržiūros."
   },
   {
     "id": "app.data_spillage.can_flag_post.removed",
-    "translation": ""
+    "translation": "Negalima perkelti šio pranešimo į karantiną, nes jis buvo pašalintas per ankstesnę peržiūrą."
   },
   {
     "id": "app.data_spillage.can_flag_post.retained",
-    "translation": ""
+    "translation": "Negalima perkelti šio pranešimo į karantiną, nes per ankstesnę peržiūrą jis buvo paliktas."
   },
   {
     "id": "app.data_spillage.can_flag_post.unknown",
-    "translation": ""
+    "translation": "Negalima perkelti šio pranešimo į karantiną, nes jo būsena nežinoma."
   },
   {
     "id": "app.data_spillage.create_property_values.app_error",
-    "translation": ""
+    "translation": "Nepavyksta išsaugoti pažymėto pranešimo savybių reikšmių."
   },
   {
     "id": "app.data_spillage.exposure.column.email",
-    "translation": ""
+    "translation": "El. paštas"
   },
   {
     "id": "app.data_spillage.exposure.column.is_deactivated",
-    "translation": ""
+    "translation": "Išaktyvintas"
   },
   {
     "id": "app.data_spillage.exposure.column.is_guest",
-    "translation": ""
+    "translation": "Svečias"
   },
   {
     "id": "app.data_spillage.exposure.column.is_remote",
-    "translation": ""
+    "translation": "Nuotolinis naudotojas"
   },
   {
     "id": "app.data_spillage.exposure.column.last_activity_at",
-    "translation": ""
+    "translation": "Paskutinės naudotojo veiklos laikas (YYYY-MM-DDTHH:MM:SSZ)"
   },
   {
     "id": "app.data_spillage.exposure.column.last_viewed_at",
-    "translation": ""
+    "translation": "Kanalas paskutinį kartą peržiūrėtas (YYYY-MM-DDTHH:MM:SSZ)"
   },
   {
     "id": "app.data_spillage.exposure.column.user_id",
-    "translation": ""
+    "translation": "Naudotojo ID"
   },
   {
     "id": "app.data_spillage.exposure.column.username",
-    "translation": ""
+    "translation": "Naudotojo vardas"
   },
   {
     "id": "app.data_spillage.exposure.column.was_channel_member",
-    "translation": ""
+    "translation": "Buvo kanalo narys"
   },
   {
     "id": "app.data_spillage.exposure.edit_history_post.app_error",
-    "translation": ""
+    "translation": "Negalima sugeneruoti matomumo ataskaitos redagavimo istorijos versijai. Naudokite dabartinio pranešimo ID."
   },
   {
     "id": "app.data_spillage.exposure.get_channel_members.app_error",
-    "translation": ""
+    "translation": "Nepavyko gauti pažymėto pranešimo kanalo narystės istorijos."
   },
   {
     "id": "app.data_spillage.exposure.get_last_activity.app_error",
-    "translation": ""
+    "translation": "Nepavyko gauti pažymėto pranešimo seansų veiklos duomenų."
   },
   {
     "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
-    "translation": ""
+    "translation": "Nepavyko gauti pažymėto pranešimo kanalo skaitymo būsenos."
   },
   {
     "id": "app.data_spillage.exposure.meta.channel",
-    "translation": ""
+    "translation": "Kanalas"
   },
   {
     "id": "app.data_spillage.exposure.meta.generated_at",
-    "translation": ""
+    "translation": "Sugeneruota"
   },
   {
     "id": "app.data_spillage.exposure.meta.post_id",
-    "translation": ""
+    "translation": "Pranešimo ID"
   },
   {
     "id": "app.data_spillage.exposure.meta.report_version",
-    "translation": ""
+    "translation": "Ataskaitos versija"
   },
   {
     "id": "app.data_spillage.exposure.meta.total_users",
-    "translation": ""
+    "translation": "Iš viso naudotojų"
   },
   {
     "id": "app.data_spillage.exposure.meta.window_end",
-    "translation": ""
+    "translation": "Pažymėta"
   },
   {
     "id": "app.data_spillage.exposure.meta.window_start",
-    "translation": ""
+    "translation": "Pranešimas sukurtas"
   },
   {
     "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
-    "translation": ""
+    "translation": "Pažymėtas pranešimas neturi įrašyto pažymėjimo laiko, todėl matomumo laikotarpio nustatyti negalima."
   },
   {
     "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
-    "translation": ""
+    "translation": "Matomumo ataskaitos nepalaikomos tiesioginiams ir grupės pranešimams."
   },
   {
     "id": "app.data_spillage.exposure.value.never_viewed",
-    "translation": ""
+    "translation": "Netaikoma"
   },
   {
     "id": "app.data_spillage.exposure.value.no",
-    "translation": ""
+    "translation": "Ne"
   },
   {
     "id": "app.data_spillage.exposure.value.no_sessions",
-    "translation": ""
+    "translation": "Seansų nerasta"
   },
   {
     "id": "app.data_spillage.exposure.value.unknown",
-    "translation": ""
+    "translation": "Nežinoma"
   },
   {
     "id": "app.data_spillage.exposure.value.yes",
-    "translation": ""
+    "translation": "Taip"
   },
   {
     "id": "app.data_spillage.flag_post.marshal_comment.app_error",
-    "translation": ""
+    "translation": "Nepavyko serializuoti pažymėjusio naudotojo komentaro"
   },
   {
     "id": "app.data_spillage.flag_post.marshal_reason.app_error",
-    "translation": ""
+    "translation": "Nepavyko serializuoti pažymėjusio naudotojo priežasties"
   },
   {
     "id": "app.data_spillage.flag_post_confirmation.message",
-    "translation": ""
+    "translation": "Naudotojo @{{.username}} pranešimas perkeltas į karantiną peržiūrai. Kai peržiūrėtojas jį peržiūrės, būsite informuoti."
   },
   {
     "id": "app.data_spillage.get_group.error",
-    "translation": ""
+    "translation": "Nepavyksta gauti turinio žymėjimo savybių grupės."
   },
   {
     "id": "app.data_spillage.get_reviewer_settings.app_error",
-    "translation": ""
+    "translation": "Nepavyko gauti turinio peržiūrėtojų nustatymų iš duomenų bazės"
   },
   {
     "id": "app.data_spillage.get_status_property.app_error",
-    "translation": ""
+    "translation": "Nepavyko gauti savybės lauko „Status“."
   },
   {
     "id": "app.data_spillage.get_thread_replies.app_error",
-    "translation": ""
+    "translation": "Nepavyko gauti pažymėto pranešimo gijos atsakymų."
   },
   {
     "id": "app.data_spillage.get_users_in_team.app_error",
-    "translation": ""
+    "translation": "Nepavyko ieškoti peržiūrėtojų komandoje."
   },
   {
     "id": "app.data_spillage.keep_flag_post.marshal_comment.app_error",
-    "translation": ""
+    "translation": "Nepavyko serializuoti peržiūrėtojo komentaro"
   },
   {
     "id": "app.data_spillage.keep_post.status_update.app_error",
-    "translation": ""
+    "translation": "Atkuriant pažymėtą pranešimą nepavyko atnaujinti jo būsenos "
   },
   {
     "id": "app.data_spillage.keep_post.undelete.app_error",
-    "translation": ""
+    "translation": "Bandant atkurti pažymėtą pranešimą ir susijusius duomenis nepavyko atnaujinti pranešimo duomenų bazėje."
   },
   {
     "id": "app.data_spillage.marshal_property_values.app_error",
-    "translation": ""
+    "translation": "Nepavyko serializuoti turinio žymėjimo savybių reikšmių, siunčiamų WebSocket įvykyje."
   },
   {
     "id": "app.data_spillage.missing_flagged_post_id_field.app_error",
-    "translation": ""
+    "translation": "Nepavyksta rasti savybės lauko „Flagged Post ID“."
   },
   {
     "id": "app.data_spillage.missing_manage_by_field.app_error",
-    "translation": ""
+    "translation": "Nepavyko rasti savybės lauko „Manage By“."
   },
   {
     "id": "app.data_spillage.missing_reporting_user_id_field.app_error",
-    "translation": ""
+    "translation": "Nepavyksta rasti pranešusio naudotojo lauko."
   },
   {
     "id": "app.data_spillage.missing_reporting_user_id_property_value.app_error",
-    "translation": ""
+    "translation": "Nepavyksta rasti pranešusio naudotojo lauko reikšmės."
   },
   {
     "id": "app.data_spillage.missing_status_field.app_error",
-    "translation": ""
+    "translation": "Nepavyko rasti savybės lauko „Status“."
   },
   {
     "id": "app.data_spillage.no_status_property.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti pažymėto pranešimo, nes pranešimas nepažymėtas."
   },
   {
     "id": "app.data_spillage.permanently_delete.marshal_comment.app_error",
-    "translation": ""
+    "translation": "Nepavyko serializuoti peržiūrėtojo komentaro"
   },
   {
     "id": "app.data_spillage.permanently_delete.update_property_value.app_error",
-    "translation": ""
+    "translation": "Negrįžtamai trinant pažymėtą pranešimą nepavyko atnaujinti jo būsenos."
   },
   {
     "id": "app.data_spillage.report.attachments_omitted.file_text",
-    "translation": ""
+    "translation": "Šio pranešimo priedai į šią ataskaitą neįtraukti, nes neatitinkate kanalo failų atsisiuntimo politikos."
   },
   {
     "id": "app.data_spillage.report.attachments_omitted.notification",
-    "translation": ""
+    "translation": "Į Jūsų sugeneruotą ataskaitą neįtraukti karantine esančio pranešimo failų priedai, nes neatitinkate kanalo failų atsisiuntimo politikos."
   },
   {
     "id": "app.data_spillage.report.cleared",
-    "translation": ""
+    "translation": "Išvalyta"
   },
   {
     "id": "app.data_spillage.report.close.app_error",
-    "translation": ""
+    "translation": "Nepavyko uždaryti pažymėto pranešimo ataskaitos failo."
   },
   {
     "id": "app.data_spillage.report.column.detail",
-    "translation": ""
+    "translation": "Išsami informacija"
   },
   {
     "id": "app.data_spillage.report.column.status",
-    "translation": ""
+    "translation": "Būsena"
   },
   {
     "id": "app.data_spillage.report.column.step",
-    "translation": ""
+    "translation": "Veiksmas"
   },
   {
     "id": "app.data_spillage.report.detail.deleted",
-    "translation": ""
+    "translation": "Ištrinta."
   },
   {
     "id": "app.data_spillage.report.detail.failed_retrieve_edit_history",
-    "translation": ""
+    "translation": "Nepavyko gauti redagavimo istorijos."
   },
   {
     "id": "app.data_spillage.report.detail.file_attachments_info_ids",
-    "translation": ""
+    "translation": "**Failų informacijos ID:** {{.FileInfoIDs}}"
   },
   {
     "id": "app.data_spillage.report.detail.file_names",
-    "translation": ""
+    "translation": {
+      "one": "Iš disko pašalintas {{.Count}} failas.",
+      "few": "Iš disko pašalinti {{.Count}} failai.",
+      "many": "Iš disko pašalinta {{.Count}} failo.",
+      "other": "Iš disko pašalinta {{.Count}} failų."
+    }
   },
   {
     "id": "app.data_spillage.report.detail.no_data_found",
