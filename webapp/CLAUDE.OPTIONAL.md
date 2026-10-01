@@ -9,7 +9,7 @@ This is the Mattermost web app codebase, a React-based frontend application for 
 - **Primary workspace**: `channels/` (UI, Redux, routing).
 - **Shared packages**: `platform/*`.
 - **Scripts**: `webapp/scripts/` power dev server, builds, and localization flows.
-- **Coding Standards**: Read `webapp/STYLE_GUIDE.md` for canonical standards; nested `CLAUDE.md` files cover directory-specific rules. For UI component package choice (Compass vs shared), follow `webapp/AGENTS.md`.
+- **Coding Standards**: Read `webapp/STYLE_GUIDE.md` for canonical standards; nested `CLAUDE.md` files cover directory-specific rules.
 
 ## Core Commands
 
