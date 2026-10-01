@@ -21,6 +21,7 @@ import SystemProperties from '@/ui/components/system_console/sections/system_att
 import SessionAttributes from '@/ui/components/system_console/sections/system_attributes/session_attributes';
 import FeatureDiscovery from '@/ui/components/system_console/sections/system_users/feature_discovery';
 import PluginManagement from '@/ui/components/system_console/sections/plugins/plugin_management';
+import AdLdap from '@/ui/components/system_console/sections/authentication/ad_ldap';
 import {testConfig} from '@/test_config';
 
 export default class SystemConsolePage {
@@ -62,6 +63,9 @@ export default class SystemConsolePage {
     // Plugins
     readonly pluginManagement: PluginManagement;
 
+    // Authentication
+    readonly adLdap: AdLdap;
+
     constructor(page: Page) {
         this.page = page;
 
@@ -102,6 +106,9 @@ export default class SystemConsolePage {
 
         // Plugins
         this.pluginManagement = new PluginManagement(adminConsoleWrapper);
+
+        // Authentication
+        this.adLdap = new AdLdap(adminConsoleWrapper);
     }
 
     async toBeVisible() {
@@ -127,5 +134,10 @@ export default class SystemConsolePage {
     async gotoEditionAndLicense() {
         await this.page.goto(new URL('/admin_console/about/license', testConfig.baseURL).href);
         await this.editionAndLicense.toBeVisible();
+    }
+
+    async gotoAdLdap() {
+        await this.page.goto(new URL('/admin_console/authentication/ldap', testConfig.baseURL).href);
+        await this.adLdap.toBeVisible();
     }
 }
