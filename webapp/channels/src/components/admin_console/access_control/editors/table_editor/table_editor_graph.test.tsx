@@ -29,6 +29,15 @@ jest.mock('components/property_fields/graph/page_all_access_control_field_option
 
 const mockPageAll = jest.mocked(pageAllAccessControlFieldOptions);
 
+// Every graph operator item labels itself with its name and a line of help text,
+// so the item's accessible name is both and naming an operator by its label
+// alone does not resolve. Click the label element: its text is the label and
+// nothing else, and the click reaches the item it belongs to.
+const pickOperator = async (label: string) => {
+    const menu = await screen.findByRole('menu', {name: 'Select operator'});
+    await userEvent.click(within(menu).getByText(label, {exact: true}));
+};
+
 // File scope: a test that opens the tree without queuing a response would
 // otherwise hit an unimplemented mock, which resolves to undefined and throws
 // `.then` from inside a React effect. That reads as an unrelated render crash
@@ -129,7 +138,7 @@ describe('TableEditor - graph attributes', () => {
         ]);
     });
 
-    test('a new row on a graph attribute defaults to "covers all of"', async () => {
+    test('a new row on a graph attribute defaults to "has each of or a parent of"', async () => {
         actions.getVisualAST.mockResolvedValue({data: {conditions: []}});
 
         renderWithContext(<TableEditor {...baseProps}/>, {});
@@ -139,7 +148,7 @@ describe('TableEditor - graph attributes', () => {
         await waitFor(() => {
             expect(screen.getByTestId('operatorSelectorMenuButton')).toBeInTheDocument();
         });
-        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('covers all of');
+        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('has each of or a parent of');
     });
 
     test('picking option names on a hierarchy predicate emits the member-call form', async () => {
@@ -184,7 +193,7 @@ describe('TableEditor - graph attributes', () => {
         await waitFor(() => {
             expect(screen.getByTestId('operatorSelectorMenuButton')).toBeInTheDocument();
         });
-        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('is within any of');
+        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('has any of or a child of');
         expect(screen.getByTestId('valueSelectorMenuButton')).toHaveTextContent('Air Program');
     });
 
@@ -232,7 +241,7 @@ describe('TableEditor - graph attributes', () => {
         });
 
         await userEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
-        await userEvent.click(await screen.findByRole('menuitemradio', {name: 'has all of'}));
+        await pickOperator('has all of');
 
         // The target is gone and the row has no literal values yet, so it can
         // form no condition at all — the editor emits an empty expression rather
@@ -258,7 +267,7 @@ describe('TableEditor - graph attributes', () => {
         await waitFor(() => {
             expect(screen.getByTestId('operatorSelectorMenuButton')).toBeInTheDocument();
         });
-        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('covers all of');
+        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('has each of or a parent of');
 
         await userEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
         await userEvent.click(await screen.findByRole('menuitemradio', {name: /department/}));
@@ -266,7 +275,7 @@ describe('TableEditor - graph attributes', () => {
 
         await userEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
         await userEvent.click(await screen.findByRole('menuitemradio', {name: /programs/}));
-        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('covers all of');
+        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('has each of or a parent of');
     });
 
     test('a membership row the server reported as multiselect is still treated as graph', async () => {
@@ -303,14 +312,14 @@ describe('TableEditor - graph attributes', () => {
 
         // The graph operator set, not the multiselect one the row claims.
         await userEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
-        await userEvent.click(await screen.findByRole('menuitemradio', {name: 'covers any of'}));
+        await pickOperator('has any of or a parent of');
 
         await userEvent.click(screen.getByTestId('valueSelectorMenuButton'));
         await userEvent.click(await screen.findByRole('menuitemradio', {name: /channelPrograms/}));
         expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.coversAny(resource.attributes.channelPrograms)');
 
         await userEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
-        await userEvent.click(await screen.findByRole('menuitemradio', {name: 'has all of'}));
+        await pickOperator('has all of');
         expect(onChange).toHaveBeenLastCalledWith('');
     });
 
@@ -330,7 +339,7 @@ describe('TableEditor - graph attributes', () => {
         await userEvent.keyboard('{Escape}');
 
         await userEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
-        await userEvent.click(await screen.findByRole('menuitemradio', {name: 'has any of'}));
+        await pickOperator('has any of');
 
         // ...and withdrawn under exact membership, which compares against option
         // names only.
@@ -765,7 +774,7 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         await addRow();
 
         await userEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
-        await userEvent.click(await screen.findByRole('menuitemradio', {name: 'has all of'}));
+        await pickOperator('has all of');
 
         await openValues();
         expect(await treeRow('Air Program')).toBeInTheDocument();
@@ -780,7 +789,7 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         await addRow();
 
         await userEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
-        await userEvent.click(await screen.findByRole('menuitemradio', {name: 'has all of'}));
+        await pickOperator('has all of');
 
         await openValues();
         await treeRow('Air Program');
