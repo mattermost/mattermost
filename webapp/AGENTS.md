@@ -13,7 +13,7 @@ Follow `webapp/STYLE_GUIDE.md` for canonical style, accessibility, and testing s
   `import {Button} from '@mattermost/compass-ui/components/button';`
   Do not use the root barrel. Do not recreate Compass primitives.
 - **`@mattermost/compass-proto`**: unpublished prototyping package (shells, call composites, hardcoded menu recipes, proto `WithTooltip`). Not for Mattermost webapp product code — do not add the dependency or import from it unless explicitly adopting that package. Prefer existing webapp / shared / MUI stacks for those surfaces.
-- **Exceptions (keep current stacks)**: icons → `@mattermost/compass-icons`; emoji → `Emoji` (`@mattermost/shared`); modals → existing shared / `GenericModal`; menus → existing MUI menus. Do not switch Modal/Menu to compass-ui or compass-proto yet.
+- **Exceptions (keep current stacks)**: icons → `@mattermost/compass-icons`; emoji → `Emoji` (`@mattermost/shared`); modals → existing shared / `GenericModal`; menus → existing MUI menus. Do not switch Modal/Menu to compass-ui yet.
 - **Tooltips**: use `WithTooltip` from `@mattermost/shared` instead of wiring up Floating UI, compass-proto `WithTooltip`, or other tooltip primitives directly.
   `import {WithTooltip} from '@mattermost/shared/components/tooltip';`
 - **Tokens**: Compass foundation CSS variables are global via `@mattermost/compass-ui/styles`. Prefer `var(--…)` over hard-coded radius/spacing/elevation/font/motion values. Theme colors stay on app semantic vars (`--center-channel-*`, etc.).
