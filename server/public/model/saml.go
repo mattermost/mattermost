@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/xml"
+	"time"
 )
 
 const (
@@ -124,8 +125,12 @@ type KeyDescriptor struct {
 }
 
 type RoleDescriptor struct {
-	XMLName                    xml.Name
-	ID                         string          `xml:",attr,omitempty"`
+	XMLName xml.Name
+	ID      string `xml:",attr,omitempty"`
+	// Deprecated: no longer populated from metadata.
+	ValidUntil time.Time `xml:"-"`
+	// Deprecated: no longer populated from metadata.
+	CacheDuration              time.Duration   `xml:"-"`
 	ProtocolSupportEnumeration string          `xml:"protocolSupportEnumeration,attr"`
 	ErrorURL                   string          `xml:"errorURL,attr,omitempty"`
 	KeyDescriptors             []KeyDescriptor `xml:"KeyDescriptor,omitempty"`
@@ -161,9 +166,13 @@ type Organization struct {
 }
 
 type EntityDescriptor struct {
-	XMLName           xml.Name           `xml:"urn:oasis:names:tc:SAML:2.0:metadata EntityDescriptor"`
-	EntityID          string             `xml:"entityID,attr"`
-	ID                string             `xml:",attr,omitempty"`
+	XMLName  xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:metadata EntityDescriptor"`
+	EntityID string   `xml:"entityID,attr"`
+	ID       string   `xml:",attr,omitempty"`
+	// Deprecated: no longer populated from metadata.
+	ValidUntil time.Time `xml:"-"`
+	// Deprecated: no longer populated from metadata.
+	CacheDuration     time.Duration      `xml:"-"`
 	RoleDescriptors   []RoleDescriptor   `xml:"RoleDescriptor"`
 	IDPSSODescriptors []IDPSSODescriptor `xml:"IDPSSODescriptor"`
 	Organization      Organization       `xml:"Organization"`
