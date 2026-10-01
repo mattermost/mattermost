@@ -4,6 +4,8 @@
 import React, {type ComponentType, type MouseEvent, type ReactNode} from 'react';
 import {useDispatch} from 'react-redux';
 
+import {Button, type ButtonAppearance, type ButtonEmphasis, type ButtonSize} from '@mattermost/compass-ui/components/button';
+
 import {openModal} from 'actions/views/modals';
 
 type Props = {
@@ -18,6 +20,15 @@ type Props = {
     disabled?: boolean;
     id?: string;
     role?: string;
+
+    /**
+     * When set, renders a compass-ui Button instead of an unstyled trigger.
+     * Prefer this for button-looking CTAs; leave unset for link/menu/icon shells.
+     */
+    emphasis?: ButtonEmphasis;
+    size?: ButtonSize;
+    destructive?: boolean;
+    appearance?: ButtonAppearance;
 };
 
 const ToggleModalButton = ({
@@ -32,6 +43,10 @@ const ToggleModalButton = ({
     disabled,
     id,
     role,
+    emphasis,
+    size,
+    destructive,
+    appearance,
 }: Props) => {
     const dispatch = useDispatch();
 
@@ -56,6 +71,26 @@ const ToggleModalButton = ({
         onClick?.();
         show(e);
     };
+
+    if (emphasis) {
+        return (
+            <Button
+                emphasis={emphasis}
+                size={size}
+                destructive={destructive}
+                appearance={appearance}
+                className={className}
+                aria-label={ariaLabel}
+                onClick={clickHandler}
+                id={id}
+                disabled={disabled}
+                role={role}
+            >
+                {children}
+                {badge}
+            </Button>
+        );
+    }
 
     return (
         <button
