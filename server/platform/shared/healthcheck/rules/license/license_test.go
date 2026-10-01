@@ -42,18 +42,17 @@ func newSnapshot() *healthcheck.Snapshot {
 }
 
 type want struct {
-	state healthcheck.State
-	value *float64
+	state  healthcheck.State
+	value  *float64
+	reason string
 }
 
-var (
-	resolved = want{state: healthcheck.StateResolved}
-	unknown  = want{state: healthcheck.StateUnknown}
-)
+var resolved = want{state: healthcheck.StateResolved}
 
 func firing(value float64) want     { return want{state: healthcheck.StateFiring, value: &value} }
 func resolvedAt(value float64) want { return want{state: healthcheck.StateResolved, value: &value} }
 func firingNoValue() want           { return want{state: healthcheck.StateFiring} }
+func unknown(reasonID string) want  { return want{state: healthcheck.StateUnknown, reason: reasonID} }
 
 func assertResults(t *testing.T, rules []healthcheck.Rule, snapshot *healthcheck.Snapshot, wants map[string]want) {
 	t.Helper()
@@ -65,6 +64,9 @@ func assertResults(t *testing.T, rules []healthcheck.Rule, snapshot *healthcheck
 		results := rule.Eval(snapshot)
 		require.Len(t, results, 1, rule.Code)
 		assert.Equal(t, w.state, results[0].State, rule.Code)
+		if w.state == healthcheck.StateUnknown {
+			assert.Equal(t, w.reason, results[0].MessageID, rule.Code)
+		}
 		if w.value == nil {
 			assert.Nil(t, results[0].Value, rule.Code)
 		} else if assert.NotNil(t, results[0].Value, rule.Code) {
@@ -159,7 +161,7 @@ func TestExpiryRules(t *testing.T) {
 				s.CollectedAt = time.Time{}
 				return s
 			},
-			want: map[string]want{"LICENSE_EXPIRED": unknown, "LICENSE_EXPIRING": unknown},
+			want: map[string]want{"LICENSE_EXPIRED": unknown(healthcheck.ReasonCollectedAtUnknown), "LICENSE_EXPIRING": unknown(healthcheck.ReasonCollectedAtUnknown)},
 		},
 		{
 			name: "expiry not recorded",
@@ -168,7 +170,7 @@ func TestExpiryRules(t *testing.T) {
 				s.License.ExpiresAt = 0
 				return s
 			},
-			want: map[string]want{"LICENSE_EXPIRED": unknown, "LICENSE_EXPIRING": unknown},
+			want: map[string]want{"LICENSE_EXPIRED": unknown(healthcheck.ReasonLicenseUnavailable), "LICENSE_EXPIRING": unknown(healthcheck.ReasonLicenseUnavailable)},
 		},
 		{
 			name: "no license",
@@ -177,7 +179,7 @@ func TestExpiryRules(t *testing.T) {
 				s.License = nil
 				return s
 			},
-			want: map[string]want{"LICENSE_EXPIRED": unknown, "LICENSE_EXPIRING": unknown},
+			want: map[string]want{"LICENSE_EXPIRED": unknown(healthcheck.ReasonLicenseUnavailable), "LICENSE_EXPIRING": unknown(healthcheck.ReasonLicenseUnavailable)},
 		},
 	}
 
@@ -223,7 +225,7 @@ func TestLicenseTrial(t *testing.T) {
 		t.Parallel()
 		s := newSnapshot()
 		s.License = nil
-		assertResults(t, rules, s, map[string]want{"LICENSE_TRIAL": unknown})
+		assertResults(t, rules, s, map[string]want{"LICENSE_TRIAL": unknown(healthcheck.ReasonLicenseUnavailable)})
 	})
 }
 
@@ -332,7 +334,7 @@ func TestSeatUtilizationRules(t *testing.T) {
 				s.Stats.ActiveUsers = nil
 				return s
 			},
-			want: all(unknown),
+			want: all(unknown(healthcheck.ReasonStatsUnavailable)),
 		},
 		{
 			name: "single-channel guests unknown",
@@ -341,7 +343,7 @@ func TestSeatUtilizationRules(t *testing.T) {
 				s.Stats.SingleChannelGuests = nil
 				return s
 			},
-			want: all(unknown),
+			want: all(unknown(healthcheck.ReasonStatsUnavailable)),
 		},
 		{
 			name: "single-channel guests unknown on entry",
@@ -360,7 +362,7 @@ func TestSeatUtilizationRules(t *testing.T) {
 				s.Stats = nil
 				return s
 			},
-			want: all(unknown),
+			want: all(unknown(healthcheck.ReasonStatsUnavailable)),
 		},
 		{
 			name: "seat count unknown",
@@ -369,7 +371,7 @@ func TestSeatUtilizationRules(t *testing.T) {
 				s.License.Features.Users = nil
 				return s
 			},
-			want: all(unknown),
+			want: all(unknown(healthcheck.ReasonLicenseUnavailable)),
 		},
 		{
 			name: "no license",
@@ -378,7 +380,7 @@ func TestSeatUtilizationRules(t *testing.T) {
 				s.License = nil
 				return s
 			},
-			want: map[string]want{"SEATS_OVER_DEPLOYED": unknown, "SEATS_NEAR_CAPACITY": unknown, "SEATS_LOW_UTILIZATION": unknown, "SEATS_LIMIT_REACHED": unknown},
+			want: map[string]want{"SEATS_OVER_DEPLOYED": unknown(healthcheck.ReasonLicenseUnavailable), "SEATS_NEAR_CAPACITY": unknown(healthcheck.ReasonLicenseUnavailable), "SEATS_LOW_UTILIZATION": unknown(healthcheck.ReasonLicenseUnavailable), "SEATS_LIMIT_REACHED": unknown(healthcheck.ReasonLicenseUnavailable)},
 		},
 	}
 
@@ -446,7 +448,7 @@ func TestSeatsLimitReached(t *testing.T) {
 				s.License.ExpiresAt = 0
 				return s
 			},
-			want: map[string]want{"SEATS_LIMIT_REACHED": unknown, "SEATS_OVER_DEPLOYED": firing(120)},
+			want: map[string]want{"SEATS_LIMIT_REACHED": unknown(healthcheck.ReasonLicenseUnavailable), "SEATS_OVER_DEPLOYED": firing(120)},
 		},
 		{
 			name: "enforced with active users unknown",
@@ -455,7 +457,7 @@ func TestSeatsLimitReached(t *testing.T) {
 				s.Stats.ActiveUsers = nil
 				return s
 			},
-			want: map[string]want{"SEATS_LIMIT_REACHED": unknown, "SEATS_OVER_DEPLOYED": unknown},
+			want: map[string]want{"SEATS_LIMIT_REACHED": unknown(healthcheck.ReasonStatsUnavailable), "SEATS_OVER_DEPLOYED": unknown(healthcheck.ReasonStatsUnavailable)},
 		},
 		{
 			name: "enforced with seat count unknown",
@@ -464,7 +466,7 @@ func TestSeatsLimitReached(t *testing.T) {
 				s.License.Features.Users = nil
 				return s
 			},
-			want: map[string]want{"SEATS_LIMIT_REACHED": unknown, "SEATS_OVER_DEPLOYED": unknown},
+			want: map[string]want{"SEATS_LIMIT_REACHED": unknown(healthcheck.ReasonLicenseUnavailable), "SEATS_OVER_DEPLOYED": unknown(healthcheck.ReasonLicenseUnavailable)},
 		},
 	}
 
@@ -504,9 +506,9 @@ func TestSeatsLowEngagement(t *testing.T) {
 		{name: "exactly 60 percent", snapshot: engaged(new(int64(200)), new(int64(120))), want: resolvedAt(60)},
 		{name: "just under 60 percent", snapshot: engaged(new(int64(200)), new(int64(119))), want: firing(59.5)},
 		{name: "no monthly activity", snapshot: engaged(new(int64(200)), new(int64(0))), want: firing(0)},
-		{name: "active users unknown", snapshot: engaged(nil, new(int64(120))), want: unknown},
-		{name: "monthly active users unknown", snapshot: engaged(new(int64(200)), nil), want: unknown},
-		{name: "no active users", snapshot: engaged(new(int64(0)), new(int64(0))), want: unknown},
+		{name: "active users unknown(healthcheck.ReasonStatsUnavailable)", snapshot: engaged(nil, new(int64(120))), want: unknown(healthcheck.ReasonStatsUnavailable)},
+		{name: "monthly active users unknown(healthcheck.ReasonStatsUnavailable)", snapshot: engaged(new(int64(200)), nil), want: unknown(healthcheck.ReasonStatsUnavailable)},
+		{name: "no active users", snapshot: engaged(new(int64(0)), new(int64(0))), want: unknown(healthcheck.TranslationId("health.rule.seats_low_engagement.message.no_active_users"))},
 	}
 
 	for _, tc := range testCases {
@@ -542,7 +544,9 @@ func TestWorkflowRules(t *testing.T) {
 	chatOnly := map[string]want{"WORKFLOW_USAGE_CHAT_ONLY": firingNoValue(), "WORKFLOW_USAGE_LIGHT": resolved}
 	light := map[string]want{"WORKFLOW_USAGE_CHAT_ONLY": resolved, "WORKFLOW_USAGE_LIGHT": firingNoValue()}
 	neither := map[string]want{"WORKFLOW_USAGE_CHAT_ONLY": resolved, "WORKFLOW_USAGE_LIGHT": resolved}
-	bothUnknown := map[string]want{"WORKFLOW_USAGE_CHAT_ONLY": unknown, "WORKFLOW_USAGE_LIGHT": unknown}
+	bothUnknown := func(reasonID string) map[string]want {
+		return map[string]want{"WORKFLOW_USAGE_CHAT_ONLY": unknown(reasonID), "WORKFLOW_USAGE_LIGHT": unknown(reasonID)}
+	}
 
 	testCases := []struct {
 		name     string
@@ -564,7 +568,7 @@ func TestWorkflowRules(t *testing.T) {
 				delete(s.Sections, model.SectionPlugins)
 				return s
 			},
-			want: bothUnknown,
+			want: bothUnknown(healthcheck.ReasonPluginsUnavailable),
 		},
 		{
 			name: "plugins section failed",
@@ -573,7 +577,7 @@ func TestWorkflowRules(t *testing.T) {
 				s.Sections[model.SectionPlugins] = assert.AnError
 				return s
 			},
-			want: bothUnknown,
+			want: bothUnknown(healthcheck.ReasonPluginsUnavailable),
 		},
 		{
 			name: "incoming webhooks unknown",
@@ -582,7 +586,7 @@ func TestWorkflowRules(t *testing.T) {
 				s.Stats.IncomingWebhooks = nil
 				return s
 			},
-			want: bothUnknown,
+			want: bothUnknown(healthcheck.ReasonStatsUnavailable),
 		},
 		{
 			name: "bot accounts unknown",
@@ -591,7 +595,7 @@ func TestWorkflowRules(t *testing.T) {
 				s.Stats.BotAccounts = nil
 				return s
 			},
-			want: bothUnknown,
+			want: bothUnknown(healthcheck.ReasonStatsUnavailable),
 		},
 	}
 
