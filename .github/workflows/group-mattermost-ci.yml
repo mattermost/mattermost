@@ -1,4 +1,5 @@
 ---
+# Validates, tests, and builds the Mattermost server on changes to server code.
 name: Group Mattermost CI
 
 "on":
