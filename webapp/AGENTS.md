@@ -6,20 +6,15 @@ Guidance for coding agents working inside `webapp/`.
 
 Follow `webapp/STYLE_GUIDE.md` for canonical style, accessibility, and testing standards.
 
-## Shared Components
+## UI components (Compass)
 
-Prefer the shared components from `@mattermost/shared` over hand-rolled equivalents:
-
-- **`Button`** — use for text-based button UI instead of building bespoke `<button>` elements or styling.
-  ```typescript
-  import {Button} from '@mattermost/shared/components/button';
-  ```
-- **`WithTooltip`** — use for tooltips instead of wiring up Floating UI or other tooltip primitives directly.
-  ```typescript
-  import {WithTooltip} from '@mattermost/shared/components/tooltip';
-  ```
-
-Always import via the full package name (`@mattermost/shared/...`), never via relative paths into `platform/shared/`.
+- **Catalog / APIs**: https://mattermost.github.io/compass-design/storybook — check here before inventing UI or props.
+- **New UI**: prefer `@mattermost/compass-ui` when a component exists. Import via subpaths:
+  `import {Button} from '@mattermost/compass-ui/components/button';`
+  Do not use the root barrel. Do not recreate Compass primitives.
+- **Exceptions (keep current stacks)**: icons → `@mattermost/compass-icons`; tooltips → `WithTooltip` (`@mattermost/shared`); modals → existing shared / `GenericModal`; menus → existing MUI menus. Do not switch Modal/Menu to compass-ui yet.
+- **Tokens**: Compass foundation CSS variables are global via `@mattermost/compass-ui/styles`. Prefer `var(--…)` over hard-coded radius/spacing/elevation/font/motion values. Theme colors stay on app semantic vars (`--center-channel-*`, etc.).
+- **Standards**: `webapp/STYLE_GUIDE.md`.
 
 ## Plugin-facing surface on `window.WebappUtils`
 
