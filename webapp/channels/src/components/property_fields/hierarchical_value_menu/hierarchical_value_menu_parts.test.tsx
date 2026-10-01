@@ -37,6 +37,7 @@ import {
     settle,
     statusRow,
     trigger,
+    triggerButton,
 } from './hierarchical_value_menu_test_helpers';
 
 import {GRAPH_MAX_SEARCH_ROWS} from '../graph';
@@ -802,18 +803,18 @@ describe('HierarchicalValueMenu chrome (mounted)', () => {
 
         test('ariaLabel names the trigger, defaulting to the placeholder', () => {
             const {rerenderWith} = renderMenu();
-            expect(trigger()).toHaveAccessibleName(COPY.placeholder);
+            expect(triggerButton()).toHaveAccessibleName(COPY.placeholder);
 
             rerenderWith({ariaLabel: 'Programs'});
 
-            expect(trigger()).toHaveAccessibleName('Programs');
+            expect(triggerButton()).toHaveAccessibleName('Programs');
         });
 
         test('buttonClassName lands on the trigger', () => {
             renderMenu({buttonClassName: 'policy-row__value-trigger'});
 
-            expect(trigger()).toHaveClass('hierarchical-value-menu__button');
-            expect(trigger()).toHaveClass('policy-row__value-trigger');
+            expect(triggerButton()).toHaveClass('hierarchical-value-menu__button');
+            expect(triggerButton()).toHaveClass('policy-row__value-trigger');
         });
 
         test('defaults to the input variant with a chevron and no inline class', () => {
@@ -833,9 +834,9 @@ describe('HierarchicalValueMenu chrome (mounted)', () => {
         test('disabled marks the trigger disabled and adds the disabled class', () => {
             renderMenu({disabled: true});
 
-            expect(trigger()).toBeDisabled();
-            expect(trigger()).toHaveClass('hierarchical-value-menu__button');
-            expect(trigger()).toHaveClass('disabled');
+            expect(triggerButton()).toHaveAttribute('aria-disabled', 'true');
+            expect(triggerButton()).toHaveClass('hierarchical-value-menu__button');
+            expect(triggerButton()).toHaveClass('disabled');
         });
 
         test('the trigger keeps its data-testid and the menu keeps its id', async () => {

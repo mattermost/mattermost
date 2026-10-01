@@ -6,6 +6,8 @@
 .hierarchical-value-menu {
     width: 100%;
 
+    // Role is a div (not a button) so chip removes can be real <button>s without
+    // nesting interactive controls.
     &__button {
         display: flex;
         width: 100%;
@@ -25,7 +27,7 @@
         font-weight: normal;
         text-align: left;
 
-        &:hover:not(.disabled) {
+        &:hover:not(.disabled):not([aria-disabled='true']) {
             border-color: rgba(var(--center-channel-color-rgb), 0.24);
             background: var(--center-channel-bg);
             color: inherit;
@@ -42,7 +44,8 @@
             outline: none;
         }
 
-        &.disabled {
+        &.disabled,
+        &[aria-disabled='true'] {
             border-color: rgba(var(--center-channel-color-rgb), 0.16);
             background: rgba(var(--center-channel-color-rgb), 0.04);
             cursor: not-allowed;
@@ -64,7 +67,7 @@
             border: none;
             background: transparent;
 
-            &:hover:not(.disabled),
+            &:hover:not(.disabled):not([aria-disabled='true']),
             &[aria-expanded='true'] {
                 border: none;
                 background: rgba(var(--center-channel-color-rgb), 0.04);
@@ -83,7 +86,8 @@
                 background: rgba(var(--center-channel-color-rgb), 0.04);
             }
 
-            &.disabled {
+            &.disabled,
+            &[aria-disabled='true'] {
                 border: none;
                 background: transparent;
                 opacity: 0.6;

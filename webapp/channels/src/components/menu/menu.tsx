@@ -240,7 +240,7 @@ export function Menu(props: Props) {
         }
     }
 
-    function handleMenuButtonClick(event: MouseEvent) {
+    function handleMenuButtonClick(event: MouseEvent | KeyboardEvent) {
         event.preventDefault();
         event.stopPropagation();
 
@@ -273,9 +273,18 @@ export function Menu(props: Props) {
         }
     }
 
+    function handleMenuButtonKeyDown(event: KeyboardEvent) {
+        if (event.key !== 'Enter' && event.key !== ' ') {
+            return;
+        }
+        handleMenuButtonClick(event);
+    }
+
     // We construct the menu button so we can set onClick correctly here to support both web and mobile view
     function renderMenuButton() {
         const MenuButtonComponent = props.menuButton?.as ?? 'button';
+        const isDivTrigger = MenuButtonComponent === 'div';
+        const isDisabled = props.menuButton?.disabled ?? false;
 
         const triggerElement = (
             <MenuButtonComponent
@@ -285,12 +294,16 @@ export function Menu(props: Props) {
                 aria-controls={props.menu.id}
                 aria-haspopup={true}
                 aria-expanded={isMenuOpen}
-                disabled={props.menuButton?.disabled ?? false}
+                disabled={isDivTrigger ? undefined : isDisabled}
+                aria-disabled={isDivTrigger ? isDisabled : undefined}
+                role={isDivTrigger ? 'button' : undefined}
+                tabIndex={isDivTrigger ? (isDisabled ? -1 : 0) : undefined}
                 aria-label={props.menuButton?.['aria-label']}
                 aria-describedby={props.menuButton?.['aria-describedby']}
                 className={props.menuButton?.class ?? ''}
                 onMouseDown={props.menuButton?.onMouseDown}
-                onClick={handleMenuButtonClick}
+                onClick={isDisabled ? undefined : handleMenuButtonClick}
+                onKeyDown={isDivTrigger && !isDisabled ? handleMenuButtonKeyDown : undefined}
             >
                 {props.menuButton.children}
             </MenuButtonComponent>

@@ -10,7 +10,7 @@ import {defineMessages, useIntl} from 'react-intl';
 import {AlertOutlineIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 
-import AttributeChip from 'components/channel_attributes/attribute_chip';
+import AttributeChip, {AttributeChipRemoveButton} from 'components/channel_attributes/attribute_chip';
 import Input from 'components/widgets/inputs/input/input';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
@@ -144,10 +144,14 @@ export function SelectedValueChips({selectedIds, labelForId, disabled, onRemove,
                             'hierarchical-value-menu__chip--pending': state === 'pending',
                             'hierarchical-value-menu__chip--unavailable': state === 'unavailable',
                         })}
-                        onRemove={disabled ? undefined : () => onRemove(id)}
-                        removeLabel={disabled ? undefined : removeLabel}
-                        disabled={disabled}
-                    />
+                    >
+                        {!disabled && (
+                            <AttributeChipRemoveButton
+                                onRemove={() => onRemove(id)}
+                                removeLabel={removeLabel}
+                            />
+                        )}
+                    </AttributeChip>
                 );
             })}
             {trailingChips}

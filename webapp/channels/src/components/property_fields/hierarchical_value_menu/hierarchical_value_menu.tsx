@@ -431,38 +431,43 @@ export default function HierarchicalValueMenu({
         menuChildren.push(...extraMenuItems);
     }
 
+    // Chips use real <button> removes; the Menu trigger is a <div> so we never
+    // nest button-in-button (invalid HTML / broken for VoiceOver).
+    const triggerChildren = (
+        <span className='hierarchical-value-menu__button-inner'>
+            {selectedIds.length === 0 && !trailingChips ? (
+                <span className='hierarchical-value-menu__placeholder'>
+                    {resolvedPlaceholder}
+                </span>
+            ) : (
+                <SelectedValueChips
+                    selectedIds={selectedIds}
+                    labelForId={labelForId}
+                    disabled={Boolean(disabled)}
+                    onRemove={handleRemoveChip}
+                    trailingChips={trailingChips}
+                />
+            )}
+            {!isInline && (
+                <ChevronDownIcon
+                    size={18}
+                    color='rgba(var(--center-channel-color-rgb), 0.5)'
+                />
+            )}
+        </span>
+    );
+
     return (
         <div className={classNames('hierarchical-value-menu', {'hierarchical-value-menu--inline': isInline}, className)}>
             <Menu.Container
                 menuButton={{
                     id: buttonId,
                     dataTestId: buttonDataTestId,
+                    as: 'div',
                     class: classNames('hierarchical-value-menu__button', buttonClassName, {disabled}),
                     disabled,
                     'aria-label': resolvedAriaLabel,
-                    children: (
-                        <span className='hierarchical-value-menu__button-inner'>
-                            {selectedIds.length === 0 && !trailingChips ? (
-                                <span className='hierarchical-value-menu__placeholder'>
-                                    {resolvedPlaceholder}
-                                </span>
-                            ) : (
-                                <SelectedValueChips
-                                    selectedIds={selectedIds}
-                                    labelForId={labelForId}
-                                    disabled={Boolean(disabled)}
-                                    onRemove={handleRemoveChip}
-                                    trailingChips={trailingChips}
-                                />
-                            )}
-                            {!isInline && (
-                                <ChevronDownIcon
-                                    size={18}
-                                    color='rgba(var(--center-channel-color-rgb), 0.5)'
-                                />
-                            )}
-                        </span>
-                    ),
+                    children: triggerChildren,
                 }}
                 menu={{
                     id: menuId,

@@ -105,19 +105,22 @@ describe('AttributeChip', () => {
         expect(chip).not.toHaveStyle({color: '#ffffff'});
     });
 
-    test('renders a circular remove control inside the chip when dismissible', async () => {
+    test('renders a circular remove control inside the chip when provided as children', async () => {
         const onRemove = jest.fn();
         renderWithContext(
             <AttributeChip
                 label='Severity'
                 value='SEV 1'
-                onRemove={onRemove}
-                removeLabel='Clear Severity'
-            />,
+            >
+                <AttributeChipRemoveButton
+                    onRemove={onRemove}
+                    removeLabel='Clear Severity'
+                />
+            </AttributeChip>,
         );
 
         const chip = screen.getByTestId('attributeChip');
-        const remove = screen.getByTestId('attributeChipRemove');
+        const remove = screen.getByRole('button', {name: 'Clear Severity'});
         expect(chip).toContainElement(remove);
         expect(chip).toHaveClass('AttributeChip--dismissible');
 

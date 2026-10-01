@@ -8,7 +8,7 @@
 
     // A marking is a fact about the channel, not a control. Nothing here may
     // read as interactive — the remove control is the exception, and only when
-    // a parent passes onRemove.
+    // a parent passes children.
     cursor: default;
     font-family: 'Open Sans', sans-serif;
     font-style: normal;
@@ -44,9 +44,7 @@
     }
 
     &--medium.AttributeChip--dismissible {
-        // Default matches a non-dismissible medium chip. Channel-info / inline
-        // pickers tighten the trailing edge only while the dismiss control is shown.
-        padding: 4px 8px;
+        padding: 4px 4px 4px 8px;
         gap: 0;
     }
 
@@ -90,15 +88,27 @@
         justify-content: center;
         padding: 0;
         border: none;
+        border-radius: 50%;
+        margin-inline-start: 4px;
         background: transparent;
         color: inherit;
         cursor: pointer;
         line-height: 0;
         opacity: 0.56;
 
-        &:hover,
+        &:hover:not(:disabled) {
+            opacity: 1;
+        }
+
         &:focus-visible {
             opacity: 1;
+            outline: 2px solid var(--button-bg);
+            outline-offset: 1px;
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.32;
         }
     }
 }
