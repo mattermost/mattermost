@@ -116,27 +116,27 @@ func seatsUsed(s *healthcheck.Snapshot) (int64, bool) {
 	return max(active-guests, 0), true
 }
 
-// seatUtilization returns 100*used/seats. ok is false when any input is unknown: a ratio
+// seatUtilization returns 100*used/seats. reasonID is set when any input is unknown: a ratio
 // with an unknown numerator is not 0%.
-func seatUtilization(s *healthcheck.Snapshot) (used int64, seats int, pct float64, ok bool) {
-	seats, ok = s.LicenseSeats()
+func seatUtilization(s *healthcheck.Snapshot) (used int64, seats int, pct float64, reasonID string) {
+	seats, ok := s.LicenseSeats()
 	if !ok {
-		return 0, 0, 0, false
+		return 0, 0, 0, healthcheck.ReasonLicenseUnavailable
 	}
 
 	used, ok = seatsUsed(s)
 	if !ok {
-		return 0, 0, 0, false
+		return 0, 0, 0, healthcheck.ReasonStatsUnavailable
 	}
 
-	return used, seats, 100 * float64(used) / float64(seats), true
+	return used, seats, 100 * float64(used) / float64(seats), ""
 }
 
 func evalSeatUtilization(s *healthcheck.Snapshot, messageID string, fires func(pct float64) bool) []healthcheck.Result {
-	used, seats, pct, ok := seatUtilization(s)
+	used, seats, pct, reasonID := seatUtilization(s)
 	switch {
-	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown("")}
+	case reasonID != "":
+		return []healthcheck.Result{healthcheck.Unknown(reasonID)}
 	case fires(pct):
 		return []healthcheck.Result{healthcheck.Firing(messageID).
 			WithDetail("used", strconv.FormatInt(used, 10)).
@@ -172,7 +172,7 @@ func evalSeatsLimitReached(s *healthcheck.Snapshot) []healthcheck.Result {
 	// Every license has an expiry, so a missing one marks a packet written before the seat
 	// enforcement flag was recorded, where false would mean "not recorded".
 	if _, ok := s.LicenseExpiresAt(); !ok {
-		return []healthcheck.Result{healthcheck.Unknown("")}
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)}
 	}
 	if !s.License.IsSeatCountEnforced {
 		return []healthcheck.Result{healthcheck.Resolved()}
@@ -180,11 +180,11 @@ func evalSeatsLimitReached(s *healthcheck.Snapshot) []healthcheck.Result {
 
 	seats, ok := s.LicenseSeats()
 	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown("")}
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)}
 	}
 	used, ok := seatsUsed(s)
 	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown("")}
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)}
 	}
 
 	limit := int64(seats + model.SafeDereference(s.License.ExtraUsers))
@@ -200,12 +200,15 @@ func evalSeatsLimitReached(s *healthcheck.Snapshot) []healthcheck.Result {
 
 func evalSeatsLowEngagement(s *healthcheck.Snapshot) []healthcheck.Result {
 	active, ok := s.Stat(activeUsers)
-	if !ok || active == 0 {
-		return []healthcheck.Result{healthcheck.Unknown("")}
+	if !ok {
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)}
+	}
+	if active == 0 {
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.TranslationId("health.rule.seats_low_engagement.message.no_active_users"))}
 	}
 	monthly, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 { return stats.MonthlyActiveUsers })
 	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown("")}
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)}
 	}
 
 	pct := 100 * float64(monthly) / float64(active)
