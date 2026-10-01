@@ -17,7 +17,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": ""
+    "translation": "Trigger-ID'et for den interaktive dialog er udløbet. Trigger-ID'er er gyldige i højst {{.Duration}}."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
@@ -13168,1430 +13168,1430 @@
   },
   {
     "id": "api.access_control.assign.team_group_constrained",
-    "translation": ""
+    "translation": "Et gruppesynkroniseret team kan ikke få anvendt en medlemskabspolitik."
   },
   {
     "id": "api.access_control.decision.unsupported_resource_type.app_error",
-    "translation": ""
+    "translation": "Adgangskontrolafgørelser ved visning understøttes ikke for ressourcetypen \"{{.Type}}\"."
   },
   {
     "id": "api.access_control_policy.team_membership.feature_disabled",
-    "translation": ""
+    "translation": "Funktionen adgangskontrol for teammedlemskab er ikke aktiveret."
   },
   {
     "id": "api.admin.test_azure.missing_azure_field",
-    "translation": ""
+    "translation": "En Azure Blob Storage-indstilling mangler eller er ugyldig."
   },
   {
     "id": "api.channel.bookmark.board.readonly.app_error",
-    "translation": ""
+    "translation": "Board-bogmærker administreres af boards-funktionen og kan ikke oprettes, opdateres eller slettes via bogmærke-API'et."
   },
   {
     "id": "api.channel.create_channel.attribute_no_permission.app_error",
-    "translation": ""
+    "translation": "Du har ikke tilladelse til at angive en af de indsendte kanalattributter."
   },
   {
     "id": "api.channel.create_channel.attributes_feature_disabled.app_error",
-    "translation": ""
+    "translation": "Kanalattributter er ikke aktiveret på denne server."
   },
   {
     "id": "api.channel.create_channel.invalid_attribute.app_error",
-    "translation": ""
+    "translation": "En af de indsendte kanalattributter er ikke gyldig for denne kanal."
   },
   {
     "id": "api.channel.create_channel.missing_required_attributes.app_error",
-    "translation": ""
+    "translation": "Denne kanal mangler påkrævede attributter."
   },
   {
     "id": "api.channel.patch_update_channel.group_constrained_not_allowed.app_error",
-    "translation": ""
+    "translation": "Du har ikke tilladelse til at angive group_constrained på denne kanaltype."
   },
   {
     "id": "api.channel.space_channel.app_error",
-    "translation": ""
+    "translation": "Space-kanaler kan ikke tilgås via /channels-endepunkter. Brug spaces-API'et i stedet."
   },
   {
     "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
-    "translation": ""
+    "translation": "Ugyldig opdatering af kanalmedlem: En bruger skal være enten gæst eller administrator, ikke begge dele."
   },
   {
     "id": "api.context.invalid_body.app_error",
-    "translation": ""
+    "translation": "Ugyldige beskedegenskaber (props)."
   },
   {
     "id": "api.custom_profile_attributes.linked_field.app_error",
-    "translation": ""
+    "translation": "Dette felt er knyttet til en global attributskabelon og kan ikke ændres via brugerattribut-API'et. Brug API'et for globale attributter i stedet."
   },
   {
     "id": "api.data_spillage.error.invalid_channel_type",
-    "translation": ""
+    "translation": "Håndtering af datalækage er ikke tilgængelig for direkte beskeder og gruppebeskeder."
   },
   {
     "id": "api.data_spillage.exposure.write.app_error",
-    "translation": ""
+    "translation": "Kunne ikke skrive eksponeringsrapporten for beskeden."
   },
   {
     "id": "api.delivery_tracking.error.feature_flag",
-    "translation": ""
+    "translation": "Revisionslogning af beskedlevering er ikke aktiveret på denne server."
   },
   {
     "id": "api.delivery_tracking.error.license",
-    "translation": ""
+    "translation": "Din licens understøtter ikke revisionslogning af beskedlevering."
   },
   {
     "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
-    "translation": ""
+    "translation": "Kan ikke oprette emoji. Billedet er for stort til at blive behandlet. Prøv et billede med mindre dimensioner eller færre billedrammer."
   },
   {
     "id": "api.emoji.upload.too_many_frames.app_error",
-    "translation": ""
+    "translation": "Kan ikke oprette emoji. En animeret GIF må højst have {{.MaxFrames}} billedrammer."
   },
   {
     "id": "api.file.test_connection_settings_nil.app_error",
-    "translation": ""
+    "translation": "Fillagringsindstillingerne har værdier, der ikke er angivet."
   },
   {
     "id": "api.file.test_connection_unsupported_driver.app_error",
-    "translation": ""
+    "translation": "Fillagringsdriveren \"{{.Driver}}\" understøttes ikke. Understøttede værdier er \"local\", \"amazons3\" og \"azureblob\"."
   },
   {
     "id": "api.ldap.test.reenter_password",
-    "translation": ""
+    "translation": "AD/LDAP-forbindelsesindstillingerne er ændret. Indtast venligst bind-adgangskoden igen for at teste forbindelsen."
   },
   {
     "id": "api.license.add_license.wrong_environment_production.app_error",
-    "translation": ""
+    "translation": "Dette er en produktionslicens, men denne server kører i et test- eller udviklingsmiljø. Produktionslicenser kan kun bruges på produktionsservere."
   },
   {
     "id": "api.license.add_license.wrong_environment_test.app_error",
-    "translation": ""
+    "translation": "Dette er en test- eller udviklingslicens, men denne server kører i et produktionsmiljø. Test- eller udviklingslicenser kan kun bruges på test- eller udviklingsservere."
   },
   {
     "id": "api.license.parse_license.parse_form.app_error",
-    "translation": ""
+    "translation": "Kunne ikke fortolke formularen til upload af licens."
   },
   {
     "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
-    "translation": ""
+    "translation": "Du har ikke tilladelse til at sende Burn-on-Read-beskeder i denne kanal."
   },
   {
     "id": "api.post.create_post.silent_notification.app_error",
-    "translation": ""
+    "translation": "Kun beskeder fra bots, webhooks, OAuth-apps og plugins kan leveres lydløst."
   },
   {
     "id": "api.post.create_post.silent_persistent_notification.app_error",
-    "translation": ""
+    "translation": "Lydløse beskeder kan ikke bruge vedvarende notifikationer."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
-    "translation": ""
+    "translation": " underrettede kanalen."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": ""
+    "translation": " svarede i en tråd, du følger."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
-    "translation": ""
+    "translation": " svarede i en tråd."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_post",
-    "translation": ""
+    "translation": " kommenterede din besked."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_thread",
-    "translation": ""
+    "translation": " kommenterede i en tråd, du har deltaget i."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_explicit_mention",
-    "translation": ""
+    "translation": " omtalte dig."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_general_message",
-    "translation": ""
+    "translation": " sendte en besked."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": ""
+    "translation": " vedhæftede en fil."
   },
   {
     "id": "api.property.channel_attributes.license.app_error",
-    "translation": ""
+    "translation": "Kanalattributter kræver en Enterprise Advanced-licens."
   },
   {
     "id": "api.property.session_attributes.license.app_error",
-    "translation": ""
+    "translation": "Sessionsattributter kræver en Enterprise Advanced-licens."
   },
   {
     "id": "api.property_field.create.creator_cannot_edit.app_error",
-    "translation": ""
+    "translation": "Du kan ikke oprette et egenskabsfelt med tilladelsesniveauer, der ville forhindre dig i at redigere det."
   },
   {
     "id": "api.property_field.get.invalid_opts.app_error",
-    "translation": ""
+    "translation": "Ugyldige søgeindstillinger for egenskabsfelter."
   },
   {
     "id": "api.property_field.get.scope_conflict.app_error",
-    "translation": ""
+    "translation": "channel_id/team_id kan ikke kombineres med target_type/target_id."
   },
   {
     "id": "api.property_field.get.scope_required.app_error",
-    "translation": ""
+    "translation": "En omfangsparameter (channel_id, team_id eller target_type) er påkrævet."
   },
   {
     "id": "api.property_field.get.target_type_required.app_error",
-    "translation": ""
+    "translation": "target_type er påkrævet, når target_id angives."
   },
   {
     "id": "api.property_field.options.empty_body.app_error",
-    "translation": ""
+    "translation": "Der blev ikke angivet nogen valgmuligheder for egenskabsfeltet."
   },
   {
     "id": "api.property_field.options.invalid_cursor.app_error",
-    "translation": ""
+    "translation": "En markør for egenskabsfeltets valgmuligheder skal angive både cursor_id og cursor_create_at."
   },
   {
     "id": "api.property_field.options.legacy_field.app_error",
-    "translation": ""
+    "translation": "Valgmulighederne for dette egenskabsfelt kan ikke administreres enkeltvis."
   },
   {
     "id": "api.property_field.options.no_permission.app_error",
-    "translation": ""
+    "translation": "Du har ikke tilladelse til at administrere valgmuligheder for dette egenskabsfelt."
   },
   {
     "id": "api.property_field.options.too_many_items.request_error",
-    "translation": ""
+    "translation": "Kan ikke ændre så mange valgmuligheder for egenskabsfeltet. Der kan højst ændres {{.Max}} valgmuligheder ad gangen."
   },
   {
     "id": "api.property_field.patch.permission_values_invalid.app_error",
-    "translation": ""
+    "translation": "permission_values skal være enten member eller sysadmin."
   },
   {
     "id": "api.property_field.patch.permission_values_not_linked.app_error",
-    "translation": ""
+    "translation": "permission_values kan kun angives på et felt, der er knyttet til en skabelon."
   },
   {
     "id": "api.property_value.get.invalid_opts.app_error",
-    "translation": ""
+    "translation": "Ugyldige søgeindstillinger for egenskabsværdier."
   },
   {
     "id": "api.scheduled_recap.permission_denied",
-    "translation": ""
+    "translation": "Du har ikke tilladelse til at tilgå dette planlagte referat."
   },
   {
     "id": "api.team.access_control.added.system_message",
-    "translation": ""
+    "translation": "Du er blevet tilføjet til teamet **{{.TeamName}}**, fordi du nu opfylder dets medlemskabskrav."
   },
   {
     "id": "api.team.access_control.removed.system_message",
-    "translation": ""
+    "translation": "Du er blevet fjernet fra teamet **{{.TeamName}}**, fordi du ikke længere opfylder dets medlemskabskrav."
   },
   {
     "id": "api.team.add_user.to.team.abac_subject_build_failed.app_error",
-    "translation": ""
+    "translation": "Kunne ikke opbygge adgangskontrolsubjektet for brugeren."
   },
   {
     "id": "api.team.add_user.to.team.rejected",
-    "translation": ""
+    "translation": "Brugeren har ikke de påkrævede attributter til at deltage i teamet."
   },
   {
     "id": "api.team.invite_members.account_deactivated.app_error",
-    "translation": ""
+    "translation": "Kontoen tilknyttet {{.Addresses}} er blevet deaktiveret. Kontakt venligst din systemadministrator for yderligere oplysninger."
   },
   {
     "id": "api.team.invite_members.profiles_disabled.app_error",
-    "translation": ""
+    "translation": "Forudindstilling af profilfelter på invitationer kræver, at låste profilfelter er aktiveret."
   },
   {
     "id": "api.team.invite_members.profiles_graceful.app_error",
-    "translation": ""
+    "translation": "Forudindstilling af profilfelter på invitationer kræver graceful-tilstand."
   },
   {
     "id": "api.team.invite_members.profiles_license.app_error",
-    "translation": ""
+    "translation": "Forudindstilling af profilfelter på invitationer kræver en Enterprise-licens."
   },
   {
     "id": "api.team.invite_members.username_taken.app_error",
-    "translation": ""
+    "translation": "Brugernavnet {{.Username}} er allerede i brug."
   },
   {
     "id": "api.team.update.group_constrained.policy_exists",
-    "translation": ""
+    "translation": "Gruppesynkronisering kan ikke aktiveres på et team, der har en medlemskabspolitik anvendt."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
-    "translation": ""
+    "translation": "Ugyldig opdatering af teammedlem: En bruger skal være enten gæst eller administrator, ikke begge dele."
   },
   {
     "id": "api.templates.user_access_token_rotated_body.info",
-    "translation": ""
+    "translation": "Et personligt adgangstoken på din konto på {{ .SiteURL }} blev genereret på ny. Den tidligere tokenhemmelighed er ikke længere gyldig."
   },
   {
     "id": "api.templates.user_access_token_rotated_body.title",
-    "translation": ""
+    "translation": "Personligt adgangstoken genereret på ny"
   },
   {
     "id": "api.templates.user_access_token_rotated_subject",
-    "translation": ""
+    "translation": "[{{ .SiteName }}] Personligt adgangstoken genereret på ny"
   },
   {
     "id": "api.user.attach_device_id.invalid_device_id.app_error",
-    "translation": ""
+    "translation": "Ugyldigt enheds-id."
   },
   {
     "id": "api.user.attach_device_id.invalid_voip_device_id.app_error",
-    "translation": ""
+    "translation": "Ugyldigt VoIP-enheds-id."
   },
   {
     "id": "api.user.get_users_not_in_abac_team.access_control_unavailable.app_error",
-    "translation": ""
+    "translation": "Adgangskontroltjenesten er ikke tilgængelig. Kan ikke filtrere brugere for et ABAC-aktiveret team."
   },
   {
     "id": "api.user.oauth_to_email.integration_session.app_error",
-    "translation": ""
+    "translation": "Kan ikke skifte til e-mailgodkendelse med en integrationssession."
   },
   {
     "id": "api.user.patch_user.profile_field_locked.app_error",
-    "translation": ""
+    "translation": "Feltet {{.Field}} administreres af din systemadministrator og kan ikke ændres."
   },
   {
     "id": "api.user.rotate_user_access_token.disabled_token.app_error",
-    "translation": ""
+    "translation": "Et deaktiveret adgangstoken kan ikke genereres på ny."
   },
   {
     "id": "api.user.saml.relay_state_too_long.app_error",
-    "translation": ""
+    "translation": "SAML relay state er for lang."
   },
   {
     "id": "api.user.session_attributes.disabled.app_error",
-    "translation": ""
+    "translation": "Sessionsattributter er ikke aktiveret."
   },
   {
     "id": "api.user.update_user.profile_field_locked.app_error",
-    "translation": ""
+    "translation": "Feltet {{.Field}} administreres af din systemadministrator og kan ikke ændres."
   },
   {
     "id": "api.user.upload_profile_user.profile_field_locked.app_error",
-    "translation": ""
+    "translation": "Profilbilledet administreres af din systemadministrator og kan ikke ændres."
   },
   {
     "id": "api.webhook.incoming.user_membership.app_error",
-    "translation": ""
+    "translation": "Webhook-brugeren skal være medlem af det team eller den kanal, der er målet."
   },
   {
     "id": "api.webhook.incoming.user_role.app_error",
-    "translation": ""
+    "translation": "Du kan ikke tildele en webhook til en bruger med flere rettigheder end dig selv."
   },
   {
     "id": "app.access_control.get_session_attributes.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente sessionsattributterne."
   },
   {
     "id": "app.access_control.plugin.evaluation_unavailable.app_error",
-    "translation": ""
+    "translation": "Adgangskontrol kunne ikke evalueres for denne ressource."
   },
   {
     "id": "app.access_control.plugin.invalid_acting_user.app_error",
-    "translation": ""
+    "translation": "Den handlende bruger er ugyldig eller findes ikke."
   },
   {
     "id": "app.access_control.plugin.invalid_action.app_error",
-    "translation": ""
+    "translation": "Handlingen er ikke en gyldig adgangskontrolhandling."
   },
   {
     "id": "app.access_control.plugin.invalid_id.app_error",
-    "translation": ""
+    "translation": "Ugyldig identifikator angivet til adgangskontrol-API'et."
   },
   {
     "id": "app.access_control.plugin.invalid_resource_type.app_error",
-    "translation": ""
+    "translation": "Ressourcetypen er ikke en gyldig ressourcetype for plugin-adgangskontrol."
   },
   {
     "id": "app.access_control.plugin.policy_not_found.app_error",
-    "translation": ""
+    "translation": "Adgangskontrolpolitikken blev ikke fundet."
   },
   {
     "id": "app.access_control.plugin.resource_type_forbidden.app_error",
-    "translation": ""
+    "translation": "Det kaldende plugin ejer ikke denne ressourcetype."
   },
   {
     "id": "app.access_control.plugin.type_conflict.app_error",
-    "translation": ""
+    "translation": "Der findes allerede en adgangskontrolpolitik af en anden type med dette ID."
   },
   {
     "id": "app.access_control_decision.subject_mismatch.app_error",
-    "translation": ""
+    "translation": "Subjektet svarer ikke til den bruger, sessionen er godkendt som."
   },
   {
     "id": "app.access_control_decision.unsupported_action.app_error",
-    "translation": ""
+    "translation": "Handlingen understøttes ikke for afgørelser ved visning: {{.Action}}"
   },
   {
     "id": "app.bot.createbot.reserved_username.app_error",
-    "translation": ""
+    "translation": "Dette brugernavn er reserveret til en systemejet bot."
   },
   {
     "id": "app.bot.patchbot.reserved_username.app_error",
-    "translation": ""
+    "translation": "Dette brugernavn er reserveret til en systemejet bot."
   },
   {
     "id": "app.bot.update_bot_active.protected_bot.app_error",
-    "translation": ""
+    "translation": "En systemejet bot kan ikke deaktiveres."
   },
   {
     "id": "app.channel.create_channel.space_type.app_error",
-    "translation": ""
+    "translation": "Space-kanaler kan ikke oprettes via dette endepunkt."
   },
   {
     "id": "app.channel.create_channel.spaces_not_enabled.app_error",
-    "translation": ""
+    "translation": "Docs-funktionen er ikke aktiveret."
   },
   {
     "id": "app.channel.get_by_name.app_error",
-    "translation": ""
+    "translation": "Kunne ikke finde kanalen ud fra navnet."
   },
   {
     "id": "app.channel.get_member_ids.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente kanalmedlemmernes ID'er."
   },
   {
     "id": "app.channel.move_channel.space.app_error",
-    "translation": ""
+    "translation": "Spaces kan ikke flyttes via dette endepunkt."
   },
   {
     "id": "app.channel.update_channel_privacy.space.app_error",
-    "translation": ""
+    "translation": "Spaces kan ikke få ændret deres synlighed via dette endepunkt."
   },
   {
     "id": "app.data_spillage.exposure.column.email",
-    "translation": ""
+    "translation": "E-mail"
   },
   {
     "id": "app.data_spillage.exposure.column.is_deactivated",
-    "translation": ""
+    "translation": "Deaktiveret"
   },
   {
     "id": "app.data_spillage.exposure.column.is_guest",
-    "translation": ""
+    "translation": "Gæst"
   },
   {
     "id": "app.data_spillage.exposure.column.is_remote",
-    "translation": ""
+    "translation": "Fjernbruger"
   },
   {
     "id": "app.data_spillage.exposure.column.last_activity_at",
-    "translation": ""
+    "translation": "Brugerens seneste aktivitet (YYYY-MM-DDTHH:MM:SSZ)"
   },
   {
     "id": "app.data_spillage.exposure.column.last_viewed_at",
-    "translation": ""
+    "translation": "Kanalen sidst set (YYYY-MM-DDTHH:MM:SSZ)"
   },
   {
     "id": "app.data_spillage.exposure.column.user_id",
-    "translation": ""
+    "translation": "Bruger-ID"
   },
   {
     "id": "app.data_spillage.exposure.column.username",
-    "translation": ""
+    "translation": "Brugernavn"
   },
   {
     "id": "app.data_spillage.exposure.column.was_channel_member",
-    "translation": ""
+    "translation": "Var kanalmedlem"
   },
   {
     "id": "app.data_spillage.exposure.edit_history_post.app_error",
-    "translation": ""
+    "translation": "Der kan ikke genereres en eksponeringsrapport for en revision i redigeringshistorikken. Brug det aktuelle besked-ID."
   },
   {
     "id": "app.data_spillage.exposure.get_channel_members.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente kanalmedlemskabshistorikken for den markerede besked."
   },
   {
     "id": "app.data_spillage.exposure.get_last_activity.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente sessionsaktivitet for den markerede besked."
   },
   {
     "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente kanalens læsestatus for den markerede besked."
   },
   {
     "id": "app.data_spillage.exposure.meta.channel",
-    "translation": ""
+    "translation": "Kanal"
   },
   {
     "id": "app.data_spillage.exposure.meta.generated_at",
-    "translation": ""
+    "translation": "Genereret"
   },
   {
     "id": "app.data_spillage.exposure.meta.post_id",
-    "translation": ""
+    "translation": "Besked-ID"
   },
   {
     "id": "app.data_spillage.exposure.meta.report_version",
-    "translation": ""
+    "translation": "Rapportversion"
   },
   {
     "id": "app.data_spillage.exposure.meta.total_users",
-    "translation": ""
+    "translation": "Brugere i alt"
   },
   {
     "id": "app.data_spillage.exposure.meta.window_end",
-    "translation": ""
+    "translation": "Markeret"
   },
   {
     "id": "app.data_spillage.exposure.meta.window_start",
-    "translation": ""
+    "translation": "Besked oprettet"
   },
   {
     "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
-    "translation": ""
+    "translation": "Der er ikke registreret et rapporteringstidspunkt for den markerede besked, så eksponeringsvinduet kan ikke fastlægges."
   },
   {
     "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
-    "translation": ""
+    "translation": "Eksponeringsrapporter understøttes ikke for direkte beskeder og gruppebeskeder."
   },
   {
     "id": "app.data_spillage.exposure.value.never_viewed",
-    "translation": ""
+    "translation": "Ikke relevant"
   },
   {
     "id": "app.data_spillage.exposure.value.no",
-    "translation": ""
+    "translation": "Nej"
   },
   {
     "id": "app.data_spillage.exposure.value.no_sessions",
-    "translation": ""
+    "translation": "Ingen sessioner fundet"
   },
   {
     "id": "app.data_spillage.exposure.value.unknown",
-    "translation": ""
+    "translation": "Ukendt"
   },
   {
     "id": "app.data_spillage.exposure.value.yes",
-    "translation": ""
+    "translation": "Ja"
   },
   {
     "id": "app.data_spillage.report.attachments_omitted.file_text",
-    "translation": ""
+    "translation": "Vedhæftningerne på denne besked blev udeladt fra denne rapport, fordi du ikke overholder kanalens politik for download af filer."
   },
   {
     "id": "app.data_spillage.report.attachments_omitted.notification",
-    "translation": ""
+    "translation": "Den rapport, du genererede, indeholdt ikke den karantænesatte beskeds vedhæftede filer, fordi du ikke overholder kanalens politik for download af filer."
   },
   {
     "id": "app.data_spillage.report.write_attachments_omitted.app_error",
-    "translation": ""
+    "translation": "Kunne ikke skrive meddelelsen om udeladte vedhæftninger til rapporten for den markerede besked."
   },
   {
     "id": "app.data_spillage.report.write_exposure_csv.app_error",
-    "translation": ""
+    "translation": "Kunne ikke skrive eksponeringsrapporten til rapporten for den markerede besked."
   },
   {
     "id": "app.delivery_tracking.dm_gm_not_allowed.app_error",
-    "translation": ""
+    "translation": "Direkte beskeder og gruppebeskeder kan ikke vælges til revisionslogning af beskedlevering."
   },
   {
     "id": "app.delivery_tracking.get_config.app_error",
-    "translation": ""
+    "translation": "Kunne ikke læse indstillingerne for revisionslogning af beskedlevering fra databasen."
   },
   {
     "id": "app.delivery_tracking.invalid_channel.app_error",
-    "translation": ""
+    "translation": "En eller flere af de valgte kanaler kunne ikke findes."
   },
   {
     "id": "app.delivery_tracking.save_config.app_error",
-    "translation": ""
+    "translation": "Kunne ikke gemme indstillingerne for revisionslogning af beskedlevering i databasen."
   },
   {
     "id": "app.export.channel_requires_team.error",
-    "translation": ""
+    "translation": "Et kanalnavn kræver, at der også angives et teamnavn."
   },
   {
     "id": "app.export.export_all_channels.channel_not_found.error",
-    "translation": ""
+    "translation": "Den angivne kanal blev ikke fundet i nogen af de angivne teams."
   },
   {
     "id": "app.export.export_all_teams.team_deleted.error",
-    "translation": ""
+    "translation": "Det angivne team er blevet slettet."
   },
   {
     "id": "app.export.export_all_teams.team_not_found.error",
-    "translation": ""
+    "translation": "Det angivne team blev ikke fundet."
   },
   {
     "id": "app.export.export_version.scope_marshal.error",
-    "translation": ""
+    "translation": "Kunne ikke skrive team- og kanalomfanget til eksporten. Afbryder i stedet for at producere et arkiv, der ville blive importeret som en gendannelse af hele instansen."
   },
   {
     "id": "app.export.generate_presigned_url.config.app_error",
-    "translation": ""
+    "translation": "Denne handling kræver brug af et dedikeret eksportlager."
   },
   {
     "id": "app.export.generate_presigned_url.direct_download.app_error",
-    "translation": ""
+    "translation": "Direkte download af eksporter er kun tilgængelig i Mattermost Cloud."
   },
   {
     "id": "app.export.generate_presigned_url.driver.app_error",
-    "translation": ""
+    "translation": "Driveren til dit eksportlager understøtter ikke generering af forhåndssignerede URL'er."
   },
   {
     "id": "app.export.generate_presigned_url.fileexist.app_error",
-    "translation": ""
+    "translation": "Kunne ikke kontrollere, om filen findes."
   },
   {
     "id": "app.export.generate_presigned_url.link.app_error",
-    "translation": ""
+    "translation": "Kunne ikke generere den forhåndssignerede URL."
   },
   {
     "id": "app.export.generate_presigned_url.notfound.app_error",
-    "translation": ""
+    "translation": "Eksportfilen blev ikke fundet."
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": ""
+    "translation": "Kunne ikke slå lyden fra for helbredsfundet."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
-    "translation": ""
+    "translation": "Helbredsfundet blev ikke fundet."
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": ""
+    "translation": "Kunne ikke slå lyden til for helbredsfundet."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": ""
+    "translation": "Helbredsfundet blev ikke fundet."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",
-    "translation": ""
+    "translation": "--destination-channel-name kræver en eksport afgrænset til kanaler."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_single_channel_scope.error",
-    "translation": ""
+    "translation": "--destination-channel-name kræver en eksport af en enkelt kanal; denne eksport indeholder flere kanaler."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_single_team_scope.error",
-    "translation": ""
+    "translation": "--destination-channel-name kræver en eksport afgrænset til præcis ét team, ellers er kanalnavnet tvetydigt."
   },
   {
     "id": "app.import.bulk_import.destination_team_requires_single_team_scope.error",
-    "translation": ""
+    "translation": "--destination-team-name kræver en eksport af et enkelt team; denne eksport indeholder flere teams."
   },
   {
     "id": "app.import.bulk_import.imported_users_choice_required.error",
-    "translation": ""
+    "translation": "Dette er en afgrænset eksport, så --imported-users skal sættes til enten \"active\" eller \"inactive\"; der findes ingen sikker standardværdi. Brug --imported-users=active, når du importerer til en ny instans, som disse brugere flytter til, så de kan logge ind — ellers deaktiveres alle konti, importen opretter, og ingen, heller ikke SSO-brugere, kan logge ind, før en administrator genaktiverer dem én ad gangen. Brug --imported-users=inactive, når du importerer til en eksisterende instans, der allerede indeholder andre personers indhold, så konti oprettet ud fra svage match på brugernavn eller e-mail forbliver deaktiverede, indtil en administrator har gennemgået dem. Under alle omstændigheder forbliver brugere, der var deaktiveret på kildeserveren, deaktiverede, og konti, der allerede findes på destinationen, matches i stedet for at blive oprettet og påvirkes derfor ikke af dette valg."
   },
   {
     "id": "app.import.import_direct_channel.get_ever_members.error",
-    "translation": ""
+    "translation": "Kunne ikke hente historikken over medlemmer, der nogensinde har tilhørt den direkte kanal"
   },
   {
     "id": "app.import.import_direct_channel.save_member.error",
-    "translation": ""
+    "translation": "Kunne ikke gemme kanalmedlem under import af direkte kanal"
   },
   {
     "id": "app.import.pre_create_sso_user.missing_fields.app_error",
-    "translation": ""
+    "translation": "Importdata for SSO-brugeren mangler påkrævede felter (brugernavn eller e-mail)."
   },
   {
     "id": "app.import.preflight.auth_provider_not_configured.error",
-    "translation": ""
+    "translation": "Godkendelsesudbyderen {{.Service}} er ikke konfigureret på denne server: {{.Detail}}"
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_mention_keys_invalid.error",
-    "translation": ""
+    "translation": "Ugyldig mention_keys Notify Prop for bruger: overskrider grænsen på {{.MaxCount}} nøgler eller {{.MaxLength}} bytes."
   },
   {
     "id": "app.notification.footer.info",
-    "translation": ""
+    "translation": " og gå til Indstillinger > Notifikationer"
   },
   {
     "id": "app.notify_expiring_access_tokens.bot_dm",
-    "translation": ""
+    "translation": "Det personlige adgangstoken \"{{.Description}}\" for botkontoen @{{.BotUsername}} udløber om {{.Days}} dage eller mindre. Åbn **Integrationer > Botkonti** for at generere det på ny, før det holder op med at virke."
   },
   {
     "id": "app.notify_expiring_access_tokens.bot_dm_final",
-    "translation": ""
+    "translation": "Det personlige adgangstoken \"{{.Description}}\" for botkontoen @{{.BotUsername}} udløber inden for 24 timer. Åbn **Integrationer > Botkonti** for at generere det på ny, før det holder op med at virke."
   },
   {
     "id": "app.notify_expiring_access_tokens.dm",
-    "translation": ""
+    "translation": "Dit personlige adgangstoken \"{{.Description}}\" udløber om {{.Days}} dage eller mindre. Åbn **Profil > Sikkerhed** for at generere det på ny, før det holder op med at virke."
   },
   {
     "id": "app.notify_expiring_access_tokens.dm_final",
-    "translation": ""
+    "translation": "Dit personlige adgangstoken \"{{.Description}}\" udløber inden for 24 timer. Åbn **Profil > Sikkerhed** for at generere det på ny, før det holder op med at virke."
   },
   {
     "id": "app.notify_expiring_access_tokens.unnamed_token",
-    "translation": ""
+    "translation": "(ingen beskrivelse)"
   },
   {
     "id": "app.pap.assign_access_control_policy_to_teams.app_error",
-    "translation": ""
+    "translation": "Kunne ikke tildele adgangskontrolpolitikken til teams."
   },
   {
     "id": "app.pap.get_team_members_to_remove.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente de teammedlemmer, der skal fjernes."
   },
   {
     "id": "app.pap.has_masked_values.app_error",
-    "translation": ""
+    "translation": "Kunne ikke fastslå skjulte værdier for politikudtrykket."
   },
   {
     "id": "app.pap.mask_expression.app_error",
-    "translation": ""
+    "translation": "Kunne ikke skjule værdier i politikudtrykket."
   },
   {
     "id": "app.pap.masking.ambiguous_sibling.app_error",
-    "translation": ""
+    "translation": "Flere brugerattributter er knyttet til den samme skabelon, så synligheden af kanalattributten kan ikke fastslås entydigt."
   },
   {
     "id": "app.pap.masking.graph_value_unmarshal.app_error",
-    "translation": ""
+    "translation": "Kunne ikke læse den kaldende brugers værdi for graf-feltet."
   },
   {
     "id": "app.pap.masking.unknown_object_type.app_error",
-    "translation": ""
+    "translation": "Kan ikke fastslå attributsynlighed for en ukendt objekttype."
   },
   {
     "id": "app.pap.rehydrate_rank.app_error",
-    "translation": ""
+    "translation": "Kunne ikke gendanne rangoperatorer i politikudtrykket."
   },
   {
     "id": "app.pap.save_policy.forbidden",
-    "translation": ""
+    "translation": "Du har ikke tilladelse til at foretage denne ændring af politikken."
   },
   {
     "id": "app.pap.save_policy.masked_token_in_expression",
-    "translation": ""
+    "translation": "Politikudtrykket indeholder en pladsholderværdi, der ikke kunne fortolkes. Genindlæs venligst politikken, og prøv igen."
   },
   {
     "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
-    "translation": ""
+    "translation": "Denne adgangsregel bruger kanalattributter, som teams ikke har. Fjern de teams, der er tildelt denne politik, før du gemmer."
   },
   {
     "id": "app.pap.save_policy.resolver_error",
-    "translation": ""
+    "translation": "Kunne ikke initialisere attributopløseren til lagring af politikken."
   },
   {
     "id": "app.pap.save_policy.resource_attributes_disabled",
-    "translation": ""
+    "translation": "Adgangsregler kan ikke bruge kanalattributter på denne server. Denne funktion er ikke aktiveret."
   },
   {
     "id": "app.pap.save_policy.team_resource_attributes",
-    "translation": ""
+    "translation": "Denne adgangsregel bruger kanalattributter, som teams ikke har. Adgangsregler med kanalattributter kan kun anvendes på kanaler."
   },
   {
     "id": "app.pap.simulate.channel_required_for_resource",
-    "translation": ""
+    "translation": "Der kræves en kanal for at simulere en politik, der henviser til kanalattributter."
   },
   {
     "id": "app.pap.simulate.resolver_error",
-    "translation": ""
+    "translation": "Kunne ikke initialisere attributopløseren til simulering af politikken."
   },
   {
     "id": "app.pap.unassign_access_control_policy_from_teams.app_error",
-    "translation": ""
+    "translation": "Kunne ikke fjerne tildelingen af adgangskontrolpolitikken fra teams."
   },
   {
     "id": "app.plugin.addon_not_licensed.app_error",
-    "translation": ""
+    "translation": "Dette plugin kræver tilføjelsen {{.AddOn}}, som din licens ikke omfatter."
   },
   {
     "id": "app.post.get_author_ids_for_channel.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente ID'er på beskedforfattere for kanalen."
   },
   {
     "id": "app.post.get_author_ids_for_team.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente ID'er på beskedforfattere for teamet."
   },
   {
     "id": "app.post.property_values.field_bound_exceeded.app_error",
-    "translation": ""
+    "translation": "Antallet af attributter, der gælder for denne besked, overskrider den understøttede grænse."
   },
   {
     "id": "app.post.property_values.value_bound_exceeded.app_error",
-    "translation": ""
+    "translation": "Antallet af attributværdier for disse beskeder overskrider den understøttede grænse."
   },
   {
     "id": "app.property.invalid_input.app_error",
-    "translation": ""
+    "translation": "Ændringen af egenskaben blev afvist."
   },
   {
     "id": "app.property_field.create.target_limit_reached.app_error",
-    "translation": ""
+    "translation": "Det maksimale antal egenskabsfelter for dette mål er nået."
   },
   {
     "id": "app.property_field.get_for_group.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente egenskabsfelter for gruppen."
   },
   {
     "id": "app.property_field.graph_disabled.app_error",
-    "translation": ""
+    "translation": "Egenskabsfelter af typen graph er ikke aktiveret."
   },
   {
     "id": "app.property_field.options.create.app_error",
-    "translation": ""
+    "translation": "Kunne ikke tilføje valgmulighederne for egenskabsfeltet."
   },
   {
     "id": "app.property_field.options.delete.app_error",
-    "translation": ""
+    "translation": "Kunne ikke slette valgmulighederne for egenskabsfeltet."
   },
   {
     "id": "app.property_field.options.get.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente valgmulighederne for egenskabsfeltet."
   },
   {
     "id": "app.property_field.options.invalid.app_error",
-    "translation": ""
+    "translation": "Valgmulighederne for egenskabsfeltet blev afvist: {{.Reason}}."
   },
   {
     "id": "app.property_field.options.invalid_item.app_error",
-    "translation": ""
+    "translation": "Valgmuligheden for egenskabsfeltet på indeks {{.Index}} {{.Reason}}."
   },
   {
     "id": "app.property_field.options.update.app_error",
-    "translation": ""
+    "translation": "Kunne ikke opdatere valgmulighederne for egenskabsfeltet."
   },
   {
     "id": "app.property_field.rank_disabled.app_error",
-    "translation": ""
+    "translation": "Egenskabsfelter af typen rank er ikke aktiveret."
   },
   {
     "id": "app.property_field.required_disabled.app_error",
-    "translation": ""
+    "translation": "Denne attribut kan ikke markeres som påkrævet, mens håndhævelse af påkrævede attributter er deaktiveret."
   },
   {
     "id": "app.property_field.update.graph_type_change.app_error",
-    "translation": ""
+    "translation": "Et egenskabsfelt kan ikke konverteres til eller fra typen graph. Opret i stedet et felt af den type, du har brug for."
   },
   {
     "id": "app.property_field.update.options_withheld.app_error",
-    "translation": ""
+    "translation": "Denne egenskab har mere end {{.Max}} valgmuligheder, så dens liste over valgmuligheder blev ikke indlæst og kan ikke erstattes. Rediger i stedet valgmulighederne enkeltvis."
   },
   {
     "id": "app.property_value.change_policy.lower_only.app_error",
-    "translation": ""
+    "translation": "Denne attribut kan kun sænkes, aldrig hæves."
   },
   {
     "id": "app.property_value.change_policy.never.app_error",
-    "translation": ""
+    "translation": "Denne attribut kan ikke ændres, når den først er angivet."
   },
   {
     "id": "app.property_value.change_policy.raise_only.app_error",
-    "translation": ""
+    "translation": "Denne attribut kan kun hæves, aldrig sænkes."
   },
   {
     "id": "app.property_value.direct_channel.app_error",
-    "translation": ""
+    "translation": "Attributter på direkte beskeder og gruppebeskeder kan ikke angives direkte."
   },
   {
     "id": "app.property_value.required.app_error",
-    "translation": ""
+    "translation": "Denne attribut er påkrævet og kan ikke være tom."
   },
   {
     "id": "app.reaction.get_author_ids_for_channel.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente ID'er på reaktionsforfattere for kanalen."
   },
   {
     "id": "app.recap.cooldown_active.app_error",
-    "translation": ""
+    "translation": "Din organisations politik kræver {{.CooldownMinutes}} minutter mellem referater. Du kan oprette et nyt referat om {{.RetryAfterMinutes}} minutter."
   },
   {
     "id": "app.recap.cooldown_check_failed.app_error",
-    "translation": ""
+    "translation": "Kunne ikke kontrollere ventetidsstatus."
   },
   {
     "id": "app.recap.get_daily_count.app_error",
-    "translation": ""
+    "translation": "Kunne ikke kontrollere referatgrænser."
   },
   {
     "id": "app.recap.max_channels_exceeded.app_error",
-    "translation": ""
+    "translation": "Din organisations politik begrænser referater til {{.Limit}} kanaler. Du anmodede om {{.Requested}} kanaler."
   },
   {
     "id": "app.recap.max_recaps_reached.app_error",
-    "translation": ""
+    "translation": "Din organisations politik begrænser dig til {{.Limit}} referater pr. dag. Prøv venligst igen i morgen."
   },
   {
     "id": "app.recap.sum_daily_posts.app_error",
-    "translation": ""
+    "translation": "Kunne ikke kontrollere beskedforbruget for referater."
   },
   {
     "id": "app.scheduled_post.recurring_disabled.app_error",
-    "translation": ""
+    "translation": "Gentagne planlagte beskeder er deaktiveret på denne server."
   },
   {
     "id": "app.scheduled_recap.compute_next_run.app_error",
-    "translation": ""
+    "translation": "Kunne ikke beregne næste kørsel af det planlagte referat."
   },
   {
     "id": "app.scheduled_recap.create.app_error",
-    "translation": ""
+    "translation": "Kunne ikke oprette planlagt referat."
   },
   {
     "id": "app.scheduled_recap.delete.app_error",
-    "translation": ""
+    "translation": "Kunne ikke slette planlagt referat."
   },
   {
     "id": "app.scheduled_recap.get.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente planlagt referat."
   },
   {
     "id": "app.scheduled_recap.get_unreads.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente ulæste kanaler til det planlagte referat."
   },
   {
     "id": "app.scheduled_recap.list.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente planlagte referater."
   },
   {
     "id": "app.scheduled_recap.max_channels_exceeded.app_error",
-    "translation": ""
+    "translation": "Din organisations politik begrænser referater til {{.Limit}} kanaler. Du anmodede om {{.Requested}} kanaler."
   },
   {
     "id": "app.scheduled_recap.max_scheduled_reached.app_error",
-    "translation": ""
+    "translation": "Din organisations politik begrænser dig til {{.Limit}} planlagte referater. Slet venligst et eksisterende planlagt referat, før du opretter et nyt."
   },
   {
     "id": "app.scheduled_recap.no_channels.app_error",
-    "translation": ""
+    "translation": "Et planlagt referat skal omfatte mindst én kanal."
   },
   {
     "id": "app.scheduled_recap.pause.app_error",
-    "translation": ""
+    "translation": "Kunne ikke sætte planlagt referat på pause."
   },
   {
     "id": "app.scheduled_recap.resume.app_error",
-    "translation": ""
+    "translation": "Kunne ikke genoptage planlagt referat."
   },
   {
     "id": "app.scheduled_recap.save_recap.app_error",
-    "translation": ""
+    "translation": "Kunne ikke gemme referatet for det planlagte referat."
   },
   {
     "id": "app.scheduled_recap.update.app_error",
-    "translation": ""
+    "translation": "Kunne ikke opdatere planlagt referat."
   },
   {
     "id": "app.session.revoke_other_sessions.empty_device_id.app_error",
-    "translation": ""
+    "translation": "Enheds-id må ikke være tomt."
   },
   {
     "id": "app.session.revoke_other_sessions.empty_voip_device_id.app_error",
-    "translation": ""
+    "translation": "VoIP-enheds-id må ikke være tomt."
   },
   {
     "id": "app.session_attributes.field_immutable.app_error",
-    "translation": ""
+    "translation": "Sessionsattributfelter kan ikke oprettes eller slettes, og kun deres enabled, ttl_seconds og grace_period_seconds kan ændres."
   },
   {
     "id": "app.submit_interactive_dialog.file_not_owned",
-    "translation": ""
+    "translation": "Filen {{.FileId}} tilhører ikke den bruger, der indsender."
   },
   {
     "id": "app.submit_interactive_dialog.get_file_info_error",
-    "translation": ""
+    "translation": "Kunne ikke validere de indsendte fil-ID'er."
   },
   {
     "id": "app.submit_interactive_dialog.invalid_file_id",
-    "translation": ""
+    "translation": "Filen {{.FileId}} er ugyldig eller utilgængelig."
   },
   {
     "id": "app.submit_interactive_dialog.too_many_file_ids",
-    "translation": ""
+    "translation": "Der er indsendt for mange fil-ID'er. Det maksimalt tilladte antal er {{.Max}}."
   },
   {
     "id": "app.submit_interactive_dialog.too_many_submission_ids",
-    "translation": ""
+    "translation": "For mange ID-lignende værdier i indsendelsen. Det maksimalt tilladte antal er {{.Max}}."
   },
   {
     "id": "app.thread.get_follower_ids_for_channel.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente ID'er på trådfølgere for kanalen."
   },
   {
     "id": "app.user.get_by_auth.app_error",
-    "translation": ""
+    "translation": "Kunne ikke finde brugeren ud fra godkendelsesdata."
   },
   {
     "id": "app.user.update.reserved_username.app_error",
-    "translation": ""
+    "translation": "Dette brugernavn er reserveret til en systemejet bot."
   },
   {
     "id": "app.user_access_token.bot_expired_deleted_notification",
-    "translation": ""
+    "translation": "Det personlige adgangstoken \"{{.Description}}\" for botkontoen @{{.BotUsername}} er udløbet og blevet fjernet. Åbn **Integrationer > Botkonti** for at oprette et nyt token."
   },
   {
     "id": "app.user_access_token.count_non_compliant.app_error",
-    "translation": ""
+    "translation": "Kunne ikke tælle de personlige adgangstokens, der overtræder politikken for maksimal levetid."
   },
   {
     "id": "app.user_access_token.expired_deleted_notification",
-    "translation": ""
+    "translation": "Dit personlige adgangstoken \"{{.Description}}\" er udløbet og blevet fjernet. Åbn **Profil → Sikkerhed** for at oprette et nyt token."
   },
   {
     "id": "app.user_access_token.expires_at_in_past.app_error",
-    "translation": ""
+    "translation": "Den angivne expires_at ligger i fortiden."
   },
   {
     "id": "app.user_access_token.expires_at_required.app_error",
-    "translation": ""
+    "translation": "Personlige adgangstokens skal have en udløbsdato, fordi serveren håndhæver en maksimal levetid for tokens."
   },
   {
     "id": "app.user_access_token.expires_at_too_far.app_error",
-    "translation": ""
+    "translation": "Den angivne expires_at overskrider den konfigurerede maksimale levetid for personlige adgangstokens ({{.Days}} dage)."
   },
   {
     "id": "app.user_access_token.get_expiring.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente personlige adgangstokens, der snart udløber."
   },
   {
     "id": "app.user_access_token.revoke_non_compliant.no_policy.app_error",
-    "translation": ""
+    "translation": "Der er ikke konfigureret nogen maksimal levetid for personlige adgangstokens, så der er ingen tokens i strid med politikken at tilbagekalde."
   },
   {
     "id": "app.user_access_token.revoke_non_compliant.partial.app_error",
-    "translation": ""
+    "translation": "Batchgrænsen blev nået, før alle tokens i strid med politikken kunne tilbagekaldes. Kør handlingen igen for at fortsætte."
   },
   {
     "id": "app.user_access_token.rotate.app_error",
-    "translation": ""
+    "translation": "Kunne ikke generere adgangstokenet på ny."
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
-    "translation": ""
+    "translation": " vedhæftede en fil."
   },
   {
     "id": "ent.elasticsearch.delete_files_batch.error",
-    "translation": ""
+    "translation": "Kunne ikke slette batch af filer"
   },
   {
     "id": "ent.ldap.validate_group_filter.app_error",
-    "translation": ""
+    "translation": "Ugyldigt AD/LDAP-gruppefilter."
   },
   {
     "id": "model.access_control_decision.is_valid.action_empty.app_error",
-    "translation": ""
+    "translation": "Handlingsnavne må ikke være tomme."
   },
   {
     "id": "model.access_control_decision.is_valid.actions_too_many.app_error",
-    "translation": ""
+    "translation": "Der er anmodet om for mange handlinger."
   },
   {
     "id": "model.access_control_decision.is_valid.resource_id.app_error",
-    "translation": ""
+    "translation": "Ugyldigt ressource-id."
   },
   {
     "id": "model.access_control_decision.is_valid.resource_type.app_error",
-    "translation": ""
+    "translation": "Ressourcetype er påkrævet."
   },
   {
     "id": "model.access_control_decision.is_valid.subject_id.app_error",
-    "translation": ""
+    "translation": "Ugyldigt subjekt-id."
   },
   {
     "id": "model.access_policy.is_valid.plugin_type.app_error",
-    "translation": ""
+    "translation": "Ugyldig adgangskontrolpolitik: typen er ikke en gyldig plugin-ressourcetype."
   },
   {
     "id": "model.access_policy.is_valid.rule_expression.app_error",
-    "translation": ""
+    "translation": "Kun en medlemskabsregel må udelade sit udtryk."
   },
   {
     "id": "model.access_policy.is_valid.rule_metadata_auto_add.app_error",
-    "translation": ""
+    "translation": "Automatisk tilføjelse af medlemmer kan kun angives på politikkens medlemskabsregel."
   },
   {
     "id": "model.access_policy.is_valid.rule_metadata_auto_add_mode.app_error",
-    "translation": ""
+    "translation": "\"{{.Mode}}\" er ikke en understøttet måde at tilføje medlemmer automatisk på."
   },
   {
     "id": "model.access_policy.is_valid.rule_metadata_auto_add_type.app_error",
-    "translation": ""
+    "translation": "Måden, medlemmer tilføjes automatisk på, skal angives som tekst."
   },
   {
     "id": "model.access_policy.is_valid.rule_metadata_key.app_error",
-    "translation": ""
+    "translation": "Regelmetadata indeholder en ukendt nøgle."
   },
   {
     "id": "model.access_policy.is_valid.session_attribute_on_membership.app_error",
-    "translation": ""
+    "translation": "Medlemskabsregler kan ikke henvise til sessionsattributter (user.session). Brug en tilladelsespolitik i stedet."
   },
   {
     "id": "model.channel.is_valid.group_constrained.app_error",
-    "translation": ""
+    "translation": "Kun offentlige og private kanaler kan være gruppebegrænsede."
   },
   {
     "id": "model.channel_bookmark.is_valid.board.file_id.app_error",
-    "translation": ""
+    "translation": "Board-bogmærker kan ikke henvise til en fil."
   },
   {
     "id": "model.channel_bookmark.is_valid.board.image_url.app_error",
-    "translation": ""
+    "translation": "Board-bogmærker kan ikke angive en billed-URL."
   },
   {
     "id": "model.channel_bookmark.is_valid.board.link_url.app_error",
-    "translation": ""
+    "translation": "Link-URL'en for et board-bogmærke skal være en sti relativ til webstedet, der starter med /, må ikke indeholde :// og må ikke overskride den maksimale længde."
   },
   {
     "id": "model.channel_bookmark.is_valid.board.target_id.app_error",
-    "translation": ""
+    "translation": "Board-bogmærker kræver et gyldigt mål-id."
   },
   {
     "id": "model.channel_bookmark.is_valid.target_id.app_error",
-    "translation": ""
+    "translation": "Mål-id er kun tilladt for bogmærketyper, der henviser til en anden enhed."
   },
   {
     "id": "model.command_response.is_valid.attachment.app_error",
-    "translation": ""
+    "translation": "Ugyldig vedhæftning."
   },
   {
     "id": "model.command_response.is_valid.goto_location.app_error",
-    "translation": ""
+    "translation": "Ugyldig goto location."
   },
   {
     "id": "model.command_response.is_valid.icon_url.app_error",
-    "translation": ""
+    "translation": "Ugyldig ikon-URL."
   },
   {
     "id": "model.command_response.is_valid.response_type.app_error",
-    "translation": ""
+    "translation": "Ugyldig svartype."
   },
   {
     "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
-    "translation": ""
+    "translation": "Ugyldigt opdateringsinterval for adgangskontrolattributter. Skal være større end eller lig med 0."
   },
   {
     "id": "model.config.is_valid.access_control_sync_interval.app_error",
-    "translation": ""
+    "translation": "Ugyldigt interval for synkroniseringsjobbet for adgangskontrol. Skal være mindst 60 sekunder."
   },
   {
     "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
-    "translation": ""
+    "translation": "Ugyldig ventetid i minutter for AI-referater. Skal være større end eller lig med 0."
   },
   {
     "id": "model.config.is_valid.ai_recap.max_channels_per_recap.app_error",
-    "translation": ""
+    "translation": "Ugyldigt maksimalt antal kanaler pr. AI-referat. Skal være større end eller lig med 1, eller -1 for ubegrænset."
   },
   {
     "id": "model.config.is_valid.ai_recap.max_posts_per_day.app_error",
-    "translation": ""
+    "translation": "Ugyldigt maksimalt antal beskeder pr. dag for AI-referater. Skal være større end eller lig med 1, eller -1 for ubegrænset."
   },
   {
     "id": "model.config.is_valid.ai_recap.max_posts_per_recap.app_error",
-    "translation": ""
+    "translation": "Ugyldigt maksimalt antal beskeder pr. AI-referat. Skal være større end eller lig med 1, eller -1 for ubegrænset."
   },
   {
     "id": "model.config.is_valid.ai_recap.max_recaps_per_day.app_error",
-    "translation": ""
+    "translation": "Ugyldigt maksimalt antal AI-referater pr. dag. Skal være større end eller lig med 1, eller -1 for ubegrænset."
   },
   {
     "id": "model.config.is_valid.ai_recap.max_scheduled_recaps.app_error",
-    "translation": ""
+    "translation": "Ugyldigt maksimalt antal planlagte AI-referater. Skal være større end eller lig med 1, eller -1 for ubegrænset."
   },
   {
     "id": "model.config.is_valid.ai_recap.max_tokens_per_recap.app_error",
-    "translation": ""
+    "translation": "Ugyldigt maksimalt antal tokens pr. AI-referat. Skal være større end eller lig med 1, eller -1 for ubegrænset."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
-    "translation": ""
+    "translation": "Billedproxytypen 'atmos/camo' blev fjernet i Mattermost v12.0. Sæt ImageProxySettings.ImageProxyType til 'local', eller sæt ImageProxySettings.Enable til false for at deaktivere billedproxyen."
   },
   {
     "id": "model.config.is_valid.azure_auth_mode.app_error",
-    "translation": ""
+    "translation": "Ugyldig Azure-godkendelsestilstand {{.Value}}. Skal være 'shared_key' eller 'default_credential'."
   },
   {
     "id": "model.config.is_valid.azure_cloud.app_error",
-    "translation": ""
+    "translation": "Ugyldig værdi {{.Value}} for {{.Setting}}. Skal være 'commercial', 'government' eller 'custom'."
   },
   {
     "id": "model.config.is_valid.azure_custom_endpoint.app_error",
-    "translation": ""
+    "translation": "{{.Setting}} skal være angivet, når den tilhørende AzureCloud-værdi er 'custom'."
   },
   {
     "id": "model.config.is_valid.azure_storage_account.app_error",
-    "translation": ""
+    "translation": "Ugyldig værdi {{.Value}} for {{.Setting}}. Navnet på Azure-lagerkontoen skal være på 3 til 24 tegn og må kun indeholde små bogstaver og tal."
   },
   {
     "id": "model.config.is_valid.cluster_gossip_port.app_error",
-    "translation": ""
+    "translation": "ClusterSettings.GossipPort skal være et gyldigt portnummer."
   },
   {
     "id": "model.config.is_valid.connected_workspaces.batch_size.app_error",
-    "translation": ""
+    "translation": "{{.Setting}} skal være et positivt tal."
   },
   {
     "id": "model.config.is_valid.elastic_search.index_replicas.app_error",
-    "translation": ""
+    "translation": "{{.Setting}} skal være større end eller lig med 0."
   },
   {
     "id": "model.config.is_valid.elastic_search.index_shards.app_error",
-    "translation": ""
+    "translation": "{{.Setting}} skal være større end eller lig med 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": ""
+    "translation": "Søgeindstillingen PostsAggregatorJobStartTime skal være et tidspunkt i formatet \"hh:mm\"."
   },
   {
     "id": "model.config.is_valid.email_address.app_error",
-    "translation": ""
+    "translation": "{{.Setting}} skal være en gyldig e-mailadresse."
   },
   {
     "id": "model.config.is_valid.email_push_notification_buffer.app_error",
-    "translation": ""
+    "translation": "Ugyldig bufferstørrelse for push-notifikationer i e-mailindstillingerne. Skal være et positivt tal."
   },
   {
     "id": "model.config.is_valid.export_azure_auth_mode.app_error",
-    "translation": ""
+    "translation": "Ugyldig Azure-godkendelsestilstand {{.Value}} for det dedikerede eksportlager. Skal være 'shared_key' eller 'default_credential'."
   },
   {
     "id": "model.config.is_valid.export_file_driver.app_error",
-    "translation": ""
+    "translation": "Ugyldigt eksportdrivernavn for filindstillinger. Skal være 'local', 'amazons3' eller 'azureblob'."
   },
   {
     "id": "model.config.is_valid.extract_content_timeout.app_error",
-    "translation": ""
+    "translation": "Ugyldig timeout for indholdsudtrækning i filindstillingerne. Skal være et helt antal sekunder større end eller lig med nul."
   },
   {
     "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
-    "translation": ""
+    "translation": "Funktionsflaget AppsEnabled understøttes ikke længere og skal deaktiveres."
   },
   {
     "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
-    "translation": ""
+    "translation": "Funktionsflaget MoveThreadsEnabled understøttes ikke længere og skal deaktiveres."
   },
   {
     "id": "model.config.is_valid.lock_profile_fields.app_error",
-    "translation": ""
+    "translation": "Ugyldig indstilling for låsning af profilfelter. Skal være 'none', 'name_and_username' eller 'all'."
   },
   {
     "id": "model.config.is_valid.log_level.app_error",
-    "translation": ""
+    "translation": "Ugyldigt logniveau {{.Value}} for {{.Setting}}."
   },
   {
     "id": "model.config.is_valid.max_personal_access_token_lifetime_days.app_error",
-    "translation": ""
+    "translation": "Ugyldig MaximumPersonalAccessTokenLifetimeDays. Skal være mellem 0 (ubegrænset) og {{.Max}} dage."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
-    "translation": ""
+    "translation": "Beskedeksportens GlobalRelaySettings.CustomHeaderName og CustomHeaderValue skal enten begge være angivet eller begge være tomme."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
-    "translation": ""
+    "translation": "Beskedeksportens GlobalRelaySettings.CustomHeaderName skal være et gyldigt headernavn uden mellemrum, koloner, separatorer eller linjeskift."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
-    "translation": ""
+    "translation": "Beskedeksportens GlobalRelaySettings.CustomHeaderName må ikke genbruge en header, som Global Relay-eksporten allerede skriver."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
-    "translation": ""
+    "translation": "Beskedeksportens GlobalRelaySettings.CustomHeaderValue må ikke indeholde kontroltegn eller linjeskift."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.custom_smtp_port.app_error",
-    "translation": ""
+    "translation": "Beskedeksportjobbets GlobalRelaySettings.CustomSMTPPort skal være et gyldigt portnummer."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.sender_address.app_error",
-    "translation": ""
+    "translation": "Beskedeksportens GlobalRelaySettings.SenderAddress skal være tom eller en gyldig e-mailadresse."
   },
   {
     "id": "model.config.is_valid.non_negative_number.app_error",
-    "translation": ""
+    "translation": "{{.Setting}} skal være et ikke-negativt tal."
   },
   {
     "id": "model.config.is_valid.port.app_error",
-    "translation": ""
+    "translation": "{{.Setting}} skal være en gyldig port."
   },
   {
     "id": "model.config.is_valid.positive_number.app_error",
-    "translation": ""
+    "translation": "{{.Setting}} skal være et positivt tal."
   },
   {
     "id": "model.config.is_valid.s3_upload_part_size.app_error",
-    "translation": ""
+    "translation": "{{.Setting}} skal være mindst {{.Min}} bytes."
   },
   {
     "id": "model.config.is_valid.service_settings.burn_on_read_duration_seconds.app_error",
-    "translation": ""
+    "translation": "BurnOnReadDurationSeconds skal være et positivt tal."
   },
   {
     "id": "model.config.is_valid.service_settings.burn_on_read_maximum_time_to_live_seconds.app_error",
-    "translation": ""
+    "translation": "BurnOnReadMaximumTimeToLiveSeconds skal være et positivt tal."
   },
   {
     "id": "model.config.is_valid.service_settings.burn_on_read_scheduler_frequency_seconds.app_error",
-    "translation": ""
+    "translation": "BurnOnReadSchedulerFrequencySeconds skal være et positivt tal."
   },
   {
     "id": "model.config.is_valid.service_settings.feature_flag_sync_interval.app_error",
-    "translation": ""
+    "translation": "FeatureFlagSyncIntervalSeconds skal være et positivt tal."
   },
   {
     "id": "model.config.is_valid.service_settings.refresh_post_stats_run_time.app_error",
-    "translation": ""
+    "translation": "RefreshPostStatsRunTime skal være et tidspunkt i formatet \"hh:mm\"."
   },
   {
     "id": "model.config.is_valid.sql_migrations_statement_timeout_seconds.app_error",
-    "translation": ""
+    "translation": "Ugyldig timeout for migreringsudsagn i SQL-indstillingerne. Skal være et ikke-negativt tal."
   },
   {
     "id": "model.config.is_valid.sql_replica_monitor_interval_seconds.app_error",
-    "translation": ""
+    "translation": "Ugyldigt interval for replikaovervågning i SQL-indstillingerne. Skal være et positivt tal."
   },
   {
     "id": "model.config.is_valid.tls_min_ver.app_error",
-    "translation": ""
+    "translation": "Ugyldig TLS-minimumsversion {{.Value}}. Skal være '1.0', '1.1', '1.2' eller '1.3'."
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": ""
+    "translation": "Ugyldig webservertilstand {{.Value}}. Skal være 'gzip', 'nogzip' eller 'disabled'."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",
-    "translation": ""
+    "translation": "Vælg mindst én kanal, hvor leveringer skal registreres."
   },
   {
     "id": "model.delivery_tracking.is_valid.channel_id.app_error",
-    "translation": ""
+    "translation": "Ugyldigt kanal-ID angivet i indstillingerne for revisionslogning af beskedlevering."
   },
   {
     "id": "model.delivery_tracking.is_valid.missing_toggle.app_error",
-    "translation": ""
+    "translation": "Indstillingerne for revisionslogning af beskedlevering er ufuldstændige."
   },
   {
     "id": "model.log_filter.is_valid.date_from.app_error",
-    "translation": ""
+    "translation": "Ugyldigt date_from-filter. Forventede formatet \"{{.Layout}}\"."
   },
   {
     "id": "model.log_filter.is_valid.date_to.app_error",
-    "translation": ""
+    "translation": "Ugyldigt date_to-filter. Forventede formatet \"{{.Layout}}\"."
   },
   {
     "id": "model.member.is_valid.profile_email.app_error",
-    "translation": ""
+    "translation": "Profilens e-mail findes ikke på listen over inviterede e-mails"
   },
   {
     "id": "model.member.is_valid.profile_email_duplicate.app_error",
-    "translation": ""
+    "translation": "Invitationsprofiler skal have unikke e-mails"
   },
   {
     "id": "model.member.is_valid.profile_first_name.app_error",
-    "translation": ""
+    "translation": "Ugyldigt fornavn i invitationsprofilen"
   },
   {
     "id": "model.member.is_valid.profile_last_name.app_error",
-    "translation": ""
+    "translation": "Ugyldigt efternavn i invitationsprofilen"
   },
   {
     "id": "model.member.is_valid.profile_nil.app_error",
-    "translation": ""
+    "translation": "Invitationsprofilen må ikke være null"
   },
   {
     "id": "model.member.is_valid.profile_username.app_error",
-    "translation": ""
+    "translation": "Ugyldigt brugernavn i invitationsprofilen"
   },
   {
     "id": "model.member.is_valid.profile_username_duplicate.app_error",
-    "translation": ""
+    "translation": "Invitationsprofiler skal have unikke brugernavne"
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
-    "translation": ""
+    "translation": "Burn-on-Read-beskeder kan ikke sendes som gentagne planlagte beskeder."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_files.app_error",
-    "translation": ""
+    "translation": "Gentagne planlagte beskeder kan ikke have vedhæftede filer."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
-    "translation": ""
+    "translation": "Ugentligt gentagne planlagte beskeder kræver en gyldig tidszone."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
-    "translation": ""
+    "translation": "Ugyldig tidszone for gentagen planlagt besked."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_type.app_error",
-    "translation": ""
+    "translation": "Ugyldig gentagelsestype for planlagt besked."
   },
   {
     "id": "model.scheduled_recap.compute_next_run.days_of_week.app_error",
-    "translation": ""
+    "translation": "Ugyldige ugedage for planlagt referat."
   },
   {
     "id": "model.scheduled_recap.compute_next_run.no_valid_day.app_error",
-    "translation": ""
+    "translation": "Der blev ikke fundet nogen gyldig dag for det planlagte referat."
   },
   {
     "id": "model.scheduled_recap.compute_next_run.time_format.app_error",
-    "translation": ""
+    "translation": "Ugyldigt tidsformat for planlagt referat."
   },
   {
     "id": "model.scheduled_recap.compute_next_run.timezone.app_error",
-    "translation": ""
+    "translation": "Ugyldig tidszone for planlagt referat."
   },
   {
     "id": "model.scheduled_recap.is_valid.agent_id.app_error",
-    "translation": ""
+    "translation": "Et planlagt referat skal have et agent-ID."
   },
   {
     "id": "model.scheduled_recap.is_valid.channel_id.app_error",
-    "translation": ""
+    "translation": "Ugyldigt kanal-ID for planlagt referat."
   },
   {
     "id": "model.scheduled_recap.is_valid.channel_ids_empty.app_error",
-    "translation": ""
+    "translation": "Et planlagt referat skal omfatte mindst én kanal, når der bruges specifikke kanaler."
   },
   {
     "id": "model.scheduled_recap.is_valid.channel_mode.app_error",
-    "translation": ""
+    "translation": "Ugyldig kanaltilstand for planlagt referat."
   },
   {
     "id": "model.scheduled_recap.is_valid.custom_instructions_length.app_error",
-    "translation": ""
+    "translation": "De brugerdefinerede instruktioner for det planlagte referat overskrider den maksimale længde."
   },
   {
     "id": "model.scheduled_recap.is_valid.days_of_week.app_error",
-    "translation": ""
+    "translation": "Ugyldige ugedage for planlagt referat."
   },
   {
     "id": "model.scheduled_recap.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Et planlagt referat skal have et ID."
   },
   {
     "id": "model.scheduled_recap.is_valid.time_of_day.app_error",
-    "translation": ""
+    "translation": "Ugyldigt tidspunkt på dagen for planlagt referat."
   },
   {
     "id": "model.scheduled_recap.is_valid.time_period.app_error",
-    "translation": ""
+    "translation": "Ugyldig tidsperiode for planlagt referat."
   },
   {
     "id": "model.scheduled_recap.is_valid.timezone.app_error",
-    "translation": ""
+    "translation": "Ugyldig tidszone for planlagt referat."
   },
   {
     "id": "model.scheduled_recap.is_valid.title_empty.app_error",
-    "translation": ""
+    "translation": "Titlen på et planlagt referat må ikke være tom."
   },
   {
     "id": "model.scheduled_recap.is_valid.title_length.app_error",
-    "translation": ""
+    "translation": "Titlen på det planlagte referat overskrider den maksimale længde."
   },
   {
     "id": "model.scheduled_recap.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Et planlagt referat skal have et bruger-ID."
   },
   {
     "id": "model.user.is_valid.mention_keys.app_error",
-    "translation": ""
+    "translation": "Ugyldige mention_keys: overskrider grænsen på {{.MaxCount}} nøgler eller {{.MaxLength}} bytes."
   },
   {
     "id": "plugin_api.channel.space_notify_props.app_error",
-    "translation": ""
+    "translation": "Notifikationsegenskaber (notify props) kan ikke angives på space-kanaler."
   }
 ]
