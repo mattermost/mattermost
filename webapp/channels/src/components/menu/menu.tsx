@@ -241,12 +241,14 @@ export function Menu(props: Props) {
     }
 
     function handleMenuButtonClick(event: MouseEvent | KeyboardEvent) {
-        event.preventDefault();
-        event.stopPropagation();
-
+        // Check before preventDefault so Enter/Space on a descendant remove
+        // button can still fire the native button activation.
         if ((event.target as HTMLElement).closest?.('[data-menu-prevent-open]')) {
             return;
         }
+
+        event.preventDefault();
+        event.stopPropagation();
 
         if (isMobileView) {
             dispatch(
@@ -277,6 +279,12 @@ export function Menu(props: Props) {
         if (event.key !== 'Enter' && event.key !== ' ') {
             return;
         }
+
+        // Only the trigger itself should open/toggle — not a focused chip remove.
+        if (event.target !== event.currentTarget) {
+            return;
+        }
+
         handleMenuButtonClick(event);
     }
 
@@ -285,6 +293,10 @@ export function Menu(props: Props) {
         const MenuButtonComponent = props.menuButton?.as ?? 'button';
         const isDivTrigger = MenuButtonComponent === 'div';
         const isDisabled = props.menuButton?.disabled ?? false;
+        let divTabIndex: number | undefined;
+        if (isDivTrigger) {
+            divTabIndex = isDisabled ? -1 : 0;
+        }
 
         const triggerElement = (
             <MenuButtonComponent
@@ -297,7 +309,7 @@ export function Menu(props: Props) {
                 disabled={isDivTrigger ? undefined : isDisabled}
                 aria-disabled={isDivTrigger ? isDisabled : undefined}
                 role={isDivTrigger ? 'button' : undefined}
-                tabIndex={isDivTrigger ? (isDisabled ? -1 : 0) : undefined}
+                tabIndex={divTabIndex}
                 aria-label={props.menuButton?.['aria-label']}
                 aria-describedby={props.menuButton?.['aria-describedby']}
                 className={props.menuButton?.class ?? ''}

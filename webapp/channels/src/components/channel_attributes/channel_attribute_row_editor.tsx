@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {CheckIcon, ChevronDownIcon} from '@mattermost/compass-icons/components';
@@ -122,6 +122,36 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
         {id: 'channel_attributes.info.edit', defaultMessage: 'Edit {label}'},
         {label},
     );
+
+    // Multiselect uses allowTriggerInteraction so chip removes stay clickable;
+    // that disables MUI backdrop close, so close on outside pointer ourselves.
+    const [menuOpen, setMenuOpen] = useState(false);
+    const menuButtonId = `channelInfoAttributeEdit-${field.name}`;
+    const menuId = `channelAttributeEdit-${field.name}`;
+
+    useEffect(() => {
+        if (!isMultiselect || !menuOpen) {
+            return undefined;
+        }
+
+        const handlePointerDown = (event: PointerEvent) => {
+            const target = event.target;
+            if (!(target instanceof Node)) {
+                return;
+            }
+            if (document.getElementById(menuButtonId)?.contains(target)) {
+                return;
+            }
+            const paper = document.getElementById(menuId)?.closest('.MuiPopover-paper');
+            if (paper?.contains(target)) {
+                return;
+            }
+            setMenuOpen(false);
+        };
+
+        document.addEventListener('pointerdown', handlePointerDown);
+        return () => document.removeEventListener('pointerdown', handlePointerDown);
+    }, [isMultiselect, menuOpen, menuButtonId, menuId]);
 
     const handlePick = useCallback((optionId: string) => {
         if (isMultiselect) {
@@ -266,8 +296,8 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
         <span className='ChannelInfoAttributes__valueActive'>
             <Menu.Container
                 menuButton={{
-                    id: `channelInfoAttributeEdit-${field.name}`,
-                    dataTestId: `channelInfoAttributeEdit-${field.name}`,
+                    id: menuButtonId,
+                    dataTestId: menuButtonId,
 
                     // div, not button: chip removes are real <button>s.
                     as: 'div',
@@ -277,9 +307,11 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                     children: triggerChildren,
                 }}
                 menu={{
-                    id: `channelAttributeEdit-${field.name}`,
+                    id: menuId,
                     'aria-label': label,
                     allowTriggerInteraction: isMultiselect,
+                    isMenuOpen: isMultiselect ? menuOpen : undefined,
+                    onToggle: isMultiselect ? setMenuOpen : undefined,
                 }}
             >
                 {clearable && hasDisplay && (
