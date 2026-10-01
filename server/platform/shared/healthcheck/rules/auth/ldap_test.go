@@ -199,7 +199,7 @@ func TestLdapRecommendedAtScale(t *testing.T) {
 		{"SAML enabled and stats absent", snapshot(nil, func(cfg *model.Config) { cfg.SamlSettings.Enable = new(true) }), resolved},
 		{"LDAP sign-in enabled and stats absent", snapshot(nil, func(cfg *model.Config) { cfg.LdapSettings.Enable = new(true) }), resolved},
 		{"LDAP sync only and stats absent", snapshot(nil, func(cfg *model.Config) { cfg.LdapSettings.EnableSync = new(true) }), resolved},
-		{"neither enabled and stats absent", snapshot(nil, nil), want{state: healthcheck.StateUnknown, messageID: "health.rule.ldap_recommended_at_scale.message.stats_unavailable"}},
+		{"neither enabled and stats absent", snapshot(nil, nil), want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonStatsUnavailable}},
 		{
 			name: "user count query failed",
 			snapshot: func() *healthcheck.Snapshot {
@@ -208,7 +208,7 @@ func TestLdapRecommendedAtScale(t *testing.T) {
 				s.Sections[model.SectionStats] = nil
 				return s
 			}(),
-			want: want{state: healthcheck.StateUnknown, messageID: "health.rule.ldap_recommended_at_scale.message.stats_unavailable"},
+			want: want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonStatsUnavailable},
 		},
 		{"SAML setting absent", snapshot(new(int64(500)), func(cfg *model.Config) { cfg.SamlSettings.Enable = nil }), configUnavailable},
 	}
@@ -265,7 +265,7 @@ func TestLdapSyncDutyCycle(t *testing.T) {
 			}),
 			want: firingAt("10", "300", "50", 50),
 		},
-		{"jobs absent", snapshot(10, nil), want{state: healthcheck.StateUnknown, messageID: "health.rule.ldap_sync_duty_cycle.message.jobs_unavailable"}},
+		{"jobs absent", snapshot(10, nil), want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonJobsUnavailable}},
 		{"no runs", snapshot(10, []*model.Job{}), noRuns},
 		{"only pending runs", snapshot(10, []*model.Job{{Type: model.JobTypeLdapSync, Status: model.JobStatusPending}}), noRuns},
 		{

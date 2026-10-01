@@ -97,9 +97,31 @@ func TestRegistered(t *testing.T) {
 	registry := healthcheck.Builtin()
 	require.NoError(t, registry.Validate())
 
+	severities := map[string]healthcheck.Severity{
+		"LDAP_PORT_TLS_MISMATCH":    healthcheck.SeverityWarning,
+		"LDAP_PORT_PLAIN_MISMATCH":  healthcheck.SeverityWarning,
+		"LDAP_SKIP_CERT":            healthcheck.SeverityWarning,
+		"LDAP_QUERY_TIMEOUT_LOW":    healthcheck.SeverityInfo,
+		"LDAP_SYNC_INTERVAL_LOW":    healthcheck.SeverityWarning,
+		"LDAP_SYNC_NO_BASEDN":       healthcheck.SeverityCritical,
+		"LDAP_RECOMMENDED_AT_SCALE": healthcheck.SeverityInfo,
+		"LDAP_ID_IS_EMAIL":          healthcheck.SeverityWarning,
+		"LDAP_SYNC_DUTY_CYCLE":      healthcheck.SeverityWarning,
+		"SAML_SIGNATURE_SHA1":       healthcheck.SeverityInfo,
+		"SAML_VERIFY_OFF":           healthcheck.SeverityWarning,
+		"SAML_ENCRYPT_OFF":          healthcheck.SeverityInfo,
+		"SAML_ID_IS_EMAIL":          healthcheck.SeverityWarning,
+		"SAML_ID_MUTABLE":           healthcheck.SeverityInfo,
+		"SESSION_EXTEND_OFF":        healthcheck.SeverityInfo,
+		"LDAP_PROBE_FAILED":         healthcheck.SeverityWarning,
+		"SAML_METADATA_UNREACHABLE": healthcheck.SeverityWarning,
+	}
+	require.Len(t, severities, len(allRules))
+
 	for _, rule := range allRules {
 		registered, ok := registry.Get(rule.Code)
 		require.True(t, ok, rule.Code)
+		assert.Equal(t, severities[rule.Code], registered.Severity, rule.Code)
 		assert.Equal(t, model.AreaAuth, registered.Area, rule.Code)
 		assert.Equal(t, healthcheck.SurfaceProduct, registered.Surface, rule.Code)
 		assert.False(t, registered.AppliesToCloud, rule.Code)

@@ -42,7 +42,7 @@ var samlSignatureSHA1 = healthcheck.Rule{
 var samlVerifyOff = healthcheck.Rule{
 	Code:     "SAML_VERIFY_OFF",
 	Area:     model.AreaAuth,
-	Severity: healthcheck.SeverityInfo,
+	Severity: healthcheck.SeverityWarning,
 	RuleText: model.RuleText{
 		TitleID:       healthcheck.TranslationId("health.rule.saml_verify_off.title"),
 		RemediationID: healthcheck.TranslationId("health.rule.saml_verify_off.remediation"),
