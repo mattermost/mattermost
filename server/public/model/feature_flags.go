@@ -191,7 +191,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AttributeValueMasking = true
 	f.PermissionPolicies = true
 	f.TeamMembershipAccessControl = true
-	f.ResourceAttributesInPolicies = false
+	f.ResourceAttributesInPolicies = true
 	f.ChannelPermissionPolicies = true
 	f.PolicySimulation = true
 	f.ContentFlagging = true
@@ -222,7 +222,7 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.ManagedChannelCategories = false
 
-	f.SessionAttributes = false
+	f.SessionAttributes = true
 
 	f.PostAttributes = false
 
@@ -232,7 +232,7 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.PropertyFieldRank = true
 
-	f.PropertyFieldGraph = false
+	f.PropertyFieldGraph = true
 
 	f.ChannelAttributes = false
 

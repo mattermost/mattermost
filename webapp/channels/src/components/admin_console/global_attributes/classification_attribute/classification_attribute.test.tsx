@@ -132,6 +132,35 @@ describe('ClassificationAttribute', () => {
         expect(screen.queryByTestId('classificationAttributeName')).not.toBeInTheDocument();
     });
 
+    it('refuses to describe a wrong-typed template named classification', async () => {
+        // * The name alone is not this feature's: a text attribute called
+        // `classification` belongs to Attribute Management, and rendering it here
+        // would label it "Ranked" and let Save attach channel settings to it.
+        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
+            return objectType === 'template' ? [{...TEMPLATE, type: 'text', attrs: {}} as PropertyField] : [];
+        });
+
+        render();
+
+        expect(await screen.findByTestId('classificationAttributeConflict')).toHaveTextContent(
+            'An attribute named "classification" already exists but is not part of classification.',
+        );
+        expect(screen.queryByTestId('classificationAttributeType')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('saveSetting')).not.toBeInTheDocument();
+    });
+
+    it('refuses to adopt a channel field named classification that is linked elsewhere', async () => {
+        // * Its options come from whatever template it is linked to, so the Applies-to
+        // card would be editing another attribute's channel behaviour.
+        mockLoad({...channelField(), linked_field_id: 'some_other_template_id'});
+
+        render();
+
+        expect(await screen.findByTestId('classificationAttributeConflict')).toBeInTheDocument();
+        expect(screen.queryByTestId('channelsResourceRow')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('saveSetting')).not.toBeInTheDocument();
+    });
+
     it('treats a 404 from the property routes as absent rather than broken', async () => {
         // How those routes say "no such field", and both loads have legitimate reasons
         // to hit it: classification may not be set up, or set up without applying to

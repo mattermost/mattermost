@@ -62,6 +62,55 @@ describe('components/ToastWrapper', () => {
         } as unknown as Props['match'],
     } as unknown as Props;
 
+    describe('new messages toast wording', () => {
+        beforeEach(() => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2019-05-03T23:59:50Z'));
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        test('should keep the "since" connective in step with the date label when the day changes', () => {
+            const {container} = renderWithContext(
+                <ToastWrapperClass
+                    {...baseProps}
+                    unreadCountInChannel={10}
+                    atBottom={false}
+                    lastViewedAt={new Date('2019-05-03T20:00:00Z').getTime()}
+                />,
+                {
+                    entities: {
+                        users: {
+                            currentUserId: 'user1',
+                            profiles: {
+                                user1: {
+                                    id: 'user1',
+                                    timezone: {
+                                        useAutomaticTimezone: 'false',
+                                        manualTimezone: 'UTC',
+                                        automaticTimezone: '',
+                                    },
+                                },
+                            },
+                        },
+                    },
+                } as any,
+            );
+
+            const toastText = () => container.querySelector('.toast__message')!.textContent!.replace(/\s+/g, ' ');
+
+            expect(toastText()).toContain('10 new messages today');
+
+            act(() => {
+                jest.advanceTimersByTime(11 * 1000);
+            });
+
+            expect(toastText()).toContain('10 new messages since yesterday');
+        });
+    });
+
     describe('unread count logic', () => {
         test('If not atLatestPost and channelMarkedAsUnread is false then unread count is equal to unreads in present chunk plus recent messages', () => {
             const props = {
