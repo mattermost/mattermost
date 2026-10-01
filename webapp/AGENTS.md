@@ -16,7 +16,7 @@ Follow `webapp/STYLE_GUIDE.md` for canonical style, accessibility, and testing s
 - **Exceptions (keep current stacks)**: icons → `@mattermost/compass-icons`; emoji → `Emoji` (`@mattermost/shared`); modals → existing shared / `GenericModal`; menus → existing MUI menus. Do not switch Modal/Menu to compass-ui yet.
 - **Tooltips**: use `WithTooltip` from `@mattermost/shared` instead of wiring up Floating UI, compass-proto `WithTooltip`, or other tooltip primitives directly.
   `import {WithTooltip} from '@mattermost/shared/components/tooltip';`
-- Always import `@mattermost/shared` via the full package name (`@mattermost/shared/...`), never via relative paths into `platform/shared/`.
+- Always import via the full package name (`@mattermost/compass-ui/...`, `@mattermost/shared/...`), never via relative paths into the package (e.g. `platform/shared/` or `node_modules/@mattermost/compass-ui/`).
 - **Tokens**: Compass foundation CSS variables are global via `@mattermost/compass-ui/styles`. Prefer `var(--…)` over hard-coded radius/spacing/elevation/font/motion values. Theme colors stay on app semantic vars (`--center-channel-*`, etc.).
 - **Standards**: `webapp/STYLE_GUIDE.md`.
 
