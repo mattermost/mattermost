@@ -5,7 +5,9 @@ import React, {useState, useEffect, useMemo, useCallback, type JSX} from 'react'
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
-import {Button} from '@mattermost/shared/components/button';
+import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 import {getAutoAddFromRules} from '@mattermost/types/access_control';
 
@@ -445,14 +447,12 @@ export default function PolicyList(props: Props): JSX.Element {
                         onClick={() => {
                             history.push('/admin_console/system_attributes/membership_policies/edit_policy');
                         }}
+                        leadingIcon={<Icon glyph={<PlusIcon/>}/>}
                     >
-                        <i className='icon icon-plus'/>
-                        <span>
-                            <FormattedMessage
-                                id='admin.access_control.policies.add_policy'
-                                defaultMessage='Add policy'
-                            />
-                        </span>
+                        <FormattedMessage
+                            id='admin.access_control.policies.add_policy'
+                            defaultMessage='Add policy'
+                        />
                     </Button>
                 </div>
             )}

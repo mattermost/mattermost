@@ -4,8 +4,10 @@
 import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {PlusIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
 import type {ButtonEmphasis, ButtonSize} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {GenericModal} from '@mattermost/components';
 import type {Channel, ChannelJoinRequest, ChannelMembership, ChannelSearchOpts, ChannelsWithTotalCount, GetChannelJoinRequestsOptions} from '@mattermost/types/channels';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
@@ -537,7 +539,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                 <div className='form-group has-error'><label className='control-label'>{serverErrorState}</label></div>;
         }
 
-        const createNewChannelButton = (emphasis: ButtonEmphasis, size: ButtonSize, icon?: JSX.Element) => {
+        const createNewChannelButton = (emphasis: ButtonEmphasis, size: ButtonSize, withLeadingIcon = false) => {
             return (
                 <TeamPermissionGate
                     teamId={teamId}
@@ -550,8 +552,8 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                         size={size}
                         onClick={this.handleNewChannel}
                         aria-label={localizeMessage({id: 'more_channels.create', defaultMessage: 'Create New Channel'})}
+                        leadingIcon={withLeadingIcon ? <Icon glyph={<PlusIcon/>}/> : undefined}
                     >
-                        {icon}
                         <FormattedMessage
                             id='more_channels.create'
                             defaultMessage='Create New Channel'
@@ -569,7 +571,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                         defaultMessage='Try searching different keywords, checking for typos or adjusting the filters.'
                     />
                 </p>
-                {createNewChannelButton('primary', 'medium', <i className='icon-plus'/>)}
+                {createNewChannelButton('primary', 'medium', true)}
             </>
         );
 
