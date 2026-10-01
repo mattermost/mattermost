@@ -449,7 +449,7 @@ test.describe('Post height', () => {
 
                 const post = await testCase.makePost({
                     fileServerUrl,
-                    siteUrl: testConfig.internalBaseURL,
+                    siteUrl: testConfig.siteURL,
                 });
 
                 const {sizeWatcher, postComponent} = await openChannelAndGetPost(post.id);

@@ -130,7 +130,7 @@ test.describe('Post list initial scroll in read channel', () => {
                 for (let i = 0; i < 120; i++) {
                     await userClient.createTestPost({
                         channel_id: channel.id,
-                        message: `${testConfig.internalBaseURL}/${team.name}/pl/${firstPost.id}`,
+                        message: `${testConfig.siteURL}/${team.name}/pl/${firstPost.id}`,
                     });
                 }
             },

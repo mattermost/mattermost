@@ -157,14 +157,14 @@ test.describe('Post list initial scroll in unread channel', () => {
                 for (let i = 0; i < 80; i++) {
                     await userClient.createTestPost({
                         channel_id: channel.id,
-                        message: `${testConfig.internalBaseURL}/${team.name}/pl/${linkedPost.id}`,
+                        message: `${testConfig.siteURL}/${team.name}/pl/${linkedPost.id}`,
                     });
                 }
 
                 for (let i = 0; i < 80; i++) {
                     await adminClient.createTestPost({
                         channel_id: channel.id,
-                        message: `${testConfig.internalBaseURL}/${team.name}/pl/${linkedPost.id}`,
+                        message: `${testConfig.siteURL}/${team.name}/pl/${linkedPost.id}`,
                     });
                 }
             },

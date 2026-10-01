@@ -270,6 +270,19 @@ export class TestConfig {
         this.minioUrl = process.env.PW_MINIO_URL || 'http://localhost:9000';
         this.azuriteUrl = process.env.PW_AZURITE_URL || 'http://localhost:10000';
     }
+
+    /**
+     * The URL the server's own SiteURL config actually resolves to — used to build a message
+     * that the server will recognize as a permalink to itself (e.g. to trigger an embedded post
+     * preview). In subpath mode, applyResolvedConfig() forces SiteURL to baseURL (the nginx URL)
+     * via a boot env var, which can't be overridden by a later patchConfig(); everywhere else,
+     * SiteURL is set from internalBaseURL (via config.json/patchConfig) and stays there since
+     * nothing forces it otherwise. Equivalent to internalBaseURL outside testcontainers mode,
+     * since baseURL and internalBaseURL are the same value there.
+     */
+    get siteURL(): string {
+        return this.subpathMode ? this.baseURL : this.internalBaseURL;
+    }
 }
 
 // Create a singleton instance

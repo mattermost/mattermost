@@ -105,11 +105,11 @@ test.describe('ABAC file permissions - redaction across surfaces', () => {
             const originalPosts = await adminClient.getPosts(channelId, 0, 1);
             const originalPostId = originalPosts.order[0];
 
-            // Use testConfig.internalBaseURL rather than the admin client's host-mapped route:
-            // the server must recognize this URL as its own SiteURL to embed it through an
-            // internal permalink lookup, instead of fetching it back over HTTP as a link
-            // (which fails under testcontainers).
-            const permalinkUrl = `${testConfig.internalBaseURL}/${team.name}/pl/${originalPostId}`;
+            // Use testConfig.siteURL rather than the admin client's host-mapped route: the
+            // server must recognize this URL as its own SiteURL to embed it through an internal
+            // permalink lookup, instead of fetching it back over HTTP as a link (which fails
+            // under testcontainers).
+            const permalinkUrl = `${testConfig.siteURL}/${team.name}/pl/${originalPostId}`;
             await adminChannelsPage.centerView.postCreate.postMessage(permalinkUrl);
             await adminChannelsPage.centerView.waitUntilLastPostContains(permalinkUrl);
 
