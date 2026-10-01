@@ -28,9 +28,9 @@ export async function skipIfNoEnterpriseLicense(adminClient: any) {
 // (MM-68496 / MM-68608). The old TeamSettings.EnableManagedChannelCategories
 // config key no longer exists — these helpers remain as explicit no-ops so call
 // sites stay readable next to ensureFeatureFlag('ManagedChannelCategories', …).
-export async function enableManagedCategories(_adminClient: any) {}
+export async function enableManagedCategories() {}
 
-export async function disableManagedCategories(_adminClient: any) {}
+export async function disableManagedCategories() {}
 
 /**
  * Creates a uniquely-named team and user per test and adds the user to the team.

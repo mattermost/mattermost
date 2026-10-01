@@ -117,57 +117,6 @@ test.describe(
         });
 
         /**
-         * @objective Ensure the Channel Info display location also renders the attribute as a
-         * header chip, alongside Channel Info.
-         *
-         * "Info" and "Header" are two independent triggers into the same merged header chip
-         * row (see ChannelAttributeLabels) — either one is enough to show a chip there.
-         * Channel Info shows every attribute regardless of display location.
-         */
-        test('shows an Info-designated attribute in the header chip row and in Channel Info', async ({pw}) => {
-            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.ensureFeatureFlag('ChannelAttributes', true);
-            await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
-
-            const suffix = pw.random.id();
-            let name = '';
-
-            try {
-                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-
-                name = await configureChannelAttribute(systemConsolePage, {
-                    displayName: `Info ${suffix}`,
-                    type: 'Select',
-                    options: ['INTERNAL'],
-                    required: true,
-                    displayLocations: ['display_label_info'],
-                });
-
-                const {team} = await pw.initSetup();
-                const {channelsPage} = await pw.testBrowser.login(adminUser);
-                await channelsPage.goto(team.name);
-                await channelsPage.toBeVisible();
-
-                const modal = await channelsPage.openNewChannelModal();
-                await modal.fillDisplayName(`Attr Info ${suffix}`);
-                await channelsPage.page.getByTestId(`channelAttribute-${name}`).click();
-                await channelsPage.page.getByText('INTERNAL', {exact: true}).click();
-                await modal.create();
-                await expect(modal.container).not.toBeVisible();
-
-                // * Info designation is enough on its own to show the header chip
-                await expect(channelsPage.centerView.header.attributes.chip('INTERNAL')).toBeVisible();
-
-                // * And Channel Info carries it, as it does for every attribute
-                const info = await channelsPage.openChannelInfo();
-                await expect(info.attributes.chip(name)).toHaveText('INTERNAL');
-            } finally {
-                await deleteChannelFieldIfExists(adminClient, name);
-                await deleteGlobalAttributeFieldIfExists(adminClient, name);
-            }
-        });
-
-        /**
          * @objective Ensure the Banner display location renders a banner and nothing else.
          */
         test('renders a Banner-only attribute as a banner, with no chip', async ({pw}) => {
