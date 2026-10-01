@@ -14382,11 +14382,6 @@
     "description": "Health dashboard finding detail when the search engine connection test failed; {{.error}} is the error the server reported, with URL credentials masked."
   },
   {
-    "id": "health.rule.es_server_error.message.unavailable",
-    "translation": "The search engine connection test result was not collected.",
-    "description": "Health dashboard reason shown when the search engine connection test result is missing, so the check's status is unknown."
-  },
-  {
     "id": "health.rule.es_server_error.remediation",
     "translation": "Verify ElasticsearchSettings.ConnectionURL reachability, TLS, and credentials. Check the search cluster health (GET /_cluster/health).",
     "description": "Health dashboard fix-it step for a failed search engine connection test; 'ElasticsearchSettings.ConnectionURL' is a config setting name and 'GET /_cluster/health' is a literal API call, neither should be translated."
@@ -14417,9 +14412,9 @@
     "description": "Health dashboard finding detail for an unsupported search engine version; {{.backend}} is elasticsearch or opensearch, {{.version}} the reported version, {{.min}} and {{.max}} the supported major versions."
   },
   {
-    "id": "health.rule.es_version_unsupported.message.unavailable",
-    "translation": "The search engine backend or version was not reported, or could not be recognized.",
-    "description": "Health dashboard reason shown when the search engine version cannot be read, so the check's status is unknown."
+    "id": "health.rule.es_version_unsupported.message.unrecognized",
+    "translation": "The search engine backend or version could not be recognized.",
+    "description": "Health dashboard reason shown when the search engine backend or version reported in the server diagnostics is empty or unrecognized, so the check's status is unknown."
   },
   {
     "id": "health.rule.es_version_unsupported.remediation",
@@ -14487,11 +14482,6 @@
     "description": "Health dashboard finding detail when database search is used at 2,500,000 to 4,999,999 posts; {{.posts}} is the post count."
   },
   {
-    "id": "health.rule.scale_es_recommended.message.unavailable",
-    "translation": "The post count was not collected.",
-    "description": "Health dashboard reason shown when the workspace post count is missing, so the check's status is unknown."
-  },
-  {
     "id": "health.rule.scale_es_recommended.remediation",
     "translation": "Plan an Elasticsearch deployment before the next major growth period, or before reaching 5,000,000 posts.",
     "description": "Health dashboard fix-it step for a growing workspace without Elasticsearch search."
@@ -14505,11 +14495,6 @@
     "id": "health.rule.scale_es_required.message",
     "translation": "The workspace has {{.posts}} posts and search runs against the database. At this scale, expect slow searches, timeouts, and database CPU spikes.",
     "description": "Health dashboard finding detail when database search is used at 5,000,000 posts or more; {{.posts}} is the post count."
-  },
-  {
-    "id": "health.rule.scale_es_required.message.unavailable",
-    "translation": "The post count was not collected.",
-    "description": "Health dashboard reason shown when the workspace post count is missing, so the check's status is unknown."
   },
   {
     "id": "health.rule.scale_es_required.remediation",

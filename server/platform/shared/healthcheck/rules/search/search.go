@@ -285,7 +285,7 @@ func evalESLocalhostURL(s *healthcheck.Snapshot) []healthcheck.Result {
 func evalESServerError(s *healthcheck.Snapshot) []healthcheck.Result {
 	diag, ok := leaderDiag(s, model.SectionSearchProbe)
 	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.TranslationId("health.rule.es_server_error.message.unavailable"))}
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
 	}
 
 	switch diag.ElasticSearch.Status {
@@ -294,12 +294,12 @@ func evalESServerError(s *healthcheck.Snapshot) []healthcheck.Result {
 	case model.StatusOk, model.StatusDisabled:
 		return resolved()
 	default:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.TranslationId("health.rule.es_server_error.message.unavailable"))}
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
 	}
 }
 
 // evalScale fires when the post count is in [lower, upper) while search runs against the database.
-func evalScale(s *healthcheck.Snapshot, lower, upper int64, messageID, unavailableID string) []healthcheck.Result {
+func evalScale(s *healthcheck.Snapshot, lower, upper int64, messageID string) []healthcheck.Result {
 	searching, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ElasticsearchSettings.EnableSearching })
 	if !ok {
 		return unknownConfig()
@@ -310,7 +310,7 @@ func evalScale(s *healthcheck.Snapshot, lower, upper int64, messageID, unavailab
 
 	posts, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 { return stats.Posts })
 	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(unavailableID)}
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)}
 	}
 
 	if posts >= lower && posts < upper {
@@ -321,15 +321,11 @@ func evalScale(s *healthcheck.Snapshot, lower, upper int64, messageID, unavailab
 }
 
 func evalScaleESRequired(s *healthcheck.Snapshot) []healthcheck.Result {
-	return evalScale(s, scaleRequiredPosts, math.MaxInt64,
-		healthcheck.TranslationId("health.rule.scale_es_required.message"),
-		healthcheck.TranslationId("health.rule.scale_es_required.message.unavailable"))
+	return evalScale(s, scaleRequiredPosts, math.MaxInt64, healthcheck.TranslationId("health.rule.scale_es_required.message"))
 }
 
 func evalScaleESRecommended(s *healthcheck.Snapshot) []healthcheck.Result {
-	return evalScale(s, scaleRecommendedPosts, scaleRequiredPosts,
-		healthcheck.TranslationId("health.rule.scale_es_recommended.message"),
-		healthcheck.TranslationId("health.rule.scale_es_recommended.message.unavailable"))
+	return evalScale(s, scaleRecommendedPosts, scaleRequiredPosts, healthcheck.TranslationId("health.rule.scale_es_recommended.message"))
 }
 
 // liveBatchSize returns LiveIndexingBatchSize, with enabled=false when indexing is off.
@@ -376,17 +372,16 @@ func evalESVersionUnsupported(s *healthcheck.Snapshot) []healthcheck.Result {
 		return resolved()
 	}
 
-	unavailable := []healthcheck.Result{healthcheck.Unknown(healthcheck.TranslationId("health.rule.es_version_unsupported.message.unavailable"))}
 	diag, ok := leaderDiag(s, model.SectionSearchEngine)
 	if !ok {
-		return unavailable
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
 	}
 
 	backend, version := diag.ElasticSearch.Backend, diag.ElasticSearch.ServerVersion
 	supported, known := supportedMajors[backend]
 	major, parsed := majorVersion(version)
 	if !known || !parsed {
-		return unavailable
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.TranslationId("health.rule.es_version_unsupported.message.unrecognized"))}
 	}
 
 	if major >= supported[0] && major <= supported[1] {
@@ -411,7 +406,10 @@ func evalESMissingICU(s *healthcheck.Snapshot) []healthcheck.Result {
 
 	// The plugin list is fetched only after the version, and an empty list is omitted from the packet.
 	diag, ok := leaderDiag(s, model.SectionSearchEngine)
-	if !ok || diag.ElasticSearch.ServerVersion == "" {
+	if !ok {
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
+	}
+	if diag.ElasticSearch.ServerVersion == "" {
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.TranslationId("health.rule.es_missing_icu.message.unavailable"))}
 	}
 
