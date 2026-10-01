@@ -34,6 +34,12 @@ const (
 
 	// The fixtures run 11.0, which has ended.
 	versionSubject = "11.0"
+
+	expiresAtSubject  = "license.expires_at"
+	trialSubject      = "license.is_trial"
+	seatsSubject      = "license.users"
+	engagementSubject = "stats.monthly_active_users"
+	workflowSubject   = "plugins.enabled"
 )
 
 type finding struct {
@@ -131,6 +137,10 @@ func TestReadGoldenPackets(t *testing.T) {
 				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateFiring, Subject: pushSubject},
 				{Code: "SITE_URL_HTTP", State: healthcheck.StateFiring, Subject: siteURLSubject},
 				{Code: "VERSION_EOL", State: healthcheck.StateFiring, Subject: versionSubject},
+				{Code: "LICENSE_EXPIRED", State: healthcheck.StateUnknown, Subject: expiresAtSubject},
+				{Code: "LICENSE_EXPIRING", State: healthcheck.StateUnknown, Subject: expiresAtSubject},
+				{Code: "SEATS_LIMIT_REACHED", State: healthcheck.StateUnknown, Subject: seatsSubject},
+				{Code: "WORKFLOW_USAGE_CHAT_ONLY", State: healthcheck.StateFiring, Subject: workflowSubject},
 			},
 		},
 		{
@@ -138,6 +148,8 @@ func TestReadGoldenPackets(t *testing.T) {
 			expected: []finding{
 				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject},
 				{Code: "VERSION_EOL", State: healthcheck.StateFiring, Subject: versionSubject},
+				{Code: "LICENSE_EXPIRING", State: healthcheck.StateFiring, Subject: expiresAtSubject},
+				{Code: "WORKFLOW_USAGE_CHAT_ONLY", State: healthcheck.StateFiring, Subject: workflowSubject},
 			},
 		},
 	}

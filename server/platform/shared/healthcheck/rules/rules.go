@@ -6,6 +6,7 @@
 package rules
 
 import (
+	_ "github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/license"
 	_ "github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/notifications"
 	_ "github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/platform"
 	_ "github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/version"
