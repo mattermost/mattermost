@@ -215,7 +215,7 @@ const UserGroupsModal = (props: Props) => {
             headerButton={
                 props.canCreateCustomGroups &&
                 <Button
-                    emphasis='secondary'
+                    emphasis='tertiary'
                     size='small'
                     onClick={goToCreateModal}
                 >

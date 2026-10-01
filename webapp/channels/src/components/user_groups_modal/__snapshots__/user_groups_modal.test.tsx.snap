@@ -47,7 +47,7 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
                   User Groups
                 </h1>
                 <button
-                  class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-small_doayp_40"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-small_doayp_40"
                   type="button"
                 >
                   <span
@@ -323,7 +323,7 @@ exports[`component/user_groups_modal should match snapshot without groups 1`] = 
                   User Groups
                 </h1>
                 <button
-                  class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-small_doayp_40"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-small_doayp_40"
                   type="button"
                 >
                   <span

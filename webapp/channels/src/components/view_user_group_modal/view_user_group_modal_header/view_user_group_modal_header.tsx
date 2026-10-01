@@ -105,7 +105,7 @@ const ViewUserGroupModalHeader = ({
         if (permissionToJoinGroup) {
             return (
                 <Button
-                    emphasis='secondary'
+                    emphasis='tertiary'
                     size='small'
                     className='mr-2'
                     onClick={goToAddPeopleModal}
@@ -124,7 +124,7 @@ const ViewUserGroupModalHeader = ({
         if (permissionToRestoreGroup) {
             return (
                 <Button
-                    emphasis='secondary'
+                    emphasis='tertiary'
                     size='small'
                     onClick={restoreGroup}
                 >
