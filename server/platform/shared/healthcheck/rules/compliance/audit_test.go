@@ -59,7 +59,6 @@ func TestAuditLoggingActive(t *testing.T) {
 func TestAuditLogOff(t *testing.T) {
 	t.Parallel()
 
-	statsUnavailable := "health.rule.audit_log_off.message.stats_unavailable"
 	firing := "health.rule.audit_log_off.message"
 
 	testCases := []struct {
@@ -92,7 +91,7 @@ func TestAuditLogOff(t *testing.T) {
 			name:      "inactive with stats absent",
 			snapshot:  auditSnapshot(false, "", nil),
 			state:     healthcheck.StateUnknown,
-			messageID: statsUnavailable,
+			messageID: healthcheck.ReasonStatsUnavailable,
 		},
 		{
 			name:     "inactive at the threshold",

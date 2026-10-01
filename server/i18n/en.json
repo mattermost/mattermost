@@ -14297,11 +14297,6 @@
     "description": "Health dashboard finding detail when audit logging is off on a large workspace; {{.users}} is the number of registered users. An 'audit log target' is a destination (such as a file) that audit records are written to."
   },
   {
-    "id": "health.rule.audit_log_off.message.stats_unavailable",
-    "translation": "Audit logging is off, but the registered user count could not be read.",
-    "description": "Health dashboard reason shown when the audit logging check could not finish because the workspace user count was unavailable, so its status is unknown."
-  },
-  {
     "id": "health.rule.audit_log_off.remediation",
     "translation": "If your organization has audit requirements (financial services, healthcare, defense, regulated public sector), enable audit logging in System Console > Compliance > Audit Logging, or add a target for the audit levels to ExperimentalAuditSettings.AdvancedLoggingJSON, and configure rotation. Otherwise this can be ignored.",
     "description": "Health dashboard fix-it step for disabled audit logging; 'System Console > Compliance > Audit Logging' is a navigation path and 'ExperimentalAuditSettings.AdvancedLoggingJSON' is a config setting path that should not be translated."
