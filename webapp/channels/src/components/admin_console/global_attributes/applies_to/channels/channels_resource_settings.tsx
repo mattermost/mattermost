@@ -98,6 +98,7 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
     channelFieldIdRef.current = channelFieldId;
 
     const missingCount = missingValues.summary?.totalCount ?? 0;
+    const sharedCount = missingValues.summary?.sharedCount ?? 0;
 
     // Blocked only in the off -> on direction. Turning Required OFF must
     // always work: that is the escape hatch for a field that is already
@@ -118,9 +119,10 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
         openChannelsWithoutValueModal({
             fieldId: channelFieldId,
             attributeDisplayName,
-            totalCount: missingCount,
+            totalCount: missingCount + sharedCount,
+            sharedCount,
         });
-    }, [openChannelsWithoutValueModal, channelFieldId, attributeDisplayName, missingCount]);
+    }, [openChannelsWithoutValueModal, channelFieldId, attributeDisplayName, missingCount, sharedCount]);
 
     const handleNotify = useCallback(async () => {
         if (!channelFieldId || !missingValues.summary) {

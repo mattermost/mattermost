@@ -41,7 +41,7 @@ func propertyFieldOptionsEqual(a, b any) bool {
 // MM-70717), so a level-triggered check would trap admins on unrelated edits
 // to an already-required field.
 func (a *App) checkRequiredAttributeTransition(rctx request.CTX, callerName, groupID string, prev, next *model.PropertyField) *model.AppError {
-	if !a.Config().FeatureFlags.ChannelAttributes || !model.MinimumEnterpriseAdvancedLicense(a.License()) {
+	if !a.Config().FeatureFlags.IsChannelAttributesRequiredEnabled() || !model.MinimumEnterpriseAdvancedLicense(a.License()) {
 		return nil
 	}
 
@@ -53,8 +53,11 @@ func (a *App) checkRequiredAttributeTransition(rctx request.CTX, callerName, gro
 		return nil
 	}
 
-	accessControlGroup, err := a.Srv().propertyService.GetPropertyGroup(model.AccessControlPropertyGroupName)
-	if err != nil || accessControlGroup.ID != groupID {
+	accessControlGroup, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	if appErr != nil {
+		return appErr
+	}
+	if accessControlGroup.ID != groupID {
 		return nil
 	}
 

@@ -233,10 +233,10 @@ describe('ChannelsResourceSettings', () => {
         expect(screen.getByRole('button', {name: 'View channel list'})).toBeInTheDocument();
     });
 
-    it('opens the channel list modal with the current field id, display name and count', async () => {
+    it('opens the channel list modal with the current field id, display name and counts', async () => {
         mockUseChannelMissingValues.mockReturnValue(missingValuesState({summary: {
             totalCount: 7,
-            sharedCount: 0,
+            sharedCount: 2,
             uniqueAdminCount: 3,
             noAdminCount: 0,
             messagePreview: 'preview',
@@ -249,7 +249,8 @@ describe('ChannelsResourceSettings', () => {
         expect(openViewList).toHaveBeenCalledWith({
             fieldId: 'field1',
             attributeDisplayName: 'Cost center',
-            totalCount: 7,
+            totalCount: 9,
+            sharedCount: 2,
         });
     });
 

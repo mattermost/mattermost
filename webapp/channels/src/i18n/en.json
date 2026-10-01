@@ -31391,13 +31391,21 @@
     "defaultMessage": "Confirm UNARCHIVE Channel",
     "description": "Title of the confirmation modal for unarchiving a channel; UNARCHIVE is deliberately capitalized for emphasis."
   },
+  "unarchive_channel.del": {
+    "defaultMessage": "Unarchive",
+    "description": "Confirm button (verb) of the unarchive channel modal; restores an archived channel."
+  },
   "unarchive_channel.missing_attributes.body": {
     "defaultMessage": "This channel has no value for {attributes}. {count, plural, one {That attribute is} other {Those attributes are}} required. You can set the {count, plural, one {value} other {values}} after restoring the channel.",
-    "description": ""
+    "description": "Warning banner body in the unarchive channel modal when the channel lacks values for required channel attributes; {attributes} is a comma-separated list of attribute names, {count} is how many."
+  },
+  "unarchive_channel.missing_attributes.confirm": {
+    "defaultMessage": "Unarchive anyway",
+    "description": "Confirm button of the unarchive channel modal shown instead of 'Unarchive' when required channel attribute values are missing; restoring is still allowed."
   },
   "unarchive_channel.missing_attributes.title": {
     "defaultMessage": "Missing required attribute values",
-    "description": ""
+    "description": "Title of the warning banner in the unarchive channel modal when the channel is missing values for required channel attributes."
   },
   "unarchiveChannelModal.viewArchived.question": {
     "defaultMessage": "Are you sure you wish to unarchive the <b>{display_name}</b> channel?",

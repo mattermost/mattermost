@@ -550,9 +550,11 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             if ('error' in attributeResult) {
                 serverError = <FormError error={attributeResult.error.message}/>;
                 saveNeeded = true;
-            } else {
-                this.setState({channelAttributeValues: {}});
+                this.setState({serverError, saving: false, saveNeeded});
+                actions.setNavigationBlocked(saveNeeded);
+                return;
             }
+            this.setState({channelAttributeValues: {}});
         }
 
         let privacyChangePromise;

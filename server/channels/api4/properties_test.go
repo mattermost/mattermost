@@ -7532,6 +7532,19 @@ func TestPatchPropertyFieldRequiredChannelsMissingValuesGate(t *testing.T) {
 		require.NotNil(t, appErr)
 		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
 	})
+
+	t.Run("with required enforcement disabled the disabled error wins over the missing-values gate", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.ChannelAttributesRequired = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.ChannelAttributesRequired = true })
+
+		field := newField(t, model.PropertyFieldObjectTypeChannel, false)
+
+		patch := &model.PropertyFieldPatch{Attrs: &model.StringInterface{"required": true}}
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeChannel, field.ID, patch)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.property_field.required_disabled.app_error")
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
 }
 
 // TestCreatePropertyFieldRequiredChannelsMissingValuesGate verifies callers

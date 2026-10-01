@@ -139,6 +139,38 @@ describe('ChannelsWithoutValueModal', () => {
         await waitFor(() => expect(screen.getByText('ops-planning')).toBeInTheDocument());
     });
 
+    it('drives the filter tabs from whole-list totals, not the current page', async () => {
+        mockedFetch.mockResolvedValue(page({
+            total_count: 30,
+            channels: [{
+                channel_id: 'c1',
+                channel_name: 'ops-planning',
+                channel_display_name: 'ops-planning',
+                channel_type: 'O',
+                team_id: 't1',
+                team_display_name: 'Team 1',
+                is_local: true,
+                channel_admins: [],
+            }],
+        }));
+
+        renderWithContext(
+            <ChannelsWithoutValueModal
+                fieldId='field1'
+                totalCount={30}
+                sharedCount={3}
+                onExited={onExited}
+            />,
+        );
+
+        await waitFor(() => expect(screen.getByText('ops-planning')).toBeInTheDocument());
+
+        // The only row on this page is local, yet shared channels exist further on.
+        expect(screen.getByRole('button', {name: 'All (30)'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Local (27)'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Shared (3)'})).toBeInTheDocument();
+    });
+
     it('calls onExited when Close is clicked', async () => {
         mockedFetch.mockResolvedValue(page());
 

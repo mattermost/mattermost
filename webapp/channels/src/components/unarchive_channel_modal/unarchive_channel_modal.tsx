@@ -74,10 +74,15 @@ export default function UnarchiveChannelModal({onExited, channel, actions}: Prop
             autoCloseOnConfirmButton={false}
             isConfirmDisabled={submitting}
             confirmButtonVariant='destructive'
-            confirmButtonText={(
+            confirmButtonText={missing.length > 0 ? (
                 <FormattedMessage
-                    id={missing.length > 0 ? 'unarchive_channel.missing_attributes.confirm' : 'unarchive_channel.del'}
-                    defaultMessage={missing.length > 0 ? 'Unarchive anyway' : 'Unarchive'}
+                    id='unarchive_channel.missing_attributes.confirm'
+                    defaultMessage='Unarchive anyway'
+                />
+            ) : (
+                <FormattedMessage
+                    id='unarchive_channel.del'
+                    defaultMessage='Unarchive'
                 />
             )}
             cancelButtonText={(

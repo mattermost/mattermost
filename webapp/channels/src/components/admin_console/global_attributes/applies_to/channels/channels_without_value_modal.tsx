@@ -28,15 +28,20 @@ type Props = {
     fieldId?: string;
     attributeDisplayName?: string;
 
-    // Seeds the subtitle count before the first page resolves.
+    // Seeds the subtitle count before the first page resolves. Includes shared
+    // channels, matching the list endpoint's total_count.
     totalCount: number;
+
+    // Whole-list count of shared channels, from the compliance summary. The
+    // list itself is paginated, so per-page rows cannot drive the filter tabs.
+    sharedCount?: number;
     onExited: () => void;
 };
 
 export const useChannelsWithoutValueModal = () => {
     const dispatch = useDispatch();
 
-    return (args: {fieldId?: string; attributeDisplayName?: string; totalCount: number}) => {
+    return (args: {fieldId?: string; attributeDisplayName?: string; totalCount: number; sharedCount?: number}) => {
         dispatch(openModal({
             modalId: ModalIdentifiers.GLOBAL_ATTRIBUTE_CHANNELS_WITHOUT_VALUE,
             dialogType: ChannelsWithoutValueModal,
@@ -45,7 +50,7 @@ export const useChannelsWithoutValueModal = () => {
     };
 };
 
-function ChannelsWithoutValueModal({fieldId, attributeDisplayName, totalCount: seedTotalCount, onExited}: Props) {
+function ChannelsWithoutValueModal({fieldId, attributeDisplayName, totalCount: seedTotalCount, sharedCount = 0, onExited}: Props) {
     const {formatMessage} = useIntl();
 
     const [channels, setChannels] = useState<ChannelMissingAttributeValue[]>([]);
@@ -123,8 +128,7 @@ function ChannelsWithoutValueModal({fieldId, attributeDisplayName, totalCount: s
         return true;
     });
 
-    const sharedCount = channels.filter((ch) => !ch.is_local).length;
-    const localCount = channels.length - sharedCount;
+    const localCount = Math.max(0, totalCount - sharedCount);
 
     const handlePrevious = () => {
         const next = Math.max(0, page - 1);
@@ -189,7 +193,7 @@ function ChannelsWithoutValueModal({fieldId, attributeDisplayName, totalCount: s
                         className={filter === 'all' ? 'active' : ''}
                         onClick={() => setFilter('all')}
                     >
-                        {formatMessage({id: 'admin.global_attributes.applies_to.channels.without_value.filter.all', defaultMessage: 'All ({count})'}, {count: channels.length})}
+                        {formatMessage({id: 'admin.global_attributes.applies_to.channels.without_value.filter.all', defaultMessage: 'All ({count})'}, {count: totalCount})}
                     </button>
                     <button
                         type='button'

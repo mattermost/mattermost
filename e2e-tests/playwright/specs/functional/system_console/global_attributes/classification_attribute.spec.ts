@@ -146,16 +146,14 @@ test.describe(
         });
 
         /**
-         * @objective Verify a channel classification field already marked required (as
-         * opposed to flipped on afterward — see MM-70717's required_gate.spec.ts for that)
-         * demands a level before Create is enabled.
+         * @objective Verify a channel classification field already marked required
+         * demands a level before Create is enabled. The console toggle flow itself is
+         * covered by required_gate.spec.ts.
          *
-         * `required` is seeded at field-creation time rather than toggled on afterward
-         * through the console: MM-70717 blocks that PATCH transition while any active
-         * channel on the server lacks a value for the field, which on a shared e2e server
-         * is effectively guaranteed for a brand-new field. Seeding it at creation exercises
-         * exactly the same create-time enforcement this test has always been about, without
-         * depending on every other channel already on the server being compliant.
+         * The helper creates the field optional, backfills every active channel with a
+         * level, then PATCHes it to required. The server rejects that transition while
+         * any active channel lacks a value, so the backfill is what lets it through on a
+         * shared e2e server.
          */
         test('demands a classification level at creation once the field is required', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);

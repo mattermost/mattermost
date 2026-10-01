@@ -114,6 +114,15 @@ test.describe('System Console - notify all channel admins', {tag: ['@system_cons
             const {page, globalAttributes} = systemConsolePage;
             const {attributeAppliesToChannels} = globalAttributes;
 
+            // The DM send only ever starts server-side in response to this POST, so
+            // its absence is what proves nothing can still be in flight.
+            const notifyRequests: string[] = [];
+            page.on('request', (request) => {
+                if (request.method() === 'POST' && request.url().endsWith('/missing_values/notify')) {
+                    notifyRequests.push(request.url());
+                }
+            });
+
             await page.goto(`${ATTRIBUTE_DETAILS_PATH}/${pair.templateField.id}`);
             await expect(globalAttributes.displayNameInput).toBeVisible();
             await attributeAppliesToChannels.expand();
@@ -121,14 +130,18 @@ test.describe('System Console - notify all channel admins', {tag: ['@system_cons
             const modal = await attributeAppliesToChannels.openNotifyChannelAdminsModal();
             await modal.cancel();
 
-            // # Cancelling has no positive signal to wait on; give the (nonexistent)
-            // # async send a moment before asserting absence.
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, `@${SYSTEM_BOT_USERNAME}`);
-            await channelsPage.page.waitForTimeout(3000);
+            // * No notify request left the browser
+            expect(notifyRequests).toHaveLength(0);
 
-            // * No DM arrived
-            await expect(channelsPage.centerView.postViews.filter({hasText: channel.display_name})).toHaveCount(0);
+            // * No DM exists. The system bot is created lazily on first use, so if it
+            // does not exist yet nothing can have been sent by it.
+            const systemBot = await adminClient.getUserByUsername(SYSTEM_BOT_USERNAME).catch(() => null);
+            if (systemBot) {
+                const dm = await adminClient.createDirectChannel([user.id, systemBot.id]);
+                const {posts} = await adminClient.getPosts(dm.id);
+                const matching = Object.values(posts).filter((post) => post.message.includes(channel.display_name));
+                expect(matching).toHaveLength(0);
+            }
         } finally {
             await deleteChannelAttributeField(adminClient, pair);
         }
