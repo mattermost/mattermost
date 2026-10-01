@@ -886,6 +886,57 @@
                         "claim.name": "clientHost",
                         "jsonType.label": "String"
                     }
+                },
+                {
+                    "id": "0fac32d9-e735-5c67-b7aa-35b798d469ba",
+                    "name": "Department",
+                    "protocol": "openid-connect",
+                    "protocolMapper": "oidc-usermodel-attribute-mapper",
+                    "consentRequired": false,
+                    "config": {
+                        "user.attribute": "department",
+                        "claim.name": "org.department",
+                        "jsonType.label": "String",
+                        "id.token.claim": "true",
+                        "access.token.claim": "false",
+                        "userinfo.token.claim": "true",
+                        "multivalued": "false",
+                        "aggregate.attrs": "false"
+                    }
+                },
+                {
+                    "id": "07df82e0-82ad-5ff9-a713-19d6f6f9d0d4",
+                    "name": "Clearances",
+                    "protocol": "openid-connect",
+                    "protocolMapper": "oidc-usermodel-attribute-mapper",
+                    "consentRequired": false,
+                    "config": {
+                        "user.attribute": "clearances",
+                        "claim.name": "clearances",
+                        "jsonType.label": "String",
+                        "id.token.claim": "true",
+                        "access.token.claim": "false",
+                        "userinfo.token.claim": "true",
+                        "multivalued": "true",
+                        "aggregate.attrs": "false"
+                    }
+                },
+                {
+                    "id": "8c765b02-8e6c-5245-9013-9c9102f76f64",
+                    "name": "Employee ID",
+                    "protocol": "openid-connect",
+                    "protocolMapper": "oidc-usermodel-attribute-mapper",
+                    "consentRequired": false,
+                    "config": {
+                        "user.attribute": "employeeId",
+                        "claim.name": "employee_id",
+                        "jsonType.label": "String",
+                        "id.token.claim": "true",
+                        "access.token.claim": "false",
+                        "userinfo.token.claim": "false",
+                        "multivalued": "false",
+                        "aggregate.attrs": "false"
+                    }
                 }
             ],
             "defaultClientScopes": ["web-origins", "acr", "roles", "profile", "email"],

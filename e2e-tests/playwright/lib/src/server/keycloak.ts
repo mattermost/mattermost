@@ -26,6 +26,8 @@ export type KeycloakUser = {
     firstName: string;
     lastName: string;
     password: string;
+    /** User attributes, which the realm's protocol mappers release as OpenID Connect claims. */
+    attributes?: Record<string, string[]>;
 };
 
 /** Generates a directory-only Keycloak user's fields - createKeycloakUser() still creates it. */
@@ -72,6 +74,7 @@ export async function createKeycloakUser(user: KeycloakUser): Promise<string> {
             lastName: user.lastName,
             enabled: true,
             credentials: [{type: 'password', value: user.password, temporary: false}],
+            attributes: user.attributes,
         }),
     });
     if (!response.ok) {
@@ -84,6 +87,28 @@ export async function createKeycloakUser(user: KeycloakUser): Promise<string> {
         throw new Error('Keycloak user creation response had no Location header to read the new user id from.');
     }
     return userId;
+}
+
+/** Replaces the Keycloak user's attributes, so the claims of their next sign-in change accordingly. */
+export async function setKeycloakUserAttributes(userId: string, attributes: Record<string, string[]>): Promise<void> {
+    const token = await getAdminToken();
+    const userUrl = `${testConfig.keycloakUrl}/admin/realms/${KEYCLOAK_REALM}/users/${userId}`;
+
+    // A PUT replaces the representation it is given, so send the user back whole with new attributes.
+    const getResponse = await fetch(userUrl, {headers: {Authorization: `Bearer ${token}`}});
+    if (!getResponse.ok) {
+        throw new Error(`Failed to read Keycloak user: ${getResponse.status} ${await getResponse.text()}`);
+    }
+    const user = await getResponse.json();
+
+    const putResponse = await fetch(userUrl, {
+        method: 'PUT',
+        headers: {Authorization: `Bearer ${token}`, 'Content-Type': 'application/json'},
+        body: JSON.stringify({...user, attributes}),
+    });
+    if (!putResponse.ok) {
+        throw new Error(`Failed to set Keycloak user attributes: ${putResponse.status} ${await putResponse.text()}`);
+    }
 }
 
 /** Disables the Keycloak user (`enabled: false`), so Keycloak itself refuses further logins. */
@@ -196,30 +221,56 @@ async function ensureKeycloakRealmFrontendUrl(): Promise<void> {
     }
 }
 
+type OpenIdServerConfigOptions = {
+    /**
+     * Read every endpoint from Keycloak's discovery document, as the System Console configures
+     * OpenID Connect, instead of setting them one by one. Only then does the server know the realm's
+     * signing keys, so it can verify ID tokens and use their claims.
+     */
+    discovery?: boolean;
+};
+
 /**
  * Points the server at the `mattermost-openid` client provisioned in keycloak-realm-export.json.
  * AuthEndpoint is browser-facing while TokenEndpoint/UserAPIEndpoint are called by the server
  * itself, so they use the Testcontainers alias (see ensureKeycloakRealmFrontendUrl()).
- * DiscoveryEndpoint is left empty since setting it would let the server resolve endpoints from
- * it instead, bypassing this split.
+ *
+ * With `discovery`, the discovery document is fetched through the alias instead. It still keeps
+ * that split: with the realm frontend URL set, Keycloak names the browser-facing URL as issuer and
+ * authorization endpoint, and the requesting (alias) host for the token, userinfo and JWKS
+ * endpoints.
  */
-export function openidServerConfig(): Partial<AdminConfig['OpenIdSettings']> {
-    return {
+export function openidServerConfig({discovery = false}: OpenIdServerConfigOptions = {}): Partial<
+    AdminConfig['OpenIdSettings']
+> {
+    const settings = {
         Enable: true,
         Id: KEYCLOAK_OPENID_CLIENT_ID,
         Secret: KEYCLOAK_OPENID_CLIENT_SECRET,
         Scope: 'openid profile email',
+        ButtonText: 'Keycloak OpenID',
+        UsePreferredUsername: true,
+    };
+    if (discovery) {
+        return {
+            ...settings,
+            AuthEndpoint: '',
+            TokenEndpoint: '',
+            UserAPIEndpoint: '',
+            DiscoveryEndpoint: `http://${KEYCLOAK_ALIAS}:${KEYCLOAK_PORT}/realms/${KEYCLOAK_REALM}/.well-known/openid-configuration`,
+        };
+    }
+    return {
+        ...settings,
         AuthEndpoint: `${testConfig.keycloakUrl}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth`,
         TokenEndpoint: `http://${KEYCLOAK_ALIAS}:${KEYCLOAK_PORT}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token`,
         UserAPIEndpoint: `http://${KEYCLOAK_ALIAS}:${KEYCLOAK_PORT}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo`,
         DiscoveryEndpoint: '',
-        ButtonText: 'Keycloak OpenID',
-        UsePreferredUsername: true,
     };
 }
 
 /** Points the server's OpenID settings at Keycloak. Skips only if Keycloak wasn't requested. */
-export async function ensureKeycloakOpenId(): Promise<void> {
+export async function ensureKeycloakOpenId(options: OpenIdServerConfigOptions = {}): Promise<void> {
     if (!testConfig.testcontainersServices.includes('keycloak')) {
         test.skip(true, 'Skipping test - keycloak not started (set PW_TESTCONTAINERS_SERVICES=keycloak)');
         return;
@@ -227,5 +278,17 @@ export async function ensureKeycloakOpenId(): Promise<void> {
 
     await ensureKeycloakRealmFrontendUrl();
     const {adminClient} = await getAdminClient();
-    await adminClient.patchConfig({OpenIdSettings: openidServerConfig()});
+    const patch: Parameters<Client4['patchConfig']>[0] = {OpenIdSettings: openidServerConfig(options)};
+    if (options.discovery) {
+        // The discovery document and the signing keys are fetched from the alias, a private
+        // address the server refuses to connect to unless it is allowed explicitly.
+        const config = await adminClient.getConfig();
+        const allowed = (config.ServiceSettings.AllowedUntrustedInternalConnections ?? '')
+            .split(/[\s,]+/)
+            .filter(Boolean);
+        if (!allowed.includes(KEYCLOAK_ALIAS)) {
+            patch.ServiceSettings = {AllowedUntrustedInternalConnections: [...allowed, KEYCLOAK_ALIAS].join(' ')};
+        }
+    }
+    await adminClient.patchConfig(patch);
 }

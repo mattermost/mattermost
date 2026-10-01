@@ -72,6 +72,7 @@ import {
     samlServerConfig,
     saveUpgradePhaseLogs,
     setDefaultOnboardingPreferences,
+    setKeycloakUserAttributes,
     suspendKeycloakUser,
     updateLdapUser,
     upgradeServerImage,
@@ -183,6 +184,7 @@ export class PlaywrightExtended {
     readonly opensearchServerConfig;
     readonly runMmctl;
     readonly samlServerConfig;
+    readonly setKeycloakUserAttributes;
     readonly suspendKeycloakUser;
     readonly updateLdapUser;
 
@@ -310,6 +312,7 @@ export class PlaywrightExtended {
         this.opensearchServerConfig = opensearchServerConfig;
         this.runMmctl = runMmctl;
         this.samlServerConfig = samlServerConfig;
+        this.setKeycloakUserAttributes = setKeycloakUserAttributes;
         this.suspendKeycloakUser = suspendKeycloakUser;
         this.updateLdapUser = updateLdapUser;
 
