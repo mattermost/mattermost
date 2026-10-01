@@ -481,17 +481,93 @@ func TestProcessSessionAttributesRequest(t *testing.T) {
 	})
 }
 
+func TestGetSessionAttributeFieldsByName(t *testing.T) {
+	th := Setup(t)
+	enableSessionAttributesCollection(t, th)
+	ipName := model.SessionAttributesPropertyFieldIPAddress
+
+	first, appErr := th.App.getSessionAttributeFieldsByName(th.Context)
+	require.Nil(t, appErr)
+	second, appErr := th.App.getSessionAttributeFieldsByName(th.Context)
+	require.Nil(t, appErr)
+	require.Same(t, first[ipName], second[ipName], "the parsed schema must be reused while no field changes")
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+	require.Nil(t, appErr)
+	ipField, appErr := th.App.GetPropertyFieldByName(th.Context, group.ID, "", ipName)
+	require.Nil(t, appErr)
+	ipField.Attrs[model.SAAttrTTLSeconds] = 60
+	_, _, appErr = th.App.UpdatePropertyField(th.Context, group.ID, ipField, true, "")
+	require.Nil(t, appErr)
+
+	third, appErr := th.App.getSessionAttributeFieldsByName(th.Context)
+	require.Nil(t, appErr)
+	require.NotSame(t, first[ipName], third[ipName])
+	require.Equal(t, 60, third[ipName].Attrs.TTLSeconds)
+}
+
+func TestProcessSessionAttributesRequestSkipsUnchangedWrites(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	enableSessionAttributesCollection(t, th)
+	saStore := th.App.Srv().Store().SessionAttribute()
+	ipName := model.SessionAttributesPropertyFieldIPAddress
+
+	// process stores what a first request collects as if it was written
+	// ageMillis ago, then processes a request from remoteAddr and returns what
+	// ends up stored.
+	process := func(t *testing.T, ageMillis int64, remoteAddr string) (int64, map[string]any, map[string]int64) {
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+		rctx := th.Context.WithSession(session)
+		th.App.ProcessSessionAttributesRequest(rctx, newSessionAttributesRequest(t, testUserAgentChrome, "192.0.2.10:1234"))
+
+		seeded, _, err := saStore.Get(session.Id)
+		require.NoError(t, err)
+		require.Len(t, seeded, len(model.SessionAttributesRequestDerivedFieldNames))
+		require.NoError(t, saStore.Invalidate(session.Id))
+		seededAt := model.GetMillis() - ageMillis
+		require.NoError(t, saStore.Refresh(session.Id, seeded, seededAt))
+
+		th.App.ProcessSessionAttributesRequest(rctx, newSessionAttributesRequest(t, testUserAgentChrome, remoteAddr))
+		attrs, timestamps, err := saStore.Get(session.Id)
+		require.NoError(t, err)
+		return seededAt, attrs, timestamps
+	}
+
+	requireOnlyIPRewritten := func(t *testing.T, seededAt int64, timestamps map[string]int64) {
+		for name, timestamp := range timestamps {
+			if name == ipName {
+				assert.Greater(t, timestamp, seededAt, name)
+			} else {
+				assert.Equal(t, seededAt, timestamp, name)
+			}
+		}
+	}
+
+	t.Run("an unchanged request rewrites nothing", func(t *testing.T) {
+		seededAt, _, timestamps := process(t, 1000, "192.0.2.10:1234")
+		for name, timestamp := range timestamps {
+			assert.Equal(t, seededAt, timestamp, name)
+		}
+	})
+
+	t.Run("a changed IP is rewritten on its own", func(t *testing.T) {
+		seededAt, attrs, timestamps := process(t, 1000, "192.0.2.20:1234")
+		assert.Equal(t, "192.0.2.20", attrs[ipName])
+		requireOnlyIPRewritten(t, seededAt, timestamps)
+	})
+
+	t.Run("an IP older than half its TTL is rewritten, fresher user agent fields are not", func(t *testing.T) {
+		seededAt, _, timestamps := process(t, 10_000, "192.0.2.10:1234")
+		requireOnlyIPRewritten(t, seededAt, timestamps)
+	})
+}
+
 const staleAttributeFieldName = "test_field"
 
-func staleAttributeFields(ttl, grace int) map[string]*model.PropertyField {
-	return map[string]*model.PropertyField{
-		staleAttributeFieldName: {
-			Name: staleAttributeFieldName,
-			Attrs: model.StringInterface{
-				model.SAAttrTTLSeconds:         ttl,
-				model.SAAttrGracePeriodSeconds: grace,
-			},
-		},
+func staleAttributeFields(ttl, grace int) map[string]*sessionAttributeField {
+	return map[string]*sessionAttributeField{
+		staleAttributeFieldName: {SAField: &model.SAField{Attrs: model.SAAttrs{TTLSeconds: ttl, GracePeriodSeconds: grace}}},
 	}
 }
 

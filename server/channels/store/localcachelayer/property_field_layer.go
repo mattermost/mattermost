@@ -100,13 +100,22 @@ func (s *LocalCachePropertyFieldStore) handleClusterInvalidatePropertyField(msg 
 		if err := s.rootStore.propertyFieldCache.Purge(); err != nil {
 			s.rootStore.logger.Warn("failed to purge property field cache", mlog.Err(err))
 		}
-	} else if err := s.rootStore.propertyFieldCache.Remove(string(msg.Data)); err != nil {
+	} else if err := s.rootStore.propertyFieldCache.RemoveMulti([]string{string(msg.Data), propertyFieldVersionKey(string(msg.Data))}); err != nil {
 		s.rootStore.logger.Warn("failed to remove property field cache entry", mlog.Err(err))
 	}
 }
 
+func propertyFieldVersionKey(groupID string) string {
+	return groupID + "_version"
+}
+
 func (s LocalCachePropertyFieldStore) InvalidateFieldsForGroup(groupID string) {
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.propertyFieldCache, groupID, nil)
+	// The version goes after the fields, so a version created in between can't be
+	// paired with fields that are about to be dropped.
+	if err := s.rootStore.propertyFieldCache.Remove(propertyFieldVersionKey(groupID)); err != nil {
+		s.rootStore.logger.Warn("failed to remove property field version cache entry", mlog.Err(err))
+	}
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.propertyFieldCache.Name())
 	}
@@ -132,4 +141,22 @@ func (s LocalCachePropertyFieldStore) GetForGroup(rctx request.CTX, groupID stri
 
 	s.rootStore.doStandardAddToCache(s.rootStore.propertyFieldCache, groupID, fields)
 	return fields, nil
+}
+
+// GetForGroupVersion returns a token that changes whenever the group's cached
+// fields are dropped, so callers can keep values derived from GetForGroup until
+// it does.
+func (s LocalCachePropertyFieldStore) GetForGroupVersion(rctx request.CTX, groupID string) (string, error) {
+	var version string
+	if err := s.rootStore.doStandardReadCache(s.rootStore.propertyFieldCache, propertyFieldVersionKey(groupID), &version); err == nil {
+		return version, nil
+	}
+
+	version, err := s.PropertyFieldStore.GetForGroupVersion(rctx, groupID)
+	if err != nil {
+		return "", err
+	}
+
+	s.rootStore.doStandardAddToCache(s.rootStore.propertyFieldCache, propertyFieldVersionKey(groupID), version)
+	return version, nil
 }

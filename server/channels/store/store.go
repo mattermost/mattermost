@@ -1220,6 +1220,7 @@ type PropertyFieldStore interface {
 	GetFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, error)
 	GetFieldByNameForObjectType(rctx request.CTX, groupID, targetID, objectType, name string) (*model.PropertyField, error)
 	GetForGroup(rctx request.CTX, groupID string) ([]*model.PropertyField, error)
+	GetForGroupVersion(rctx request.CTX, groupID string) (string, error)
 	CountForGroup(groupID string, includeDeleted bool) (int64, error)
 	CountForGroupObjectType(groupID, objectType string, includeDeleted bool) (int64, error)
 	CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
