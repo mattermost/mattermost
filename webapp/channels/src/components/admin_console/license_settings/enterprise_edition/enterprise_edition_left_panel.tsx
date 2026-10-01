@@ -8,10 +8,10 @@ import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, defineM
 import {useSelector} from 'react-redux';
 
 import AlertOutlineIcon from '@mattermost/compass-icons/components/alert-outline';
-import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ClientLicense} from '@mattermost/types/config';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {Client4} from 'mattermost-redux/client';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getServerLimits} from 'mattermost-redux/selectors/entities/limits';
@@ -98,7 +98,7 @@ const EnterpriseEditionLeftPanel = ({
             id='enterprise_edition_view_plans'
             onClick={openPricingModal}
             emphasis='tertiary'
-            size='sm'
+            size='small'
             className='PlanDetails__viewPlansButton'
         >
             {formatMessage({
@@ -223,7 +223,7 @@ const EnterpriseEditionLeftPanel = ({
                     <span className='licenseInformation__Title'>{'License details'}</span>
                     <Button
                         emphasis='primary'
-                        size='sm'
+                        size='small'
                         onClick={openContactSales}
                     >
                         <FormattedMessage
@@ -518,7 +518,7 @@ const renderRemoveButton = (
             <div className='remove-button'>
                 <Button
                     type='button'
-                    variant='destructive'
+                    destructive={true}
                     onClick={handleRemove}
                     disabled={isDisabled}
                     id='remove-button'

@@ -4,10 +4,10 @@
 import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
@@ -82,7 +82,7 @@ export const ChannelProfile = (props: ChannelProfileProps): JSX.Element => {
                         <Button
                             type='button'
                             emphasis='secondary'
-                            variant={isArchived ? undefined : 'destructive'}
+                            destructive={!isArchived}
                             disabled={isDisabled}
                             onClick={props.onToggleArchive}
                         >

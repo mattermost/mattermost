@@ -3,8 +3,7 @@
 
 import React, {memo, useCallback, useState} from 'react';
 import type {FC, MouseEvent} from 'react';
-
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import Setting from './setting';
 import type {Props as SettingsProps} from './setting';
@@ -53,7 +52,7 @@ const RemoveFileSetting: FC<Props> = ({
                 </div>
                 <Button
                     type='button'
-                    variant='destructive'
+                    destructive={true}
                     onClick={handleRemove}
                     disabled={disabled}
                 >

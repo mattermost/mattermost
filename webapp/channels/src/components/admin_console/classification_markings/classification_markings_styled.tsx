@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import styled from 'styled-components';
-
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import {SectionContent} from '../system_properties/controls';
 

@@ -5,10 +5,10 @@ import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import {updateUserActive} from 'mattermost-redux/actions/users';
 import {Permissions} from 'mattermost-redux/constants';
 import General from 'mattermost-redux/constants/general';

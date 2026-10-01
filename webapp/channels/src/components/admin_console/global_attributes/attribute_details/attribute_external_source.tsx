@@ -7,9 +7,9 @@ import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {CloseCircleIcon, PencilOutlineIcon, RefreshIcon, SyncIcon} from '@mattermost/compass-icons/components';
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import {openModal} from 'actions/views/modals';
 
 import AttributeModal from 'components/admin_console/system_properties/attribute_modal';

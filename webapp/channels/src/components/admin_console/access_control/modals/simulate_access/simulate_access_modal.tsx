@@ -8,7 +8,6 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {CheckIcon, ChevronDownIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
-import {Button} from '@mattermost/compass-ui/components/button';
 import type {
     AccessControlPolicy,
     PolicyEvaluationScope,
@@ -20,6 +19,7 @@ import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {isSessionAttributeField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {simulatePolicyForUsers} from 'mattermost-redux/actions/access_control';
 import {getProfiles, getProfilesInChannel, searchProfiles} from 'mattermost-redux/actions/users';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';

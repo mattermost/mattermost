@@ -5,8 +5,9 @@ import debounce from 'lodash/debounce';
 import React from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
-import {Button, buttonClassNames} from '@mattermost/shared/components/button';
 import type {
+import {Button} from '@mattermost/compass-ui/components/button';
+import {buttonClassNames} from '@mattermost/shared/components/button';
     LogFilter,
     LogLevels,
     LogObject,

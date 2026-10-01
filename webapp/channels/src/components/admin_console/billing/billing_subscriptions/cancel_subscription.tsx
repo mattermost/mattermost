@@ -3,7 +3,6 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-
 import {buttonClassNames} from '@mattermost/shared/components/button';
 
 import {useOpenCloudZendeskSupportForm} from 'components/common/hooks/useOpenZendeskForm';

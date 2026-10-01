@@ -6,8 +6,7 @@ import React, {useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
-
+import {Button} from '@mattermost/compass-ui/components/button';
 import {setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
 
 import {StyledPopoverContainer} from 'components/styled_popover_container';
@@ -123,7 +122,7 @@ export function SystemUsersFilterPopover(props: Props) {
                 {...getReferenceProps()}
                 ref={floatingRefs.setReference}
                 emphasis='tertiary'
-                size='md'
+                size='medium'
                 aria-controls='systemUsersFilterPopover'
             >
                 <i className='icon icon-filter-variant'/>
@@ -162,7 +161,7 @@ export function SystemUsersFilterPopover(props: Props) {
                         <div className='footer'>
                             <Button
                                 emphasis='primary'
-                                size='md'
+                                size='medium'
                                 onClick={handleApplyFilters}
                                 type='submit'
                             >

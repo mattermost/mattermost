@@ -7,10 +7,10 @@ import type {MessageDescriptor} from 'react-intl';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import {ChevronDownIcon, SyncIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldVisibility} from '@mattermost/types/properties';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {resourceTypeLabels, type AttributeAppliesToItemProps} from './attribute_applies_to_constants';
 import AttributeSelect from './attribute_select';
 import type {AttributeSelectOption} from './attribute_select';
@@ -97,8 +97,8 @@ function AttributeAppliesToUserItem({
                     <Button
                         type='button'
                         emphasis='tertiary'
-                        variant='destructive'
-                        size='sm'
+                        destructive={true}
+                        size='small'
                         className='AttributeAppliesToItem__remove'
                         onClick={onRemove}
                         disabled={disabled}

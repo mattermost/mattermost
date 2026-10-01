@@ -3,8 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import Tag from 'components/widgets/tag/tag';

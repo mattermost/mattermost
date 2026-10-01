@@ -4,10 +4,10 @@
 import React from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import GeneralConstants from 'mattermost-redux/constants/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 

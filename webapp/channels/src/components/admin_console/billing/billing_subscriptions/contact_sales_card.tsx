@@ -3,8 +3,8 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import {Button, buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {buttonClassNames} from '@mattermost/shared/components/button';
 
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import CloudTrialSvg from 'components/common/svg_images_components/cloud_trial_svg';

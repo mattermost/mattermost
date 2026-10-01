@@ -5,12 +5,12 @@ import React, {type JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {AccessControlTestResult} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {isSessionAttributeField} from '@mattermost/types/properties_user';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -513,7 +513,7 @@ export function TestButton({onClick, disabled, disabledTooltip, label}: TestButt
     const button = (
         <Button
             emphasis='tertiary'
-            size='sm'
+            size='small'
             onClick={onClick}
             disabled={disabled}
         >
@@ -602,7 +602,7 @@ export function AddAttributeButton({onClick, disabled}: AddAttributeButtonProps)
     return (
         <Button
             emphasis='tertiary'
-            size='sm'
+            size='small'
             onClick={onClick}
             disabled={disabled}
         >

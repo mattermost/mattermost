@@ -6,10 +6,10 @@ import type {ChangeEvent} from 'react';
 import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Team} from '@mattermost/types/teams';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import useGetUsage from 'components/common/hooks/useGetUsage';
@@ -74,7 +74,7 @@ export function TeamProfile({team, name, description, onNameChange, onDescriptio
                         type='button'
                         disabled={isDisabled || restoreDisabled}
                         emphasis='secondary'
-                        variant='destructive'
+                        destructive={true}
                     >
                         {isArchived ? (
                             <i className='icon icon-archive-arrow-up-outline'/>
@@ -91,7 +91,7 @@ export function TeamProfile({team, name, description, onNameChange, onDescriptio
                 type='button'
                 disabled={isDisabled}
                 emphasis='secondary'
-                variant='destructive'
+                destructive={true}
                 onClick={toggleArchive}
             >
                 {isArchived ? (

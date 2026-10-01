@@ -4,8 +4,7 @@
 import React, {useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {Button} from '@mattermost/compass-ui/components/button';
-import type {ButtonEmphasis, ButtonSize} from '@mattermost/compass-ui/components/button';
+import {Button, type ButtonEmphasis, type ButtonSize} from '@mattermost/compass-ui/components/button';
 
 import {deferNavigation} from 'actions/admin_actions';
 import {getNavigationBlocked} from 'selectors/views/admin';

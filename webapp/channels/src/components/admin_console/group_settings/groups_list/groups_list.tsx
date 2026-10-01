@@ -5,9 +5,9 @@ import classNames from 'classnames';
 import React, {type JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
 import type {GroupSearchOpts, MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import GroupRow from 'components/admin_console/group_settings/group_row';

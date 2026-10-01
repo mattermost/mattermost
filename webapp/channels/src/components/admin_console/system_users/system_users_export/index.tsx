@@ -5,12 +5,12 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {ReportDuration} from '@mattermost/types/reports';
 import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Preferences} from 'mattermost-redux/constants';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -101,7 +101,7 @@ export function SystemUsersExport(props: Props) {
         <Button
             onClick={handleExport}
             emphasis='tertiary'
-            size='md'
+            size='medium'
             disabled={!props.usersLenght}
         >
             <span className='icon icon-download-outline'/>
