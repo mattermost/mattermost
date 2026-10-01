@@ -306,6 +306,9 @@ export function Menu(props: Props) {
                 aria-controls={props.menu.id}
                 aria-haspopup={true}
                 aria-expanded={isMenuOpen}
+
+                // Native <button> uses disabled. Div triggers are not form
+                // controls, so they expose aria-disabled for AT instead.
                 disabled={isDivTrigger ? undefined : isDisabled}
                 aria-disabled={isDivTrigger ? isDisabled : undefined}
                 role={isDivTrigger ? 'button' : undefined}
