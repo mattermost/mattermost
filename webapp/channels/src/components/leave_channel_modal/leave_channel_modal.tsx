@@ -4,6 +4,7 @@
 import React, {useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
 
@@ -79,9 +80,10 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
         );
 
         const leaveButton = (
-            <button
+            <Button
                 type='button'
-                className='btn btn-danger'
+                emphasis='primary'
+                destructive={true}
                 onClick={handleSubmit}
                 id='confirmModalButton'
             >
@@ -89,7 +91,7 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
                     id='leave_policy_channel_modal.leave'
                     defaultMessage='Leave channel'
                 />
-            </button>
+            </Button>
         );
 
         // Default focus goes to the non-destructive option so pressing Enter
@@ -97,9 +99,9 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
         let secondaryButton;
         if (!isMuted && currentUserId && actions.muteChannel) {
             secondaryButton = (
-                <button
+                <Button
                     type='button'
-                    className='btn btn-tertiary'
+                    emphasis='tertiary'
                     onClick={handleMuteInstead}
                     id='leavePolicyChannelMuteButton'
                     autoFocus={true}
@@ -108,13 +110,13 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
                         id='leave_policy_channel_modal.mute_instead'
                         defaultMessage='Mute instead'
                     />
-                </button>
+                </Button>
             );
         } else {
             secondaryButton = (
-                <button
+                <Button
                     type='button'
-                    className='btn btn-tertiary'
+                    emphasis='tertiary'
                     onClick={handleHide}
                     id='cancelModalButton'
                     autoFocus={true}
@@ -123,7 +125,7 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
                         id='confirm_modal.cancel'
                         defaultMessage='Cancel'
                     />
-                </button>
+                </Button>
             );
         }
 
