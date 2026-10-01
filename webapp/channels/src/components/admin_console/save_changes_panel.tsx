@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX} from 'react';
+import React, {useCallback, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {Button} from '@mattermost/compass-ui/components/button';
-import {buttonClassNames} from '@mattermost/shared/components/button';
 
-import BlockableLink from 'components/admin_console/blockable_link';
+import {deferNavigation} from 'actions/admin_actions';
 import SaveButton from 'components/save_button';
+import {getNavigationBlocked} from 'selectors/views/admin';
+import {getHistory} from 'utils/browser_history';
 
 type Props = {
     saving: boolean;
@@ -25,6 +27,26 @@ type Props = {
 
 const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink, onCancel, isDisabled, savingMessage}: Props) => {
     const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
+    const navigationBlocked = useSelector(getNavigationBlocked);
+
+    const handleCancelNavigation = useCallback(() => {
+        if (!cancelLink) {
+            return;
+        }
+
+        if (navigationBlocked) {
+            dispatch(deferNavigation(() => {
+                getHistory().push(cancelLink);
+            }));
+            return;
+        }
+
+        getHistory().push(cancelLink);
+    }, [cancelLink, dispatch, navigationBlocked]);
+
+    const showCancel = Boolean(cancelLink) || Boolean(onCancel);
+
     return (
         <div className='admin-console-save'>
             <SaveButton
@@ -33,23 +55,12 @@ const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink,
                 onClick={onClick}
                 savingMessage={savingMessage ?? formatMessage({id: 'admin.team_channel_settings.saving', defaultMessage: 'Saving Config...'})}
             />
-            {cancelLink ? (
-                <BlockableLink
-                    id='cancelButtonSettings'
-                    className={buttonClassNames({emphasis: 'quaternary'})}
-                    to={cancelLink}
-                >
-                    <FormattedMessage
-                        id='admin.team_channel_settings.cancel'
-                        defaultMessage='Cancel'
-                    />
-                </BlockableLink>
-            ) : onCancel && (
+            {showCancel && (
                 <Button
                     id='cancelButtonSettings'
                     type='button'
-                    emphasis='quaternary'
-                    onClick={onCancel}
+                    emphasis='tertiary'
+                    onClick={cancelLink ? handleCancelNavigation : () => onCancel?.()}
                 >
                     <FormattedMessage
                         id='admin.team_channel_settings.cancel'

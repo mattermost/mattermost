@@ -547,11 +547,12 @@
         padding: 0 10px;
         border-top: 1px solid functions.alpha-color(variables.$black, 0.1);
         background: white;
+        gap: 8px;
 
         .save-button {
             min-width: 100px;
             height: 34px;
-            margin: 0 10px;
+            margin: 0;
             background: variables.$light-gray;
             color: functions.alpha-color(variables.$black, 0.5);
             opacity: 1;
@@ -569,7 +570,7 @@
             align-items: center;
             justify-content: center;
             border-radius: var(--radius-s);
-            margin: 0 10px 0 0;
+            margin: 0;
             text-decoration: none;
             transition: all 0.15s ease;
 
@@ -581,7 +582,7 @@
 
         .error-message {
             overflow: hidden;
-            margin-left: 10px;
+            margin-left: 0;
 
             .control-label {
                 padding: 5px 0 0 0;
