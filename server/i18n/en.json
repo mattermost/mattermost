@@ -14342,11 +14342,6 @@
     "description": "Health dashboard finding detail when the AD/LDAP connection test run by the server failed. 'LdapServer', 'LdapPort', 'ConnectionSecurity' and the button label 'Test Connection' are config or product names and should not be translated."
   },
   {
-    "id": "health.rule.ldap_probe_failed.message.unavailable",
-    "translation": "The LDAP connection test result is unavailable.",
-    "description": "Health dashboard reason shown when the result of the server's AD/LDAP connection test is not available, so the check's status is unknown."
-  },
-  {
     "id": "health.rule.ldap_probe_failed.remediation",
     "translation": "Check the error details, then confirm LdapServer, LdapPort, ConnectionSecurity and the bind credentials, and that the Mattermost servers can reach the LDAP server. Use Test Connection on the AD/LDAP page to check again.",
     "description": "Health dashboard fix-it step when the AD/LDAP connection test run by the server failed. 'LdapServer', 'LdapPort', 'ConnectionSecurity' and the button label 'Test Connection' are config or product names and should not be translated."
@@ -14377,11 +14372,6 @@
     "description": "Health dashboard finding detail when a workspace with more than 100 users uses neither AD/LDAP nor SAML. {{.users}} is the number of user accounts. 'AD/LDAP' and 'SAML' are config or product names and should not be translated."
   },
   {
-    "id": "health.rule.ldap_recommended_at_scale.message.stats_unavailable",
-    "translation": "The registered user count is unavailable.",
-    "description": "Health dashboard reason shown when the AD/LDAP recommendation could not be checked because the user count could not be read, so its status is unknown."
-  },
-  {
     "id": "health.rule.ldap_recommended_at_scale.remediation",
     "translation": "If you run an AD/LDAP directory, enable and configure AD/LDAP. Otherwise consider SAML for centralized identity.",
     "description": "Health dashboard fix-it step when a workspace with more than 100 users uses neither AD/LDAP nor SAML. 'AD/LDAP' and 'SAML' are config or product names and should not be translated."
@@ -14410,11 +14400,6 @@
     "id": "health.rule.ldap_sync_duty_cycle.message",
     "translation": "SyncIntervalMinutes is {{.interval_minutes}}, and recent LDAP sync runs averaged {{.avg_run_seconds}} seconds, {{.duty_pct}}% of the interval. With almost no quiet window, the continuous directory walk adds steady database load and replica lag.",
     "description": "Health dashboard finding detail when each AD/LDAP sync run takes at least a quarter of the sync interval. {{.interval_minutes}} is the sync interval in minutes, {{.avg_run_seconds}} the average run length in seconds and {{.duty_pct}} the percentage of the interval. 'SyncIntervalMinutes', 'LdapSettings.UserFilter' and 'BaseDN' are config or product names and should not be translated."
-  },
-  {
-    "id": "health.rule.ldap_sync_duty_cycle.message.jobs_unavailable",
-    "translation": "LDAP sync job history is unavailable.",
-    "description": "Health dashboard reason shown when the AD/LDAP sync duration check could not run because the sync job history could not be read, so its status is unknown."
   },
   {
     "id": "health.rule.ldap_sync_duty_cycle.message.no_runs",
@@ -14560,11 +14545,6 @@
     "id": "health.rule.saml_metadata_unreachable.message",
     "translation": "The leader node could not fetch the IdP metadata from IdpMetadataURL. Sign-in uses the IdP certificate already configured, so it can keep working, but the URL is wrong, blocked, or the IdP is down.",
     "description": "Health dashboard finding detail when the server could not download the SAML identity provider metadata. 'IdpMetadataURL' is a config name and should not be translated."
-  },
-  {
-    "id": "health.rule.saml_metadata_unreachable.message.unavailable",
-    "translation": "The SAML metadata test result is unavailable.",
-    "description": "Health dashboard reason shown when the result of the server's SAML metadata download test is not available, so the check's status is unknown."
   },
   {
     "id": "health.rule.saml_metadata_unreachable.remediation",
