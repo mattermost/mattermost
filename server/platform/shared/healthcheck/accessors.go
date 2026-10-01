@@ -5,6 +5,7 @@ package healthcheck
 
 import (
 	"slices"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -100,17 +101,29 @@ func (s *Snapshot) JobsFor(jobType string) ([]*model.Job, bool) {
 	}
 }
 
-func (s *Snapshot) LicenseFeature(get func(*model.Features) *bool) (bool, bool) {
-	if get == nil || s == nil || s.License == nil || s.License.Features == nil {
-		return false, false
+// LicenseSeats returns the licensed seat count, or ok=false when there is no license or it
+// sets no positive seat count.
+func (s *Snapshot) LicenseSeats() (int, bool) {
+	if s == nil || s.License == nil || s.License.Features == nil || s.License.Features.Users == nil {
+		return 0, false
 	}
 
-	value := get(s.License.Features)
-	if value == nil {
-		return false, false
+	seats := *s.License.Features.Users
+	if seats <= 0 {
+		return 0, false
 	}
 
-	return *value, true
+	return seats, true
+}
+
+// LicenseExpiresAt returns when the license expires, or ok=false when there is no license or
+// no expiry is recorded, as in older Support Packets.
+func (s *Snapshot) LicenseExpiresAt() (time.Time, bool) {
+	if s == nil || s.License == nil || s.License.ExpiresAt == 0 {
+		return time.Time{}, false
+	}
+
+	return time.UnixMilli(s.License.ExpiresAt).UTC(), true
 }
 
 func (s *Snapshot) PluginEnabled(id string) (bool, bool) {
