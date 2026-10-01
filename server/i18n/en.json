@@ -14292,6 +14292,51 @@
     "description": "Health dashboard reason shown when a health check could not run because the usage statistics it inspects (for example user or post counts) were not collected, so the check's status is unknown."
   },
   {
+    "id": "health.rule.license_expired.message",
+    "translation": "The license expired on {{.expires_at}}.",
+    "description": "Health dashboard finding detail when the license has expired; {{.expires_at}} is the expiry date (YYYY-MM-DD)."
+  },
+  {
+    "id": "health.rule.license_expired.remediation",
+    "translation": "Renew the license and upload it in System Console > About > Edition and License. The server removes an expired license 10 days after it expires, and Enterprise features stop working.",
+    "description": "Health dashboard fix-it step for an expired license; 'System Console > About > Edition and License' is the path to the license page in the admin UI."
+  },
+  {
+    "id": "health.rule.license_expired.title",
+    "translation": "License has expired",
+    "description": "Health dashboard finding title when the server's license expired before the health data was collected."
+  },
+  {
+    "id": "health.rule.license_expiring.message",
+    "translation": "The license expires on {{.expires_at}}.",
+    "description": "Health dashboard finding detail when the license expires within 30 days; {{.expires_at}} is the expiry date (YYYY-MM-DD)."
+  },
+  {
+    "id": "health.rule.license_expiring.remediation",
+    "translation": "Start the renewal now, so the new license can be uploaded in System Console > About > Edition and License before the current one expires.",
+    "description": "Health dashboard fix-it step for a license that expires soon; 'System Console > About > Edition and License' is the path to the license page in the admin UI."
+  },
+  {
+    "id": "health.rule.license_expiring.title",
+    "translation": "License expires within 30 days",
+    "description": "Health dashboard finding title when the server's license expires in less than 30 days."
+  },
+  {
+    "id": "health.rule.license_trial.message",
+    "translation": "This server is running on a trial license.",
+    "description": "Health dashboard finding detail when the server uses a trial license."
+  },
+  {
+    "id": "health.rule.license_trial.remediation",
+    "translation": "Purchase a license and upload it in System Console > About > Edition and License before the trial ends.",
+    "description": "Health dashboard fix-it step for a server on a trial license; 'System Console > About > Edition and License' is the path to the license page in the admin UI."
+  },
+  {
+    "id": "health.rule.license_trial.title",
+    "translation": "Server is on a trial license",
+    "description": "Health dashboard finding title when the server uses a trial license rather than a purchased one."
+  },
+  {
     "id": "health.rule.push_bad_scheme.message.http",
     "translation": "PushNotificationServer {{.url}} uses http://, so push notifications are sent in cleartext.",
     "description": "Health dashboard finding detail when the push notification server URL starts with http:// instead of https://; {{.url}} is the configured URL. 'PushNotificationServer' is a config setting name and should not be translated."
@@ -14342,6 +14387,81 @@
     "description": "Health dashboard finding title when the push notification server is Mattermost's test push proxy; 'PushNotificationServer' is a config setting name and should not be translated."
   },
   {
+    "id": "health.rule.seats_limit_reached.message",
+    "translation": "{{.used}} active users have reached the license limit of {{.limit}} users. The server does not create or reactivate users until seats are freed or added.",
+    "description": "Health dashboard finding detail when the license's enforced user limit is reached; {{.used}} is the number of users taking a seat and {{.limit}} is the licensed seats plus any extra users the license allows."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.remediation",
+    "translation": "Purchase additional seats, or deactivate users who no longer need access to free seats.",
+    "description": "Health dashboard fix-it step when the license's user limit is reached and the server refuses new users."
+  },
+  {
+    "id": "health.rule.seats_limit_reached.title",
+    "translation": "Licensed user limit reached",
+    "description": "Health dashboard finding title when the number of active users reached the hard user limit the license enforces."
+  },
+  {
+    "id": "health.rule.seats_low_engagement.message",
+    "translation": "{{.monthly_active}} of {{.active}} active users ({{.percent}}%) used Mattermost in the last 30 days.",
+    "description": "Health dashboard finding detail for low monthly engagement; {{.monthly_active}} is the number of users active in the last 30 days, {{.active}} the number of active (not deactivated) user accounts and {{.percent}} the ratio as a percentage."
+  },
+  {
+    "id": "health.rule.seats_low_engagement.remediation",
+    "translation": "Review usage by team to identify groups with low engagement, and consider targeted enablement or training for them.",
+    "description": "Health dashboard fix-it step for low monthly engagement among user accounts."
+  },
+  {
+    "id": "health.rule.seats_low_engagement.title",
+    "translation": "Less than 60% of users are active monthly",
+    "description": "Health dashboard finding title when fewer than 60% of active user accounts used Mattermost in the last 30 days."
+  },
+  {
+    "id": "health.rule.seats_low_utilization.message",
+    "translation": "Only {{.used}} of {{.seats}} licensed seats are in use ({{.percent}}%).",
+    "description": "Health dashboard finding detail when few licensed seats are used; {{.used}} is the number of users taking a seat, {{.seats}} the licensed seats and {{.percent}} the ratio as a percentage."
+  },
+  {
+    "id": "health.rule.seats_low_utilization.remediation",
+    "translation": "Check whether the unused seats are reserved for a planned rollout phase. If adoption has stalled, review onboarding for the teams that have not joined yet.",
+    "description": "Health dashboard fix-it step when fewer than 30% of licensed seats are in use."
+  },
+  {
+    "id": "health.rule.seats_low_utilization.title",
+    "translation": "Less than 30% of licensed seats are in use",
+    "description": "Health dashboard finding title when fewer than 30% of the licensed seats are taken by active users."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.message",
+    "translation": "{{.used}} active users against {{.seats}} licensed seats ({{.percent}}%).",
+    "description": "Health dashboard finding detail when licensed seats are nearly full; {{.used}} is the number of users taking a seat, {{.seats}} the licensed seats and {{.percent}} the ratio as a percentage."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.remediation",
+    "translation": "If you expect more users, plan additional seats before the license is full. Deactivating users who no longer need access frees seats.",
+    "description": "Health dashboard fix-it step when 90% or more of the licensed seats are in use."
+  },
+  {
+    "id": "health.rule.seats_near_capacity.title",
+    "translation": "Licensed seats are nearly full",
+    "description": "Health dashboard finding title when 90% to 100% of the licensed seats are taken by active users."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.message",
+    "translation": "{{.used}} active users against {{.seats}} licensed seats ({{.percent}}%).",
+    "description": "Health dashboard finding detail when more users take a seat than the license covers; {{.used}} is the number of users taking a seat, {{.seats}} the licensed seats and {{.percent}} the ratio as a percentage."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.remediation",
+    "translation": "Purchase additional seats, or deactivate users who no longer need access. Deactivated users do not take a seat.",
+    "description": "Health dashboard fix-it step when more users are active than the license has seats for."
+  },
+  {
+    "id": "health.rule.seats_over_deployed.title",
+    "translation": "More active users than licensed seats",
+    "description": "Health dashboard finding title when the number of active users exceeds the licensed seat count."
+  },
+  {
     "id": "health.rule.site_url_empty.message",
     "translation": "SiteURL is required for webhook URLs, OAuth callbacks, mobile push payloads, and email links. Integrations are broken while it is empty.",
     "description": "Health dashboard finding detail explaining what breaks while the Site URL setting is empty; 'SiteURL' is a config setting name and should not be translated."
@@ -14370,6 +14490,36 @@
     "id": "health.rule.site_url_http.title",
     "translation": "SiteURL uses http:// (not https)",
     "description": "Health dashboard finding title when the Site URL starts with http:// instead of https://; 'SiteURL' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.workflow_usage_chat_only.message",
+    "translation": "{{.plugins}} plugins enabled, {{.webhooks}} incoming webhooks and {{.bots}} bot accounts. Mattermost is used mostly for chat, with few connected workflows.",
+    "description": "Health dashboard finding detail when Mattermost has almost no integrations; {{.plugins}} is the number of enabled plugins, {{.webhooks}} the number of incoming webhooks and {{.bots}} the number of bot accounts."
+  },
+  {
+    "id": "health.rule.workflow_usage_chat_only.remediation",
+    "translation": "Map the tools your teams use every day to Mattermost integrations (for example GitHub, Jira, ServiceNow, Calls or Playbooks), and pilot two or three that add the most value.",
+    "description": "Health dashboard fix-it step when Mattermost is used for chat only; GitHub, Jira, ServiceNow, Calls and Playbooks are product names and should not be translated."
+  },
+  {
+    "id": "health.rule.workflow_usage_chat_only.title",
+    "translation": "Mattermost is used for chat only",
+    "description": "Health dashboard finding title when at most one plugin is enabled and there are very few incoming webhooks and bot accounts."
+  },
+  {
+    "id": "health.rule.workflow_usage_light.message",
+    "translation": "{{.plugins}} plugins enabled and {{.webhooks}} incoming webhooks. There is room to connect more workflows to Mattermost.",
+    "description": "Health dashboard finding detail when Mattermost has few integrations; {{.plugins}} is the number of enabled plugins and {{.webhooks}} the number of incoming webhooks."
+  },
+  {
+    "id": "health.rule.workflow_usage_light.remediation",
+    "translation": "Identify two or three more integrations that fit your teams' tools, and pilot them.",
+    "description": "Health dashboard fix-it step when Mattermost uses only a few integrations."
+  },
+  {
+    "id": "health.rule.workflow_usage_light.title",
+    "translation": "Light use of integrations",
+    "description": "Health dashboard finding title when at most two plugins are enabled and there are fewer than 50 incoming webhooks."
   },
   {
     "id": "humanize.list_join",

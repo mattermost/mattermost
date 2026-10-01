@@ -30,6 +30,12 @@ import (
 const (
 	pushSubject    = "EmailSettings.PushNotificationServer"
 	siteURLSubject = "ServiceSettings.SiteURL"
+
+	expiresAtSubject  = "license.expires_at"
+	trialSubject      = "license.is_trial"
+	seatsSubject      = "license.users"
+	engagementSubject = "stats.monthly_active_users"
+	workflowSubject   = "plugins.enabled"
 )
 
 type finding struct {
@@ -129,6 +135,16 @@ func TestReadGoldenPackets(t *testing.T) {
 				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateFiring, Subject: pushSubject},
 				{Code: "SITE_URL_EMPTY", State: healthcheck.StateResolved, Subject: siteURLSubject},
 				{Code: "SITE_URL_HTTP", State: healthcheck.StateFiring, Subject: siteURLSubject},
+				{Code: "LICENSE_EXPIRED", State: healthcheck.StateUnknown, Subject: expiresAtSubject},
+				{Code: "LICENSE_EXPIRING", State: healthcheck.StateUnknown, Subject: expiresAtSubject},
+				{Code: "LICENSE_TRIAL", State: healthcheck.StateResolved, Subject: trialSubject},
+				{Code: "SEATS_OVER_DEPLOYED", State: healthcheck.StateResolved, Subject: seatsSubject},
+				{Code: "SEATS_LIMIT_REACHED", State: healthcheck.StateUnknown, Subject: seatsSubject},
+				{Code: "SEATS_NEAR_CAPACITY", State: healthcheck.StateResolved, Subject: seatsSubject},
+				{Code: "SEATS_LOW_UTILIZATION", State: healthcheck.StateResolved, Subject: seatsSubject},
+				{Code: "SEATS_LOW_ENGAGEMENT", State: healthcheck.StateResolved, Subject: engagementSubject},
+				{Code: "WORKFLOW_USAGE_CHAT_ONLY", State: healthcheck.StateFiring, Subject: workflowSubject},
+				{Code: "WORKFLOW_USAGE_LIGHT", State: healthcheck.StateResolved, Subject: workflowSubject},
 			},
 		},
 		{
@@ -139,6 +155,16 @@ func TestReadGoldenPackets(t *testing.T) {
 				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateResolved, Subject: pushSubject},
 				{Code: "SITE_URL_EMPTY", State: healthcheck.StateResolved, Subject: siteURLSubject},
 				{Code: "SITE_URL_HTTP", State: healthcheck.StateResolved, Subject: siteURLSubject},
+				{Code: "LICENSE_EXPIRED", State: healthcheck.StateResolved, Subject: expiresAtSubject},
+				{Code: "LICENSE_EXPIRING", State: healthcheck.StateFiring, Subject: expiresAtSubject},
+				{Code: "LICENSE_TRIAL", State: healthcheck.StateResolved, Subject: trialSubject},
+				{Code: "SEATS_OVER_DEPLOYED", State: healthcheck.StateResolved, Subject: seatsSubject},
+				{Code: "SEATS_LIMIT_REACHED", State: healthcheck.StateResolved, Subject: seatsSubject},
+				{Code: "SEATS_NEAR_CAPACITY", State: healthcheck.StateResolved, Subject: seatsSubject},
+				{Code: "SEATS_LOW_UTILIZATION", State: healthcheck.StateResolved, Subject: seatsSubject},
+				{Code: "SEATS_LOW_ENGAGEMENT", State: healthcheck.StateResolved, Subject: engagementSubject},
+				{Code: "WORKFLOW_USAGE_CHAT_ONLY", State: healthcheck.StateFiring, Subject: workflowSubject},
+				{Code: "WORKFLOW_USAGE_LIGHT", State: healthcheck.StateResolved, Subject: workflowSubject},
 			},
 		},
 	}
