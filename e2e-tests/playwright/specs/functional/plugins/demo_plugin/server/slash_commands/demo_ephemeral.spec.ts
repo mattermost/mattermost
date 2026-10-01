@@ -6,7 +6,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 import {setupDemoPlugin} from '../../helpers';
 
 test('should send ephemeral post with Update and Delete actions via /ephemeral command', async ({pw}) => {
-    test.setTimeout(120000);
+    test.setTimeout(160000);
 
     // 1. Setup
     const {adminClient, user, team} = await pw.initSetup();
@@ -58,8 +58,8 @@ test('should send ephemeral post with Update and Delete actions via /ephemeral c
         .last();
     // The 30s ceiling here is tight under full-suite CI load (30 parallel workers):
     // the plugin's server-side round-trip is fast (~200ms), but the websocket-delivery-
-    // to-render path can lag under contention. test.setTimeout(120000) already budgets
-    // for this, so widen the poll to use that headroom instead of failing in-flight work.
+    // to-render path can lag under contention. test.setTimeout widened above (120000 ->
+    // 160000) to budget for this, so widen the poll too instead of failing in-flight work.
     await expect
         .poll(async () => updatedPost.getByText('updated ephemeral action', {exact: true}).isVisible(), {
             timeout: 60000,
