@@ -549,40 +549,8 @@
         background: white;
         gap: 8px;
 
-        .save-button {
-            min-width: 100px;
-            height: 34px;
-            margin: 0;
-            background: variables.$light-gray;
-            color: functions.alpha-color(variables.$black, 0.5);
-            opacity: 1;
-
-            &.btn-primary {
-                background: variables.$primary-color;
-                color: variables.$white;
-            }
-        }
-
-        .cancel-button {
-            display: flex;
-            min-width: 100px;
-            height: 34px;
-            align-items: center;
-            justify-content: center;
-            border-radius: var(--radius-s);
-            margin: 0;
-            text-decoration: none;
-            transition: all 0.15s ease;
-
-            &:hover {
-                background-color: variables.$primary-color;
-                color: variables.$white;
-            }
-        }
-
         .error-message {
             overflow: hidden;
-            margin-left: 0;
 
             .control-label {
                 padding: 5px 0 0 0;
