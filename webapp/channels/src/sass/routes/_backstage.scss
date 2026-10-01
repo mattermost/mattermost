@@ -311,10 +311,10 @@
 
 .backstage-form__footer {
     display: flex;
+    overflow: hidden;
     flex-wrap: wrap;
     align-items: center;
     justify-content: flex-end;
-    overflow: hidden;
     padding-top: 1.8em;
     border-top: 1px solid variables.$light-gray;
     margin-top: 2.5em;
