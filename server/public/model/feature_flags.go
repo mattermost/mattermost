@@ -234,7 +234,7 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.PropertyFieldGraph = true
 
-	f.ChannelAttributes = false
+	f.ChannelAttributes = true
 
 	f.ChannelAttributesRequired = false
 
