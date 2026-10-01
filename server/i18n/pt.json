@@ -813,15 +813,24 @@
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": ""
+    "translation": {
+      "one": "[{{.SiteName}}] Nova notificação de {{.Day}} de {{.Month}} de {{.Year}}",
+      "other": "[{{.SiteName}}] Novas notificações de {{.Day}} de {{.Month}} de {{.Year}}"
+    }
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
-    "translation": ""
+    "translation": {
+      "one": "{{.Count}} ficheiro enviado: {{.Filenames}}",
+      "other": "{{.Count}} ficheiros enviados: {{.Filenames}}"
+    }
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
-    "translation": ""
+    "translation": {
+      "one": "{{.Count}} imagem enviada: {{.Filenames}}",
+      "other": "{{.Count}} imagens enviadas: {{.Filenames}}"
+    }
   },
   {
     "id": "app.scheduled_post.failed_message_detail",
@@ -2357,2791 +2366,2791 @@
   },
   {
     "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
-    "translation": ""
+    "translation": "Não é possível guardar um rascunho num canal eliminado"
   },
   {
     "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
-    "translation": ""
+    "translation": "Não é possível guardar um rascunho num canal de mensagem direta restrito"
   },
   {
     "id": "api.drafts.disabled.app_error",
-    "translation": ""
+    "translation": "A funcionalidade de rascunhos está desativada."
   },
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
-    "translation": ""
+    "translation": "As definições do Elasticsearch têm valores por definir."
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
-    "translation": ""
+    "translation": "A fila de receção da tarefa de agrupamento de e-mails estava cheia. Por favor, aumente o valor de EmailBatchingBufferSize."
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": ""
+    "translation": "O agrupamento de e-mails foi desativado pelo administrador do sistema."
   },
   {
     "id": "api.email_batching.send_batched_email_notification.button",
-    "translation": ""
+    "translation": "Abrir o Mattermost"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.messageButton",
-    "translation": ""
+    "translation": "Ver esta mensagem"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subTitle",
-    "translation": ""
+    "translation": "Veja abaixo um resumo das suas novas mensagens."
   },
   {
     "id": "api.email_batching.send_batched_email_notification.time",
-    "translation": ""
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.title",
-    "translation": ""
+    "translation": "Tem novas mensagens"
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
-    "translation": ""
+    "translation": "Não é possível criar o emoji. Já existe outro emoji com o mesmo nome."
   },
   {
     "id": "api.emoji.create.internal_error",
-    "translation": ""
+    "translation": "server_error: Ocorreu um erro interno do servidor ao criar o emoji."
   },
   {
     "id": "api.emoji.create.other_user.app_error",
-    "translation": ""
+    "translation": "Id. de utilizador inválido."
   },
   {
     "id": "api.emoji.create.parse.app_error",
-    "translation": ""
+    "translation": "Não é possível criar o emoji. Não foi possível interpretar o pedido."
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": ""
+    "translation": "Não é possível criar o emoji. A imagem deve ter menos de 512 KiB."
   },
   {
     "id": "api.emoji.disabled.app_error",
-    "translation": ""
+    "translation": "Os emojis personalizados foram desativados pelo administrador do sistema."
   },
   {
     "id": "api.emoji.get_image.decode.app_error",
-    "translation": ""
+    "translation": "Não é possível descodificar o ficheiro de imagem do emoji."
   },
   {
     "id": "api.emoji.get_image.read.app_error",
-    "translation": ""
+    "translation": "Não é possível ler o ficheiro de imagem do emoji."
   },
   {
     "id": "api.emoji.get_multiple_by_name_too_many.request_error",
-    "translation": ""
+    "translation": "Não é possível obter tantos emojis por nome. Só podem ser pedidos {{.MaxNames}} emojis de cada vez."
   },
   {
     "id": "api.emoji.storage.app_error",
-    "translation": ""
+    "translation": "O armazenamento de ficheiros não está configurado corretamente. Por favor, configure o armazenamento de ficheiros em S3 ou no servidor local."
   },
   {
     "id": "api.emoji.upload.image.app_error",
-    "translation": ""
+    "translation": "Não é possível criar o emoji. O ficheiro deve ser PNG, JPEG ou GIF."
   },
   {
     "id": "api.emoji.upload.large_image.decode_error",
-    "translation": ""
+    "translation": "Não é possível criar o emoji. Ocorreu um erro ao tentar descodificar a imagem."
   },
   {
     "id": "api.emoji.upload.large_image.encode_error",
-    "translation": ""
+    "translation": "Não é possível criar o emoji. Ocorreu um erro ao tentar codificar a imagem."
   },
   {
     "id": "api.emoji.upload.large_image.gif_decode_error",
-    "translation": ""
+    "translation": "Não é possível criar o emoji. Ocorreu um erro ao tentar descodificar a imagem GIF."
   },
   {
     "id": "api.emoji.upload.large_image.gif_encode_error",
-    "translation": ""
+    "translation": "Não é possível criar o emoji. Ocorreu um erro ao tentar codificar a imagem GIF."
   },
   {
     "id": "api.emoji.upload.large_image.too_large.app_error",
-    "translation": ""
+    "translation": "Não é possível criar o emoji. A imagem deve ser mais pequena do que {{.MaxWidth}} por {{.MaxHeight}}."
   },
   {
     "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
-    "translation": ""
+    "translation": "Não é possível criar o emoji. A imagem é demasiado grande para ser processada. Tente utilizar uma com dimensões mais pequenas ou menos fotogramas."
   },
   {
     "id": "api.emoji.upload.open.app_error",
-    "translation": ""
+    "translation": "Não é possível criar o emoji. Ocorreu um erro ao tentar abrir a imagem anexada."
   },
   {
     "id": "api.emoji.upload.seek.app_error",
-    "translation": ""
+    "translation": "Não é possível posicionar no início do ficheiro."
   },
   {
     "id": "api.emoji.upload.too_many_frames.app_error",
-    "translation": ""
+    "translation": "Não é possível criar o emoji. O GIF animado deve ter no máximo {{.MaxFrames}} fotogramas."
   },
   {
     "id": "api.encoding_error",
-    "translation": ""
+    "translation": "Ocorreu um erro ao codificar o JSON da resposta da API"
   },
   {
     "id": "api.error_get_first_admin_complete_setup",
-    "translation": ""
+    "translation": "Erro ao tentar obter do armazenamento o estado de conclusão da configuração pelo primeiro administrador."
   },
   {
     "id": "api.error_get_first_admin_visit_marketplace_status",
-    "translation": ""
+    "translation": "Erro ao tentar obter do armazenamento o estado da visita do primeiro administrador ao Marketplace."
   },
   {
     "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
-    "translation": ""
+    "translation": "Erro: não foi indicado o nome da organização para a integração inicial da instalação autoalojada."
   },
   {
     "id": "api.error_set_first_admin_complete_setup",
-    "translation": ""
+    "translation": "Erro ao tentar guardar no armazenamento o estado de conclusão da configuração pelo primeiro administrador."
   },
   {
     "id": "api.error_set_first_admin_visit_marketplace_status",
-    "translation": ""
+    "translation": "Erro ao tentar guardar no armazenamento o estado da visita do primeiro administrador ao Marketplace."
   },
   {
     "id": "api.export.export_not_found.app_error",
-    "translation": ""
+    "translation": "Não é possível encontrar o ficheiro de exportação."
   },
   {
     "id": "api.file.append_file.app_error",
-    "translation": ""
+    "translation": "Não é possível acrescentar dados ao ficheiro."
   },
   {
     "id": "api.file.attachments.disabled.app_error",
-    "translation": ""
+    "translation": "Os anexos de ficheiros foram desativados neste servidor."
   },
   {
     "id": "api.file.cloud_upload.app_error",
-    "translation": ""
+    "translation": "O carregamento através do mmctl para uma instância Cloud não é suportado. Por favor, consulte a documentação aqui: https://docs.mattermost.com/manage/cloud-data-export.html."
   },
   {
     "id": "api.file.file_exists.app_error",
-    "translation": ""
+    "translation": "Não é possível verificar se o ficheiro existe."
   },
   {
     "id": "api.file.file_mod_time.app_error",
-    "translation": ""
+    "translation": "Não é possível obter a data da última modificação do ficheiro."
   },
   {
     "id": "api.file.file_reader.app_error",
-    "translation": ""
+    "translation": "Não é possível obter um leitor de ficheiro."
   },
   {
     "id": "api.file.file_size.app_error",
-    "translation": ""
+    "translation": "Não é possível obter o tamanho do ficheiro."
   },
   {
     "id": "api.file.get_file.abac_denied.app_error",
-    "translation": ""
+    "translation": "Não tem o acesso necessário para transferir este ficheiro."
   },
   {
     "id": "api.file.get_file.invalid_flagged_post.app_error",
-    "translation": ""
+    "translation": "O Id. da mensagem sinalizada indicado não corresponde."
   },
   {
     "id": "api.file.get_file.plugin_hook_timeout",
-    "translation": ""
+    "translation": "O hook do plugin excedeu o tempo limite"
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
-    "translation": ""
+    "translation": "A ligação pública não parece ser válida."
   },
   {
     "id": "api.file.get_file.rejected_by_plugin",
-    "translation": ""
+    "translation": "Transferência do ficheiro rejeitada pelo plugin"
   },
   {
     "id": "api.file.get_file_info.app_error",
-    "translation": ""
+    "translation": "Não foi possível obter a informação do ficheiro."
   },
   {
     "id": "api.file.get_file_preview.no_preview.app_error",
-    "translation": ""
+    "translation": "O ficheiro não tem imagem de pré-visualização."
   },
   {
     "id": "api.file.get_file_preview.rejected_by_plugin",
-    "translation": ""
+    "translation": "Transferência da pré-visualização do ficheiro rejeitada pelo plugin"
   },
   {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
-    "translation": ""
+    "translation": "O ficheiro não tem imagem de miniatura."
   },
   {
     "id": "api.file.get_file_thumbnail.rejected_by_plugin",
-    "translation": ""
+    "translation": "Transferência da miniatura do ficheiro rejeitada pelo plugin"
   },
   {
     "id": "api.file.get_public_file.rejected_by_plugin",
-    "translation": ""
+    "translation": "Transferência do ficheiro público rejeitada pelo plugin"
   },
   {
     "id": "api.file.get_public_link.disabled.app_error",
-    "translation": ""
+    "translation": "As ligações públicas foram desativadas."
   },
   {
     "id": "api.file.get_public_link.no_post.app_error",
-    "translation": ""
+    "translation": "Não é possível obter a ligação pública do ficheiro. O ficheiro tem de estar anexado a uma mensagem que o utilizador atual possa ler."
   },
   {
     "id": "api.file.list_directory.app_error",
-    "translation": ""
+    "translation": "Não é possível listar o diretório."
   },
   {
     "id": "api.file.move_file.app_error",
-    "translation": ""
+    "translation": "Não é possível mover o ficheiro."
   },
   {
     "id": "api.file.no_driver.app_error",
-    "translation": ""
+    "translation": "Nenhum controlador de ficheiros selecionado."
   },
   {
     "id": "api.file.read_file.app_error",
-    "translation": ""
+    "translation": "Não é possível ler o ficheiro."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
-    "translation": ""
+    "translation": "Ocorreu um erro ao ler do armazenamento de ficheiros local do servidor."
   },
   {
     "id": "api.file.remove_directory.app_error",
-    "translation": ""
+    "translation": "Não é possível remover o diretório."
   },
   {
     "id": "api.file.remove_file.app_error",
-    "translation": ""
+    "translation": "Não é possível remover o ficheiro."
   },
   {
     "id": "api.file.test_connection.app_error",
-    "translation": ""
+    "translation": "Não é possível aceder ao armazenamento de ficheiros."
   },
   {
     "id": "api.file.test_connection_auth.app_error",
-    "translation": ""
+    "translation": "Não é possível autenticar no sistema de armazenamento de ficheiros. Verifique as suas credenciais e definições de autenticação."
   },
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
-    "translation": ""
+    "translation": "As definições de e-mail têm valores por definir."
   },
   {
     "id": "api.file.test_connection_no_bucket.app_error",
-    "translation": ""
+    "translation": "O bucket ou contentor configurado não existe. Verifique a configuração e as permissões do armazenamento de ficheiros."
   },
   {
     "id": "api.file.test_connection_settings_nil.app_error",
-    "translation": ""
+    "translation": "As definições de armazenamento de ficheiros têm valores por definir."
   },
   {
     "id": "api.file.test_connection_unsupported_driver.app_error",
-    "translation": ""
+    "translation": "Controlador de armazenamento de ficheiros não suportado: \"{{.Driver}}\". Os valores suportados são \"local\", \"amazons3\" e \"azureblob\"."
   },
   {
     "id": "api.file.upload_file.abac_denied.app_error",
-    "translation": ""
+    "translation": "Não tem o acesso necessário para carregar ficheiros para este canal."
   },
   {
     "id": "api.file.upload_file.get_channel.app_error",
-    "translation": ""
+    "translation": "Não é possível carregar ficheiros para uma mensagem direta restrita"
   },
   {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
-    "translation": ""
+    "translation": "Não é possível carregar o ficheiro. Id. de canal incorreto: {{.channelId}}"
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
-    "translation": ""
+    "translation": "Não é possível carregar o(s) ficheiro(s). Existem {{.NumClientIds}} client_ids para {{.NumFiles}} ficheiros."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": ""
+    "translation": "Não foi possível carregar um ficheiro acima das dimensões máximas: {{.Filename}}"
   },
   {
     "id": "api.file.upload_file.large_image_detailed.app_error",
-    "translation": ""
+    "translation": "As dimensões de {{.Filename}} ({{.Width}} por {{.Height}} píxeis) excedem os limites."
   },
   {
     "id": "api.file.upload_file.multiple_channel_ids.app_error",
-    "translation": ""
+    "translation": "Não é possível carregar o(s) ficheiro(s). Vários channel_ids em conflito."
   },
   {
     "id": "api.file.upload_file.read_form_value.app_error",
-    "translation": ""
+    "translation": "Não é possível carregar o(s) ficheiro(s). Erro ao ler o valor de {{.Formname}}."
   },
   {
     "id": "api.file.upload_file.read_request.app_error",
-    "translation": ""
+    "translation": "Não é possível carregar o(s) ficheiro(s). Erro ao ler ou analisar os dados do pedido."
   },
   {
     "id": "api.file.upload_file.restricted_dm.error",
-    "translation": ""
+    "translation": "Não é possível carregar ficheiros para uma mensagem direta restrita"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
-    "translation": ""
+    "translation": "Não é possível carregar o ficheiro. O armazenamento de imagens não está configurado."
   },
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
-    "translation": ""
+    "translation": "Não é possível carregar o ficheiro {{.Filename}}. {{.Length}} bytes excedem o máximo permitido de {{.Limit}} bytes."
   },
   {
     "id": "api.file.write_file.app_error",
-    "translation": ""
+    "translation": "Não é possível escrever o ficheiro."
   },
   {
     "id": "api.file.zip_file_reader.app_error",
-    "translation": ""
+    "translation": "Não é possível obter um leitor de ficheiro zip."
   },
   {
     "id": "api.filter_config_error",
-    "translation": ""
+    "translation": "Não é possível filtrar a configuração."
   },
   {
     "id": "api.getThreadsForUser.bad_only_params",
-    "translation": ""
+    "translation": "Os parâmetros OnlyThreads e OnlyTotals de getThreadsForUser são mutuamente exclusivos"
   },
   {
     "id": "api.getThreadsForUser.bad_params",
-    "translation": ""
+    "translation": "Os parâmetros Before e After de getThreadsForUser são mutuamente exclusivos"
   },
   {
     "id": "api.getUsersForReporting.invalid_active_filter",
-    "translation": ""
+    "translation": "Não é possível ocultar simultaneamente os utilizadores ativos e inativos."
   },
   {
     "id": "api.getUsersForReporting.invalid_page_size",
-    "translation": ""
+    "translation": "O tamanho da página é inválido ou demasiado grande."
   },
   {
     "id": "api.getUsersForReporting.invalid_team_filter",
-    "translation": ""
+    "translation": "O Id. de equipa indicado é inválido."
   },
   {
     "id": "api.get_site_url_error",
-    "translation": ""
+    "translation": "Não foi possível obter o URL do site da instância"
   },
   {
     "id": "api.image.get.app_error",
-    "translation": ""
+    "translation": "Não é possível analisar o URL da imagem pedida."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
-    "translation": ""
+    "translation": "Os webhooks a receber foram desativados pelo administrador do sistema."
   },
   {
     "id": "api.incoming_webhook.invalid_username.app_error",
-    "translation": ""
+    "translation": "Nome de utilizador inválido."
   },
   {
     "id": "api.invalid_channel",
-    "translation": ""
+    "translation": "O canal indicado no pedido não pertence ao utilizador"
   },
   {
     "id": "api.invalid_custom_url_scheme",
-    "translation": ""
+    "translation": "Foi indicado um esquema de URL personalizado inválido"
   },
   {
     "id": "api.invalid_redirect_url",
-    "translation": ""
+    "translation": "Foi indicado um URL de redirecionamento inválido"
   },
   {
     "id": "api.io_error",
-    "translation": ""
+    "translation": "erro de entrada/saída"
   },
   {
     "id": "api.job.retrieve.nopermissions",
-    "translation": ""
+    "translation": "O tipo da tarefa que está a tentar obter não contém permissões"
   },
   {
     "id": "api.job.status.invalid",
-    "translation": ""
+    "translation": "Estado definido inválido"
   },
   {
     "id": "api.job.unable_to_create_job.incorrect_job_type",
-    "translation": ""
+    "translation": "O tipo da tarefa que está a tentar criar é inválido"
   },
   {
     "id": "api.job.unable_to_download_job",
-    "translation": ""
+    "translation": "Não é possível transferir esta tarefa"
   },
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
-    "translation": ""
+    "translation": "O tipo de tarefa que está a tentar transferir não é suportado de momento"
   },
   {
     "id": "api.job.unable_to_manage_job.incorrect_job_type",
-    "translation": ""
+    "translation": "Não tem permissão para gerir este tipo de tarefa"
   },
   {
     "id": "api.ldap.invalid_test_type.app_error",
-    "translation": ""
+    "translation": "Tipo de teste inválido: {{.TestType}}"
   },
   {
     "id": "api.ldap.test.reenter_password",
-    "translation": ""
+    "translation": "As definições de ligação AD/LDAP foram alteradas. Por favor, volte a introduzir a palavra-passe de associação (bind) para testar a ligação."
   },
   {
     "id": "api.ldap_group.not_found",
-    "translation": ""
+    "translation": "grupo ldap não encontrado"
   },
   {
     "id": "api.ldap_groups.existing_group_name_error",
-    "translation": ""
+    "translation": "o nome do grupo já existe"
   },
   {
     "id": "api.ldap_groups.existing_reserved_name_error",
-    "translation": ""
+    "translation": "o nome do grupo já existe como nome reservado"
   },
   {
     "id": "api.ldap_groups.existing_user_name_error",
-    "translation": ""
+    "translation": "o nome do grupo já existe como nome de utilizador"
   },
   {
     "id": "api.ldap_groups.license_error",
-    "translation": ""
+    "translation": "a sua licença não suporta grupos ldap"
   },
   {
     "id": "api.license.add_license.array.app_error",
-    "translation": ""
+    "translation": "Matriz vazia sob 'license' no pedido."
   },
   {
     "id": "api.license.add_license.copy.app_error",
-    "translation": ""
+    "translation": "Não foi possível copiar o conteúdo do ficheiro de licença para a memória intermédia"
   },
   {
     "id": "api.license.add_license.expired.app_error",
-    "translation": ""
+    "translation": "A licença expirou ou ainda não entrou em vigor."
   },
   {
     "id": "api.license.add_license.invalid.app_error",
-    "translation": ""
+    "translation": "Ficheiro de licença inválido."
   },
   {
     "id": "api.license.add_license.invalid_count.app_error",
-    "translation": ""
+    "translation": "Não é possível contar o total de utilizadores únicos."
   },
   {
     "id": "api.license.add_license.no_file.app_error",
-    "translation": ""
+    "translation": "Nenhum ficheiro sob 'license' no pedido."
   },
   {
     "id": "api.license.add_license.open.app_error",
-    "translation": ""
+    "translation": "Não foi possível abrir o ficheiro de licença."
   },
   {
     "id": "api.license.add_license.save.app_error",
-    "translation": ""
+    "translation": "A licença não foi guardada corretamente."
   },
   {
     "id": "api.license.add_license.save_active.app_error",
-    "translation": ""
+    "translation": "O Id. da licença ativa não foi guardado corretamente."
   },
   {
     "id": "api.license.add_license.unique_users.app_error",
-    "translation": ""
+    "translation": "Esta licença suporta apenas {{.Users}} utilizadores, mas o seu sistema tem {{.Count}} utilizadores únicos. Os utilizadores únicos são contados de forma distinta pelo endereço de e-mail. Pode ver o número total de utilizadores em Relatórios do Site -> Ver Estatísticas."
   },
   {
     "id": "api.license.add_license.wrong_environment_production.app_error",
-    "translation": ""
+    "translation": "Esta é uma licença de produção, mas este servidor está a ser executado num ambiente de teste ou de desenvolvimento. As licenças de produção só podem ser utilizadas em servidores de produção."
   },
   {
     "id": "api.license.add_license.wrong_environment_test.app_error",
-    "translation": ""
+    "translation": "Esta é uma licença de teste ou de desenvolvimento, mas este servidor está a ser executado num ambiente de produção. As licenças de teste ou de desenvolvimento só podem ser utilizadas em servidores de teste ou de desenvolvimento."
   },
   {
     "id": "api.license.load_metric.app_error",
-    "translation": ""
+    "translation": "Não foi possível calcular os utilizadores ativos mensais."
   },
   {
     "id": "api.license.parse_license.parse_form.app_error",
-    "translation": ""
+    "translation": "Não foi possível analisar o formulário de carregamento da licença."
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
-    "translation": ""
+    "translation": "Não foi possível enviar o e-mail de desativação da licença."
   },
   {
     "id": "api.license.request-trial.bad-request",
-    "translation": ""
+    "translation": "O número de utilizadores pedido não está correto."
   },
   {
     "id": "api.license.request-trial.bad-request.business-email",
-    "translation": ""
+    "translation": "E-mail profissional inválido para a versão de testes"
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
-    "translation": ""
+    "translation": "Tem de aceitar o Mattermost Software Evaluation Agreement e a Política de Privacidade para pedir uma licença."
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
-    "translation": ""
+    "translation": "Não foi possível verificar se é possível iniciar uma versão de testes"
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": ""
+    "translation": "Não foi possível aplicar a nova licença de testes porque o seu espaço de trabalho já aplicou uma licença de testes. Se pretender prolongar o seu período de testes, por favor [contacte a nossa equipa de vendas](https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.license.request_trial_license.app_error",
-    "translation": ""
+    "translation": "Não é possível obter uma licença de testes. Por favor, tente novamente ou contacte support@mattermost.com."
   },
   {
     "id": "api.license.request_trial_license.embargoed",
-    "translation": ""
+    "translation": "Não foi possível processar o pedido devido a limitações aplicáveis a países sob embargo. [Saiba mais na nossa documentação](https://mattermost.com/pl/limitations-for-embargoed-countries) ou contacte legal@mattermost.com para questões sobre limitações de exportação."
   },
   {
     "id": "api.license.upgrade_needed.app_error",
-    "translation": ""
+    "translation": "A funcionalidade requer uma atualização para a Enterprise Edition."
   },
   {
     "id": "api.license_error",
-    "translation": ""
+    "translation": "o ponto final da api requer uma licença"
   },
   {
     "id": "api.mark_all_as_read.disabled.app_error",
-    "translation": ""
+    "translation": "A funcionalidade de marcar tudo como lido não está ativada."
   },
   {
     "id": "api.marshal_error",
-    "translation": ""
+    "translation": "Falha ao serializar."
   },
   {
     "id": "api.migrate_to_saml.error",
-    "translation": ""
+    "translation": "Não é possível migrar para SAML."
   },
   {
     "id": "api.no_license",
-    "translation": ""
+    "translation": "É necessária uma licença E10 ou E20 para utilizar este ponto final."
   },
   {
     "id": "api.oauth.allow_oauth.pkce_required_public.app_error",
-    "translation": ""
+    "translation": "O PKCE (Proof Key for Code Exchange) é obrigatório para clientes OAuth públicos que utilizem o fluxo de código de autorização."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
-    "translation": ""
+    "translation": "invalid_request: O redirect_uri fornecido não corresponde ao callback_url registado."
   },
   {
     "id": "api.oauth.allow_oauth.turn_off.app_error",
-    "translation": ""
+    "translation": "O administrador do sistema desativou o Fornecedor de Serviço OAuth2."
   },
   {
     "id": "api.oauth.auth_complete",
-    "translation": ""
+    "translation": "Autenticação concluída"
   },
   {
     "id": "api.oauth.authorization_server_metadata.disabled.app_error",
-    "translation": ""
+    "translation": "O fornecedor de serviço OAuth está desativado."
   },
   {
     "id": "api.oauth.authorization_server_metadata.invalid_url.app_error",
-    "translation": ""
+    "translation": "Configuração de URL inválida para os metadados do servidor de autorização."
   },
   {
     "id": "api.oauth.authorization_server_metadata.site_url_required.app_error",
-    "translation": ""
+    "translation": "O URL do Site tem de estar configurado para fornecer os metadados do servidor de autorização."
   },
   {
     "id": "api.oauth.authorize_oauth.disabled.app_error",
-    "translation": ""
+    "translation": "O administrador do sistema desativou o Fornecedor de Serviço OAuth2."
   },
   {
     "id": "api.oauth.click_redirect",
-    "translation": ""
+    "translation": "Se não for redirecionado automaticamente, por favor clique na <a href='{{.Link}}'>ligação</a>"
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
-    "translation": ""
+    "translation": "invalid_request: client_id incorreto."
   },
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
-    "translation": ""
+    "translation": "invalid_request: grant_type incorreto."
   },
   {
     "id": "api.oauth.get_access_token.bad_request.app_error",
-    "translation": ""
+    "translation": "invalid_request: Pedido incorreto."
   },
   {
     "id": "api.oauth.get_access_token.client_id_mismatch.app_error",
-    "translation": ""
+    "translation": "invalid_grant: A concessão do token não foi emitida para este cliente."
   },
   {
     "id": "api.oauth.get_access_token.credentials.app_error",
-    "translation": ""
+    "translation": "invalid_client: Credenciais de cliente inválidas."
   },
   {
     "id": "api.oauth.get_access_token.disabled.app_error",
-    "translation": ""
+    "translation": "O administrador do sistema desativou o Fornecedor de Serviço OAuth2."
   },
   {
     "id": "api.oauth.get_access_token.expired_code.app_error",
-    "translation": ""
+    "translation": "invalid_grant: Código de autorização inválido ou expirado."
   },
   {
     "id": "api.oauth.get_access_token.internal.app_error",
-    "translation": ""
+    "translation": "server_error: Ocorreu um erro interno do servidor ao aceder à base de dados."
   },
   {
     "id": "api.oauth.get_access_token.internal_saving.app_error",
-    "translation": ""
+    "translation": "server_error: Ocorreu um erro interno do servidor ao guardar o token de acesso na base de dados."
   },
   {
     "id": "api.oauth.get_access_token.internal_session.app_error",
-    "translation": ""
+    "translation": "server_error: Ocorreu um erro interno do servidor ao guardar a sessão na base de dados."
   },
   {
     "id": "api.oauth.get_access_token.internal_user.app_error",
-    "translation": ""
+    "translation": "server_error: Ocorreu um erro interno do servidor ao obter o utilizador da base de dados."
   },
   {
     "id": "api.oauth.get_access_token.missing_code.app_error",
-    "translation": ""
+    "translation": "invalid_request: code em falta."
   },
   {
     "id": "api.oauth.get_access_token.missing_refresh_token.app_error",
-    "translation": ""
+    "translation": "invalid_request: refresh_token em falta."
   },
   {
     "id": "api.oauth.get_access_token.redirect_uri.app_error",
-    "translation": ""
+    "translation": "invalid_request: O redirect_uri fornecido não corresponde ao redirect_uri do código de autorização."
   },
   {
     "id": "api.oauth.get_access_token.refresh_token.app_error",
-    "translation": ""
+    "translation": "invalid_grant: Token de atualização inválido."
   },
   {
     "id": "api.oauth.get_access_token.resource_mismatch.app_error",
-    "translation": ""
+    "translation": "O parâmetro resource não corresponde entre os pedidos de autorização e de token."
   },
   {
     "id": "api.oauth.invalid_state_token.app_error",
-    "translation": ""
+    "translation": "Token de estado inválido."
   },
   {
     "id": "api.oauth.redirecting_back",
-    "translation": ""
+    "translation": "A redirecioná-lo de volta para a aplicação."
   },
   {
     "id": "api.oauth.regenerate_secret.public_client.app_error",
-    "translation": ""
+    "translation": "invalid_request: Não é possível regenerar o segredo para clientes OAuth públicos."
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
-    "translation": ""
+    "translation": "O administrador do sistema desativou o Fornecedor de Serviço OAuth2."
   },
   {
     "id": "api.oauth.revoke_access_token.del_session.app_error",
-    "translation": ""
+    "translation": "Erro ao eliminar a sessão da base de dados."
   },
   {
     "id": "api.oauth.revoke_access_token.del_token.app_error",
-    "translation": ""
+    "translation": "Erro ao eliminar o token de acesso da base de dados."
   },
   {
     "id": "api.oauth.revoke_access_token.get.app_error",
-    "translation": ""
+    "translation": "Erro ao obter o token de acesso da base de dados antes da eliminação."
   },
   {
     "id": "api.oauth.singup_with_oauth.disabled.app_error",
-    "translation": ""
+    "translation": "O registo de utilizadores está desativado."
   },
   {
     "id": "api.oauth.singup_with_oauth.expired_link.app_error",
-    "translation": ""
+    "translation": "A ligação de registo expirou."
   },
   {
     "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
-    "translation": ""
+    "translation": "A ligação de registo não parece ser válida."
   },
   {
     "id": "api.outgoing_webhook.disabled.app_error",
-    "translation": ""
+    "translation": "Os webhooks de saída foram desativados pelo administrador do sistema."
   },
   {
     "id": "api.payload.parse.error",
-    "translation": ""
+    "translation": "Ocorreu um erro ao analisar o conteúdo do pedido."
   },
   {
     "id": "api.plugin.install.check_directory.app_error",
-    "translation": ""
+    "translation": "Ocorreu um erro ao verificar a configuração do diretório de plugins."
   },
   {
     "id": "api.plugin.install.directory_conflict.app_error",
-    "translation": ""
+    "translation": "Não é possível instalar o plugin: PluginSettings.Directory está em conflito com ImportSettings.Directory."
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
-    "translation": ""
+    "translation": "Ocorreu um erro ao transferir o plugin."
   },
   {
     "id": "api.plugin.upload.array.app_error",
-    "translation": ""
+    "translation": "A matriz de ficheiros está vazia no pedido multipart/form."
   },
   {
     "id": "api.plugin.upload.file.app_error",
-    "translation": ""
+    "translation": "Não é possível abrir o ficheiro no pedido multipart/form."
   },
   {
     "id": "api.plugin.upload.file_too_large.app_error",
-    "translation": ""
+    "translation": "O tamanho do plugin carregado excede o limite. Este limite pode ser alterado na Consola do Sistema em Armazenamento de Ficheiros > Tamanho Máximo de Ficheiro"
   },
   {
     "id": "api.plugin.upload.no_file.app_error",
-    "translation": ""
+    "translation": "Ficheiro em falta no pedido multipart/form."
   },
   {
     "id": "api.plugin.verify_plugin.app_error",
-    "translation": ""
+    "translation": "Não é possível verificar a assinatura do plugin."
   },
   {
     "id": "api.post.burn_post.user_not_in_channel.app_error",
-    "translation": ""
+    "translation": "Não tem permissão para destruir esta mensagem. Tem de ser membro do canal."
   },
   {
     "id": "api.post.check_for_out_of_channel_group_users.message.none",
-    "translation": ""
+    "translation": "@{{.GroupName}} não tem membros nesta equipa"
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
-    "translation": ""
+    "translation": "@{{.Usernames}} e @{{.LastUsername}} não foram notificados por esta menção porque não estão no canal. Não podem ser adicionados ao canal porque não são membros dos grupos associados. Para os adicionar a este canal, têm de ser adicionados aos grupos associados."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": ""
+    "translation": "@{{.Username}} não foi notificado por esta menção porque não está no canal. Não pode ser adicionado ao canal porque não é membro dos grupos associados. Para o adicionar a este canal, tem de ser adicionado aos grupos associados."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": ""
+    "translation": "@{{.Usernames}} e @{{.LastUsername}} não foram notificados por esta menção porque não estão no canal."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": ""
+    "translation": "@{{.Username}} não foi notificado por esta menção porque não está no canal."
   },
   {
     "id": "api.post.check_for_out_of_team_mentions.message.multiple",
-    "translation": ""
+    "translation": "@{{.Usernames}} e @{{.LastUsername}} não foram notificados por esta menção porque não são membros desta equipa."
   },
   {
     "id": "api.post.check_for_out_of_team_mentions.message.one",
-    "translation": ""
+    "translation": "@{{.Username}} não foi notificado por esta menção porque não é membro desta equipa."
   },
   {
     "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
-    "translation": ""
+    "translation": "Não tem permissão para enviar mensagens de destruição após leitura neste canal."
   },
   {
     "id": "api.post.create_post.burn_on_read.app_error",
-    "translation": ""
+    "translation": "Ocorreu um erro ao criar uma mensagem de destruição após leitura."
   },
   {
     "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
-    "translation": ""
+    "translation": "Não é possível publicar num canal de mensagem direta restrito."
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
-    "translation": ""
+    "translation": "Não é possível publicar num canal eliminado."
   },
   {
     "id": "api.post.create_post.card_type_disabled.app_error",
-    "translation": ""
+    "translation": "As mensagens do tipo cartão não estão ativadas neste servidor."
   },
   {
     "id": "api.post.create_post.channel_root_id.app_error",
-    "translation": ""
+    "translation": "ChannelId inválido para o parâmetro RootId."
   },
   {
     "id": "api.post.create_post.root_id.app_error",
-    "translation": ""
+    "translation": "Parâmetro RootId inválido."
   },
   {
     "id": "api.post.create_post.silent_notification.app_error",
-    "translation": ""
+    "translation": "Apenas as mensagens de bots, webhooks, aplicações OAuth e plugins podem ser entregues silenciosamente."
   },
   {
     "id": "api.post.create_post.silent_persistent_notification.app_error",
-    "translation": ""
+    "translation": "As mensagens silenciosas não podem utilizar notificações persistentes."
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
-    "translation": ""
+    "translation": "Erro ao criar a mensagem."
   },
   {
     "id": "api.post.deduplicate_create_post.cache_error",
-    "translation": ""
+    "translation": "Não foi possível colocar a mensagem em cache após desduplicar um cliente que repetiu o mesmo pedido."
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
-    "translation": ""
+    "translation": "Não foi possível obter a mensagem original após desduplicar um cliente que repetiu o mesmo pedido."
   },
   {
     "id": "api.post.deduplicate_create_post.pending",
-    "translation": ""
+    "translation": "Mensagem rejeitada porque outro cliente está a fazer o mesmo pedido."
   },
   {
     "id": "api.post.delete_post.can_not_delete_from_restricted_dm.error",
-    "translation": ""
+    "translation": "Não é possível eliminar uma mensagem num canal de mensagem direta restrito."
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-    "translation": ""
+    "translation": "Não é possível eliminar uma mensagem num canal eliminado."
   },
   {
     "id": "api.post.delete_post.not_enabled.app_error",
-    "translation": ""
+    "translation": "Não é possível eliminar a mensagem: ServiceSettings.EnableAPIPostDeletion não está ativado."
   },
   {
     "id": "api.post.disabled_all",
-    "translation": ""
+    "translation": "As notificações @all estão desativadas em canais com mais de {{.Users}} utilizadores. Contacte o seu administrador do sistema para mais informações."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": ""
+    "translation": "As notificações @channel estão desativadas em canais com mais de {{.Users}} utilizadores. Contacte o seu administrador do sistema para mais informações."
   },
   {
     "id": "api.post.disabled_here",
-    "translation": ""
+    "translation": "As notificações @here estão desativadas em canais com mais de {{.Users}} utilizadores. Contacte o seu administrador do sistema para mais informações."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
-    "translation": ""
+    "translation": "Id. de ação inválido."
   },
   {
     "id": "api.post.do_action.action_integration.app_error",
-    "translation": ""
+    "translation": "Erro na integração da ação."
   },
   {
     "id": "api.post.do_action.query.app_error",
-    "translation": ""
+    "translation": "Consulta de ação inválida."
   },
   {
     "id": "api.post.error_get_post_id.pending",
-    "translation": ""
+    "translation": "Não é possível obter a mensagem pendente."
   },
   {
     "id": "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error",
-    "translation": ""
+    "translation": "As mensagens de destruição após leitura não são permitidas em mensagens diretas com bots ou agentes de IA."
   },
   {
     "id": "api.post.fill_in_post_props.burn_on_read.channel.app_error",
-    "translation": ""
+    "translation": "Ocorreu um erro ao validar o canal para a mensagem de destruição após leitura."
   },
   {
     "id": "api.post.fill_in_post_props.burn_on_read.config.app_error",
-    "translation": ""
+    "translation": "As mensagens de destruição após leitura não estão ativadas. Por favor, ative o sinalizador de funcionalidade e a definição do serviço."
   },
   {
     "id": "api.post.fill_in_post_props.burn_on_read.license.app_error",
-    "translation": ""
+    "translation": "As mensagens de destruição após leitura requerem uma licença Enterprise Advanced."
   },
   {
     "id": "api.post.fill_in_post_props.burn_on_read.self_dm.app_error",
-    "translation": ""
+    "translation": "As mensagens de destruição após leitura não são permitidas em mensagens para si próprio."
   },
   {
     "id": "api.post.fill_in_post_props.burn_on_read.shared_channel.app_error",
-    "translation": ""
+    "translation": "As mensagens de destruição após leitura não são permitidas em canais partilhados."
   },
   {
     "id": "api.post.fill_in_post_props.burn_on_read.user.app_error",
-    "translation": ""
+    "translation": "Ocorreu um erro ao validar o utilizador para a mensagem de destruição após leitura."
   },
   {
     "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
-    "translation": ""
+    "translation": "O utilizador gerado por IA tem de ser o autor da mensagem ou um bot."
   },
   {
     "id": "api.post.get_link_metadata_for_permalink.burn_on_read.app_error",
-    "translation": ""
+    "translation": "Não é possível obter os metadados da ligação para o permalink de uma mensagem de destruição após leitura."
   },
   {
     "id": "api.post.get_posts_for_reporting.channel_not_found",
-    "translation": ""
+    "translation": "Canal não encontrado"
   },
   {
     "id": "api.post.move_thread.disabled.app_error",
-    "translation": ""
+    "translation": "A movimentação de tópicos está desativada"
   },
   {
     "id": "api.post.move_thread.no_permission",
-    "translation": ""
+    "translation": "Não tem permissão para mover este tópico."
   },
   {
     "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
-    "translation": ""
+    "translation": "As mensagens de destruição após leitura não podem ser atualizadas."
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-    "translation": ""
+    "translation": "Não é possível atualizar uma mensagem num canal eliminado."
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_restricted_dm.error",
-    "translation": ""
+    "translation": "Não é possível atualizar uma mensagem num canal de mensagem direta restrito."
   },
   {
     "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
-    "translation": ""
+    "translation": "Uma mensagem com notificação persistente permite no máximo {{.MaxRecipients}} destinatários."
   },
   {
     "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
-    "translation": ""
+    "translation": "Uma mensagem com notificação persistente tem de ter pelo menos 1 destinatário."
   },
   {
     "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
-    "translation": ""
+    "translation": "A validação da notificação persistente falhou."
   },
   {
     "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
-    "translation": ""
+    "translation": "O utilizador não tem permissão para criar mensagens com prioridade ou notificações persistentes."
   },
   {
     "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
-    "translation": ""
+    "translation": "Apenas as mensagens de raiz podem ter prioridade."
   },
   {
     "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
-    "translation": ""
+    "translation": "As mensagens com notificação persistente têm de ter a prioridade Urgente."
   },
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
-    "translation": ""
+    "translation": "O número de Ids. de mensagem recebidos excedeu o tamanho máximo de {{.MaxLength}}"
   },
   {
     "id": "api.post.reveal_post.cannot_reveal_own_post.app_error",
-    "translation": ""
+    "translation": "Não pode revelar a sua própria mensagem de destruição após leitura."
   },
   {
     "id": "api.post.reveal_post.disabled.app_error",
-    "translation": ""
+    "translation": "A funcionalidade de destruição após leitura não está ativada ou requer uma licença Enterprise Advanced."
   },
   {
     "id": "api.post.reveal_post.invalid_request.app_error",
-    "translation": ""
+    "translation": "Pedido inválido: cabeçalho X-Requested-With em falta ou inválido."
   },
   {
     "id": "api.post.reveal_post.user_not_in_channel.app_error",
-    "translation": ""
+    "translation": "Não tem permissão para revelar esta mensagem. Tem de ser membro do canal."
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",
-    "translation": ""
+    "translation": "Não é possível analisar o conteúdo do pedido."
   },
   {
     "id": "api.post.search_posts.invalid_body.app_error",
-    "translation": ""
+    "translation": "Não é possível analisar o conteúdo do pedido."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
-    "translation": ""
+    "translation": " notificou o canal."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
-    "translation": ""
+    "translation": " respondeu a um tópico que segue."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
-    "translation": ""
+    "translation": " respondeu a um tópico."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_post",
-    "translation": ""
+    "translation": " comentou a sua mensagem."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_thread",
-    "translation": ""
+    "translation": " comentou um tópico em que participou."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_explicit_mention",
-    "translation": ""
+    "translation": " mencionou-o."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_general_message",
-    "translation": ""
+    "translation": " publicou uma mensagem."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": ""
+    "translation": " anexou um ficheiro."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
-    "translation": ""
+    "translation": "enviou-lhe uma mensagem."
   },
   {
     "id": "api.post.update_post.burn_on_read.app_error",
-    "translation": ""
+    "translation": "As mensagens de destruição após leitura não podem ser editadas."
   },
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-    "translation": ""
+    "translation": "Não é possível atualizar uma mensagem num canal eliminado."
   },
   {
     "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
-    "translation": ""
+    "translation": "Não é possível atualizar uma mensagem num canal de mensagem direta restrito."
   },
   {
     "id": "api.post.update_post.find.app_error",
-    "translation": ""
+    "translation": "Não é possível encontrar a mensagem ou o comentário existente a atualizar."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
-    "translation": ""
+    "translation": "Já eliminado id={{.PostId}}."
   },
   {
     "id": "api.post.update_post.permissions_time_limit.app_error",
-    "translation": ""
+    "translation": "A edição de mensagens só é permitida durante {{.timeLimit}} segundos. Por favor, peça detalhes ao seu Administrador do Sistema."
   },
   {
     "id": "api.post.update_post.system_message.app_error",
-    "translation": ""
+    "translation": "Não é possível atualizar uma mensagem do sistema."
   },
   {
     "id": "api.post_get_post_by_id.get.app_error",
-    "translation": ""
+    "translation": "Não é possível obter a mensagem."
   },
   {
     "id": "api.preference.delete_preferences.delete.app_error",
-    "translation": ""
+    "translation": "Não é possível eliminar as preferências do utilizador."
   },
   {
     "id": "api.preference.delete_preferences.update_sidebar.app_error",
-    "translation": ""
+    "translation": "Não é possível atualizar a barra lateral de acordo com as preferências eliminadas"
   },
   {
     "id": "api.preference.preferences_category.get.app_error",
-    "translation": ""
+    "translation": "Não é possível obter as preferências do utilizador."
   },
   {
     "id": "api.preference.update_preferences.set.app_error",
-    "translation": ""
+    "translation": "Não é possível definir as preferências do utilizador."
   },
   {
     "id": "api.preference.update_preferences.update_sidebar.app_error",
-    "translation": ""
+    "translation": "Não é possível atualizar a barra lateral de acordo com as preferências atualizadas"
   },
   {
     "id": "api.property.channel_attributes.license.app_error",
-    "translation": ""
+    "translation": "Os atributos de canal requerem uma licença Enterprise Advanced."
   },
   {
     "id": "api.property.session_attributes.license.app_error",
-    "translation": ""
+    "translation": "Os atributos de sessão requerem uma licença Enterprise Advanced."
   },
   {
     "id": "api.property.v2_group_not_found.app_error",
-    "translation": ""
+    "translation": "O grupo de propriedades especificado não foi encontrado."
   },
   {
     "id": "api.property_field.create.creator_cannot_edit.app_error",
-    "translation": ""
+    "translation": "Não pode criar um campo de propriedade com níveis de permissão que o impeçam de o editar."
   },
   {
     "id": "api.property_field.create.invalid_target_type.app_error",
-    "translation": ""
+    "translation": "O tipo de destino indicado não é válido."
   },
   {
     "id": "api.property_field.create.protected_via_api.app_error",
-    "translation": ""
+    "translation": "Não é possível criar um campo de propriedade protegido através da API."
   },
   {
     "id": "api.property_field.create.target_id_required.app_error",
-    "translation": ""
+    "translation": "É necessário um target_id ao criar um campo de propriedade com âmbito de canal ou de equipa."
   },
   {
     "id": "api.property_field.delete.no_permission.app_error",
-    "translation": ""
+    "translation": "Não tem permissão para eliminar este campo de propriedade."
   },
   {
     "id": "api.property_field.get.invalid_opts.app_error",
-    "translation": ""
+    "translation": "Opções de procura de campos de propriedade inválidas."
   },
   {
     "id": "api.property_field.get.invalid_target_type.app_error",
-    "translation": ""
+    "translation": "É necessário um target_type válido (system, team ou channel)."
   },
   {
     "id": "api.property_field.get.scope_conflict.app_error",
-    "translation": ""
+    "translation": "channel_id/team_id não podem ser combinados com target_type/target_id."
   },
   {
     "id": "api.property_field.get.scope_required.app_error",
-    "translation": ""
+    "translation": "É necessário um parâmetro de âmbito (channel_id, team_id ou target_type)."
   },
   {
     "id": "api.property_field.get.target_id_required.app_error",
-    "translation": ""
+    "translation": "É necessário um target_id ao consultar por target_type de canal ou de equipa."
   },
   {
     "id": "api.property_field.get.target_type_required.app_error",
-    "translation": ""
+    "translation": "É necessário um target_type quando é indicado um target_id."
   },
   {
     "id": "api.property_field.invalid_patch.app_error",
-    "translation": ""
+    "translation": "Alteração de campo de propriedade inválida."
   },
   {
     "id": "api.property_field.object_type_mismatch.app_error",
-    "translation": ""
+    "translation": "O tipo de objeto do campo de propriedade não corresponde ao URL."
   },
   {
     "id": "api.property_field.options.empty_body.app_error",
-    "translation": ""
+    "translation": "Não foram indicadas opções para o campo de propriedade."
   },
   {
     "id": "api.property_field.options.invalid_cursor.app_error",
-    "translation": ""
+    "translation": "Um cursor de opções de campo de propriedade tem de indicar cursor_id e cursor_create_at."
   },
   {
     "id": "api.property_field.options.legacy_field.app_error",
-    "translation": ""
+    "translation": "As opções deste campo de propriedade não podem ser geridas individualmente."
   },
   {
     "id": "api.property_field.options.no_permission.app_error",
-    "translation": ""
+    "translation": "Não tem permissão para gerir as opções deste campo de propriedade."
   },
   {
     "id": "api.property_field.options.too_many_items.request_error",
-    "translation": ""
+    "translation": "Não é possível alterar tantas opções de campo de propriedade. Só podem ser alteradas {{.Max}} opções de cada vez."
   },
   {
     "id": "api.property_field.patch.legacy_field.app_error",
-    "translation": ""
+    "translation": "Não é possível alterar um campo de propriedade v1 através desta API."
   },
   {
     "id": "api.property_field.patch.permission_values_invalid.app_error",
-    "translation": ""
+    "translation": "permission_values tem de ser member ou sysadmin."
   },
   {
     "id": "api.property_field.patch.permission_values_not_linked.app_error",
-    "translation": ""
+    "translation": "permission_values só pode ser definido num campo associado a um modelo."
   },
   {
     "id": "api.property_field.update.no_field_permission.app_error",
-    "translation": ""
+    "translation": "Não tem permissão para editar este campo de propriedade."
   },
   {
     "id": "api.property_field.update.no_options_permission.app_error",
-    "translation": ""
+    "translation": "Não tem permissão para gerir as opções deste campo de propriedade."
   },
   {
     "id": "api.property_value.get.invalid_opts.app_error",
-    "translation": ""
+    "translation": "Opções de procura de valores de propriedade inválidas."
   },
   {
     "id": "api.property_value.invalid_object_type.app_error",
-    "translation": ""
+    "translation": "O tipo de objeto indicado não é válido."
   },
   {
     "id": "api.property_value.patch.duplicate_field_id.app_error",
-    "translation": ""
+    "translation": "O pedido contém Ids. de campo duplicados."
   },
   {
     "id": "api.property_value.patch.empty_body.app_error",
-    "translation": ""
+    "translation": "O conteúdo do pedido tem de conter pelo menos uma atualização de valor de propriedade."
   },
   {
     "id": "api.property_value.patch.field_not_found.app_error",
-    "translation": ""
+    "translation": "O campo de propriedade {{.FieldID}} não foi encontrado neste grupo."
   },
   {
     "id": "api.property_value.patch.invalid_field_id.app_error",
-    "translation": ""
+    "translation": "Um ou mais Ids. de campo no pedido são inválidos."
   },
   {
     "id": "api.property_value.patch.no_values_permission.app_error",
-    "translation": ""
+    "translation": "Não tem permissão para definir valores num ou mais campos."
   },
   {
     "id": "api.property_value.patch.too_many_items.request_error",
-    "translation": ""
+    "translation": "Não é possível atualizar tantos valores de propriedade. Só podem ser atualizados {{.Max}} valores de propriedade de cada vez."
   },
   {
     "id": "api.property_value.system_use_dedicated_route.app_error",
-    "translation": ""
+    "translation": "Os valores de sistema têm de utilizar o ponto final dedicado aos valores de sistema."
   },
   {
     "id": "api.property_value.template_no_values.app_error",
-    "translation": ""
+    "translation": "Os campos de modelo não podem ter valores."
   },
   {
     "id": "api.push_notification.disabled.app_error",
-    "translation": ""
+    "translation": "As notificações push estão desativadas neste servidor."
   },
   {
     "id": "api.push_notification.id_loaded.default_message",
-    "translation": ""
+    "translation": "Recebeu uma nova mensagem."
   },
   {
     "id": "api.push_notification.id_loaded.fetch.app_error",
-    "translation": ""
+    "translation": "Ocorreu um erro ao obter a notificação push carregada por Id."
   },
   {
     "id": "api.push_notification.title.collapsed_threads",
-    "translation": ""
+    "translation": "Resposta em {{.channelName}}"
   },
   {
     "id": "api.push_notification.title.collapsed_threads_dm",
-    "translation": ""
+    "translation": "Resposta em Mensagem Direta"
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
-    "translation": ""
+    "translation": "Ocorreu um erro ao construir a mensagem da notificação push."
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": ""
+    "translation": "Sessão Expirada: Por favor, inicie sessão para continuar a receber notificações. As sessões de {{.siteName}} estão configuradas pelo seu Administrador do Sistema para expirar a cada {{.hoursCount}} hora(s)."
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
-    "translation": ""
+    "translation": "Ocorreu um erro ao enviar a confirmação de entrega para o serviço de notificações push."
   },
   {
     "id": "api.push_notifications_ack.message.parse.app_error",
-    "translation": ""
+    "translation": "Ocorreu um erro ao construir a mensagem de confirmação da notificação push."
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
-    "translation": ""
+    "translation": "Não pode remover uma reação num canal arquivado."
   },
   {
     "id": "api.reaction.delete.restricted_dm.error",
-    "translation": ""
+    "translation": "Não é possível reagir numa mensagem direta restrita"
   },
   {
     "id": "api.reaction.save.archived_channel.app_error",
-    "translation": ""
+    "translation": "Não pode reagir num canal arquivado."
   },
   {
     "id": "api.reaction.save.burn_on_read.app_error",
-    "translation": ""
+    "translation": "Não pode reagir a uma mensagem de destruição após leitura."
   },
   {
     "id": "api.reaction.save.restricted_dm.error",
-    "translation": ""
+    "translation": "Não é possível reagir numa mensagem direta restrita"
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
-    "translation": ""
+    "translation": "A reação não é válida."
   },
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
-    "translation": ""
+    "translation": "Não pode guardar uma reação em nome de outro utilizador."
   },
   {
     "id": "api.recap.disabled.app_error",
-    "translation": ""
+    "translation": "Esta funcionalidade não está ativada."
   },
   {
     "id": "api.recap.permission_denied",
-    "translation": ""
+    "translation": "Não tem permissão para aceder a este resumo."
   },
   {
     "id": "api.remote_cluster.accept_invitation_error",
-    "translation": ""
+    "translation": "Não foi possível aceitar o convite do cluster remoto"
   },
   {
     "id": "api.remote_cluster.base64_decode_error",
-    "translation": ""
+    "translation": "Não foi possível descodificar a cadeia base64"
   },
   {
     "id": "api.remote_cluster.cluster_not_deleted",
-    "translation": ""
+    "translation": "O cluster remoto não foi eliminado"
   },
   {
     "id": "api.remote_cluster.create_invite_error",
-    "translation": ""
+    "translation": "Não foi possível criar o convite do cluster remoto"
   },
   {
     "id": "api.remote_cluster.delete.app_error",
-    "translation": ""
+    "translation": "Ocorreu um erro ao eliminar a ligação segura."
   },
   {
     "id": "api.remote_cluster.encrypt_invite_error",
-    "translation": ""
+    "translation": "Não foi possível encriptar o convite do cluster remoto com a palavra-passe indicada"
   },
   {
     "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
-    "translation": ""
+    "translation": "Não é possível gerar um código de convite para um cluster já confirmado"
   },
   {
     "id": "api.remote_cluster.get.app_error",
-    "translation": ""
+    "translation": "Ocorreu um erro ao obter uma ligação segura."
   },
   {
     "id": "api.remote_cluster.get.not_found",
-    "translation": ""
+    "translation": "Cluster Remoto não encontrado"
   },
   {
     "id": "api.remote_cluster.import_not_allowed.app_error",
-    "translation": ""
+    "translation": "A importação de clusters remotos não é permitida"
   },
   {
     "id": "api.remote_cluster.invalid_id.app_error",
-    "translation": ""
+    "translation": "Id. inválido."
   },
   {
     "id": "api.remote_cluster.invalid_topic.app_error",
-    "translation": ""
+    "translation": "Tópico inválido."
   },
   {
     "id": "api.remote_cluster.invite_decrypt_error",
-    "translation": ""
+    "translation": "Não foi possível desencriptar o convite do cluster remoto com a palavra-passe indicada"
   },
   {
     "id": "api.remote_cluster.save.app_error",
-    "translation": ""
+    "translation": "Ocorreu um erro ao guardar a ligação segura."
   },
   {
     "id": "api.remote_cluster.save_not_unique.app_error",
-    "translation": ""
+    "translation": "A ligação segura já foi adicionada."
   },
   {
     "id": "api.remote_cluster.service_not_enabled.app_error",
-    "translation": ""
+    "translation": "O serviço de cluster remoto não está ativado."
   },
   {
     "id": "api.remote_cluster.update.app_error",
-    "translation": ""
+    "translation": "Ocorreu um erro ao atualizar a ligação segura."
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
-    "translation": ""
+    "translation": "Já existe uma ligação segura com o mesmo URL."
   },
   {
     "id": "api.restricted_system_admin",
-    "translation": ""
+    "translation": "Esta ação não é permitida a um administrador do sistema restrito."
   },
   {
     "id": "api.roles.get_multiple_by_name_too_many.request_error",
-    "translation": ""
+    "translation": "Não é possível obter tantas funções por nome. Só podem ser pedidas {{.MaxNames}} funções de cada vez."
   },
   {
     "id": "api.roles.patch_roles.license.error",
-    "translation": ""
+    "translation": "A sua licença não suporta permissões avançadas."
   },
   {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
-    "translation": ""
+    "translation": "Uma ou mais das permissões que está a tentar adicionar ou remover não são permitidas"
   },
   {
     "id": "api.saml.invalid_email_token.app_error",
-    "translation": ""
+    "translation": "email_token inválido"
   },
   {
     "id": "api.scheduled_posts.feature_disabled",
-    "translation": ""
+    "translation": "a funcionalidade de mensagens agendadas está desativada"
   },
   {
     "id": "api.scheduled_posts.license_error",
-    "translation": ""
+    "translation": "A funcionalidade de mensagens agendadas requer uma licença"
   },
   {
     "id": "api.scheduled_recap.permission_denied",
-    "translation": ""
+    "translation": "Não tem permissão para aceder a este resumo agendado."
   },
   {
     "id": "api.scheme.create_scheme.license.error",
-    "translation": ""
+    "translation": "A sua licença não suporta a criação de esquemas de permissões."
   },
   {
     "id": "api.scheme.delete_scheme.license.error",
-    "translation": ""
+    "translation": "A sua licença não suporta a eliminação de esquemas de permissões"
   },
   {
     "id": "api.scheme.get_channels_for_scheme.scope.error",
-    "translation": ""
+    "translation": "Não é possível obter os canais do esquema porque o esquema indicado não é um esquema de canal."
   },
   {
     "id": "api.scheme.get_teams_for_scheme.scope.error",
-    "translation": ""
+    "translation": "Não é possível obter as equipas do esquema porque o esquema indicado não é um esquema de equipa."
   },
   {
     "id": "api.scheme.patch_scheme.license.error",
-    "translation": ""
+    "translation": "A sua licença não suporta a atualização de esquemas de permissões"
   },
   {
     "id": "api.server.cws.disabled",
-    "translation": ""
+    "translation": "As interações com o Portal de Clientes do Mattermost foram desativadas pelo administrador do sistema."
   },
   {
     "id": "api.server.cws.needs_enterprise_edition",
-    "translation": ""
+    "translation": "Serviço disponível apenas na edição Mattermost Enterprise"
   },
   {
     "id": "api.server.hosted_signup_unavailable.error",
-    "translation": ""
+    "translation": "Portal indisponível para o registo de instalações autoalojadas."
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
-    "translation": ""
+    "translation": "Não foi possível enviar os e-mails de renovação da licença"
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
-    "translation": ""
+    "translation": "É necessário ativar Forward80To443 ao utilizar o LetsEncrypt"
   },
   {
     "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
-    "translation": ""
+    "translation": "Não é possível reencaminhar a porta 80 para a porta 443 enquanto se escuta na porta %s: desative Forward80To443 se utilizar um servidor proxy"
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": ""
+    "translation": "Não é possível inicializar o armazenamento em memória da limitação de taxa. Verifique a definição de configuração MemoryStoreSize."
   },
   {
     "id": "api.server.start_server.rate_limiting_rate_limiter",
-    "translation": ""
+    "translation": "Não é possível inicializar a limitação de taxa."
   },
   {
     "id": "api.server.start_server.starting.critical",
-    "translation": ""
+    "translation": "Erro ao iniciar o servidor, err:%v"
   },
   {
     "id": "api.shared_channel.attachment.creator_id_required.app_error",
-    "translation": ""
+    "translation": "FileInfo.CreatorId é obrigatório."
   },
   {
     "id": "api.shared_channel.attachment.data_required.app_error",
-    "translation": ""
+    "translation": "Os dados do ficheiro são obrigatórios."
   },
   {
     "id": "api.shared_channel.attachment.file_info_required.app_error",
-    "translation": ""
+    "translation": "FileInfo é obrigatório."
   },
   {
     "id": "api.shared_channel.attachment.filename_required.app_error",
-    "translation": ""
+    "translation": "FileInfo.Name é obrigatório."
   },
   {
     "id": "api.shared_channel.get_shared_channel_remotes_error",
-    "translation": ""
+    "translation": "Não foi possível obter os servidores remotos do canal partilhado"
   },
   {
     "id": "api.shared_channel.has_remote_error",
-    "translation": ""
+    "translation": "Não foi possível determinar se o canal está partilhado com o servidor remoto"
   },
   {
     "id": "api.shared_channel.invite_remote_to_channel_error",
-    "translation": ""
+    "translation": "Não foi possível convidar o servidor remoto para o canal"
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": ""
+    "translation": "Não foi possível remover o convite do servidor remoto para o canal"
   },
   {
     "id": "api.status.user_not_found.app_error",
-    "translation": ""
+    "translation": "Utilizador não encontrado."
   },
   {
     "id": "api.system.id_loaded.not_available.app_error",
-    "translation": ""
+    "translation": "As Notificações Push Carregadas por Id. não estão configuradas ou não são suportadas neste servidor."
   },
   {
     "id": "api.system.logs.download_bytes_buffer.app_error",
-    "translation": ""
+    "translation": "Não foi possível escrever os registos na memória intermédia"
   },
   {
     "id": "api.system.logs.invalidFilter",
-    "translation": ""
+    "translation": "Filtro de registos inválido"
   },
   {
     "id": "api.system.update_notices.clear_failed",
-    "translation": ""
+    "translation": "Falha ao limpar os avisos de produto antigos"
   },
   {
     "id": "api.system.update_notices.fetch_failed",
-    "translation": ""
+    "translation": "Falha ao obter os avisos de produto"
   },
   {
     "id": "api.system.update_notices.parse_failed",
-    "translation": ""
+    "translation": "Falha ao analisar os avisos de produto"
   },
   {
     "id": "api.system.update_notices.validating_failed",
-    "translation": ""
+    "translation": "Falha ao validar as condições dos avisos de produto"
   },
   {
     "id": "api.system.update_viewed_notices.failed",
-    "translation": ""
+    "translation": "Falha ao atualizar os avisos visualizados"
   },
   {
     "id": "api.team.access_control.added.system_message",
-    "translation": ""
+    "translation": "Foi adicionado à equipa **{{.TeamName}}** porque passou a cumprir os requisitos de adesão."
   },
   {
     "id": "api.team.access_control.removed.system_message",
-    "translation": ""
+    "translation": "Foi removido da equipa **{{.TeamName}}** porque deixou de cumprir os requisitos de adesão."
   },
   {
     "id": "api.team.add_members.error",
-    "translation": ""
+    "translation": "Erro ao adicionar membro(s) à equipa."
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": ""
+    "translation": "Esta equipa é gerida por grupos. Este utilizador não faz parte de um grupo sincronizado com esta equipa."
   },
   {
     "id": "api.team.add_team_member.invalid_body.app_error",
-    "translation": ""
+    "translation": "Não é possível analisar o conteúdo do pedido."
   },
   {
     "id": "api.team.add_user.to.team.abac_subject_build_failed.app_error",
-    "translation": ""
+    "translation": "Não foi possível construir o sujeito de controlo de acesso do utilizador."
   },
   {
     "id": "api.team.add_user.to.team.rejected",
-    "translation": ""
+    "translation": "O utilizador não tem os atributos necessários para se juntar à equipa."
   },
   {
     "id": "api.team.add_user_to_team.added",
-    "translation": ""
+    "translation": "%v foi adicionado à equipa por %v."
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
-    "translation": ""
+    "translation": "É necessário um parâmetro para adicionar o utilizador à equipa."
   },
   {
     "id": "api.team.add_user_to_team_from_invite.guest.app_error",
-    "translation": ""
+    "translation": "Os convidados não podem juntar-se a uma equipa através de uma ligação de convite. Por favor, peça um convite por e-mail para convidado para a equipa."
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
-    "translation": ""
+    "translation": "As contas de convidado estão desativadas."
   },
   {
     "id": "api.team.demote_user_to_guest.license.error",
-    "translation": ""
+    "translation": "A sua licença não suporta contas de convidado"
   },
   {
     "id": "api.team.get_all_teams.insufficient_permissions",
-    "translation": ""
+    "translation": "Não tem as permissões apropriadas para listar todas as equipas"
   },
   {
     "id": "api.team.get_invite_info.not_open_team",
-    "translation": ""
+    "translation": "O convite é inválido porque esta não é uma equipa aberta."
   },
   {
     "id": "api.team.get_team.flagged_post_mismatch.app_error",
-    "translation": ""
+    "translation": "O Id. da equipa não corresponde ao Id. da equipa da mensagem sinalizada."
   },
   {
     "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
-    "translation": ""
+    "translation": "Nome de controlador inválido nas definições de ficheiros. Tem de ser 'local' ou 'amazons3'."
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
-    "translation": ""
+    "translation": "Não é possível ler o ficheiro do ícone da equipa."
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
-    "translation": ""
+    "translation": "Erro ao invalidar os convites por e-mail."
   },
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
-    "translation": ""
+    "translation": "Os canais do convite têm de pertencer à equipa do convite."
   },
   {
     "id": "api.team.invite_guests.policy_enforced_channel.app_error",
-    "translation": ""
+    "translation": "Não é possível convidar utilizadores convidados para este canal porque tem restrições de acesso baseadas em atributos de utilizador."
   },
   {
     "id": "api.team.invite_guests_to_channels.disabled.error",
-    "translation": ""
+    "translation": "As contas de convidado estão desativadas"
   },
   {
     "id": "api.team.invite_guests_to_channels.guest_magic_link_disabled.error",
-    "translation": ""
+    "translation": "A ligação mágica para convidados não está ativada"
   },
   {
     "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
-    "translation": ""
+    "translation": "Conteúdo do pedido inválido ou em falta."
   },
   {
     "id": "api.team.invite_guests_to_channels.license.error",
-    "translation": ""
+    "translation": "A sua licença não suporta contas de convidado"
   },
   {
     "id": "api.team.invite_members.account_deactivated.app_error",
-    "translation": ""
+    "translation": "A conta associada a {{.Addresses}} foi desativada. Por favor, contacte o seu Administrador do Sistema para mais detalhes."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
-    "translation": ""
+    "translation": "Os convites por e-mail estão desativados."
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
-    "translation": ""
+    "translation": "Os seguintes endereços de e-mail não pertencem a um domínio aceite: {{.Addresses}}. Por favor, contacte o seu Administrador do Sistema para mais detalhes."
   },
   {
     "id": "api.team.invite_members.no_one.app_error",
-    "translation": ""
+    "translation": "Ninguém para convidar."
   },
   {
     "id": "api.team.invite_members.profiles_disabled.app_error",
-    "translation": ""
+    "translation": "A predefinição de campos de perfil nos convites requer que os campos de perfil bloqueados estejam ativados."
   },
   {
     "id": "api.team.invite_members.profiles_graceful.app_error",
-    "translation": ""
+    "translation": "A predefinição de campos de perfil nos convites requer o modo tolerante (graceful)."
   },
   {
     "id": "api.team.invite_members.profiles_license.app_error",
-    "translation": ""
+    "translation": "A predefinição de campos de perfil nos convites requer uma licença Enterprise."
   },
   {
     "id": "api.team.invite_members.unable_to_send_email.app_error",
-    "translation": ""
+    "translation": "Erro ao enviar o e-mail"
   },
   {
     "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
-    "translation": ""
+    "translation": "O SMTP não está configurado na Consola do Sistema"
   },
   {
     "id": "api.team.invite_members.username_taken.app_error",
-    "translation": ""
+    "translation": "O nome de utilizador {{.Username}} já está a ser utilizado."
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
-    "translation": ""
+    "translation": "Conteúdo do pedido inválido."
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
-    "translation": ""
+    "translation": "A criação de equipas foi desativada. Por favor, peça detalhes ao seu Administrador do Sistema."
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": ""
+    "translation": "O utilizador não pode ser adicionado porque o domínio associado à conta não é permitido. Contacte o seu Administrador do Sistema para mais detalhes."
   },
   {
     "id": "api.team.join_team.post_and_forget",
-    "translation": ""
+    "translation": "%v juntou-se à equipa."
   },
   {
     "id": "api.team.join_user_to_team.allowed_domains.app_error",
-    "translation": ""
+    "translation": "O utilizador não pode ser adicionado porque o domínio associado à conta não é permitido. Contacte o seu Administrador do Sistema para mais detalhes."
   },
   {
     "id": "api.team.leave.left",
-    "translation": ""
+    "translation": "%v saiu da equipa."
   },
   {
     "id": "api.team.move_channel.post.error",
-    "translation": ""
+    "translation": "Não foi possível publicar a mensagem de movimentação do canal."
   },
   {
     "id": "api.team.move_channel.success",
-    "translation": ""
+    "translation": "Este canal foi movido para esta equipa a partir de %v."
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",
-    "translation": ""
+    "translation": "Não é possível remover um utilizador de uma equipa restringida por grupos."
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
-    "translation": ""
+    "translation": "Ocorreu um erro ao obter a equipa."
   },
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
-    "translation": ""
+    "translation": "O utilizador não parece fazer parte desta equipa."
   },
   {
     "id": "api.team.remove_user_from_team.removed",
-    "translation": ""
+    "translation": "%v foi removido da equipa."
   },
   {
     "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
-    "translation": ""
+    "translation": "A paginação não está implementada para a procura apenas de equipas privadas."
   },
   {
     "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
-    "translation": ""
+    "translation": "A paginação não está implementada para a procura apenas de equipas públicas."
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
-    "translation": ""
+    "translation": "Matriz vazia sob 'image' no pedido."
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
-    "translation": ""
+    "translation": "A verificação dos limites da imagem falhou. A resolução é demasiado elevada."
   },
   {
     "id": "api.team.set_team_icon.decode.app_error",
-    "translation": ""
+    "translation": "Não foi possível descodificar o ícone da equipa."
   },
   {
     "id": "api.team.set_team_icon.encode.app_error",
-    "translation": ""
+    "translation": "Não foi possível codificar o ícone da equipa."
   },
   {
     "id": "api.team.set_team_icon.get_team.app_error",
-    "translation": ""
+    "translation": "Ocorreu um erro ao obter a equipa."
   },
   {
     "id": "api.team.set_team_icon.no_file.app_error",
-    "translation": ""
+    "translation": "Nenhum ficheiro sob 'image' no pedido."
   },
   {
     "id": "api.team.set_team_icon.open.app_error",
-    "translation": ""
+    "translation": "Não foi possível abrir o ficheiro de imagem."
   },
   {
     "id": "api.team.set_team_icon.parse.app_error",
-    "translation": ""
+    "translation": "Não foi possível analisar o formulário multipart."
   },
   {
     "id": "api.team.set_team_icon.storage.app_error",
-    "translation": ""
+    "translation": "Não é possível carregar o ícone da equipa. O armazenamento de imagens não está configurado."
   },
   {
     "id": "api.team.set_team_icon.too_large.app_error",
-    "translation": ""
+    "translation": "Não é possível carregar o ícone da equipa. O ficheiro é demasiado grande."
   },
   {
     "id": "api.team.set_team_icon.write_file.app_error",
-    "translation": ""
+    "translation": "Não foi possível guardar o ícone da equipa."
   },
   {
     "id": "api.team.team_icon.update.app_error",
-    "translation": ""
+    "translation": "Ocorreu um erro ao atualizar o ícone da equipa."
   },
   {
     "id": "api.team.update.group_constrained.policy_exists",
-    "translation": ""
+    "translation": "A sincronização de grupos não pode ser ativada numa equipa que tem uma política de adesão aplicada."
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
-    "translation": ""
+    "translation": "O utilizador especificado não é membro da equipa especificada."
   },
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
-    "translation": ""
+    "translation": "Restringir a equipa a {{ .Domain }} não é permitido pela configuração do sistema. Por favor, contacte o seu administrador do sistema."
   },
   {
     "id": "api.team.update_team_member_roles.guest.app_error",
-    "translation": ""
+    "translation": "Atualização de membro da equipa inválida: um convidado não pode ser tornado membro ou administrador da equipa; por favor, promova-o primeiro a utilizador."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
-    "translation": ""
+    "translation": "Atualização de membro da equipa inválida: um utilizador tem de ser convidado ou administrador, mas não ambos."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
-    "translation": ""
+    "translation": "Atualização de membro da equipa inválida: um utilizador tem de ser convidado ou utilizador, mas não ambos."
   },
   {
     "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
-    "translation": ""
+    "translation": "Atualização de membro da equipa inválida: um membro da equipa tem sempre um esquema de utilizador."
   },
   {
     "id": "api.team.update_team_member_roles.user_and_guest.app_error",
-    "translation": ""
+    "translation": "Atualização de membro da equipa inválida: um convidado não pode ser definido para uma única equipa; um Administrador do Sistema tem de promover ou despromover os utilizadores de/para convidados."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
-    "translation": ""
+    "translation": "A sua licença não suporta a atualização do esquema de uma equipa"
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
-    "translation": ""
+    "translation": "Não é possível definir o esquema da equipa porque o esquema indicado não é um esquema de equipa."
   },
   {
     "id": "api.team.user.missing_account",
-    "translation": ""
+    "translation": "Não é possível encontrar o utilizador."
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
-    "translation": ""
+    "translation": "Adicione aplicações ao seu espaço de trabalho"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": ""
+    "translation": "Simplifique o seu trabalho com ferramentas como GitHub, Jira e Zoom. Explore todas as integrações que temos no nosso"
   },
   {
     "id": "api.templates.cloud_welcome_email.app_market_place",
-    "translation": ""
+    "translation": "marketplace de aplicações."
   },
   {
     "id": "api.templates.cloud_welcome_email.button",
-    "translation": ""
+    "translation": "Abrir o Mattermost"
   },
   {
     "id": "api.templates.cloud_welcome_email.download_mm_info",
-    "translation": ""
+    "translation": "Transfira a Aplicação Mattermost"
   },
   {
     "id": "api.templates.cloud_welcome_email.info",
-    "translation": ""
+    "translation": "Obrigado por criar "
   },
   {
     "id": "api.templates.cloud_welcome_email.info2",
-    "translation": ""
+    "translation": "Certifique-se de que guarda a sua ligação ou a adiciona aos marcadores para utilização futura."
   },
   {
     "id": "api.templates.cloud_welcome_email.invite_info",
-    "translation": ""
+    "translation": "Convide pessoas para o seu espaço de trabalho"
   },
   {
     "id": "api.templates.cloud_welcome_email.invite_sub_info",
-    "translation": ""
+    "translation": "Partilhe esta ligação para convidar os seus membros a juntarem-se a {{.WorkSpace}}:"
   },
   {
     "id": "api.templates.cloud_welcome_email.mm_apps",
-    "translation": ""
+    "translation": "aplicações móveis e de ambiente de trabalho"
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
-    "translation": ""
+    "translation": "Inicie sessão no seu espaço de trabalho nas nossas"
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": ""
+    "translation": "para a melhor experiência em Windows, Linux, Mac, iOS e Android."
   },
   {
     "id": "api.templates.cloud_welcome_email.start_questions",
-    "translation": ""
+    "translation": "Tem dúvidas sobre como começar? Envie-nos um e-mail para"
   },
   {
     "id": "api.templates.cloud_welcome_email.subject",
-    "translation": ""
+    "translation": "Parabéns!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle",
-    "translation": ""
+    "translation": "Configure o seu espaço de trabalho"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
-    "translation": ""
+    "translation": "Siga os passos seguintes para criar as suas equipas e tirar o máximo partido do seu espaço de trabalho."
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": ""
+    "translation": "O seu espaço de trabalho está pronto!"
   },
   {
     "id": "api.templates.deactivate_body.info",
-    "translation": ""
+    "translation": "Desativou a sua conta em {{ .SiteURL }}."
   },
   {
     "id": "api.templates.deactivate_body.title",
-    "translation": ""
+    "translation": "A sua conta foi desativada em {{ .ServerURL }}"
   },
   {
     "id": "api.templates.deactivate_body.warning",
-    "translation": ""
+    "translation": "Se esta alteração não foi iniciada por si ou se pretender reativar a sua conta, contacte o seu administrador do sistema."
   },
   {
     "id": "api.templates.deactivate_subject",
-    "translation": ""
+    "translation": "[{{ .SiteName }}] A sua conta em {{ .ServerURL }} foi desativada"
   },
   {
     "id": "api.templates.email_change_body.info",
-    "translation": ""
+    "translation": "O seu endereço de e-mail para {{.TeamDisplayName}} foi alterado para {{.NewEmail}}."
   },
   {
     "id": "api.templates.email_change_body.title",
-    "translation": ""
+    "translation": "Atualizou o seu e-mail"
   },
   {
     "id": "api.templates.email_change_subject",
-    "translation": ""
+    "translation": "[{{ .SiteName }}] O seu endereço de e-mail foi alterado"
   },
   {
     "id": "api.templates.email_change_verify_body.button",
-    "translation": ""
+    "translation": "Verificar E-mail"
   },
   {
     "id": "api.templates.email_change_verify_body.info",
-    "translation": ""
+    "translation": "Para concluir a atualização do seu endereço de e-mail para {{.TeamDisplayName}}, por favor clique na ligação abaixo para confirmar que este é o endereço correto."
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": ""
+    "translation": "Atualizou o seu e-mail com sucesso"
   },
   {
     "id": "api.templates.email_change_verify_subject",
-    "translation": ""
+    "translation": "[{{ .SiteName }}] Verificar o novo endereço de e-mail"
   },
   {
     "id": "api.templates.email_footer",
-    "translation": ""
+    "translation": "Para alterar as suas preferências de notificação, inicie sessão no site da sua equipa e aceda a Definições > Notificações."
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": ""
+    "translation": "© 2015 - {{ .CurrentYear }} Mattermost, Inc. 2100 Geng Road, Suite 210, Palo Alto, CA, 94303"
   },
   {
     "id": "api.templates.email_info1",
-    "translation": ""
+    "translation": "Se tiver alguma dúvida, envie-nos um e-mail a qualquer momento: "
   },
   {
     "id": "api.templates.email_info2",
-    "translation": ""
+    "translation": "Com os melhores cumprimentos,"
   },
   {
     "id": "api.templates.email_info3",
-    "translation": ""
+    "translation": "A Equipa {{.SiteName}}"
   },
   {
     "id": "api.templates.email_organization",
-    "translation": ""
+    "translation": "Enviado por "
   },
   {
     "id": "api.templates.email_us_anytime_at",
-    "translation": ""
+    "translation": "Envie-nos um e-mail a qualquer momento para "
   },
   {
     "id": "api.templates.email_warning",
-    "translation": ""
+    "translation": "Se não fez esta alteração, por favor contacte o administrador do sistema."
   },
   {
     "id": "api.templates.guest_magic_link_body.footer.info",
-    "translation": ""
+    "translation": "Este e-mail foi-lhe enviado porque alguém pediu uma ligação de início de sessão para o Mattermost. Se não fez este pedido, pode ignorar este e-mail em segurança."
   },
   {
     "id": "api.templates.guest_magic_link_body.footer.title",
-    "translation": ""
+    "translation": "Não pediu este e-mail?"
   },
   {
     "id": "api.templates.guest_magic_link_body.subtitle",
-    "translation": ""
+    "translation": "Clique no botão abaixo para iniciar sessão na sua conta. Lembre-se de não partilhar esta ligação com mais ninguém."
   },
   {
     "id": "api.templates.guest_magic_link_body.title",
-    "translation": ""
+    "translation": "Iniciar sessão no Mattermost"
   },
   {
     "id": "api.templates.guest_magic_link_subject",
-    "translation": ""
+    "translation": "Iniciar sessão em {{ .SiteName }}"
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": ""
+    "translation": "Juntar-se agora"
   },
   {
     "id": "api.templates.invite_body.subTitle",
-    "translation": ""
+    "translation": "Comece a colaborar com a sua equipa no Mattermost"
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": ""
+    "translation": "{{ .SenderName }} convidou-o a juntar-se à equipa {{ .TeamDisplayName }}."
   },
   {
     "id": "api.templates.invite_body.title.reminder",
-    "translation": ""
+    "translation": "Lembrete"
   },
   {
     "id": "api.templates.invite_body_footer.info",
-    "translation": ""
+    "translation": "O Mattermost é uma plataforma de mensagens flexível e de código aberto que permite a colaboração segura em equipa."
   },
   {
     "id": "api.templates.invite_body_footer.learn_more",
-    "translation": ""
+    "translation": "Saiba mais"
   },
   {
     "id": "api.templates.invite_body_footer.title",
-    "translation": ""
+    "translation": "O que é o Mattermost?"
   },
   {
     "id": "api.templates.invite_body_guest.subTitle",
-    "translation": ""
+    "translation": "Foi convidado como convidado para colaborar com a equipa"
   },
   {
     "id": "api.templates.invite_guest_subject",
-    "translation": ""
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} convidou-o a juntar-se à equipa {{ .TeamDisplayName }} como convidado"
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": ""
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} convidou-o a juntar-se à Equipa {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.invite_team_and_channel_body.title",
-    "translation": ""
+    "translation": "{{ .SenderName }} convidou-o a juntar-se ao Canal {{ .ChannelName }} na Equipa {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.invite_team_and_channel_subject",
-    "translation": ""
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} convidou-o a juntar-se ao Canal {{ .ChannelName }} na Equipa {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.invite_team_and_channels_body.title",
-    "translation": ""
+    "translation": "{{ .SenderName }} convidou-o a juntar-se a {{ .ChannelsLen }} canais na Equipa {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.invite_team_and_channels_subject",
-    "translation": ""
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} convidou-o a juntar-se a {{ .ChannelsLen }} canais na Equipa {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.ip_filters_changed.button",
-    "translation": ""
+    "translation": "Rever alterações"
   },
   {
     "id": "api.templates.ip_filters_changed.subTitle",
-    "translation": ""
+    "translation": "@{{ .InitiatingUsername }} alterou as definições de filtragem de IP do seu espaço de trabalho no URL: {{ .SiteURL }}"
   },
   {
     "id": "api.templates.ip_filters_changed.subject",
-    "translation": ""
+    "translation": "Alterações aos Filtros de IP do Seu Espaço de Trabalho"
   },
   {
     "id": "api.templates.ip_filters_changed.title",
-    "translation": ""
+    "translation": "Alterações à filtragem de IP do seu espaço de trabalho"
   },
   {
     "id": "api.templates.ip_filters_changed_footer.contact_support",
-    "translation": ""
+    "translation": "Contactar o suporte"
   },
   {
     "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
-    "translation": ""
+    "translation": "Inicie sessão no portal de clientes para repor a filtragem de IP"
   },
   {
     "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
-    "translation": ""
+    "translation": "Enviar um e-mail para {{ .InitiatingUserEmail }}"
   },
   {
     "id": "api.templates.ip_filters_changed_footer.title",
-    "translation": ""
+    "translation": "Tem dificuldades em aceder ao seu espaço de trabalho?"
   },
   {
     "id": "api.templates.license_need_help.info",
-    "translation": ""
+    "translation": "<a href=\"https://mattermost.com/contact-sales/\">Fale com um especialista do Mattermost</a> para obter ajuda com os planos e as opções de renovação."
   },
   {
     "id": "api.templates.license_need_help.title",
-    "translation": ""
+    "translation": "Precisa de Ajuda?"
   },
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
-    "translation": ""
+    "translation": "Contactar vendas"
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
-    "translation": ""
+    "translation": "A sua licença {{.SkuName}} está prestes a ser renovada"
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": ""
+    "translation": "A sua licença {{.SkuName}} para <a href=\"{{.SiteURL}}\">{{.SiteName}}</a> expira dentro de {{.Days}} dias. Esperamos que esteja a tirar partido da colaboração segura e de missão crítica que o Mattermost permite."
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle_two",
-    "translation": ""
+    "translation": "Renove em breve para garantir que a sua equipa continua a usufruir destas vantagens."
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
-    "translation": ""
+    "translation": "A sua licença Mattermost está prestes a ser renovada"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": ""
+    "translation": "A autenticação multifator foi adicionada à sua conta em {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_activated_body.title",
-    "translation": ""
+    "translation": "A autenticação multifator foi adicionada"
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": ""
+    "translation": "[{{ .SiteName }}] A sua MFA foi atualizada"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": ""
+    "translation": "A autenticação multifator foi removida da sua conta em {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
-    "translation": ""
+    "translation": "A autenticação multifator foi removida"
   },
   {
     "id": "api.templates.password_change_body.info",
-    "translation": ""
+    "translation": "A sua palavra-passe para {{.TeamDisplayName}} em {{ .TeamURL }} foi atualizada {{.Method}}."
   },
   {
     "id": "api.templates.password_change_body.title",
-    "translation": ""
+    "translation": "A sua palavra-passe foi atualizada"
   },
   {
     "id": "api.templates.password_change_subject",
-    "translation": ""
+    "translation": "[{{ .SiteName }}] A sua palavra-passe foi atualizada"
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": ""
+    "translation": "Responder no Mattermost"
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": ""
+    "translation": "Precisa de ajuda ou tem dúvidas? Envie-nos um e-mail para "
   },
   {
     "id": "api.templates.questions_footer.title",
-    "translation": ""
+    "translation": "Dúvidas?"
   },
   {
     "id": "api.templates.remove_expired_license.body.heading",
-    "translation": ""
+    "translation": "A sua licença Mattermost expirou"
   },
   {
     "id": "api.templates.remove_expired_license.body.subtitle",
-    "translation": ""
+    "translation": "A sua licença {{.SkuName}} para <a href=\"{{.SiteURL}}\">{{.SiteName}}</a> expirou e algumas funcionalidades podem estar desativadas."
   },
   {
     "id": "api.templates.remove_expired_license.body.subtitle_two",
-    "translation": ""
+    "translation": "Por favor, renove a sua licença agora para continuar a utilizar todas as capacidades do Mattermost."
   },
   {
     "id": "api.templates.remove_expired_license.subject",
-    "translation": ""
+    "translation": "A sua licença {{.SkuName}} expirou"
   },
   {
     "id": "api.templates.reset_body.button",
-    "translation": ""
+    "translation": "Redefinir Palavra-passe"
   },
   {
     "id": "api.templates.reset_body.info",
-    "translation": ""
+    "translation": "A ligação para redefinir a palavra-passe expira dentro de 24 horas."
   },
   {
     "id": "api.templates.reset_body.subTitle",
-    "translation": ""
+    "translation": "Clique no botão abaixo para redefinir a sua palavra-passe. Se não fez este pedido, pode ignorar este e-mail em segurança."
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": ""
+    "translation": "Redefinir a Sua Palavra-passe"
   },
   {
     "id": "api.templates.reset_subject",
-    "translation": ""
+    "translation": "[{{ .SiteName }}] Redefinir a sua palavra-passe"
   },
   {
     "id": "api.templates.signin_change_email.body.info",
-    "translation": ""
+    "translation": "Atualizou o seu método de início de sessão em {{ .SiteName }} para {{.Method}}."
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
-    "translation": ""
+    "translation": "e-mail e palavra-passe"
   },
   {
     "id": "api.templates.signin_change_email.body.title",
-    "translation": ""
+    "translation": "Atualizou o seu método de início de sessão"
   },
   {
     "id": "api.templates.signin_change_email.subject",
-    "translation": ""
+    "translation": "[{{ .SiteName }}] O seu método de início de sessão foi atualizado"
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": ""
+    "translation": "Foi adicionado um código de acesso pessoal à sua conta em {{ .SiteURL }}. Estes códigos podem ser utilizados para aceder a {{.SiteName}} com a sua conta."
   },
   {
     "id": "api.templates.user_access_token_body.title",
-    "translation": ""
+    "translation": "Código de acesso pessoal adicionado à sua conta"
   },
   {
     "id": "api.templates.user_access_token_rotated_body.info",
-    "translation": ""
+    "translation": "Um código de acesso pessoal da sua conta em {{ .SiteURL }} foi regenerado. O segredo do código anterior já não é válido."
   },
   {
     "id": "api.templates.user_access_token_rotated_body.title",
-    "translation": ""
+    "translation": "Código de acesso pessoal regenerado"
   },
   {
     "id": "api.templates.user_access_token_rotated_subject",
-    "translation": ""
+    "translation": "[{{ .SiteName }}] Código de acesso pessoal regenerado"
   },
   {
     "id": "api.templates.user_access_token_subject",
-    "translation": ""
+    "translation": "[{{ .SiteName }}] Código de acesso pessoal adicionado à sua conta"
   },
   {
     "id": "api.templates.username_change_body.info",
-    "translation": ""
+    "translation": "O seu nome de utilizador para {{.TeamDisplayName}} foi alterado para {{.NewUsername}}."
   },
   {
     "id": "api.templates.username_change_body.title",
-    "translation": ""
+    "translation": "Atualizou o seu nome de utilizador"
   },
   {
     "id": "api.templates.username_change_subject",
-    "translation": ""
+    "translation": "[{{ .SiteName }}] O seu nome de utilizador foi alterado"
   },
   {
     "id": "api.templates.verify_body.button",
-    "translation": ""
+    "translation": "Verificar E-mail"
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": ""
+    "translation": "Este endereço de e-mail foi utilizado para criar uma conta no Mattermost."
   },
   {
     "id": "api.templates.verify_body.info1",
-    "translation": ""
+    "translation": "Se não foi você, pode ignorar este e-mail em segurança."
   },
   {
     "id": "api.templates.verify_body.serverURL",
-    "translation": ""
+    "translation": "{{ .ServerURL }}."
   },
   {
     "id": "api.templates.verify_body.subTitle1",
-    "translation": ""
+    "translation": "Obrigado por se juntar a "
   },
   {
     "id": "api.templates.verify_body.subTitle2",
-    "translation": ""
+    "translation": "Clique abaixo para verificar o seu endereço de e-mail."
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": ""
+    "translation": "Verifique o seu endereço de e-mail"
   },
   {
     "id": "api.templates.verify_subject",
-    "translation": ""
+    "translation": "[{{ .SiteName }}] Verificação de E-mail"
   },
   {
     "id": "api.templates.welcome_body.app_download_button",
-    "translation": ""
+    "translation": "Transferir"
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": ""
+    "translation": "Para a melhor experiência, transfira as aplicações para PC, Mac, iOS e Android."
   },
   {
     "id": "api.templates.welcome_body.app_download_title",
-    "translation": ""
+    "translation": "Transfira as aplicações móveis e de ambiente de trabalho"
   },
   {
     "id": "api.templates.welcome_body.button",
-    "translation": ""
+    "translation": "Verificar E-mail"
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": ""
+    "translation": "Este endereço de e-mail foi utilizado para criar uma conta no Mattermost."
   },
   {
     "id": "api.templates.welcome_body.info1",
-    "translation": ""
+    "translation": "Se não foi você, pode ignorar este e-mail em segurança."
   },
   {
     "id": "api.templates.welcome_body.serverURL",
-    "translation": ""
+    "translation": "{{ .ServerURL }}."
   },
   {
     "id": "api.templates.welcome_body.subTitle1",
-    "translation": ""
+    "translation": "Obrigado por se juntar a "
   },
   {
     "id": "api.templates.welcome_body.subTitle2",
-    "translation": ""
+    "translation": "Clique abaixo para verificar o seu endereço de e-mail."
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": ""
+    "translation": "Bem-vindo à equipa"
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": ""
+    "translation": "[{{ .SiteName }}] Juntou-se a {{ .ServerURL }}"
   },
   {
     "id": "api.unable_to_create_zip_file",
-    "translation": ""
+    "translation": "Erro ao criar o ficheiro zip."
   },
   {
     "id": "api.unmarshal_error",
-    "translation": ""
+    "translation": "Falha ao desserializar."
   },
   {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
-    "translation": ""
+    "translation": "Já atualizou para a Mattermost Enterprise Edition. Por favor, reinicie o servidor para concluir a atualização."
   },
   {
     "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
-    "translation": ""
+    "translation": "Não pode atualizar porque já está a executar a Mattermost Enterprise Edition."
   },
   {
     "id": "api.upgrade_to_enterprise.app_error",
-    "translation": ""
+    "translation": "Já está em curso uma atualização para a Mattermost Enterprise Edition."
   },
   {
     "id": "api.upgrade_to_enterprise.generic_error.app_error",
-    "translation": ""
+    "translation": "O Mattermost não conseguiu atualizar para a Enterprise Edition."
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
-    "translation": ""
+    "translation": "O Mattermost não conseguiu atualizar para a Enterprise Edition. O utilizador de sistema do Mattermost {{.MattermostUsername}} não tem acesso de escrita ao ficheiro binário necessário. Um administrador do sistema pode atualizar as permissões do ficheiro executando o seguinte comando no servidor onde o Mattermost está instalado:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nDepois de alterar as permissões do ficheiro, tente atualizar o Mattermost novamente. Quando tiver atualizado e reiniciado, lembre-se de repor as permissões originais do ficheiro binário:\n\n```\nchmod -w \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
-    "translation": ""
+    "translation": "O Mattermost não conseguiu atualizar para a Enterprise Edition. O utilizador de sistema do Mattermost {{.MattermostUsername}} não tem acesso de escrita ao ficheiro binário necessário. Um administrador do sistema pode atualizar as permissões do ficheiro executando o seguinte comando no servidor onde o Mattermost está instalado:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nDepois de alterar as permissões do ficheiro, tente atualizar o Mattermost novamente. Quando tiver atualizado e reiniciado, lembre-se de repor as permissões originais do ficheiro binário:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user.app_error",
-    "translation": ""
+    "translation": "O Mattermost não conseguiu atualizar para a Enterprise Edition. O utilizador de sistema do Mattermost {{.MattermostUsername}} não tem acesso de escrita ao ficheiro binário necessário. Um administrador do sistema pode atualizar as permissões do ficheiro executando o seguinte comando no servidor onde o Mattermost está instalado:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nDepois de alterar as permissões do ficheiro, tente atualizar o Mattermost novamente. Quando tiver atualizado e reiniciado, lembre-se de repor as permissões originais do ficheiro binário:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
-    "translation": ""
+    "translation": "O Mattermost não conseguiu atualizar para a Enterprise Edition. Esta funcionalidade só funciona em sistemas Linux com arquitetura x86-64."
   },
   {
     "id": "api.upgrade_to_enterprise_status.app_error",
-    "translation": ""
+    "translation": "O Mattermost não conseguiu atualizar para a Enterprise Edition."
   },
   {
     "id": "api.upgrade_to_enterprise_status.signature.app_error",
-    "translation": ""
+    "translation": "O Mattermost não conseguiu atualizar para a Enterprise Edition. Não foi possível verificar a assinatura digital do ficheiro binário transferido."
   },
   {
     "id": "api.upload.create.check_directory.app_error",
-    "translation": ""
+    "translation": "Ocorreu um erro ao verificar a configuração do diretório de importação."
   },
   {
     "id": "api.upload.create.directory_conflict.app_error",
-    "translation": ""
+    "translation": "Não é possível criar o carregamento de importação: ImportSettings.Directory está em conflito com PluginSettings.Directory."
   },
   {
     "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
-    "translation": ""
+    "translation": "Não foi possível carregar o ficheiro. O canal de carregamento não está partilhado com o servidor remoto."
   },
   {
     "id": "api.upload.create.upload_too_large.app_error",
-    "translation": ""
+    "translation": "Não é possível carregar o ficheiro. O ficheiro é demasiado grande."
   },
   {
     "id": "api.upload.get_upload.forbidden.app_error",
-    "translation": ""
+    "translation": "Não foi possível obter o carregamento."
   },
   {
     "id": "api.upload.invalid_type_for_shared_channel.app_error",
-    "translation": ""
+    "translation": "Não foi possível carregar o ficheiro. O canal de carregamento não está partilhado com o servidor remoto."
   },
   {
     "id": "api.upload.upload_data.invalid_content_length",
-    "translation": ""
+    "translation": "Content-Length inválido."
   },
   {
     "id": "api.upload.upload_data.invalid_content_type",
-    "translation": ""
+    "translation": "Content-Type inválido para o carregamento multipart."
   },
   {
     "id": "api.upload.upload_data.multipart_error",
-    "translation": ""
+    "translation": "Não foi possível processar os dados multipart."
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
-    "translation": ""
+    "translation": "A MFA não está disponível para este tipo de conta."
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
-    "translation": ""
+    "translation": "Não foi possível adicionar as preferências de canais diretos do utilizador user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
   },
   {
     "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
-    "translation": ""
+    "translation": "não é um utilizador ldap"
   },
   {
     "id": "api.user.attach_device_id.invalid_device_id.app_error",
-    "translation": ""
+    "translation": "Id. de dispositivo inválido."
   },
   {
     "id": "api.user.attach_device_id.invalid_voip_device_id.app_error",
-    "translation": ""
+    "translation": "Id. de dispositivo VoIP inválido."
   },
   {
     "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
-    "translation": ""
+    "translation": "A Transferência de Autenticação não está disponível porque o registo por e-mail está desativado."
   },
   {
     "id": "api.user.auth_switch.not_available.login_disabled.app_error",
-    "translation": ""
+    "translation": "A Transferência de Autenticação não está disponível porque nem o início de sessão por e-mail nem por nome de utilizador estão ativados."
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
-    "translation": ""
+    "translation": "Resposta incorreta ao pedido de token."
   },
   {
     "id": "api.user.authorize_oauth_user.bad_token.app_error",
-    "translation": ""
+    "translation": "Tipo de token incorreto."
   },
   {
     "id": "api.user.authorize_oauth_user.invalid_state.app_error",
-    "translation": ""
+    "translation": "Estado inválido"
   },
   {
     "id": "api.user.authorize_oauth_user.missing.app_error",
-    "translation": ""
+    "translation": "Token de acesso em falta."
   },
   {
     "id": "api.user.authorize_oauth_user.response.app_error",
-    "translation": ""
+    "translation": "Foi recebida uma resposta inválida do fornecedor de serviço OAuth."
   },
   {
     "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
-    "translation": ""
+    "translation": "Ocorreu um erro no hook OnSamlLogin. Por favor, contacte o seu Administrador do Sistema."
   },
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
-    "translation": ""
+    "translation": "A resposta SAML é demasiado longa"
   },
   {
     "id": "api.user.authorize_oauth_user.service.app_error",
-    "translation": ""
+    "translation": "O pedido de token a {{.Service}} falhou."
   },
   {
     "id": "api.user.authorize_oauth_user.token_failed.app_error",
-    "translation": ""
+    "translation": "O pedido de token falhou."
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": ""
+    "translation": "O SSO de {{.Service}} através de OAuth 2.0 não está disponível neste servidor."
   },
   {
     "id": "api.user.autocomplete_users.missing_team_id.app_error",
-    "translation": ""
+    "translation": "O parâmetro de Id. da equipa é necessário para completar automaticamente por canal."
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
-    "translation": ""
+    "translation": "A sua conta está bloqueada devido a demasiadas tentativas de palavra-passe falhadas. Por favor, redefina a sua palavra-passe."
   },
   {
     "id": "api.user.check_user_login_attempts.too_many_ldap.app_error",
-    "translation": ""
+    "translation": "A sua conta está bloqueada devido a demasiadas tentativas de palavra-passe falhadas. Por favor, contacte o seu Administrador do Sistema."
   },
   {
     "id": "api.user.check_user_mfa.bad_code.app_error",
-    "translation": ""
+    "translation": "Código MFA inválido."
   },
   {
     "id": "api.user.check_user_password.invalid.app_error",
-    "translation": ""
+    "translation": "O início de sessão falhou devido a palavra-passe inválida."
   },
   {
     "id": "api.user.check_user_password.invalid_hash.app_error",
-    "translation": ""
+    "translation": "O formato da palavra-passe com hash é inválido e não foi possível analisá-lo."
   },
   {
     "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": ""
+    "translation": "E-mail em branco."
   },
   {
     "id": "api.user.complete_switch_with_oauth.parse.app_error",
-    "translation": ""
+    "translation": "Não foi possível analisar os dados de autenticação do objeto de utilizador de {{.Service}}."
   },
   {
     "id": "api.user.create_email_token.error",
-    "translation": ""
+    "translation": "Não foi possível criar os dados do token para a verificação de e-mail"
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": ""
+    "translation": "Já existe uma conta associada a esse endereço de e-mail que utiliza um método de início de sessão diferente de {{.Service}}. Por favor, inicie sessão utilizando {{.Auth}}."
   },
   {
     "id": "api.user.create_oauth_user.create.app_error",
-    "translation": ""
+    "translation": "Não foi possível criar o utilizador a partir do objeto de utilizador de {{.Service}}."
   },
   {
     "id": "api.user.create_password_token.error",
-    "translation": ""
+    "translation": "Não é possível criar o token de recuperação da palavra-passe"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
-    "translation": ""
+    "translation": "Não foi possível criar o tipo de letra da imagem de perfil predefinida."
   },
   {
     "id": "api.user.create_profile_image.encode.app_error",
-    "translation": ""
+    "translation": "Não foi possível codificar a imagem de perfil predefinida."
   },
   {
     "id": "api.user.create_profile_image.initial.app_error",
-    "translation": ""
+    "translation": "Não foi possível adicionar a inicial do utilizador à imagem de perfil predefinida."
   },
   {
     "id": "api.user.create_user.accepted_domain.app_error",
-    "translation": ""
+    "translation": "O e-mail que indicou não pertence a um domínio aceite. Por favor, contacte o seu administrador ou registe-se com um e-mail diferente."
   },
   {
     "id": "api.user.create_user.bad_token_email_data.app_error",
-    "translation": ""
+    "translation": "O endereço de e-mail no token não corresponde ao dos dados do utilizador."
   },
   {
     "id": "api.user.create_user.disabled.app_error",
-    "translation": ""
+    "translation": "A criação de utilizadores está desativada."
   },
   {
     "id": "api.user.create_user.guest_accounts.disabled.app_error",
-    "translation": ""
+    "translation": "As contas de convidado estão desativadas."
   },
   {
     "id": "api.user.create_user.guest_accounts.license.app_error",
-    "translation": ""
+    "translation": "A sua licença não suporta contas de convidado."
   },
   {
     "id": "api.user.create_user.invalid_invitation_type.app_error",
-    "translation": ""
+    "translation": "Não é possível criar o utilizador: convite inválido."
   },
   {
     "id": "api.user.create_user.license_user_limits.exceeded",
-    "translation": ""
+    "translation": "Não é possível criar o utilizador. O servidor excede o número máximo de utilizadores licenciados. Contacte o seu administrador com: ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
   },
   {
     "id": "api.user.create_user.no_open_server",
-    "translation": ""
+    "translation": "Este servidor não permite registos abertos. Por favor, fale com o seu Administrador para receber um convite."
   },
   {
     "id": "api.user.create_user.signup_email_disabled.app_error",
-    "translation": ""
+    "translation": "O registo de utilizadores por e-mail está desativado."
   },
   {
     "id": "api.user.create_user.signup_link_expired.app_error",
-    "translation": ""
+    "translation": "A ligação de registo expirou."
   },
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
-    "translation": ""
+    "translation": "A ligação de registo não parece ser válida."
   },
   {
     "id": "api.user.create_user.user_limits.exceeded",
-    "translation": ""
+    "translation": "Não é possível criar o utilizador. O servidor excede o limite seguro de utilizadores. Contacte o seu administrador com: ERROR_SAFETY_LIMITS_EXCEEDED."
   },
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
-    "translation": ""
+    "translation": "A funcionalidade de eliminação permanente de canais não está ativada. Por favor, contacte o seu Administrador do Sistema."
   },
   {
     "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
-    "translation": ""
+    "translation": "A funcionalidade de eliminação permanente de canais não está ativada. ServiceSettings.EnableAPIChannelDeletion tem de estar definido como true para utilizar este comando. Consulte https://mattermost.com/pl/environment-configuration-settings para mais informações"
   },
   {
     "id": "api.user.delete_team.not_enabled.app_error",
-    "translation": ""
+    "translation": "A funcionalidade de eliminação permanente de equipas não está ativada. Por favor, contacte o seu Administrador do Sistema."
   },
   {
     "id": "api.user.delete_team.not_enabled.for_admin.app_error",
-    "translation": ""
+    "translation": "A funcionalidade de eliminação permanente de equipas não está ativada. ServiceSettings.EnableAPITeamDeletion tem de estar definido como true para utilizar este comando. Consulte https://mattermost.com/pl/environment-configuration-settings para mais informações."
   },
   {
     "id": "api.user.delete_user.not_enabled.app_error",
-    "translation": ""
+    "translation": "A funcionalidade de eliminação permanente de utilizadores não está ativada. Por favor, contacte o seu Administrador do Sistema."
   },
   {
     "id": "api.user.delete_user.not_enabled.for_admin.app_error",
-    "translation": ""
+    "translation": "A funcionalidade de eliminação permanente de utilizadores não está ativada. ServiceSettings.EnableAPIUserDeletion tem de estar definido como true para utilizar este comando. Consulte https://mattermost.com/pl/environment-configuration-settings para mais informações."
   },
   {
     "id": "api.user.demote_user_to_guest.already_guest.app_error",
-    "translation": ""
+    "translation": "Não é possível converter o utilizador em convidado porque já é um convidado."
   },
   {
     "id": "api.user.demote_user_to_guest.bot_not_allowed.app_error",
-    "translation": ""
+    "translation": "As contas de bot não podem ser convertidas em contas de convidado."
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
-    "translation": ""
+    "translation": "O AD/LDAP não está disponível neste servidor."
   },
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
-    "translation": ""
+    "translation": "A Transferência de Autenticação não está configurada ou disponível neste servidor."
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": ""
+    "translation": "Erro ao obter o ponto final do Discovery Document."
   },
   {
     "id": "api.user.get_profile_image_path.app_error",
-    "translation": ""
+    "translation": "Erro ao verificar se o utilizador tem uma imagem de perfil personalizada."
   },
   {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
-    "translation": ""
+    "translation": "Não foi possível obter os carregamentos."
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
-    "translation": ""
+    "translation": "Não é possível obter o utilizador por e-mail."
   },
   {
     "id": "api.user.get_users.validation.app_error",
-    "translation": ""
+    "translation": "Erro ao obter as funções durante a validação."
   },
   {
     "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
-    "translation": ""
+    "translation": "Serviço de controlo de acesso indisponível. Não é possível filtrar os utilizadores para um canal com ABAC ativado."
   },
   {
     "id": "api.user.get_users_not_in_abac_team.access_control_unavailable.app_error",
-    "translation": ""
+    "translation": "Serviço de controlo de acesso indisponível. Não é possível filtrar os utilizadores para uma equipa com ABAC ativado."
   },
   {
     "id": "api.user.guest_magic_link.expired_token.app_error",
-    "translation": ""
+    "translation": "Esta ligação de convite expirou."
   },
   {
     "id": "api.user.guest_magic_link.invalid_token.app_error",
-    "translation": ""
+    "translation": "Ligação de convite inválida."
   },
   {
     "id": "api.user.guest_magic_link.missing_token.app_error",
-    "translation": ""
+    "translation": "Token de convite em falta."
   },
   {
     "id": "api.user.guest_magic_link.username_generation_failed.app_error",
-    "translation": ""
+    "translation": "Não foi possível gerar um nome de utilizador único. Por favor, contacte o seu administrador do sistema."
   },
   {
     "id": "api.user.invalidate_password_recovery_tokens.error",
-    "translation": ""
+    "translation": "Não é possível obter os tokens por tipo ao invalidar os tokens de recuperação da palavra-passe"
   },
   {
     "id": "api.user.invalidate_password_recovery_tokens_delete.error",
-    "translation": ""
+    "translation": "Não é possível remover o token ao invalidar os tokens de recuperação da palavra-passe"
   },
   {
     "id": "api.user.invalidate_password_recovery_tokens_parse.error",
-    "translation": ""
+    "translation": "Não é possível analisar o token ao invalidar os tokens de recuperação da palavra-passe"
   },
   {
     "id": "api.user.invalidate_verify_email_tokens.error",
-    "translation": ""
+    "translation": "Não é possível obter os tokens por tipo ao invalidar os tokens de verificação de e-mail"
   },
   {
     "id": "api.user.invalidate_verify_email_tokens_delete.error",
-    "translation": ""
+    "translation": "Não é possível remover o token ao invalidar os tokens de verificação de e-mail"
   },
   {
     "id": "api.user.invalidate_verify_email_tokens_parse.error",
-    "translation": ""
+    "translation": "Não é possível analisar o token ao invalidar os tokens de verificação de e-mail"
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
-    "translation": ""
+    "translation": "O AD/LDAP não está disponível neste servidor."
   },
   {
     "id": "api.user.ldap_to_email.not_ldap_account.app_error",
-    "translation": ""
+    "translation": "Esta conta de utilizador não utiliza AD/LDAP."
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
-    "translation": ""
+    "translation": "O campo da palavra-passe não pode estar em branco"
   },
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
-    "translation": ""
+    "translation": "O início de sessão com bots não é permitido."
   },
   {
     "id": "api.user.login.guest_accounts.disabled.error",
-    "translation": ""
+    "translation": "As contas de convidado estão desativadas"
   },
   {
     "id": "api.user.login.guest_accounts.license.error",
-    "translation": ""
+    "translation": "A sua licença não suporta contas de convidado"
   },
   {
     "id": "api.user.login.guest_magic_link.disabled.error",
-    "translation": ""
+    "translation": "O início de sessão com ligação mágica está desativado."
   },
   {
     "id": "api.user.login.inactive.app_error",
-    "translation": ""
+    "translation": "O início de sessão falhou porque a sua conta foi desativada. Por favor, contacte um administrador."
   },
   {
     "id": "api.user.login.invalid_credentials_email",
-    "translation": ""
+    "translation": "Introduza um e-mail e/ou palavra-passe válidos"
   },
   {
     "id": "api.user.login.invalid_credentials_email_username",
-    "translation": ""
+    "translation": "Introduza um e-mail ou nome de utilizador e/ou palavra-passe válidos."
   },
   {
     "id": "api.user.login.invalid_credentials_sso",
-    "translation": ""
+    "translation": "Introduza um e-mail ou nome de utilizador e/ou palavra-passe válidos, ou inicie sessão utilizando outro método."
   },
   {
     "id": "api.user.login.invalid_credentials_username",
-    "translation": ""
+    "translation": "Introduza um nome de utilizador e/ou palavra-passe válidos."
   },
   {
     "id": "api.user.login.not_verified.app_error",
-    "translation": ""
+    "translation": "O início de sessão falhou porque o endereço de e-mail não foi verificado."
   },
   {
     "id": "api.user.login.remote_users.login.error",
-    "translation": ""
+    "translation": "O início de sessão falhou porque os utilizadores remotos não têm permissão para iniciar sessão."
   },
   {
     "id": "api.user.login.use_auth_service.app_error",
-    "translation": ""
+    "translation": "Por favor, inicie sessão utilizando {{.AuthService}}."
   },
   {
     "id": "api.user.login_by_cws.invalid_token.app_error",
-    "translation": ""
+    "translation": "O token CWS não é válido"
   },
   {
     "id": "api.user.login_by_intune.account_locked.app_error",
-    "translation": ""
+    "translation": "A sua conta foi desativada. Por favor, contacte o seu administrador do sistema."
   },
   {
     "id": "api.user.login_by_intune.bot_login_forbidden.app_error",
-    "translation": ""
+    "translation": "As contas de bot não podem iniciar sessão utilizando a autenticação Microsoft."
   },
   {
     "id": "api.user.login_by_intune.not_available.app_error",
-    "translation": ""
+    "translation": "A autenticação Microsoft Intune não está disponível."
   },
   {
     "id": "api.user.login_by_intune.not_configured.app_error",
-    "translation": ""
+    "translation": "A autenticação Microsoft Intune não está configurada."
   },
   {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
-    "translation": ""
+    "translation": "O início de sessão com bots não é permitido."
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
-    "translation": ""
+    "translation": "O SSO de {{.Service}} através de OAuth 2.0 não está disponível neste servidor."
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
-    "translation": ""
+    "translation": "Não foi possível analisar os dados de autenticação do objeto de utilizador de {{.Service}}."
   },
   {
     "id": "api.user.login_cws.license.error",
-    "translation": ""
+    "translation": "O início de sessão através do CWS não é permitido."
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
-    "translation": ""
+    "translation": "O AD/LDAP não está disponível neste servidor."
   },
   {
     "id": "api.user.login_sso_code_exchange.deprecated.app_error",
-    "translation": ""
+    "translation": "Este ponto final está descontinuado e desativado. Por favor, atualize a sua aplicação móvel."
   },
   {
     "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
-    "translation": ""
+    "translation": "O utilizador não é um utilizador OAuth ou SAML."
   },
   {
     "id": "api.user.oauth.get_settings.app_error",
-    "translation": ""
+    "translation": "Não foi possível obter as definições de {{.Service}}"
   },
   {
     "id": "api.user.oauth_to_email.context.app_error",
-    "translation": ""
+    "translation": "A atualização da palavra-passe falhou porque o user_id do contexto não corresponde ao id do utilizador indicado."
   },
   {
     "id": "api.user.oauth_to_email.integration_session.app_error",
-    "translation": ""
+    "translation": "Não é possível mudar para a autenticação por e-mail utilizando uma sessão de integração."
   },
   {
     "id": "api.user.oauth_to_email.magic_link.app_error",
-    "translation": ""
+    "translation": "A Ligação Mágica é o único método de início de sessão disponível para esta conta."
   },
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
-    "translation": ""
+    "translation": "A Transferência de Autenticação não está configurada ou disponível neste servidor."
   },
   {
     "id": "api.user.oauth_to_email.not_oauth_user.app_error",
-    "translation": ""
+    "translation": "Não é possível mudar para a autenticação por e-mail porque o utilizador não está a utilizar autenticação OAuth ou SAML."
   },
   {
     "id": "api.user.patch_user.login_provider_attribute_set.app_error",
-    "translation": ""
+    "translation": "O campo '{{.Field}}' tem de ser definido através do fornecedor de início de sessão do utilizador."
   },
   {
     "id": "api.user.patch_user.profile_field_locked.app_error",
-    "translation": ""
+    "translation": "O campo {{.Field}} é gerido pelo seu Administrador do Sistema e não pode ser alterado."
   },
   {
     "id": "api.user.promote_guest_to_user.magic_link_enabled.app_error",
