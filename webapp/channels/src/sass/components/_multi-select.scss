@@ -4,8 +4,8 @@
     min-height: 40px;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
     padding: 0 15px;
+    gap: 8px;
 
     // Target the submit control directly: compass-ui Button no longer has Bootstrap .btn
     > button {
