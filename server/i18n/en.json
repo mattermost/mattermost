@@ -14297,11 +14297,6 @@
     "description": "Health dashboard finding detail when a background job's most recent finished run failed; {{.job_type}} is the job type identifier (such as ldap_sync) and {{.job_id}} is the job's ID, neither should be translated; {{.error}} is the error message the job recorded."
   },
   {
-    "id": "health.rule.job_failed.message.jobs_unavailable",
-    "translation": "Job history unavailable.",
-    "description": "Health dashboard reason shown when the check for failed background jobs could not run because the recent job history could not be read, so the check's status is unknown."
-  },
-  {
     "id": "health.rule.job_failed.message.no_error",
     "translation": "The latest finished {{.job_type}} run ({{.job_id}}) ended in error without recording an error message.",
     "description": "Health dashboard finding detail when a background job's most recent finished run failed and no error message was recorded; {{.job_type}} is the job type identifier (such as ldap_sync) and {{.job_id}} is the job's ID, neither should be translated."
@@ -14322,16 +14317,6 @@
     "description": "Health dashboard finding detail for a background job that is still marked in progress but has stopped reporting activity; {{.job_type}} is the job type identifier (such as ldap_sync) and {{.job_id}} is the job's ID, neither should be translated; {{.hours}} is a whole number of hours."
   },
   {
-    "id": "health.rule.job_stuck.message.collected_at_unknown",
-    "translation": "The time the data was collected is unknown, so the job's age cannot be measured.",
-    "description": "Health dashboard reason shown when the stuck-job check could not run because the Support Packet does not record when it was generated, so the check's status is unknown."
-  },
-  {
-    "id": "health.rule.job_stuck.message.jobs_unavailable",
-    "translation": "Job history unavailable.",
-    "description": "Health dashboard reason shown when the stuck-job check could not run because the recent job history could not be read, so the check's status is unknown."
-  },
-  {
     "id": "health.rule.job_stuck.remediation",
     "translation": "Cancel the stuck job from its System Console page, with mmctl job cancel, or through the API. Check the server logs around the job's last activity, then run it again.",
     "description": "Health dashboard fix-it step for a background job stuck in progress; 'mmctl job cancel' is a command and should not be translated."
@@ -14345,16 +14330,6 @@
     "id": "health.rule.job_wedged_at_zero.message",
     "translation": "The {{.job_type}} job {{.job_id}} started {{.hours}} hours ago and has reported no progress. This usually means the worker died, deadlocked, or lost its database connection before the first batch.",
     "description": "Health dashboard finding detail for a background job that has been running for hours without any progress; {{.job_type}} is the job type identifier (such as ldap_sync) and {{.job_id}} is the job's ID, neither should be translated; {{.hours}} is a whole number of hours."
-  },
-  {
-    "id": "health.rule.job_wedged_at_zero.message.collected_at_unknown",
-    "translation": "The time the data was collected is unknown, so the job's age cannot be measured.",
-    "description": "Health dashboard reason shown when the no-progress job check could not run because the Support Packet does not record when it was generated, so the check's status is unknown."
-  },
-  {
-    "id": "health.rule.job_wedged_at_zero.message.jobs_unavailable",
-    "translation": "Job history unavailable.",
-    "description": "Health dashboard reason shown when the no-progress job check could not run because the recent job history could not be read, so the check's status is unknown."
   },
   {
     "id": "health.rule.job_wedged_at_zero.remediation",

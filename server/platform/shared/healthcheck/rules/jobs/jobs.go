@@ -90,7 +90,7 @@ func gate(s *healthcheck.Snapshot, jobType string) (enabled, ok bool) {
 }
 
 // evalJobTypes returns one result per job type, calling check only for enabled types with collected runs.
-func evalJobTypes(s *healthcheck.Snapshot, jobTypes []string, jobsUnavailableID string, check func(jobType string, jobs []*model.Job) healthcheck.Result) []healthcheck.Result {
+func evalJobTypes(s *healthcheck.Snapshot, jobTypes []string, check func(jobType string, jobs []*model.Job) healthcheck.Result) []healthcheck.Result {
 	results := make([]healthcheck.Result, 0, len(jobTypes))
 	for _, jobType := range jobTypes {
 		enabled, ok := gate(s, jobType)
@@ -105,7 +105,7 @@ func evalJobTypes(s *healthcheck.Snapshot, jobTypes []string, jobsUnavailableID 
 
 		jobs, ok := s.JobsFor(jobType)
 		if !ok {
-			results = append(results, healthcheck.UnknownSubject(jobType, jobsUnavailableID))
+			results = append(results, healthcheck.UnknownSubject(jobType, healthcheck.ReasonJobsUnavailable))
 			continue
 		}
 
@@ -145,9 +145,9 @@ func hours(d time.Duration) string {
 }
 
 func evalJobStuck(s *healthcheck.Snapshot) []healthcheck.Result {
-	return evalJobTypes(s, monitoredJobTypes, healthcheck.TranslationId("health.rule.job_stuck.message.jobs_unavailable"), func(jobType string, jobs []*model.Job) healthcheck.Result {
+	return evalJobTypes(s, monitoredJobTypes, func(jobType string, jobs []*model.Job) healthcheck.Result {
 		if s.CollectedAt.IsZero() {
-			return healthcheck.UnknownSubject(jobType, healthcheck.TranslationId("health.rule.job_stuck.message.collected_at_unknown"))
+			return healthcheck.UnknownSubject(jobType, healthcheck.ReasonCollectedAtUnknown)
 		}
 
 		job := latestJob(jobs)
@@ -168,9 +168,9 @@ func evalJobStuck(s *healthcheck.Snapshot) []healthcheck.Result {
 }
 
 func evalJobWedgedAtZero(s *healthcheck.Snapshot) []healthcheck.Result {
-	return evalJobTypes(s, progressJobTypes, healthcheck.TranslationId("health.rule.job_wedged_at_zero.message.jobs_unavailable"), func(jobType string, jobs []*model.Job) healthcheck.Result {
+	return evalJobTypes(s, progressJobTypes, func(jobType string, jobs []*model.Job) healthcheck.Result {
 		if s.CollectedAt.IsZero() {
-			return healthcheck.UnknownSubject(jobType, healthcheck.TranslationId("health.rule.job_wedged_at_zero.message.collected_at_unknown"))
+			return healthcheck.UnknownSubject(jobType, healthcheck.ReasonCollectedAtUnknown)
 		}
 
 		job := latestJob(jobs)
@@ -191,7 +191,7 @@ func evalJobWedgedAtZero(s *healthcheck.Snapshot) []healthcheck.Result {
 }
 
 func evalJobFailed(s *healthcheck.Snapshot) []healthcheck.Result {
-	return evalJobTypes(s, monitoredJobTypes, healthcheck.TranslationId("health.rule.job_failed.message.jobs_unavailable"), func(jobType string, jobs []*model.Job) healthcheck.Result {
+	return evalJobTypes(s, monitoredJobTypes, func(jobType string, jobs []*model.Job) healthcheck.Result {
 		job := latestTerminalJob(jobs)
 		if job == nil || job.Status != model.JobStatusError {
 			return healthcheck.ResolvedSubject(jobType)
