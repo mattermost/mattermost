@@ -9,7 +9,7 @@ This is the Mattermost web app codebase, a React-based frontend application for 
 - **Primary workspace**: `channels/` (UI, Redux, routing).
 - **Shared packages**: `platform/*`.
 - **Scripts**: `webapp/scripts/` power dev server, builds, and localization flows.
-- **Coding Standards**: Read `webapp/STYLE_GUIDE.md` for canonical standards; nested `CLAUDE.md` files cover directory-specific rules.
+- **Coding Standards**: Read `webapp/STYLE_GUIDE.md` for canonical standards; nested `CLAUDE.md` files cover directory-specific rules. For UI component package choice (Compass vs shared), follow `webapp/AGENTS.md`.
 
 ## Core Commands
 
@@ -42,7 +42,7 @@ This repository uses npm workspaces:
 - **@mattermost/types** (`platform/types/`): TypeScript type definitions
 - **@mattermost/client** (`platform/client/`): REST and WebSocket client for the Mattermost API
 - **@mattermost/components** (`platform/components/`): Shared React components
-- **@mattermost/shared** (`platform/shared/`): Cross-product components and utilities used by the web app and plugins (e.g. `Button`, `WithTooltip`). Prefer these over hand-rolled equivalents.
+- **@mattermost/shared** (`platform/shared/`): Cross-product components and utilities used by the web app and plugins (e.g. `WithTooltip`, `Emoji`). Use these where `webapp/AGENTS.md` specifies them.
 - **@mattermost/eslint-plugin** (`platform/eslint-plugin/`): Custom ESLint rules
 
 ### Importing Packages
@@ -52,7 +52,7 @@ Always import packages using their full name, never relative paths:
 // Correct
 import {Client4} from '@mattermost/client';
 import {UserProfile} from '@mattermost/types/users';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
@@ -67,7 +67,8 @@ import Client4 from '../platform/client/src/client4.ts';
 - **React Router 5.3**: Client-side routing
 - **React Intl**: Internationalization
 - **Floating UI**: Tooltips and popovers (prefer `WithTooltip` from `@mattermost/shared/components/tooltip`)
-- **@mattermost/shared**: Shared components and utilities (`Button`, `WithTooltip`, etc.) — prefer these over rolling your own
+- **@mattermost/compass-ui**: Published Compass UI components (prefer `Button` from `@mattermost/compass-ui/components/button` over hand-rolled or shared Button)
+- **@mattermost/shared**: Shared components and utilities (`WithTooltip`, `Emoji`, etc.) — use where `webapp/AGENTS.md` specifies them
 - **@mattermost/compass-icons**: Icon library (prefer over font-awesome)
 - **Monaco Editor**: Code editor integration
 - **Styled Components**: Limited use (for MUI and some legacy components)
