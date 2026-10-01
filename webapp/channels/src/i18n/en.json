@@ -4348,16 +4348,16 @@
     "description": "Help text for a user-attribute mapping field in SAML admin settings; {name} is the attribute's display name."
   },
   "admin.customProfileAttributes.linkedNonText": {
-    "defaultMessage": "This field is a management attribute of type {type} and cannot be synced via LDAP or SAML. Only text-type fields support sync.",
-    "description": "Help text under a linked (Global Attribute) user-attribute field that is not text type; explains why the LDAP/SAML sync box is disabled."
+    "defaultMessage": "This field is a management attribute of type {type} and cannot be synced via LDAP or SAML. Only text, select and multiselect attributes support sync.",
+    "description": "Help text under a linked (Global Attribute) user-attribute field whose type cannot be synced; explains why the LDAP/SAML sync box is disabled. {type} is the field type identifier."
   },
   "admin.customProfileAttributes.managedByPlugin": {
     "defaultMessage": "This field is managed by the {pluginId} plugin and cannot be edited.",
     "description": "Help text under a user-attribute field that is read-only because a plugin owns it; {pluginId} is the plugin's display name."
   },
   "admin.customProfileAttributes.subtitle": {
-    "defaultMessage": "You can add or remove user attributes by going to the <link>user attributes page</link>.",
-    "description": "Subtitle of the 'User attributes sync' settings group in LDAP/SAML admin settings; <link> wraps a link to the user attributes admin page."
+    "defaultMessage": "You can add or remove user attributes on the <link>Attribute Management</link> page.",
+    "description": "Subtitle of the 'User attributes sync' settings group in the AD/LDAP and SAML admin settings; <link> wraps a link to the Attribute Management page, whose name should stay as the page is titled."
   },
   "admin.customProfileAttributes.title": {
     "defaultMessage": "User attributes sync",
@@ -6474,6 +6474,14 @@
   "admin.global_attributes.attribute_details.options.required": {
     "defaultMessage": "At least one option is required.",
     "description": "Inline validation error under the Options field on the attribute detail page when a select-type attribute has no options defined."
+  },
+  "admin.global_attributes.attribute_details.options.synced_help": {
+    "defaultMessage": "Options are managed by the {source} sync. Each value it sends is added as an option, and options that no user holds any more are removed.",
+    "description": "Shown under the read-only option list of a select or multiselect attribute linked to an identity source. {source} is the source name, such as AD/LDAP or SAML; the sync creates and removes the options, so the admin cannot edit them."
+  },
+  "admin.global_attributes.attribute_details.options.synced_list_label": {
+    "defaultMessage": "Options",
+    "description": "Accessible name of the read-only list of option chips on a synced select or multiselect attribute's detail page. Plural noun."
   },
   "admin.global_attributes.attribute_details.options.values_unique": {
     "defaultMessage": "Values must be unique.",

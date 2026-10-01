@@ -43,12 +43,12 @@ import AttributePluginSource from './attribute_plugin_source';
 import {useConfirmRemoveAppliesTo} from './attribute_remove_applies_to_warning_modal';
 import AttributeSelect from './attribute_select';
 import type {ExternalSource} from './external_source';
-import {resolveExternalSource} from './external_source';
+import {externalSourceMessages, resolveExternalSource} from './external_source';
 import {GraphValues, hasBlankTrimmedOptionName, hasCaseInsensitiveDuplicateNames} from './graph';
 
 import {CHANNEL_VALUE_SETTER, DEFAULT_CHANNEL_RESOURCE_CONFIG, buildChannelFieldAttrs, buildChannelFieldPatch, isOrderedChangePolicy, parseChannelFieldConfig} from '../applies_to/channels';
 import type {ChannelResourceConfig} from '../applies_to/channels';
-import {ATTRIBUTE_TYPE_DESCRIPTOR, getAttributeTypeDescriptor, toServerFieldType} from '../attribute_type';
+import {ATTRIBUTE_TYPE_DESCRIPTOR, canSyncAttributeType, getAttributeTypeDescriptor, toServerFieldType} from '../attribute_type';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from '../constants';
 import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField} from '../global_attributes_table';
 import useAllowedResourceTypes from '../use_allowed_resource_types';
@@ -731,12 +731,11 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             setOptions((prevOptions) => (prevOptions.length > 0 ? prevOptions.map((option, index) => ({...option, rank: index + 1})) : prevOptions));
         }
 
-        // The server unconditionally strips attrs.ldap/attrs.saml from any
-        // non-Text field on save (AccessControlAttributeValidationHook) --
-        // clear both proactively here so the UI never shows a link that's
-        // about to silently vanish. Phone/URL are text subtypes that CPA
-        // also refuses to sync (canSync is only true for plain text).
-        if (newType !== 'text') {
+        // The server strips attrs.ldap/attrs.saml from any field whose type an
+        // identity source cannot populate (AccessControlAttributeValidationHook)
+        // -- clear both proactively here so the UI never shows a link that's
+        // about to silently vanish.
+        if (!canSyncAttributeType(newType)) {
             setLdapAttr('');
             setSamlAttr('');
         }
@@ -770,10 +769,10 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         } else {
             setSamlAttr(value);
         }
-        if (value) {
+        if (value && !canSyncAttributeType(fieldType)) {
             setFieldType('text');
         }
-    }, [ldapAttr, samlAttr, markDirty]);
+    }, [ldapAttr, samlAttr, fieldType, markDirty]);
 
     const handleDisplayNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setDisplayName(e.target.value);
@@ -841,7 +840,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     }, [handleDoneClick, handleCancelEdit]);
 
     const hasExternalSource = Boolean(ldapAttr || samlAttr);
-    const managedByExternalSource = isPluginOwned ? undefined : resolveExternalSource(ldapAttr, samlAttr);
+    const linkedExternalSource = resolveExternalSource(ldapAttr, samlAttr);
+    const managedByExternalSource = isPluginOwned ? undefined : linkedExternalSource;
 
     // External source (LDAP/SAML) is a user-identity concept. A template's linked
     // children can include a user field, so every template keeps the editor
@@ -861,6 +861,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const serverFieldType = toServerFieldType(fieldType);
     const typeChanged = isEditMode && serverFieldType !== originalFieldTypeRef.current;
     const typeSupportsOptions = supportsOptions({type: serverFieldType});
+
+    // A synced select or multiselect gets its options from the identity source:
+    // the sync adds every value it is sent and removes those no user holds any
+    // more, and the server refuses anyone else adding, renaming or removing one.
+    const optionsOwnedBySync = typeSupportsOptions && hasExternalSource;
+    const wasSyncedWhenLoaded = Boolean(originalLdapAttrRef.current || originalSamlAttrRef.current);
 
     // Unique name is the identifier policies and integrations bind to, and the
     // server does not copy it onto linked fields. Renaming while any resource
@@ -885,7 +891,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             return null;
         }
         if (options.length === 0) {
-            return 'required' as const;
+            return optionsOwnedBySync ? null : 'required' as const;
         }
         if (hasDuplicateOptionNames(options)) {
             return 'duplicate' as const;
@@ -894,7 +900,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             return 'invalid_rank' as const;
         }
         return null;
-    }, [typeSupportsOptions, options, fieldType]);
+    }, [typeSupportsOptions, optionsOwnedBySync, options, fieldType]);
 
     const isHierarchical = supportsHierarchy({type: serverFieldType});
     const graphOptionsValid = useMemo(() => {
@@ -980,7 +986,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 ...(nameUnchanged ? {} : {name: currentName}),
                 type: fieldType,
                 displayName,
-                options,
+
+                // Sending the list back would race the sync: an option it added
+                // since this page loaded would read as removed, which the server
+                // refuses. Linking a source for the first time still saves the
+                // options the admin seeded.
+                ...(optionsOwnedBySync && wasSyncedWhenLoaded ? {} : {options}),
                 ldapAttr,
                 samlAttr,
             };
@@ -1276,7 +1287,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         }
 
         finalizeSave(outcome);
-    }, [canSave, isEditMode, fieldId, objectType, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, channelResource, finalizeSave, confirmRemoveAppliesTo, userVisibility, userManaged]);
+    }, [canSave, isEditMode, fieldId, objectType, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, optionsOwnedBySync, wasSyncedWhenLoaded, ldapAttr, samlAttr, appliesTo, channelResource, finalizeSave, confirmRemoveAppliesTo, userVisibility, userManaged]);
 
     const handleChannelResourceChange = useCallback((next: ChannelResourceConfig) => {
         setChannelResource(next);
@@ -1336,6 +1347,25 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 onOptionsChange={handleOptionsChange}
                 disabled={saving || effectiveDisabled}
             />
+        );
+    } else if (optionsOwnedBySync) {
+        optionsEditor = (
+            <>
+                <AttributeOptionsValues
+                    options={options}
+                    onOptionsChange={handleOptionsChange}
+                    readOnly={true}
+                />
+                <p
+                    className='AttributeDetails__optionsHelp'
+                    data-testid='attributeOptionsSyncedHelp'
+                >
+                    <FormattedMessage
+                        {...messages.optionsSyncedHelp}
+                        values={{source: linkedExternalSource ? formatMessage(externalSourceMessages[linkedExternalSource].title) : ''}}
+                    />
+                </p>
+            </>
         );
     } else if (typeSupportsOptions) {
         optionsEditor = (
@@ -1638,7 +1668,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                 fieldType={fieldType}
                                                 onLink={handleLink}
                                                 disabled={saving || effectiveDisabled}
-                                                disableAdding={typeLockedByAppliesTo}
+                                                disableAdding={typeLockedByAppliesTo && !canSyncAttributeType(fieldType)}
                                             />
                                         )
                                     )}
@@ -1796,6 +1826,10 @@ const messages = defineMessages({
         defaultMessage: 'This resource cannot be changed — this attribute applies to only one resource.',
     },
     optionsLabel: {id: 'admin.global_attributes.attribute_details.options.label', defaultMessage: 'Options'},
+    optionsSyncedHelp: {
+        id: 'admin.global_attributes.attribute_details.options.synced_help',
+        defaultMessage: 'Options are managed by the {source} sync. Each value it sends is added as an option, and options that no user holds any more are removed.',
+    },
     optionsHelp: {
         id: 'admin.global_attributes.attribute_details.options.help',
         defaultMessage: 'Text attributes have no preset values — a value is typed in per resource.',

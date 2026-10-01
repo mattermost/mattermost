@@ -166,4 +166,32 @@ describe('AttributeOptionsValues', () => {
             {id: 'a', name: 'Engineering'},
         ]);
     });
+
+    it('lists the options without any control to change them when read-only', () => {
+        renderWithContext(
+            <AttributeOptionsValues
+                options={baseOptions()}
+                onOptionsChange={jest.fn()}
+                readOnly={true}
+            />,
+        );
+
+        const list = screen.getByRole('list', {name: 'Options'});
+        expect(list).toHaveTextContent('EngineeringSales');
+        expect(screen.getAllByRole('listitem')).toHaveLength(2);
+        expect(screen.queryByTestId('attributeOptionsValues__addInput')).not.toBeInTheDocument();
+        expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    });
+
+    it('renders nothing to list when read-only with no options yet', () => {
+        renderWithContext(
+            <AttributeOptionsValues
+                options={[]}
+                onOptionsChange={jest.fn()}
+                readOnly={true}
+            />,
+        );
+
+        expect(screen.getByTestId('attributeOptionsValues')).toBeEmptyDOMElement();
+    });
 });
