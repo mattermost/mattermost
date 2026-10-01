@@ -8,7 +8,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {Disposable, Locator, Page} from '@playwright/test';
 import type {Post} from '@mattermost/types/posts';
 
-import {expect, setupFileServer, test, testConfig, watchElementSize} from '@mattermost/playwright-lib';
+import {duration, expect, setupFileServer, test, testConfig, watchElementSize} from '@mattermost/playwright-lib';
 import type {ChannelsPage, ChannelsPost, PlaywrightClient4} from '@mattermost/playwright-lib';
 
 test.describe('Post height', () => {
@@ -430,9 +430,14 @@ test.describe('Post height', () => {
             },
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the preview is faded out and has the "Show more" link visible
+                // The linked post's content loads asynchronously; the default 10s expect
+                // timeout is tight under full-suite CI load (30 parallel workers), so widen
+                // it instead of failing a fetch that's still in flight.
                 const showMoreButton = postComponent.container.locator('.post-preview-collapse__show-more-button');
-                await expect(showMoreButton).toBeVisible();
-                await expect(postComponent.container.locator('.post-message-preview--overflow')).toBeVisible();
+                await expect(showMoreButton).toBeVisible({timeout: duration.half_min});
+                await expect(postComponent.container.locator('.post-message-preview--overflow')).toBeVisible({
+                    timeout: duration.half_min,
+                });
             },
         },
     ];

@@ -6,7 +6,7 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {Page} from '@playwright/test';
 
-import {expect, setupFileServer, test, testConfig} from '@mattermost/playwright-lib';
+import {duration, expect, setupFileServer, test, testConfig} from '@mattermost/playwright-lib';
 import type {ChannelsPage, PlaywrightClient4} from '@mattermost/playwright-lib';
 
 import {watchPostListScroll, type PostListScrollWatcher} from './scroll_helpers';
@@ -185,6 +185,7 @@ test.describe('Post list initial scroll in unread channel', () => {
                 await expect(channelsPage.centerView.notificationSeparator).toBeVisible();
 
                 if (testCase.name === 'with multiple pages of post previews') {
+                    test.setTimeout(duration.two_min);
                     await settleAfterPermalinkPreviewsLoad(watcher);
                 }
 
@@ -208,6 +209,7 @@ test.describe('Post list initial scroll in unread channel', () => {
                 await expect(channelsPage.centerView.notificationSeparator).toBeVisible();
 
                 if (testCase.name === 'with multiple pages of post previews') {
+                    test.setTimeout(duration.two_min);
                     await settleAfterPermalinkPreviewsLoad(watcher);
                 }
 
@@ -235,9 +237,12 @@ test.describe('Post list initial scroll in unread channel', () => {
     // legitimately grows once they render in, producing one expected scroll observation
     // before things truly settle. Wait for that to happen and reset the watcher so it
     // only reports genuinely unexpected scroll changes afterward.
+    // The default 30s actionable-wait is tight under full-suite CI load (30 parallel
+    // workers); widen it and the caller's test.setTimeout to use the extra headroom
+    // instead of failing a permalink fetch that's still in flight.
     async function settleAfterPermalinkPreviewsLoad(watcher: PostListScrollWatcher) {
         const lastPost = await channelsPage.centerView.getLastPost();
-        await lastPost.postPreview.waitFor();
+        await lastPost.postPreview.waitFor({timeout: duration.one_min});
         await watcher.reset();
     }
 });
