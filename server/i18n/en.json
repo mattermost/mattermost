@@ -14427,6 +14427,11 @@
     "description": "Health dashboard finding detail for low monthly engagement; {{.monthly_active}} is the number of users active in the last 30 days, {{.active}} the number of active (not deactivated) user accounts and {{.percent}} the ratio as a percentage."
   },
   {
+    "id": "health.rule.seats_low_engagement.message.no_active_users",
+    "translation": "No active user accounts to measure engagement against.",
+    "description": "Health dashboard reason shown when the low engagement check cannot compute a ratio because the server has no active (not deactivated) user accounts, so the check's status is unknown."
+  },
+  {
     "id": "health.rule.seats_low_engagement.remediation",
     "translation": "Review usage by team to identify groups with low engagement, and consider targeted enablement or training for them.",
     "description": "Health dashboard fix-it step for low monthly engagement among user accounts."
