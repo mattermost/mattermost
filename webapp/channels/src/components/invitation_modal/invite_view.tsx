@@ -6,7 +6,7 @@ import React, {useEffect, useMemo} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Channel} from '@mattermost/types/channels';
 import type {LockProfileFieldsSetting} from '@mattermost/types/config';
 import type {MemberInviteProfile, Team} from '@mattermost/types/teams';
