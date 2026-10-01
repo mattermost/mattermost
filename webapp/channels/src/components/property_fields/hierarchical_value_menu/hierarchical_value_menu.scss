@@ -184,16 +184,16 @@
     }
 
     &__search {
-        box-sizing: border-box;
         max-width: 320px;
+        box-sizing: border-box;
         padding: 10px;
     }
 
     &__row {
         // padding-inline-start is set inline, from the row's depth.
         max-width: 320px;
-        align-items: center;
         box-sizing: border-box;
+        align-items: center;
 
         // Menu.Item paints the whole <li> on hover (and when aria-expanded).
         // Click is already split across checkbox vs label+chevron; the hover

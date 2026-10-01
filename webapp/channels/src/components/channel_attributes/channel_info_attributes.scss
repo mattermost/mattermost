@@ -217,8 +217,8 @@
     &__optionLabel {
         display: block;
         overflow: hidden;
-        max-width: 100%;
         min-width: 0;
+        max-width: 100%;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
