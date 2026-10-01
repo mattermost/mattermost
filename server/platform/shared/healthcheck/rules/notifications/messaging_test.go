@@ -189,7 +189,7 @@ func TestTypingMessagesAtScale(t *testing.T) {
 		return s
 	}
 
-	statsUnknown := messagingWant{state: healthcheck.StateUnknown, messageID: "health.rule.typing_messages_at_scale.message.stats_unavailable"}
+	statsUnknown := messagingWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonStatsUnavailable}
 
 	testCases := []struct {
 		name     string
@@ -251,7 +251,7 @@ func TestSMTPUnreachable(t *testing.T) {
 		}
 	}
 
-	notCollected := messagingWant{state: healthcheck.StateUnknown, messageID: "health.rule.smtp_unreachable.message.not_collected"}
+	notCollected := messagingWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonDiagnosticsUnavailable}
 	probeFailed := leaderWithEmail(model.StatusFail, "dial tcp: connection refused")
 	probeErrored := leaderWithEmail(model.StatusOk, "")
 	probeErrored.Diagnostics.Errors = model.SectionErrors{model.SectionSMTPProbe: errors.New("probe timed out")}
