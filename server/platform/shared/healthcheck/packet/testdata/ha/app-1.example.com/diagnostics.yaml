@@ -64,7 +64,13 @@ ldap:
 saml:
   status: disabled
 elastic:
-  status: disabled
+  status: OK
+  backend: opensearch
+  server_version: 2.19.1
+  server_plugins:
+    - analysis-icu
+    - analysis-nori
+    - opensearch-security
 oauth_providers:
   gitlab:
     status: disabled
