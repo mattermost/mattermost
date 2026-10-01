@@ -61,9 +61,12 @@ notifications:
   push:
     status: OK
 ldap:
-  status: disabled
+  status: OK
+  server_name: unknown
+  server_version: unknown
 saml:
-  status: disabled
+  provider_type: ADFS
+  status: OK
 elastic:
   status: disabled
 oauth_providers:
