@@ -102,6 +102,10 @@ const CPAMultiSelect: React.FC<CPAMultiSelectProps> = ({
             }}
             isDisabled={disabled}
             isClearable={false}
+
+            // A disabled select keeps its values; a remove button on each would
+            // suggest otherwise.
+            components={disabled ? {MultiValueRemove: () => null} : undefined}
             placeholder={placeholder}
             noOptionsMessage={() => noOptionsMessage}
             styles={{
@@ -2180,6 +2184,13 @@ export function getUserAuthenticationTextField(intl: IntlShape, mfaEnabled: Prop
                 id: 'admin.oauth.office365',
                 defaultMessage: 'Entra ID',
             });
+        } else if (user.auth_service === Constants.OPENID_SERVICE) {
+            service = intl.formatMessage({
+                id: 'admin.userManagement.userDetail.openId',
+                defaultMessage: 'OpenID Connect',
+            });
+        } else if (user.auth_service === Constants.GITLAB_SERVICE) {
+            service = 'GitLab';
         } else if (user.auth_service === Constants.MAGIC_LINK_SERVICE) {
             service = intl.formatMessage({
                 id: 'admin.userManagement.userDetail.magicLink',

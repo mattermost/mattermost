@@ -16971,6 +16971,10 @@
     "defaultMessage": "OpenID Connect: {propertyName}",
     "description": "Chip on a user's detail page in the System Console naming the OpenID Connect claim an attribute is synced from. {propertyName} is the claim name."
   },
+  "admin.userManagement.userDetail.openId": {
+    "defaultMessage": "OpenID Connect",
+    "description": "Authentication method shown on a user's System Console detail page for a user who signs in through OpenID Connect; 'OpenID Connect' is a product name and should stay as-is."
+  },
   "admin.userManagement.userDetail.picture.edit": {
     "defaultMessage": "Edit profile picture",
     "description": "Screen-reader label for the camera button on the user's profile picture on the user detail page in System Console > Users. It opens a menu of picture options."
