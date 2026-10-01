@@ -6,7 +6,8 @@ import type {ChangeEvent, FormEvent, JSX, SyntheticEvent} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {Button, buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Button as SharedButton} from '@mattermost/shared/components/button';
 import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -345,12 +346,12 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                             <div className='col-md-5 col-sm-8'>
                                 <div>
                                     <div className='add-emoji__upload'>
-                                        <Button emphasis='primary'>
+                                        <SharedButton emphasis='primary'>
                                             <FormattedMessage
                                                 id='add_emoji.image.button'
                                                 defaultMessage='Select'
                                             />
-                                        </Button>
+                                        </SharedButton>
                                         <input
                                             id='select-emoji'
                                             type='file'
@@ -375,15 +376,16 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                                 type='backstage'
                                 error={this.state.error}
                             />
-                            <Link
-                                className={buttonClassNames({emphasis: 'tertiary'})}
-                                to={'/' + this.props.team.name + '/emoji'}
+                            <Button
+                                type='button'
+                                emphasis='tertiary'
+                                onClick={() => getHistory().push('/' + this.props.team.name + '/emoji')}
                             >
                                 <FormattedMessage
                                     id='add_emoji.cancel'
                                     defaultMessage='Cancel'
                                 />
-                            </Link>
+                            </Button>
                             <SpinnerButton
                                 data-testid='save-button'
                                 type='submit'

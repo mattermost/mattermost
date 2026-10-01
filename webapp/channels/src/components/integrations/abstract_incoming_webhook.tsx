@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {IncomingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
@@ -15,6 +15,8 @@ import BackstageHeader from 'components/backstage/components/backstage_header';
 import ChannelSelect from 'components/channel_select';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
+
+import {getHistory} from 'utils/browser_history';
 
 interface State {
     displayName: string;
@@ -377,15 +379,16 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                 type='backstage'
                                 errors={[this.props.serverError, this.state.clientError]}
                             />
-                            <Link
-                                className={buttonClassNames({emphasis: 'tertiary'})}
-                                to={`/${this.props.team.name}/integrations/incoming_webhooks`}
+                            <Button
+                                type='button'
+                                emphasis='tertiary'
+                                onClick={() => getHistory().push(`/${this.props.team.name}/integrations/incoming_webhooks`)}
                             >
                                 <FormattedMessage
                                     id='add_incoming_webhook.cancel'
                                     defaultMessage='Cancel'
                                 />
-                            </Link>
+                            </Button>
                             <SpinnerButton
                                 type='submit'
                                 spinning={this.state.saving}

@@ -9,7 +9,8 @@ import {useDispatch} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import {AlertOutlineIcon, CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
-import {Button, buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Button as SharedButton} from '@mattermost/shared/components/button';
 import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
@@ -20,6 +21,8 @@ import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+
+import {getHistory} from 'utils/browser_history';
 
 type Props = {
     team: Team;
@@ -471,15 +474,16 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             type='backstage'
                             errors={[props.serverError, storedError]}
                         />
-                        <Link
-                            className={buttonClassNames({emphasis: 'tertiary'})}
-                            to={`/${props.team.name}/integrations/outgoing-oauth2-connections`}
+                        <Button
+                            type='button'
+                            emphasis='tertiary'
+                            onClick={() => getHistory().push(`/${props.team.name}/integrations/outgoing-oauth2-connections`)}
                         >
                             <FormattedMessage
                                 id='add_outgoing_oauth_connection.cancel'
                                 defaultMessage='Cancel'
                             />
-                        </Link>
+                        </Button>
                         <SpinnerButton
                             type='submit'
                             spinning={isSubmitting}
@@ -585,7 +589,7 @@ const ValidateButton = ({status, onClick, setUnvalidated}: ValidateButtonProps) 
     }
 
     const validateButton = (
-        <Button
+        <SharedButton
             emphasis='tertiary'
             size='sm'
             type='button'
@@ -596,7 +600,7 @@ const ValidateButton = ({status, onClick, setUnvalidated}: ValidateButtonProps) 
                 id={'add_outgoing_oauth_connection.validate'}
                 defaultMessage={'Validate Connection'}
             />
-        </Button>
+        </SharedButton>
     );
 
     return validateButton;

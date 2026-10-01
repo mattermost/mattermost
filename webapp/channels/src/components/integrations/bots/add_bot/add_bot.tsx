@@ -6,6 +6,7 @@ import type {ChangeEvent, FormEvent, JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Bot, BotPatch} from '@mattermost/types/bots';
@@ -816,15 +817,16 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                 type='backstage'
                                 errors={[this.state.error]}
                             />
-                            <Link
-                                className={buttonClassNames({emphasis: 'tertiary'})}
-                                to={`/${this.props.team.name}/integrations/bots`}
+                            <Button
+                                type='button'
+                                emphasis='tertiary'
+                                onClick={() => getHistory().push(`/${this.props.team.name}/integrations/bots`)}
                             >
                                 <FormattedMessage
                                     id='bots.manage.add.cancel'
                                     defaultMessage='Cancel'
                                 />
-                            </Link>
+                            </Button>
                             <SpinnerButton
                                 type='submit'
                                 spinning={this.state.adding}

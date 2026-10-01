@@ -67,14 +67,17 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, comma
       <div
         class="backstage-form__footer"
       >
-        <a
-          class="btn btn-primary"
-          href="/team_test/integrations/commands"
+        <button
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           id="doneButton"
-          type="submit"
+          type="button"
         >
-          Done
-        </a>
+          <span
+            class="_button__label_doayp_24"
+          >
+            Done
+          </span>
+        </button>
       </div>
     </div>
   </div>
@@ -146,14 +149,17 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, incom
       <div
         class="backstage-form__footer"
       >
-        <a
-          class="btn btn-primary"
-          href="/team_test/integrations/incoming_webhooks"
+        <button
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           id="doneButton"
-          type="submit"
+          type="button"
         >
-          Done
-        </a>
+          <span
+            class="_button__label_doayp_24"
+          >
+            Done
+          </span>
+        </button>
       </div>
     </div>
   </div>
@@ -247,14 +253,17 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
       <div
         class="backstage-form__footer"
       >
-        <a
-          class="btn btn-primary"
-          href="/team_test/integrations/oauth2-apps"
+        <button
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           id="doneButton"
-          type="submit"
+          type="button"
         >
-          Done
-        </a>
+          <span
+            class="_button__label_doayp_24"
+          >
+            Done
+          </span>
+        </button>
       </div>
     </div>
   </div>
@@ -328,14 +337,17 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
       <div
         class="backstage-form__footer"
       >
-        <a
-          class="btn btn-primary"
-          href="/team_test/integrations/outgoing_webhooks"
+        <button
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           id="doneButton"
-          type="submit"
+          type="button"
         >
-          Done
-        </a>
+          <span
+            class="_button__label_doayp_24"
+          >
+            Done
+          </span>
+        </button>
       </div>
     </div>
   </div>
@@ -427,14 +439,17 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
       <div
         class="backstage-form__footer"
       >
-        <a
-          class="btn btn-primary"
-          href="/team_test/integrations/outgoing-oauth2-connections"
+        <button
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           id="doneButton"
-          type="submit"
+          type="button"
         >
-          Done
-        </a>
+          <span
+            class="_button__label_doayp_24"
+          >
+            Done
+          </span>
+        </button>
       </div>
     </div>
   </div>

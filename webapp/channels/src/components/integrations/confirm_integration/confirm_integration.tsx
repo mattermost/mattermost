@@ -5,7 +5,7 @@ import React, {useEffect, type JSX} from 'react';
 import {defineMessages, FormattedMessage} from 'react-intl';
 import {Link, useHistory} from 'react-router-dom';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Bot} from '@mattermost/types/bots';
 import type {Command, IncomingWebhook, OAuthApp, OutgoingOAuthConnection, OutgoingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
@@ -493,17 +493,17 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                 {helpText}
                 {tokenText}
                 <div className='backstage-form__footer'>
-                    <Link
-                        className={buttonClassNames({emphasis: 'primary'})}
-                        type='submit'
-                        to={'/' + team.name + '/integrations/' + type}
+                    <Button
+                        type='button'
+                        emphasis='primary'
                         id='doneButton'
+                        onClick={() => history.push('/' + team.name + '/integrations/' + type)}
                     >
                         <FormattedMessage
                             id='integrations.done'
                             defaultMessage='Done'
                         />
-                    </Link>
+                    </Button>
                 </div>
             </div>
         </div>

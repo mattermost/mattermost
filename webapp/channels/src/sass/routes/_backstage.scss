@@ -310,16 +310,21 @@
 }
 
 .backstage-form__footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
     overflow: hidden;
     padding-top: 1.8em;
     border-top: 1px solid variables.$light-gray;
     margin-top: 2.5em;
+    gap: 8px;
     text-align: right;
 
     .has-error {
         max-width: 50%;
-        margin: 0;
-        float: left;
+        margin: 0 auto 0 0;
+        float: none;
 
         .control-label {
             padding: 0;

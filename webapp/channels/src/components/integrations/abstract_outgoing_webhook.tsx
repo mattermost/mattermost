@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {OutgoingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
@@ -17,6 +17,7 @@ import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
 
+import {getHistory} from 'utils/browser_history';
 import {DocLinks} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 
@@ -582,15 +583,16 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                 type='backstage'
                                 errors={[this.props.serverError, this.state.clientError]}
                             />
-                            <Link
-                                className={buttonClassNames({emphasis: 'tertiary'})}
-                                to={`/${this.props.team.name}/integrations/outgoing_webhooks`}
+                            <Button
+                                type='button'
+                                emphasis='tertiary'
+                                onClick={() => getHistory().push(`/${this.props.team.name}/integrations/outgoing_webhooks`)}
                             >
                                 <FormattedMessage
                                     id='add_outgoing_webhook.cancel'
                                     defaultMessage='Cancel'
                                 />
-                            </Link>
+                            </Button>
                             <SpinnerButton
                                 type='submit'
                                 spinning={this.state.saving}

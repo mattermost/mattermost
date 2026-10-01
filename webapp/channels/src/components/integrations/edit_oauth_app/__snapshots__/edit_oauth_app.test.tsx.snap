@@ -256,18 +256,26 @@ https://test.com/callback2
         <div
           class="backstage-form__footer"
         >
-          <a
-            class="btn btn-tertiary"
-            href="/test/integrations/oauth2-apps"
-          >
-            Cancel
-          </a>
           <button
-            class="btn btn-primary"
+            class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
+            type="button"
+          >
+            <span
+              class="_button__label_doayp_24"
+            >
+              Cancel
+            </span>
+          </button>
+          <button
+            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
             id="saveOauthApp"
             type="submit"
           >
-            Update
+            <span
+              class="_button__label_doayp_24"
+            >
+              Update
+            </span>
           </button>
         </div>
       </form>
@@ -532,18 +540,26 @@ https://test.com/callback2
         <div
           class="backstage-form__footer"
         >
-          <a
-            class="btn btn-tertiary"
-            href="/test/integrations/oauth2-apps"
-          >
-            Cancel
-          </a>
           <button
-            class="btn btn-primary"
+            class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
+            type="button"
+          >
+            <span
+              class="_button__label_doayp_24"
+            >
+              Cancel
+            </span>
+          </button>
+          <button
+            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
             id="saveOauthApp"
             type="submit"
           >
-            Update
+            <span
+              class="_button__label_doayp_24"
+            >
+              Update
+            </span>
           </button>
         </div>
       </form>
