@@ -125,12 +125,12 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 
 	// Channel-scope policies are always available, but a channel policy
 	// that carries a permission-rule action (upload_file_attachment,
-	// download_file_attachment) is gated behind the channel-level
-	// sub-flag — that's the toggle that exposes the Channel Settings →
-	// Permissions Policy tab on the frontend. Membership-only channel
-	// policies stay unaffected. Helper enforces the PermissionPolicies
-	// umbrella too, so a request slipping in with the sub-flag on but
-	// the umbrella off is also rejected here.
+	// download_file_attachment, create_burn_on_read_post) is gated behind
+	// the channel-level sub-flag — that's the toggle that exposes the
+	// Channel Settings → Permissions Policy tab on the frontend.
+	// Membership-only channel policies stay unaffected. Helper enforces the
+	// PermissionPolicies umbrella too, so a request slipping in with the
+	// sub-flag on but the umbrella off is also rejected here.
 	if policy.Type == model.AccessControlPolicyTypeChannel && policy.HasPermissionRuleAction() && !c.App.Config().FeatureFlags.IsChannelPermissionPoliciesEnabled() {
 		c.Err = model.NewAppError("createAccessControlPolicy", "api.access_control_policy.channel_permission_policies.feature_disabled", nil, "", http.StatusNotImplemented)
 		return

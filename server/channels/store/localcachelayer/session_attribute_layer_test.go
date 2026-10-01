@@ -70,6 +70,46 @@ func TestSessionAttributeStoreCache(t *testing.T) {
 		require.Nil(t, got)
 	})
 
+	t.Run("GetEpoch advances only when a value changes", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
+		require.NoError(t, err)
+
+		sessionID := model.NewId()
+		epoch, err := cachedStore.SessionAttribute().GetEpoch(sessionID)
+		require.NoError(t, err)
+		require.Equal(t, "0", epoch)
+
+		require.NoError(t, cachedStore.SessionAttribute().Refresh(sessionID, map[string]any{
+			model.SessionAttributesPropertyFieldIPAddress: "192.0.2.10",
+		}, 1000))
+		epoch, err = cachedStore.SessionAttribute().GetEpoch(sessionID)
+		require.NoError(t, err)
+		require.Equal(t, "1000", epoch)
+
+		require.NoError(t, cachedStore.SessionAttribute().Refresh(sessionID, map[string]any{
+			model.SessionAttributesPropertyFieldIPAddress: "192.0.2.10",
+		}, 2000))
+		epoch, err = cachedStore.SessionAttribute().GetEpoch(sessionID)
+		require.NoError(t, err)
+		require.Equal(t, "1000", epoch)
+
+		require.NoError(t, cachedStore.SessionAttribute().Refresh(sessionID, map[string]any{
+			model.SessionAttributesPropertyFieldUserAgentBrowserName: "Chrome",
+		}, 3000))
+		epoch, err = cachedStore.SessionAttribute().GetEpoch(sessionID)
+		require.NoError(t, err)
+		require.Equal(t, "3000", epoch)
+
+		require.NoError(t, cachedStore.SessionAttribute().Refresh(sessionID, map[string]any{
+			model.SessionAttributesPropertyFieldIPAddress: "203.0.113.42",
+		}, 4000))
+		epoch, err = cachedStore.SessionAttribute().GetEpoch(sessionID)
+		require.NoError(t, err)
+		require.Equal(t, "4000", epoch)
+	})
+
 	t.Run("cluster invalidation with session id removes single entry", func(t *testing.T) {
 		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
