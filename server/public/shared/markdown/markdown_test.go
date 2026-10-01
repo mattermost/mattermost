@@ -127,9 +127,14 @@ func TestParse(t *testing.T) {
 
 			start := time.Now()
 			_, defs := Parse(markdown)
-			elapsed := time.Since(start)
 
 			require.Len(t, defs, n)
+
+			if testing.Short() || raceDetector {
+				return
+			}
+
+			elapsed := time.Since(start)
 			assert.Less(t, elapsed, 15*time.Millisecond, "Parse(%d definitions) took %s", n, elapsed)
 		})
 
@@ -150,7 +155,7 @@ func TestParse(t *testing.T) {
 			var wg sync.WaitGroup
 			counts := make([]int, nCalls)
 			wg.Add(nCalls)
-			for i := 0; i < nCalls; i++ {
+			for i := range nCalls {
 				go func(i int) {
 					defer wg.Done()
 					_, defs := Parse(markdown)
