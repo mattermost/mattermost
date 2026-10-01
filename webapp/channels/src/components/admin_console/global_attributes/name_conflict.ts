@@ -70,9 +70,9 @@ export const messages = defineMessages({
         id: 'admin.global_attributes.name_conflict.standalone',
         defaultMessage: 'A standalone user attribute named "{name}" already exists. Policies that use user.attributes.{name} read that attribute, not this one.',
     },
-    usersBlocked: {
-        id: 'admin.global_attributes.name_conflict.users_blocked',
-        defaultMessage: 'Applying this attribute to Users would need a second user attribute named "{name}", which the server does not allow.',
+    detailsNotice: {
+        id: 'admin.global_attributes.name_conflict.details_notice',
+        defaultMessage: 'Another attribute already uses this name.',
     },
     usersBlockedMenuLabel: {
         id: 'admin.global_attributes.name_conflict.users_blocked_menu_label',

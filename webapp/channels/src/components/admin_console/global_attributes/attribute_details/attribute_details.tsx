@@ -25,6 +25,7 @@ import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagVal
 import LoadingScreen from 'components/loading_screen';
 import {pageAllAccessControlFieldOptions} from 'components/property_fields/graph/page_all_access_control_field_options';
 import SaveButton from 'components/save_button';
+import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import Input from 'components/widgets/inputs/input/input';
 
@@ -51,7 +52,7 @@ import type {ChannelResourceConfig} from '../applies_to/channels';
 import {ATTRIBUTE_TYPE_DESCRIPTOR, getAttributeTypeDescriptor, toServerFieldType} from '../attribute_type';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from '../constants';
 import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField} from '../global_attributes_table';
-import {findNameConflict, messages as nameConflictMessages, nameConflictText, type NameConflict} from '../name_conflict';
+import {findNameConflict, messages as nameConflictMessages, type NameConflict} from '../name_conflict';
 import useAllowedResourceTypes from '../use_allowed_resource_types';
 import type {AttributeFieldType, AttributeTypeId, UpdateAttributeFieldPatch} from '../utils';
 import {
@@ -1673,11 +1674,10 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                 role='status'
                                                 data-testid='attributeNameConflictWarning'
                                             >
-                                                <i className='icon icon-alert-outline'/>
-                                                <span>
-                                                    {nameConflictText(nameConflict, formatMessage)}
-                                                    {usersBlockedByNameConflict && ` ${formatMessage(nameConflictMessages.usersBlocked, {name: nameConflict.field.name})}`}
-                                                </span>
+                                                <SectionNotice
+                                                    type={usersBlockedByNameConflict ? 'danger' : 'warning'}
+                                                    title={formatMessage(nameConflictMessages.detailsNotice)}
+                                                />
                                             </div>
                                         )}
                                         <p className='AttributeDetails__helperText'>

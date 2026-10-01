@@ -3364,8 +3364,8 @@
     "description": ""
   },
   "admin.classification_markings.conflict.clearance_template": {
-    "defaultMessage": "An attribute named \"{name}\" already exists in Attribute Management. The clearance attribute here is a separate \"clearance\" user attribute that uses the classification levels, not that attribute's options.",
-    "description": "Non-blocking warning shown next to the clearance checkbox in System Console > Classification Markings when an unrelated attribute in Attribute Management is already called 'clearance'. {name} is that attribute's name, as the admin typed it. \"clearance\" in quotes is the literal name of the user attribute this page creates, so it must stay English."
+    "defaultMessage": "Rename \"{name}\" in Attribute Management so it isn't mistaken for this clearance attribute.",
+    "description": "Non-blocking warning shown next to the clearance checkbox in System Console > Classification Markings when an unrelated attribute in Attribute Management is already called 'clearance'. {name} is that attribute's name, as the admin typed it."
   },
   "admin.classification_markings.conflict.clearance_template_title": {
     "defaultMessage": "Another attribute already uses this name",
@@ -6783,6 +6783,10 @@
     "defaultMessage": "Remove {resources}?",
     "description": "Title of the confirmation dialog shown from the attribute details page in System Console > System Attributes > Manage Attributes before removing an attribute from resources. {resources} is a list of resource names."
   },
+  "admin.global_attributes.name_conflict.details_notice": {
+    "defaultMessage": "Another attribute already uses this name.",
+    "description": "Name-conflict notice shown on the attribute details page in System Console > System Attributes > Manage Attributes when another attribute already uses this name. Shown as a danger notice when the match is exact (Users would be blocked) and a warning notice otherwise."
+  },
   "admin.global_attributes.name_conflict.linked_to_template": {
     "defaultMessage": "A user attribute named \"{name}\" already exists and is linked to {owner}. Policies that use user.attributes.{name} read {owner}'s options, not this attribute's.",
     "description": "Warning in System Console > System Attributes > Manage Attributes when another attribute already owns a user attribute of this name. {name} is that attribute's unique name and {owner} is the display name of the attribute it belongs to. 'user.attributes.' is literal policy syntax and must stay English."
@@ -6790,10 +6794,6 @@
   "admin.global_attributes.name_conflict.standalone": {
     "defaultMessage": "A standalone user attribute named \"{name}\" already exists. Policies that use user.attributes.{name} read that attribute, not this one.",
     "description": "Warning in System Console > System Attributes > Manage Attributes when a user attribute of this name exists on its own rather than belonging to another attribute. {name} is its unique name. 'user.attributes.' is literal policy syntax and must stay English."
-  },
-  "admin.global_attributes.name_conflict.users_blocked": {
-    "defaultMessage": "Applying this attribute to Users would need a second user attribute named \"{name}\", which the server does not allow.",
-    "description": "Added to the name-conflict warning on the attribute details page in System Console > System Attributes > Manage Attributes when the names match exactly, which is the case the server rejects. {name} is the unique name."
   },
   "admin.global_attributes.name_conflict.users_blocked_menu_label": {
     "defaultMessage": "Name already in use",

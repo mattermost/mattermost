@@ -2273,9 +2273,7 @@ describe('Clearance name shared with another attribute', () => {
 
     // Spelled out in full because the copy has to read correctly whether or not
     // clearance is already on, which a partial match would not hold it to.
-    const WARNING_TEXT = 'An attribute named "Clearance" already exists in Attribute Management. ' +
-        'The clearance attribute here is a separate "clearance" user attribute that uses the ' +
-        "classification levels, not that attribute's options.";
+    const WARNING_TEXT = 'Rename "Clearance" in Attribute Management so it isn\'t mistaken for this clearance attribute.';
 
     async function renderClearanceSection() {
         renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
@@ -2342,7 +2340,7 @@ describe('Clearance name shared with another attribute', () => {
         const section = await renderClearanceSection();
 
         expect(section.getByRole('heading', {name: 'Another attribute already uses this name'})).toBeInTheDocument();
-        expect(section.getByText(/An attribute named "CLEARANCE" already exists in Attribute Management/)).toBeInTheDocument();
+        expect(section.getByText(/Rename "CLEARANCE" in Attribute Management/)).toBeInTheDocument();
         expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
     });
 
@@ -2366,7 +2364,7 @@ describe('Clearance name shared with another attribute', () => {
         const section = await renderClearanceSection();
 
         expect(section.queryByRole('heading', {name: 'Another attribute already uses this name'})).not.toBeInTheDocument();
-        expect(section.queryByText(/already exists in Attribute Management/)).not.toBeInTheDocument();
+        expect(section.queryByText(/in Attribute Management so it isn't mistaken/)).not.toBeInTheDocument();
         expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
     });
 
@@ -2459,7 +2457,7 @@ describe('Clearance name listing failures', () => {
         // The only casualty. The same fixture warns in the tests above, so its
         // absence here is the failed listing and nothing else.
         expect(screen.queryByRole('heading', {name: 'Another attribute already uses this name'})).not.toBeInTheDocument();
-        expect(screen.queryByText(/already exists in Attribute Management/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/in Attribute Management so it isn't mistaken/)).not.toBeInTheDocument();
     });
 
     test('should still show the configured levels when the listing 404s', async () => {
@@ -2476,7 +2474,7 @@ describe('Clearance name listing failures', () => {
         expectPageFullyUsable();
 
         expect(screen.queryByRole('heading', {name: 'Another attribute already uses this name'})).not.toBeInTheDocument();
-        expect(screen.queryByText(/already exists in Attribute Management/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/in Attribute Management so it isn't mistaken/)).not.toBeInTheDocument();
     });
 
     test('should not list the templates at all while ABAC is off', async () => {

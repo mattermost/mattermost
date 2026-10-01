@@ -106,7 +106,7 @@ const msg = defineMessages({
     conflictClearanceTitle: {id: 'admin.classification_markings.conflict.clearance_title', defaultMessage: 'Clearance attribute cannot be created'},
     conflictClearance: {id: 'admin.classification_markings.conflict.clearance', defaultMessage: 'A user attribute named "{name}" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management to enable the clearance attribute.'},
     clearanceTemplateWarningTitle: {id: 'admin.classification_markings.conflict.clearance_template_title', defaultMessage: 'Another attribute already uses this name'},
-    clearanceTemplateWarning: {id: 'admin.classification_markings.conflict.clearance_template', defaultMessage: 'An attribute named "{name}" already exists in Attribute Management. The clearance attribute here is a separate "clearance" user attribute that uses the classification levels, not that attribute\'s options.'},
+    clearanceTemplateWarning: {id: 'admin.classification_markings.conflict.clearance_template', defaultMessage: 'Rename "{name}" in Attribute Management so it isn\'t mistaken for this clearance attribute.'},
 });
 
 type FieldConflict = {

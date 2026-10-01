@@ -1655,8 +1655,11 @@ describe('AttributeDetails', () => {
             await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Clearance');
 
             const warning = await screen.findByTestId('attributeNameConflictWarning');
-            expect(warning).toHaveTextContent('A user attribute named "clearance" already exists and is linked to Security Markings.');
-            expect(warning).toHaveTextContent('Applying this attribute to Users would need a second user attribute named "clearance", which the server does not allow.');
+            expect(warning).toHaveTextContent('Another attribute already uses this name.');
+
+            // An exact match is the case the server rejects, so the notice reads
+            // as a danger rather than a warning.
+            expect(warning.querySelector('.sectionNoticeContainer')).toHaveClass('danger');
             expect(createPropertyField).not.toHaveBeenCalled();
 
             // * The warning appears and rewrites itself while the admin is still
@@ -1722,8 +1725,11 @@ describe('AttributeDetails', () => {
             expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('Clearance');
 
             const warning = await screen.findByTestId('attributeNameConflictWarning');
-            expect(warning).toHaveTextContent('A standalone user attribute named "clearance" already exists.');
-            expect(warning).not.toHaveTextContent('Applying this attribute to Users');
+            expect(warning).toHaveTextContent('Another attribute already uses this name.');
+
+            // A case-only match does not collide on the server, so the notice
+            // reads as a warning rather than a danger and Users stays addable.
+            expect(warning.querySelector('.sectionNoticeContainer')).toHaveClass('warning');
 
             await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
             const users = screen.getByRole('menuitem', {name: /^Users/});
@@ -3126,8 +3132,8 @@ describe('AttributeDetails', () => {
             expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('clearance');
 
             const warning = await screen.findByTestId('attributeNameConflictWarning');
-            expect(warning).toHaveTextContent('A user attribute named "clearance" already exists and is linked to Security Markings.');
-            expect(warning).toHaveTextContent('Applying this attribute to Users would need a second user attribute named "clearance", which the server does not allow.');
+            expect(warning).toHaveTextContent('Another attribute already uses this name.');
+            expect(warning.querySelector('.sectionNoticeContainer')).toHaveClass('danger');
 
             // Still saveable: this template applies to nothing, so the rename
             // creates no second user field for the server to reject.
