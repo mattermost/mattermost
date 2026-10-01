@@ -75,6 +75,7 @@
         display: flex;
         flex: 1 1 auto;
         justify-content: flex-end;
+        gap: 8px;
 
         #panelCloseButton {
             color: rgba(var(--button-color-rgb), 0.64);
