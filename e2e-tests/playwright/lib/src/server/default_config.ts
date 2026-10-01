@@ -480,6 +480,7 @@ const defaultServerConfig: AdminConfig = {
         ButtonText: '',
         ButtonColor: '',
         UsePreferredUsername: false,
+        AdditionalScopes: '',
     },
     GoogleSettings: {
         Enable: false,
@@ -494,6 +495,7 @@ const defaultServerConfig: AdminConfig = {
         ButtonText: '',
         ButtonColor: '',
         UsePreferredUsername: false,
+        AdditionalScopes: '',
     },
     Office365Settings: {
         Enable: false,
@@ -519,6 +521,7 @@ const defaultServerConfig: AdminConfig = {
         ButtonText: '',
         ButtonColor: '#145DBF',
         UsePreferredUsername: false,
+        AdditionalScopes: '',
     },
     LdapSettings: {
         Enable: false,
