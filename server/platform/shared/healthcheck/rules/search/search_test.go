@@ -24,6 +24,7 @@ type searchWant struct {
 var (
 	resolvedWant      = searchWant{state: healthcheck.StateResolved}
 	unknownConfigWant = searchWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonConfigUnavailable}
+	unknownDiagWant   = searchWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonDiagnosticsUnavailable}
 )
 
 // searchSnapshot builds a snapshot from the default config with indexing on, the given
@@ -149,8 +150,6 @@ func TestESLocalhostURL(t *testing.T) {
 func TestESServerError(t *testing.T) {
 	t.Parallel()
 
-	unavailable := searchWant{state: healthcheck.StateUnknown, messageID: "health.rule.es_server_error.message.unavailable"}
-
 	failed := esDiag(model.StatusFail, "", "")
 	failed.ElasticSearch.Error = `Get "https://admin:hunter2@search.example.com:9200/": dial tcp: connection refused`
 
@@ -175,10 +174,10 @@ func TestESServerError(t *testing.T) {
 				details:   map[string]string{"error": `Get "https://****@search.example.com:9200/": dial tcp: connection refused`},
 			},
 		},
-		{name: "empty status", snapshot: searchSnapshot(nil, esDiag("", "", ""), nil), want: unavailable},
-		{name: "leader without diagnostics", snapshot: searchSnapshot(nil, nil, nil), want: unavailable},
-		{name: "no leader", snapshot: &healthcheck.Snapshot{}, want: unavailable},
-		{name: "probe section failed", snapshot: sectionFailed, want: unavailable},
+		{name: "empty status", snapshot: searchSnapshot(nil, esDiag("", "", ""), nil), want: unknownDiagWant},
+		{name: "leader without diagnostics", snapshot: searchSnapshot(nil, nil, nil), want: unknownDiagWant},
+		{name: "no leader", snapshot: &healthcheck.Snapshot{}, want: unknownDiagWant},
+		{name: "probe section failed", snapshot: sectionFailed, want: unknownDiagWant},
 	}
 
 	for _, tc := range testCases {
@@ -257,8 +256,8 @@ func TestScaleES(t *testing.T) {
 		{
 			name:        "searching off without stats",
 			snapshot:    searchSnapshot(searchingOff, nil, nil),
-			required:    searchWant{state: healthcheck.StateUnknown, messageID: "health.rule.scale_es_required.message.unavailable"},
-			recommended: searchWant{state: healthcheck.StateUnknown, messageID: "health.rule.scale_es_recommended.message.unavailable"},
+			required:    searchWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonStatsUnavailable},
+			recommended: searchWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonStatsUnavailable},
 		},
 		{
 			name: "searching off with indexing off",
@@ -315,7 +314,7 @@ func TestESLiveBatch(t *testing.T) {
 func TestESVersionUnsupported(t *testing.T) {
 	t.Parallel()
 
-	unavailable := searchWant{state: healthcheck.StateUnknown, messageID: "health.rule.es_version_unsupported.message.unavailable"}
+	unrecognized := searchWant{state: healthcheck.StateUnknown, messageID: "health.rule.es_version_unsupported.message.unrecognized"}
 	firing := func(backend, version, minMajor, maxMajor string) searchWant {
 		return searchWant{
 			state:     healthcheck.StateFiring,
@@ -337,9 +336,9 @@ func TestESVersionUnsupported(t *testing.T) {
 		{name: "elasticsearch 8", backend: model.ElasticsearchSettingsESBackend, version: "8.15.3", want: resolvedWant},
 		{name: "elasticsearch 9", backend: model.ElasticsearchSettingsESBackend, version: "9.0.0", want: resolvedWant},
 		{name: "elasticsearch 10", backend: model.ElasticsearchSettingsESBackend, version: "10.0.0", want: firing("elasticsearch", "10.0.0", "8", "9")},
-		{name: "empty version", backend: model.ElasticsearchSettingsESBackend, version: "", want: unavailable},
-		{name: "unparsable version", backend: model.ElasticsearchSettingsESBackend, version: "latest", want: unavailable},
-		{name: "unknown backend", backend: "solr", version: "9.0.0", want: unavailable},
+		{name: "empty version", backend: model.ElasticsearchSettingsESBackend, version: "", want: unrecognized},
+		{name: "unparsable version", backend: model.ElasticsearchSettingsESBackend, version: "latest", want: unrecognized},
+		{name: "unknown backend", backend: "solr", version: "9.0.0", want: unrecognized},
 	}
 
 	for _, tc := range testCases {
@@ -353,7 +352,7 @@ func TestESVersionUnsupported(t *testing.T) {
 
 	t.Run("leader without diagnostics", func(t *testing.T) {
 		t.Parallel()
-		assertResult(t, esVersionUnsupported, searchSnapshot(nil, nil, nil), unavailable)
+		assertResult(t, esVersionUnsupported, searchSnapshot(nil, nil, nil), unknownDiagWant)
 	})
 }
 
@@ -374,7 +373,7 @@ func TestESMissingICU(t *testing.T) {
 		{name: "name must match exactly", snapshot: searchSnapshot(nil, esDiag(model.StatusOk, "elasticsearch", "8.15.3", "analysis-icu-custom"), nil), want: firing},
 		{name: "empty plugins with a version", snapshot: searchSnapshot(nil, esDiag(model.StatusOk, "elasticsearch", "8.15.3"), nil), want: firing},
 		{name: "empty plugins and empty version", snapshot: searchSnapshot(nil, esDiag(model.StatusFail, "elasticsearch", ""), nil), want: unavailable},
-		{name: "leader without diagnostics", snapshot: searchSnapshot(nil, nil, nil), want: unavailable},
+		{name: "leader without diagnostics", snapshot: searchSnapshot(nil, nil, nil), want: unknownDiagWant},
 	}
 
 	for _, tc := range testCases {
