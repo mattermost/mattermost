@@ -5,10 +5,13 @@ package markdown
 
 import (
 	"fmt"
+	"runtime"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestInspect(t *testing.T) {
@@ -121,6 +124,108 @@ func TestInspect(t *testing.T) {
 
 		assert.Equal(t, maxNestingDepth-1, listCount)
 	})
+
+	t.Run("a short message containing w inspects as the original text", func(t *testing.T) {
+		markdown := "hello world"
+		var texts []string
+		Inspect(markdown, func(blockOrInline any) bool {
+			if text, ok := blockOrInline.(*Text); ok {
+				texts = append(texts, text.Text)
+			}
+			return true
+		})
+		assert.Equal(t, []string{"hello world"}, texts)
+	})
+
+	t.Run("merge work stays proportional to combined text length as the number of adjacent text nodes grows", func(t *testing.T) {
+		const nodeSize = 16
+		measure := func(n int) uint64 {
+			inlines := adjacentTextInlines(n, nodeSize)
+			runtime.GC()
+			var before, after runtime.MemStats
+			runtime.ReadMemStats(&before)
+			merged := MergeInlineText(inlines)
+			runtime.ReadMemStats(&after)
+			require.Len(t, merged, 1)
+			text, ok := merged[0].(*Text)
+			require.True(t, ok)
+			require.Equal(t, n*nodeSize, len(text.Text))
+			return after.TotalAlloc - before.TotalAlloc
+		}
+
+		n := 1000
+		costN := measure(n)
+		cost2N := measure(2 * n)
+		require.NotZero(t, costN)
+		ratio := float64(cost2N) / float64(costN)
+		assert.LessOrEqual(t, ratio, 3.0,
+			"allocation growth from %d to %d adjacent text nodes: %d then %d (ratio %.2f)",
+			n, 2*n, costN, cost2N, ratio)
+	})
+
+	t.Run("concurrent merges of adjacent text stay bounded relative to combined text length", func(t *testing.T) {
+		const goroutines = 20
+		const nodes = 1000
+		const nodeSize = 16
+		combinedLen := nodes * nodeSize
+
+		inputs := make([][]Inline, goroutines)
+		results := make([][]Inline, goroutines)
+		for i := range inputs {
+			inputs[i] = adjacentTextInlines(nodes, nodeSize)
+		}
+
+		startGoroutines := runtime.NumGoroutine()
+		runtime.GC()
+		var before, after runtime.MemStats
+		runtime.ReadMemStats(&before)
+
+		var wg sync.WaitGroup
+		wg.Add(goroutines)
+		for i := 0; i < goroutines; i++ {
+			go func(i int) {
+				defer wg.Done()
+				results[i] = MergeInlineText(inputs[i])
+			}(i)
+		}
+		wg.Wait()
+		runtime.ReadMemStats(&after)
+
+		// Each merge should allocate in proportion to the combined text, plus a
+		// fixed allowance for per-node bookkeeping.
+		perCall := (after.TotalAlloc - before.TotalAlloc) / goroutines
+		limit := uint64(4*combinedLen + nodes*64)
+		assert.LessOrEqual(t, perCall, limit,
+			"per-call allocation %d exceeds bound %d for combined text length %d",
+			perCall, limit, combinedLen)
+
+		for range 100 {
+			if runtime.NumGoroutine() <= startGoroutines+2 {
+				break
+			}
+			runtime.Gosched()
+		}
+		assert.LessOrEqual(t, runtime.NumGoroutine(), startGoroutines+5)
+
+		require.Len(t, results[0], 1)
+		text, ok := results[0][0].(*Text)
+		require.True(t, ok)
+		assert.Equal(t, combinedLen, len(text.Text))
+	})
+}
+
+func adjacentTextInlines(count, size int) []Inline {
+	chunk := strings.Repeat("a", size)
+	inlines := make([]Inline, count)
+	pos := 0
+	for i := 0; i < count; i++ {
+		inlines[i] = &Text{
+			Text:  chunk,
+			Range: Range{Position: pos, End: pos + size},
+		}
+		pos += size
+	}
+	return inlines
 }
 
 var counterSink int
