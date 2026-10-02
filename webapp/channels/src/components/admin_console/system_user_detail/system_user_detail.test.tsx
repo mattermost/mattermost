@@ -172,6 +172,45 @@ describe('SystemUserDetail', () => {
         expect(container).toMatchSnapshot();
     });
 
+    const cachedCpaField = {
+        id: 'cpa-cached',
+        name: 'department',
+        type: 'text',
+        group_id: 'custom_profile_attributes',
+        create_at: 0,
+        update_at: 0,
+        delete_at: 0,
+        created_by: '',
+        updated_by: '',
+        target_id: '',
+        target_type: '',
+        object_type: 'user',
+        attrs: {sort_order: 0, visibility: 'when_set', value_type: ''},
+    } as UserPropertyField;
+
+    // Attribute Management mirrors its own writes into the CPA slice in the
+    // originating tab and property_field_* events keep other sessions current,
+    // so a populated cache is trustworthy: fetch only when nothing is cached,
+    // and leave an existing list untouched.
+    test.each([
+        ['nothing is cached', [] as UserPropertyField[], 1],
+        ['definitions are already cached', [cachedCpaField], 0],
+    ])('should fetch CPA definitions on mount only when %s', async (_label, customProfileAttributeFields, expectedCalls) => {
+        const getCustomProfileAttributeFields = jest.fn().mockResolvedValue({data: []});
+
+        renderWithContext(
+            <SystemUserDetail
+                {...defaultProps}
+                customProfileAttributeFields={customProfileAttributeFields}
+                getCustomProfileAttributeFields={getCustomProfileAttributeFields}
+            />,
+        );
+
+        await waitForLoadingToFinish();
+
+        expect(getCustomProfileAttributeFields).toHaveBeenCalledTimes(expectedCalls);
+    });
+
     describe('change detection', () => {
         test('should detect email changes and enable save', async () => {
             const userEventInstance = userEvent.setup();

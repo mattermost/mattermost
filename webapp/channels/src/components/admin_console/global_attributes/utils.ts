@@ -1,15 +1,70 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyField, PropertyFieldOption, PropertyPermissionLevel} from '@mattermost/types/properties';
+import type {Dispatch} from 'redux';
 
+import {supportsHierarchy, type PropertyField, type PropertyFieldOption, type PropertyPermissionLevel} from '@mattermost/types/properties';
+
+import {GeneralTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
+
+import {clearGraphOptionNamesForField, commitGraphOptionNames} from 'components/property_fields/graph/use_graph_option_names';
 
 import {ALL_RESOURCE_TYPES} from './attribute_details/attribute_applies_to_constants';
 import type {ResourceObjectType} from './attribute_details/attribute_applies_to_constants';
 import type {AttributeFieldType, AttributeTypeId} from './attribute_type';
 import {toServerFieldType, toValueType} from './attribute_type';
 import {GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
+
+const USER_RESOURCE_OBJECT_TYPE: ResourceObjectType = 'user';
+
+// Attribute Management writes user attributes through the generic property-fields
+// API, which never touches the custom profile attribute slice that User
+// Management, the profile popover and Account Settings → Profile all read. The
+// server also omits the saving connection from property_field_* broadcasts, so
+// the admin who made the change gets no websocket event of their own. Without
+// mirroring the write here, every one of those surfaces in that admin's tab
+// stays stale until a reload. A field returned from the create/patch call
+// carries its authoritative option list (unlike the stripped broadcast), so it
+// can be stored as-is.
+//
+// Graph option names live in a module-level cache that useGraphOptionNames
+// prefers over the field's inline list. Remote property_field_* events already
+// clear and recommit that cache; the originating tab has to do the same here
+// or a renamed option keeps showing its old name until reload.
+export function syncUserAttributeFieldUpsert(dispatch: Dispatch, field: PropertyField, created: boolean): void {
+    if (field.object_type !== USER_RESOURCE_OBJECT_TYPE) {
+        return;
+    }
+    if (supportsHierarchy(field)) {
+        clearGraphOptionNamesForField(field.id);
+        const optionsOmitted = field.attrs?.options_omitted === true;
+        if (!optionsOmitted && Array.isArray(field.attrs?.options)) {
+            const names: Record<string, string> = {};
+            for (const option of field.attrs.options as PropertyFieldOption[]) {
+                if (option.id) {
+                    names[option.id] = option.name;
+                }
+            }
+            commitGraphOptionNames(field.id, names);
+        }
+
+        // Withheld lists leave the cache empty. User Detail and the profile
+        // popover pass {walk: true}; Account Settings shows a count until an
+        // editable picker mounts and must not walk from this helper.
+    }
+    dispatch({
+        type: created ? GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED : GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
+        data: field,
+    });
+}
+
+export function syncUserAttributeFieldDelete(dispatch: Dispatch, objectType: string, fieldId: string): void {
+    if (objectType !== USER_RESOURCE_OBJECT_TYPE) {
+        return;
+    }
+    dispatch({type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_DELETED, data: fieldId});
+}
 
 export type {AttributeFieldType, AttributeTypeId} from './attribute_type';
 
