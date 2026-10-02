@@ -25,23 +25,29 @@ function makeFinding(fingerprint: string): HealthFinding {
 
 describe('reducers.entities.health', () => {
     test('initial state', () => {
-        expect(reducer(undefined, {type: 'INIT'})).toEqual({findings: {}});
+        expect(reducer(undefined, {type: 'INIT'})).toEqual({findings: {}, evaluatedAt: 0});
     });
 
-    test('RECEIVED_HEALTH_FINDINGS replaces the previous findings', () => {
+    test('RECEIVED_HEALTH_FINDINGS replaces the previous findings and evaluation time', () => {
         const first = makeFinding('first');
         const second = makeFinding('second');
 
-        let state = reducer(undefined, {type: HealthTypes.RECEIVED_HEALTH_FINDINGS, data: [first]});
-        expect(state.findings).toEqual({first});
+        let state = reducer(undefined, {type: HealthTypes.RECEIVED_HEALTH_FINDINGS, data: {evaluated_at: 10, findings: [first]}});
+        expect(state).toEqual({findings: {first}, evaluatedAt: 10});
 
-        state = reducer(state, {type: HealthTypes.RECEIVED_HEALTH_FINDINGS, data: [second]});
-        expect(state.findings).toEqual({second});
+        state = reducer(state, {type: HealthTypes.RECEIVED_HEALTH_FINDINGS, data: {evaluated_at: 20, findings: [second]}});
+        expect(state).toEqual({findings: {second}, evaluatedAt: 20});
     });
 
-    test('LOGOUT_SUCCESS clears the findings', () => {
-        const state = reducer(undefined, {type: HealthTypes.RECEIVED_HEALTH_FINDINGS, data: [makeFinding('first')]});
+    test('RECEIVED_HEALTH_FINDINGS keeps the evaluation time when every finding is filtered out', () => {
+        const state = reducer(undefined, {type: HealthTypes.RECEIVED_HEALTH_FINDINGS, data: {evaluated_at: 10, findings: []}});
 
-        expect(reducer(state, {type: UserTypes.LOGOUT_SUCCESS}).findings).toEqual({});
+        expect(state).toEqual({findings: {}, evaluatedAt: 10});
+    });
+
+    test('LOGOUT_SUCCESS clears the findings and evaluation time', () => {
+        const state = reducer(undefined, {type: HealthTypes.RECEIVED_HEALTH_FINDINGS, data: {evaluated_at: 10, findings: [makeFinding('first')]}});
+
+        expect(reducer(state, {type: UserTypes.LOGOUT_SUCCESS})).toEqual({findings: {}, evaluatedAt: 0});
     });
 });

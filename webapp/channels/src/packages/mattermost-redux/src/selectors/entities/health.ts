@@ -73,10 +73,6 @@ export const getSeverityCounts = createSelector(
     },
 );
 
-// Every cycle touches every evaluated subject, resolved ones included, so the newest
-// last_seen_at is when the last cycle ran. 0 when nothing has been evaluated yet.
-export const getLastEvaluatedAt = createSelector(
-    'getLastEvaluatedAt',
-    getFindings,
-    (findings) => findings.reduce((latest, finding) => Math.max(latest, finding.last_seen_at), 0),
-);
+export function getLastEvaluatedAt(state: GlobalState) {
+    return state.entities.health.evaluatedAt;
+}

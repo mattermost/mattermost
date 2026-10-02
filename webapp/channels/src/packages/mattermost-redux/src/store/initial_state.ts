@@ -256,6 +256,7 @@ const state: GlobalState = {
         },
         health: {
             findings: {},
+            evaluatedAt: 0,
         },
     },
     errors: [],
