@@ -43,9 +43,9 @@ export default class ProfileModal {
         this.profileSettingsTab = new ProfileSettingsTab(container.getByRole('tabpanel', {name: 'Profile Settings'}));
         this.securityTab = new SecurityTab(container.getByRole('tabpanel', {name: 'Security'}));
 
-        this.closeButton = container.getByRole('button', {name: 'Close'});
-        this.saveButton = container.getByRole('button', {name: 'Save'});
-        this.cancelButton = container.getByRole('button', {name: 'Cancel'});
+        this.closeButton = container.getByRole('button', {name: 'Close', exact: true});
+        this.saveButton = container.getByRole('button', {name: 'Save', exact: true});
+        this.cancelButton = container.getByRole('button', {name: 'Cancel', exact: true});
         this.managedByAdminMessage = container.getByText(
             'This field is managed by your System Admin. Contact them to request a change.',
         );
