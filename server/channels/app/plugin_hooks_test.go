@@ -7125,15 +7125,24 @@ func TestUserRolesHaveBeenUpdated(t *testing.T) {
 		package main
 
 		import (
+			"sync"
+
 			"github.com/mattermost/mattermost/server/public/plugin"
 			"github.com/mattermost/mattermost/server/public/model"
 		)
 
 		type MyPlugin struct {
 			plugin.MattermostPlugin
+
+			mut sync.Mutex
 		}
 
 		func (p *MyPlugin) UserRolesHaveBeenUpdated(c *plugin.Context, user *model.User, previousRoles string) {
+			// Hooks are dispatched on their own goroutine, so serialize the
+			// read-modify-write: a lost update would hide a duplicate call.
+			p.mut.Lock()
+			defer p.mut.Unlock()
+
 			stored, appErr := p.API.GetUser(user.Id)
 			if appErr != nil {
 				return
@@ -7161,15 +7170,23 @@ func TestUserRolesHaveBeenUpdated(t *testing.T) {
 		return stored
 	}
 
-	requireNickname := func(t *testing.T, userID, expected string) {
+	nickname := func(t *testing.T, userID string) string {
+		t.Helper()
+		user, appErr := th.App.GetUser(th.Context, userID)
+		require.Nil(t, appErr)
+		return user.Nickname
+	}
+
+	requireNicknameSettlesOn := func(t *testing.T, userID, expected string) {
 		t.Helper()
 		require.EventuallyWithT(t, func(c *assert.CollectT) {
-			user, appErr := th.App.GetUser(th.Context, userID)
-			if !assert.Nil(c, appErr) {
-				return
-			}
-			assert.Equal(c, expected, user.Nickname)
+			assert.Equal(c, expected, nickname(t, userID))
 		}, 5*time.Second, 100*time.Millisecond)
+
+		// EventuallyWithT stops at the first match, so without a settle window a
+		// second hook call appending a second segment would go unnoticed.
+		time.Sleep(2 * time.Second)
+		require.Equal(t, expected, nickname(t, userID))
 	}
 
 	t.Run("fires once when a system role is added", func(t *testing.T) {
@@ -7179,7 +7196,7 @@ func TestUserRolesHaveBeenUpdated(t *testing.T) {
 		_, appErr := th.App.UpdateUserRoles(th.Context, user.Id, "system_user system_admin", false)
 		require.Nil(t, appErr)
 
-		requireNickname(t, user.Id, "marker[system_user>system_user system_admin]")
+		requireNicknameSettlesOn(t, user.Id, "marker[system_user>system_user system_admin]")
 	})
 
 	t.Run("does not fire when the roles end up unchanged", func(t *testing.T) {
@@ -7199,7 +7216,7 @@ func TestUserRolesHaveBeenUpdated(t *testing.T) {
 		_, appErr = th.App.UpdateUserRoles(th.Context, user.Id, "system_user system_manager", false)
 		require.Nil(t, appErr)
 
-		requireNickname(t, user.Id, "marker[system_user>system_user system_manager]")
+		requireNicknameSettlesOn(t, user.Id, "marker[system_user>system_user system_manager]")
 	})
 
 	t.Run("fires once when a member is demoted to guest", func(t *testing.T) {
@@ -7209,7 +7226,7 @@ func TestUserRolesHaveBeenUpdated(t *testing.T) {
 		appErr := th.App.DemoteUserToGuest(th.Context, user)
 		require.Nil(t, appErr)
 
-		requireNickname(t, user.Id, "marker[system_user>system_guest]")
+		requireNicknameSettlesOn(t, user.Id, "marker[system_user>system_guest]")
 	})
 
 	t.Run("fires once when a guest is promoted to member", func(t *testing.T) {
@@ -7219,6 +7236,6 @@ func TestUserRolesHaveBeenUpdated(t *testing.T) {
 		appErr := th.App.PromoteGuestToUser(th.Context, user, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
-		requireNickname(t, user.Id, "marker[system_guest>system_user]")
+		requireNicknameSettlesOn(t, user.Id, "marker[system_guest>system_user]")
 	})
 }
