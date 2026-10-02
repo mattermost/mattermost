@@ -3269,6 +3269,16 @@
     "description": "API error when the server's own Site URL is not configured and cannot be determined; needed for shared channels / secure connection operations."
   },
   {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "The health dashboard is not enabled.",
+    "description": "API error when a health dashboard endpoint is called while the health dashboard feature flag is off."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "The health dashboard requires an Enterprise license.",
+    "description": "API error when a health dashboard endpoint is called on a server without an Enterprise license."
+  },
+  {
     "id": "api.image.get.app_error",
     "translation": "Requested image url cannot be parsed.",
     "description": "API error from the image proxy when the requested image URL is malformed and cannot be parsed."
@@ -8784,6 +8794,21 @@
     "id": "app.group.username_conflict",
     "translation": "user with username \"{{.Username}}\" already exists.",
     "description": "API error returned when a group operation conflicts with an existing account; {{.Username}} is the already-taken username."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Unable to get health finding.",
+    "description": "Server error when a single health dashboard finding could not be loaded from the database."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Health finding not found.",
+    "description": "API error when the requested health dashboard finding does not exist or is not visible in the product."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Unable to get health findings.",
+    "description": "Server error when the list of health dashboard findings could not be loaded from the database."
   },
   {
     "id": "app.health_finding.mute.app_error",

@@ -106,11 +106,36 @@ func (a *App) UnmuteHealthFinding(rctx request.CTX, fingerprint string) *model.A
 	return nil
 }
 
-func (a *App) GetHealthFindings(rctx request.CTX, filter model.HealthFindingFilter) ([]*model.HealthFinding, *model.AppError) {
-	findings, err := a.Srv().Store().HealthFinding().List(filter)
+// GetHealthFindings returns product-surface findings only, whatever surfaces the filter asks for:
+// internal rules are for support engineers, not the customer admin who calls the API.
+// EvaluatedAt is taken across every stored finding so that muting or hiding findings never makes
+// an evaluated server look unevaluated.
+func (a *App) GetHealthFindings(rctx request.CTX, filter model.HealthFindingFilter) (*model.HealthFindingList, *model.AppError) {
+	all, err := a.Srv().Store().HealthFinding().List(model.HealthFindingFilter{Muted: model.MutedIncluded})
 	if err != nil {
-		return nil, model.NewAppError("GetHealthFindings", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetHealthFindings", "app.health_finding.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return findings, nil
+	list := &model.HealthFindingList{Findings: []*model.HealthFinding{}}
+	for _, finding := range all {
+		// Every cycle upserts every evaluated subject, so the newest LastSeenAt is the last cycle.
+		list.EvaluatedAt = max(list.EvaluatedAt, finding.LastSeenAt)
+		if finding.Surface == string(healthcheck.SurfaceProduct) && filter.Muted.Matches(finding) {
+			list.Findings = append(list.Findings, finding)
+		}
+	}
+
+	return list, nil
+}
+
+func (a *App) GetHealthFinding(rctx request.CTX, fingerprint string) (*model.HealthFinding, *model.AppError) {
+	findings, err := a.Srv().Store().HealthFinding().GetByFingerprints([]string{fingerprint})
+	if err != nil {
+		return nil, model.NewAppError("GetHealthFinding", "app.health_finding.get.app_error", nil, "fingerprint="+fingerprint, http.StatusInternalServerError).Wrap(err)
+	}
+	if len(findings) == 0 || findings[0].Surface != string(healthcheck.SurfaceProduct) {
+		return nil, model.NewAppError("GetHealthFinding", "app.health_finding.get.not_found.app_error", nil, "fingerprint="+fingerprint, http.StatusNotFound)
+	}
+
+	return findings[0], nil
 }
