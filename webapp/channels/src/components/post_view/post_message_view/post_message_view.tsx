@@ -21,7 +21,7 @@ import {getPostTranslatedMessage, getPostTranslation} from 'utils/post_utils';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
 
-import type {PostPluginComponent} from 'types/store/plugins';
+import type {PostPluginComponent, PostPluginComponentOptions} from 'types/store/plugins';
 
 import MessageBodyFooterMountNotify from './message_body_footer_mount_notify';
 
@@ -29,6 +29,22 @@ import MessageBodyFooterMountNotify from './message_body_footer_mount_notify';
 const FULL_HEIGHT_POST_TYPES = new Set([
     PostTypes.CUSTOM_DATA_SPILLAGE_REPORT,
 ]);
+
+// Plugins get a new object so they cannot mutate the options core formats with, and undefined
+// outside search results.
+function getPluginComponentOptions(options?: TextFormattingOptions): PostPluginComponentOptions | undefined {
+    const pluginOptions: PostPluginComponentOptions = {};
+    if (options?.searchTerm !== undefined) {
+        pluginOptions.searchTerm = options.searchTerm;
+    }
+    if (options?.searchMatches !== undefined) {
+        pluginOptions.searchMatches = options.searchMatches;
+    }
+    if (options?.mentionHighlight !== undefined) {
+        pluginOptions.mentionHighlight = options.mentionHighlight;
+    }
+    return Object.keys(pluginOptions).length > 0 ? pluginOptions : undefined;
+}
 
 type Props = {
     post: Post; /* The post to render the message for */
@@ -148,7 +164,7 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                         compactDisplay={compactDisplay}
                         isRHS={isRHS}
                         theme={theme}
-                        options={options}
+                        options={getPluginComponentOptions(options)}
                     />
                 </PluggableErrorBoundary>
             );
