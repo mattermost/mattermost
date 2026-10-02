@@ -4,11 +4,25 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Button, type ButtonProps} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
+import type {ButtonEmphasis, ButtonSize as CompassButtonSize} from '@mattermost/compass-ui/components/button';
 
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
-type Props = Pick<ButtonProps, 'emphasis' | 'size' | 'variant'> & {
+type SharedSize = 'xs' | 'sm' | 'md' | 'lg';
+type SharedVariant = '' | 'destructive' | 'inverted';
+
+const SHARED_TO_COMPASS_SIZE: Record<SharedSize, CompassButtonSize> = {
+    xs: 'x-small',
+    sm: 'small',
+    md: 'medium',
+    lg: 'large',
+};
+
+type Props = {
+    emphasis?: ButtonEmphasis;
+    size?: SharedSize | CompassButtonSize;
+    variant?: SharedVariant;
     saving?: boolean;
     disabled?: boolean;
     id?: string;
@@ -17,6 +31,16 @@ type Props = Pick<ButtonProps, 'emphasis' | 'size' | 'variant'> & {
     defaultMessage?: React.ReactNode;
     extraClasses?: string;
 };
+
+function mapSize(size?: SharedSize | CompassButtonSize): CompassButtonSize | undefined {
+    if (!size) {
+        return undefined;
+    }
+    if (size in SHARED_TO_COMPASS_SIZE) {
+        return SHARED_TO_COMPASS_SIZE[size as SharedSize];
+    }
+    return size as CompassButtonSize;
+}
 
 const SaveButton: React.FC<Props> = ({
     saving = false,
@@ -33,6 +57,7 @@ const SaveButton: React.FC<Props> = ({
         />
     ),
     emphasis,
+    size,
     variant,
     extraClasses = '',
     ...props
@@ -43,7 +68,9 @@ const SaveButton: React.FC<Props> = ({
             data-testid='saveSetting'
             id='saveSetting'
             emphasis={emphasis}
-            variant={variant}
+            size={mapSize(size)}
+            destructive={variant === 'destructive'}
+            appearance={variant === 'inverted' ? 'inverted' : undefined}
             className={extraClasses}
             {...props}
         >

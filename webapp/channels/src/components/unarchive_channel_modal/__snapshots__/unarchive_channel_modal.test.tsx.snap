@@ -70,18 +70,26 @@ exports[`components/unarchive_channel_modal should match snapshot for unarchive_
           class="modal-footer"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
             type="button"
           >
-            Cancel
+            <span
+              class="_button__label_doayp_24"
+            >
+              Cancel
+            </span>
           </button>
           <button
-            class="btn btn-danger"
+            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 _button--destructive_doayp_130"
             data-dismiss="modal"
             id="unarchiveChannelModalDeleteButton"
             type="button"
           >
-            Unarchive
+            <span
+              class="_button__label_doayp_24"
+            >
+              Unarchive
+            </span>
           </button>
         </div>
       </div>

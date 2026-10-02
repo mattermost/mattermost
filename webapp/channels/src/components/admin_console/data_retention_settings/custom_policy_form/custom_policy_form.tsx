@@ -4,7 +4,6 @@
 import React, {type JSX} from 'react';
 import {defineMessages, FormattedMessage} from 'react-intl';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
 import type {
     DataRetentionCustomPolicy,
@@ -16,6 +15,7 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import BlockableButton from 'components/admin_console/blockable_button';
 import BlockableLink from 'components/admin_console/blockable_link';
 import ChannelList from 'components/admin_console/data_retention_settings/channel_list';
 import {keepForeverOption, yearsOption, daysOption, FOREVER, YEARS} from 'components/admin_console/data_retention_settings/dropdown_options/dropdown_options';
@@ -535,15 +535,12 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                             />
                         )}
                     />
-                    <BlockableLink
-                        className={buttonClassNames({emphasis: 'tertiary'})}
-                        to='/admin_console/compliance/data_retention_settings'
-                    >
+                    <BlockableButton to='/admin_console/compliance/data_retention_settings'>
                         <FormattedMessage
                             id='admin.data_retention.custom_policy.cancel'
                             defaultMessage='Cancel'
                         />
-                    </BlockableLink>
+                    </BlockableButton>
                     {serverError &&
                         <span className='CustomPolicy__error'>
                             <i className='icon icon-alert-outline'/>

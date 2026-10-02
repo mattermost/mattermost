@@ -177,7 +177,7 @@ function AttributeGraphDeleteModal({optionName, options, onConfirm, onExited}: P
                 compassDesign={true}
                 modalHeaderText={formatMessage(messages.safeTitle, {name: model.optionName})}
                 confirmButtonText={formatMessage(messages.deleteValue)}
-                confirmButtonVariant='destructive'
+                destructive={true}
                 handleCancel={noop}
                 handleConfirm={onConfirm}
                 onExited={onExited}

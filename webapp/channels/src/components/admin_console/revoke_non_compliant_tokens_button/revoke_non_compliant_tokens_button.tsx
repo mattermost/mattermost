@@ -163,7 +163,7 @@ const RevokeNonCompliantTokensButton = ({disabled, registerSaveAction, unRegiste
                         values={{count: count ?? 0}}
                     />
                 )}
-                confirmButtonVariant='destructive'
+                destructive={true}
                 confirmButtonText={(
                     <FormattedMessage
                         id='admin.service.revokeNonCompliantTokens.confirmButton'

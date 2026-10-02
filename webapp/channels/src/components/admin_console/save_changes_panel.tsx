@@ -4,9 +4,9 @@
 import React, {type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {Button, buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
-import BlockableLink from 'components/admin_console/blockable_link';
+import BlockableButton from 'components/admin_console/blockable_button';
 import SaveButton from 'components/save_button';
 
 type Props = {
@@ -24,6 +24,16 @@ type Props = {
 
 const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink, onCancel, isDisabled, savingMessage}: Props) => {
     const {formatMessage} = useIntl();
+
+    const showCancel = Boolean(cancelLink) || Boolean(onCancel);
+
+    const cancelLabel = (
+        <FormattedMessage
+            id='admin.team_channel_settings.cancel'
+            defaultMessage='Cancel'
+        />
+    );
+
     return (
         <div className='admin-console-save'>
             <SaveButton
@@ -32,29 +42,24 @@ const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink,
                 onClick={onClick}
                 savingMessage={savingMessage ?? formatMessage({id: 'admin.team_channel_settings.saving', defaultMessage: 'Saving Config...'})}
             />
-            {cancelLink ? (
-                <BlockableLink
-                    id='cancelButtonSettings'
-                    className={buttonClassNames({emphasis: 'quaternary'})}
-                    to={cancelLink}
-                >
-                    <FormattedMessage
-                        id='admin.team_channel_settings.cancel'
-                        defaultMessage='Cancel'
-                    />
-                </BlockableLink>
-            ) : onCancel && (
-                <Button
-                    id='cancelButtonSettings'
-                    type='button'
-                    emphasis='quaternary'
-                    onClick={onCancel}
-                >
-                    <FormattedMessage
-                        id='admin.team_channel_settings.cancel'
-                        defaultMessage='Cancel'
-                    />
-                </Button>
+            {showCancel && (
+                cancelLink ? (
+                    <BlockableButton
+                        id='cancelButtonSettings'
+                        to={cancelLink}
+                    >
+                        {cancelLabel}
+                    </BlockableButton>
+                ) : (
+                    <Button
+                        id='cancelButtonSettings'
+                        type='button'
+                        emphasis='tertiary'
+                        onClick={() => onCancel?.()}
+                    >
+                        {cancelLabel}
+                    </Button>
+                )
             )}
             <div
                 className='error-message'

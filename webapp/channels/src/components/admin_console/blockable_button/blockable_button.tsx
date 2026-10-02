@@ -2,44 +2,69 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-import type {MouseEvent} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
+
+import {Button} from '@mattermost/compass-ui/components/button';
+import type {ButtonEmphasis, ButtonSize} from '@mattermost/compass-ui/components/button';
+
+import {deferNavigation} from 'actions/admin_actions';
+import {getNavigationBlocked} from 'selectors/views/admin';
+
+import {getHistory} from 'utils/browser_history';
 
 type Props = {
     id?: string;
-    activeClassName?: string;
-
-    // Bool whether navigation is blocked
-    blocked: boolean;
-
-    actions: {
-
-        // Function for deferring navigation while blocked
-        deferNavigation: (func: () => void) => void;
-    };
-    children?: React.ReactNode;
+    to: string;
+    children: React.ReactNode;
+    disabled?: boolean;
+    emphasis?: ButtonEmphasis;
+    size?: ButtonSize;
     className?: string;
-    onClick?: (e: React.MouseEvent) => void;
-    onCancelConfirmed: () => void;
+    'data-testid'?: string;
 };
 
-const BlockableButton = ({blocked, actions, onClick, onCancelConfirmed, ...restProps}: Props) => {
-    const handleClick = useCallback((e: MouseEvent) => {
-        onClick?.(e);
+/**
+ * Compass Button that honors System Console unsaved-changes navigation blocking,
+ * mirroring BlockableLink behavior for button (not anchor) cancel controls.
+ */
+const BlockableButton = ({
+    id,
+    to,
+    children,
+    disabled,
+    emphasis = 'tertiary',
+    size,
+    className,
+    ...rest
+}: Props) => {
+    const dispatch = useDispatch();
+    const navigationBlocked = useSelector(getNavigationBlocked);
 
-        if (blocked) {
-            e.preventDefault();
-            actions.deferNavigation(() => {
-                onCancelConfirmed();
-            });
+    const handleClick = useCallback(() => {
+        if (navigationBlocked) {
+            dispatch(deferNavigation(() => {
+                getHistory().push(to);
+            }));
+            return;
         }
-    }, [actions, blocked, onClick, onCancelConfirmed]);
+
+        getHistory().push(to);
+    }, [dispatch, navigationBlocked, to]);
 
     return (
-        <button
-            {...restProps}
+        <Button
+            id={id}
+            type='button'
+            emphasis={emphasis}
+            size={size}
+            className={className}
+            disabled={disabled}
             onClick={handleClick}
-        />
+            {...rest}
+        >
+            {children}
+        </Button>
     );
 };
 
-export default React.memo(BlockableButton);
+export default BlockableButton;

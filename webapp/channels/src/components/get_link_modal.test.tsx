@@ -110,13 +110,11 @@ describe('components/GetLinkModal', () => {
 
         // Initial state
         expect(copyButton).toHaveTextContent('Copy Link');
-        expect(copyButton).toHaveClass('btn-primary');
         expect(copyButton).not.toHaveClass('btn-success');
 
         // After copying
         await user.click(copyButton);
         expect(copyButton).toHaveTextContent('Copied');
-        expect(copyButton).toHaveClass('btn-primary');
         expect(copyButton).toHaveClass('btn-success');
 
         // After timeout
@@ -124,7 +122,6 @@ describe('components/GetLinkModal', () => {
             jest.advanceTimersByTime(1000);
         });
         expect(copyButton).toHaveTextContent('Copy Link');
-        expect(copyButton).toHaveClass('btn-primary');
         expect(copyButton).not.toHaveClass('btn-success');
     });
 

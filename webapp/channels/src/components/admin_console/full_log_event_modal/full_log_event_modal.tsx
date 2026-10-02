@@ -5,7 +5,7 @@ import React, {useCallback, useState, memo} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {LogObject} from '@mattermost/types/admin';
 
 type Props = {

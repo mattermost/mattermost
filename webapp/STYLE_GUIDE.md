@@ -102,7 +102,7 @@ The following guidelines should be applied to both new and existing code. Howeve
 
 - **React Bootstrap**: Avoid using React Bootstrap directly.
     - **Modals**: Use `GenericModal` from `@mattermost/components` instead of React Bootstrap's `Modal`.
-    - **Buttons**: Use `Button` from `@mattermost/shared` instead of React Bootstrap's `Button` or raw Bootstrap like `<button class="btn btn-primary">`.
+    - **Buttons**: Prefer `Button` from `@mattermost/compass-ui/components/button` for new and migrated call sites instead of React Bootstrap's `Button` or raw Bootstrap like `<button class="btn btn-primary">`. `@mattermost/shared` `Button` remains until migration finishes.
     - **Tooltips**: Use `WithTooltip` from `@mattermost/shared` instead of React Bootstrap's `OverlayTrigger` and/or `Tooltip`.
 - **MUI**: Consult with the team before using MUI. If it is used, wrap the usage in another component to avoid leaking implementation details.
 - **Popovers**: Use `WithTooltip` for simple tooltips and Floating UI for more advanced usage.

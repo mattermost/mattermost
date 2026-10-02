@@ -17,6 +17,7 @@ import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
+import BlockableButton from 'components/admin_console/blockable_button';
 import BlockableLink from 'components/admin_console/blockable_link';
 import {
     CLASSIFICATIONS_MARKINGS_ADMIN_URL,
@@ -477,13 +478,12 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                         onClick={handleSave}
                         defaultMessage={<FormattedMessage {...messages.save}/>}
                     />
-                    <BlockableLink
-                        className={buttonClassNames({emphasis: 'quaternary'})}
+                    <BlockableButton
                         to={GLOBAL_ATTRIBUTES_LIST_ROUTE}
                         data-testid='classificationAttributeCancelLink'
                     >
                         <FormattedMessage {...messages.cancel}/>
-                    </BlockableLink>
+                    </BlockableButton>
                     {saveFailed && (
                         <span
                             className='ClassificationAttribute__error'

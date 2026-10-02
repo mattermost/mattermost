@@ -6,7 +6,9 @@ import React, {useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
+import {FilterVariantIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import {setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
 
@@ -119,16 +121,21 @@ export function SystemUsersFilterPopover(props: Props) {
 
     return (
         <div className='systemUsersFilterContainer'>
-            <Button
-                {...getReferenceProps()}
+            {/* compass-ui Button does not forward refs; wrap so Floating UI can anchor the popover. */}
+            <span
+                className='systemUsersFilterTrigger'
                 ref={floatingRefs.setReference}
-                emphasis='tertiary'
-                size='md'
-                aria-controls='systemUsersFilterPopover'
+                {...getReferenceProps()}
             >
-                <i className='icon icon-filter-variant'/>
-                {formatMessage({id: 'admin.system_users.filtersMenu', defaultMessage: 'Filters ({count})'}, {count: filtersCount})}
-            </Button>
+                <Button
+                    emphasis='tertiary'
+                    size='medium'
+                    aria-controls='systemUsersFilterPopover'
+                    leadingIcon={<Icon glyph={<FilterVariantIcon/>}/>}
+                >
+                    {formatMessage({id: 'admin.system_users.filtersMenu', defaultMessage: 'Filters ({count})'}, {count: filtersCount})}
+                </Button>
+            </span>
             {isMounted && (
                 <FloatingFocusManager
                     context={floatingContext}
@@ -162,7 +169,7 @@ export function SystemUsersFilterPopover(props: Props) {
                         <div className='footer'>
                             <Button
                                 emphasis='primary'
-                                size='md'
+                                size='medium'
                                 onClick={handleApplyFilters}
                                 type='submit'
                             >

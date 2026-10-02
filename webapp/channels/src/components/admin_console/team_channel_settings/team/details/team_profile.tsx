@@ -6,7 +6,9 @@ import type {ChangeEvent} from 'react';
 import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
+import {ArchiveArrowUpOutlineIcon, ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Team} from '@mattermost/types/teams';
 
@@ -74,13 +76,13 @@ export function TeamProfile({team, name, description, onNameChange, onDescriptio
                         type='button'
                         disabled={isDisabled || restoreDisabled}
                         emphasis='secondary'
-                        variant='destructive'
-                    >
-                        {isArchived ? (
-                            <i className='icon icon-archive-arrow-up-outline'/>
-                        ) : (
-                            <i className='icon icon-archive-outline'/>
+                        destructive={true}
+                        leadingIcon={(
+                            <Icon
+                                glyph={isArchived ? <ArchiveArrowUpOutlineIcon/> : <ArchiveOutlineIcon/>}
+                            />
                         )}
+                    >
                         <FormattedMessage {...archiveBtn}/>
                     </Button>
                 </WithTooltip>
@@ -91,14 +93,14 @@ export function TeamProfile({team, name, description, onNameChange, onDescriptio
                 type='button'
                 disabled={isDisabled}
                 emphasis='secondary'
-                variant='destructive'
+                destructive={true}
                 onClick={toggleArchive}
-            >
-                {isArchived ? (
-                    <i className='icon icon-archive-arrow-up-outline'/>
-                ) : (
-                    <i className='icon icon-archive-outline'/>
+                leadingIcon={(
+                    <Icon
+                        glyph={isArchived ? <ArchiveArrowUpOutlineIcon/> : <ArchiveOutlineIcon/>}
+                    />
                 )}
+            >
                 <FormattedMessage {...archiveBtn}/>
             </Button>
         );

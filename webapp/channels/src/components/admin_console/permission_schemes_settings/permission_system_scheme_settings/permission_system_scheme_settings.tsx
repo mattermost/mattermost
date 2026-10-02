@@ -5,13 +5,14 @@ import React from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 
-import {Button, buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/shared/components/button';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
 
 import GeneralConstants from 'mattermost-redux/constants/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import BlockableButton from 'components/admin_console/blockable_button';
 import BlockableLink from 'components/admin_console/blockable_link';
 import ConfirmModal from 'components/confirm_modal';
 import ExternalLink from 'components/external_link';
@@ -543,8 +544,7 @@ export class PermissionSystemSchemeSettings extends React.PureComponent<Props, S
                         onClick={this.handleSubmit}
                         savingMessage={this.props.intl.formatMessage({id: 'admin.saving', defaultMessage: 'Saving Config...'})}
                     />
-                    <BlockableLink
-                        className={buttonClassNames({emphasis: 'tertiary'})}
+                    <BlockableButton
                         to='/admin_console/user_management/permissions'
                         data-testid='permission-scheme-cancel-button'
                     >
@@ -552,7 +552,7 @@ export class PermissionSystemSchemeSettings extends React.PureComponent<Props, S
                             id='admin.permissions.permissionSchemes.cancel'
                             defaultMessage='Cancel'
                         />
-                    </BlockableLink>
+                    </BlockableButton>
                     <Button
                         data-testid='resetPermissionsToDefault'
                         onClick={() => this.setState({showResetDefaultModal: true})}
