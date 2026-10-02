@@ -57,6 +57,21 @@ export const stripRedundantLinkMarks = (node: JSONContent): JSONContent => {
     return {...node, content: next};
 };
 
+export const parseMarkdownContent = (editor: Editor, markdown: string): JSONContent | undefined => {
+    const doc = editor.markdown?.parse(markdown);
+    if (!doc?.content) {
+        return undefined;
+    }
+
+    return {
+        ...doc,
+        content: doc.content.map((node) => {
+            const type = node.type ? editor.schema.nodes[node.type] : undefined;
+            return type?.isInline ? {type: 'paragraph', content: [node]} : node;
+        }),
+    };
+};
+
 export const serializeToMarkdown = (editor: Editor): string => {
     const markdown = editor.markdown ?
         editor.markdown.serialize(stripRedundantLinkMarks(editor.getJSON())) :

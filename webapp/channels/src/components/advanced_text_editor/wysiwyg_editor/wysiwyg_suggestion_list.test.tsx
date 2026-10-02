@@ -37,8 +37,19 @@ jest.mock('components/suggestion/command_provider/command_provider', () => ({
 jest.mock('components/suggestion/at_mention_provider', () => ({
     __esModule: true,
     default: class {
-        handlePretextChanged() {
-            return false;
+        handlePretextChanged(pretext: string, resultCallback: (results: any) => void) {
+            const trigger = pretext.lastIndexOf('@');
+            if (trigger === -1) {
+                return false;
+            }
+
+            resultCallback({
+                matchedPretext: pretext.slice(trigger),
+                terms: [...mockTerms],
+                items: mockTerms.map((term) => ({suggestion: term})),
+                component: () => null,
+            });
+            return true;
         }
     },
 }));
@@ -63,8 +74,11 @@ jest.mock('components/suggestion/emoticon_provider', () => ({
 
 jest.mock('components/suggestion/suggestion_list', () => ({
     __esModule: true,
-    default: ({open, pretext, results, onCompleteWord}: any) => (open ? (
-        <div>
+    default: ({open, pretext, results, onCompleteWord, suggestionBoxAlgn}: any) => (open ? (
+        <div
+            data-testid='suggestion-list'
+            data-algn={JSON.stringify(suggestionBoxAlgn ?? null)}
+        >
             {results.terms.map((term: string) => (
                 <button
                     key={term}
@@ -77,11 +91,14 @@ jest.mock('components/suggestion/suggestion_list', () => ({
     ) : null),
 }));
 
-const setup = (terms: string[]) => {
+type CaretCoords = {left: number; top: number};
+
+const setup = (terms: string[], caretCoords?: CaretCoords | ((pos: number) => CaretCoords)) => {
     mockTerms.length = 0;
     mockTerms.push(...terms);
 
     const dom = document.createElement('div');
+    dom.getBoundingClientRect = () => ({left: 20, top: 10, width: 600, height: 100, right: 620, bottom: 110, x: 20, y: 10, toJSON: () => ({})});
     const handlers: Record<string, () => void> = {};
     const chainCalls: string[] = [];
     const inserted: string[] = [];
@@ -103,7 +120,10 @@ const setup = (terms: string[]) => {
 
     const editor = {
         isDestroyed: false,
-        view: {dom},
+        view: {
+            dom,
+            coordsAtPos: caretCoords ? (pos: number) => (typeof caretCoords === 'function' ? caretCoords(pos) : caretCoords) : undefined,
+        },
         commands: {focus: jest.fn()},
         chain: () => chain,
         get state() {
@@ -160,6 +180,60 @@ describe('WysiwygSuggestionList', () => {
 
         expect(inserted).toEqual(['/jira instance install cloud-oauth ']);
         expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    test('completes a user as a mention node', async () => {
+        const {type, inserted} = setup(['@sysadmin']);
+
+        type('@sys');
+        await userEvent.click(screen.getByRole('button'));
+
+        expect(inserted).toEqual([[{type: 'mention', attrs: {char: '@', name: 'sysadmin'}}, {type: 'text', text: ' '}]]);
+    });
+
+    test('aligns the list with the trigger character', () => {
+        const {type} = setup(['/jira instance install cloud-oauth'], {left: 120, top: 40});
+
+        type('/jira instance install ');
+
+        expect(JSON.parse(screen.getByTestId('suggestion-list').dataset.algn!)).toMatchObject({
+            pixelsToMoveX: 100,
+            pixelsToMoveY: 30,
+        });
+    });
+
+    test('realigns when a later trigger opens the list somewhere else', () => {
+        const {type} = setup(['@sysadmin'], (pos) => ({left: 120 + pos, top: 40}));
+
+        type('a much longer line of text @');
+        const first = JSON.parse(screen.getByTestId('suggestion-list').dataset.algn!);
+
+        type('hi @');
+        const second = JSON.parse(screen.getByTestId('suggestion-list').dataset.algn!);
+
+        expect(second.pixelsToMoveX).toBeLessThan(first.pixelsToMoveX);
+    });
+
+    test('realigns when the trigger wraps onto the next line', () => {
+        let top = 40;
+        const {type} = setup(['@sysadmin'], () => ({left: 200, top}));
+
+        type('hello @sys');
+        const first = JSON.parse(screen.getByTestId('suggestion-list').dataset.algn!);
+
+        top = 60;
+        type('hello @sysa');
+        const second = JSON.parse(screen.getByTestId('suggestion-list').dataset.algn!);
+
+        expect(second.pixelsToMoveY).toBeGreaterThan(first.pixelsToMoveY);
+    });
+
+    test('omits the alignment when the caret cannot be measured', () => {
+        const {type} = setup(['/jira instance install cloud-oauth']);
+
+        type('/jira instance install ');
+
+        expect(screen.getByTestId('suggestion-list').dataset.algn).toBe('null');
     });
 
     test('does not insert the open-in-modal sentinel when no app provider can handle it', async () => {

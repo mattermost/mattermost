@@ -22,14 +22,18 @@ import emojiRegex from 'emoji-regex';
 import isPlainObject from 'lodash/isPlainObject';
 import {common, createLowlight} from 'lowlight';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
+
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {editLatestPost} from 'actions/views/create_comment';
 
 import {useDebounce} from 'hooks/useDebounce';
 import {useLatest} from 'hooks/useLatest';
 
-import {serializeToMarkdown} from './wysiwyg_markdown';
+import WysiwygImage from './wysiwyg_image';
+import {parseMarkdownContent, serializeToMarkdown} from './wysiwyg_markdown';
+import WysiwygMention from './wysiwyg_mention';
 import WysiwygSuggestionList from './wysiwyg_suggestion_list';
 
 import './wysiwyg_editor.scss';
@@ -61,6 +65,44 @@ function buildEmojiDecorations(doc: PMNode): DecorationSet {
     });
     return DecorationSet.create(doc, decorations);
 }
+
+function buildOrderedListDecorations(doc: PMNode): DecorationSet {
+    const decorations: Decoration[] = [];
+
+    doc.descendants((node, pos) => {
+        if (node.type.name !== 'orderedList') {
+            return;
+        }
+        const start = node.attrs.start ?? 1;
+        const digits = ((start + node.childCount) - 1).toString().length;
+        decorations.push(Decoration.node(pos, pos + node.nodeSize, {
+            style: `counter-reset: list ${start - 1}; padding-left: ${digits + 1.5}ch`,
+        }));
+    });
+
+    return DecorationSet.create(doc, decorations);
+}
+
+const OrderedListMarkerWidth = Extension.create({
+    name: 'orderedListMarkerWidth',
+    addProseMirrorPlugins() {
+        const key = new PluginKey('orderedListMarkerWidth');
+        return [
+            new Plugin({
+                key,
+                state: {
+                    init: (_, {doc}) => buildOrderedListDecorations(doc),
+                    apply: (tr, old) => (tr.docChanged ? buildOrderedListDecorations(tr.doc) : old),
+                },
+                props: {
+                    decorations(state) {
+                        return key.getState(state);
+                    },
+                },
+            }),
+        ];
+    },
+});
 
 const EmojiDecorations = Extension.create({
     name: 'emojiDecorations',
@@ -160,6 +202,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     // swap would desync the paste and update handlers from the actual editor.
     const jsonMode = useRef(contentType === 'json').current;
     const dispatch = useDispatch();
+    const hasImageProxy = useSelector(getConfig).HasImageProxy === 'true';
     const channelIdRef = useLatest(channelId);
     const rootIdRef = useLatest(rootId);
 
@@ -195,12 +238,16 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
 
     const baseExtensions: Extensions = [
         StarterKit.configure({
-            heading: {levels: [1, 2, 3, 4, 5, 6]},
+            heading: {levels: [1, 2, 3, 4, 5, 6], HTMLAttributes: {class: 'markdown__heading'}},
             codeBlock: false,
             link: false,
+            bulletList: {HTMLAttributes: {class: 'markdown__list'}},
+            orderedList: {HTMLAttributes: {class: 'markdown__list'}},
         }),
         CodeBlockLowlight.configure({
             lowlight,
+            defaultLanguage: 'plaintext',
+            HTMLAttributes: {class: 'hljs'},
         }),
         Link.configure({
             openOnClick: false,
@@ -211,10 +258,17 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             placeholder: () => placeholderRef.current,
             showOnlyCurrent: true,
         }),
-        Table.configure({resizable: false, cellMinWidth: 80}),
+        Table.configure({
+            resizable: false,
+            cellMinWidth: 80,
+            HTMLAttributes: {class: 'markdown__table'},
+        }),
         TableRow,
         TableCell,
         TableHeader,
+        WysiwygImage.configure({hasImageProxy}),
+        WysiwygMention,
+        OrderedListMarkerWidth,
         EmojiDecorations,
     ];
     if (!jsonMode) {
@@ -291,13 +345,14 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                     return false;
                 }
 
-                const text = event.clipboardData?.getData('text/plain');
-                if (!text) {
-                    return false;
+                const clipboard = event.clipboardData;
+                const text = clipboard?.getData('text/plain');
+                if (!text?.trim()) {
+                    return Boolean(clipboard?.files.length);
                 }
 
-                const html = event.clipboardData?.getData('text/html');
-                if (html) {
+                const html = clipboard?.getData('text/html');
+                if (html?.includes('data-pm-slice')) {
                     return false;
                 }
 
@@ -310,8 +365,13 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                     return false;
                 }
 
+                const content = parseMarkdownContent(ed, text);
+                if (!content) {
+                    return false;
+                }
+
                 event.preventDefault();
-                ed.commands.insertContent(text, {contentType: 'markdown'});
+                ed.commands.insertContent(content);
                 return true;
             },
             handleKeyDown: (view, event) => {
