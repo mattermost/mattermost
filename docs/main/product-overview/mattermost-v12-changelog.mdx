@@ -189,6 +189,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - A source user's historical deactivation date is preserved rather than overwritten with the import timestamp.
 
 #### Performance
+ - Benchmarking test results showed no significant difference: a 4.31% decrease in the number of supported users for the new release, which lies within the ``[-5%, +5%]`` prediction interval. View the full raw data and methodology in our [Performance Reports repository](https://github.com/mattermost/performance-reports/tree/main/performance-comparisons/v12.0).
  - Improved performance of the bulk-indexing job for Elasticsearch and Opensearch for very large ``FileInfo`` and ``Channels`` tables.
  - Reduced database load by caching lookups of non-existent custom emoji names (e.g. emoji-like tokens in timestamps such as "11:11:11").
 
