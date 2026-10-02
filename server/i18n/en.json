@@ -1948,7 +1948,17 @@
   {
     "id": "api.command_remote.cluster_removed",
     "translation": "Secure connection {{.RemoteId}} {{.Result}}.",
-    "description": "Ephemeral result of the /secure-connection remove subcommand; {{.RemoteId}} is the connection ID and {{.Result}} is the untranslated English word 'removed' or '**NOT FOUND**'."
+    "description": "Ephemeral result of the /secure-connection remove subcommand; {{.RemoteId}} is the connection ID and {{.Result}} is the translated outcome from api.command_remote.cluster_removed.result_removed or result_not_found."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NOT FOUND**",
+    "description": "Outcome inserted as {{.Result}} into api.command_remote.cluster_removed when no secure connection with the given ID exists; keep the Markdown ** bold markers."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "removed",
+    "description": "Outcome inserted as {{.Result}} into api.command_remote.cluster_removed when the secure connection was deleted (reads 'Secure connection <id> removed.')."
   },
   {
     "id": "api.command_remote.confirm_invitation.error",
