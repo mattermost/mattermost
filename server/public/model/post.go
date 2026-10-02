@@ -903,6 +903,8 @@ var searchablePropsByPostType = map[string][]string{
 }
 
 // SearchablePropsForPostType returns the props indexed as searchable text for posts of the type.
+// Core indexes them for every post of the type, whether or not the plugin that owns the type is
+// enabled to validate them; their size is bounded only by PostPropsMaxUserRunes.
 func SearchablePropsForPostType(postType string) []string {
 	return slices.Clone(searchablePropsByPostType[postType])
 }

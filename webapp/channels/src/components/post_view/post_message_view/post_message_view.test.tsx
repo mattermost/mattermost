@@ -205,8 +205,14 @@ describe('components/post_view/PostAttachment', () => {
 
     describe('plugin post type components', () => {
         const pluginPost = {...post, type: 'custom_plugin_type' as PostType};
-        const renderPluginPost = (props: Partial<React.ComponentProps<typeof PostMessageView>>) => {
-            const PluginComponent = jest.fn<React.JSX.Element, [Record<string, unknown>]>(() => <div data-testid='plugin-post-type'/>);
+        const renderPluginPost = (
+            props: Partial<React.ComponentProps<typeof PostMessageView>>,
+            onRender: (pluginProps: Record<string, any>) => void = () => {},
+        ) => {
+            const PluginComponent = jest.fn<React.JSX.Element, [Record<string, any>]>((pluginProps) => {
+                onRender(pluginProps);
+                return <div data-testid='plugin-post-type'/>;
+            });
             renderWithContext(
                 <PostMessageView
                     {...baseProps}
@@ -226,23 +232,64 @@ describe('components/post_view/PostAttachment', () => {
             return PluginComponent;
         };
 
-        test('passes search options to plugin post type components', () => {
-            const options = {searchTerm: 'roadmap', searchMatches: ['roadmap'], mentionHighlight: true};
+        test('passes only the search options to plugin post type components', () => {
+            const options = {
+                searchTerm: 'roadmap',
+                searchMatches: ['roadmap'],
+                mentionHighlight: true,
+                atMentions: true,
+                singleline: true,
+                channelNamesMap: {},
+            };
             const PluginComponent = renderPluginPost({options, isRHS: true, compactDisplay: true});
 
-            expect(PluginComponent.mock.calls[0][0]).toEqual({
+            const pluginProps = PluginComponent.mock.calls[0][0];
+            expect(pluginProps).toEqual({
                 post: pluginPost,
                 compactDisplay: true,
                 isRHS: true,
                 theme: baseProps.theme,
-                options,
+                options: {searchTerm: 'roadmap', searchMatches: ['roadmap'], mentionHighlight: true},
             });
+            expect(pluginProps.options).not.toBe(options);
         });
 
-        test('passes default empty options outside search', () => {
-            const PluginComponent = renderPluginPost({options: undefined});
+        test('omits search options that are not set', () => {
+            const PluginComponent = renderPluginPost({options: {searchTerm: 'roadmap', atMentions: true}});
 
-            expect(PluginComponent.mock.calls[0][0]).toHaveProperty('options', {});
+            expect(PluginComponent.mock.calls[0][0].options).toEqual({searchTerm: 'roadmap'});
+        });
+
+        test.each([
+            ['default options', undefined],
+            ['empty options', {}],
+            ['options without search keys', {atMentions: true, singleline: true}],
+        ])('passes undefined options outside search (%s)', (_, options) => {
+            const PluginComponent = renderPluginPost({options});
+
+            const pluginProps = PluginComponent.mock.calls[0][0];
+            expect(pluginProps).toHaveProperty('options');
+            expect(pluginProps.options).toBeUndefined();
+        });
+
+        test('mutating the options in a plugin does not affect core options', () => {
+            const options = {searchTerm: 'roadmap', searchMatches: ['roadmap']};
+            renderPluginPost({options}, (pluginProps) => {
+                pluginProps.options.searchTerm = 'mutated';
+                pluginProps.options.searchPatterns = [];
+            });
+
+            expect(options).toEqual({searchTerm: 'roadmap', searchMatches: ['roadmap']});
+
+            const PostMarkdown = jest.requireMock('components/post_markdown');
+            PostMarkdown.mockClear();
+            renderWithContext(
+                <PostMessageView
+                    {...baseProps}
+                    options={undefined}
+                />,
+            );
+            expect(PostMarkdown.mock.calls[0][0].options).toEqual({});
         });
     });
 

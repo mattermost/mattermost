@@ -612,6 +612,9 @@ export type MessageWillBeUpdatedHook = PluginComponent & {
     hook: (post: Partial<Post>, oldPost: Post) => Promise<{error: {message: string}} | {post: Post}>;
 };
 
+/** Text formatting options of the surrounding view that are passed to plugin post type components. */
+export type PostPluginComponentOptions = Pick<TextFormattingOptions, 'searchTerm' | 'searchMatches' | 'mentionHighlight'>;
+
 export type PostPluginComponent = {
     id: string;
     pluginId: string;
@@ -622,8 +625,8 @@ export type PostPluginComponent = {
         isRHS?: boolean;
         theme?: Theme;
 
-        /** Text formatting options of the surrounding view; in search results, searchTerm and searchMatches. */
-        options?: TextFormattingOptions;
+        /** Set in search results only: searchTerm, searchMatches, and mentionHighlight. */
+        options?: PostPluginComponentOptions;
     }>;
 };
 
