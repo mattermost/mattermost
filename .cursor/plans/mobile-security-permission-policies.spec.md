@@ -227,7 +227,7 @@ The editor adds the two actions to its permission picker with the labels "Use th
 
 The network client gets a per-server value API next to the existing global stable values: `setSessionAttributesServerValues(serverUrl, values)`. The native collector checks per-server values before stable values and native collection, and setting a value clears the field's last-sent time so the next request to that server carries it, rather than waiting out the TTL. `SecurityManager` already tracks biometric state per server in `serverConfig[server].authenticated`; wherever that flag changes it writes `biometric_authenticated` for that server as `"true"` or `"false"`.
 
-A new client method calls the render-decision endpoint, and a remote action stores the result in the server's `System` table so it survives restarts and is available offline. The app only asks when the server's client config has `FeatureFlagPermissionPolicies` on; an older server never sees the call. The flow when a server becomes active, after the existing MAM enrollment and jailbreak checks:
+A new client method calls the render-decision endpoint, and a remote action stores the result in the server's `System` table so it survives restarts and is available offline. The app only asks when the server's client config has `FeatureFlagPermissionPolicies` on and the licence is Enterprise Advanced, the same gate the session attributes manifest uses; an older or unlicensed server never sees the call. The flow when a server becomes active or is switched to, after the existing MAM enrollment and jailbreak checks:
 
 1. Ask for `use_mobile_app` and `capture_mobile_screen`. The request carries the current `biometric_authenticated` value.
 2. If the request fails and a cached decision exists, use it; if none exists, treat both actions as `no_policy`.
@@ -240,7 +240,7 @@ The same flow runs when the app returns to the foreground after the re-prompt wi
 
 ### Configuration
 
-No new keys. Without an Enterprise Advanced licence, with `EnableAttributeBasedAccessControl` off, or with the `PermissionPolicies` feature flag off, the Mobile Security page shows the two switches as it does today, the decision endpoint reports `no_policy` for both actions, and the mobile app follows the switches. `biometric_authenticated` additionally requires the `SessionAttributes` feature flag and must be enabled for mobile on the Session Attributes page before a policy can use it.
+No new keys. Without an Enterprise Advanced licence, with `EnableAttributeBasedAccessControl` off, or with the `PermissionPolicies` feature flag off, the Mobile Security page shows the two switches as it does today and the mobile app follows the switches without calling the decision endpoint. With the flag and setting on, the endpoint reports `no_policy` for both actions until a policy carries one. `biometric_authenticated` additionally requires the `SessionAttributes` feature flag and must be enabled for mobile on the Session Attributes page before a policy can use it.
 
 ### Platform
 
@@ -296,7 +296,7 @@ A server activation costs one decision request: a subject build (one attribute-v
 
 - **Action validation** — the new actions are accepted on permission policies, rejected on channel, team and parent policies, and `IsPermissionAction` stays false for them.
 - **No-policy reporting** — the permission lane returns `no_policy` when nothing carries an action, a bare allow when a policy matches, deny when another role's policy carries it, and the file actions keep their current results.
-- **Decision endpoint** — resource type `permission` is accepted with an empty ID, `reason` is `no_policy` when ungoverned and when ABAC is inactive, and errors produce `restricted_by_policy`.
+- **Decision endpoint** — resource type `permission` is accepted with an empty ID, `reason` is `no_policy` when ungoverned and when ABAC is inactive, and evaluation errors (including an unlicensed access control service) produce `restricted_by_policy`.
 - **Session attribute** — the field is seeded disabled on an existing install, appears in the mobile manifest only when enabled, is rejected by `CheckExpression` while disabled, and goes stale after TTL plus grace.
 - **Mobile flow** — each branch of the activation flow: no policy with the switch on and off, allowed, denied then allowed after the prompt, denied twice, request failure with and without a cached decision, and `permission_policy_updated` re-asking.
 - **Mobile attribute reporting** — the per-server value reaches the header on the next request after the biometric state changes, and other servers' requests are unaffected.
