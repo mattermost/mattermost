@@ -2,12 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {SystemConsolePage} from '@mattermost/playwright-lib';
-import {
-    enableAutotranslationConfig,
-    hasAutotranslationLicense,
-    expect,
-    test,
-} from '@mattermost/playwright-lib';
+import {enableAutotranslationConfig, hasAutotranslationLicense, expect, test} from '@mattermost/playwright-lib';
 
 test(
     'permission exists; Channel Administrators have Manage Channel Auto Translation ON',
