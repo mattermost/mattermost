@@ -13705,902 +13705,902 @@
   },
   {
     "id": "model.post.is_valid.update_at.app_error",
-    "translation": ""
+    "translation": "Vrijeme ažuriranja mora biti valjano."
   },
   {
     "id": "model.post.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Neispravan ID korisnika."
   },
   {
     "id": "model.post.query_params.invalid_channel_id",
-    "translation": ""
+    "translation": "Neispravan ID kanala."
   },
   {
     "id": "model.post.query_params.invalid_cursor_id",
-    "translation": ""
+    "translation": "Neispravan ID pokazivača."
   },
   {
     "id": "model.post.query_params.invalid_sort_direction",
-    "translation": ""
+    "translation": "Neispravan smjer sortiranja."
   },
   {
     "id": "model.post.query_params.invalid_time_field",
-    "translation": ""
+    "translation": "Neispravno polje vremena."
   },
   {
     "id": "model.preference.is_valid.category.app_error",
-    "translation": ""
+    "translation": "Neispravna kategorija."
   },
   {
     "id": "model.preference.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Neispravan ID korisnika."
   },
   {
     "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
-    "translation": ""
+    "translation": "Neispravna vrijednost za limit_visible_dms_gms."
   },
   {
     "id": "model.preference.is_valid.name.app_error",
-    "translation": ""
+    "translation": "Neispravno ime."
   },
   {
     "id": "model.preference.is_valid.theme.app_error",
-    "translation": ""
+    "translation": "Neispravna tema."
   },
   {
     "id": "model.preference.is_valid.value.app_error",
-    "translation": ""
+    "translation": "Vrijednost je preduga."
   },
   {
     "id": "model.property_field.is_valid.app_error",
-    "translation": ""
+    "translation": "Neispravno polje svojstva: {{.FieldName}} ({{.Reason}})."
   },
   {
     "id": "model.property_group.is_valid.app_error",
-    "translation": ""
+    "translation": "Neispravna grupa svojstava: {{.FieldName}} ({{.Reason}})."
   },
   {
     "id": "model.property_value.is_valid.app_error",
-    "translation": ""
+    "translation": "Neispravna vrijednost svojstva: {{.FieldName}} ({{.Reason}})."
   },
   {
     "id": "model.reaction.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Vrijeme stvaranja mora biti valjano."
   },
   {
     "id": "model.reaction.is_valid.emoji_name.app_error",
-    "translation": ""
+    "translation": "Neispravno ime emojija."
   },
   {
     "id": "model.reaction.is_valid.post_id.app_error",
-    "translation": ""
+    "translation": "Neispravan ID objave."
   },
   {
     "id": "model.reaction.is_valid.update_at.app_error",
-    "translation": ""
+    "translation": "Vrijeme ažuriranja mora biti valjano."
   },
   {
     "id": "model.reaction.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Neispravan ID korisnika."
   },
   {
     "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
-    "translation": ""
+    "translation": "Neispravan udaljeni ID."
   },
   {
     "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
-    "translation": ""
+    "translation": "Neispravan URL stranice."
   },
   {
     "id": "model.remote_cluster_invite.is_valid.token.app_error",
-    "translation": ""
+    "translation": "Neispravan token."
   },
   {
     "id": "model.reporting_base_options.is_valid.bad_date_range",
-    "translation": ""
+    "translation": "Navedeni raspon datuma nije valjan."
   },
   {
     "id": "model.scheduled_post.is_valid.empty_post.app_error",
-    "translation": ""
+    "translation": "Nije moguće zakazati praznu objavu. Zakazana poruka mora imati barem tekst ili priložene datoteke."
   },
   {
     "id": "model.scheduled_post.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Zakazana poruka mora imati ID."
   },
   {
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
-    "translation": ""
+    "translation": "Neispravno vrijeme obrade."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
-    "translation": ""
+    "translation": "Poruke koje se brišu nakon čitanja ne mogu se slati kao ponavljajuće zakazane poruke."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_files.app_error",
-    "translation": ""
+    "translation": "Ponavljajuće zakazane poruke ne mogu imati priložene datoteke."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
-    "translation": ""
+    "translation": "Tjedno ponavljajuće zakazane poruke zahtijevaju valjanu vremensku zonu."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
-    "translation": ""
+    "translation": "Neispravna vremenska zona za ponavljajuću zakazanu poruku."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_type.app_error",
-    "translation": ""
+    "translation": "Neispravna vrsta ponavljanja za zakazanu poruku."
   },
   {
     "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
-    "translation": ""
+    "translation": "Neispravno vrijeme zakazivanja."
   },
   {
     "id": "model.scheduled_recap.compute_next_run.days_of_week.app_error",
-    "translation": ""
+    "translation": "Neispravni dani u tjednu zakazanog sažetka."
   },
   {
     "id": "model.scheduled_recap.compute_next_run.no_valid_day.app_error",
-    "translation": ""
+    "translation": "Nije pronađen valjani dan za zakazani sažetak."
   },
   {
     "id": "model.scheduled_recap.compute_next_run.time_format.app_error",
-    "translation": ""
+    "translation": "Neispravan format vremena zakazanog sažetka."
   },
   {
     "id": "model.scheduled_recap.compute_next_run.timezone.app_error",
-    "translation": ""
+    "translation": "Neispravna vremenska zona zakazanog sažetka."
   },
   {
     "id": "model.scheduled_recap.is_valid.agent_id.app_error",
-    "translation": ""
+    "translation": "Zakazani sažetak mora imati ID agenta."
   },
   {
     "id": "model.scheduled_recap.is_valid.channel_id.app_error",
-    "translation": ""
+    "translation": "Neispravan ID kanala zakazanog sažetka."
   },
   {
     "id": "model.scheduled_recap.is_valid.channel_ids_empty.app_error",
-    "translation": ""
+    "translation": "Zakazani sažetak mora uključivati najmanje jedan kanal kad se koriste određeni kanali."
   },
   {
     "id": "model.scheduled_recap.is_valid.channel_mode.app_error",
-    "translation": ""
+    "translation": "Neispravan način odabira kanala zakazanog sažetka."
   },
   {
     "id": "model.scheduled_recap.is_valid.custom_instructions_length.app_error",
-    "translation": ""
+    "translation": "Prilagođene upute zakazanog sažetka premašuju najveću duljinu."
   },
   {
     "id": "model.scheduled_recap.is_valid.days_of_week.app_error",
-    "translation": ""
+    "translation": "Neispravni dani u tjednu zakazanog sažetka."
   },
   {
     "id": "model.scheduled_recap.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Zakazani sažetak mora imati ID."
   },
   {
     "id": "model.scheduled_recap.is_valid.time_of_day.app_error",
-    "translation": ""
+    "translation": "Neispravno doba dana zakazanog sažetka."
   },
   {
     "id": "model.scheduled_recap.is_valid.time_period.app_error",
-    "translation": ""
+    "translation": "Neispravno vremensko razdoblje zakazanog sažetka."
   },
   {
     "id": "model.scheduled_recap.is_valid.timezone.app_error",
-    "translation": ""
+    "translation": "Neispravna vremenska zona zakazanog sažetka."
   },
   {
     "id": "model.scheduled_recap.is_valid.title_empty.app_error",
-    "translation": ""
+    "translation": "Naslov zakazanog sažetka ne može biti prazan."
   },
   {
     "id": "model.scheduled_recap.is_valid.title_length.app_error",
-    "translation": ""
+    "translation": "Naslov zakazanog sažetka premašuje najveću duljinu."
   },
   {
     "id": "model.scheduled_recap.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Zakazani sažetak mora imati ID korisnika."
   },
   {
     "id": "model.scheme.is_valid.app_error",
-    "translation": ""
+    "translation": "Neispravna shema."
   },
   {
     "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
-    "translation": ""
+    "translation": "Svi parametri IncludeDeletedChannels moraju imati istu vrijednost."
   },
   {
     "id": "model.session.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Neispravno polje CreateAt za sesiju."
   },
   {
     "id": "model.session.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Neispravno polje Id za sesiju."
   },
   {
     "id": "model.session.is_valid.roles_limit.app_error",
-    "translation": ""
+    "translation": "Neispravne uloge sesije, dulje od {{.Limit}} znakova."
   },
   {
     "id": "model.session.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Neispravno polje UserId za sesiju."
   },
   {
     "id": "model.team.is_valid.characters.app_error",
-    "translation": ""
+    "translation": "Ime mora sadržavati 2 ili više malih alfanumeričkih znakova."
   },
   {
     "id": "model.team.is_valid.company.app_error",
-    "translation": ""
+    "translation": "Neispravno ime tvrtke."
   },
   {
     "id": "model.team.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Vrijeme stvaranja mora biti valjano."
   },
   {
     "id": "model.team.is_valid.description.app_error",
-    "translation": ""
+    "translation": "Neispravan opis."
   },
   {
     "id": "model.team.is_valid.domains.app_error",
-    "translation": ""
+    "translation": "Neispravne dopuštene domene."
   },
   {
     "id": "model.team.is_valid.email.app_error",
-    "translation": ""
+    "translation": "Neispravna e-mail adresa."
   },
   {
     "id": "model.team.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Neispravan Id."
   },
   {
     "id": "model.team.is_valid.invite_id.app_error",
-    "translation": ""
+    "translation": "Neispravan ID pozivnice."
   },
   {
     "id": "model.team.is_valid.name.app_error",
-    "translation": ""
+    "translation": "Neispravno ime."
   },
   {
     "id": "model.team.is_valid.reserved.app_error",
-    "translation": ""
+    "translation": "Ovaj URL nije dostupan. Pokušaj s drugim."
   },
   {
     "id": "model.team.is_valid.type.app_error",
-    "translation": ""
+    "translation": "Neispravna vrsta."
   },
   {
     "id": "model.team.is_valid.update_at.app_error",
-    "translation": ""
+    "translation": "Vrijeme ažuriranja mora biti valjano."
   },
   {
     "id": "model.team.is_valid.url.app_error",
-    "translation": ""
+    "translation": "Neispravan URL identifikator."
   },
   {
     "id": "model.team_member.is_valid.roles_limit.app_error",
-    "translation": ""
+    "translation": "Neispravne uloge člana tima, dulje od {{.Limit}} znakova."
   },
   {
     "id": "model.team_member.is_valid.team_id.app_error",
-    "translation": ""
+    "translation": "Neispravan ID tima."
   },
   {
     "id": "model.team_member.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Neispravan ID korisnika."
   },
   {
     "id": "model.thread.is_valid.post_id.app_error",
-    "translation": ""
+    "translation": "Neispravan ID objave."
   },
   {
     "id": "model.thread.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Neispravan ID korisnika."
   },
   {
     "id": "model.token.is_valid.expiry",
-    "translation": ""
+    "translation": "Neispravan istek tokena"
   },
   {
     "id": "model.token.is_valid.size",
-    "translation": ""
+    "translation": "Neispravan token."
   },
   {
     "id": "model.translation.is_valid.lang.app_error",
-    "translation": ""
+    "translation": "Neispravan kod jezika. Koristi standardni ISO kod kao što je 'en', 'ja' ili 'fr'."
   },
   {
     "id": "model.translation.is_valid.nil.app_error",
-    "translation": ""
+    "translation": "Objekt prijevoda ne može biti null."
   },
   {
     "id": "model.translation.is_valid.object_id.app_error",
-    "translation": ""
+    "translation": "Neispravan ID objekta."
   },
   {
     "id": "model.translation.is_valid.object_json.app_error",
-    "translation": ""
+    "translation": "Neispravan JSON objekta."
   },
   {
     "id": "model.translation.is_valid.object_type.app_error",
-    "translation": ""
+    "translation": "Neispravna vrsta objekta."
   },
   {
     "id": "model.translation.is_valid.provider.app_error",
-    "translation": ""
+    "translation": "Neispravan pružatelj prijevoda."
   },
   {
     "id": "model.translation.is_valid.text.app_error",
-    "translation": ""
+    "translation": "Neispravan tekst prijevoda."
   },
   {
     "id": "model.translation.is_valid.type.app_error",
-    "translation": ""
+    "translation": "Neispravna vrsta prijevoda."
   },
   {
     "id": "model.translation.is_valid.type_invalid.app_error",
-    "translation": ""
+    "translation": "Neispravna vrsta prijevoda. Mora biti 'string' ili 'object'."
   },
   {
     "id": "model.upload_session.is_valid.channel_id.app_error",
-    "translation": ""
+    "translation": "Neispravna vrijednost za ChannelId."
   },
   {
     "id": "model.upload_session.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Neispravna vrijednost za CreateAt"
   },
   {
     "id": "model.upload_session.is_valid.file_offset.app_error",
-    "translation": ""
+    "translation": "Neispravna vrijednost za FileOffset"
   },
   {
     "id": "model.upload_session.is_valid.file_size.app_error",
-    "translation": ""
+    "translation": "Neispravna vrijednost za FileSize"
   },
   {
     "id": "model.upload_session.is_valid.filename.app_error",
-    "translation": ""
+    "translation": "Neispravna vrijednost za Filename"
   },
   {
     "id": "model.upload_session.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Neispravna vrijednost za Id"
   },
   {
     "id": "model.upload_session.is_valid.path.app_error",
-    "translation": ""
+    "translation": "Neispravna vrijednost za Path"
   },
   {
     "id": "model.upload_session.is_valid.type.app_error",
-    "translation": ""
+    "translation": "Neispravna vrijednost za Type"
   },
   {
     "id": "model.upload_session.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Neispravna vrijednost za UserId"
   },
   {
     "id": "model.user.is_valid.auth_data.app_error",
-    "translation": ""
+    "translation": "Neispravni podaci za autentifikaciju."
   },
   {
     "id": "model.user.is_valid.auth_data_pwd.app_error",
-    "translation": ""
+    "translation": "Neispravan korisnik, lozinka i podaci za autentifikaciju ne mogu oboje biti postavljeni."
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": ""
+    "translation": "Neispravan korisnik: podaci za autentifikaciju mogu se postaviti samo ako se korisnik autentificira putem vanjske usluge autentifikacije, a ne e-mail adresom i lozinkom."
   },
   {
     "id": "model.user.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Vrijeme stvaranja mora biti valjano."
   },
   {
     "id": "model.user.is_valid.email.app_error",
-    "translation": ""
+    "translation": "Neispravna e-mail adresa."
   },
   {
     "id": "model.user.is_valid.first_name.app_error",
-    "translation": ""
+    "translation": "Neispravno ime."
   },
   {
     "id": "model.user.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Neispravan ID korisnika."
   },
   {
     "id": "model.user.is_valid.invalidProperty.app_error",
-    "translation": ""
+    "translation": "Neispravni props (prilagođeno stanje)"
   },
   {
     "id": "model.user.is_valid.last_name.app_error",
-    "translation": ""
+    "translation": "Neispravno prezime."
   },
   {
     "id": "model.user.is_valid.locale.app_error",
-    "translation": ""
+    "translation": "Neispravan jezik."
   },
   {
     "id": "model.user.is_valid.marshal.app_error",
-    "translation": ""
+    "translation": "Kodiranje polja u JSON nije uspjelo"
   },
   {
     "id": "model.user.is_valid.mention_keys.app_error",
-    "translation": ""
+    "translation": "Neispravni mention_keys: premašeno je ograničenje od {{.MaxCount}} ključeva ili {{.MaxLength}} bajtova."
   },
   {
     "id": "model.user.is_valid.nickname.app_error",
-    "translation": ""
+    "translation": "Neispravan nadimak."
   },
   {
     "id": "model.user.is_valid.password_limit.app_error",
-    "translation": ""
+    "translation": "Nije moguće postaviti lozinku dulju od 72 znaka zbog ograničenja algoritma bcrypt."
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": ""
+    "translation": "Neispravna pozicija: ne smije biti dulja od 128 znakova."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
-    "translation": ""
+    "translation": "Tvoja lozinka mora sadržavati najmanje {{.Min}} znakova, uključujući najmanje jedno malo slovo."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_number.app_error",
-    "translation": ""
+    "translation": "Tvoja lozinka mora sadržavati najmanje {{.Min}} znakova, uključujući najmanje jedno malo slovo i najmanje jednu brojku."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
-    "translation": ""
+    "translation": "Tvoja lozinka mora sadržavati najmanje {{.Min}} znakova, uključujući najmanje jedno malo slovo, najmanje jednu brojku i najmanje jedan simbol (npr. \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
-    "translation": ""
+    "translation": "Tvoja lozinka mora sadržavati najmanje {{.Min}} znakova, uključujući najmanje jedno malo slovo i najmanje jedan simbol (npr. \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
-    "translation": ""
+    "translation": "Tvoja lozinka mora sadržavati najmanje {{.Min}} znakova, uključujući najmanje jedno malo slovo i najmanje jedno veliko slovo."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
-    "translation": ""
+    "translation": "Tvoja lozinka mora sadržavati najmanje {{.Min}} znakova, uključujući najmanje jedno malo slovo, najmanje jedno veliko slovo i najmanje jednu brojku."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
-    "translation": ""
+    "translation": "Tvoja lozinka mora sadržavati najmanje {{.Min}} znakova, uključujući najmanje jedno malo slovo, najmanje jedno veliko slovo, najmanje jednu brojku i najmanje jedan simbol (npr. \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
-    "translation": ""
+    "translation": "Tvoja lozinka mora sadržavati najmanje {{.Min}} znakova, uključujući najmanje jedno malo slovo, najmanje jedno veliko slovo i najmanje jedan simbol (npr. \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_max_length.app_error",
-    "translation": ""
+    "translation": "Tvoja lozinka smije sadržavati najviše 72 znaka."
   },
   {
     "id": "model.user.is_valid.pwd_min_length.app_error",
-    "translation": ""
+    "translation": "Tvoja lozinka mora sadržavati najmanje {{.Min}} znakova."
   },
   {
     "id": "model.user.is_valid.pwd_number.app_error",
-    "translation": ""
+    "translation": "Tvoja lozinka mora sadržavati najmanje {{.Min}} znakova, uključujući najmanje jednu brojku."
   },
   {
     "id": "model.user.is_valid.pwd_number_symbol.app_error",
-    "translation": ""
+    "translation": "Tvoja lozinka mora sadržavati najmanje {{.Min}} znakova, uključujući najmanje jednu brojku i najmanje jedan simbol (npr. \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_symbol.app_error",
-    "translation": ""
+    "translation": "Tvoja lozinka mora sadržavati najmanje {{.Min}} znakova, uključujući najmanje jedan simbol (npr. \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase.app_error",
-    "translation": ""
+    "translation": "Tvoja lozinka mora sadržavati najmanje {{.Min}} znakova, uključujući najmanje jedno veliko slovo."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_number.app_error",
-    "translation": ""
+    "translation": "Tvoja lozinka mora sadržavati najmanje {{.Min}} znakova, uključujući najmanje jedno veliko slovo i najmanje jednu brojku."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
-    "translation": ""
+    "translation": "Tvoja lozinka mora sadržavati najmanje {{.Min}} znakova, uključujući najmanje jedno veliko slovo, najmanje jednu brojku i najmanje jedan simbol (npr. \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
-    "translation": ""
+    "translation": "Tvoja lozinka mora sadržavati najmanje {{.Min}} znakova, uključujući najmanje jedno veliko slovo i najmanje jedan simbol (npr. \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.roles_limit.app_error",
-    "translation": ""
+    "translation": "Neispravne uloge korisnika, dulje od {{.Limit}} znakova."
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
-    "translation": ""
+    "translation": "Vrijeme ažuriranja mora biti valjano."
   },
   {
     "id": "model.user.is_valid.username.app_error",
-    "translation": ""
+    "translation": "Korisničko ime mora početi slovom i sadržavati od 3 do 22 mala znaka sastavljena od brojki, slova i simbola \".\", \"-\" i \"_\"."
   },
   {
     "id": "model.user.pre_save.password_hash.app_error",
-    "translation": ""
+    "translation": "Došlo je do interne greške pri spremanju lozinke."
   },
   {
     "id": "model.user.pre_save.password_too_long.app_error",
-    "translation": ""
+    "translation": "Tvoja lozinka smije sadržavati najviše 72 znaka."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
-    "translation": ""
+    "translation": "Neispravan opis, mora imati najviše 255 znakova."
   },
   {
     "id": "model.user_access_token.is_valid.expires_at.app_error",
-    "translation": ""
+    "translation": "Neispravan expires_at, mora biti nula ili pozitivna Unix vremenska oznaka u milisekundama."
   },
   {
     "id": "model.user_access_token.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Neispravna vrijednost za id."
   },
   {
     "id": "model.user_access_token.is_valid.token.app_error",
-    "translation": ""
+    "translation": "Neispravan pristupni token."
   },
   {
     "id": "model.user_access_token.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Neispravan ID korisnika."
   },
   {
     "id": "model.user_report_options.is_valid.invalid_guest_filter",
-    "translation": ""
+    "translation": "Navedeni filtar gostiju nije valjan."
   },
   {
     "id": "model.user_report_options.is_valid.invalid_sort_column",
-    "translation": ""
+    "translation": "Navedeni stupac za sortiranje nije valjan."
   },
   {
     "id": "model.utils.decode_json.app_error",
-    "translation": ""
+    "translation": "dekodiranje nije moguće."
   },
   {
     "id": "model.view.is_valid.channel_id.app_error",
-    "translation": ""
+    "translation": "Neispravan ID kanala prikaza."
   },
   {
     "id": "model.view.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Neispravno vrijeme stvaranja prikaza."
   },
   {
     "id": "model.view.is_valid.creator_id.app_error",
-    "translation": ""
+    "translation": "Neispravan ID stvaratelja prikaza."
   },
   {
     "id": "model.view.is_valid.description.app_error",
-    "translation": ""
+    "translation": "Opis prikaza je predug."
   },
   {
     "id": "model.view.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Neispravan ID prikaza."
   },
   {
     "id": "model.view.is_valid.props.kanban_column_id.app_error",
-    "translation": ""
+    "translation": "Kanban stupac ima neispravan ID ili mu ID nedostaje."
   },
   {
     "id": "model.view.is_valid.props.kanban_column_name.app_error",
-    "translation": ""
+    "translation": "Ime Kanban stupca ne smije biti prazno."
   },
   {
     "id": "model.view.is_valid.props.kanban_column_options.app_error",
-    "translation": ""
+    "translation": "Kanban stupac mora imati najmanje jedan ID opcije."
   },
   {
     "id": "model.view.is_valid.props.kanban_columns_empty.app_error",
-    "translation": ""
+    "translation": "Kanban prikaz mora imati najmanje jedan stupac."
   },
   {
     "id": "model.view.is_valid.props.kanban_columns_max.app_error",
-    "translation": ""
+    "translation": "Kanban prikaz premašuje najveći broj stupaca."
   },
   {
     "id": "model.view.is_valid.props.kanban_field_id.app_error",
-    "translation": ""
+    "translation": "Kanban prikaz mora upućivati na valjan ID polja svojstva."
   },
   {
     "id": "model.view.is_valid.props.kanban_invalid.app_error",
-    "translation": ""
+    "translation": "Kanban prikaz ima neispravnu strukturu propsa."
   },
   {
     "id": "model.view.is_valid.props.kanban_required.app_error",
-    "translation": ""
+    "translation": "Kanban prikaz zahtijeva props s konfiguracijom group_by."
   },
   {
     "id": "model.view.is_valid.title.app_error",
-    "translation": ""
+    "translation": "Naslov prikaza je obavezan i mora imati manje od 256 znakova."
   },
   {
     "id": "model.view.is_valid.type.app_error",
-    "translation": ""
+    "translation": "Neispravna vrsta prikaza."
   },
   {
     "id": "model.view.is_valid.update_at.app_error",
-    "translation": ""
+    "translation": "Neispravno vrijeme ažuriranja prikaza."
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
-    "translation": ""
+    "translation": "Nije moguće povezati se s WebSocket serverom."
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": ""
+    "translation": "GitLabovi uvjeti korištenja su ažurirani. Otvori {{.URL}} da ih prihvatiš, a zatim se ponovno pokušaj prijaviti u Mattermost."
   },
   {
     "id": "plugin.api.get_users_in_channel",
-    "translation": ""
+    "translation": "Nije moguće dohvatiti korisnike, neispravan kriterij sortiranja."
   },
   {
     "id": "plugin.api.update_post.mm_blocks_actions.app_error",
-    "translation": ""
+    "translation": "Neispravan mm_blocks_actions u ažuriranju objave iz dodatka."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
-    "translation": ""
+    "translation": "Nije moguće postaviti stanje korisnika. Nepoznato stanje korisnika."
   },
   {
     "id": "plugin_api.bot_cant_create_bot",
-    "translation": ""
+    "translation": "Bot korisnik ne može stvoriti bot korisnika."
   },
   {
     "id": "plugin_api.channel.space_notify_props.app_error",
-    "translation": ""
+    "translation": "Postavke obavijesti (notify props) ne mogu se postaviti na kanalima vrste space."
   },
   {
     "id": "plugin_api.get_file_link.disabled.app_error",
-    "translation": ""
+    "translation": "Javne poveznice su isključene."
   },
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
-    "translation": ""
+    "translation": "Nije moguće dohvatiti javnu poveznicu za datoteku. Datoteka mora biti priložena objavi koju je moguće čitati."
   },
   {
     "id": "plugin_api.send_mail.missing_htmlbody",
-    "translation": ""
+    "translation": "Nedostaje HTML tijelo poruke."
   },
   {
     "id": "plugin_api.send_mail.missing_subject",
-    "translation": ""
+    "translation": "Nedostaje predmet e-maila."
   },
   {
     "id": "plugin_api.send_mail.missing_to",
-    "translation": ""
+    "translation": "Nedostaje adresa primatelja (TO)."
   },
   {
     "id": "plugin_reattach_request.is_valid.manifest.app_error",
-    "translation": ""
+    "translation": "Nedostaje manifest"
   },
   {
     "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
-    "translation": ""
+    "translation": "Nedostaje konfiguracija za ponovno povezivanje dodatka"
   },
   {
     "id": "shared_channel.system_message.no_longer_shared",
-    "translation": ""
+    "translation": "Ovaj kanal više se ne dijeli s {{.WorkspaceName}}."
   },
   {
     "id": "shared_channel.system_message.no_longer_shared_unknown",
-    "translation": ""
+    "translation": "Ovaj kanal više se ne dijeli s drugim radnim prostorom."
   },
   {
     "id": "shared_channel.system_message.now_shared",
-    "translation": ""
+    "translation": "Ovaj kanal sada se dijeli s {{.WorkspaceName}}."
   },
   {
     "id": "sharedchannel.cannot_deliver_post",
-    "translation": ""
+    "translation": "Jednu ili više objava nije bilo moguće isporučiti udaljenoj stranici {{.Remote}} jer je offline. Objave će biti isporučene kad stranica bude online."
   },
   {
     "id": "sharedchannel.permalink.not_found",
-    "translation": ""
+    "translation": "Ova objava sadrži trajne poveznice na druge kanale koje možda nisu vidljive korisnicima na drugim stranicama."
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
-    "translation": ""
+    "translation": "Bot ne postoji."
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
-    "translation": ""
+    "translation": "Nije moguće pronaći postojeći kanal."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
-    "translation": ""
+    "translation": "Ne možeš mijenjati arhivirani kanal."
   },
   {
     "id": "store.sql_channel.save.direct_channel.app_error",
-    "translation": ""
+    "translation": "Za stvaranje kanala izravnih poruka koristi SaveDirectChannel."
   },
   {
     "id": "store.sql_channel.save_channel.existing.app_error",
-    "translation": ""
+    "translation": "Za postojeći kanal mora se pozvati update."
   },
   {
     "id": "store.sql_channel.save_channel.exists.app_error",
-    "translation": ""
+    "translation": "Kanal s tim imenom već postoji u istom timu."
   },
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
-    "translation": ""
+    "translation": "Dosegnuo/la si ograničenje dopuštenog broja kanala."
   },
   {
     "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
-    "translation": ""
+    "translation": "Putem SaveDirectChannel pokušao se stvoriti kanal koji nije kanal izravnih poruka."
   },
   {
     "id": "store.sql_command.get.missing.app_error",
-    "translation": ""
+    "translation": "Naredba ne postoji."
   },
   {
     "id": "store.sql_command.save.get.app_error",
-    "translation": ""
+    "translation": "Nije moguće dohvatiti naredbu."
   },
   {
     "id": "store.sql_command.update.missing.app_error",
-    "translation": ""
+    "translation": "Naredba ne postoji."
   },
   {
     "id": "store.sql_file_info.search.disabled",
-    "translation": ""
+    "translation": "Pretraga datoteka je isključena na ovom serveru. Obrati se administratoru sustava."
   },
   {
     "id": "store.sql_post.search.disabled",
-    "translation": ""
+    "translation": "Pretraga je isključena na ovom serveru. Obrati se administratoru sustava."
   },
   {
     "id": "store.sql_team.save_member.exists.app_error",
-    "translation": ""
+    "translation": "Član tima s tim ID-om već postoji."
   },
   {
     "id": "store.sql_team.save_team.existing.app_error",
-    "translation": ""
+    "translation": "Tim s ovim URL-om već postoji."
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
-    "translation": ""
+    "translation": "Nije moguće pronaći postojeći račun koji odgovara tvojim vjerodajnicama. Za pridruživanje ovom timu možda je potrebna pozivnica vlasnika tima."
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": ""
+    "translation": "Nije moguće pronaći naredbu {{.command_id}}."
   },
   {
     "id": "web.command_webhook.general.app_error",
-    "translation": ""
+    "translation": "Obrada webhooka naredbe {{.hook_id}} nije uspjela."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": ""
+    "translation": "Nije moguće raščlaniti dolazne podatke za webhook {{.hook_id}}."
   },
   {
     "id": "web.error.unsupported_browser.download",
-    "translation": ""
+    "translation": "Preuzmi aplikaciju"
   },
   {
     "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
-    "translation": ""
+    "translation": "Za bolje iskustvo preuzmi Mattermost aplikaciju ili koristi podržani preglednik."
   },
   {
     "id": "web.error.unsupported_browser.download_the_app",
-    "translation": ""
+    "translation": "Preuzmi aplikaciju"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
-    "translation": ""
+    "translation": "Vodič za instalaciju"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.windows",
-    "translation": ""
+    "translation": "Vodič za instalaciju"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
-    "translation": ""
+    "translation": "Saznaj više o podržanim preglednicima."
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
-    "translation": ""
+    "translation": "Mattermost više ne podržava ovu verziju tvog preglednika"
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",
-    "translation": ""
+    "translation": "Otvori Edge"
   },
   {
     "id": "web.error.unsupported_browser.system_browser_make_default",
-    "translation": ""
+    "translation": "Postavi kao zadani"
   },
   {
     "id": "web.error.unsupported_desktop_app.assistance",
-    "translation": ""
+    "translation": "Ako trebaš dodatnu pomoć, obrati se administratoru sustava."
   },
   {
     "id": "web.error.unsupported_desktop_app.download_button",
-    "translation": ""
+    "translation": "Preuzmi ažuriranu aplikaciju"
   },
   {
     "id": "web.error.unsupported_desktop_app.footer_about",
-    "translation": ""
+    "translation": "O aplikaciji"
   },
   {
     "id": "web.error.unsupported_desktop_app.footer_help",
-    "translation": ""
+    "translation": "Pomoć"
   },
   {
     "id": "web.error.unsupported_desktop_app.footer_privacy",
-    "translation": ""
+    "translation": "Politika privatnosti"
   },
   {
     "id": "web.error.unsupported_desktop_app.footer_terms",
-    "translation": ""
+    "translation": "Uvjeti"
   },
   {
     "id": "web.error.unsupported_desktop_app.message",
-    "translation": ""
+    "translation": "Verzija tvoje {{.SiteName}} desktop aplikacije ({{.CurrentVersion}}) niža je od najniže potrebne verzije ({{.MinimumVersion}}). Ažuriraj aplikaciju ili otvori {{.SiteName}} u web pregledniku da nastaviš."
   },
   {
     "id": "web.error.unsupported_desktop_app.title",
-    "translation": ""
+    "translation": "Potrebno je ažuriranje"
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
-    "translation": ""
+    "translation": "Nije moguće ažurirati podatke o pristupu korisnika."
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
-    "translation": ""
+    "translation": "Nije moguće pronaći kanal."
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": ""
+    "translation": "Ovom webhooku nije dopušteno objavljivati u zatraženom kanalu {{.channel_id}}"
   },
   {
     "id": "web.incoming_webhook.decode.app_error",
-    "translation": ""
+    "translation": "Dekodiranje sadržaja vrste medija {{.media_type}} za dolazni webhook {{.hook_id}} nije uspjelo."
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
-    "translation": ""
+    "translation": "Administrator sustava je isključio dolazne webhookove."
   },
   {
     "id": "web.incoming_webhook.general.app_error",
-    "translation": ""
+    "translation": "Obrada sadržaja vrste medija {{.media_type}} za dolazni webhook {{.hook_id}} nije uspjela."
   },
   {
     "id": "web.incoming_webhook.invalid.app_error",
-    "translation": ""
+    "translation": "Neispravan webhook."
   },
   {
     "id": "web.incoming_webhook.media_type.app_error",
-    "translation": ""
+    "translation": "Raščlanjivanje vrste medija za dolazni webhook {{.hook_id}} nije uspjelo."
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
-    "translation": ""
+    "translation": "Nije moguće raščlaniti dolazne podatke."
   },
   {
     "id": "web.incoming_webhook.parse_form.app_error",
-    "translation": ""
+    "translation": "Raščlanjivanje obrasca za webhook {{.hook_id}} nije uspjelo."
   },
   {
     "id": "web.incoming_webhook.parse_multipart.app_error",
-    "translation": ""
+    "translation": "Raščlanjivanje višedjelnog obrasca za webhook {{.hook_id}} nije uspjelo."
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": ""
+    "translation": "Korisnik {{.user}} nema odgovarajuće dozvole za kanal {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
-    "translation": ""
+    "translation": "Nije moguće podijeliti props webhooka na dijelove od {{.Max}} znakova."
   },
   {
     "id": "web.incoming_webhook.text.app_error",
-    "translation": ""
+    "translation": "Nije naveden tekst."
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": ""
+    "translation": "Nije moguće pronaći korisnika {{.user}}"
   }
 ]
