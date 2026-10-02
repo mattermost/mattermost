@@ -11,7 +11,7 @@ export const sectionStrings: Record<string, Record<string, MessageDescriptor>> =
         },
         description: {
             id: 'admin.permissions.sysconsole_section_about.description',
-            defaultMessage: 'The ability to install or upgrade your servers enterprise licensing.',
+            defaultMessage: 'The ability to install or upgrade your server\'s enterprise licensing.',
         },
     }),
     about_edition_and_license: defineMessages({

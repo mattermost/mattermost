@@ -40,7 +40,7 @@ describe('Guest Account - Verify Guest Access UI', () => {
         cy.findByTestId('GuestAccountsSettings.Enable').should('be.visible').within(() => {
             cy.get('.control-label').should('be.visible').and('have.text', 'Enable Guest Access: ');
         });
-        cy.findByTestId('GuestAccountsSettings.Enablehelp-text').should('be.visible').and('have.text', 'When true, external guest can be invited to channels within teams. Please see Permissions Schemes for which roles can invite guests.');
+        cy.findByTestId('GuestAccountsSettings.Enablehelp-text').should('be.visible').and('have.text', 'When true, external guests can be invited to channels within teams. Please see Permissions Schemes for which roles can invite guests.');
 
         // * Verify Whitelisted Guest Domains field
         cy.findByTestId('GuestAccountsSettings.RestrictCreationToDomains').should('be.visible').within(() => {

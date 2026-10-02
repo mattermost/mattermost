@@ -1778,7 +1778,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'EmailSettings.SMTPUsername',
                             label: defineMessage({id: 'admin.environment.smtp.smtpUsername.title', defaultMessage: 'SMTP Server Username:'}),
                             placeholder: defineMessage({id: 'admin.environment.smtp.smtpUsername.placeholder', defaultMessage: 'Ex: "admin@yourcompany.com", "AKIADTOVBGERKLCBV"'}),
-                            help_text: defineMessage({id: 'admin.environment.smtp.smtpUsername.description', defaultMessage: 'Obtain this credential from administrator setting up your email server.'}),
+                            help_text: defineMessage({id: 'admin.environment.smtp.smtpUsername.description', defaultMessage: 'Obtain this credential from the administrator setting up your email server.'}),
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
                                 it.stateIsFalse('EmailSettings.EnableSMTPAuth'),
@@ -1789,7 +1789,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'EmailSettings.SMTPPassword',
                             label: defineMessage({id: 'admin.environment.smtp.smtpPassword.title', defaultMessage: 'SMTP Server Password:'}),
                             placeholder: defineMessage({id: 'admin.environment.smtp.smtpPassword.placeholder', defaultMessage: 'Ex: "yourpassword", "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'}),
-                            help_text: defineMessage({id: 'admin.environment.smtp.smtpPassword.description', defaultMessage: 'Obtain this credential from administrator setting up your email server.'}),
+                            help_text: defineMessage({id: 'admin.environment.smtp.smtpPassword.description', defaultMessage: 'Obtain this credential from the administrator setting up your email server.'}),
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
                                 it.stateIsFalse('EmailSettings.EnableSMTPAuth'),
@@ -1992,7 +1992,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'RateLimitSettings.Enable',
                             label: defineMessage({id: 'admin.rate.enableLimiterTitle', defaultMessage: 'Enable Rate Limiting:'}),
-                            help_text: defineMessage({id: 'admin.rate.enableLimiterDescription', defaultMessage: 'When true, APIs are throttled at rates specified below. Rate limiting prevents server overload from too many requests. This is useful to prevent third-party applications or malicous attacks from impacting your server.'}),
+                            help_text: defineMessage({id: 'admin.rate.enableLimiterDescription', defaultMessage: 'When true, APIs are throttled at rates specified below. Rate limiting prevents server overload from too many requests. This is useful to prevent third-party applications or malicious attacks from impacting your server.'}),
                             help_text_markdown: true,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.RATE_LIMITING)),
                         },
@@ -2023,7 +2023,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'RateLimitSettings.MemoryStoreSize',
                             label: defineMessage({id: 'admin.rate.memoryTitle', defaultMessage: 'Memory Store Size:'}),
                             placeholder: defineMessage({id: 'admin.rate.memoryExample', defaultMessage: 'E.g.: "10000"'}),
-                            help_text: defineMessage({id: 'admin.rate.memoryDescription', defaultMessage: 'Maximum number of users sessions connected to the system as determined by "Vary rate limit by remote address" and "Vary rate limit by HTTP header" settings below.'}),
+                            help_text: defineMessage({id: 'admin.rate.memoryDescription', defaultMessage: 'Maximum number of user sessions connected to the system as determined by "Vary rate limit by remote address" and "Vary rate limit by HTTP header" settings below.'}),
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.RATE_LIMITING)),
                                 it.stateEquals('RateLimitSettings.Enable', false),
@@ -3608,7 +3608,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'bool',
                                     key: 'ServiceSettings.AllowSyncedDrafts',
                                     label: defineMessage({id: 'admin.customization.allowSyncedDrafts', defaultMessage: 'Enable server syncing of message drafts:'}),
-                                    help_text: defineMessage({id: 'admin.customization.allowSyncedDraftsDesc', defaultMessage: 'When enabled, users message drafts will sync with the server so they can be accessed from any device. Users may opt out of this behaviour in Account settings.'}),
+                                    help_text: defineMessage({id: 'admin.customization.allowSyncedDraftsDesc', defaultMessage: 'When enabled, users\' message drafts will sync with the server so they can be accessed from any device. Users may opt out of this behaviour in Account settings.'}),
                                     help_text_markdown: false,
                                 },
                                 {
@@ -3690,7 +3690,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'number',
                                     key: 'ServiceSettings.PersistentNotificationIntervalMinutes',
                                     label: defineMessage({id: 'admin.posts.persistentNotificationsInterval.title', defaultMessage: 'Frequency of persistent notifications'}),
-                                    help_text: defineMessage({id: 'admin.posts.persistentNotificationsInterval.desc', defaultMessage: 'Configure the number of minutes between repeated notifications for urgent messages send with persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
+                                    help_text: defineMessage({id: 'admin.posts.persistentNotificationsInterval.desc', defaultMessage: 'Configure the number of minutes between repeated notifications for urgent messages sent with persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
                                     help_text_values: {
                                         link: (msg: string) => (
                                             <ExternalLink
@@ -3712,7 +3712,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 {
                                     type: 'number',
                                     key: 'ServiceSettings.PersistentNotificationMaxCount',
-                                    label: defineMessage({id: 'admin.posts.persistentNotificationsMaxCount.title', defaultMessage: 'Total number of persistent notification per post'}),
+                                    label: defineMessage({id: 'admin.posts.persistentNotificationsMaxCount.title', defaultMessage: 'Total number of persistent notifications per post'}),
                                     help_text: defineMessage({id: 'admin.posts.persistentNotificationsMaxCount.desc', defaultMessage: 'Configure the maximum number of times users may receive persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
                                     help_text_values: {
                                         link: (msg: string) => (
@@ -3925,7 +3925,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'bool',
                                     key: 'ServiceSettings.EnableInlineLatex',
                                     label: defineMessage({id: 'admin.customization.enableInlineLatexTitle', defaultMessage: 'Enable Inline Latex Rendering:'}),
-                                    help_text: defineMessage({id: 'admin.customization.enableInlineLatexDesc', defaultMessage: 'Enable rendering of inline Latex code. If false, Latex can only be rendered in a code block using syntax highlighting. Please review our <link>documentation</link> for details about text formatting.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
+                                    help_text: defineMessage({id: 'admin.customization.enableInlineLatexDesc', defaultMessage: 'Enable rendering of inline LaTeX code. If false, LaTeX can only be rendered in a code block using syntax highlighting. Please review our <link>documentation</link> for details about text formatting.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
                                     help_text_values: {
                                         link: (msg: string) => (
                                             <ExternalLink
@@ -3979,7 +3979,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'number',
                                     key: 'DisplaySettings.MaxMarkdownNodes',
                                     label: defineMessage({id: 'admin.customization.maxMarkdownNodesTitle', defaultMessage: 'Maximum Markdown Nodes:'}),
-                                    help_text: defineMessage({id: 'admin.customization.maxMarkdownNodesDesc', defaultMessage: 'When rendering Markdown text in the mobile app, controls the maximum number of Markdown elements (eg. emojis, links, table cells, etc) that can be in a single piece of text. If set to 0, a default limit will be used.'}),
+                                    help_text: defineMessage({id: 'admin.customization.maxMarkdownNodesDesc', defaultMessage: 'When rendering Markdown text in the mobile app, controls the maximum number of Markdown elements (e.g. emojis, links, table cells, etc.) that can be in a single piece of text. If set to 0, a default limit will be used.'}),
                                     isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                                 },
                                 {
@@ -4464,7 +4464,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'ServiceSettings.EnableEmailInvitations',
                             label: defineMessage({id: 'admin.team.emailInvitationsTitle', defaultMessage: 'Enable Email Invitations: '}),
-                            help_text: defineMessage({id: 'admin.team.emailInvitationsDescription', defaultMessage: 'When true users can invite others to the system using email.'}),
+                            help_text: defineMessage({id: 'admin.team.emailInvitationsDescription', defaultMessage: 'When true, users can invite others to the system using email.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SIGNUP)),
                             isHidden: it.licensedForFeature('Cloud'),
                         },
@@ -4686,7 +4686,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'SamlSettings.EnableSyncWithLdapIncludeAuth',
                             label: defineMessage({id: 'admin.saml.enableSyncWithLdapIncludeAuthTitle', defaultMessage: 'Override SAML bind data with AD/LDAP information:'}),
-                            help_text: defineMessage({id: 'admin.saml.enableSyncWithLdapIncludeAuthDescription', defaultMessage: 'When true, Mattermost will override the SAML ID attribute with the AD/LDAP ID attribute if configured or override the SAML Email attribute with the AD/LDAP Email attribute if SAML ID attribute is not present. This will allow you automatically migrate users from Email binding to ID binding to prevent creation of new users when an email address changes for a user. Moving from true to false, will remove the override from happening. <strong>Note:</strong> SAML IDs must match the LDAP IDs to prevent disabling of user accounts. Please review <link>documentation</link> for more information.'}), // eslint-disable-line formatjs/no-multiple-whitespaces, formatjs/enforce-placeholders -- placeholders provided
+                            help_text: defineMessage({id: 'admin.saml.enableSyncWithLdapIncludeAuthDescription', defaultMessage: 'When true, Mattermost will override the SAML ID attribute with the AD/LDAP ID attribute if configured or override the SAML Email attribute with the AD/LDAP Email attribute if SAML ID attribute is not present. This will allow you to automatically migrate users from Email binding to ID binding to prevent creation of new users when an email address changes for a user. Moving from true to false will remove the override from happening. <strong>Note:</strong> SAML IDs must match the LDAP IDs to prevent disabling of user accounts. Please review <link>documentation</link> for more information.'}), // eslint-disable-line formatjs/no-multiple-whitespaces, formatjs/enforce-placeholders -- placeholders provided
                             help_text_values: {
                                 link: (msg: string) => (
                                     <ExternalLink
@@ -4976,7 +4976,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'SamlSettings.GuestAttribute',
                             label: defineMessage({id: 'admin.saml.guestAttrTitle', defaultMessage: 'Guest Attribute:'}),
                             placeholder: defineMessage({id: 'admin.saml.guestAttrEx', defaultMessage: 'E.g.: "usertype=Guest" or "isGuest=true"'}),
-                            help_text: defineMessage({id: 'admin.saml.guestAttrDesc', defaultMessage: '(Optional) Requires Guest Access to be enabled before being applied. The attribute in the SAML Assertion that will be used to apply a guest role to users in Mattermost. Guests are prevented from accessing teams or channels upon logging in until they are assigned a team and at least one channel.\n \nNote: If this attribute is removed/changed from your guest user in SAML and the user is still active, they will not be promoted to a member and will retain their Guest role. Guests can be promoted in **System Console > User Management**.\n \n \nExisting members that are identified by this attribute as a guest will be demoted from a member to a guest when they are asked to login next. The next login is based upon Session lengths set in **System Console > Session Lengths**. It is highly recommend to manually demote users to guests in **System Console > User Management ** to ensure access is restricted immediately.'}), // eslint-disable-line formatjs/no-multiple-whitespaces
+                            help_text: defineMessage({id: 'admin.saml.guestAttrDesc', defaultMessage: '(Optional) Requires Guest Access to be enabled before being applied. The attribute in the SAML Assertion that will be used to apply a guest role to users in Mattermost. Guests are prevented from accessing teams or channels upon logging in until they are assigned a team and at least one channel.\n \nNote: If this attribute is removed/changed from your guest user in SAML and the user is still active, they will not be promoted to a member and will retain their Guest role. Guests can be promoted in **System Console > User Management**.\n \n \nExisting members that are identified by this attribute as a guest will be demoted from a member to a guest when they are asked to log in next. The next login is based upon Session lengths set in **System Console > Session Lengths**. It is highly recommended to manually demote users to guests in **System Console > User Management** to ensure access is restricted immediately.'}), // eslint-disable-line formatjs/no-multiple-whitespaces
                             help_text_markdown: true,
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
@@ -4998,7 +4998,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'SamlSettings.AdminAttribute',
                             label: defineMessage({id: 'admin.saml.adminAttrTitle', defaultMessage: 'Admin Attribute:'}),
                             placeholder: defineMessage({id: 'admin.saml.adminAttrEx', defaultMessage: 'E.g.: "usertype=Admin" or "isAdmin=true"'}),
-                            help_text: defineMessage({id: 'admin.saml.adminAttrDesc', defaultMessage: '(Optional) The attribute in the SAML Assertion for designating System Admins. The users selected by the query will have access to your Mattermost server as System Admins. By default, System Admins have complete access to the Mattermost System Console.\n \nExisting members that are identified by this attribute will be promoted from member to System Admin upon next login. The next login is based upon Session lengths set in **System Console > Session Lengths**. It is highly recommend to manually demote users to members in **System Console > User Management** to ensure access is restricted immediately.\n \nNote: If this filter is removed/changed, System Admins that were promoted via this filter will be demoted to members and will not retain access to the System Console. When this filter is not in use, System Admins can be manually promoted/demoted in **System Console > User Management**.'}), // eslint-disable-line formatjs/no-multiple-whitespaces
+                            help_text: defineMessage({id: 'admin.saml.adminAttrDesc', defaultMessage: '(Optional) The attribute in the SAML Assertion for designating System Admins. The users selected by the query will have access to your Mattermost server as System Admins. By default, System Admins have complete access to the Mattermost System Console.\n \nExisting members that are identified by this attribute will be promoted from member to System Admin upon next login. The next login is based upon Session lengths set in **System Console > Session Lengths**. It is highly recommended to manually demote users to members in **System Console > User Management** to ensure access is restricted immediately.\n \nNote: If this filter is removed/changed, System Admins that were promoted via this filter will be demoted to members and will not retain access to the System Console. When this filter is not in use, System Admins can be manually promoted/demoted in **System Console > User Management**.'}), // eslint-disable-line formatjs/no-multiple-whitespaces
                             help_text_markdown: true,
                             isDisabled: it.any(
                                 it.not(it.isSystemAdmin),
@@ -6046,7 +6046,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'ServiceSettings.EnableOutgoingOAuthConnections',
                             label: defineMessage({id: 'admin.service.outgoingOAuthConnectionsTitle', defaultMessage: 'Enable Outgoing OAuth Connections: '}),
-                            help_text: defineMessage({id: 'admin.service.outgoingOAuthConnectionsDesc', defaultMessage: 'When true, outgoing webhooks and slash commands will use set up oauth connections to authenticate with third party services. See <link>documentation</link> to learn more.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
+                            help_text: defineMessage({id: 'admin.service.outgoingOAuthConnectionsDesc', defaultMessage: 'When true, outgoing webhooks and slash commands will use the configured OAuth connections to authenticate with third party services. See <link>documentation</link> to learn more.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
                             help_text_values: {
                                 link: (text: string) => (
                                     <a href='https://mattermost.com/pl/outgoing-oauth-connections'>{text}</a>
