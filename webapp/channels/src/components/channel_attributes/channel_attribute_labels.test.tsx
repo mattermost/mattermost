@@ -451,6 +451,47 @@ describe('ChannelAttributeLabels', () => {
         expect(screen.queryByTestId('channelAttributeLabelsOverflow-header')).not.toBeInTheDocument();
     });
 
+    // Regression: measuring the live (squeezed) channel-name width made chips
+    // expand when the name yielded space, which re-squeezed the name, which
+    // flickered at intermediate title widths (~1285px).
+    test('does not re-expand chips when the channel name has already shrunk for them', async () => {
+        jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function(this: HTMLElement) {
+            if (this.classList.contains('channel-header__title')) {
+                // 290 - nameFloor(80) - descriptionFloor(100) = 110 → one chip + +N.
+                // Using the live squeezed name (40) would free 150 and fit two chips.
+                return {width: 290} as DOMRect;
+            }
+            if (this.classList.contains('channel-header__top')) {
+                return {width: 40} as DOMRect;
+            }
+            if (this.classList.contains('channel-header__description')) {
+                return {width: 100} as DOMRect;
+            }
+            if (this.classList.contains('ChannelAttributeLabels')) {
+                return {width: 110} as DOMRect;
+            }
+            return {width: 60} as DOMRect;
+        });
+
+        renderWithContext(
+            <div className='channel-header__title'>
+                <div className='channel-header__top'/>
+                <div className='channel-header__icons'>
+                    <ChannelAttributeLabels
+                        channelId={CHANNEL_ID}
+                        surface='header'
+                    />
+                </div>
+                <div className='channel-header__description'/>
+            </div>,
+            makeState([field('a'), field('b'), field('c')]),
+        );
+
+        const overflow = await screen.findByTestId('channelAttributeLabelsOverflow-header');
+        expect(overflow).toHaveTextContent('+2');
+        expect(screen.getAllByTestId('attributeChip')).toHaveLength(1);
+    });
+
     // Regression: the row was hidden until re-measured whenever the chip id array
     // was rebuilt, and it is rebuilt on every value change and every graph name
     // that resolves. Editing one attribute blanked the whole row for a debounce.

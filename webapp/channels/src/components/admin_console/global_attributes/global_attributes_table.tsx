@@ -10,7 +10,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
-import {DotsHorizontalIcon, EyeOutlineIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {AlertOutlineIcon, DotsHorizontalIcon, EyeOutlineIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldType, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
@@ -50,6 +50,8 @@ import {ATTRIBUTE_TYPE_DESCRIPTOR, ATTRIBUTE_TYPE_FALLBACK_LABEL, getAttributeTy
 import {CLASSIFICATION_ATTRIBUTE_ROUTE} from './classification_attribute';
 import {attributeDetailsRoute, GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
 import {useGlobalAttributeFieldDelete} from './global_attribute_delete_modal';
+import type {NameConflict} from './name_conflict';
+import {findNameConflict, nameConflictText} from './name_conflict';
 import useAllowedResourceTypes from './use_allowed_resource_types';
 import {appliedResourceTypesByTemplateId, deleteAttributeField} from './utils';
 
@@ -250,14 +252,44 @@ function classificationSubtitleId(fieldId: string): string {
     return `global-attribute-classification-subtitle-${fieldId}`;
 }
 
-function AttributeCell({field, isClassificationRow}: ClassificationAwareCellProps) {
+type AttributeCellProps = ClassificationAwareCellProps & {
+    nameConflict?: NameConflict;
+};
+
+function AttributeCell({field, isClassificationRow, nameConflict}: AttributeCellProps) {
+    const {formatMessage} = useIntl();
+    const conflictText = nameConflict ? nameConflictText(nameConflict, formatMessage) : '';
+
     return (
         <span className='GlobalAttributesTable__attribute'>
-            <span
-                className='GlobalAttributesTable__name'
-                data-testid='global-attribute-name'
-            >
-                {getDisplayName(field)}
+            <span className='GlobalAttributesTable__nameRow'>
+                <span
+                    className='GlobalAttributesTable__name'
+                    data-testid='global-attribute-name'
+                >
+                    {getDisplayName(field)}
+                </span>
+                {nameConflict && (
+                    <WithTooltip title={conflictText}>
+                        <span
+                            className='GlobalAttributesTable__nameConflict'
+
+                            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child, so without this the warning is mouse-only
+                            tabIndex={0}
+
+                            // The icon is the whole content, so the element needs a
+                            // role that admits a name for aria-label to be announced.
+                            role='img'
+                            aria-label={conflictText}
+                            data-testid={`global-attribute-name-conflict-${field.id}`}
+                        >
+                            <AlertOutlineIcon
+                                size={16}
+                                aria-hidden={true}
+                            />
+                        </span>
+                    </WithTooltip>
+                )}
             </span>
             {isClassificationRow && (
                 <span
@@ -534,6 +566,35 @@ export default function GlobalAttributesTable({searchQuery = '', disabled = fals
         [classificationMarkingsReachable, fields, groupId, unlinkedFields, suppressedScopes, resourcesLoaded],
     );
 
+    // Attribute Management hides a template's linked children, so the only trace
+    // of one is the template's own row -- which says nothing about the name that
+    // child carries. Two attributes an admin reads as one (a `clearance` user
+    // field owned by Classification and an unrelated `Clearance` template) are
+    // therefore invisible to each other here. Resolved against the live user
+    // fields, since a CEL rule names one of those.
+    //
+    // Waits on resourcesLoaded like the unlinked rows do: suppressedScopes is
+    // only populated once the scope fetches settle, so warning before that
+    // would read a cache this page has not confirmed it can still fetch.
+    const nameConflictsByFieldId = useMemo(() => {
+        const liveUserFields = resourcesLoaded && !suppressedScopes.has('user') ? userLinkedFields : [];
+        const byFieldId: Record<string, NameConflict> = {};
+        for (const field of allRows) {
+            // Only rows that share the user namespace. A channel or post field
+            // is `resource.attributes.<name>` in CEL, which never resolves to a
+            // user field however alike the two names look; a template counts
+            // because applying it to Users would put it in that namespace.
+            if (field.object_type !== GLOBAL_ATTRIBUTES_OBJECT_TYPE && field.object_type !== 'user') {
+                continue;
+            }
+            const conflict = findNameConflict(field.name, liveUserFields, fields, field.id);
+            if (conflict) {
+                byFieldId[field.id] = conflict;
+            }
+        }
+        return byFieldId;
+    }, [allRows, fields, resourcesLoaded, suppressedScopes, userLinkedFields]);
+
     // The Source column resolves plugin-owned rows to a plugin display name, but
     // server-only plugins are absent from the webapp manifest registry — their names
     // live in the admin plugin statuses, which nothing else on this page loads.
@@ -623,6 +684,7 @@ export default function GlobalAttributesTable({searchQuery = '', disabled = fals
                     <AttributeCell
                         field={row.original}
                         isClassificationRow={isClassificationRow(row.original)}
+                        nameConflict={nameConflictsByFieldId[row.original.id]}
                     />
                 ),
                 enableSorting: false,
@@ -702,7 +764,7 @@ export default function GlobalAttributesTable({searchQuery = '', disabled = fals
                 enableHiding: false,
             }),
         ];
-    }, [appliesToByTemplateId, groupId, classificationMarkingsReachable, isMobileView, handleDeleteModalExited, resourcesLoaded, disabled]);
+    }, [appliesToByTemplateId, groupId, classificationMarkingsReachable, isMobileView, handleDeleteModalExited, nameConflictsByFieldId, resourcesLoaded, disabled]);
 
     const table = useReactTable<PropertyField>({
         data: rows,
