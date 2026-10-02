@@ -539,8 +539,8 @@ type Hooks interface {
 	// promotion of a guest to member and demotion of a member to guest. previousRoles holds the
 	// space separated roles the user had before the change.
 	//
-	// A role change revokes the user's sessions, so a plugin that only observes logins cannot
-	// see a role change that is reverted before the user logs in again.
+	// A role change revokes the user's sessions, so a plugin that reacts on login instead
+	// misses a role change that is reverted before the user logs in again.
 	//
 	// Minimum server version: 12.0
 	UserRolesHaveBeenUpdated(c *Context, user *model.User, previousRoles string)

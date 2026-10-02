@@ -7138,8 +7138,7 @@ func TestUserRolesHaveBeenUpdated(t *testing.T) {
 		}
 
 		func (p *MyPlugin) UserRolesHaveBeenUpdated(c *plugin.Context, user *model.User, previousRoles string) {
-			// Hooks are dispatched on their own goroutine, so serialize the
-			// read-modify-write: a lost update would hide a duplicate call.
+			// Serialize the read-modify-write, otherwise a lost update would hide a duplicate call.
 			p.mut.Lock()
 			defer p.mut.Unlock()
 
@@ -7158,13 +7157,12 @@ func TestUserRolesHaveBeenUpdated(t *testing.T) {
 		}, th.App, th.NewPluginAPI)
 	defer tearDown()
 
-	// The hook plugin appends what it observed to the user's nickname, so reading the
-	// nickname back shows that the hook fired, what it was handed, and - because the
-	// plugin appends rather than overwrites - how many times it fired.
-	createUserWithNickname := func(t *testing.T, nickname string, guest bool) *model.User {
+	// The plugin above appends to the nickname rather than overwriting it, so reading the
+	// nickname back shows what the hook was handed and how many times it fired.
+	createMarkedUser := func(t *testing.T, guest bool) *model.User {
 		t.Helper()
 		user := th.CreateUserOrGuest(t, guest)
-		user.Nickname = nickname
+		user.Nickname = "marker"
 		stored, appErr := th.App.UpdateUser(th.Context, user, false)
 		require.Nil(t, appErr)
 		return stored
@@ -7183,14 +7181,14 @@ func TestUserRolesHaveBeenUpdated(t *testing.T) {
 			assert.Equal(c, expected, nickname(t, userID))
 		}, 5*time.Second, 100*time.Millisecond)
 
-		// EventuallyWithT stops at the first match, so without a settle window a
-		// second hook call appending a second segment would go unnoticed.
+		// EventuallyWithT stops at the first match, so a second hook call would go
+		// unnoticed without this settle window.
 		time.Sleep(2 * time.Second)
 		require.Equal(t, expected, nickname(t, userID))
 	}
 
 	t.Run("fires once when a system role is added", func(t *testing.T) {
-		user := createUserWithNickname(t, "marker", false)
+		user := createMarkedUser(t, false)
 		require.Equal(t, "system_user", user.Roles)
 
 		_, appErr := th.App.UpdateUserRoles(th.Context, user.Id, "system_user system_admin", false)
@@ -7200,12 +7198,11 @@ func TestUserRolesHaveBeenUpdated(t *testing.T) {
 	})
 
 	t.Run("does not fire when the roles end up unchanged", func(t *testing.T) {
-		user := createUserWithNickname(t, "marker", false)
+		user := createMarkedUser(t, false)
 
 		_, appErr := th.App.UpdateUserRoles(th.Context, user.Id, "system_user", false)
 		require.Nil(t, appErr)
 
-		// Give a hook call time to land before concluding that it never happened.
 		time.Sleep(2 * time.Second)
 		stored, appErr := th.App.GetUser(th.Context, user.Id)
 		require.Nil(t, appErr)
@@ -7220,7 +7217,7 @@ func TestUserRolesHaveBeenUpdated(t *testing.T) {
 	})
 
 	t.Run("fires once when a member is demoted to guest", func(t *testing.T) {
-		user := createUserWithNickname(t, "marker", false)
+		user := createMarkedUser(t, false)
 		th.LinkUserToTeam(t, user, th.BasicTeam)
 
 		appErr := th.App.DemoteUserToGuest(th.Context, user)
@@ -7230,7 +7227,7 @@ func TestUserRolesHaveBeenUpdated(t *testing.T) {
 	})
 
 	t.Run("fires once when a guest is promoted to member", func(t *testing.T) {
-		user := createUserWithNickname(t, "marker", true)
+		user := createMarkedUser(t, true)
 		th.LinkUserToTeam(t, user, th.BasicTeam)
 
 		appErr := th.App.PromoteGuestToUser(th.Context, user, th.BasicUser.Id)
