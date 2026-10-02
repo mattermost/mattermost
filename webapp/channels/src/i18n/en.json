@@ -3363,6 +3363,14 @@
     "defaultMessage": "A user attribute named \"{name}\" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management to enable the clearance attribute.",
     "description": "Body of the warning notice on the System Console > Classification Markings page when a user attribute with the clearance attribute's name already exists but is not linked to the classification levels. 'The clearance attribute' is the user attribute holding each user's clearance level. {name} is the existing attribute's name exactly as an admin created it; it is never localized. 'Attribute Management' is the name of the System Console page (admin.sidebar.global_attributes) and is plain text here, not a link; use that page's existing translation."
   },
+  "admin.classification_markings.conflict.clearance_template": {
+    "defaultMessage": "Rename \"{name}\" in Attribute Management so it isn't mistaken for this clearance attribute.",
+    "description": "Non-blocking warning shown next to the clearance checkbox in System Console > Classification Markings when an unrelated attribute in Attribute Management is already called 'clearance'. {name} is that attribute's name, as the admin typed it."
+  },
+  "admin.classification_markings.conflict.clearance_template_title": {
+    "defaultMessage": "Another attribute already uses this name",
+    "description": "Title of the non-blocking warning shown next to the clearance checkbox in System Console > Classification Markings when an unrelated attribute in Attribute Management is already called 'clearance'."
+  },
   "admin.classification_markings.conflict.clearance_title": {
     "defaultMessage": "Clearance attribute cannot be created",
     "description": "Title of the warning notice on the System Console > Classification Markings page when the user clearance attribute (the user attribute holding each user's classification clearance level) cannot be created because of a name conflict."
@@ -3397,15 +3405,15 @@
   },
   "admin.classification_markings.enforcement.clearance.checkbox": {
     "defaultMessage": "Enable clearance attribute",
-    "description": "Label next to the checkbox in System Console > Classification Markings that creates the ranked Clearance user attribute. 'Enable' is a verb. The attribute is created with the hardcoded English display name 'Clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
+    "description": "Label next to the checkbox in System Console > Classification Markings that creates the ranked Clearance user attribute. 'Enable' is a verb. The attribute is created with the hardcoded English display name 'Classification clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
   },
   "admin.classification_markings.enforcement.clearance.help": {
-    "defaultMessage": "Creates a ranked \"Clearance\" user attribute linked to these classification levels. Channel membership can then be managed with a corresponding <link>membership policy</link>.",
-    "description": "Help text under the clearance checkbox in System Console > Classification Markings. \"Clearance\" in quotes is the literal name given to the generated user attribute. <link>…</link> wraps the words that become a link to the Membership Policies page in the System Console. The attribute is created with the hardcoded English display name 'Clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
+    "defaultMessage": "Creates a ranked \"Classification clearance\" user attribute linked to these classification levels. Channel membership can then be managed with a corresponding <link>membership policy</link>.",
+    "description": "Help text under the clearance checkbox in System Console > Classification Markings. \"Classification clearance\" in quotes is the literal name given to the generated user attribute. <link>…</link> wraps the words that become a link to the Membership Policies page in the System Console. The attribute is created with the hardcoded English display name 'Classification clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
   },
   "admin.classification_markings.enforcement.clearance.title": {
     "defaultMessage": "Clearance attribute",
-    "description": "Section heading above the clearance checkbox in System Console > Classification Markings. A noun phrase naming the feature, not an instruction. The attribute is created with the hardcoded English display name 'Clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
+    "description": "Section heading above the clearance checkbox in System Console > Classification Markings. A noun phrase naming the feature, not an instruction. The attribute is created with the hardcoded English display name 'Classification clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
   },
   "admin.classification_markings.error.create_name_conflict": {
     "defaultMessage": "Could not save because an attribute with a conflicting name already exists: {error} Rename or remove it in Attribute Management, then reload this page.",
@@ -5991,6 +5999,10 @@
     "defaultMessage": "This attribute does not apply to any resource yet.",
     "description": "Empty-state message in the 'Applies to' card on the Classification attribute page in the System Console, shown when the attribute is not applied to channels or any other resource type."
   },
+  "admin.global_attributes.applies_to.read_only_resource": {
+    "defaultMessage": "Applied to {resource} as {name}",
+    "description": "Read-only row in the 'Applies to' card on the Classification attribute page in the System Console, naming a resource this page does not edit. {resource} is a resource name such as Users; {name} is the unique name of the attribute created for it, which policies refer to."
+  },
   "admin.global_attributes.applies_to.subtitle": {
     "defaultMessage": "Resources this attribute applies to, and how it behaves on each.",
     "description": "Subtitle under the 'Applies to' card heading on the Classification attribute page in the System Console. 'Resources' means object types such as channels."
@@ -6078,6 +6090,10 @@
   "admin.global_attributes.attribute_details.applies_to.locked_single_resource_tooltip": {
     "defaultMessage": "This resource cannot be changed — this attribute applies to only one resource.",
     "description": "Tooltip on the disabled row in an attribute's 'Applies to' list (System Console > Attribute Management > attribute details), explaining that the only resource type (e.g. Users) cannot be removed or changed because it is the attribute's sole one."
+  },
+  "admin.global_attributes.attribute_details.applies_to.owned_locked_tooltip": {
+    "defaultMessage": "This attribute is managed by {owners}.",
+    "description": "Tooltip on the locked Users row in an attribute's \"Applies to\" list (System Console > Attribute Management > attribute details), shown while integrations own the attribute so the Users resource cannot be removed. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
   },
   "admin.global_attributes.attribute_details.applies_to.resource_type.channel": {
     "defaultMessage": "Channels",
@@ -6467,6 +6483,18 @@
     "defaultMessage": "Values must be unique.",
     "description": "Inline validation error shown while editing or adding an option value on the attribute detail page, when the typed value duplicates an existing option."
   },
+  "admin.global_attributes.attribute_details.owners_source.helper_text": {
+    "defaultMessage": "Values for users are set by {owners}. Unique name and type are locked; display name, options, and Profile display can still be changed here.",
+    "description": "Helper text under the \"Managed by\" note on the attribute details page in System Console > Attribute Management, for an attribute owned by integrations. Explains which fields are locked and which can still be edited. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\"). \"Profile display\" is the name of a setting on the same page."
+  },
+  "admin.global_attributes.attribute_details.owners_source.managed_by": {
+    "defaultMessage": "Managed by {owners}",
+    "description": "Note at the top of the attribute details page in System Console > Attribute Management, naming the integrations that own the attribute and set its user values. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
+  },
+  "admin.global_attributes.attribute_details.owners_source.settings_link": {
+    "defaultMessage": "{pluginName} settings",
+    "description": "Link next to the \"Managed by\" note on the attribute details page in System Console > Attribute Management that opens the owning plugin's settings page. {pluginName} is the plugin's display name."
+  },
   "admin.global_attributes.attribute_details.plugin_source.helper_text": {
     "defaultMessage": "Name, type, and values are owned by the plugin and are read-only here.",
     "description": "Helper text in the attribute details page in System Console > System Attributes > Manage Attributes for a plugin-owned attribute, explaining which fields are read-only."
@@ -6583,6 +6611,10 @@
     "defaultMessage": "Type: {value}. Locked because a hierarchical attribute cannot be converted to another type.",
     "description": "Screen-reader label for the disabled Type field on the attribute edit page in System Console > Attribute Management. {value} is the localized type name (for example 'Hierarchical'). Explains why a hierarchical attribute's type cannot be changed."
   },
+  "admin.global_attributes.attribute_details.type.field_locked_owned_aria_label": {
+    "defaultMessage": "Type: {value}. Locked because this attribute is managed by {owners}.",
+    "description": "Screen-reader label for the locked Type field on the attribute details page in System Console > Attribute Management, for an attribute owned by integrations. {value} is the current type. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
+  },
   "admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label": {
     "defaultMessage": "Type: {value}. Locked because this attribute is managed by a plugin.",
     "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes for an attribute a plugin manages. {value} is the current type."
@@ -6606,6 +6638,10 @@
   "admin.global_attributes.attribute_details.type.locked_graph_tooltip": {
     "defaultMessage": "Type cannot be changed — a hierarchical attribute cannot be converted to another type. Create a new attribute of the type you need instead.",
     "description": "Tooltip on the disabled Type field on the attribute edit page in System Console > Attribute Management, shown for hierarchical attributes. Explains why the type is locked and what the admin should do instead."
+  },
+  "admin.global_attributes.attribute_details.type.locked_owned_tooltip": {
+    "defaultMessage": "Type cannot be changed — this attribute is managed by {owners}.",
+    "description": "Tooltip on the locked Type field on the attribute details page in System Console > Attribute Management, for an attribute owned by integrations. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
   },
   "admin.global_attributes.attribute_details.type.locked_plugin_orphaned_tooltip": {
     "defaultMessage": "Type cannot be changed — this attribute was managed by a plugin that's no longer installed.",
@@ -6650,6 +6686,14 @@
   "admin.global_attributes.attribute_details.unique_name.locked_applies_to_tooltip": {
     "defaultMessage": "Name cannot be changed while this attribute applies to a resource. Remove and save first.",
     "description": "Tooltip on the locked name field in the attribute details page in System Console > System Attributes > Manage Attributes while the attribute applies to a resource."
+  },
+  "admin.global_attributes.attribute_details.unique_name.locked_owned_aria_label": {
+    "defaultMessage": "Edit unique name. Locked because this attribute is managed by {owners}.",
+    "description": "Screen-reader label for the locked unique name field on the attribute details page in System Console > Attribute Management, for an attribute owned by integrations. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
+  },
+  "admin.global_attributes.attribute_details.unique_name.locked_owned_tooltip": {
+    "defaultMessage": "Name cannot be changed — this attribute is managed by {owners}.",
+    "description": "Tooltip on the locked unique name field on the attribute details page in System Console > Attribute Management, for an attribute owned by integrations. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
   },
   "admin.global_attributes.attribute_details.unique_name.locked_plugin_aria_label": {
     "defaultMessage": "Edit unique name. Locked because this attribute is managed by a plugin.",
@@ -6747,6 +6791,10 @@
     "defaultMessage": "This attribute was created by the plugin \"{pluginId}\", which is no longer installed.",
     "description": "Extra paragraph in the delete-attribute confirmation dialog, shown only when the attribute came from a plugin that is no longer installed. {pluginId} is the raw plugin identifier string (not translated); it falls back to the literal \"unknown\"."
   },
+  "admin.global_attributes.confirm.delete.orphaned_owners_body": {
+    "defaultMessage": "This attribute was managed by {pluginIds}, which {count, plural, one {is} other {are}} no longer installed.",
+    "description": "Extra paragraph in the delete-attribute confirmation dialog, shown when every integration that owned the attribute has been uninstalled. {pluginIds} is a localized list of raw plugin identifiers (not translated); {count} is how many there are and selects singular or plural."
+  },
   "admin.global_attributes.confirm.delete.title": {
     "defaultMessage": "Delete {name} attribute",
     "description": "Title of the delete confirmation dialog in System Console > System Attributes > Manage Attributes. {name} is the attribute's display name. \"Delete\" is a verb (imperative)."
@@ -6763,9 +6811,29 @@
     "defaultMessage": "Remove {resources}?",
     "description": "Title of the confirmation dialog shown from the attribute details page in System Console > System Attributes > Manage Attributes before removing an attribute from resources. {resources} is a list of resource names."
   },
+  "admin.global_attributes.name_conflict.details_notice": {
+    "defaultMessage": "Another attribute already uses this name.",
+    "description": "Name-conflict notice shown on the attribute details page in System Console > System Attributes > Manage Attributes when another attribute already uses this name. Shown as a danger notice when the match is exact (Users would be blocked) and a warning notice otherwise."
+  },
+  "admin.global_attributes.name_conflict.linked_to_template": {
+    "defaultMessage": "A user attribute named \"{name}\" already exists and is linked to {owner}. Policies that use user.attributes.{name} read {owner}'s options, not this attribute's.",
+    "description": "Warning in System Console > System Attributes > Manage Attributes when another attribute already owns a user attribute of this name. {name} is that attribute's unique name and {owner} is the display name of the attribute it belongs to. 'user.attributes.' is literal policy syntax and must stay English."
+  },
+  "admin.global_attributes.name_conflict.standalone": {
+    "defaultMessage": "A standalone user attribute named \"{name}\" already exists. Policies that use user.attributes.{name} read that attribute, not this one.",
+    "description": "Warning in System Console > System Attributes > Manage Attributes when a user attribute of this name exists on its own rather than belonging to another attribute. {name} is its unique name. 'user.attributes.' is literal policy syntax and must stay English."
+  },
+  "admin.global_attributes.name_conflict.users_blocked_menu_label": {
+    "defaultMessage": "Name already in use",
+    "description": "Secondary label under the disabled Users option in the 'Add resource' menu on the attribute details page in System Console > System Attributes > Manage Attributes, saying why it cannot be chosen."
+  },
   "admin.global_attributes.new_attribute": {
     "defaultMessage": "New attribute",
     "description": "Label of the primary button at the top of System Console > System Attributes > Manage Attributes that opens the attribute creation page. \"New\" is an adjective; keep it identical to the creation page heading."
+  },
+  "admin.global_attributes.owners.scoped": {
+    "defaultMessage": "{owner}: {scopes}",
+    "description": "One entry in the list of integrations that own an attribute, used inside the \"Managed by\" text in System Console > Attribute Management. {owner} is the integration's display name; {scopes} is a comma-separated list of the scopes it owns (not translated)."
   },
   "admin.global_attributes.search.placeholder": {
     "defaultMessage": "Search attributes",
@@ -6790,6 +6858,10 @@
   "admin.global_attributes.table.actions.menu_label": {
     "defaultMessage": "Select an action",
     "description": "Accessible name of the per-row actions dropdown menu in the attributes table."
+  },
+  "admin.global_attributes.table.actions.owner_managed": {
+    "defaultMessage": "Managed by {owners}",
+    "description": "Secondary label next to the disabled Delete item in the attributes table row menu, explaining that integrations own the attribute so it cannot be deleted here. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
   },
   "admin.global_attributes.table.actions.plugin_managed": {
     "defaultMessage": "Plugin-managed",
@@ -6858,6 +6930,10 @@
   "admin.global_attributes.table.source.managed": {
     "defaultMessage": "Managed here",
     "description": "Value in the Source column of the attributes table meaning the attribute's values are maintained inside Mattermost rather than synced from an external directory. \"here\" refers to this admin console screen."
+  },
+  "admin.global_attributes.table.source.owned_by": {
+    "defaultMessage": "Managed by {owners}",
+    "description": "Value in the Source column of the attributes table in System Console > Attribute Management when integrations own the attribute and set its values. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
   },
   "admin.global_attributes.table.source.saml": {
     "defaultMessage": "SAML",
