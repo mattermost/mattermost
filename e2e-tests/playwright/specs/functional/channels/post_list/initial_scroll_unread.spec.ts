@@ -6,7 +6,7 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {Page} from '@playwright/test';
 
-import {expect, setupFileServer, test, testConfig} from '@mattermost/playwright-lib';
+import {expect, getSiteUrl, setupFileServer, test} from '@mattermost/playwright-lib';
 import type {ChannelsPage, PlaywrightClient4} from '@mattermost/playwright-lib';
 
 import {watchPostListScroll, type PostListScrollWatcher} from './scroll_helpers';
@@ -23,6 +23,9 @@ test.describe('Post list initial scroll in unread channel', () => {
     let channelsPage: ChannelsPage;
     let page: Page;
 
+    // The origin permalinks must use for the server to embed a preview (see getSiteUrl).
+    let siteUrl: string;
+
     let fileServerUrl: string;
     setupFileServer().then((serverUrl) => {
         fileServerUrl = serverUrl;
@@ -30,6 +33,7 @@ test.describe('Post list initial scroll in unread channel', () => {
 
     test.beforeEach(async ({pw}) => {
         ({adminClient, adminUser, team, user, userClient} = await pw.initSetup());
+        siteUrl = await getSiteUrl(adminClient);
 
         channel = await userClient.createChannel({
             team_id: team.id,
@@ -157,14 +161,14 @@ test.describe('Post list initial scroll in unread channel', () => {
                 for (let i = 0; i < 80; i++) {
                     await userClient.createTestPost({
                         channel_id: channel.id,
-                        message: `${testConfig.internalBaseURL}/${team.name}/pl/${linkedPost.id}`,
+                        message: `${siteUrl}/${team.name}/pl/${linkedPost.id}`,
                     });
                 }
 
                 for (let i = 0; i < 80; i++) {
                     await adminClient.createTestPost({
                         channel_id: channel.id,
-                        message: `${testConfig.internalBaseURL}/${team.name}/pl/${linkedPost.id}`,
+                        message: `${siteUrl}/${team.name}/pl/${linkedPost.id}`,
                     });
                 }
             },

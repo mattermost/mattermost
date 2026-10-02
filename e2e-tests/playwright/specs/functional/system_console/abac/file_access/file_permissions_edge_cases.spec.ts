@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, enableABAC, expectFilesRedacted, getRandomId, testConfig} from '@mattermost/playwright-lib';
+import {enableABAC, expect, expectFilesRedacted, getRandomId, getSiteUrl, test} from '@mattermost/playwright-lib';
 
 import {createPermissionPolicy, deletePermissionPolicyByName, navigateToPermissionPoliciesPage} from '../support';
 
@@ -105,11 +105,11 @@ test.describe('ABAC file permissions - redaction across surfaces', () => {
             const originalPosts = await adminClient.getPosts(channelId, 0, 1);
             const originalPostId = originalPosts.order[0];
 
-            // Use testConfig.internalBaseURL rather than the admin client's host-mapped route:
-            // the server must recognize this URL as its own SiteURL to embed it through an
-            // internal permalink lookup, instead of fetching it back over HTTP as a link
-            // (which fails under testcontainers).
-            const permalinkUrl = `${testConfig.internalBaseURL}/${team.name}/pl/${originalPostId}`;
+            // Use the server's own SiteURL rather than the admin client's host-mapped route:
+            // the server must recognize this URL as its own to embed it through an internal
+            // permalink lookup, instead of fetching it back over HTTP as a link (which fails
+            // under testcontainers). See getSiteUrl for why it isn't always internalBaseURL.
+            const permalinkUrl = `${await getSiteUrl(adminClient)}/${team.name}/pl/${originalPostId}`;
             await adminChannelsPage.centerView.postCreate.postMessage(permalinkUrl);
             await adminChannelsPage.centerView.waitUntilLastPostContains(permalinkUrl);
 

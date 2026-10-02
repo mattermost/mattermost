@@ -7,7 +7,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {Page} from '@playwright/test';
 import type {Post} from '@mattermost/types/posts';
 
-import {expect, setupFileServer, test, testConfig} from '@mattermost/playwright-lib';
+import {expect, getSiteUrl, setupFileServer, test, testConfig} from '@mattermost/playwright-lib';
 import type {ChannelsPage, PlaywrightClient4} from '@mattermost/playwright-lib';
 
 import {watchPostListScroll, type PostListScrollWatcher} from './scroll_helpers';
@@ -24,6 +24,9 @@ test.describe('Post list scroll to permalink', () => {
     let channelsPage: ChannelsPage;
     let page: Page;
 
+    // The origin permalinks must use for the server to embed a preview (see getSiteUrl).
+    let siteUrl: string;
+
     let fileServerUrl: string;
     setupFileServer().then((serverUrl) => {
         fileServerUrl = serverUrl;
@@ -31,6 +34,7 @@ test.describe('Post list scroll to permalink', () => {
 
     test.beforeEach(async ({pw}) => {
         ({adminClient, adminUser, team, user, userClient} = await pw.initSetup());
+        siteUrl = await getSiteUrl(adminClient);
 
         channel = await userClient.createChannel({
             team_id: team.id,
@@ -164,7 +168,7 @@ test.describe('Post list scroll to permalink', () => {
                 for (let i = 0; i < 60; i++) {
                     await userClient.createTestPost({
                         channel_id: channel.id,
-                        message: `${testConfig.internalBaseURL}/${team.name}/pl/${firstPost.id}`,
+                        message: `${siteUrl}/${team.name}/pl/${firstPost.id}`,
                     });
                 }
             },
@@ -176,7 +180,7 @@ test.describe('Post list scroll to permalink', () => {
                 for (let i = 60; i < 120; i++) {
                     await userClient.createTestPost({
                         channel_id: channel.id,
-                        message: `${testConfig.internalBaseURL}/${team.name}/pl/${firstPost.id}`,
+                        message: `${siteUrl}/${team.name}/pl/${firstPost.id}`,
                     });
                 }
             },

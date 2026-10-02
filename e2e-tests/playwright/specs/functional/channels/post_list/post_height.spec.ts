@@ -8,7 +8,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {Disposable, Locator, Page} from '@playwright/test';
 import type {Post} from '@mattermost/types/posts';
 
-import {expect, setupFileServer, test, testConfig, watchElementSize} from '@mattermost/playwright-lib';
+import {expect, getSiteUrl, setupFileServer, test, watchElementSize} from '@mattermost/playwright-lib';
 import type {ChannelsPage, ChannelsPost, PlaywrightClient4} from '@mattermost/playwright-lib';
 
 test.describe('Post height', () => {
@@ -25,11 +25,15 @@ test.describe('Post height', () => {
         fileServerUrl = serverUrl;
     });
 
+    // The origin permalinks must use for the server to embed a preview (see getSiteUrl).
+    let siteUrl: string;
+
     test.beforeEach(async ({pw}) => {
         let adminClient: Client4;
 
         // # Initialize a user with an empty channel of its own
         ({userClient, user, team, adminClient} = await pw.initSetup());
+        siteUrl = await getSiteUrl(adminClient);
         channel = await userClient.createChannel({
             team_id: team.id,
             name: `post-list-${pw.random.id()}`,
@@ -449,7 +453,7 @@ test.describe('Post height', () => {
 
                 const post = await testCase.makePost({
                     fileServerUrl,
-                    siteUrl: testConfig.internalBaseURL,
+                    siteUrl,
                 });
 
                 const {sizeWatcher, postComponent} = await openChannelAndGetPost(post.id);
