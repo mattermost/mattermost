@@ -24,19 +24,6 @@ const DISPLAY_BANNER_BOTTOM = 'display_banner_bottom';
 export const CLASSIFICATION_MARKINGS_ADMIN_PATH = '/admin_console/site_config/classification_markings';
 
 /**
- * Toggle via System Console config API. On servers without SplitKey, feature flags are
- * read-only from config (see server/config/store.go); effective values come from env
- * (e.g. MM_FEATUREFLAGS_CLASSIFICATIONMARKINGS). E2E docker sets that env in server.generate.sh.
- */
-export async function setClassificationMarkingsFeatureFlag(adminClient: Client4, enabled: boolean) {
-    await adminClient.patchConfig({
-        FeatureFlags: {
-            ClassificationMarkings: enabled,
-        },
-    } as any);
-}
-
-/**
  * Removes the classification property field and its linked system field if present
  * (clean slate for E2E). Linked field is deleted first to avoid deletion-protection errors.
  */

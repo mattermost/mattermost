@@ -11,12 +11,7 @@
 import {expect, test, getAdminClient, licenseTier} from '@mattermost/playwright-lib';
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
-import {
-    TEST_LEVELS,
-    setClassificationMarkingsFeatureFlag,
-    setupClassificationWithChannelField,
-    deleteClassificationFieldsIfExist,
-} from './helpers';
+import {TEST_LEVELS, setupClassificationWithChannelField, deleteClassificationFieldsIfExist} from './helpers';
 import type {ClassificationLevel} from './helpers';
 
 let classificationLevels: ClassificationLevel[] = [];
@@ -32,19 +27,6 @@ async function initSetupTracked(pw: PlaywrightExtended) {
     return setup;
 }
 
-test.beforeAll(async () => {
-    const {adminClient} = await getAdminClient();
-    const license = await adminClient.getClientLicenseOld();
-    if (licenseTier(license.SkuShortName) < 20) {
-        return;
-    }
-
-    await setClassificationMarkingsFeatureFlag(adminClient, true);
-    const setup = await setupClassificationWithChannelField(adminClient);
-    classificationLevels = setup.levels;
-    setupComplete = true;
-});
-
 test.afterAll(async () => {
     if (!setupComplete) {
         return;
@@ -57,17 +39,18 @@ test.afterAll(async () => {
     }
 });
 
-test.beforeEach(async () => {
+test.beforeEach(async ({pw}) => {
     const {adminClient} = await getAdminClient();
     const license = await adminClient.getClientLicenseOld();
     test.skip(licenseTier(license.SkuShortName) < 20, 'Channel classification requires Enterprise-tier license');
-    test.skip(!setupComplete, 'Classification levels were not set up');
 
-    const config = await adminClient.getConfig();
-    test.skip(
-        config.FeatureFlags.ClassificationMarkings !== true,
-        'ClassificationMarkings feature flag could not be enabled',
-    );
+    await pw.ensureFeatureFlag('ClassificationMarkings', true);
+
+    if (!setupComplete) {
+        const setup = await setupClassificationWithChannelField(adminClient);
+        classificationLevels = setup.levels;
+        setupComplete = true;
+    }
 });
 
 test.afterEach(async () => {

@@ -14,7 +14,6 @@ import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
 
 import {
     deleteClassificationFieldsIfExist,
-    setClassificationMarkingsFeatureFlag,
     setupClassificationWithChannelField,
 } from '../../channels/channel_classification/helpers';
 
@@ -28,13 +27,8 @@ test.describe(
         // Shares the server-wide ClassificationMarkings flag with its sibling specs.
         test.describe.configure({mode: 'serial'});
 
-        let originalClassificationMarkings: boolean | undefined;
-
-        test.beforeAll(async () => {
-            const {adminClient} = await getAdminClient();
-            const {FeatureFlags} = await adminClient.getConfig();
-            originalClassificationMarkings = FeatureFlags.ClassificationMarkings === true;
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
+        test.beforeEach(async ({pw}) => {
+            await pw.ensureFeatureFlag('ClassificationMarkings', true);
         });
 
         test.afterAll(async () => {
@@ -43,9 +37,6 @@ test.describe(
                 return;
             }
             await deleteClassificationFieldsIfExist(adminClient);
-            if (originalClassificationMarkings !== undefined) {
-                await setClassificationMarkingsFeatureFlag(adminClient, originalClassificationMarkings);
-            }
         });
 
         /**
