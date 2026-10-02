@@ -203,6 +203,49 @@ describe('components/post_view/PostAttachment', () => {
         expect(PostMarkdown.mock.calls.length).toEqual(callCountAfterFirst);
     });
 
+    describe('plugin post type components', () => {
+        const pluginPost = {...post, type: 'custom_plugin_type' as PostType};
+        const renderPluginPost = (props: Partial<React.ComponentProps<typeof PostMessageView>>) => {
+            const PluginComponent = jest.fn<React.JSX.Element, [Record<string, unknown>]>(() => <div data-testid='plugin-post-type'/>);
+            renderWithContext(
+                <PostMessageView
+                    {...baseProps}
+                    post={pluginPost}
+                    pluginPostTypes={{
+                        custom_plugin_type: {
+                            id: 'component_id',
+                            pluginId: 'plugin_id',
+                            type: 'custom_plugin_type',
+                            component: PluginComponent,
+                        },
+                    }}
+                    {...props}
+                />,
+            );
+            expect(screen.getByTestId('plugin-post-type')).toBeInTheDocument();
+            return PluginComponent;
+        };
+
+        test('passes search options to plugin post type components', () => {
+            const options = {searchTerm: 'roadmap', searchMatches: ['roadmap'], mentionHighlight: true};
+            const PluginComponent = renderPluginPost({options, isRHS: true, compactDisplay: true});
+
+            expect(PluginComponent.mock.calls[0][0]).toEqual({
+                post: pluginPost,
+                compactDisplay: true,
+                isRHS: true,
+                theme: baseProps.theme,
+                options,
+            });
+        });
+
+        test('passes default empty options outside search', () => {
+            const PluginComponent = renderPluginPost({options: undefined});
+
+            expect(PluginComponent.mock.calls[0][0]).toHaveProperty('options', {});
+        });
+    });
+
     testPluginComponentErrorHandling((pluginComponent) => {
         renderWithContext(
             <PostMessageView

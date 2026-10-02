@@ -361,6 +361,12 @@ func (th *SearchTestHelper) createPost(userID, channelID, message, hashtags, pos
 	return th.Store.Post().Save(th.Context, postModel)
 }
 
+func (th *SearchTestHelper) createPostWithProps(userID, channelID, message, postType string, props model.StringInterface) (*model.Post, error) {
+	postModel := th.createPostModel(userID, channelID, message, "", postType, 1000000, false)
+	postModel.SetProps(props)
+	return th.Store.Post().Save(th.Context, postModel)
+}
+
 func (th *SearchTestHelper) createFileInfoModel(creatorID, postID, channelID, name, content, extension, mimeType string, createAt, size int64) *model.FileInfo {
 	return &model.FileInfo{
 		CreatorId: creatorID,

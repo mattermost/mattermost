@@ -412,6 +412,8 @@ export default class PluginRegistry {
      * Custom post types must be prefixed with 'custom_'.
      * Custom post types can also apply for ephemeral posts.
      * Accepts a string type and a component.
+     * The component receives the props post, compactDisplay, isRHS, theme, and options, the text formatting
+     * options of the surrounding view (in search results, searchTerm and searchMatches for highlighting).
      * Returns a unique identifier.
      */
     registerPostTypeComponent = reArg(['type', 'component'], ({type, component}) => {

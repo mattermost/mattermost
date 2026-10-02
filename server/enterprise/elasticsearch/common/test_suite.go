@@ -175,6 +175,73 @@ func (c *CommonTestSuite) TestSearchPosts() {
 	c.Len(matches, 0)
 }
 
+func (c *CommonTestSuite) TestSearchBoardsCardPosts() {
+	channels := model.ChannelList{c.TH.BasicChannel}
+	search := func(terms, excludedTerms string) ([]string, model.PostSearchMatches) {
+		ids, matches, err := c.ESImpl.SearchPosts(channels, []*model.SearchParams{{Terms: terms, ExcludedTerms: excludedTerms}}, 0, 20)
+		c.Require().Nil(err)
+		return ids, matches
+	}
+	index := func(post *model.Post) {
+		c.Require().Nil(c.ESImpl.IndexPost(post, c.TH.BasicTeam.Id, string(c.TH.BasicChannel.Type)))
+		c.Require().NoError(c.RefreshIndexFn())
+	}
+
+	titleWord := model.NewId()
+	descriptionWord := model.NewId()
+	card := createPost(c.TH.BasicUser.Id, c.TH.BasicChannel.Id, "owner "+descriptionWord)
+	card.Type = model.PostTypeBoardsCard
+	card.AddProp(model.PostPropsBoardsCardTitle, "Quarterly "+titleWord)
+	index(card)
+
+	c.Run("Should return a card by its title", func() {
+		ids, matches := search(titleWord, "")
+		c.Equal([]string{card.Id}, ids)
+		CheckMatchesEqual(c.T(), map[string][]string{card.Id: {titleWord}}, matches)
+	})
+
+	c.Run("Should return a card by its description", func() {
+		ids, matches := search(descriptionWord, "")
+		c.Equal([]string{card.Id}, ids)
+		CheckMatchesEqual(c.T(), map[string][]string{card.Id: {descriptionWord}}, matches)
+	})
+
+	c.Run("Should apply excluded terms to the description of a card found by its title", func() {
+		ids, _ := search(titleWord, descriptionWord)
+		c.Empty(ids)
+	})
+
+	c.Run("Should not return other custom or system post types", func() {
+		for _, postType := range []string{model.PostCustomTypePrefix + "zoom", model.PostTypeHeaderChange} {
+			word := model.NewId()
+			post := createPost(c.TH.BasicUser.Id, c.TH.BasicChannel.Id, word)
+			post.Type = postType
+			post.AddProp(model.PostPropsBoardsCardTitle, word)
+			index(post)
+
+			found, _, err := c.GetDocumentFn(BuildPostIndexName(*c.TH.App.Config().ElasticsearchSettings.AggregatePostsAfterDays,
+				IndexBasePosts, IndexBasePosts_MONTH, time.Now(), post.CreateAt), post.Id)
+			c.NoError(err)
+			c.True(found, "type %q", postType)
+
+			ids, _ := search(word, "")
+			c.Empty(ids, "type %q", postType)
+		}
+	})
+
+	c.Run("Should match only the new title after re-indexing", func() {
+		newTitleWord := model.NewId()
+		card.AddProp(model.PostPropsBoardsCardTitle, "Annual "+newTitleWord)
+		index(card)
+
+		ids, _ := search(titleWord, "")
+		c.Empty(ids)
+
+		ids, _ = search(newTitleWord, "")
+		c.Equal([]string{card.Id}, ids)
+	})
+}
+
 func (c *CommonTestSuite) TestDeletePost() {
 	c.Require().NotNil(c.TH)
 

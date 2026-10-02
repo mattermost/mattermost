@@ -708,20 +708,7 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 		}
 	}
 
-	filters = append(filters,
-		channelFilter,
-		types.Query{
-			Bool: &types.BoolQuery{
-				Should: []types.Query{
-					{
-						Term: map[string]types.TermQuery{"type": {Value: "default"}},
-					}, {
-						Term: map[string]types.TermQuery{"type": {Value: "slack_attachment"}},
-					},
-				},
-			},
-		},
-	)
+	filters = append(filters, channelFilter, common.SearchPostTypesQuery())
 
 	// highlighting base fields should be enough even if CJK analyzers are enabled
 	highlight := &types.Highlight{

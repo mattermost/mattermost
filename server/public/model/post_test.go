@@ -1396,6 +1396,83 @@ func TestPost_AllStrings(t *testing.T) {
 		p := &Post{Message: "x", Props: nil}
 		assert.Equal(t, []string{"x"}, p.AllStrings(AllStringsOptions{}))
 	})
+
+	t.Run("searchableProps", func(t *testing.T) {
+		card := func(message string, title any) *Post {
+			return &Post{
+				Type:    PostTypeBoardsCard,
+				Message: message,
+				Props: StringInterface{
+					PostPropsBoardsCardTitle: title,
+					PostPropsAttachments: []*MessageAttachment{
+						{Text: "attachment text"},
+					},
+				},
+			}
+		}
+
+		t.Run("included right after the message with the flag", func(t *testing.T) {
+			got := card("desc", "Launch").AllStrings(AllStringsOptions{IncludeSearchableProps: true})
+			assert.Equal(t, []string{"desc", "Launch", "attachment text"}, got)
+		})
+
+		t.Run("omitted without the flag", func(t *testing.T) {
+			got := card("desc", "Launch").AllStrings(AllStringsOptions{})
+			assert.Equal(t, []string{"desc", "attachment text"}, got)
+		})
+
+		t.Run("included when the message is blank", func(t *testing.T) {
+			got := card("  ", "Launch").AllStrings(AllStringsOptions{IncludeSearchableProps: true})
+			assert.Equal(t, []string{"Launch", "attachment text"}, got)
+		})
+
+		t.Run("whitespace-only value ignored", func(t *testing.T) {
+			got := card("desc", " \n ").AllStrings(AllStringsOptions{IncludeSearchableProps: true})
+			assert.Equal(t, []string{"desc", "attachment text"}, got)
+		})
+
+		t.Run("non-string values ignored", func(t *testing.T) {
+			for _, title := range []any{123, []any{"Launch"}, map[string]any{"title": "Launch"}, nil} {
+				got := card("desc", title).AllStrings(AllStringsOptions{IncludeSearchableProps: true})
+				assert.Equal(t, []string{"desc", "attachment text"}, got, "title %#v", title)
+			}
+		})
+
+		t.Run("other post types ignored", func(t *testing.T) {
+			for _, postType := range []string{PostTypeDefault, PostTypeCard, PostCustomTypePrefix + "zoom"} {
+				p := card("desc", "Launch")
+				p.Type = postType
+				got := p.AllStrings(AllStringsOptions{IncludeSearchableProps: true})
+				assert.Equal(t, []string{"desc", "attachment text"}, got, "type %q", postType)
+			}
+		})
+	})
+}
+
+func TestSearchablePropsForPostType(t *testing.T) {
+	t.Run("Boards card title", func(t *testing.T) {
+		assert.Equal(t, []string{PostPropsBoardsCardTitle}, SearchablePropsForPostType(PostTypeBoardsCard))
+	})
+
+	t.Run("unregistered types have none", func(t *testing.T) {
+		for _, postType := range []string{PostTypeDefault, PostTypeCard, PostTypeBurnOnRead, PostTypeHeaderChange, PostCustomTypePrefix + "zoom"} {
+			assert.Empty(t, SearchablePropsForPostType(postType), "type %q", postType)
+		}
+	})
+
+	t.Run("returns a copy", func(t *testing.T) {
+		props := SearchablePropsForPostType(PostTypeBoardsCard)
+		props[0] = "mutated"
+		assert.Equal(t, []string{PostPropsBoardsCardTitle}, SearchablePropsForPostType(PostTypeBoardsCard))
+	})
+}
+
+func TestSearchableCustomPostTypes(t *testing.T) {
+	got := SearchableCustomPostTypes()
+	assert.Equal(t, []string{"custom_board_card"}, got)
+	for _, postType := range got {
+		assert.True(t, strings.HasPrefix(postType, PostCustomTypePrefix), "type %q", postType)
+	}
 }
 
 func TestPost_PropsIsValid(t *testing.T) {

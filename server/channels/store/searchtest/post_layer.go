@@ -211,6 +211,27 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{EngineAll},
 	},
 	{
+		Name: "Should return Boards card posts by title",
+		Fn:   testSearchShouldReturnBoardsCardPostsByTitle,
+		Tags: []string{EngineElasticSearch},
+	},
+	{
+		Name: "Should return Boards card posts by description",
+		Fn:   testSearchShouldReturnBoardsCardPostsByDescription,
+		Tags: []string{EngineAll},
+	},
+	{
+		// Database search returns every custom post type; Elasticsearch and OpenSearch only the allow-listed ones.
+		Name: "Should not return custom post types other than Boards cards with Elasticsearch",
+		Fn:   testSearchShouldExcludeOtherCustomPostTypes,
+		Tags: []string{EngineElasticSearch},
+	},
+	{
+		Name: "Should find a Boards card by its new title after a props-only update",
+		Fn:   testSearchBoardsCardAfterTitleUpdate,
+		Tags: []string{EngineElasticSearch},
+	},
+	{
 		Name: "Should be able to search matching by mentions",
 		Fn:   testSearchShouldBeAbleToMatchByMentions,
 		Tags: []string{EngineAll},
@@ -1849,6 +1870,79 @@ func testSearchShouldExcludeCardPosts(t *testing.T, th *SearchTestHelper) {
 
 	require.Len(t, results.Posts, 1)
 	th.checkPostInSearchResults(t, p2.Id, results.Posts)
+}
+
+func testSearchShouldReturnBoardsCardPostsByTitle(t *testing.T, th *SearchTestHelper) {
+	card, err := th.createPostWithProps(th.User.Id, th.ChannelBasic.Id, "assigned to the ops team", model.PostTypeBoardsCard,
+		model.StringInterface{model.PostPropsBoardsCardTitle: "Quarterly roadmap"})
+	require.NoError(t, err)
+	_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "unrelated message", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	params := &model.SearchParams{Terms: "roadmap"}
+	results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
+
+	require.Len(t, results.Posts, 1)
+	th.checkPostInSearchResults(t, card.Id, results.Posts)
+	require.ElementsMatch(t, []string{"roadmap"}, results.Matches[card.Id])
+}
+
+func testSearchShouldReturnBoardsCardPostsByDescription(t *testing.T, th *SearchTestHelper) {
+	card, err := th.createPostWithProps(th.User.Id, th.ChannelBasic.Id, "assigned to the ops team", model.PostTypeBoardsCard,
+		model.StringInterface{model.PostPropsBoardsCardTitle: "Quarterly roadmap"})
+	require.NoError(t, err)
+	_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "unrelated message", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	params := &model.SearchParams{Terms: "assigned"}
+	results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
+
+	require.Len(t, results.Posts, 1)
+	th.checkPostInSearchResults(t, card.Id, results.Posts)
+}
+
+func testSearchShouldExcludeOtherCustomPostTypes(t *testing.T, th *SearchTestHelper) {
+	_, err := th.createPostWithProps(th.User.Id, th.ChannelBasic.Id, "meeting started unique", model.PostCustomTypePrefix+"zoom",
+		model.StringInterface{model.PostPropsBoardsCardTitle: "meeting title unique"})
+	require.NoError(t, err)
+	card, err := th.createPostWithProps(th.User.Id, th.ChannelBasic.Id, "card description unique", model.PostTypeBoardsCard,
+		model.StringInterface{model.PostPropsBoardsCardTitle: "card title"})
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	params := &model.SearchParams{Terms: "unique"}
+	results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
+
+	require.Len(t, results.Posts, 1)
+	th.checkPostInSearchResults(t, card.Id, results.Posts)
+}
+
+func testSearchBoardsCardAfterTitleUpdate(t *testing.T, th *SearchTestHelper) {
+	card, err := th.createPostWithProps(th.User.Id, th.ChannelBasic.Id, "assigned to the ops team", model.PostTypeBoardsCard,
+		model.StringInterface{model.PostPropsBoardsCardTitle: "Quarterly roadmap"})
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	updated := card.Clone()
+	updated.AddProp(model.PostPropsBoardsCardTitle, "Annual budget")
+	updated, err = th.Store.Post().Update(th.Context, updated, card)
+	require.NoError(t, err)
+
+	params := &model.SearchParams{Terms: "roadmap"}
+	results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
+	require.Empty(t, results.Posts)
+
+	params = &model.SearchParams{Terms: "budget"}
+	results, err = th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
+	require.Len(t, results.Posts, 1)
+	th.checkPostInSearchResults(t, updated.Id, results.Posts)
 }
 
 func testSearchShouldBeAbleToMatchByMentions(t *testing.T, th *SearchTestHelper) {

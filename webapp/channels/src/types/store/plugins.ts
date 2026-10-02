@@ -22,6 +22,8 @@ import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import type {NewPostMessageProps} from 'actions/new_post';
 
+import type {TextFormattingOptions} from 'utils/text_formatting';
+
 import type {ChannelSettingsSchema, ChannelSettingsTabBodyProps, ChannelSettingsTabShouldRender} from 'types/plugins/channel_settings';
 import type {PluginConfiguration} from 'types/plugins/user_settings';
 import type {GlobalState} from 'types/store';
@@ -619,6 +621,9 @@ export type PostPluginComponent = {
         compactDisplay?: boolean;
         isRHS?: boolean;
         theme?: Theme;
+
+        /** Text formatting options of the surrounding view; in search results, searchTerm and searchMatches. */
+        options?: TextFormattingOptions;
     }>;
 };
 
