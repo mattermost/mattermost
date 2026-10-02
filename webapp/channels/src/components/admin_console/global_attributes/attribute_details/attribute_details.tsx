@@ -26,6 +26,7 @@ import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
 import {pageAllAccessControlFieldOptions} from 'components/property_fields/graph/page_all_access_control_field_options';
 import SaveButton from 'components/save_button';
+import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import Input from 'components/widgets/inputs/input/input';
 
@@ -50,6 +51,7 @@ import type {ChannelResourceConfig} from '../applies_to/channels';
 import {ATTRIBUTE_TYPE_DESCRIPTOR, getAttributeTypeDescriptor, toServerFieldType} from '../attribute_type';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from '../constants';
 import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField} from '../global_attributes_table';
+import {findNameConflict, messages as nameConflictMessages, type NameConflict} from '../name_conflict';
 import useAllowedResourceTypes from '../use_allowed_resource_types';
 import type {AttributeFieldType, AttributeTypeId, UpdateAttributeFieldPatch} from '../utils';
 import {
@@ -62,6 +64,7 @@ import {
     formatAttributeHeadingName,
     isAttributeFieldType,
     linkedFieldsByResourceType,
+    listPropertyFields,
     patchLinkedAttributeField,
     updateAttributeField,
 } from '../utils';
@@ -292,6 +295,20 @@ function firstMatchingReason<T extends string>(...pairs: Array<[T, boolean]>): T
         }
     }
     return null;
+}
+
+// The conflict catalogs are fetched once and held in a ref; only a change in
+// the derived warning is committed to state. Putting the lists in state would
+// re-render the whole form (open graph menus included) when the fetch lands,
+// even if the typed name collides with nothing.
+function sameNameConflict(a: NameConflict | undefined, b: NameConflict | undefined): boolean {
+    if (a === b) {
+        return true;
+    }
+    if (!a || !b) {
+        return false;
+    }
+    return a.field.id === b.field.id && a.exact === b.exact && a.ownerTemplate?.id === b.ownerTemplate?.id;
 }
 
 type Props = {
@@ -592,6 +609,61 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // handleDoneClick's dep array -- the error object is rebuilt on every
     // render while invalid, which would churn the callback identity needlessly.
     const hasNameError = Boolean(nameValidationError);
+
+    // Live user fields (what a CEL rule can collide with) and templates (to name
+    // the owner of a colliding linked field). Loaded independently of the field
+    // being edited, because the create form needs them too. A failure here only
+    // costs the warning: the save path still reports the server's own 409.
+    const conflictCatalogRef = useRef<{userFields: PropertyField[]; templates: PropertyField[]}>({
+        userFields: [],
+        templates: [],
+    });
+    const currentNameRef = useRef(currentName);
+    currentNameRef.current = currentName;
+    const fieldIdRef = useRef(fieldId);
+    fieldIdRef.current = fieldId;
+    const [nameConflict, setNameConflict] = useState<NameConflict | undefined>();
+
+    useEffect(() => {
+        let cancelled = false;
+
+        (async () => {
+            try {
+                const [userFields, templates] = await Promise.all([
+                    listPropertyFields('user'),
+                    listPropertyFields(GLOBAL_ATTRIBUTES_OBJECT_TYPE),
+                ]);
+                if (cancelled) {
+                    return;
+                }
+                conflictCatalogRef.current = {userFields, templates};
+                const name = currentNameRef.current;
+                setNameConflict((prev) => {
+                    const next = name ? findNameConflict(name, userFields, templates, fieldIdRef.current) : undefined;
+                    return sameNameConflict(prev, next) ? prev : next;
+                });
+            } catch (error) {
+                console.error('AttributeDetails-load-name-conflicts: ', error); // eslint-disable-line no-console
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    useEffect(() => {
+        const {userFields, templates} = conflictCatalogRef.current;
+        setNameConflict((prev) => {
+            const next = currentName ? findNameConflict(currentName, userFields, templates, fieldId) : undefined;
+            return sameNameConflict(prev, next) ? prev : next;
+        });
+    }, [currentName, fieldId]);
+
+    // Only an exact match would collide on the server, which compares names
+    // case-sensitively. Applying to Users under that name creates a second user
+    // field with it, which the server rejects with a 409.
+    const usersBlockedByNameConflict = Boolean(nameConflict?.exact);
 
     // Display name was typed but auto-derivation produced nothing usable (e.g.
     // a non-Latin-script or symbol-only Display name normalizes to slugifyForCEL's
@@ -903,7 +975,13 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             !hasBlankTrimmedOptionName(options) &&
             !hasCaseInsensitiveDuplicateNames(options);
     }, [isHierarchical, options]);
-    const canSave = !effectiveDisabled && Boolean(displayName.trim()) && Boolean(currentName) && !nameValidationError && !saving && optionsIssue === null && graphOptionsValid && (!isEditMode || isDirty);
+
+    // Applying to Users under a name a user field already holds is the one
+    // combination the server refuses. Saving it would create the template, fail
+    // on the linked field, and roll the template back again, so Save waits for
+    // Users to be dropped or the name changed. Every other resource still saves.
+    const usersSaveBlocked = usersBlockedByNameConflict && appliesTo.includes('user');
+    const canSave = !effectiveDisabled && Boolean(displayName.trim()) && Boolean(currentName) && !nameValidationError && !usersSaveBlocked && !saving && optionsIssue === null && graphOptionsValid && (!isEditMode || isDirty);
 
     const confirmRemoveAppliesTo = useConfirmRemoveAppliesTo();
 
@@ -1616,6 +1694,21 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                 <FormattedMessage {...messages.couldNotGenerateName}/>
                                             </div>
                                         )}
+                                        {nameConflict && (
+                                            <div
+                                                className='AttributeDetails__nameConflict'
+
+                                                // Polite, not an alert: this updates on every
+                                                // keystroke while the admin is still typing a name.
+                                                role='status'
+                                                data-testid='attributeNameConflictWarning'
+                                            >
+                                                <SectionNotice
+                                                    type={usersBlockedByNameConflict ? 'danger' : 'warning'}
+                                                    title={formatMessage(nameConflictMessages.detailsNotice)}
+                                                />
+                                            </div>
+                                        )}
                                         <p className='AttributeDetails__helperText'>
                                             <FormattedMessage {...messages.helperText}/>
                                         </p>
@@ -1680,6 +1773,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         allowedTypes={allowedResourceTypes}
                         disabled={saving || effectiveDisabled || isNonTemplate}
                         hideAddResource={isPluginOwned || isNonTemplate}
+                        blockedTypes={usersBlockedByNameConflict ? {user: formatMessage(nameConflictMessages.usersBlockedMenuLabel)} : undefined}
                         lockedTooltip={appliesToLockedTooltip}
                         onAdd={handleAdd}
                         onRemove={handleRemove}
