@@ -982,6 +982,7 @@ describe('AttributeDetails', () => {
 
             expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Select');
             expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
+            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveAccessibleName('Type: Select. Locked while linked to an external source.');
             expect(screen.getByTestId('attributeExternalSourceSynced')).toHaveTextContent(/^Synced with/);
             expect(screen.getByTestId('attributeOptionsSyncedHelp')).toHaveTextContent('Options are managed by the AD/LDAP sync.');
             expect(screen.queryByTestId('attributeOptionsValues__addInput')).not.toBeInTheDocument();
@@ -989,6 +990,22 @@ describe('AttributeDetails', () => {
             // The sync provisions the options, so an empty list does not block Save.
             expect(screen.queryByTestId('attributeOptionsRequiredError')).not.toBeInTheDocument();
             expect(mockSetNavigationBlocked).toHaveBeenCalledWith(true);
+        });
+
+        it('holds Save on a synced Select until it applies to Users, whose sync provides its options', async () => {
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Department');
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
+            await linkViaMenu(/AD\/LDAP/, 'department');
+
+            expect(screen.getByTestId('attributeOptionsNeedUsersError')).toHaveTextContent('Add Users under Applies to. The AD/LDAP sync creates these options from the values it syncs to users.');
+            expect(screen.getByTestId('saveSetting')).toBeDisabled();
+
+            await addResourceAndExpand('Users', 'user');
+
+            expect(screen.queryByTestId('attributeOptionsNeedUsersError')).not.toBeInTheDocument();
+            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
         });
 
         it('keeps Multiselect when a source is linked, naming SAML as the owner of its options', async () => {
@@ -2277,7 +2294,7 @@ describe('AttributeDetails', () => {
             mockLoadedField(makeTemplate({
                 type: 'multiselect',
                 attrs: {display_name: 'Department', ldap: 'memberOf', options: [{id: 'opt-1', name: 'Engineering'}, {id: 'opt-2', name: 'Sales'}]},
-            }));
+            }), [makeLinked('user', 'user-field', {type: 'multiselect', attrs: {display_name: 'Department', ldap: 'memberOf'}})]);
             const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeTemplate());
             renderEdit();
             await waitForForm();
@@ -2302,7 +2319,7 @@ describe('AttributeDetails', () => {
             mockLoadedField(makeTemplate({
                 type: 'select',
                 attrs: {display_name: 'Department', options: [{id: 'opt-1', name: 'Engineering'}]},
-            }));
+            }), [makeLinked('user', 'user-field', {type: 'select'})]);
             const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeTemplate());
             renderEdit();
             await waitForForm();
@@ -2319,6 +2336,30 @@ describe('AttributeDetails', () => {
                 type: 'select',
                 attrs: expect.objectContaining({ldap: 'department', options: [{id: 'opt-1', name: 'Engineering'}]}),
             }));
+        });
+
+        it('holds Save once Users is removed from a synced Select, until the link is removed too', async () => {
+            mockLoadedField(makeTemplate({
+                type: 'select',
+                attrs: {display_name: 'Department', ldap: 'department', options: [{id: 'opt-1', name: 'Engineering'}]},
+            }), [
+                makeLinked('user', 'user-field', {type: 'select', attrs: {display_name: 'Department', ldap: 'department'}}),
+                makeLinked('channel', 'channel-field', {type: 'select'}),
+            ]);
+            renderEdit();
+            await waitForForm();
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
+
+            expect(screen.getByTestId('attributeOptionsNeedUsersError')).toBeInTheDocument();
+            expect(screen.getByTestId('saveSetting')).toBeDisabled();
+
+            await userEvent.click(screen.getByTestId('attributeExternalSourceChip-ldap-remove'));
+
+            expect(screen.queryByTestId('attributeOptionsNeedUsersError')).not.toBeInTheDocument();
+            expect(screen.getByTestId('attributeOptionsValues__addInput')).toBeInTheDocument();
+            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
         });
 
         it('locks Name editing while the attribute is currently applied to a resource', async () => {

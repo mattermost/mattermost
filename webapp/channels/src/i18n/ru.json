@@ -4642,7 +4642,6 @@
   "channel_attributes.description": "Настройте атрибуты и значения для этого канала.",
   "channel_attributes.enter_value": "Введите значение",
   "channel_attributes.info.add": "Добавить атрибут",
-  "channel_attributes.info.clear": "Очистить {label}",
   "channel_attributes.info.edit": "Изменить {label}",
   "channel_attributes.info.heading": "Атрибуты канала",
   "channel_attributes.info.locked": "Этот атрибут нельзя изменить после установки",

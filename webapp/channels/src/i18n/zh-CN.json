@@ -4642,7 +4642,6 @@
   "channel_attributes.description": "为此频道配置属性和值。",
   "channel_attributes.enter_value": "输入值",
   "channel_attributes.info.add": "添加属性",
-  "channel_attributes.info.clear": "清除 {label}",
   "channel_attributes.info.edit": "编辑 {label}",
   "channel_attributes.info.heading": "频道属性",
   "channel_attributes.info.locked": "此属性设置后无法更改",

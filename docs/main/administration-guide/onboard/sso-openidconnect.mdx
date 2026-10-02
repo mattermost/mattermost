@@ -34,7 +34,7 @@ Follow these steps to configure a service provider using OpenID Connect.
 
 <PlanAvailability slug="ent-plus" />
 
-From Mattermost v12.1, a [user attribute](/administration-guide/manage/admin/user-attributes) can be linked to a claim your OpenID Connect provider sends about the user, the same way attributes are linked to AD/LDAP or SAML attributes. The linked attributes are written every time a user signs in through **OpenID Connect (Other)**, including the sign-in that creates their account, and they can then drive [attribute-based access control](/administration-guide/manage/admin/attribute-based-access-control) policies.
+From Mattermost v12.1, a [user attribute](/administration-guide/manage/admin/attribute-management) can be linked to a claim your OpenID Connect provider sends about the user, the same way attributes are linked to AD/LDAP or SAML attributes. The linked attributes are written every time a user signs in through **OpenID Connect (Other)**, including the sign-in that creates their account, and they can then drive [attribute-based access control](/administration-guide/manage/admin/attribute-based-access-control) policies.
 
 1.  Configure the provider through its **Discovery Endpoint**. Mattermost reads the provider's signing keys from the discovery document to verify the ID token before it uses any of its claims. Without a discovery endpoint, only the userinfo response is used.
 2.  Go to **System Console \> System Attributes \> Attribute Management**, open the attribute, select **Link to external source \> OpenID Connect**, and enter the claim name.

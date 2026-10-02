@@ -7,7 +7,13 @@ import TabItem from '@theme/TabItem';
 
 <PlanAvailability slug="ent-plus" />
 
-From Mattermost v10.8, ensure your teams always have the critical information they need to collaborate effectively by defining and managing organization-specific user profile attributes as system attributes that you can synchronize with your AD/LDAP, SAML, or (from Mattermost v12.1) OpenID Connect identity provider.
+<Important>
+
+From Mattermost v12.0, user attributes are managed in **System Console \> System Attributes \> Attribute Management**, and existing user attributes are converted automatically on upgrade. See [Attribute management](/administration-guide/manage/admin/attribute-management). This page describes the **User Attributes** page in releases before v12.0.
+
+</Important>
+
+From Mattermost v10.8, ensure your teams always have the critical information they need to collaborate effectively by defining and managing organization-specific user profile attributes as system attributes that you can synchronize with your AD/LDAP or SAML identity provider.
 
 System attributes enable you to customize user profile attributes to match your organization's unique needs and streamline collaboration while keeping user data centralized and consistent.
 
@@ -178,5 +184,3 @@ Masking in the policy editor only applies to attributes with `shared_only` or `s
 2.  Scroll to the **User attributes sync** section to specify the attribute used to populate the attribute in user profiles.
 3.  Specify the attribute mapping for the attribute by entering the attribute name in the system attribute's **Attribute** field. The attribute name must match the attribute name in your identity provider.
 4.  Save your changes.
-
-From Mattermost v12.1, an attribute can also be linked to an OpenID Connect claim, which is synced every time a user signs in through OpenID Connect. See [Sync user attributes from OpenID Connect claims](/administration-guide/onboard/sso-openidconnect#sync-user-attributes-from-openid-connect-claims) for details.

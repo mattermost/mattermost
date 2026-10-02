@@ -176,6 +176,10 @@ type FeatureFlags struct {
 	// controls whether the /api/v4/delivery_tracking routes are registered.
 	PostDeliveryTracking bool
 
+	// HealthDashboard replaces the Workspace Optimization dashboard with the rules-driven
+	// Health Dashboard. Off by default.
+	HealthDashboard bool
+
 	// FEATURE_FLAG_REMOVAL: OpenIdAttributeSync - Remove this kill switch once
 	// OpenID Connect attribute sync is proven in production. Gates syncing user
 	// attributes from OpenID Connect claims at sign-in: when off, no claims are
@@ -254,6 +258,7 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.PostDeliveryTracking = false
 
+	f.HealthDashboard = false
 	f.OpenIdAttributeSync = true
 }
 

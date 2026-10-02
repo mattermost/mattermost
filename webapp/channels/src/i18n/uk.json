@@ -4640,7 +4640,6 @@
   "channel_attributes.description": "Налаштуйте атрибути та значення для цього каналу.",
   "channel_attributes.enter_value": "Введіть значення",
   "channel_attributes.info.add": "Додати атрибут",
-  "channel_attributes.info.clear": "Очистити {label}",
   "channel_attributes.info.edit": "Редагувати {label}",
   "channel_attributes.info.heading": "Атрибути каналу",
   "channel_attributes.info.locked": "Цей атрибут не можна змінити після встановлення",

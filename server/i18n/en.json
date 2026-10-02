@@ -3269,6 +3269,16 @@
     "description": "API error when the server's own Site URL is not configured and cannot be determined; needed for shared channels / secure connection operations."
   },
   {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "The health dashboard is not enabled.",
+    "description": "API error when a health dashboard endpoint is called while the health dashboard feature flag is off."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "The health dashboard requires an Enterprise license.",
+    "description": "API error when a health dashboard endpoint is called on a server without an Enterprise license."
+  },
+  {
     "id": "api.image.get.app_error",
     "translation": "Requested image url cannot be parsed.",
     "description": "API error from the image proxy when the requested image URL is malformed and cannot be parsed."
@@ -8786,6 +8796,21 @@
     "description": "API error returned when a group operation conflicts with an existing account; {{.Username}} is the already-taken username."
   },
   {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Unable to get health finding.",
+    "description": "Server error when a single health dashboard finding could not be loaded from the database."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Health finding not found.",
+    "description": "API error when the requested health dashboard finding does not exist or is not visible in the product."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Unable to get health findings.",
+    "description": "Server error when the list of health dashboard findings could not be loaded from the database."
+  },
+  {
     "id": "app.health_finding.mute.app_error",
     "translation": "Unable to mute health finding.",
     "description": "Admin API error when muting (silencing) a server health-check finding in the System Console fails with a server error."
@@ -14260,6 +14285,96 @@
     "id": "groups.unsupported_syncable_type",
     "translation": "Unsupported syncable type '{{.Value}}'.",
     "description": "API error for LDAP group sync when the target type is neither team nor channel; {{.Value}} is the invalid type string and 'syncable' is the internal term for a team/channel that groups can sync to."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Config section unavailable.",
+    "description": "Health dashboard reason shown when a health check could not run because the server configuration it inspects could not be read, so the check's status is unknown."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "The rule failed unexpectedly and could not be evaluated.",
+    "description": "Health dashboard reason shown when a health check crashed while running, so its status is unknown."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} uses http://, so push notifications are sent in cleartext.",
+    "description": "Health dashboard finding detail when the push notification server URL starts with http:// instead of https://; {{.url}} is the configured URL. 'PushNotificationServer' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} has an invalid scheme. Mobile users will not receive notifications.",
+    "description": "Health dashboard finding detail when the push notification server URL starts with neither https:// nor http://; {{.url}} is the configured URL. 'PushNotificationServer' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Prefix PushNotificationServer with https:// and verify reachability from the app node.",
+    "description": "Health dashboard fix-it step for a push notification server URL that does not use https://; 'PushNotificationServer' is a config setting name and 'app node' is the Mattermost application server."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer does not use https://",
+    "description": "Health dashboard finding title when the push notification server URL does not start with https://; 'PushNotificationServer' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Every push attempt will fail with 'unsupported protocol scheme'.",
+    "description": "Health dashboard finding detail when push notifications are enabled but no push server URL is set; 'unsupported protocol scheme' is the literal error the server reports and should not be translated."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Point PushNotificationServer to https://push.mattermost.com or a self-hosted push proxy.",
+    "description": "Health dashboard fix-it step for a blank push notification server URL; https://push.mattermost.com is Mattermost's hosted push service. 'PushNotificationServer' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Push notifications enabled but PushNotificationServer is blank",
+    "description": "Health dashboard finding title when push notifications are turned on but the push notification server URL is empty; 'PushNotificationServer' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com is the Mattermost test push proxy. It has no SLA, limited throughput, and is not intended for production use. Mobile push delivery will be unreliable for anything beyond small-scale testing.",
+    "description": "Health dashboard finding detail when the push notification server is push-test.mattermost.com, Mattermost's test push proxy that is not meant for production; 'SLA' means service level agreement."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Switch to https://push.mattermost.com (the production Hosted Push Notification Service included with Enterprise) or to a self-hosted push proxy.",
+    "description": "Health dashboard fix-it step for a server using the test push proxy; 'Hosted Push Notification Service' is a Mattermost product name."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer points at push-test.mattermost.com",
+    "description": "Health dashboard finding title when the push notification server is Mattermost's test push proxy; 'PushNotificationServer' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL is required for webhook URLs, OAuth callbacks, mobile push payloads, and email links. Integrations are broken while it is empty.",
+    "description": "Health dashboard finding detail explaining what breaks while the Site URL setting is empty; 'SiteURL' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Set SiteURL to the public HTTPS URL of the server.",
+    "description": "Health dashboard fix-it step for an empty Site URL setting; 'SiteURL' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL is empty",
+    "description": "Health dashboard finding title when the Site URL setting is empty; 'ServiceSettings.SiteURL' is the config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL is {{.url}}. Session cookies and auth tokens traverse cleartext.",
+    "description": "Health dashboard finding detail when the Site URL uses http://; {{.url}} is the configured Site URL, and 'traverse cleartext' means they travel over the network unencrypted."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Serve via HTTPS and update SiteURL accordingly.",
+    "description": "Health dashboard fix-it step for a Site URL that uses http://; 'SiteURL' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL uses http:// (not https)",
+    "description": "Health dashboard finding title when the Site URL starts with http:// instead of https://; 'SiteURL' is a config setting name and should not be translated."
   },
   {
     "id": "humanize.list_join",

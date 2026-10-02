@@ -869,7 +869,7 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         });
 
         expect(screen.getByLabelText('Hidden values that you do not have permission to view')).toBeInTheDocument();
-        expect(screen.getByTestId('valueSelectorMenuButton')).toBeDisabled();
+        expect(screen.getByTestId('valueSelectorMenuButton')).toHaveAttribute('aria-disabled', 'true');
         expect(mockPageAll).not.toHaveBeenCalled();
     });
 

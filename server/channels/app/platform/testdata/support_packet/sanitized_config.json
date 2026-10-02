@@ -757,6 +757,7 @@
         "EnableMFIPluginSignaturePublicKey": false,
         "RecurringScheduledPosts": false,
         "PostDeliveryTracking": false,
+        "HealthDashboard": false,
         "OpenIdAttributeSync": false
     }
 }

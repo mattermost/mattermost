@@ -4642,7 +4642,6 @@
   "channel_attributes.description": "Bu kanal için öznitelikleri ve değerleri yapılandırın.",
   "channel_attributes.enter_value": "Bir değer yazın",
   "channel_attributes.info.add": "Öznitelik ekle",
-  "channel_attributes.info.clear": "Temizle: {label}",
   "channel_attributes.info.edit": "Düzenle: {label}",
   "channel_attributes.info.heading": "Kanal öznitelikleri",
   "channel_attributes.info.locked": "Bu öznitelik ayarlandıktan sonra değiştirilemez",

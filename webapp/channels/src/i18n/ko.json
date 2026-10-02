@@ -4641,7 +4641,6 @@
   "channel_attributes.description": "이 채널의 속성과 값을 구성합니다.",
   "channel_attributes.enter_value": "값 입력",
   "channel_attributes.info.add": "속성 추가",
-  "channel_attributes.info.clear": "{label} 지우기",
   "channel_attributes.info.edit": "{label} 편집",
   "channel_attributes.info.heading": "채널 속성",
   "channel_attributes.info.locked": "이 속성은 설정한 후에는 변경할 수 없습니다",

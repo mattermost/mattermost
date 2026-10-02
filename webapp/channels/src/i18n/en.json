@@ -6539,6 +6539,10 @@
     "defaultMessage": "Options",
     "description": "Accessible name of the read-only list of option chips on a synced select or multiselect attribute's detail page. Plural noun."
   },
+  "admin.global_attributes.attribute_details.options.synced_need_users": {
+    "defaultMessage": "Add Users under Applies to. The {source} sync creates these options from the values it syncs to users.",
+    "description": "Inline error under the read-only options of a select or multiselect attribute linked to an external source while the attribute does not apply to Users, which keeps it from being saved. \"Users\" and \"Applies to\" are the labels of the resource and the card on the same page. {source} is the external source name, such as AD/LDAP or SAML."
+  },
   "admin.global_attributes.attribute_details.options.values_unique": {
     "defaultMessage": "Values must be unique.",
     "description": "Inline validation error shown while editing or adding an option value on the attribute detail page, when the typed value duplicates an existing option."
@@ -6652,8 +6656,8 @@
     "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes while the attribute applies to a resource. {value} is the current type."
   },
   "admin.global_attributes.attribute_details.type.field_locked_aria_label": {
-    "defaultMessage": "Type: Text. Locked while linked to an external source.",
-    "description": "Screen-reader label for the Type dropdown on the New attribute page when the control is disabled because the attribute is linked to AD/LDAP or SAML. \"Text\" is the fixed attribute type name and should match the Text type label used elsewhere."
+    "defaultMessage": "Type: {value}. Locked while linked to an external source.",
+    "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes while the attribute is linked to AD/LDAP or SAML. {value} is the current type."
   },
   "admin.global_attributes.attribute_details.type.field_locked_graph_aria_label": {
     "defaultMessage": "Type: {value}. Locked because a hierarchical attribute cannot be converted to another type.",
@@ -18622,10 +18626,6 @@
   "channel_attributes.info.add": {
     "defaultMessage": "Add attribute",
     "description": "Button (with a + icon), and its menu's screen-reader label, at the bottom of the Channel Attributes section in the channel info right-hand panel. Opens a list of attributes that can still be set on the channel."
-  },
-  "channel_attributes.info.clear": {
-    "defaultMessage": "Clear {label}",
-    "description": "Menu item or button in the value picker of a channel attribute in the channel info right-hand panel. It removes the attribute's value. {label} is the attribute's display name. 'Clear' is a verb."
   },
   "channel_attributes.info.edit": {
     "defaultMessage": "Edit {label}",

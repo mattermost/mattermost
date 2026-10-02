@@ -4642,7 +4642,6 @@
   "channel_attributes.description": "Skonfiguruj atrybuty i wartości dla tego kanału.",
   "channel_attributes.enter_value": "Wprowadź wartość",
   "channel_attributes.info.add": "Dodaj atrybut",
-  "channel_attributes.info.clear": "Wyczyść {label}",
   "channel_attributes.info.edit": "Edytuj {label}",
   "channel_attributes.info.heading": "Atrybuty kanału",
   "channel_attributes.info.locked": "Tego atrybutu nie można zmienić po ustawieniu",

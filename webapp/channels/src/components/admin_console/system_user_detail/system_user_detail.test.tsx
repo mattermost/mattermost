@@ -1071,7 +1071,7 @@ describe('SystemUserDetail', () => {
 
                 await waitForLoadingToFinish();
 
-                expect(trigger()).toBeDisabled();
+                expect(trigger()).toHaveAttribute('aria-disabled', 'true');
                 expect(screen.getByText('Synced with:')).toBeInTheDocument();
                 expect(fieldContainer()).not.toHaveTextContent(OMITTED_COPY);
             });
@@ -1085,7 +1085,7 @@ describe('SystemUserDetail', () => {
 
                 await waitForLoadingToFinish();
 
-                expect(trigger()).toBeDisabled();
+                expect(trigger()).toHaveAttribute('aria-disabled', 'true');
                 expect(fieldContainer()).toHaveTextContent('Managed by plugin');
             });
 
@@ -1098,7 +1098,7 @@ describe('SystemUserDetail', () => {
 
                 await waitForLoadingToFinish();
 
-                expect(trigger()).toBeDisabled();
+                expect(trigger()).toHaveAttribute('aria-disabled', 'true');
                 expect(screen.getByText('Synced with:')).toBeInTheDocument();
             });
 
@@ -1108,7 +1108,7 @@ describe('SystemUserDetail', () => {
 
                 await waitForLoadingToFinish();
 
-                expect(trigger()).toBeEnabled();
+                expect(trigger()).not.toHaveAttribute('aria-disabled', 'true');
                 await waitFor(() => expect(trigger()).toHaveTextContent('Alpha'));
             });
 
@@ -1164,9 +1164,9 @@ describe('SystemUserDetail', () => {
 
             test('G17: opens the menu when the field label is clicked', async () => {
                 // The field name is a <label htmlFor> pointing at the trigger,
-                // so clicking the name opens the menu. The picker itself is not
-                // wrapped in that label: chip-remove lives inside the trigger
-                // button, and a wrapping <label> would steal those clicks.
+                // with a click forwarder because the Menu trigger is a div
+                // (chip-remove lives inside it). The picker itself is not wrapped
+                // in that label: a wrapping <label> would steal chip-remove clicks.
                 mockPageAll.mockResolvedValue(REGIME_1);
                 renderDetail(buildGraphField({options_omitted: true}), ['opt-1']);
 
