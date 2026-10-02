@@ -1594,13 +1594,14 @@ export default class PluginRegistry {
      *
      * The root post must already be in the posts store. `rootPostId` selects the thread.
      * `useRelativeTimestamp` and `isThreadView` are the same props the sidebar passes (`true`
-     * and `false`).
+     * and `false`). `hideRoot` lists replies only; the sidebar does not pass it.
      */
     getThreadViewer = (): React.ComponentType<{
         rootPostId: string;
         useRelativeTimestamp?: boolean;
         isThreadView?: boolean;
         inputPlaceholder?: string;
+        hideRoot?: boolean;
     }> => {
         // Required lazily so loading the registry does not pull in the thread view's redux graph.
         // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require
