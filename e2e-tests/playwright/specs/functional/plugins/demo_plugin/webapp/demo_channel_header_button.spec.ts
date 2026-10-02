@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {duration, expect, test} from '@mattermost/playwright-lib';
 
 test('should open right-hand sidebar when demo plugin App Bar button is clicked', async ({pw}) => {
     // # Setup
@@ -13,16 +13,26 @@ test('should open right-hand sidebar when demo plugin App Bar button is clicked'
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // * Verify the demo plugin button is visible in the right App Bar
-    await expect(channelsPage.appBar.demoPluginButton).toBeVisible();
-
-    // # Click the App Bar button
-    await channelsPage.appBar.demoPluginButton.click();
+    // # Click the App Bar button and wait for the RHS to open (with reload + retry if the
+    // plugin is transiently unavailable, e.g. during a concurrent plugin_crash.spec.ts
+    // recovery cycle — the App Bar icon can briefly disappear or no-op mid reconnect)
+    const rhsPanel = channelsPage.page.getByRole('region', {name: 'Demo Plugin'});
+    for (let attempt = 0; attempt < 4; attempt++) {
+        await expect(channelsPage.appBar.demoPluginButton).toBeVisible();
+        await channelsPage.appBar.demoPluginButton.click();
+        try {
+            await expect(rhsPanel).toBeVisible({timeout: duration.ten_sec});
+            break;
+        } catch (err) {
+            if (attempt === 3) {
+                throw err;
+            }
+            await channelsPage.page.reload();
+            await channelsPage.toBeVisible();
+        }
+    }
 
     // * Verify the RHS opens with expected content
-    const rhsPanel = channelsPage.page.getByRole('region', {name: 'Demo Plugin'});
-    await expect(rhsPanel).toBeVisible();
-
     await expect(
         rhsPanel.getByText('You have triggered the right-hand sidebar component of the demo plugin.', {exact: true}),
     ).toBeVisible();
