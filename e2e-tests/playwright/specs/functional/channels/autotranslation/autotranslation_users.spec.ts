@@ -2,10 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {
-    disableAutotranslationConfig,
     enableAutotranslationConfig,
     enableChannelAutotranslation,
-    getAdminClient,
     hasAutotranslationLicense,
     setUserChannelAutotranslation,
     expect,
@@ -19,17 +17,13 @@ test.beforeEach(async () => {
     test.setTimeout(120000);
 });
 
-// Disable AutoTranslationSettings at end of file so leftover state cannot leak
-// into other suites. Individual tests enable the feature via
-// enableAutotranslationConfig() as needed.
-test.afterAll(async () => {
-    try {
-        const {adminClient} = await getAdminClient({skipLog: true});
-        await disableAutotranslationConfig(adminClient);
-    } catch {
-        // Best-effort cleanup.
-    }
-});
+// AutoTranslationSettings is deliberately left enabled after this file's tests run.
+// It's a global server config shared by every other autotranslation spec file, which
+// Playwright can schedule to run concurrently in a different worker against the same
+// server — disabling it here in an afterAll previously raced with (and broke) sibling
+// files still mid-test. Each test enables exactly what it needs via
+// enableAutotranslationConfig() up front, so no test here depends on this file leaving
+// the feature disabled afterward.
 test.fixme(
     'auto-translation is ON by default for new channel members',
     {
