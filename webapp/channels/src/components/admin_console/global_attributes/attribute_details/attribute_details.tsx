@@ -866,6 +866,11 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // the sync adds every value it is sent and removes those no user holds any
     // more, and the server refuses anyone else adding, renaming or removing one.
     const optionsOwnedBySync = typeSupportsOptions && hasExternalSource;
+
+    // The sync provisions those options from the values it writes to users, so
+    // a synced select or multiselect that applies to no Users would be left
+    // with a list nobody can add to.
+    const appliesToUsers = isNonTemplate ? objectType === 'user' : appliesTo.includes('user');
     const wasSyncedWhenLoaded = Boolean(originalLdapAttrRef.current || originalSamlAttrRef.current);
 
     // Unique name is the identifier policies and integrations bind to, and the
@@ -890,6 +895,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         if (!typeSupportsOptions) {
             return null;
         }
+        if (optionsOwnedBySync && !appliesToUsers) {
+            return 'needs_users' as const;
+        }
         if (options.length === 0) {
             return optionsOwnedBySync ? null : 'required' as const;
         }
@@ -900,7 +908,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             return 'invalid_rank' as const;
         }
         return null;
-    }, [typeSupportsOptions, optionsOwnedBySync, options, fieldType]);
+    }, [typeSupportsOptions, optionsOwnedBySync, appliesToUsers, options, fieldType]);
 
     const isHierarchical = supportsHierarchy({type: serverFieldType});
     const graphOptionsValid = useMemo(() => {
@@ -1339,6 +1347,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         return <LoadingScreen/>;
     }
 
+    const linkedSourceTitle = linkedExternalSource ? formatMessage(externalSourceMessages[linkedExternalSource].title) : '';
+
     let optionsEditor: JSX.Element | null = null;
     if (isHierarchical) {
         optionsEditor = (
@@ -1362,9 +1372,21 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 >
                     <FormattedMessage
                         {...messages.optionsSyncedHelp}
-                        values={{source: linkedExternalSource ? formatMessage(externalSourceMessages[linkedExternalSource].title) : ''}}
+                        values={{source: linkedSourceTitle}}
                     />
                 </p>
+                {optionsIssue === 'needs_users' && (
+                    <div
+                        className='AttributeDetails__uniqueNameError'
+                        role='alert'
+                        data-testid='attributeOptionsNeedUsersError'
+                    >
+                        <FormattedMessage
+                            {...messages.optionsSyncedNeedUsers}
+                            values={{source: linkedSourceTitle}}
+                        />
+                    </div>
+                )}
             </>
         );
     } else if (typeSupportsOptions) {
@@ -1776,7 +1798,7 @@ const messages = defineMessages({
     typeLabel: {id: 'admin.global_attributes.attribute_details.type.label', defaultMessage: 'Type'},
     typeMenuAriaLabel: {id: 'admin.global_attributes.attribute_details.type.menu_label', defaultMessage: 'Select type'},
     typeFieldAriaLabel: {id: 'admin.global_attributes.attribute_details.type.field_aria_label', defaultMessage: 'Type: {value}'},
-    typeFieldLockedAriaLabel: {id: 'admin.global_attributes.attribute_details.type.field_locked_aria_label', defaultMessage: 'Type: Text. Locked while linked to an external source.'},
+    typeFieldLockedAriaLabel: {id: 'admin.global_attributes.attribute_details.type.field_locked_aria_label', defaultMessage: 'Type: {value}. Locked while linked to an external source.'},
     typeFieldLockedAppliesToAriaLabel: {
         id: 'admin.global_attributes.attribute_details.type.field_locked_applies_to_aria_label',
         defaultMessage: 'Type: {value}. Locked while this attribute applies to a resource.',
@@ -1829,6 +1851,10 @@ const messages = defineMessages({
     optionsSyncedHelp: {
         id: 'admin.global_attributes.attribute_details.options.synced_help',
         defaultMessage: 'Options are managed by the {source} sync. Each value it sends is added as an option, and options that no user holds any more are removed.',
+    },
+    optionsSyncedNeedUsers: {
+        id: 'admin.global_attributes.attribute_details.options.synced_need_users',
+        defaultMessage: 'Add Users under Applies to. The {source} sync creates these options from the values it syncs to users.',
     },
     optionsHelp: {
         id: 'admin.global_attributes.attribute_details.options.help',
