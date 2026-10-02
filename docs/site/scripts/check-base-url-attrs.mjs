@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Fail the build when MDX content hard-codes a site-absolute URL in a raw
-// HTML/JSX attribute (`href="/..."`, `src="/..."`).
+// HTML/JSX attribute (`href="/..."`, `href={"/..."}`, `src=...`).
 //
 // Docusaurus prepends `baseUrl` to markdown-syntax links (`[text](/path)`) but
 // never to attributes written as raw markup, so those values ship verbatim.
@@ -33,7 +33,8 @@ const SKIP_DIRS = new Set([
 ]);
 
 const CONTENT_EXT = /\.mdx?$/;
-const ATTR = /\b(href|src)="(\/[^"]*)"/g;
+const ATTR_QUOTED = /\b(href|src)="(\/[^"]*)"/g;
+const ATTR_JSX = /\b(href|src)=\{(["'])(\/.*?)\2\}/g;
 // CommonMark: close only with same char, ≥ open length, trailing whitespace only.
 const OPEN_FENCE = /^(\s*)(`{3,}|~{3,})/;
 const INLINE_CODE = /`[^`]*`/g;
@@ -89,7 +90,13 @@ for (const root of CONTENT_ROOTS) {
         // Prose may legitimately show the bad form as an example.
         const line = rawLine.replace(INLINE_CODE, '');
 
-        for (const [, attr, url] of line.matchAll(ATTR)) {
+        const matches = [
+          ...line.matchAll(ATTR_QUOTED),
+          ...line.matchAll(ATTR_JSX),
+        ];
+        for (const match of matches) {
+          const attr = match[1];
+          const url = match[match.length - 1];
           // `//host/path` is protocol-relative, i.e. not site-local.
           if (url.startsWith('//')) {
             continue;
