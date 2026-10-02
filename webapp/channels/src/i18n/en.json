@@ -3363,6 +3363,14 @@
     "defaultMessage": "A user attribute named \"{name}\" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management to enable the clearance attribute.",
     "description": ""
   },
+  "admin.classification_markings.conflict.clearance_template": {
+    "defaultMessage": "Rename \"{name}\" in Attribute Management so it isn't mistaken for this clearance attribute.",
+    "description": "Non-blocking warning shown next to the clearance checkbox in System Console > Classification Markings when an unrelated attribute in Attribute Management is already called 'clearance'. {name} is that attribute's name, as the admin typed it."
+  },
+  "admin.classification_markings.conflict.clearance_template_title": {
+    "defaultMessage": "Another attribute already uses this name",
+    "description": "Title of the non-blocking warning shown next to the clearance checkbox in System Console > Classification Markings when an unrelated attribute in Attribute Management is already called 'clearance'."
+  },
   "admin.classification_markings.conflict.clearance_title": {
     "defaultMessage": "Clearance attribute cannot be created",
     "description": ""
@@ -3397,15 +3405,15 @@
   },
   "admin.classification_markings.enforcement.clearance.checkbox": {
     "defaultMessage": "Enable clearance attribute",
-    "description": "Label next to the checkbox in System Console > Classification Markings that creates the ranked Clearance user attribute. 'Enable' is a verb. The attribute is created with the hardcoded English display name 'Clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
+    "description": "Label next to the checkbox in System Console > Classification Markings that creates the ranked Clearance user attribute. 'Enable' is a verb. The attribute is created with the hardcoded English display name 'Classification clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
   },
   "admin.classification_markings.enforcement.clearance.help": {
-    "defaultMessage": "Creates a ranked \"Clearance\" user attribute linked to these classification levels. Channel membership can then be managed with a corresponding <link>membership policy</link>.",
-    "description": "Help text under the clearance checkbox in System Console > Classification Markings. \"Clearance\" in quotes is the literal name given to the generated user attribute. <link>…</link> wraps the words that become a link to the Membership Policies page in the System Console. The attribute is created with the hardcoded English display name 'Clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
+    "defaultMessage": "Creates a ranked \"Classification clearance\" user attribute linked to these classification levels. Channel membership can then be managed with a corresponding <link>membership policy</link>.",
+    "description": "Help text under the clearance checkbox in System Console > Classification Markings. \"Classification clearance\" in quotes is the literal name given to the generated user attribute. <link>…</link> wraps the words that become a link to the Membership Policies page in the System Console. The attribute is created with the hardcoded English display name 'Classification clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
   },
   "admin.classification_markings.enforcement.clearance.title": {
     "defaultMessage": "Clearance attribute",
-    "description": "Section heading above the clearance checkbox in System Console > Classification Markings. A noun phrase naming the feature, not an instruction. The attribute is created with the hardcoded English display name 'Clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
+    "description": "Section heading above the clearance checkbox in System Console > Classification Markings. A noun phrase naming the feature, not an instruction. The attribute is created with the hardcoded English display name 'Classification clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
   },
   "admin.classification_markings.error.create_name_conflict": {
     "defaultMessage": "Could not save because an attribute with a conflicting name already exists: {error} Rename or remove it in Attribute Management, then reload this page.",
@@ -5991,6 +5999,10 @@
     "defaultMessage": "This attribute does not apply to any resource yet.",
     "description": "Empty-state message in the 'Applies to' card on the Classification attribute page in the System Console, shown when the attribute is not applied to channels or any other resource type."
   },
+  "admin.global_attributes.applies_to.read_only_resource": {
+    "defaultMessage": "Applied to {resource} as {name}",
+    "description": "Read-only row in the 'Applies to' card on the Classification attribute page in the System Console, naming a resource this page does not edit. {resource} is a resource name such as Users; {name} is the unique name of the attribute created for it, which policies refer to."
+  },
   "admin.global_attributes.applies_to.subtitle": {
     "defaultMessage": "Resources this attribute applies to, and how it behaves on each.",
     "description": "Subtitle under the 'Applies to' card heading on the Classification attribute page in the System Console. 'Resources' means object types such as channels."
@@ -6774,6 +6786,22 @@
   "admin.global_attributes.confirm.remove_applies_to.title": {
     "defaultMessage": "Remove {resources}?",
     "description": "Title of the confirmation dialog shown from the attribute details page in System Console > System Attributes > Manage Attributes before removing an attribute from resources. {resources} is a list of resource names."
+  },
+  "admin.global_attributes.name_conflict.details_notice": {
+    "defaultMessage": "Another attribute already uses this name.",
+    "description": "Name-conflict notice shown on the attribute details page in System Console > System Attributes > Manage Attributes when another attribute already uses this name. Shown as a danger notice when the match is exact (Users would be blocked) and a warning notice otherwise."
+  },
+  "admin.global_attributes.name_conflict.linked_to_template": {
+    "defaultMessage": "A user attribute named \"{name}\" already exists and is linked to {owner}. Policies that use user.attributes.{name} read {owner}'s options, not this attribute's.",
+    "description": "Warning in System Console > System Attributes > Manage Attributes when another attribute already owns a user attribute of this name. {name} is that attribute's unique name and {owner} is the display name of the attribute it belongs to. 'user.attributes.' is literal policy syntax and must stay English."
+  },
+  "admin.global_attributes.name_conflict.standalone": {
+    "defaultMessage": "A standalone user attribute named \"{name}\" already exists. Policies that use user.attributes.{name} read that attribute, not this one.",
+    "description": "Warning in System Console > System Attributes > Manage Attributes when a user attribute of this name exists on its own rather than belonging to another attribute. {name} is its unique name. 'user.attributes.' is literal policy syntax and must stay English."
+  },
+  "admin.global_attributes.name_conflict.users_blocked_menu_label": {
+    "defaultMessage": "Name already in use",
+    "description": "Secondary label under the disabled Users option in the 'Add resource' menu on the attribute details page in System Console > System Attributes > Manage Attributes, saying why it cannot be chosen."
   },
   "admin.global_attributes.new_attribute": {
     "defaultMessage": "New attribute",
@@ -25382,6 +25410,10 @@
   "mark_as_read_confirm_modal.header": {
     "defaultMessage": "Mark as read",
     "description": "Title of the confirmation dialog for marking multiple channels as read."
+  },
+  "markdown_phone_link.tooltip": {
+    "defaultMessage": "Click to call {phoneNumber}",
+    "description": "Tooltip shown when hovering a phone number link in a message."
   },
   "marketplace_command.disabled": {
     "defaultMessage": "The marketplace is disabled. Please contact your System Administrator for details.",
