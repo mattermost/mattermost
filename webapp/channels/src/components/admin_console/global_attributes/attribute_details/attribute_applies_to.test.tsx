@@ -130,6 +130,15 @@ describe('AttributeAppliesTo', () => {
         });
     });
 
+    describe('userWhoCanSetLockedTooltip on the Users row', () => {
+        it('locks Who can set the value once the Users row is expanded', async () => {
+            renderComponent({appliesTo: ['user'], userWhoCanSetLockedTooltip: 'Managed by SCIM'});
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+            expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-lockWrap')).toBeInTheDocument();
+        });
+    });
+
     describe('blockedTypes', () => {
         it('offers a blocked type as a disabled option carrying its reason, and adds nothing when it is clicked', async () => {
             renderComponent({blockedTypes: {user: 'Name already in use'}});
@@ -181,6 +190,18 @@ describe('AttributeAppliesTo', () => {
             renderComponent({appliesTo: ['channel']});
 
             expect(screen.queryByTestId('attributeAppliesToRow-channel-toggleLockWrap')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('removeLockedTooltips', () => {
+        it('locks Remove only on the row whose type has a tooltip', async () => {
+            renderComponent({appliesTo: ['user', 'channel'], removeLockedTooltips: {user: 'Locked'}});
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+            expect(screen.getByTestId('attributeAppliesToRow-user-removeLockWrap')).toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
+            expect(screen.getByTestId('attributeAppliesToRow-channel-remove')).toBeEnabled();
         });
     });
 });

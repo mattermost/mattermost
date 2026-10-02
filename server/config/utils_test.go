@@ -259,6 +259,55 @@ func TestFixInvalidLocales(t *testing.T) {
 	assert.Contains(t, *cfg.LocalizationSettings.AvailableLocales, *cfg.LocalizationSettings.DefaultClientLocale, "DefaultClientLocale should have been added to AvailableLocales")
 }
 
+func TestFixLegacyImageProxyType(t *testing.T) {
+	for _, enable := range []bool{false, true} {
+		t.Run(fmt.Sprintf("enable=%t", enable), func(t *testing.T) {
+			cfg := &model.Config{}
+			cfg.SetDefaults()
+			*cfg.ImageProxySettings.Enable = enable
+
+			assert.False(t, fixLegacyImageProxyType(cfg))
+			assert.Equal(t, model.ImageProxyTypeLocal, *cfg.ImageProxySettings.ImageProxyType)
+
+			*cfg.ImageProxySettings.ImageProxyType = model.ImageProxyTypeLegacyAtmosCamo
+			assert.True(t, fixLegacyImageProxyType(cfg))
+			assert.Equal(t, model.ImageProxyTypeLocal, *cfg.ImageProxySettings.ImageProxyType)
+			assert.Equal(t, enable, *cfg.ImageProxySettings.Enable)
+		})
+	}
+}
+
+func TestFixRetiredFeatureFlags(t *testing.T) {
+	t.Run("nil feature flags", func(t *testing.T) {
+		assert.False(t, fixRetiredFeatureFlags(&model.Config{}))
+	})
+
+	t.Run("retired flags off", func(t *testing.T) {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+
+		assert.False(t, fixRetiredFeatureFlags(cfg))
+	})
+
+	t.Run("AppsEnabled on", func(t *testing.T) {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.FeatureFlags.AppsEnabled = true
+
+		assert.True(t, fixRetiredFeatureFlags(cfg))
+		assert.False(t, cfg.FeatureFlags.AppsEnabled)
+	})
+
+	t.Run("MoveThreadsEnabled on", func(t *testing.T) {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.FeatureFlags.MoveThreadsEnabled = true
+
+		assert.True(t, fixRetiredFeatureFlags(cfg))
+		assert.False(t, cfg.FeatureFlags.MoveThreadsEnabled)
+	})
+}
+
 func TestIsDatabaseDSN(t *testing.T) {
 	testCases := []struct {
 		Name     string
