@@ -461,9 +461,12 @@ describe('components/post_view/ChannelIntroMessages', () => {
                 stateWithPluginButton,
             );
 
-            const addMembers = screen.getByText('Add people').closest('.MoreThanMaxFreeUsersWrapper');
+            const addMembers = screen.getByRole('button', {name: /Add people/}).closest('.MoreThanMaxFreeUsersWrapper');
             expect(addMembers).not.toBeNull();
-            expect(within(addMembers as HTMLElement).getByText(PLUGIN_BUTTON_TEXT)).toBeInTheDocument();
+
+            const pluginButton = within(addMembers as HTMLElement).getByText(PLUGIN_BUTTON_TEXT);
+            expect(pluginButton).toBeInTheDocument();
+            expect(within(pluginButton.closest('button') as HTMLElement).getByTestId('plugin-button-icon')).toBeInTheDocument();
         });
 
         test('renders only the invite button when below the users limit', () => {
@@ -479,6 +482,39 @@ describe('components/post_view/ChannelIntroMessages', () => {
             expect(screen.getByText('Invite others to the workspace')).toBeInTheDocument();
             expect(screen.queryByText(PLUGIN_BUTTON_TEXT)).not.toBeInTheDocument();
             expect(screen.queryByText('Add people')).not.toBeInTheDocument();
+            expect(screen.queryByText('Set header')).not.toBeInTheDocument();
+            expect(screen.queryByLabelText('Favorite')).not.toBeInTheDocument();
+        });
+
+        test('renders the plugin button in a DM intro regardless of the users limit', () => {
+            renderWithContext(
+                <ChannelIntroMessage
+                    {...baseProps}
+                    channel={{...channel, type: Constants.DM_CHANNEL as ChannelType}}
+                    teammate={user1 as UserProfile}
+                    teammateName='my teammate'
+                    stats={{total_users_count: 5}}
+                    usersLimit={10}
+                />,
+                stateWithPluginButton,
+            );
+
+            expect(screen.getByText(PLUGIN_BUTTON_TEXT)).toBeInTheDocument();
+        });
+
+        test('renders the plugin button in a GM intro regardless of the users limit', () => {
+            renderWithContext(
+                <ChannelIntroMessage
+                    {...baseProps}
+                    channel={{...channel, type: Constants.GM_CHANNEL as ChannelType}}
+                    channelProfiles={users}
+                    stats={{total_users_count: 5}}
+                    usersLimit={10}
+                />,
+                stateWithPluginButton,
+            );
+
+            expect(screen.getByText(PLUGIN_BUTTON_TEXT)).toBeInTheDocument();
         });
     });
 

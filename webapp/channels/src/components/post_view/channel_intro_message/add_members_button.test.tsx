@@ -120,7 +120,25 @@ describe('components/post_view/AddMembersButton', () => {
             );
 
             expect(screen.getByText('Invite others to the workspace')).toBeInTheDocument();
+            expect(screen.queryByText('Add people')).not.toBeInTheDocument();
             expect(screen.queryByText(PLUGIN_TEXT)).not.toBeInTheDocument();
+        });
+
+        test('should render plugin buttons when the users count reaches the limit', () => {
+            const props = {
+                totalUsers: 10,
+                usersLimit: 10,
+                channel,
+                pluginButtons,
+            };
+            renderWithContext(
+                <AddMembersButton {...props}/>,
+                initialState,
+            );
+
+            expect(screen.getByText('Add people')).toBeInTheDocument();
+            expect(screen.getByText(PLUGIN_TEXT)).toBeInTheDocument();
+            expect(screen.queryByText('Invite others to the workspace')).not.toBeInTheDocument();
         });
     });
 });
