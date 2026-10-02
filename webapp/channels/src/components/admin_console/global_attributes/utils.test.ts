@@ -449,6 +449,40 @@ describe('global_attributes/utils', () => {
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'field-id', expect.anything());
         });
 
+        it('sends resourceAttrs next to the definition attrs and permissionValues as permission_values', async () => {
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
+
+            await updateAttributeField('user', 'field-id', {
+                type: 'text',
+                displayName: 'Cost center',
+                options: [],
+                ldapAttr: '',
+                samlAttr: '',
+                resourceAttrs: {visibility: 'hidden', managed: 'admin'},
+                permissionValues: 'sysadmin',
+            });
+
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'field-id', {
+                type: 'text',
+                attrs: expect.objectContaining({display_name: 'Cost center', visibility: 'hidden', managed: 'admin'}),
+                permission_values: 'sysadmin',
+            });
+        });
+
+        it('sends no permission_values without permissionValues', async () => {
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
+
+            await updateAttributeField('user', 'field-id', {
+                type: 'text',
+                displayName: 'Cost center',
+                options: [],
+                ldapAttr: '',
+                samlAttr: '',
+            });
+
+            expect(patchPropertyField.mock.calls[0][3]).not.toHaveProperty('permission_values');
+        });
+
         it('preserves option metadata such as color when PATCHing a standalone channel select', async () => {
             const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
 

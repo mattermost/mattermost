@@ -126,6 +126,62 @@ describe('AttributeAppliesToUserItem', () => {
         expect(screen.queryByTestId('attributeAppliesToRow-user-toggleLockWrap')).not.toBeInTheDocument();
     });
 
+    it('whoCanSetLockedTooltip locks only Who can set the value, at its stored value, behind a tooltip wrap', async () => {
+        const onManagedChange = jest.fn();
+        const onVisibilityChange = jest.fn();
+        renderComponent({whoCanSetLockedTooltip: 'Managed by SCIM', managed: 'admin', onManagedChange, onVisibilityChange});
+        await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+        expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-lockWrap')).toBeInTheDocument();
+        expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-member')).toBeDisabled();
+        expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeDisabled();
+        expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeChecked();
+
+        await userEvent.click(screen.getByTestId('attributeAppliesToUserWhoCanSet-member'));
+        expect(onManagedChange).not.toHaveBeenCalled();
+
+        expect(screen.getByTestId('attributeAppliesToUserProfileDisplay-always')).toBeEnabled();
+        await userEvent.click(screen.getByTestId('attributeAppliesToUserProfileDisplay-always'));
+        expect(onVisibilityChange).toHaveBeenCalledWith('always');
+        expect(screen.getByTestId('attributeAppliesToRow-user-remove')).toBeEnabled();
+    });
+
+    it('removeLockedTooltip locks only Remove behind a tooltip wrap', async () => {
+        const onVisibilityChange = jest.fn();
+        renderComponent({removeLockedTooltip: 'Managed by SCIM', onVisibilityChange});
+        await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+        expect(screen.getByTestId('attributeAppliesToRow-user-removeLockWrap')).toBeInTheDocument();
+        expect(screen.getByTestId('attributeAppliesToRow-user-remove')).toBeDisabled();
+        await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
+        expect(onRemove).not.toHaveBeenCalled();
+
+        expect(screen.getByTestId('attributeAppliesToRow-user-toggle')).toBeEnabled();
+        expect(screen.queryByTestId('attributeAppliesToRow-user-toggleLockWrap')).not.toBeInTheDocument();
+        expect(screen.getByTestId('attributeAppliesToUserProfileDisplay-always')).toBeEnabled();
+        await userEvent.click(screen.getByTestId('attributeAppliesToUserProfileDisplay-always'));
+        expect(onVisibilityChange).toHaveBeenCalledWith('always');
+        expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-member')).toBeEnabled();
+        expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeEnabled();
+    });
+
+    it('renders no Remove lock wrap and enables Remove without removeLockedTooltip', async () => {
+        renderComponent();
+        await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+        expect(screen.queryByTestId('attributeAppliesToRow-user-removeLockWrap')).not.toBeInTheDocument();
+        expect(screen.getByTestId('attributeAppliesToRow-user-remove')).toBeEnabled();
+    });
+
+    it('renders no Who can set the value lock wrap and enables the radios without whoCanSetLockedTooltip', async () => {
+        renderComponent();
+        await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+        expect(screen.queryByTestId('attributeAppliesToUserWhoCanSet-lockWrap')).not.toBeInTheDocument();
+        expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-member')).toBeEnabled();
+        expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeEnabled();
+    });
+
     it('makes no Client4 calls and no data-mutating dispatch', async () => {
         const createPropertyField = jest.spyOn(Client4, 'createPropertyField');
         const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField');

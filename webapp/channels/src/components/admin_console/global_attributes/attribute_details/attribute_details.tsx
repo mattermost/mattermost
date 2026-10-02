@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useEffect, useMemo, useRef, useState, type JSX} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState, type JSX, type ReactNode} from 'react';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
@@ -14,13 +14,14 @@ import {buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldVisibility, PropertyField, PropertyFieldOption, PropertyPermissionLevel} from '@mattermost/types/properties';
 import {supportsHierarchy, supportsOptions} from '@mattermost/types/properties';
+import type {PropertyFieldOwner} from '@mattermost/types/properties_user';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import {findRankCollision, isValidRank} from 'components/admin_console/system_properties/rank_utils';
 import Card from 'components/card/card';
-import {useIsFieldOrphaned, usePluginInventoryLoaded} from 'components/common/hooks/use_field_orphaned';
+import {useInstalledPluginIds, useIsFieldOrphaned, usePluginInventoryLoaded} from 'components/common/hooks/use_field_orphaned';
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
@@ -32,7 +33,7 @@ import Input from 'components/widgets/inputs/input/input';
 
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
-import {CPA_FIELD_NAME_MAX_RUNES, filterCELIdentifier, slugifyForCEL, validateCPAFieldName} from 'utils/properties';
+import {allOwnersAreUninstalledPlugins, CPA_FIELD_NAME_MAX_RUNES, filterCELIdentifier, slugifyForCEL, validateCPAFieldName} from 'utils/properties';
 import type {CPAFieldNameValidationError} from 'utils/properties';
 
 import AttributeAppliesTo from './attribute_applies_to';
@@ -42,6 +43,7 @@ import AttributeExternalSource from './attribute_external_source';
 import type {ExternalSource} from './attribute_external_source';
 import AttributeOptionsRankValues from './attribute_options_rank_values';
 import AttributeOptionsValues from './attribute_options_values';
+import AttributeOwnersSource from './attribute_owners_source';
 import AttributePluginSource from './attribute_plugin_source';
 import {useConfirmRemoveAppliesTo} from './attribute_remove_applies_to_warning_modal';
 import {GraphValues, hasBlankTrimmedOptionName, hasCaseInsensitiveDuplicateNames} from './graph';
@@ -53,6 +55,7 @@ import {GLOBAL_ATTRIBUTES_LIST_ROUTE, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from '../co
 import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField} from '../global_attributes_table';
 import {findNameConflict, messages as nameConflictMessages, type NameConflict} from '../name_conflict';
 import useAllowedResourceTypes from '../use_allowed_resource_types';
+import {getFieldOwners, NO_OWNERS, useOwnersLabel} from '../use_owners_label';
 import type {AttributeFieldType, AttributeTypeId, UpdateAttributeFieldPatch} from '../utils';
 import {
     createAttributeField,
@@ -343,6 +346,11 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const [sourcePluginId, setSourcePluginId] = useState<string | undefined>(undefined);
     const isPluginOwned = Boolean(sourcePluginId);
 
+    // Plugin-created attributes are excluded: they have their own, stricter lock and wording.
+    const [owners, setOwners] = useState<PropertyFieldOwner[]>(NO_OWNERS);
+    const isOwned = owners.length > 0 && !isPluginOwned;
+    const ownersLabel = useOwnersLabel(owners);
+
     // Defaults to the template type because this page cannot create a
     // user/channel/post field; load() copies the fetched field's object_type
     // so Save PATCHes that type.
@@ -352,6 +360,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // GLOBAL_ATTRIBUTES_OBJECT_TYPE, so they are false here without an extra
     // isEditMode check.
     const isNonTemplate = objectType !== GLOBAL_ATTRIBUTES_OBJECT_TYPE;
+
+    // Only a post field's row stays fully locked; user and channel rows are editable.
+    const standaloneRowLocked = isNonTemplate && objectType === 'post';
 
     // Substituted for the bare `disabled` prop everywhere else on this page --
     // one boolean, not a second parallel disabled path. Keeps the pre-existing
@@ -481,7 +492,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // settle orphan detection below: an inventory that hasn't loaded yet reads
     // identically to "nothing installed" (see useIsFieldOrphaned's own doc
     // comment), so isOrphaned is only trusted once this is true.
-    const pluginInventoryLoaded = usePluginInventoryLoaded(isPluginOwned);
+    const pluginInventoryLoaded = usePluginInventoryLoaded(isPluginOwned || owners.some((owner) => owner.type === 'plugin'));
 
     // protected: true is safe to hardcode here (rather than threaded from the
     // loaded field) -- sourcePluginId is only ever set when getSourceKind(field)
@@ -558,7 +569,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 setSamlAttr(loadedSaml);
 
                 // A non-template field has no linked children: Applies-to is its
-                // own object type, and AttributeAppliesTo locks it via isNonTemplate.
+                // own object type, so there is no other resource to add or remove.
                 setAppliesTo(
                     field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE ?
                         ALL_RESOURCE_TYPES.filter((type) => Boolean(linkedByType[type])) :
@@ -569,6 +580,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 // a template with no Users child still gets the same defaults as
                 // create. A non-template user field is itself that Users field.
                 const userField = field.object_type === 'user' ? field : linkedByType.user;
+                setOwners(userField ? getFieldOwners(userField) : NO_OWNERS);
                 const rawVisibility = userField?.attrs?.visibility;
                 const loadedVisibility: FieldVisibility = rawVisibility === 'always' || rawVisibility === 'when_set' || rawVisibility === 'hidden' ? rawVisibility : 'when_set';
                 const loadedManaged: UserManagedValue = userField?.attrs?.managed === 'admin' ? 'admin' : '';
@@ -579,8 +591,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
                 // A non-template channel field is itself the channel field, so its
                 // row settings parse from it directly; a template seeds them from
-                // its linked channel child instead. Without this the locked Channels
-                // row would show the default config, misrepresenting the field.
+                // its linked channel child instead. Save writes every channel setting,
+                // so without this seed a rename would overwrite them with defaults.
                 const channelConfigSource = field.object_type === 'channel' ? field : linkedByType.channel;
                 if (channelConfigSource) {
                     setChannelResource(parseChannelFieldConfig(channelConfigSource));
@@ -688,13 +700,29 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         nameDescribedBy = 'attribute-save-error';
     }
 
-    // Plugin ownership wins over non-template: it disables the whole page,
+    // Plugin ownership wins over the post-field lock: it disables the whole page,
     // so it is the more specific reason to show.
     let appliesToLockedTooltip: string | undefined;
     if (isPluginOwned) {
         appliesToLockedTooltip = formatMessage(isOrphaned ? messages.appliesToLockedPluginOrphanedTooltip : messages.appliesToLockedPluginTooltip);
-    } else if (isNonTemplate) {
+    } else if (standaloneRowLocked) {
         appliesToLockedTooltip = formatMessage(messages.appliesToLockedSingleResourceTooltip);
+    }
+
+    const ownedLockedTooltip = isOwned ? formatMessage(messages.ownedLockedTooltip, {owners: ownersLabel}) : undefined;
+
+    // An uninstalled plugin can't manage the Users field, so once every owner is one,
+    // Remove unlocks, matching the Delete action in the attributes table.
+    const installedPluginIds = useInstalledPluginIds();
+    const ownersGone = pluginInventoryLoaded && allOwnersAreUninstalledPlugins(owners, installedPluginIds);
+    const userRemoveLocked = isOwned && !ownersGone;
+    const ownedRemoveLockedTooltip = userRemoveLocked ? ownedLockedTooltip : undefined;
+
+    let removeLockedTooltips: Partial<Record<ResourceObjectType, ReactNode>> | undefined;
+    if (isNonTemplate) {
+        removeLockedTooltips = {[objectType]: ownedRemoveLockedTooltip ?? formatMessage(messages.appliesToLockedSingleResourceTooltip)};
+    } else if (ownedRemoveLockedTooltip) {
+        removeLockedTooltips = {user: ownedRemoveLockedTooltip};
     }
 
     const markDirty = useCallback(() => {
@@ -927,7 +955,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // Type is locked outright; every other field keeps its menu but no longer
     // offers Hierarchical (see selectableTypes below).
     const typeLockedByGraph = isEditMode && originalFieldTypeRef.current === 'graph';
-    const typeLocked = hasExternalSource || typeLockedByAppliesTo || isPluginOwned || typeLockedByGraph;
+    const typeLocked = hasExternalSource || typeLockedByAppliesTo || isPluginOwned || isOwned || typeLockedByGraph;
     const serverFieldType = toServerFieldType(fieldType);
     const typeChanged = isEditMode && serverFieldType !== originalFieldTypeRef.current;
     const typeSupportsOptions = supportsOptions({type: serverFieldType});
@@ -939,7 +967,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // persisted snapshot, not appliesTo, so a pending local remove doesn't
     // unlock a rename the dependents wouldn't receive.
     const nameLockedByAppliesTo = isEditMode && Object.keys(persistedLinkedFieldsRef.current).length > 0;
-    const nameLocked = nameLockedByAppliesTo || isPluginOwned;
+    const nameLocked = nameLockedByAppliesTo || isPluginOwned || isOwned;
 
     // Defensive re-check, not the primary guard: both options editors already
     // block duplicate names and invalid/duplicate ranks interactively at
@@ -1065,6 +1093,13 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             // to that object type, skipping the template create-plus-link path
             // below entirely.
             if (objectType !== GLOBAL_ATTRIBUTES_OBJECT_TYPE) {
+                const userConfigChanged = userVisibility !== originalUserVisibilityRef.current || userManaged !== originalUserManagedRef.current;
+                if (objectType === 'user' && userConfigChanged) {
+                    patch.resourceAttrs = userConfigAttrs;
+                    patch.permissionValues = userConfigPermissionValues;
+                } else if (objectType === 'channel') {
+                    patch.resourceAttrs = buildChannelFieldPatch(channelResource).attrs;
+                }
                 try {
                     await updateAttributeField(objectType, fieldId, patch);
                 } catch (error) {
@@ -1081,7 +1116,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             }
 
             const persisted = persistedLinkedFieldsRef.current;
-            const toDelete = (Object.keys(persisted) as ResourceObjectType[]).filter((type) => !appliesTo.includes(type));
+            const toDelete = (Object.keys(persisted) as ResourceObjectType[]).filter((type) => !appliesTo.includes(type) && !(userRemoveLocked && type === 'user'));
             const toCreate = appliesTo.filter((type) => !persisted[type]);
 
             // Removing a resource deletes every value stored under its linked
@@ -1352,7 +1387,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         }
 
         finalizeSave(outcome);
-    }, [canSave, isEditMode, fieldId, objectType, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, channelResource, finalizeSave, confirmRemoveAppliesTo, userVisibility, userManaged]);
+    }, [canSave, isEditMode, fieldId, objectType, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, channelResource, finalizeSave, confirmRemoveAppliesTo, userVisibility, userManaged, userRemoveLocked]);
 
     const handleChannelResourceChange = useCallback((next: ChannelResourceConfig) => {
         setChannelResource(next);
@@ -1376,16 +1411,20 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // "(no longer installed)" copy the Managed-by panel shows one card up.
     // graph outranks externalSource/appliesTo because it is the only one of the
     // three the admin cannot undo: telling them to remove resources or unlink a
-    // source would promise an unlock that never arrives.
-    const typeLockReason = firstMatchingReason<'pluginOrphaned' | 'plugin' | 'graph' | 'externalSource' | 'appliesTo'>(
+    // source would promise an unlock that never arrives. owned outranks graph
+    // and the rest: an owned template always has a linked Users field, so a
+    // lower-ranked reason would blame "applies to a resource" instead of the
+    // integration that actually holds the attribute.
+    const typeLockReason = firstMatchingReason<'pluginOrphaned' | 'plugin' | 'owned' | 'graph' | 'externalSource' | 'appliesTo'>(
         ['pluginOrphaned', isPluginOwned && isOrphaned],
         ['plugin', isPluginOwned],
+        ['owned', isOwned],
         ['graph', typeLockedByGraph],
         ['externalSource', hasExternalSource],
         ['appliesTo', typeLockedByAppliesTo],
     );
-    const typeLockTooltip = formatMessage(TYPE_LOCK_MESSAGES[typeLockReason ?? 'appliesTo'].tooltip);
-    const typeButtonAriaLabel = typeLockReason ? formatMessage(TYPE_LOCK_MESSAGES[typeLockReason].ariaLabel, {value: formatMessage(getTypeLabel(fieldType))}) : formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(getTypeLabel(fieldType))});
+    const typeLockTooltip = formatMessage(TYPE_LOCK_MESSAGES[typeLockReason ?? 'appliesTo'].tooltip, {owners: ownersLabel});
+    const typeButtonAriaLabel = typeLockReason ? formatMessage(TYPE_LOCK_MESSAGES[typeLockReason].ariaLabel, {value: formatMessage(getTypeLabel(fieldType)), owners: ownersLabel}) : formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(getTypeLabel(fieldType))});
     const typeMenu = (
         <Menu.Container
             menuButton={{
@@ -1610,7 +1649,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                     onKeyDown={handleNameKeyDown}
                                                     onBlur={handleDoneClick}
                                                     autoFocus={true}
-                                                    disabled={saving || effectiveDisabled || nameLockedByAppliesTo}
+                                                    disabled={saving || effectiveDisabled || nameLocked}
                                                     maxLength={CPA_FIELD_NAME_MAX_RUNES}
                                                     aria-labelledby='attribute-unique-name-prefix'
                                                     aria-describedby={nameDescribedBy}
@@ -1631,12 +1670,13 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                 // and the tooltip below -- same priority reasoning as
                                                 // typeLockReason above, including preferring pluginOrphaned
                                                 // over plain "plugin" once the field is confirmed orphaned.
-                                                const nameLockReason = firstMatchingReason<'pluginOrphaned' | 'plugin' | 'appliesTo'>(
+                                                const nameLockReason = firstMatchingReason<'pluginOrphaned' | 'plugin' | 'owned' | 'appliesTo'>(
                                                     ['pluginOrphaned', isPluginOwned && isOrphaned],
                                                     ['plugin', isPluginOwned],
+                                                    ['owned', isOwned],
                                                     ['appliesTo', nameLockedByAppliesTo],
                                                 );
-                                                const nameEditLinkAriaLabel = nameLockReason ? formatMessage(NAME_LOCK_MESSAGES[nameLockReason].ariaLabel) : formatMessage(isEditingName ? messages.doneLinkAriaLabel : messages.editLinkAriaLabel);
+                                                const nameEditLinkAriaLabel = nameLockReason ? formatMessage(NAME_LOCK_MESSAGES[nameLockReason].ariaLabel, {owners: ownersLabel}) : formatMessage(isEditingName ? messages.doneLinkAriaLabel : messages.editLinkAriaLabel);
 
                                                 const editLinkButton = (
                                                     <button
@@ -1650,7 +1690,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                                 e.preventDefault();
                                                             }
                                                         }}
-                                                        disabled={saving || effectiveDisabled || nameLockedByAppliesTo}
+                                                        disabled={saving || effectiveDisabled || nameLocked}
                                                         aria-disabled={isDoneBlocked || undefined}
                                                         aria-describedby={isDoneBlocked ? 'attribute-unique-name-error' : undefined}
                                                         aria-label={nameEditLinkAriaLabel}
@@ -1660,7 +1700,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                     </button>
                                                 );
 
-                                                const nameLockTooltip = formatMessage(NAME_LOCK_MESSAGES[nameLockReason ?? 'appliesTo'].tooltip);
+                                                const nameLockTooltip = formatMessage(NAME_LOCK_MESSAGES[nameLockReason ?? 'appliesTo'].tooltip, {owners: ownersLabel});
                                                 return nameLocked ? (
                                                     <WithTooltip title={nameLockTooltip}>
                                                         <span
@@ -1753,16 +1793,24 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                             pluginInventoryLoaded={pluginInventoryLoaded}
                                         />
                                     ) : (
-                                        showsExternalSource && fieldType !== 'graph' && (
-                                            <AttributeExternalSource
-                                                ldapAttr={ldapAttr}
-                                                samlAttr={samlAttr}
-                                                fieldType={fieldType}
-                                                onLink={handleLink}
-                                                disabled={saving || effectiveDisabled}
-                                                disableAdding={typeLockedByAppliesTo}
-                                            />
-                                        )
+                                        <>
+                                            {isOwned && (
+                                                <AttributeOwnersSource
+                                                    owners={owners}
+                                                    pluginInventoryLoaded={pluginInventoryLoaded}
+                                                />
+                                            )}
+                                            {showsExternalSource && fieldType !== 'graph' && (
+                                                <AttributeExternalSource
+                                                    ldapAttr={ldapAttr}
+                                                    samlAttr={samlAttr}
+                                                    fieldType={fieldType}
+                                                    onLink={handleLink}
+                                                    disabled={saving || effectiveDisabled}
+                                                    disableAdding={typeLockedByAppliesTo}
+                                                />
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             </div>
@@ -1771,7 +1819,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     <AttributeAppliesTo
                         appliesTo={appliesTo}
                         allowedTypes={allowedResourceTypes}
-                        disabled={saving || effectiveDisabled || isNonTemplate}
+                        disabled={saving || effectiveDisabled || standaloneRowLocked}
                         hideAddResource={isPluginOwned || isNonTemplate}
                         blockedTypes={usersBlockedByNameConflict ? {user: formatMessage(nameConflictMessages.usersBlockedMenuLabel)} : undefined}
                         lockedTooltip={appliesToLockedTooltip}
@@ -1781,6 +1829,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         onUserVisibilityChange={handleUserVisibilityChange}
                         userManaged={userManaged}
                         onUserManagedChange={handleUserManagedChange}
+                        userWhoCanSetLockedTooltip={ownedLockedTooltip}
+                        removeLockedTooltips={removeLockedTooltips}
                         channelResource={channelResource}
                         onChannelResourceChange={handleChannelResourceChange}
                         ordered={fieldType === 'rank'}
@@ -1849,6 +1899,14 @@ const messages = defineMessages({
         id: 'admin.global_attributes.attribute_details.unique_name.locked_plugin_tooltip',
         defaultMessage: 'Name cannot be changed — this attribute is managed by a plugin.',
     },
+    nameLockedOwnedAriaLabel: {
+        id: 'admin.global_attributes.attribute_details.unique_name.locked_owned_aria_label',
+        defaultMessage: 'Edit unique name. Locked because this attribute is managed by {owners}.',
+    },
+    nameLockedOwnedTooltip: {
+        id: 'admin.global_attributes.attribute_details.unique_name.locked_owned_tooltip',
+        defaultMessage: 'Name cannot be changed — this attribute is managed by {owners}.',
+    },
     nameLockedPluginOrphanedAriaLabel: {
         id: 'admin.global_attributes.attribute_details.unique_name.locked_plugin_orphaned_aria_label',
         defaultMessage: "Edit unique name. Locked because this attribute was managed by a plugin that's no longer installed.",
@@ -1877,6 +1935,10 @@ const messages = defineMessages({
         id: 'admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label',
         defaultMessage: 'Type: {value}. Locked because this attribute is managed by a plugin.',
     },
+    typeFieldLockedOwnedAriaLabel: {
+        id: 'admin.global_attributes.attribute_details.type.field_locked_owned_aria_label',
+        defaultMessage: 'Type: {value}. Locked because this attribute is managed by {owners}.',
+    },
     typeFieldLockedPluginOrphanedAriaLabel: {
         id: 'admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label',
         defaultMessage: "Type: {value}. Locked because this attribute was managed by a plugin that's no longer installed.",
@@ -1896,6 +1958,10 @@ const messages = defineMessages({
     typeLockedPluginTooltip: {
         id: 'admin.global_attributes.attribute_details.type.locked_plugin_tooltip',
         defaultMessage: 'Type cannot be changed — this attribute is managed by a plugin.',
+    },
+    typeLockedOwnedTooltip: {
+        id: 'admin.global_attributes.attribute_details.type.locked_owned_tooltip',
+        defaultMessage: 'Type cannot be changed — this attribute is managed by {owners}.',
     },
     typeLockedPluginOrphanedTooltip: {
         id: 'admin.global_attributes.attribute_details.type.locked_plugin_orphaned_tooltip',
@@ -1917,6 +1983,10 @@ const messages = defineMessages({
         id: 'admin.global_attributes.attribute_details.applies_to.locked_single_resource_tooltip',
         defaultMessage: 'This resource cannot be changed — this attribute applies to only one resource.',
     },
+    ownedLockedTooltip: {
+        id: 'admin.global_attributes.attribute_details.applies_to.owned_locked_tooltip',
+        defaultMessage: 'This attribute is managed by {owners}.',
+    },
     optionsLabel: {id: 'admin.global_attributes.attribute_details.options.label', defaultMessage: 'Options'},
     optionsHelp: {
         id: 'admin.global_attributes.attribute_details.options.help',
@@ -1937,17 +2007,19 @@ const messages = defineMessages({
 // One reason derived once (see typeLockReason above), looked up here for both
 // the tooltip and the aria-label -- a new lock reason becomes one entry in
 // this map instead of a fourth branch across two separate if/else chains.
-const TYPE_LOCK_MESSAGES: Record<'pluginOrphaned' | 'plugin' | 'graph' | 'externalSource' | 'appliesTo', {tooltip: MessageDescriptor; ariaLabel: MessageDescriptor}> = {
+const TYPE_LOCK_MESSAGES: Record<'pluginOrphaned' | 'plugin' | 'owned' | 'graph' | 'externalSource' | 'appliesTo', {tooltip: MessageDescriptor; ariaLabel: MessageDescriptor}> = {
     pluginOrphaned: {tooltip: messages.typeLockedPluginOrphanedTooltip, ariaLabel: messages.typeFieldLockedPluginOrphanedAriaLabel},
     plugin: {tooltip: messages.typeLockedPluginTooltip, ariaLabel: messages.typeFieldLockedPluginAriaLabel},
+    owned: {tooltip: messages.typeLockedOwnedTooltip, ariaLabel: messages.typeFieldLockedOwnedAriaLabel},
     graph: {tooltip: messages.typeLockedGraphTooltip, ariaLabel: messages.typeFieldLockedGraphAriaLabel},
     externalSource: {tooltip: messages.typeLockedExternalSourceTooltip, ariaLabel: messages.typeFieldLockedAriaLabel},
     appliesTo: {tooltip: messages.typeLockedAppliesToTooltip, ariaLabel: messages.typeFieldLockedAppliesToAriaLabel},
 };
 
-const NAME_LOCK_MESSAGES: Record<'pluginOrphaned' | 'plugin' | 'appliesTo', {tooltip: MessageDescriptor; ariaLabel: MessageDescriptor}> = {
+const NAME_LOCK_MESSAGES: Record<'pluginOrphaned' | 'plugin' | 'owned' | 'appliesTo', {tooltip: MessageDescriptor; ariaLabel: MessageDescriptor}> = {
     pluginOrphaned: {tooltip: messages.nameLockedPluginOrphanedTooltip, ariaLabel: messages.nameLockedPluginOrphanedAriaLabel},
     plugin: {tooltip: messages.nameLockedPluginTooltip, ariaLabel: messages.nameLockedPluginAriaLabel},
+    owned: {tooltip: messages.nameLockedOwnedTooltip, ariaLabel: messages.nameLockedOwnedAriaLabel},
     appliesTo: {tooltip: messages.nameLockedAppliesToTooltip, ariaLabel: messages.nameLockedAppliesToAriaLabel},
 };
 
