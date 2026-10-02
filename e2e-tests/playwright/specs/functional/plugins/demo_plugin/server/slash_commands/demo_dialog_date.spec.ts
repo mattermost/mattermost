@@ -4,6 +4,12 @@
 import {duration, expect, test} from '@mattermost/playwright-lib';
 
 test('should open /dialog date and post submit confirmation after selecting dates', async ({pw}) => {
+    // A concurrent plugin_crash.spec.ts worker can leave the submit hook broken for up to
+    // ~50s while it crashes and fully recovers the shared demo plugin (see that spec for the
+    // recovery budget the retry below is sized against). test.slow() triples the test
+    // timeout so the retry has room to outlast that window.
+    test.slow();
+
     // # Setup
     const {user, team} = await pw.initSetup();
     await pw.ensureDemoPlugin();
@@ -66,8 +72,23 @@ test('should open /dialog date and post submit confirmation after selecting date
         .click();
     await channelsPage.page.getByRole('menuitem', {name: '3:00 PM'}).click();
 
-    // # Submit — button is labelled "Create Event"
-    await dialog.getByRole('button', {name: 'Create Event'}).click();
+    // # Submit — button is labelled "Create Event" (with retries if the plugin is
+    // transiently unavailable, e.g. during a concurrent plugin_crash.spec.ts recovery
+    // cycle, in which case the submit request can fail silently and the dialog never
+    // closes — re-clicking is safe since the filled-in fields are retained). 8 attempts
+    // gives ~80s of total budget, comfortably outlasting plugin_crash.spec.ts's worst-case
+    // ~50s recovery cycle.
+    for (let attempt = 0; attempt < 8; attempt++) {
+        await dialog.getByRole('button', {name: 'Create Event'}).click();
+        try {
+            await expect(dialog).not.toBeVisible({timeout: duration.ten_sec});
+            break;
+        } catch (err) {
+            if (attempt === 7) {
+                throw err;
+            }
+        }
+    }
 
     // * Verify the dialog closes and submit post appears in the channel
     await expect(dialog).not.toBeVisible();
