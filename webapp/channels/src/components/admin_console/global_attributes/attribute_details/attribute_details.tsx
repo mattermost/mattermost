@@ -1798,7 +1798,7 @@ const messages = defineMessages({
     typeLabel: {id: 'admin.global_attributes.attribute_details.type.label', defaultMessage: 'Type'},
     typeMenuAriaLabel: {id: 'admin.global_attributes.attribute_details.type.menu_label', defaultMessage: 'Select type'},
     typeFieldAriaLabel: {id: 'admin.global_attributes.attribute_details.type.field_aria_label', defaultMessage: 'Type: {value}'},
-    typeFieldLockedAriaLabel: {id: 'admin.global_attributes.attribute_details.type.field_locked_aria_label', defaultMessage: 'Type: {value}. Locked while linked to an external source.'},
+    typeFieldLockedAriaLabel: {id: 'admin.global_attributes.attribute_details.type.field_locked_external_source_aria_label', defaultMessage: 'Type: {value}. Locked while linked to an external source.'},
     typeFieldLockedAppliesToAriaLabel: {
         id: 'admin.global_attributes.attribute_details.type.field_locked_applies_to_aria_label',
         defaultMessage: 'Type: {value}. Locked while this attribute applies to a resource.',

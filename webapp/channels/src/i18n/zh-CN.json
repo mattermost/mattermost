@@ -1644,7 +1644,6 @@
   "admin.global_attributes.attribute_details.title": "新建属性",
   "admin.global_attributes.attribute_details.type.field_aria_label": "类型：{value}",
   "admin.global_attributes.attribute_details.type.field_locked_applies_to_aria_label": "类型：{value}。此属性应用于资源时锁定。",
-  "admin.global_attributes.attribute_details.type.field_locked_aria_label": "类型：文本。关联到外部源时锁定。",
   "admin.global_attributes.attribute_details.type.field_locked_graph_aria_label": "类型：{value}。已锁定，因为层级属性无法转换为其他类型。",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label": "类型：{value}。已锁定，因为此属性由插件管理。",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label": "类型：{value}。已锁定，因为此属性曾由一个已不再安装的插件管理。",

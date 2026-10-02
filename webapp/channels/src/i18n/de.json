@@ -1644,7 +1644,6 @@
   "admin.global_attributes.attribute_details.title": "Neues Attribut",
   "admin.global_attributes.attribute_details.type.field_aria_label": "Typ: {value}",
   "admin.global_attributes.attribute_details.type.field_locked_applies_to_aria_label": "Typ: {value}. Gesperrt, solange dieses Attribut für eine Ressource gilt.",
-  "admin.global_attributes.attribute_details.type.field_locked_aria_label": "Typ: Text. Gesperrt, solange eine Verknüpfung mit einer externen Quelle besteht.",
   "admin.global_attributes.attribute_details.type.field_locked_graph_aria_label": "Typ: {value}. Gesperrt, da ein hierarchisches Attribut nicht in einen anderen Typ umgewandelt werden kann.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label": "Typ: {value}. Gesperrt, da dieses Attribut von einem Plugin verwaltet wird.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label": "Typ: {value}. Gesperrt, da dieses Attribut von einem Plugin verwaltet wurde, das nicht mehr installiert ist.",

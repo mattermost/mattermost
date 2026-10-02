@@ -1644,7 +1644,6 @@
   "admin.global_attributes.attribute_details.title": "新しい属性",
   "admin.global_attributes.attribute_details.type.field_aria_label": "種類: {value}",
   "admin.global_attributes.attribute_details.type.field_locked_applies_to_aria_label": "種類: {value}。この属性がリソースに適用されている間はロックされます。",
-  "admin.global_attributes.attribute_details.type.field_locked_aria_label": "種類: テキスト。外部ソースとリンクしている間はロックされます。",
   "admin.global_attributes.attribute_details.type.field_locked_graph_aria_label": "種類: {value}。階層型の属性は他の種類に変換できないため、ロックされています。",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label": "種類: {value}。この属性はプラグインによって管理されているため、ロックされています。",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label": "種類: {value}。この属性は既にインストールされていないプラグインによって管理されていたため、ロックされています。",

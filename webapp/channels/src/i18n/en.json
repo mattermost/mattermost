@@ -6599,7 +6599,7 @@
     "defaultMessage": "Type: {value}. Locked while this attribute applies to a resource.",
     "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes while the attribute applies to a resource. {value} is the current type."
   },
-  "admin.global_attributes.attribute_details.type.field_locked_aria_label": {
+  "admin.global_attributes.attribute_details.type.field_locked_external_source_aria_label": {
     "defaultMessage": "Type: {value}. Locked while linked to an external source.",
     "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes while the attribute is linked to AD/LDAP or SAML. {value} is the current type."
   },

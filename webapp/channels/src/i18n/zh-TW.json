@@ -1642,7 +1642,6 @@
   "admin.global_attributes.attribute_details.title": "新增屬性",
   "admin.global_attributes.attribute_details.type.field_aria_label": "類型：{value}",
   "admin.global_attributes.attribute_details.type.field_locked_applies_to_aria_label": "類型：{value}。此屬性套用於資源時會鎖定。",
-  "admin.global_attributes.attribute_details.type.field_locked_aria_label": "類型：文字。連結至外部來源時會鎖定。",
   "admin.global_attributes.attribute_details.type.field_locked_graph_aria_label": "類型：{value}。已鎖定，因為階層式屬性無法轉換為其他類型。",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label": "類型：{value}。已鎖定，因為此屬性由擴充程式管理。",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label": "類型：{value}。已鎖定，因為此屬性原由一個已不再安裝的擴充程式管理。",

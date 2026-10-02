@@ -1644,7 +1644,6 @@
   "admin.global_attributes.attribute_details.title": "Yeni öznitelik",
   "admin.global_attributes.attribute_details.type.field_aria_label": "Tür: {value}",
   "admin.global_attributes.attribute_details.type.field_locked_applies_to_aria_label": "Tür: {value}. Bu öznitelik bir kaynağa uygulanırken kilitlidir.",
-  "admin.global_attributes.attribute_details.type.field_locked_aria_label": "Tür: Yazı. Bir dış kaynak ile bağlıyken kilitlidir.",
   "admin.global_attributes.attribute_details.type.field_locked_graph_aria_label": "Tür: {value}. Hiyerarşik bir öznitelik başka bir türe dönüştürülemediğinden kilitlidir.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label": "Tür: {value}. Bu öznitelik bir uygulama eki tarafından yönetildiğinden kilitlidir.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label": "Tür: {value}. Bu öznitelik artık kurulu olmayan bir uygulama eki tarafından yönetildiğinden kilitlidir.",
