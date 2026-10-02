@@ -3882,7 +3882,7 @@
   "admin.system_users.date_range_selector.date_range.sublabel": "{startDate} - {endDate}",
   "admin.system_users.date_range_selector.dropdownAriaLabel": "Menu for datointerval",
   "admin.system_users.date_range_selector.label": "Varighed",
-  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Åbn menu for at vælge kolonner, der skal vises",
+  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Åbn menu for at vælge et datointerval",
   "admin.system_users.date_range_selector.trailing_message": "Bemærk: Dette filter påvirker kun værdier i kolonnerne <strong>Sidste opslag, Aktive dage og Sendte beskeder</strong>.",
   "admin.system_users.exportButton": "Eksporter",
   "admin.system_users.exportButton.notLicensed.hint": "Denne funktion er tilgængelig i Professional-planen",

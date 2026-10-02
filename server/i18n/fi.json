@@ -6944,7 +6944,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Etäpalvelimen kutsua kanavalle ei voitu perua"
+    "translation": "Etäpalvelimen kutsua kanavalle ei voitu perua."
   },
   {
     "id": "api.system.id_loaded.not_available.app_error",
@@ -14593,5 +14593,13 @@
   {
     "id": "web.incoming_webhook.parse_multipart.app_error",
     "translation": "Moniosaisen lomakkeen jäsennys epäonnistui webhookille {{.hook_id}}."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**EI LÖYTYNYT**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "poistettu"
   }
 ]
