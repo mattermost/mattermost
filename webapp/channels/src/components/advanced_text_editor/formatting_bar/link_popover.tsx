@@ -28,7 +28,7 @@ const PopoverContainer = styled.div`
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     display: flex;
     flex-direction: column;
-    z-index: 101;
+    z-index: var(--z-index-popover);
 `;
 
 const Row = styled.div`
@@ -240,6 +240,7 @@ const LinkPopover = ({editor, onClose}: LinkPopoverProps) => {
                 onKeyDown={handleKeyDown}
                 onMouseDown={(e) => e.stopPropagation()}
                 {...getFloatingProps()}
+                className='link-popover'
             >
                 <Row>
                     <RowIcon>

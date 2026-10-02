@@ -1588,6 +1588,26 @@ export default class PluginRegistry {
     });
 
     /**
+     * The connected thread view the right-hand sidebar mounts under its header: the root post,
+     * its replies, and the reply composer. The sidebar header (follow, close, pop out) is not
+     * included.
+     *
+     * The root post must already be in the posts store. `rootPostId` selects the thread.
+     * `useRelativeTimestamp` and `isThreadView` are the same props the sidebar passes (`true`
+     * and `false`).
+     */
+    getThreadViewer = (): React.ComponentType<{
+        rootPostId: string;
+        useRelativeTimestamp?: boolean;
+        isThreadView?: boolean;
+        inputPlaceholder?: string;
+    }> => {
+        // Required lazily so loading the registry does not pull in the thread view's redux graph.
+        // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require
+        return require('components/threading/thread_viewer').default;
+    };
+
+    /**
      * Register a React component rendered in the header of every post, after the timestamp and
      * alongside any other registered post-header components. The component receives the post as a
      * prop and should return null for posts it has nothing to show for (e.g., read its own
