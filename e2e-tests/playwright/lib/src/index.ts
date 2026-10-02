@@ -65,7 +65,14 @@ export {
     getPluginStatus,
     isPluginActive,
 } from './server';
-export type {EnsureDemoPluginOptions, InbucketEmail, LdapUser, KeycloakUser, MmctlResult, UpgradeLogPhase} from './server';
+export type {
+    EnsureDemoPluginOptions,
+    InbucketEmail,
+    LdapUser,
+    KeycloakUser,
+    MmctlResult,
+    UpgradeLogPhase,
+} from './server';
 
 export {startStack, stopStack} from './containers';
 

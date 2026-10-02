@@ -57,8 +57,7 @@ export async function getPluginStatus(
 
 async function getInstalledPluginVersion(client: Client4, pluginId: string): Promise<string | undefined> {
     const plugins = await client.getPlugins();
-    return [...plugins.active, ...plugins.inactive].find((plugin: PluginManifest) => plugin.id === pluginId)
-        ?.version;
+    return [...plugins.active, ...plugins.inactive].find((plugin: PluginManifest) => plugin.id === pluginId)?.version;
 }
 
 /**
@@ -136,7 +135,9 @@ export async function ensureDemoPlugin(options: EnsureDemoPluginOptions = {}): P
     const {adminClient} = await getAdminClient();
 
     const status = await getPluginStatus(adminClient, demoPluginId);
-    const installedVersion = status.isInstalled ? await getInstalledPluginVersion(adminClient, demoPluginId) : undefined;
+    const installedVersion = status.isInstalled
+        ? await getInstalledPluginVersion(adminClient, demoPluginId)
+        : undefined;
     const isStale = status.isInstalled && installedVersion !== demoPluginVersion;
 
     // Already installed at the right version, and either activation isn't requested or it's

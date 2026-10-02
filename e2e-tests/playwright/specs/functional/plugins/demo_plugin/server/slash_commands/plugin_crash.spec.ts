@@ -42,9 +42,7 @@ test('should crash plugin via /crash command and verify recovery', async ({pw}) 
     // specs in this worker don't inherit a partially-recovered plugin.
     await adminClient.disablePlugin(demoPluginId);
     await adminClient.enablePlugin(demoPluginId);
-    await expect
-        .poll(() => pw.isPluginActive(adminClient, demoPluginId), {timeout: duration.half_min})
-        .toBe(true);
+    await expect.poll(() => pw.isPluginActive(adminClient, demoPluginId), {timeout: duration.half_min}).toBe(true);
 
     // * Verify recovery by using /demo_plugin command
     await channelsPage.centerView.postCreate.selectSlashCommandFromAutocomplete('/demo', '/demo_plugin');
