@@ -15,7 +15,10 @@ import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {getRandomId, newTestPassword} from '@mattermost/playwright-lib';
 
 import type {CustomProfileAttribute} from '../../channels/custom_profile_attributes/helpers';
-import {patchCpaField, setupCustomProfileAttributeValuesForUser} from '../../channels/custom_profile_attributes/helpers';
+import {
+    patchCpaField,
+    setupCustomProfileAttributeValuesForUser,
+} from '../../channels/custom_profile_attributes/helpers';
 
 /**
  * Verify policy exists with better waiting and retry logic

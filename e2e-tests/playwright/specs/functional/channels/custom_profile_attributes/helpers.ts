@@ -336,7 +336,12 @@ export async function patchCpaField(
         if ((error as ApiError)?.server_error_id !== CPA_LINKED_FIELD_ERROR_ID) {
             throw error;
         }
-        return (await client.patchPropertyField('access_control', 'user', fieldId, patch as Record<string, unknown>)) as unknown as UserPropertyField;
+        return (await client.patchPropertyField(
+            'access_control',
+            'user',
+            fieldId,
+            patch as Record<string, unknown>,
+        )) as unknown as UserPropertyField;
     }
 }
 
