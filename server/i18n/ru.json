@@ -1224,15 +1224,15 @@
     "translation": "Ошибка получения токена из БД перед удалением."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Регистрация пользователя отключена."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Ссылка для регистрации устарела."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Ссылка для регистрации, похоже, неверна."
   },
   {
@@ -3092,11 +3092,11 @@
     "translation": "Не удалось установить статус задания на ошибку"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Невозможно разобрать URL."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Невозможно получить каналы."
   },
   {
@@ -7964,7 +7964,7 @@
     "translation": "Не удалось расшифровать полный запрос на подключение."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Предварительно упакованная версия плагина не может быть проанализирована."
   },
   {
@@ -8248,7 +8248,7 @@
     "translation": "Неверный идентификатор сообщения."
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Невозможно получить приоритет для сообщения"
   },
   {
@@ -12111,7 +12111,7 @@
     "translation": "Не удалось окончательно удалить данные приоритета сообщения из базы данных."
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Невозможно получить приоритет для сообщения с контекстом"
   },
   {

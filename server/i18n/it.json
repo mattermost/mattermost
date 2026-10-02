@@ -1220,15 +1220,15 @@
     "translation": "Errore nel recupero del token di accesso dal DB prima della cancellazione."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Iscrizione utenti disabilitata."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Il collegamento per l'iscrizione è scaduto."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Il collegamento per l'iscrizione non sembra essere valido."
   },
   {
@@ -3028,11 +3028,11 @@
     "translation": "Impossibile impostare lo stato del lavoro in errore"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Impossibile analizzare l'URL."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Impossibile recuperare canali."
   },
   {
@@ -9949,11 +9949,11 @@
     "translation": "Impossibile eliminare la pubblicazione con notifica persistente"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Impossibile ottenere la priorità della pubblicazione"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Impossibile ottenere la priorità della pubblicazione con il contesto"
   },
   {
@@ -13863,7 +13863,7 @@
     "translation": "Errore durante la ricerca delle pubblicazioni"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Impossibile analizzare la versione del plugin preinstallato."
   },
   {

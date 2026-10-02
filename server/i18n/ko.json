@@ -1242,15 +1242,15 @@
     "translation": "삭제하기 전에 DB에서 엑세스 토큰을 받을 수 없습니다."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "사용자 가입이 비활성화 되어있습니다."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "가입 링크가 만료되었습니다."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "유효하지 않은 가입 링크입니다."
   },
   {
@@ -3118,11 +3118,11 @@
     "translation": "Failed to set job status to error"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "URL을 파싱할 수 없습니다."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "채널을 불러올 수 없습니다."
   },
   {
@@ -9102,7 +9102,7 @@
     "translation": "영구 알림 게시물을 삭제하지 못했습니다."
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "게시물에 대한 포스트 우선 순위를 받을 수 없습니다."
   },
   {
@@ -9110,7 +9110,7 @@
     "translation": "안녕하세요, @{{.Username}}한테 받은 메시지에 대한 알림입니다: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "사전 패키징된 플러그인 버전을 구문 분석할 수 없습니다."
   },
   {
@@ -12406,7 +12406,7 @@
     "translation": "데이터베이스에서 게시물의 우선순위 데이터를 영구 삭제하지 못했습니다."
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "컨텍스트를 사용하여 게시물의 우선순위를 가져올 수 없습니다"
   },
   {

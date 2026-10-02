@@ -1236,15 +1236,15 @@
     "translation": "Eroare la obţinerea accesului token din DB înainte de ştergere."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Înregistrare utilizator este dezactivat."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Link-ul de înscriere a expirat."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Linkul de înscriere nu pare să fie valabil."
   },
   {
@@ -3060,11 +3060,11 @@
     "translation": "Nu s-a putut seta starea lucrării la eroare"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Imposibil de analizat URL."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Imposibil de obținut canale."
   },
   {
@@ -11224,11 +11224,11 @@
     "translation": "Nu s-a putut șterge postarea cu notificare persistentă"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Nu s-a putut obține prioritatea pentru postare"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Nu s-a putut obține prioritatea pentru postare cu context"
   },
   {
@@ -11236,7 +11236,7 @@
     "translation": "Bună, iată mementoul dvs. despre acest mesaj de la @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Versiunea pluginului preambalat nu a putut fi analizată."
   },
   {

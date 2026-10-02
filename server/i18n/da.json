@@ -2953,15 +2953,15 @@
     "translation": "Fejl ved hentning af adgangstoken fra DB inden sletning."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Bruger-tilmelding er deaktiveret."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Tilmeldingslinket er udløbet."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Tilmeldingslinket ser ikke ud til at være gyldigt."
   },
   {
@@ -8029,11 +8029,11 @@
     "translation": "Kunne ikke slette indlæg med vedvarende notifikation"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Kunne ikke hente indlægsprioritet for indlæg"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Kunne ikke hente indlægsprioritet for indlæg med kontekst"
   },
   {
@@ -8065,7 +8065,7 @@
     "translation": "Der opstod en fejl ved opdatering af præferencer."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Versionen af den forudpakkede plugin kunne ikke behandles."
   },
   {
@@ -10463,11 +10463,11 @@
     "translation": "Funktionen {{.Feature}} er ikke tilgængelig for den aktuelle licens"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Kan ikke analysere URL."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Kunne ikke hente kanaler."
   },
   {

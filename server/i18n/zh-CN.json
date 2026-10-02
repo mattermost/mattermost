@@ -1242,15 +1242,15 @@
     "translation": "删除前从数据库获取访问令牌遇到错误。"
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "用户注册已停用。"
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "注册链接已过期。"
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "注册链接无效。"
   },
   {
@@ -3122,11 +3122,11 @@
     "translation": "设置任务状态为错误失败"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "无法解析 URL。"
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "无法获得频道。"
   },
   {
@@ -7986,7 +7986,7 @@
     "translation": "无法完整的解码该导引请求。"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "无法解析该插件包。"
   },
   {
@@ -8294,7 +8294,7 @@
     "translation": "无法获取用户的奖章数目。"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "无法取得消息的优先级"
   },
   {
@@ -11962,7 +11962,7 @@
     "translation": "无法获取该视图的消息。"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "无法获取带上下文消息的优先级。"
   },
   {
