@@ -745,6 +745,25 @@ describe('SystemUserDetail', () => {
             expect(input).toBeDisabled();
         });
 
+        test('should show an OpenID Connect chip and lock the input for an OpenID Connect-synced CPA field', async () => {
+            const cpaField = buildCPAField({openid: 'org.department'});
+            const props = {
+                ...defaultProps,
+                customProfileAttributeFields: [cpaField],
+                getCustomProfileAttributeFields: jest.fn().mockResolvedValue({data: [cpaField]}),
+            };
+
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForLoadingToFinish();
+
+            expect(screen.getByTestId('user-detail-cpa-field__openid-department')).toHaveTextContent('OpenID Connect: org.department');
+            expect(screen.getByText('Synced with:')).toBeInTheDocument();
+
+            const input = screen.getByTestId('user-detail-custom-attribute-label-cpa-1').querySelector('input');
+            expect(input).toBeDisabled();
+        });
+
         test('should render a graph field\'s stored option ids as names', async () => {
             const graphField = {
                 ...buildCPAField({
@@ -1121,6 +1140,28 @@ describe('SystemUserDetail', () => {
                 expect(mockPageAll).not.toHaveBeenCalled();
             });
 
+            test('a synced multiselect shows its values without remove buttons', async () => {
+                const options = [{id: 'opt-1', name: 'Alpha'}, {id: 'opt-2', name: 'Beta'}];
+                renderDetail(
+                    {...buildCPAField({options, openid: 'clearances'}), type: 'multiselect'} as UserPropertyField,
+                    ['opt-1'],
+                );
+
+                await waitForLoadingToFinish();
+
+                expect(fieldContainer()).toHaveTextContent('Alpha');
+                expect(screen.queryByRole('button', {name: 'Remove Alpha'})).toBeNull();
+            });
+
+            test('an editable multiselect keeps its remove buttons', async () => {
+                const options = [{id: 'opt-1', name: 'Alpha'}, {id: 'opt-2', name: 'Beta'}];
+                renderDetail({...buildCPAField({options}), type: 'multiselect'} as UserPropertyField, ['opt-1']);
+
+                await waitForLoadingToFinish();
+
+                expect(screen.getByRole('button', {name: 'Remove Alpha'})).toBeInTheDocument();
+            });
+
             test('G17: opens the menu when the field label is clicked', async () => {
                 // The field name is a <label htmlFor> pointing at the trigger,
                 // with a click forwarder because the Menu trigger is a div
@@ -1371,6 +1412,11 @@ describe('getUserAuthenticationTextField', () => {
     it('should return auth service in title case if it is not LDAP or SAML', () => {
         const result = getUserAuthenticationTextField(intl, true, {auth_service: 'oauth', mfa_active: false} as UserProfile);
         expect(result).toEqual('Oauth');
+    });
+
+    it('should name OpenID Connect and GitLab as their products', () => {
+        expect(getUserAuthenticationTextField(intl, false, {auth_service: 'openid', mfa_active: false} as UserProfile)).toEqual('OpenID Connect');
+        expect(getUserAuthenticationTextField(intl, false, {auth_service: 'gitlab', mfa_active: false} as UserProfile)).toEqual('GitLab');
     });
 
     it('should include MFA if user has MFA enabled', () => {

@@ -1080,6 +1080,16 @@ describe('GlobalAttributesTable', () => {
             expect(cell.querySelector('svg')).toBeInTheDocument();
         });
 
+        it('shows OpenID Connect when attrs.openid is set', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeField({attrs: {openid: 'address.country'}})]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            const cell = await screen.findByTestId('global-attribute-source');
+            expect(cell).toHaveTextContent('OpenID Connect');
+            expect(cell.querySelector('svg')).toBeInTheDocument();
+        });
+
         it('falls back to "Managed here" (no icon) when no source signal is present', async () => {
             getPropertyFields.mockResolvedValueOnce([makeField({attrs: {}})]).mockResolvedValue([]);
 
@@ -1092,9 +1102,7 @@ describe('GlobalAttributesTable', () => {
 
         it.each([
             ['plugin', PowerPlugOutlineIcon],
-            ['ldap_and_saml', SyncIcon],
-            ['ldap', SyncIcon],
-            ['saml', SyncIcon],
+            ['external', SyncIcon],
         ])('maps the %s source kind to the expected icon component', (kind, icon) => {
             expect(getSourceIcon(kind as ReturnType<typeof getSourceKind>)).toBe(icon);
         });
@@ -1730,10 +1738,12 @@ describe('getSourceKind', () => {
         expect(getSourceKind(makeField({attrs: {source_plugin_id: 'p', protected: true, ldap: 'x', saml: 'y'}}))).toBe('plugin');
     });
 
-    it('follows the ticket order: plugin, then both, then ldap, then saml, then managed', () => {
-        expect(getSourceKind(makeField({attrs: {ldap: 'x', saml: 'y'}}))).toBe('ldap_and_saml');
-        expect(getSourceKind(makeField({attrs: {ldap: 'x'}}))).toBe('ldap');
-        expect(getSourceKind(makeField({attrs: {saml: 'y'}}))).toBe('saml');
+    it('follows the ticket order: plugin, then any identity source, then managed', () => {
+        expect(getSourceKind(makeField({attrs: {ldap: 'x', saml: 'y'}}))).toBe('external');
+        expect(getSourceKind(makeField({attrs: {ldap: 'x'}}))).toBe('external');
+        expect(getSourceKind(makeField({attrs: {saml: 'y'}}))).toBe('external');
+        expect(getSourceKind(makeField({attrs: {openid: 'z'}}))).toBe('external');
+        expect(getSourceKind(makeField({attrs: {ldap: ''}}))).toBe('managed');
         expect(getSourceKind(makeField({attrs: {}}))).toBe('managed');
     });
 });

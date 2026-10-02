@@ -7,6 +7,8 @@ import {Client4} from 'mattermost-redux/client';
 
 import {ALL_RESOURCE_TYPES} from './attribute_details/attribute_applies_to_constants';
 import type {ResourceObjectType} from './attribute_details/attribute_applies_to_constants';
+import {ALL_EXTERNAL_SOURCES} from './attribute_details/external_source';
+import type {ExternalSourceLinks} from './attribute_details/external_source';
 import type {AttributeFieldType, AttributeTypeId} from './attribute_type';
 import {toServerFieldType, toValueType} from './attribute_type';
 import {GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
@@ -181,15 +183,15 @@ export function linkedFieldsByResourceType(fields: PropertyField[]): Partial<Rec
 // ObjectType=system fields, not ObjectType=template ones.
 //
 // `links` is a trailing optional parameter (not folded into the existing 4
-// positional args) so the two new same-typed strings can't be swapped with
-// each other or with displayName/name, and every existing call site keeps
+// positional args), keyed by source so its same-typed strings can't be swapped
+// with each other or with displayName/name, and every existing call site keeps
 // compiling unchanged.
 export function createAttributeField(
     displayName: string,
     name: string,
     typeId: AttributeTypeId,
     options: PropertyFieldOption[],
-    links?: {ldapAttr?: string; samlAttr?: string},
+    links?: Partial<ExternalSourceLinks>,
 ): Promise<PropertyField> {
     const fieldType = toServerFieldType(typeId);
     const valueType = toValueType(typeId);
@@ -203,8 +205,7 @@ export function createAttributeField(
             display_name: displayName.trim() || undefined,
             ...(optionsAttr ? {options: optionsAttr} : {}),
             ...(valueType ? {value_type: valueType} : {}),
-            ...(links?.ldapAttr ? {ldap: links.ldapAttr} : {}),
-            ...(links?.samlAttr ? {saml: links.samlAttr} : {}),
+            ...Object.fromEntries(ALL_EXTERNAL_SOURCES.filter((source) => links?.[source]).map((source) => [source, links?.[source]])),
         },
     });
 }
@@ -218,12 +219,11 @@ export type UpdateAttributeFieldPatch = {
     // attribute synced from an identity source belong to its sync, which may
     // have added some since this editor loaded them.
     options?: PropertyFieldOption[];
-    ldapAttr: string;
-    samlAttr: string;
+    externalLinks: ExternalSourceLinks;
 };
 
-// Attrs are merge-patched (mergeAttrs=true on the server): ldap/saml send
-// null to unlink, Text sends options: null so a leftover options array is
+// Attrs are merge-patched (mergeAttrs=true on the server): each sync source
+// (ldap, saml, openid) sends null to unlink, Text sends options: null so a leftover options array is
 // dropped, and value_type sends null so a leftover phone/url/email subtype
 // is dropped when switching away. name is omitted when unchanged so the
 // server skips uniqueness re-validation, and options when the patch carries
@@ -241,8 +241,7 @@ export function updateAttributeField(
         attrs: {
             display_name: patch.displayName.trim() || undefined,
             ...(patch.options === undefined ? {} : {options: buildPatchOptionsAttr(fieldType, patch.options)}),
-            ldap: patch.ldapAttr || null,
-            saml: patch.samlAttr || null,
+            ...Object.fromEntries(ALL_EXTERNAL_SOURCES.map((source) => [source, patch.externalLinks[source] || null])),
             value_type: valueType || null,
         },
     });

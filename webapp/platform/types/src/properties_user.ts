@@ -69,6 +69,10 @@ export type UserPropertyField = PropertyField & {
         options_count?: number;
         ldap?: string;
         saml?: string;
+
+        // The OpenID Connect claim the value is synced from: a top-level claim
+        // name, or a dot path into nested claims (address.country).
+        openid?: string;
         managed?: string;
         protected?: boolean;
         source_plugin_id?: string;

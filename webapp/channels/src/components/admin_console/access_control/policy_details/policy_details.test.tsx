@@ -361,7 +361,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         // The mode-toggle button is disabled while no usable attributes are
         // available, so the test needs at least one to actually exercise the
         // Simple → Advanced → Simple round-trip.
-        mockGetAccessControlFields.mockResolvedValue({data: [{name: 'program', attrs: {ldap: true}}]});
+        mockGetAccessControlFields.mockResolvedValue({data: [{name: 'program', attrs: {ldap: 'program'}}]});
 
         const props = {
             ...defaultProps,
@@ -560,7 +560,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         const renderWithLoadedExpression = (expression: string, attributeName: string) => {
             // A single usable (LDAP-synced) attribute clears the no-usable-attributes
             // gate so the toggle reflects the expression, not the attributes state.
-            mockGetAccessControlFields.mockResolvedValue({data: [{name: attributeName, attrs: {ldap: true}}]});
+            mockGetAccessControlFields.mockResolvedValue({data: [{name: attributeName, attrs: {ldap: 'program'}}]});
             const props = {
                 ...defaultProps,
                 actions: {
