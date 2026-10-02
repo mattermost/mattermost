@@ -37,7 +37,7 @@ test.describe('Channel attribute banner settings', {tag: ['@channel_attributes']
      */
     test('locks the colour to classification only while its token is in the banner', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -109,7 +109,7 @@ test.describe('Channel attribute banner settings', {tag: ['@channel_attributes']
      */
     test('keeps a deliberately emptied banner empty when it is switched back on', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -168,7 +168,7 @@ test.describe('Channel attribute banner settings', {tag: ['@channel_attributes']
      */
     test('offers to save an edit made after a previous save', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -225,7 +225,7 @@ test.describe('Channel attribute banner settings', {tag: ['@channel_attributes']
      */
     test('hides an attribute-driven banner once it is switched off', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();

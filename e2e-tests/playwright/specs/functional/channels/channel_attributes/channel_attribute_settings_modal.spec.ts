@@ -46,7 +46,7 @@ test.describe('Channel attribute editing in Channel Settings', {tag: ['@channel_
      */
     test('stages an attribute edit and writes it only when Save is clicked', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -110,7 +110,7 @@ test.describe('Channel attribute editing in Channel Settings', {tag: ['@channel_
      */
     test('Reset discards a staged attribute edit without writing it', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();
