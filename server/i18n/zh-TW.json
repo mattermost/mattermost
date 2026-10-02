@@ -5967,7 +5967,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "無法取得提供的策略當中的頻道。"
+    "translation": "無法取得提供的策略當中的團隊。"
   },
   {
     "id": "model.upload_session.is_valid.type.app_error",
@@ -9395,7 +9395,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "無法取消遠端加入頻道邀請"
+    "translation": "無法取消遠端加入頻道的邀請。"
   },
   {
     "id": "app.channel.bookmark.get_existing.app_err",
@@ -14568,5 +14568,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys 無效：超過 {{.MaxCount}} 個關鍵字或 {{.MaxLength}} 位元組的上限。"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**找不到**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "已移除"
   }
 ]

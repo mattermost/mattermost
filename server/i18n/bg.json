@@ -3301,7 +3301,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Каналите за предоставената схема не могат да се получат."
+    "translation": "Екипите за предоставената схема не могат да се получат."
   },
   {
     "id": "app.team.get_by_name.missing.app_error",
@@ -9008,7 +9008,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Поканата на отдалечения сървър за канала не можа да бъде оттеглена"
+    "translation": "Поканата на отдалечения сървър за канала не можа да бъде оттеглена."
   },
   {
     "id": "api.system.logs.download_bytes_buffer.app_error",
@@ -14577,5 +14577,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Невалидни mention_keys: превишено е ограничението от {{.MaxCount}} ключа или {{.MaxLength}} байта."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**НЕ Е НАМЕРЕНА**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "е премахната"
   }
 ]

@@ -6032,7 +6032,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Konnte Kanäle für das angegebene Schema nicht abrufen."
+    "translation": "Konnte Teams für das angegebene Schema nicht abrufen."
   },
   {
     "id": "app.team.clear_all_custom_role_assignments.select.app_error",
@@ -9503,7 +9503,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Die Gegenseite konnte nicht vom Kanal ausgeladen werden"
+    "translation": "Die Gegenseite konnte nicht vom Kanal ausgeladen werden."
   },
   {
     "id": "app.import.import_direct_channel.get_channel_members.error",
@@ -14580,5 +14580,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Ungültige mention_keys: überschreitet die Grenze von {{.MaxCount}} Schlüsseln oder {{.MaxLength}} Bytes."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NICHT GEFUNDEN**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "gelöscht"
   }
 ]

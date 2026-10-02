@@ -3870,7 +3870,7 @@
   "admin.system_users.date_range_selector.date_range.sublabel": "{startDate} - {endDate}",
   "admin.system_users.date_range_selector.dropdownAriaLabel": "Menü Datumsbereich",
   "admin.system_users.date_range_selector.label": "Dauer",
-  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Menü öffnen, um Spalten für die Anzeige auszuwählen",
+  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Menü öffnen, um einen Datumsbereich auszuwählen",
   "admin.system_users.date_range_selector.trailing_message": "Hinweis: Dieser Filter wirkt sich nur auf die Werte in den Spalten <strong>Zuletzt gepostet, Tage aktiv und Nachrichten gepostet</strong> aus.",
   "admin.system_users.exportButton": "Exportieren",
   "admin.system_users.exportButton.notLicensed.hint": "Diese Funktion ist im Professional-Plan verfügbar",

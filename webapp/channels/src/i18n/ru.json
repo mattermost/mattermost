@@ -3870,7 +3870,7 @@
   "admin.system_users.date_range_selector.date_range.sublabel": "{startDate} - {endDate}",
   "admin.system_users.date_range_selector.dropdownAriaLabel": "Меню диапазона дат",
   "admin.system_users.date_range_selector.label": "Продолжительность",
-  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Откройте меню, чтобы выбрать колонки для отображения",
+  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Откройте меню, чтобы выбрать диапазон дат",
   "admin.system_users.date_range_selector.trailing_message": "Примечание: Этот фильтр повлияет только на значения в столбцах <strong>Last Post, Days Active и Messages Posted</strong>.",
   "admin.system_users.exportButton": "Экспорт",
   "admin.system_users.exportButton.notLicensed.hint": "Эта функция доступна в тарифном плане Professional",

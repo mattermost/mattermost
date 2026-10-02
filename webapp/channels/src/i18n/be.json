@@ -3882,7 +3882,7 @@
   "admin.system_users.date_range_selector.date_range.sublabel": "{startDate} - {endDate}",
   "admin.system_users.date_range_selector.dropdownAriaLabel": "Меню дыяпазону дат",
   "admin.system_users.date_range_selector.label": "Працягласць",
-  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Адкрыйце меню, каб выбраць слупкі для адлюстравання",
+  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Адкрыйце меню, каб выбраць дыяпазон дат",
   "admin.system_users.date_range_selector.trailing_message": "Заўвага: гэты фільтр уплывае толькі на значэнні ў слупках <strong>Апошняе паведамленне, Дзён актыўнасці і Апублікавана паведамленняў</strong>.",
   "admin.system_users.exportButton": "Экспарт",
   "admin.system_users.exportButton.notLicensed.hint": "Гэтая функцыя даступна ў прафесійным плане",

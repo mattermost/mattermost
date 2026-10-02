@@ -3157,7 +3157,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Немагчыма атрымаць каналы для зададзенай схемы."
+    "translation": "Немагчыма атрымаць каманды для зададзенай схемы."
   },
   {
     "id": "app.team.get_by_name.missing.app_error",
@@ -9522,7 +9522,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Не атрымалася адмяніць запрашэнне аддаленага доступу да канала."
+    "translation": "Не атрымалася адклікаць запрашэнне аддаленага сервера ў канал."
   },
   {
     "id": "app.import.import_direct_channel.get_channel_members.error",
@@ -14611,5 +14611,13 @@
   {
     "id": "web.error.unsupported_desktop_app.title",
     "translation": "Патрабуецца абнаўленне"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**НЕ ЗНОЙДЗЕНА**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "выдалена"
   }
 ]

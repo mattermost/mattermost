@@ -6063,7 +6063,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "제공된 스키마에 부합하는 채널을 가져올 수 없습니다."
+    "translation": "제공된 스키마에 부합하는 팀을 가져올 수 없습니다."
   },
   {
     "id": "app.team.get_by_name.missing.app_error",
@@ -7983,7 +7983,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "채널에 원격 초대를 취소할 수 없습니다."
+    "translation": "채널에서 원격 서버의 초대를 취소할 수 없습니다."
   },
   {
     "id": "api.system.logs.download_bytes_buffer.app_error",
@@ -14568,5 +14568,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "잘못된 mention_keys입니다: 키 {{.MaxCount}}개 또는 {{.MaxLength}}바이트 제한을 초과합니다."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**찾을 수 없음**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "제거됨"
   }
 ]

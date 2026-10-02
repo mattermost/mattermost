@@ -3870,7 +3870,7 @@
   "admin.system_users.date_range_selector.date_range.sublabel": "{startDate} - {endDate}",
   "admin.system_users.date_range_selector.dropdownAriaLabel": "Tarih aralığı menüsü",
   "admin.system_users.date_range_selector.label": "Süre",
-  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Görüntülenecek sütunları seçmek için menüyü açın",
+  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Tarih aralığı seçmek için menüyü açın",
   "admin.system_users.date_range_selector.trailing_message": "Not: Bu süzgeç yalnızca <strong>Son ileti, Etkin olunan gün sayısı ve</strong> Gönderilmiş iletiler sütunlarındaki değerleri etkiler.",
   "admin.system_users.exportButton": "Dışa aktar",
   "admin.system_users.exportButton.notLicensed.hint": "Bu özellik Professional tarifesi ile kullanılabilir",

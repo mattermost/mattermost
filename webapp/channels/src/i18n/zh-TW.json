@@ -3868,7 +3868,7 @@
   "admin.system_users.date_range_selector.date_range.sublabel": "{startDate} - {endDate}",
   "admin.system_users.date_range_selector.dropdownAriaLabel": "日期範圍目錄",
   "admin.system_users.date_range_selector.label": "期間",
-  "admin.system_users.date_range_selector.menuButtonAriaLabel": "開啟選單以選擇要顯示的欄位",
+  "admin.system_users.date_range_selector.menuButtonAriaLabel": "開啟選單以選擇日期範圍",
   "admin.system_users.date_range_selector.trailing_message": "注意：此篩選器僅會影響<strong>最後發文、活躍天數和發佈訊息數</strong>欄位中的數值。",
   "admin.system_users.exportButton": "匯出",
   "admin.system_users.exportButton.notLicensed.hint": "此功能於專業版方案中可使用",

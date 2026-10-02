@@ -3746,7 +3746,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Nepavyko atšaukti nuotolinio serverio kvietimo į kanalą"
+    "translation": "Nepavyko atšaukti nuotolinio serverio kvietimo į kanalą."
   },
   {
     "id": "api.status.user_not_found.app_error",
@@ -14611,5 +14611,13 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Nepavyko rasti naudotojo {{.user}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NERASTAS**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "pašalintas"
   }
 ]

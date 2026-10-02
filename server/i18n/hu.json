@@ -3725,7 +3725,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Nem sikerült lekérni a csatornákat a megadott sémához."
+    "translation": "Nem sikerült lekérni a csapatokat a megadott sémához."
   },
   {
     "id": "app.team.get_by_name.missing.app_error",
@@ -9276,7 +9276,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Nem sikerült visszavonni a távoli szerver meghívását a csatornából"
+    "translation": "Nem sikerült visszavonni a távoli szerver meghívását a csatornából."
   },
   {
     "id": "api.system.logs.download_bytes_buffer.app_error",
@@ -14577,5 +14577,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Érvénytelen mention_keys: túllépi a korlátot ({{.MaxCount}} kulcs vagy {{.MaxLength}} bájt)."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NEM TALÁLHATÓ**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "eltávolítva"
   }
 ]

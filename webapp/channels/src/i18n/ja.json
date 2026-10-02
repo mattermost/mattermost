@@ -3870,7 +3870,7 @@
   "admin.system_users.date_range_selector.date_range.sublabel": "{startDate} - {endDate}",
   "admin.system_users.date_range_selector.dropdownAriaLabel": "日付範囲指定メニュー",
   "admin.system_users.date_range_selector.label": "期間",
-  "admin.system_users.date_range_selector.menuButtonAriaLabel": "表示列を選択するメニューを開く",
+  "admin.system_users.date_range_selector.menuButtonAriaLabel": "日付範囲を選択するメニューを開く",
   "admin.system_users.date_range_selector.trailing_message": "注意: このフィルターは<strong>最新の投稿、アクティブ日数、投稿数</strong>列の値にのみ影響します。",
   "admin.system_users.exportButton": "エクスポート",
   "admin.system_users.exportButton.notLicensed.hint": "この機能はProfessional Planで利用可能です",

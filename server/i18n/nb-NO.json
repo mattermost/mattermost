@@ -3846,7 +3846,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Kunne ikke trekke tilbake invitasjonen til den eksterne serveren fra kanalen"
+    "translation": "Kunne ikke fjerne den eksterne serveren fra kanalen."
   },
   {
     "id": "api.status.user_not_found.app_error",
@@ -14593,5 +14593,13 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Finner ikke brukeren {{.user}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**IKKE FUNNET**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "fjernet"
   }
 ]

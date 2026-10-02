@@ -3868,7 +3868,7 @@
   "admin.system_users.date_range_selector.date_range.sublabel": "{startDate} - {endDate}",
   "admin.system_users.date_range_selector.dropdownAriaLabel": "Меню діапазону дат",
   "admin.system_users.date_range_selector.label": "Тривалість",
-  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Відкрийте меню, щоб вибрати стовпці для відображення",
+  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Відкрийте меню, щоб вибрати діапазон дат",
   "admin.system_users.date_range_selector.trailing_message": "Примітка: Цей фільтр впливає лише на значення у стовпчиках <strong>Останній допис, Дні активності та Надіслані повідомлення</strong>.",
   "admin.system_users.exportButton": "Експорт",
   "admin.system_users.exportButton.notLicensed.hint": "Ця функція доступна на тарифі professional",

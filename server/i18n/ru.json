@@ -6253,7 +6253,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Невозможно получить каналы для предоставленной схемы."
+    "translation": "Невозможно получить команды для предоставленной схемы."
   },
   {
     "id": "app.team.clear_all_custom_role_assignments.select.app_error",
@@ -9533,7 +9533,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Не удалось отменить приглашение дистанционного пользователя на канал"
+    "translation": "Не удалось отменить приглашение удалённого сервера в канал."
   },
   {
     "id": "api.file.zip_file_reader.app_error",
@@ -14595,5 +14595,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Неверное значение mention_keys: превышен предел в {{.MaxCount}} ключей или {{.MaxLength}} байт."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**НЕ НАЙДЕНО**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "удалено"
   }
 ]

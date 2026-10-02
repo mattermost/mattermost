@@ -6172,7 +6172,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Não foi possível obter os canais para o esquema fornecido."
+    "translation": "Não foi possível obter as equipes para o esquema fornecido."
   },
   {
     "id": "app.team.clear_all_custom_role_assignments.select.app_error",
@@ -8324,7 +8324,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Não foi possível desconvidar o remoto para o canal"
+    "translation": "Não foi possível desconvidar o remoto do canal."
   },
   {
     "id": "api.shared_channel.get_shared_channel_remotes_error",
@@ -14577,5 +14577,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys inválido: excede o limite de {{.MaxCount}} chaves ou {{.MaxLength}} bytes."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NÃO ENCONTRADA**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "removida"
   }
 ]

@@ -3882,7 +3882,7 @@
   "admin.system_users.date_range_selector.date_range.sublabel": "{startDate} - {endDate}",
   "admin.system_users.date_range_selector.dropdownAriaLabel": "Nabídka časového období",
   "admin.system_users.date_range_selector.label": "Trvání",
-  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Otevřít nabídku pro výběr sloupců k zobrazení",
+  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Otevřít nabídku pro výběr časového období",
   "admin.system_users.date_range_selector.trailing_message": "Poznámka: Tento filtr bude mít vliv pouze na hodnoty ve sloupcích <strong>Poslední příspěvek, Dny aktivní a Odeslané zprávy</strong>.",
   "admin.system_users.exportButton": "Exportovat",
   "admin.system_users.exportButton.notLicensed.hint": "Tato funkce je dostupná v profesionálním plánu",

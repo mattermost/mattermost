@@ -4789,7 +4789,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "گرفتن کانالها برای طرح ارائه شده امکان پذیر نیست."
+    "translation": "گرفتن تیم‌ها برای طرح ارائه‌شده امکان‌پذیر نیست."
   },
   {
     "id": "app.team.get_by_name.missing.app_error",
@@ -9096,7 +9096,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "لغو دعوت سرور راه دور از کانال ممکن نشد"
+    "translation": "لغو دعوت سرور راه دور از کانال ممکن نشد."
   },
   {
     "id": "api.system.logs.download_bytes_buffer.app_error",
@@ -14577,5 +14577,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys نامعتبر است: از حد {{.MaxCount}} کلید یا {{.MaxLength}} بایت فراتر رفته است."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**یافت نشد**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "حذف شد"
   }
 ]

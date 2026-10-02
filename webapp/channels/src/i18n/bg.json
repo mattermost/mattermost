@@ -3868,7 +3868,7 @@
   "admin.system_users.date_range_selector.date_range.sublabel": "{startDate} - {endDate}",
   "admin.system_users.date_range_selector.dropdownAriaLabel": "Меню за диапазон от дати",
   "admin.system_users.date_range_selector.label": "Продължителност",
-  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Отворете менюто за избор на колони за показване",
+  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Отворете менюто за избор на диапазон от дати",
   "admin.system_users.date_range_selector.trailing_message": "Забележка: Този филтър ще повлияе само на стойностите в колоните <strong>Последна публикация, Дни активност и Публикувани съобщения</strong>.",
   "admin.system_users.exportButton": "Експорт",
   "admin.system_users.exportButton.notLicensed.hint": "Тази функция е налична в професионалния план",

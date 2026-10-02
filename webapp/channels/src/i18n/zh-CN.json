@@ -3870,7 +3870,7 @@
   "admin.system_users.date_range_selector.date_range.sublabel": "{startDate} - {endDate}",
   "admin.system_users.date_range_selector.dropdownAriaLabel": "日期范围菜单",
   "admin.system_users.date_range_selector.label": "时间",
-  "admin.system_users.date_range_selector.menuButtonAriaLabel": "打开菜单以选择显示的列",
+  "admin.system_users.date_range_selector.menuButtonAriaLabel": "打开菜单以选择日期范围",
   "admin.system_users.date_range_selector.trailing_message": "提示：此过滤器只影响<strong>上次发言、活跃天数和发送消息数</strong>列中的值。",
   "admin.system_users.exportButton": "导出",
   "admin.system_users.exportButton.notLicensed.hint": "此功能在专业版套餐中可用",

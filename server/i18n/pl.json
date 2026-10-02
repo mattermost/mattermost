@@ -6001,7 +6001,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Nie można pobrać kanałów dla podanego schematu."
+    "translation": "Nie można pobrać zespołów dla podanego schematu."
   },
   {
     "id": "app.team.clear_all_custom_role_assignments.select.app_error",
@@ -9497,7 +9497,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Nie można odblokować zdalnego do kanału"
+    "translation": "Nie można cofnąć zaproszenia zdalnego do kanału."
   },
   {
     "id": "app.post.save.thread_membership.app_error",
@@ -14595,5 +14595,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Nieprawidłowe mention_keys: przekroczono limit {{.MaxCount}} kluczy lub {{.MaxLength}} bajtów."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NIE ZOSTAŁO ZNALEZIONE**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "zostało usunięte"
   }
 ]

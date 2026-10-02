@@ -6067,7 +6067,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "与えられたスキームにおけるチャンネルを取得できませんでした。"
+    "translation": "与えられたスキームにおけるチームを取得できませんでした。"
   },
   {
     "id": "app.team.get_by_name.missing.app_error",
@@ -7639,7 +7639,7 @@
   },
   {
     "id": "api.command_remote.cluster_removed",
-    "translation": "安全な接続 {{.RemoteId}} {{.Result}}。"
+    "translation": "安全な接続 {{.RemoteId}} は{{.Result}}。"
   },
   {
     "id": "api.command_remote.add_remote.error",
@@ -9535,7 +9535,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "リモートのチャンネルへの招待を解除できませんでした"
+    "translation": "リモートのチャンネルへの招待を解除できませんでした。"
   },
   {
     "id": "app.import.import_direct_channel.get_channel_members.error",
@@ -14568,5 +14568,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keysが不正です: {{.MaxCount}} 個のキーまたは {{.MaxLength}} バイトの上限を超えています。"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**見つかりませんでした**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "削除されました"
   }
 ]

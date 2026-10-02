@@ -3868,7 +3868,7 @@
   "admin.system_users.date_range_selector.date_range.sublabel": "{startDate} - {endDate}",
   "admin.system_users.date_range_selector.dropdownAriaLabel": "Menú de rango de fechas",
   "admin.system_users.date_range_selector.label": "Duración",
-  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Abrir menú para seleccionar las columnas a mostrar",
+  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Abrir menú para seleccionar un rango de fechas",
   "admin.system_users.date_range_selector.trailing_message": "Nota: Este filtro solo afectará a los valores de las columnas <strong>Último mensaje, Días activo y Mensajes publicados</strong>.",
   "admin.system_users.exportButton": "Exportar",
   "admin.system_users.exportButton.notLicensed.hint": "Esta característica está disponible en el plan Professional",

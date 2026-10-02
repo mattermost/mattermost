@@ -5849,7 +5849,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Impossible de récupérer les canaux pour le schéma de permissions spécifié."
+    "translation": "Impossible de récupérer les équipes pour le schéma de permissions spécifié."
   },
   {
     "id": "app.team.clear_all_custom_role_assignments.select.app_error",
@@ -8983,7 +8983,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Impossible de retirer l'invitation du serveur distant au canal"
+    "translation": "Impossible de retirer l'invitation du serveur distant au canal."
   },
   {
     "id": "api.system.logs.download_bytes_buffer.app_error",
@@ -14580,5 +14580,13 @@
   {
     "id": "store.sql_file_info.search.disabled",
     "translation": "La recherche de fichiers a été désactivée sur ce serveur. Veuillez contacter votre administrateur système."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**INTROUVABLE**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "supprimée"
   }
 ]

@@ -3869,7 +3869,7 @@
   "admin.system_users.date_range_selector.date_range.sublabel": "{startDate} - {endDate}",
   "admin.system_users.date_range_selector.dropdownAriaLabel": "날짜 범위 메뉴",
   "admin.system_users.date_range_selector.label": "기간",
-  "admin.system_users.date_range_selector.menuButtonAriaLabel": "메뉴를 열어 표시할 열을 선택합니다.",
+  "admin.system_users.date_range_selector.menuButtonAriaLabel": "메뉴를 열어 날짜 범위를 선택합니다.",
   "admin.system_users.date_range_selector.trailing_message": "참고: 이 필터는 <strong>마지막 게시물, 활동한 일수 및 게시된 메시지</strong> 열의 값에만 영향을 미칩니다.",
   "admin.system_users.exportButton": "내보내기",
   "admin.system_users.exportButton.notLicensed.hint": "이 기능은 프로페셔널 요금제에서 사용할 수 있습니다.",

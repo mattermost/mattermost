@@ -3870,7 +3870,7 @@
   "admin.system_users.date_range_selector.date_range.sublabel": "{startDate} - {endDate}",
   "admin.system_users.date_range_selector.dropdownAriaLabel": "Meny för datumintervall",
   "admin.system_users.date_range_selector.label": "Tidsperiod",
-  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Öppna menyn för att välja vilka kolumner som visas",
+  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Öppna menyn för att välja ett datumintervall",
   "admin.system_users.date_range_selector.trailing_message": "Observera: Det här filtret påverkar endast värden i kolumnerna <strong>Senaste inlägg, Aktiva dagar och Publicerade meddelanden</strong>.",
   "admin.system_users.exportButton": "Exportera",
   "admin.system_users.exportButton.notLicensed.hint": "Funktionen finns tillgänglig i abonnemanget Professional",

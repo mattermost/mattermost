@@ -3843,7 +3843,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Não foi possível remover o convite do servidor remoto para o canal"
+    "translation": "Não foi possível anular o convite do servidor remoto para o canal."
   },
   {
     "id": "api.status.user_not_found.app_error",
@@ -14593,5 +14593,13 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Não foi possível encontrar o utilizador {{.user}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NÃO ENCONTRADA**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "removida"
   }
 ]

@@ -3868,7 +3868,7 @@
   "admin.system_users.date_range_selector.date_range.sublabel": "{startDate} - {endDate}",
   "admin.system_users.date_range_selector.dropdownAriaLabel": "Menu de intervalo de datas",
   "admin.system_users.date_range_selector.label": "Duração",
-  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Abrir menu para selecionar as colunas a exibir",
+  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Abrir menu para selecionar um intervalo de datas",
   "admin.system_users.date_range_selector.trailing_message": "Nota: Este filtro afetará apenas os valores das colunas <strong>Última Publicação, Dias Ativo e Mensagens Publicadas</strong>.",
   "admin.system_users.exportButton": "Exportar",
   "admin.system_users.exportButton.notLicensed.hint": "Este recurso está disponível no plano Professional",

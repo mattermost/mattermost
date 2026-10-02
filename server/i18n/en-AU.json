@@ -3821,7 +3821,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Unable to get the channels for the provided scheme."
+    "translation": "Unable to get the teams for the provided scheme."
   },
   {
     "id": "app.team.get_by_name.missing.app_error",
@@ -9527,7 +9527,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Could not uninvite remote to channel"
+    "translation": "Could not uninvite remote from channel."
   },
   {
     "id": "app.import.import_direct_channel.get_channel_members.error",
@@ -14580,5 +14580,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Invalid mention_keys: exceeds the limit of {{.MaxCount}} keys or {{.MaxLength}} bytes."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NOT FOUND**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "removed"
   }
 ]

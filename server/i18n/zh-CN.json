@@ -6471,7 +6471,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "无法用提供的方案获取频道。"
+    "translation": "无法用提供的方案获取团队。"
   },
   {
     "id": "ent.elasticsearch.index_channels_batch.error",
@@ -9527,7 +9527,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "无法取消邀请远程用户加入频道"
+    "translation": "无法取消远程连接的频道邀请。"
   },
   {
     "id": "app.import.import_direct_channel.get_channel_members.error",
@@ -14568,5 +14568,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys 无效：超出了 {{.MaxCount}} 个关键词或 {{.MaxLength}} 字节的限制。"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**未找到**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "已移除"
   }
 ]

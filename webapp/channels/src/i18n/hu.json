@@ -3868,7 +3868,7 @@
   "admin.system_users.date_range_selector.date_range.sublabel": "{startDate} - {endDate}",
   "admin.system_users.date_range_selector.dropdownAriaLabel": "Dátumtartomány menü",
   "admin.system_users.date_range_selector.label": "Időtartam",
-  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Menü megnyitása a megjelenítendő oszlopok kiválasztásához",
+  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Menü megnyitása a dátumtartomány kiválasztásához",
   "admin.system_users.date_range_selector.trailing_message": "Megjegyzés: Ez a szűrő csak az <strong>Utolsó bejegyzés, Aktív napok és Elküldött üzenetek</strong> oszlopok értékeit érinti.",
   "admin.system_users.exportButton": "Exportálás",
   "admin.system_users.exportButton.notLicensed.hint": "Ez a funkció a Professional csomagban érhető el",

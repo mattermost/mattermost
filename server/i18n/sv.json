@@ -2089,7 +2089,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Kunde inte hitta kanaler med bifogat schema."
+    "translation": "Kunde inte hämta teamen för det angivna schemat."
   },
   {
     "id": "app.team.get_by_name.missing.app_error",
@@ -9527,7 +9527,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Det gick inte att koppla bort den andra servern från kanalen"
+    "translation": "Det gick inte att koppla bort den andra servern från kanalen."
   },
   {
     "id": "app.import.import_direct_channel.no_members.error",
@@ -14580,5 +14580,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Ogiltiga mention_keys: överskrider gränsen på {{.MaxCount}} nyckelord eller {{.MaxLength}} byte."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**HITTADES INTE**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "har tagits bort"
   }
 ]

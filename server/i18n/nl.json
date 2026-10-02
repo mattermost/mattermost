@@ -6380,7 +6380,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Fout bij het ophalen van kanalen voor het opgegeven schema."
+    "translation": "Fout bij het ophalen van teams voor het opgegeven schema."
   },
   {
     "id": "app.team.get_by_name.app_error",
@@ -9551,7 +9551,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Kan uitnodiging voor kanaal niet intrekken voor remote"
+    "translation": "Kan uitnodiging van externe voor kanaal niet intrekken."
   },
   {
     "id": "app.import.import_direct_channel.get_channel_members.error",
@@ -14592,5 +14592,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Ongeldige mention_keys: overschrijdt de limiet van {{.MaxCount}} sleutels of {{.MaxLength}} bytes."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NIET GEVONDEN**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "verwijderd"
   }
 ]

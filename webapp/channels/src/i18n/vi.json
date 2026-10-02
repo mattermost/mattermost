@@ -3868,7 +3868,7 @@
   "admin.system_users.date_range_selector.date_range.sublabel": "{startDate} - {endDate}",
   "admin.system_users.date_range_selector.dropdownAriaLabel": "Menu phạm vi ngày",
   "admin.system_users.date_range_selector.label": "Khoảng thời gian",
-  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Mở menu để chọn các cột hiển thị",
+  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Mở menu để chọn khoảng thời gian",
   "admin.system_users.date_range_selector.trailing_message": "Lưu ý: Bộ lọc này chỉ ảnh hưởng đến các giá trị trong cột <strong>Bài đăng gần nhất, Số ngày hoạt động và Tin nhắn đã đăng</strong>.",
   "admin.system_users.exportButton": "Xuất",
   "admin.system_users.exportButton.notLicensed.hint": "Tính năng này khả dụng với gói Professional",

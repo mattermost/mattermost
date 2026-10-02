@@ -5953,7 +5953,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Impossibile elencare i canali per lo schema fornito"
+    "translation": "Impossibile elencare le squadre per lo schema fornito."
   },
   {
     "id": "app.team.clear_all_custom_role_assignments.select.app_error",
@@ -7692,7 +7692,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Impossibile revocare l'invito del server remoto al canale"
+    "translation": "Impossibile revocare l'invito del server remoto al canale."
   },
   {
     "id": "api.system.logs.download_bytes_buffer.app_error",
@@ -14577,5 +14577,13 @@
   {
     "id": "store.sql_file_info.search.disabled",
     "translation": "La ricerca dei file è stata disabilitata su questo server. Contatta il tuo Amministratore di Sistema."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NON TROVATA**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "rimossa"
   }
 ]

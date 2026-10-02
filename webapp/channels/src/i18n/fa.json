@@ -3868,7 +3868,7 @@
   "admin.system_users.date_range_selector.date_range.sublabel": "{startDate} - {endDate}",
   "admin.system_users.date_range_selector.dropdownAriaLabel": "منوی بازه زمانی",
   "admin.system_users.date_range_selector.label": "مدت",
-  "admin.system_users.date_range_selector.menuButtonAriaLabel": "باز کردن منو برای انتخاب ستون‌های نمایشی",
+  "admin.system_users.date_range_selector.menuButtonAriaLabel": "باز کردن منو برای انتخاب بازه زمانی",
   "admin.system_users.date_range_selector.trailing_message": "توجه: این فیلتر فقط بر مقادیر ستون‌های <strong>آخرین پست، روزهای فعال و پیام‌های ارسال‌شده</strong> تأثیر می‌گذارد.",
   "admin.system_users.exportButton": "خروجی گرفتن",
   "admin.system_users.exportButton.notLicensed.hint": "این قابلیت در طرح Professional در دسترس است",

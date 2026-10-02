@@ -7447,7 +7447,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Không thể nhận được các kênh cho chương trình được cung cấp."
+    "translation": "Không thể lấy các nhóm cho lược đồ được cung cấp."
   },
   {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
@@ -9559,7 +9559,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Không thể hủy mời máy chủ từ xa khỏi kênh"
+    "translation": "Không thể hủy mời máy chủ từ xa khỏi kênh."
   },
   {
     "id": "api.system.logs.download_bytes_buffer.app_error",
@@ -14568,5 +14568,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys không hợp lệ: vượt quá giới hạn {{.MaxCount}} khóa hoặc {{.MaxLength}} byte."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**KHÔNG TÌM THẤY**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "đã được xóa"
   }
 ]

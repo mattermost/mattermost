@@ -3870,7 +3870,7 @@
   "admin.system_users.date_range_selector.date_range.sublabel": "{startDate} - {endDate}",
   "admin.system_users.date_range_selector.dropdownAriaLabel": "Menu datumbereik",
   "admin.system_users.date_range_selector.label": "Tijdsperiode",
-  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Open menu om de weer te geven kolommen te selecteren",
+  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Open menu om een datumbereik te selecteren",
   "admin.system_users.date_range_selector.trailing_message": "Opmerking: dit filter heeft alleen invloed op de waarden in de kolommen <strong>Laatste bericht, Dagen actief en Berichten geplaatst</strong>.",
   "admin.system_users.exportButton": "Exporteren",
   "admin.system_users.exportButton.notLicensed.hint": "Deze functie is beschikbaar binnen het Professional plan",

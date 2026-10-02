@@ -6013,7 +6013,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Nu se pot obține canalele pentru schema furnizată."
+    "translation": "Nu se pot obține echipele pentru schema furnizată."
   },
   {
     "id": "app.team.get_by_name.missing.app_error",
@@ -8909,7 +8909,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Nu s-a putut revoca invitația serverului la distanță din canal"
+    "translation": "Nu s-a putut revoca invitația serverului la distanță din canal."
   },
   {
     "id": "api.system.logs.download_bytes_buffer.app_error",
@@ -14586,5 +14586,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys nevalid: depășește limita de {{.MaxCount}} chei sau {{.MaxLength}} octeți."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NEGĂSIT**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "eliminat"
   }
 ]
