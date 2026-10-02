@@ -326,43 +326,18 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         const {adminUser, adminClient, team} = await pw.initSetup();
 
-        // Delete ALL existing custom attributes to start fresh
-        try {
-            const existingFields = await adminClient.getCustomProfileAttributeFields();
-            for (const field of existingFields) {
-                try {
-                    await adminClient.deleteCustomProfileAttributeField(field.id);
-                } catch {
-                    // Ignore deletion errors
-                }
-            }
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-        } catch {
-            // Ignore if no fields exist
-        }
-
         // Enable user-managed attributes FIRST (same pattern as MM-T5783)
         await enableUserManagedAttributes(adminClient);
 
-        // create attributes using direct API
-        const attributeFieldsMap: Record<string, any> = {};
-
-        const departmentField = await adminClient.createCustomProfileAttributeField({
-            name: 'Department',
-            type: 'text',
-            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 0},
-        } as any);
-        attributeFieldsMap[departmentField.id] = departmentField;
-
-        const officeField = await adminClient.createCustomProfileAttributeField({
-            name: 'Office',
-            type: 'text',
-            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 1},
-        } as any);
-        attributeFieldsMap[officeField.id] = officeField;
-
-        // Wait for attributes to be indexed
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        // Reuse 'Department'/'Office' fields other specs may already have created (by name+type)
+        // instead of deleting every existing field and recreating them directly — the server's
+        // custom profile attribute fields are a global resource shared by every concurrently
+        // running spec, so a blanket delete-then-create here used to race with (and clobber) any
+        // other spec's own fields of the same name.
+        const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, [
+            {name: 'Department', type: 'text', attrs: {managed: 'admin', visibility: 'when_set'}},
+            {name: 'Office', type: 'text', attrs: {managed: 'admin', visibility: 'when_set'}},
+        ]);
 
         // Create users:
         // 1. engineerRemoteUser: Dept=Engineering, Office=Remote → satisfies BOTH (after edit)
@@ -587,43 +562,18 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         const {adminUser, adminClient, team} = await pw.initSetup();
 
-        // Delete ALL existing custom attributes to start fresh
-        try {
-            const existingFields = await adminClient.getCustomProfileAttributeFields();
-            for (const field of existingFields) {
-                try {
-                    await adminClient.deleteCustomProfileAttributeField(field.id);
-                } catch {
-                    // Ignore deletion errors
-                }
-            }
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-        } catch {
-            // Ignore if no fields exist
-        }
-
         // Enable user-managed attributes FIRST (same pattern as MM-T5783)
         await enableUserManagedAttributes(adminClient);
 
-        // create attributes using direct API
-        const attributeFieldsMap: Record<string, any> = {};
-
-        const departmentField = await adminClient.createCustomProfileAttributeField({
-            name: 'Department',
-            type: 'text',
-            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 0},
-        } as any);
-        attributeFieldsMap[departmentField.id] = departmentField;
-
-        const officeField = await adminClient.createCustomProfileAttributeField({
-            name: 'Office',
-            type: 'text',
-            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 1},
-        } as any);
-        attributeFieldsMap[officeField.id] = officeField;
-
-        // Wait for attributes to be indexed
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        // Reuse 'Department'/'Office' fields other specs may already have created (by name+type)
+        // instead of deleting every existing field and recreating them directly — the server's
+        // custom profile attribute fields are a global resource shared by every concurrently
+        // running spec, so a blanket delete-then-create here used to race with (and clobber) any
+        // other spec's own fields of the same name.
+        const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, [
+            {name: 'Department', type: 'text', attrs: {managed: 'admin', visibility: 'when_set'}},
+            {name: 'Office', type: 'text', attrs: {managed: 'admin', visibility: 'when_set'}},
+        ]);
 
         // Create users:
         // 1. engineerRemoteUser: Dept=Engineering, Office=Remote → satisfies ORIGINAL (both rules)
