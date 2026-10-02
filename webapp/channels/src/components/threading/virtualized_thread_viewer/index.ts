@@ -25,6 +25,7 @@ type OwnProps = {
     selected: Post | FakePost;
     useRelativeTimestamp: boolean;
     onCardClick: (post: Post) => void;
+    hideRoot?: boolean;
 };
 
 function makeMapStateToProps() {
@@ -32,17 +33,20 @@ function makeMapStateToProps() {
     const getThreadLastViewedAt = makeGetThreadLastViewedAt();
 
     return (state: GlobalState, ownProps: OwnProps) => {
-        const {postIds, useRelativeTimestamp, selected, channelId} = ownProps;
+        const {postIds, useRelativeTimestamp, selected, channelId, hideRoot} = ownProps;
 
         const collapsedThreads = isCollapsedThreadsEnabled(state);
         const currentUserId = getCurrentUserId(state);
         const lastViewedAt = getThreadLastViewedAt(state, selected.id);
         const directTeammate = getDirectTeammate(state, channelId);
 
-        const lastPost = getPost(state, postIds[0]);
+        // The thread selector includes the root. Drop it from the list when the caller already
+        // shows that post, and keep it as lastPost when it is the only post so scrolling stays valid.
+        const replyPostIds = hideRoot ? postIds.filter((id) => id !== selected.id) : postIds;
+        const lastPost = getPost(state, replyPostIds[0] || postIds[0]);
 
         const replyListIds = getRepliesListWithSeparators(state, {
-            postIds,
+            postIds: replyPostIds,
             showDate: !useRelativeTimestamp,
             lastViewedAt: collapsedThreads ? lastViewedAt : undefined,
         });

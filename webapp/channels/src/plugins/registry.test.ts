@@ -55,6 +55,13 @@ jest.mock('utils/popouts/popout_windows', () => ({
     registerRHSPluginPopoutListener: jest.fn(),
 }));
 
+jest.mock('components/threading/thread_viewer', () => {
+    function ThreadViewer() {
+        return null;
+    }
+    return {__esModule: true, default: ThreadViewer};
+});
+
 describe('PluginRegistry — registerChannelTypeOption', () => {
     const PLUGIN_ID = 'test_plugin';
 
@@ -793,11 +800,14 @@ describe('PluginRegistry lifetime', () => {
 });
 
 describe('PluginRegistry — getThreadViewer', () => {
-    jest.mock('components/threading/thread_viewer', () => ({__esModule: true, default: () => null}));
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+    });
 
-    it('returns the thread viewer component', () => {
+    it('returns the connected thread viewer', () => {
         const registry = new PluginRegistry('test_plugin');
-        const ThreadViewer = jest.requireMock('components/threading/thread_viewer').default;
-        expect(registry.getThreadViewer()).toBe(ThreadViewer);
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const viewer = require('components/threading/thread_viewer').default;
+        expect(registry.getThreadViewer()).toBe(viewer);
     });
 });

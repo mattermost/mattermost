@@ -28,6 +28,7 @@ const PopoverContainer = styled.div`
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     display: flex;
     flex-direction: column;
+    /* Portaled to the document, so it stacks with other popovers rather than a local value. */
     z-index: var(--z-index-popover);
 `;
 
