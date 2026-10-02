@@ -110,6 +110,25 @@ test.afterAll(async () => {
     await deleteCustomProfileAttributes(adminClient, attributeFieldsMap);
 });
 
+// MM-T5776 and MM-T5777 change the shared 'Department'/'Title' fields' visibility
+// (to 'hidden' and 'always' respectively) to exercise non-default visibility modes.
+// These fields are reused by name across runs rather than recreated (see
+// setupCustomProfileAttributeFields), so a visibility left non-default here would
+// otherwise persist into the next test — in this file (if it reruns, e.g. on a
+// spec-level retry) or in any other spec reusing the same field name — and break
+// an assertion that assumes the default 'when_set' visibility. Reset both
+// unconditionally after every test; a field that was never touched just gets a
+// no-op patch back to its already-current value.
+test.afterEach(async () => {
+    // beforeEach may have bailed out early (e.g. no license, via pw.skipIfNoLicense) before
+    // attributeFieldsMap was assigned — nothing to reset in that case.
+    if (!attributeFieldsMap || Object.keys(attributeFieldsMap).length === 0) {
+        return;
+    }
+    await updateCustomProfileAttributeVisibility(adminClient, attributeFieldsMap, 'Department', 'when_set');
+    await updateCustomProfileAttributeVisibility(adminClient, attributeFieldsMap, 'Title', 'when_set');
+});
+
 /**
  * Verify that custom profile attributes are displayed correctly in the profile popover.
  *
