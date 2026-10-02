@@ -46,8 +46,7 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
      */
     test('shows a channel admin every attribute, including unset ones, and lets them add or edit', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
-        await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
         const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -113,8 +112,7 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
      */
     test('shows a plain member only what is already set, read-only, with no way to manage attributes', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
-        await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();

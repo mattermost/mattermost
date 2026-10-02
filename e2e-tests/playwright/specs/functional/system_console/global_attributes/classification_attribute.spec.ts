@@ -125,11 +125,10 @@ test.describe(
          */
         test('asks for classification at channel creation only once Required is on', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.ensureFeatureFlag('ChannelAttributes', true);
             // Courtesy path: classification is offered while optional only when
             // ChannelAttributesRequired is off. Enable enforcement later, before
             // marking the field required via the System Console toggle.
-            await pw.ensureFeatureFlag('ChannelAttributesRequired', false);
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: false});
 
             const {levels} = await setupClassificationWithChannelField(adminClient);
             const {team} = await pw.initSetup();

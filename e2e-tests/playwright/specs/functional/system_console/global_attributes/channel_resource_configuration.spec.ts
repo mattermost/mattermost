@@ -29,8 +29,7 @@ test.describe(
          */
         test('creates a linked channel field carrying the configured keys', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.ensureFeatureFlag('ChannelAttributes', true);
-            await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
             const suffix = pw.random.id();
             const displayName = `Program ${suffix}`;
@@ -74,8 +73,7 @@ test.describe(
             pw,
         }) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.ensureFeatureFlag('ChannelAttributes', true);
-            await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
             const suffix = pw.random.id();
             let name = '';
@@ -121,8 +119,7 @@ test.describe(
          */
         test('renders a Banner-only attribute as a banner, with no chip', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.ensureFeatureFlag('ChannelAttributes', true);
-            await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
             const suffix = pw.random.id();
             let name = '';
@@ -164,8 +161,7 @@ test.describe(
          */
         test('stores a value for an attribute with no display location and renders it nowhere', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.ensureFeatureFlag('ChannelAttributes', true);
-            await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
             const suffix = pw.random.id();
             let name = '';
@@ -221,8 +217,7 @@ test.describe(
          */
         test('locks the value in Channel Info when the change policy forbids changes', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.ensureFeatureFlag('ChannelAttributes', true);
-            await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
             const suffix = pw.random.id();
             let name = '';
@@ -275,8 +270,7 @@ test.describe(
          */
         test('keeps a console-configured attribute out of a plain member reach', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.ensureFeatureFlag('ChannelAttributes', true);
-            await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
             const suffix = pw.random.id();
             let name = '';
