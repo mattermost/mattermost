@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"html"
+	"io/fs"
 	"net/http"
 	"os"
 	"path"
@@ -25,6 +26,92 @@ import (
 
 var robotsTxt = []byte("User-agent: *\nDisallow: /\n")
 
+const (
+	// DocsDir is the subdirectory of model.ClientDir holding the offline
+	// documentation bundle shipped in the release tarball.
+	DocsDir = "documentation"
+
+	// DocsURLPrefix is the path prefix the bundle is built against
+	// (BASE_URL=/documentation/), so it cannot be made configurable.
+	DocsURLPrefix = "documentation"
+)
+
+// docsFileSystem resolves the clean URLs the documentation bundle links to.
+// The Docusaurus build sets trailingSlash:false, so a content page is emitted
+// as "<path>.html" while every link to it is extensionless. The hosted site
+// gets that mapping from a CDN function; http.FileServer does no such
+// rewriting, so without it here most in-page links 404.
+type docsFileSystem struct {
+	root http.FileSystem
+}
+
+func (d docsFileSystem) Open(name string) (http.File, error) {
+	if f, err := d.root.Open(name); err == nil {
+		st, statErr := f.Stat()
+		if statErr == nil && !st.IsDir() {
+			return f, nil
+		}
+		f.Close()
+	}
+
+	// "<name>.html" is tried before "<name>/index.html" because content pages
+	// routinely have a same-named sibling directory holding their children,
+	// which would otherwise shadow the page itself.
+	if path.Ext(name) == "" {
+		if f, err := d.root.Open(name + ".html"); err == nil {
+			return f, nil
+		}
+	}
+
+	if f, err := d.root.Open(path.Join(name, "index.html")); err == nil {
+		return f, nil
+	}
+
+	return nil, fs.ErrNotExist
+}
+
+// NewDocsHandler serves the offline documentation bundle out of
+// <staticDir>/documentation. Shared with the `mattermost docs` subcommand so
+// the route and the CLI cannot drift.
+func NewDocsHandler(staticDir, subpath string) http.Handler {
+	return NewDocsHandlerForDir(filepath.Join(staticDir, DocsDir), subpath)
+}
+
+// NewDocsHandlerForDir serves a bundle rooted at docsDir. Separate from
+// NewDocsHandler so `mattermost docs --dir` can point straight at an
+// unpackaged Docusaurus build.
+func NewDocsHandlerForDir(docsDir, subpath string) http.Handler {
+	docsFS := docsFileSystem{root: http.Dir(docsDir)}
+	prefix := path.Join(subpath, DocsURLPrefix)
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w = &notFoundNoCacheResponseWriter{ResponseWriter: w}
+		setStaticSecurityHeaders(w)
+
+		upath := strings.TrimPrefix(r.URL.Path, prefix)
+		if upath == "" || upath[0] != '/' {
+			upath = "/" + upath
+		}
+
+		f, err := docsFS.Open(upath)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		defer f.Close()
+
+		st, err := f.Stat()
+		if err != nil || st.IsDir() {
+			http.NotFound(w, r)
+			return
+		}
+
+		// st.Name() is the resolved file, so Content-Type follows the real
+		// extension rather than the extensionless request path.
+		http.ServeContent(w, r, st.Name(), st.ModTime(), f)
+	})
+}
+
 func (w *Web) InitStatic() {
 	if *w.srv.Config().ServiceSettings.WebserverMode != "disabled" {
 		if err := utils.UpdateAssetsSubpathFromConfig(w.srv.Config()); err != nil {
@@ -38,14 +125,17 @@ func (w *Web) InitStatic() {
 
 		staticHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(staticDir))))
 		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.srv.Config().PluginSettings.ClientDirectory))))
+		docsHandler := NewDocsHandler(staticDir, subpath)
 
 		if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 			staticHandler = gzhttp.GzipHandler(staticHandler)
 			pluginHandler = gzhttp.GzipHandler(pluginHandler)
+			docsHandler = gzhttp.GzipHandler(docsHandler)
 		}
 
 		w.MainRouter.PathPrefix("/static/plugins/").Handler(pluginHandler)
 		w.MainRouter.PathPrefix("/static/").Handler(staticHandler)
+		w.MainRouter.PathPrefix("/" + DocsURLPrefix + "/").Handler(docsHandler)
 		w.MainRouter.Handle("/robots.txt", http.HandlerFunc(robotsHandler))
 		w.MainRouter.Handle("/unsupported_browser.js", http.HandlerFunc(unsupportedBrowserScriptHandler))
 		w.MainRouter.Handle("/{anything:.*}", w.NewStaticHandler(root)).Methods(http.MethodGet, http.MethodHead)
@@ -127,21 +217,24 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// setStaticSecurityHeaders applies the hardcoded sensible defaults shared by
+// every static handler. Feel free to override in proxy or ingress.
+func setStaticSecurityHeaders(w http.ResponseWriter) {
+	w.Header().Set("Cache-Control", "max-age=31556926, public")
+	w.Header().Set("Permissions-Policy", "")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Referrer-Policy", "no-referrer")
+}
+
 func staticFilesHandler(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//wrap our ResponseWriter with our no-cache 404-handler
 		w = &notFoundNoCacheResponseWriter{ResponseWriter: w}
 
+		setStaticSecurityHeaders(w)
 		if path.Base(r.URL.Path) == "remote_entry.js" {
 			w.Header().Set("Cache-Control", "no-cache, max-age=31556926, public")
-		} else {
-			w.Header().Set("Cache-Control", "max-age=31556926, public")
 		}
-
-		// Hardcoded sensible default values for these security headers. Feel free to override in proxy or ingress
-		w.Header().Set("Permissions-Policy", "")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		w.Header().Set("Referrer-Policy", "no-referrer")
 
 		if strings.HasSuffix(r.URL.Path, "/") {
 			http.NotFound(w, r)

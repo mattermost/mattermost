@@ -39,13 +39,11 @@
   --mm-marigold-700: #B27F00;
 
   /* === Typography ===
-   * Trade Gothic Next is licensed via Adobe Fonts and not embedded yet
-   * (open item — see PLAN.md §12). Until licensing is confirmed, body uses
-   * Inter and headlines use Archivo Black, which is the closest free match
-   * for Trade Gothic Heavy's geometric, ultra-bold display feel. */
-  --mm-font-sans:    "Inter", "Trade Gothic Next", -apple-system, BlinkMacSystemFont,
+   * All three families are self-hosted from static/fonts (see the README
+   * there) so the site renders identically without internet access. */
+  --mm-font-sans:    "Inter", -apple-system, BlinkMacSystemFont,
                      "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
-  --mm-font-heading: "Archivo Black", "Trade Gothic Next Heavy",
+  --mm-font-heading: "Archivo Black",
                      "Helvetica Neue", "Impact", system-ui, sans-serif;
   --mm-font-mono:    "JetBrains Mono", "SF Mono", "Menlo", "Consolas",
                      "Liberation Mono", monospace;
