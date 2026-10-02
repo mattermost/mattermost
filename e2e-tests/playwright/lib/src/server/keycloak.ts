@@ -200,24 +200,35 @@ async function ensureKeycloakRealmFrontendUrl(): Promise<void> {
     const token = await getAdminToken();
     const realmUrl = `${testConfig.keycloakUrl}/admin/realms/${KEYCLOAK_REALM}`;
 
-    const response = await fetch(realmUrl, {headers: {Authorization: `Bearer ${token}`}});
-    if (!response.ok) {
-        throw new Error(`Failed to read Keycloak realm: ${response.status} ${await response.text()}`);
-    }
-    const realm = await response.json();
+    // Workers running Keycloak specs in parallel race to set it, and Keycloak refuses
+    // all but one of the concurrent realm updates with 409, so a refused update is
+    // retried against a fresh read, which usually finds the URL set by the winner.
+    for (let attempt = 1; ; attempt++) {
+        const response = await fetch(realmUrl, {headers: {Authorization: `Bearer ${token}`}});
+        if (!response.ok) {
+            throw new Error(`Failed to read Keycloak realm: ${response.status} ${await response.text()}`);
+        }
+        const realm = await response.json();
 
-    if (realm.attributes?.frontendUrl === testConfig.keycloakUrl) {
-        return;
-    }
+        if (realm.attributes?.frontendUrl === testConfig.keycloakUrl) {
+            return;
+        }
 
-    realm.attributes = {...realm.attributes, frontendUrl: testConfig.keycloakUrl};
-    const putResponse = await fetch(realmUrl, {
-        method: 'PUT',
-        headers: {Authorization: `Bearer ${token}`, 'Content-Type': 'application/json'},
-        body: JSON.stringify(realm),
-    });
-    if (!putResponse.ok) {
-        throw new Error(`Failed to set Keycloak realm frontend URL: ${putResponse.status} ${await putResponse.text()}`);
+        realm.attributes = {...realm.attributes, frontendUrl: testConfig.keycloakUrl};
+        const putResponse = await fetch(realmUrl, {
+            method: 'PUT',
+            headers: {Authorization: `Bearer ${token}`, 'Content-Type': 'application/json'},
+            body: JSON.stringify(realm),
+        });
+        if (putResponse.ok) {
+            return;
+        }
+        if (putResponse.status !== 409 || attempt === 3) {
+            throw new Error(
+                `Failed to set Keycloak realm frontend URL: ${putResponse.status} ${await putResponse.text()}`,
+            );
+        }
+        await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
     }
 }
 
