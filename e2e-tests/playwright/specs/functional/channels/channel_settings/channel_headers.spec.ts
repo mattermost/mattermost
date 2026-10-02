@@ -57,7 +57,16 @@ test(
  * that cancelling the modal makes no change, and that the saved header appears in the channel info.
  */
 test('MM-T880 adds a channel header from the intro Set header link', {tag: '@channel_settings'}, async ({pw}) => {
-    const {user, team} = await pw.initSetup();
+    const {adminClient, user, team} = await pw.initSetup();
+
+    // # Make sure the server has at least 10 users: below that the intro leads with inviting
+    // people and leaves "Set header" out, so a fresh server would fail this test until enough
+    // other specs had created users.
+    const {total_users_count: totalUsers} = await adminClient.getTotalUsersStats();
+    for (let i = totalUsers; i < 10; i++) {
+        await adminClient.createUser(await pw.random.user(), '', '');
+    }
+
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
