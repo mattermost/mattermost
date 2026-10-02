@@ -97,7 +97,7 @@ The stack provisions a small, self-contained environment in the compartment you 
 
 1.  **Compute instance (Linux):** Runs Mattermost, PostgreSQL, and NGINX from the Mattermost Marketplace image.
 2.  **Reserved public IP:** Provides a stable address for HTTPS access to your workspace.
-3.  **Network security group:** Allows inbound HTTP/HTTPS (TCP 80/443) only; SSH is not opened from the internet by default.
+3.  **Network security group:** Allows inbound HTTP/HTTPS (TCP 80/443) only. The stack NSG does **not** open SSH from the internet.
 4.  **Virtual cloud network (optional):** Creates a new VCN and public subnet with an internet gateway, or uses an existing public subnet you select.
 5.  **Boot volume:** Persistent storage for the operating system, Mattermost data, and configuration.
 
@@ -124,7 +124,7 @@ Leave **Show Advanced Settings** off unless you need a custom instance name, boo
 
 Configure the following:
 
-1.  **Network Strategy:** Prefer **Create New VCN and Subnet** for evaluation so the stack owns networking end to end. If you choose an existing public subnet, it must allow public IP assignment and inbound TCP 80/443 from the internet.
+1.  **Network Strategy:** Prefer **Create New VCN and Subnet** for evaluation so the stack owns networking end to end. If you choose an existing public subnet, it must allow public IP assignment and inbound TCP 80/443 from the internet. Before you deploy, review that subnet’s **security lists**: OCI evaluates security lists and the stack NSG together, so a security list that allows SSH (TCP 22) still opens SSH even though the stack NSG does not.
 2.  **Domain Strategy:** For the fastest trial with no DNS setup, select **Evaluation Domain (sslip.io)**. The stack assigns a hostname derived from the public IP (for example, `https://0-0-0-0.sslip.io`) and obtains a TLS certificate automatically.
 3.  **Mattermost Domain (FQDN):** Required only when using **Bring Your Own Domain**. Enter your hostname (for example, `mattermost.example.com`). After apply, create a DNS **A** record pointing that name to the stack’s **Public IP Address** output; TLS bootstrap retries until DNS resolves correctly.
 
