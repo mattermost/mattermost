@@ -1174,11 +1174,13 @@
 
     .banner-buttons {
         display: flex;
+        align-items: center;
+        gap: 8px;
 
         .banner-buttons__log-format {
             display: flex;
             align-items: center;
-            margin-right: 28px;
+            margin-right: 20px;
             gap: 8px;
 
             label {

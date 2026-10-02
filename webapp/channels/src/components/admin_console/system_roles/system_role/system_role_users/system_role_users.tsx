@@ -7,7 +7,6 @@ import {FormattedMessage, defineMessage} from 'react-intl';
 import type {Role} from '@mattermost/types/roles';
 import type {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import DataGrid from 'components/admin_console/data_grid/data_grid';
@@ -249,7 +248,7 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
                 button={
                     <ToggleModalButton
                         id='addRoleMembers'
-                        className={buttonClassNames({emphasis: 'primary'})}
+                        emphasis='primary'
                         modalId={ModalIdentifiers.ADD_USER_TO_ROLE}
                         dialogType={AddUsersToRoleModal}
                         disabled={readOnly}

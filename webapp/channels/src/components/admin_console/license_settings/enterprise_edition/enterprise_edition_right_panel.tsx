@@ -7,7 +7,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import type {ClientLicense} from '@mattermost/types/config';
 
 import {Button} from '@mattermost/compass-ui/components/button';
-import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
+
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import SetupSystemSvg from 'components/common/svg_images_components/setup_system_svg';
 import ExternalLink from 'components/external_link';
@@ -85,9 +85,15 @@ const EnterpriseEditionRightPanel = ({
     const isEntry = license?.SkuShortName === LicenseSkus.Entry;
 
     const contactSalesBtn = (
-        <div className='purchase-card'>
-            <ContactUsButton/>
-        </div>
+        <Button
+            emphasis='primary'
+            onClick={openContactSales}
+        >
+            <FormattedMessage
+                id='admin.license.trialCard.contactSales'
+                defaultMessage='Contact Sales'
+            />
+        </Button>
     );
 
     const title = () => {

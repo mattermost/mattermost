@@ -7,7 +7,6 @@ import {FormattedMessage, defineMessage} from 'react-intl';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import GeneralConstants from 'mattermost-redux/constants/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -240,7 +239,7 @@ export default class ChannelMembers extends React.PureComponent<Props, State> {
                 button={
                     <ToggleModalButton
                         id='addChannelMembers'
-                        className={buttonClassNames({emphasis: 'primary'})}
+                        emphasis='primary'
                         modalId={ModalIdentifiers.CHANNEL_INVITE}
                         dialogType={ChannelInviteModal}
                         disabled={isDisabled}
