@@ -26,6 +26,7 @@ test.beforeEach(async ({pw}) => {
 });
 
 test('should succeed with File', async ({pw}) => {
+    // # Trigger e2e tests on test-only PR
     // # Prepare data with File
     const clientId = pw.random.id();
     const formData = new FormData();
