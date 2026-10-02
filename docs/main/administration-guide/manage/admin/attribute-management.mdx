@@ -61,7 +61,7 @@ Attributes created and owned by a plugin are read-only in Attribute Management, 
       - **Multiselect**: One or more values chosen from a list of options.
       - **Ranked**: A single value chosen from an ordered list, where each option ranks higher or lower than the others, such as *Public*, *Secret*, and *Top Secret*. Because the options are ordered, [access control policies](/administration-guide/manage/admin/abac-system-wide-policies) can compare a ranked attribute against a threshold, for example clearance *is at least* Secret.
       - **Hierarchical**: Values organized as parents and children, up to 100 parents per value and 100 levels deep. Available only when the `PropertyFieldGraph` feature flag is enabled, and only when you create an attribute. A hierarchical attribute can't be converted to another type.
-    - **Options**: For **Select**, **Multiselect**, and **Ranked** attributes, enter each option and press **Enter** or **Tab**. At least one option is required. Options can be up to 64 characters and must be unique. Select an option to rename it, move it to another position, or remove it. For **Ranked** attributes, options are shown from lowest to highest rank; select an option to change its rank.
+    - **Options**: For **Select**, **Multiselect**, and **Ranked** attributes, enter each option and press **Enter** or **Tab**. At least one option is required, unless the attribute is [linked to an external source](#link-an-attribute-to-adldap-or-saml) that provides its options. Options can be up to 64 characters and must be unique. Select an option to rename it, move it to another position, or remove it. For **Ranked** attributes, options are shown from lowest to highest rank; select an option to change its rank.
 3.  Optionally, [link the attribute to an external source](#link-an-attribute-to-adldap-or-saml).
 4.  In the **Applies to** section, select **Add resource** and choose the [resources the attribute applies to](#choose-the-resources-an-attribute-applies-to).
 5.  Select **Save**.
@@ -77,11 +77,18 @@ Synchronize an attribute's user values from your identity provider instead of ma
 
 You can link both AD/LDAP and SAML to the same attribute. Linked sources are listed under **Synced with**.
 
+From Mattermost v12.1, **Select** and **Multiselect** attributes keep their type when you link them:
+
+- A **Select** attribute stores the first value the identity provider sends, and a **Multiselect** attribute stores every value, such as each group a user belongs to.
+- The synchronization manages the options. Each new value it sends is added as an option, up to 500 options, and options that no user or channel holds any more are removed, including options added before the attribute was linked. While the attribute is linked, its options can't be added, renamed, or removed in Mattermost.
+- The attribute must apply to **Users**, because its options come from the values synchronized to users. A linked **Select** or **Multiselect** attribute can't be saved until it applies to **Users**.
+
 <Note>
 
-- Linking an external source changes the attribute type to **Text**.
-- Link external sources before you apply the attribute to a resource. You can't add a new external source while the attribute applies to a resource.
+- Linking an external source keeps a **Text**, **Phone**, **URL**, **Select**, or **Multiselect** attribute's type. Any other type changes to **Text**. Before v12.1, linking changes every type to **Text**.
+- While the attribute applies to a resource, its type can't change, so you can link an external source only to an attribute whose type is kept.
 - Values synced from an external source apply to **Users** only, and users can't edit them in Mattermost. In the **Users** resource settings, **Managed by** shows the source.
+- When the identity provider stops sending a value for a user, the next synchronization removes it from that user in Mattermost.
 
 </Note>
 
