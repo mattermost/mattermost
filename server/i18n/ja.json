@@ -10014,14 +10014,6 @@
     "translation": "ポリシーはルールをインポートするか定義しなければなりません。"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "CPAフィールドを取得できませんでした"
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "CPAフィールドを取得できませんでした"
-  },
-  {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
     "translation": "SAMLアサーション属性文が不正です"
   },
@@ -10052,10 +10044,6 @@
   {
     "id": "app.submit_interactive_dialog.read_body_error",
     "translation": "インタラクティブダイアログ送信情報のレスポンスボディを読み取る際にエラーが発生しました。"
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "空のLDAP属性値です"
   },
   {
     "id": "ent.ldap.do_login.invalid_id",

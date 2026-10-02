@@ -10028,18 +10028,6 @@
     "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} ska vara ett prefix från IndexPrefix {{.IndexPrefix}}."
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Misslyckades att hämta CPA-fält"
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Tomt LDAP-attributvärde"
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Misslyckades med att hämta CPA-fält"
-  },
-  {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
     "translation": "SAML assertion attribute statement är ogiltigt"
   },

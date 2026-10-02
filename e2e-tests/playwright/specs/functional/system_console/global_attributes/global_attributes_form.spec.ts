@@ -853,46 +853,82 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         });
 
         /**
-         * @objective Ensure the picker warns before converting a non-Text field to Text, and that
-         * once a source is linked the Type control is locked to Text until the last chip is removed.
+         * @objective Ensure linking a source keeps a Select, hands its options to the sync and holds
+         * Save until the attribute applies to Users, whose sync provides them, while a type the source
+         * cannot populate is converted to Text after a warning. Either way Type stays locked until
+         * the last chip is removed.
          */
-        test('warns before converting a non-Text field, and locks Type to Text while a source is linked', async ({
+        test('keeps a Select linked to a source, and warns before converting a type the source cannot populate', async ({
             pw,
         }) => {
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+            const page = systemConsolePage.page;
+            await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
 
-            await systemConsolePage.page.getByTestId('newAttributeButton').click();
+            await page.getByTestId('newAttributeButton').click();
+            await page.getByTestId('attributeDisplayNameInput').fill(`Playwright Synced Select ${Date.now()}`);
 
-            // # Switch to Select, then try linking AD/LDAP
-            await systemConsolePage.page.getByTestId('attributeTypeMenuButton').click();
-            await systemConsolePage.page.getByRole('menuitemradio', {name: 'Select', exact: true}).click();
-            await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
-            await systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/}).click();
+            // # Switch to Select, then link AD/LDAP
+            const typeButton = page.getByTestId('attributeTypeMenuButton');
+            await typeButton.click();
+            await page.getByRole('menuitemradio', {name: 'Select', exact: true}).click();
+            await page.getByTestId('attributeExternalSourceTrigger').click();
+            await page.getByRole('menuitem', {name: /AD\/LDAP/}).click();
+
+            // * The source can populate a Select, so the modal warns of no conversion
+            await expect(page.getByPlaceholder('department')).toBeVisible();
+            await expect(page.getByText(/converted to a TEXT attribute/i)).not.toBeVisible();
+
+            await page.getByPlaceholder('department').fill('departmentNumber');
+            await page.getByRole('button', {name: 'Save'}).click();
+
+            // * Type stays Select and is locked, and the sync owns the options
+            await expect(page.getByTestId('attributeExternalSourceChip-ldap')).toBeVisible();
+            await expect(typeButton).toContainText('Select');
+            await expect(typeButton).toBeDisabled();
+            await expect(page.getByTestId('attributeOptionsSyncedHelp')).toContainText(
+                'Options are managed by the AD/LDAP sync.',
+            );
+
+            // * Save waits for Users, whose sync provides the options
+            await expect(page.getByTestId('attributeOptionsNeedUsersError')).toBeVisible();
+            await expect(page.getByTestId('saveSetting')).toBeDisabled();
+
+            // # Apply it to Users
+            await page.getByTestId('attributeAppliesToAddResourceButtonHeader').click();
+            await page.getByRole('menuitem', {name: 'Users'}).click();
+
+            // * Save is available
+            await expect(page.getByTestId('attributeOptionsNeedUsersError')).not.toBeVisible();
+            await expect(page.getByTestId('saveSetting')).toBeEnabled();
+
+            // # Remove the chip and switch to Ranked, a type the source cannot populate
+            await page.getByTestId('attributeExternalSourceChip-ldap-remove').click();
+            await expect(typeButton).toBeEnabled();
+            await typeButton.click();
+            await page.getByRole('menuitemradio', {name: 'Ranked', exact: true}).click();
+            await page.getByTestId('attributeExternalSourceTrigger').click();
+            await page.getByRole('menuitem', {name: /AD\/LDAP/}).click();
 
             // * The modal warns the field will convert to Text
-            await expect(systemConsolePage.page.getByText(/converted to a TEXT attribute/i)).toBeVisible();
+            await expect(page.getByText(/converted to a TEXT attribute/i)).toBeVisible();
 
             // # Save the link anyway
-            await systemConsolePage.page.getByPlaceholder('department').fill('employeeID');
-            await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
+            await page.getByPlaceholder('department').fill('employeeID');
+            await page.getByRole('button', {name: 'Save'}).click();
 
-            // * Type switched to Text, a chip appeared, and Type is locked
-            const typeButton = systemConsolePage.page.getByTestId('attributeTypeMenuButton');
+            // * Type switched to Text and is locked
+            await expect(page.getByTestId('attributeExternalSourceChip-ldap')).toBeVisible();
             await expect(typeButton).toContainText('Text');
-            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toBeVisible();
             await expect(typeButton).toBeDisabled();
 
             // # Remove the chip
-            await systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap-remove').click();
+            await page.getByTestId('attributeExternalSourceChip-ldap-remove').click();
 
             // * Type is editable again
             await expect(typeButton).toBeEnabled();
-            await typeButton.click();
-            await systemConsolePage.page.getByRole('menuitemradio', {name: 'Select', exact: true}).click();
-            await expect(typeButton).toContainText('Select');
         });
     });
 

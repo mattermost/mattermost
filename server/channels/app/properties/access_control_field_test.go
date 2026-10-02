@@ -288,6 +288,38 @@ func TestGetPropertyFieldReadAccess(t *testing.T) {
 		assert.Empty(t, retrieved.Attrs[model.PropertyFieldAttributeOptions].([]any))
 	})
 
+	t.Run("shared_only field - owning sync gets all options, other sync does not", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "shared-only-field-synced",
+			Type:       model.PropertyFieldTypeMultiselect,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyAttrsAccessMode:     model.PropertyAccessModeSharedOnly,
+				model.PropertyAttrsSourcePluginID: pluginID1,
+				model.PropertyAttrsProtected:      true,
+				model.PropertyFieldAttrLDAP:       "memberOf",
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": "opt1", "value": "Option 1"},
+					map[string]any{"id": "opt2", "value": "Option 2"},
+				},
+			},
+		}
+		created, err := th.service.CreatePropertyField(rctx1, field)
+		require.NoError(t, err)
+
+		ldapRctx := RequestContextWithCallerID(th.Context, model.CallerIDLDAPSync)
+		retrieved, err := th.service.GetPropertyField(ldapRctx, th.CPAGroupID, created.ID)
+		require.NoError(t, err)
+		assert.Len(t, retrieved.Attrs[model.PropertyFieldAttributeOptions].([]any), 2)
+
+		samlRctx := RequestContextWithCallerID(th.Context, model.CallerIDSAMLSync)
+		retrieved, err = th.service.GetPropertyField(samlRctx, th.CPAGroupID, created.ID)
+		require.NoError(t, err)
+		assert.Empty(t, retrieved.Attrs[model.PropertyFieldAttributeOptions].([]any))
+	})
+
 	t.Run("non-CPA group routes directly to PropertyService without filtering", func(t *testing.T) {
 		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_routing_read", Version: model.PropertyGroupVersionV2})
 		require.NoError(t, err)
