@@ -33,11 +33,11 @@ func (ce *combineExtractor) Match(filename string) bool {
 	return false
 }
 
-func (ce *combineExtractor) Extract(ctx context.Context, filename string, r io.ReadSeeker, maxFileSize int64) (string, error) {
+func (ce *combineExtractor) Extract(ctx context.Context, filename string, r io.ReadSeeker, maxFileSize int64, budget *ExtractionBudget) (string, error) {
 	for _, extractor := range ce.SubExtractors {
 		if extractor.Match(filename) {
 			r.Seek(0, io.SeekStart)
-			text, err := extractor.Extract(ctx, filename, r, maxFileSize)
+			text, err := extractor.Extract(ctx, filename, r, maxFileSize, budget)
 			if err != nil {
 				// Context errors must not be retried: the caller explicitly
 				// cancelled or timed out, so stop immediately.
