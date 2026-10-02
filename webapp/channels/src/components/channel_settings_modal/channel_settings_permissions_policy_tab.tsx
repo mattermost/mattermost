@@ -11,6 +11,7 @@ import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/typ
 import {
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
+    ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
     ACCESS_CONTROL_CHANNEL_ROLE_ADMIN,
     ACCESS_CONTROL_CHANNEL_ROLE_GUEST,
     ACCESS_CONTROL_CHANNEL_ROLE_USER,
@@ -104,6 +105,14 @@ const actionMessages = defineMessages({
         id: 'channel_settings.permissions_policy.action.download.description',
         defaultMessage: 'Allow users to download attached files from this channel',
     },
+    createBorLabel: {
+        id: 'channel_settings.permissions_policy.action.create_bor',
+        defaultMessage: 'Create burn-on-read message',
+    },
+    createBorDescription: {
+        id: 'channel_settings.permissions_policy.action.create_bor.description',
+        defaultMessage: 'Allow users to send burn-on-read messages in this channel',
+    },
 });
 
 interface RoleDefinition {
@@ -127,11 +136,13 @@ const AVAILABLE_ROLES: RoleDefinition[] = [
 const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
     {value: ACCESS_CONTROL_ACTION_UPLOAD_FILE, label: actionMessages.uploadLabel, description: actionMessages.uploadDescription},
     {value: ACCESS_CONTROL_ACTION_DOWNLOAD_FILE, label: actionMessages.downloadLabel, description: actionMessages.downloadDescription},
+    {value: ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ, label: actionMessages.createBorLabel, description: actionMessages.createBorDescription},
 ];
 
 const ACTION_LABEL_IDS: Record<string, MessageDescriptor> = {
     [ACCESS_CONTROL_ACTION_UPLOAD_FILE]: actionMessages.uploadLabel,
     [ACCESS_CONTROL_ACTION_DOWNLOAD_FILE]: actionMessages.downloadLabel,
+    [ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ]: actionMessages.createBorLabel,
 };
 
 type EditableRule = {
@@ -985,7 +996,9 @@ function PermissionRuleEditor({
     }, []);
 
     const selectedRoleDef = AVAILABLE_ROLES.find((r) => r.value === draft.role);
-    const availableToAdd = AVAILABLE_PERMISSIONS.filter((p) => !draft.actions.includes(p.value));
+    const availableToAdd = AVAILABLE_PERMISSIONS.filter(
+        (p) => !draft.actions.includes(p.value),
+    );
 
     return (
         <div

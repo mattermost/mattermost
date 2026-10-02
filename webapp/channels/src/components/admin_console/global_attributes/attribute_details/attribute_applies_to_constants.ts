@@ -9,6 +9,8 @@ import {AccountOutlineIcon, MessageTextOutlineIcon, ProductChannelsIcon} from '@
 import type IconProps from '@mattermost/compass-icons/components/props';
 import type {FieldVisibility} from '@mattermost/types/properties';
 
+import type {ExternalSource} from './external_source';
+
 import type {ChannelResourceConfig} from '../applies_to/channels/types';
 
 export type ResourceObjectType = 'user' | 'channel' | 'post';
@@ -48,6 +50,10 @@ export type AttributeAppliesToItemProps = {
     onVisibilityChange?: (visibility: FieldVisibility) => void;
     managed?: UserManagedValue;
     onManagedChange?: (managed: UserManagedValue) => void;
+
+    // The external system this attribute's values are synced from, when there
+    // is one. Undefined for attributes managed in Mattermost or by a plugin.
+    externalSource?: ExternalSource;
 };
 
 // Channels is the one resource with settings of its own, so its row takes the

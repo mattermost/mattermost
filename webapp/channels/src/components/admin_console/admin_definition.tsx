@@ -283,7 +283,7 @@ const AdminDefinition: AdminDefinitionType = {
     about: {
         icon: (
             <InformationOutlineIcon
-                size={16}
+                size={14}
                 color={'currentColor'}
             />
         ),
@@ -309,7 +309,7 @@ const AdminDefinition: AdminDefinitionType = {
     billing: {
         icon: (
             <CreditCardOutlineIcon
-                size={16}
+                size={14}
                 color={'currentColor'}
             />
         ),
@@ -369,7 +369,7 @@ const AdminDefinition: AdminDefinitionType = {
     reporting: {
         icon: (
             <ChartBarIcon
-                size={16}
+                size={14}
                 color={'currentColor'}
             />
         ),
@@ -430,7 +430,7 @@ const AdminDefinition: AdminDefinitionType = {
     user_management: {
         icon: (
             <AccountMultipleOutlineIcon
-                size={16}
+                size={14}
                 color={'currentColor'}
             />
         ),
@@ -673,44 +673,6 @@ const AdminDefinition: AdminDefinitionType = {
                     component: UserAttributesRedirect,
                 },
             },
-            session_attributes: {
-                url: 'system_attributes/session_attributes',
-                title: defineMessage({id: 'admin.sidebar.sessionAttributes', defaultMessage: 'Session Attributes'}),
-                searchableStrings: sessionAttributesSearchableStrings,
-                isHidden: it.any(
-                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                    it.configIsFalse('FeatureFlags', 'SessionAttributes'),
-                ),
-                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                schema: {
-                    id: 'SessionAttributes',
-                    component: SessionAttributesPage,
-                },
-                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
-            },
-            session_attributes_feature_discovery: {
-                url: 'system_attributes/session_attributes',
-                isDiscovery: true,
-                title: defineMessage({id: 'admin.sidebar.sessionAttributes', defaultMessage: 'Session Attributes'}),
-                isHidden: it.any(
-                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
-                    it.configIsFalse('FeatureFlags', 'SessionAttributes'),
-                ),
-                schema: {
-                    id: 'SessionAttributes',
-                    name: defineMessage({id: 'admin.session_attributes.title', defaultMessage: 'Session Attributes'}),
-                    settings: [
-                        {
-                            type: 'custom',
-                            component: SessionAttributesFeatureDiscovery,
-                            key: 'SessionAttributesFeatureDiscovery',
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
-                        },
-                    ],
-                },
-                restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
-            },
             board_attributes: {
                 url: 'system_attributes/board_attributes',
                 title: defineMessage({id: 'admin.sidebar.board_attributes', defaultMessage: 'Board Attributes'}),
@@ -769,6 +731,44 @@ const AdminDefinition: AdminDefinitionType = {
                     component: GlobalAttributes,
                 },
             },
+            session_attributes: {
+                url: 'system_attributes/session_attributes',
+                title: defineMessage({id: 'admin.sidebar.sessionAttributes', defaultMessage: 'Session Attributes'}),
+                searchableStrings: sessionAttributesSearchableStrings,
+                isHidden: it.any(
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'SessionAttributes'),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                schema: {
+                    id: 'SessionAttributes',
+                    component: SessionAttributesPage,
+                },
+                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
+            },
+            session_attributes_feature_discovery: {
+                url: 'system_attributes/session_attributes',
+                isDiscovery: true,
+                title: defineMessage({id: 'admin.sidebar.sessionAttributes', defaultMessage: 'Session Attributes'}),
+                isHidden: it.any(
+                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
+                    it.configIsFalse('FeatureFlags', 'SessionAttributes'),
+                ),
+                schema: {
+                    id: 'SessionAttributes',
+                    name: defineMessage({id: 'admin.session_attributes.title', defaultMessage: 'Session Attributes'}),
+                    settings: [
+                        {
+                            type: 'custom',
+                            component: SessionAttributesFeatureDiscovery,
+                            key: 'SessionAttributesFeatureDiscovery',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
+            },
             attribute_based_access_control: {
                 url: 'system_attributes/attribute_based_access_control',
                 title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
@@ -788,15 +788,15 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'bool',
                                     key: 'AccessControlSettings.EnableAttributeBasedAccessControl',
                                     label: defineMessage({id: 'admin.accesscontrol.enableTitle', defaultMessage: 'Allow attribute based access controls on this server'}),
-                                    help_text: defineMessage({id: 'admin.accesscontrol.enableDesc', defaultMessage: 'Allow access restrictions based on user attributes using custom access policies. To effectively use this feature, you must define user attributes in the {userAttributes} section.'}), // eslint-disable-line formatjs/enforce-placeholders -- userAttributes provided via help_text_values
+                                    help_text: defineMessage({id: 'admin.accesscontrol.enableDesc', defaultMessage: 'Allow access restrictions based on user attributes using custom access policies. To effectively use this feature, you must define attributes in the {userAttributes} section.'}), // eslint-disable-line formatjs/enforce-placeholders -- userAttributes provided via help_text_values
                                     help_text_values: {
                                         userAttributes: (
-                                            <a href='../system_attributes/user_attributes'>
+                                            <Link to='/admin_console/system_attributes/manage_attributes'>
                                                 <FormattedMessage
                                                     id='admin.accesscontrol.user_properties.link.label'
-                                                    defaultMessage='User Attributes'
+                                                    defaultMessage='Attribute Management'
                                                 />
-                                            </a>
+                                            </Link>
                                         ),
                                     },
                                 },
@@ -1004,7 +1004,7 @@ const AdminDefinition: AdminDefinitionType = {
     environment: {
         icon: (
             <ServerVariantIcon
-                size={16}
+                size={14}
                 color={'currentColor'}
             />
         ),
@@ -2616,7 +2616,7 @@ const AdminDefinition: AdminDefinitionType = {
     site: {
         icon: (
             <CogOutlineIcon
-                size={16}
+                size={14}
                 color={'currentColor'}
             />
         ),
@@ -4419,7 +4419,7 @@ const AdminDefinition: AdminDefinitionType = {
     authentication: {
         icon: (
             <ShieldOutlineIcon
-                size={16}
+                size={14}
                 color={'currentColor'}
             />
         ),
@@ -5957,7 +5957,7 @@ const AdminDefinition: AdminDefinitionType = {
     plugins: {
         icon: (
             <PowerPlugOutlineIcon
-                size={16}
+                size={14}
                 color={'currentColor'}
             />
         ),
@@ -5988,7 +5988,7 @@ const AdminDefinition: AdminDefinitionType = {
     integrations: {
         icon: (
             <SitemapIcon
-                size={16}
+                size={14}
                 color={'currentColor'}
             />
         ),
@@ -6360,7 +6360,7 @@ const AdminDefinition: AdminDefinitionType = {
     compliance: {
         icon: (
             <FormatListBulletedIcon
-                size={16}
+                size={14}
                 color={'currentColor'}
             />
         ),
@@ -6683,7 +6683,7 @@ const AdminDefinition: AdminDefinitionType = {
     experimental: {
         icon: (
             <FlaskOutlineIcon
-                size={16}
+                size={14}
                 color={'currentColor'}
             />
         ),
