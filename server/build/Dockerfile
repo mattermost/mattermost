@@ -20,6 +20,22 @@ RUN apk add --no-cache \
   tidy-html5 \
   tzdata
 
+# PDF feature (CJK): Wolfi has no poppler-data apk. Vendor upstream CMaps only
+# (cMap + cidToUnicode) so predefined-CMap PDFs extract for search. Pin URL +
+# SHA-256 so the tarball cannot change silently; drop when Wolfi ships the pkg.
+ARG POPPLER_DATA_VERSION=0.4.12
+ARG POPPLER_DATA_SHA256=c835b640a40ce357e1b83666aabd95edffa24ddddd49b8daff63adb851cdab74
+RUN curl -fsSL "https://poppler.freedesktop.org/poppler-data-${POPPLER_DATA_VERSION}.tar.gz" \
+      -o /tmp/poppler-data.tar.gz \
+  && echo "${POPPLER_DATA_SHA256}  /tmp/poppler-data.tar.gz" | sha256sum -c - \
+  && tar -xzf /tmp/poppler-data.tar.gz -C /tmp \
+  && mkdir -p /usr/share/poppler \
+  && cp -a "/tmp/poppler-data-${POPPLER_DATA_VERSION}/cMap" /usr/share/poppler/ \
+  && cp -a "/tmp/poppler-data-${POPPLER_DATA_VERSION}/cidToUnicode" /usr/share/poppler/ \
+  && test -d /usr/share/poppler/cMap \
+  && test -d /usr/share/poppler/cidToUnicode \
+  && rm -rf /tmp/poppler-data.tar.gz "/tmp/poppler-data-${POPPLER_DATA_VERSION}"
+
 RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins \
   && addgroup -g ${PGID} mattermost \
   && adduser -D -u ${PUID} -G mattermost -g "" -s /bin/sh -h /mattermost mattermost \
@@ -47,6 +63,9 @@ COPY --from=builder --chown=2000:2000 /etc/ssl/certs /etc/ssl/certs
 
 # PDF feature: pdftotext for search indexing of uploaded PDFs
 COPY --from=builder /usr/bin/pdftotext /usr/bin/pdftotext
+# PDF feature (CJK): predefined CMap PDFs need these (e.g. Adobe-GB1 / Japan1).
+COPY --from=builder /usr/share/poppler/cMap /usr/share/poppler/cMap
+COPY --from=builder /usr/share/poppler/cidToUnicode /usr/share/poppler/cidToUnicode
 COPY --from=builder /usr/bin/wvText /usr/bin/wvText
 COPY --from=builder /usr/bin/wvWare /usr/bin/wvWare
 COPY --from=builder /usr/bin/unrtf /usr/bin/unrtf
