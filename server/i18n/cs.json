@@ -7906,7 +7906,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Nepodařilo se odvolat pozvání vzdálenému uživateli do kanálu"
+    "translation": "Nepodařilo se zrušit pozvání vzdáleného serveru do kanálu."
   },
   {
     "id": "app.channel.get_priority_for_posts.app_error",
@@ -8836,7 +8836,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Nepodařilo se získat kanály pro poskytnutý schéma."
+    "translation": "Nepodařilo se získat týmy pro dané schéma."
   },
   {
     "id": "app.team.get_unread.app_error",
@@ -14611,5 +14611,13 @@
   {
     "id": "web.error.unsupported_desktop_app.title",
     "translation": "Vyžadována aktualizace"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NENALEZENO**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "odstraněno"
   }
 ]

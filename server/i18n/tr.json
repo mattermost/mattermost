@@ -6160,7 +6160,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Belirtilen şemanın uygulanabileceği kanallar alınamadı."
+    "translation": "Belirtilen şemanın uygulandığı takımlar alınamadı."
   },
   {
     "id": "app.post.get_posts_since.app_error",
@@ -9515,7 +9515,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Uzak taraf kanal daveti kaldırılamadı"
+    "translation": "Uzak tarafın kanal daveti kaldırılamadı"
   },
   {
     "id": "app.post.save.thread_membership.app_error",
@@ -14564,5 +14564,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys geçersiz: {{.MaxCount}} anahtar ya da {{.MaxLength}} bayt sınırı aşılıyor."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**BULUNAMADI**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "silindi"
   }
 ]

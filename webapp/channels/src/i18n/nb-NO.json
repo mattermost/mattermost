@@ -3882,7 +3882,7 @@
   "admin.system_users.date_range_selector.date_range.sublabel": "{startDate} - {endDate}",
   "admin.system_users.date_range_selector.dropdownAriaLabel": "Meny for datointervall",
   "admin.system_users.date_range_selector.label": "Varighet",
-  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Åpne menyen for å velge kolonner som skal vises",
+  "admin.system_users.date_range_selector.menuButtonAriaLabel": "Åpne menyen for å velge et datointervall",
   "admin.system_users.date_range_selector.trailing_message": "Merk: Dette filteret påvirker bare verdiene i kolonnene <strong>Siste innlegg, Antall dager aktiv og Meldinger lagt ut</strong>.",
   "admin.system_users.exportButton": "Eksporter",
   "admin.system_users.exportButton.notLicensed.hint": "Denne funksjonen er tilgjengelig på Professional-planen",

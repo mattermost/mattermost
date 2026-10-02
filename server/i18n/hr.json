@@ -4117,7 +4117,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Nije moguće ukloniti udaljeni server iz kanala"
+    "translation": "Nije moguće ukloniti udaljeni server iz kanala."
   },
   {
     "id": "api.status.user_not_found.app_error",
@@ -14602,5 +14602,13 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Nije moguće pronaći korisnika {{.user}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NIJE PRONAĐENA**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "uklonjena"
   }
 ]
