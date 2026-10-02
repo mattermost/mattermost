@@ -182,6 +182,15 @@ describe('WysiwygSuggestionList', () => {
         expect(onSubmit).not.toHaveBeenCalled();
     });
 
+    test('completes a user as a mention node', async () => {
+        const {type, inserted} = setup(['@sysadmin']);
+
+        type('@sys');
+        await userEvent.click(screen.getByRole('button'));
+
+        expect(inserted).toEqual([[{type: 'mention', attrs: {char: '@', name: 'sysadmin'}}, {type: 'text', text: ' '}]]);
+    });
+
     test('aligns the list with the trigger character', () => {
         const {type} = setup(['/jira instance install cloud-oauth'], {left: 120, top: 40});
 

@@ -38,6 +38,8 @@ import {getPxToSubstract} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
+import {parseMentionTerm} from './wysiwyg_mention';
+
 const EXECUTE_CURRENT_COMMAND_ITEM_ID = Constants.Integrations.EXECUTE_CURRENT_COMMAND_ITEM_ID;
 const OPEN_COMMAND_IN_MODAL_ITEM_ID = Constants.Integrations.OPEN_COMMAND_IN_MODAL_ITEM_ID;
 
@@ -281,9 +283,10 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
         const deleteFrom = startOfLine + matchIndex;
         const deleteTo = from;
 
-        const completedText = `${term} `;
+        const mention = parseMentionTerm(term);
+        const completedContent = mention ? [{type: 'mention', attrs: mention}, {type: 'text', text: ' '}] : `${term} `;
 
-        editor.chain().focus().deleteRange({from: deleteFrom, to: deleteTo}).insertContent(completedText).run();
+        editor.chain().focus().deleteRange({from: deleteFrom, to: deleteTo}).insertContent(completedContent).run();
 
         closeSuggestions();
         return true;

@@ -33,6 +33,7 @@ import {useLatest} from 'hooks/useLatest';
 
 import WysiwygImage from './wysiwyg_image';
 import {parseMarkdownContent, serializeToMarkdown} from './wysiwyg_markdown';
+import WysiwygMention from './wysiwyg_mention';
 import WysiwygSuggestionList from './wysiwyg_suggestion_list';
 
 import './wysiwyg_editor.scss';
@@ -266,6 +267,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         TableCell,
         TableHeader,
         WysiwygImage.configure({hasImageProxy}),
+        WysiwygMention,
         OrderedListMarkerWidth,
         EmojiDecorations,
     ];
@@ -343,12 +345,13 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                     return false;
                 }
 
-                const text = event.clipboardData?.getData('text/plain');
-                if (!text) {
-                    return false;
+                const clipboard = event.clipboardData;
+                const text = clipboard?.getData('text/plain');
+                if (!text?.trim()) {
+                    return Boolean(clipboard?.files.length);
                 }
 
-                const html = event.clipboardData?.getData('text/html');
+                const html = clipboard?.getData('text/html');
                 if (html?.includes('data-pm-slice')) {
                     return false;
                 }

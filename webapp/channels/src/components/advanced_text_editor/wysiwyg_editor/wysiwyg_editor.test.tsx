@@ -438,6 +438,31 @@ describe('WysiwygEditor', () => {
         });
     });
 
+    describe('handlePaste with clipboard files', () => {
+        const paste = (text: string, files: File[]) => {
+            renderWithContext(<WysiwygEditor {...baseProps}/>);
+            return mockCapturedConfig.current?.editorProps?.handlePaste?.({} as any, {
+                preventDefault: jest.fn(),
+                clipboardData: {
+                    getData: (type: string) => (type === 'text/plain' ? text : '<img src="blob:image">'),
+                    files,
+                },
+            } as any);
+        };
+
+        test('swallows image-only pastes so the image is attached, not embedded', () => {
+            expect(paste('', [new File([''], 'image.png', {type: 'image/png'})])).toBe(true);
+        });
+
+        test('lets ProseMirror handle pastes with neither text nor files', () => {
+            expect(paste('', [])).toBe(false);
+        });
+
+        test('lets text win when the clipboard also carries files', () => {
+            expect(paste('just words', [new File([''], 'image.png', {type: 'image/png'})])).toBe(false);
+        });
+    });
+
     test('getEditor() on the handle returns the underlying Tiptap Editor instance', () => {
         const ref = React.createRef<React.ComponentRef<typeof WysiwygEditor>>();
 
