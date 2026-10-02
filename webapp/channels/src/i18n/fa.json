@@ -1642,7 +1642,6 @@
   "admin.global_attributes.attribute_details.title": "ویژگی جدید",
   "admin.global_attributes.attribute_details.type.field_aria_label": "نوع: {value}",
   "admin.global_attributes.attribute_details.type.field_locked_applies_to_aria_label": "نوع: {value}. تا زمانی که این ویژگی بر یک منبع اعمال می‌شود قفل است.",
-  "admin.global_attributes.attribute_details.type.field_locked_aria_label": "نوع: متن. تا زمانی که به یک منبع خارجی پیوند دارد قفل است.",
   "admin.global_attributes.attribute_details.type.field_locked_graph_aria_label": "نوع: {value}. قفل است، زیرا ویژگی سلسله‌مراتبی را نمی‌توان به نوع دیگری تبدیل کرد.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label": "نوع: {value}. قفل است، زیرا این ویژگی توسط یک افزونه مدیریت می‌شود.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label": "نوع: {value}. قفل است، زیرا این ویژگی توسط افزونه‌ای مدیریت می‌شد که دیگر نصب نیست.",

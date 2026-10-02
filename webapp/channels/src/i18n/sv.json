@@ -1644,7 +1644,6 @@
   "admin.global_attributes.attribute_details.title": "Nytt attribut",
   "admin.global_attributes.attribute_details.type.field_aria_label": "Typ: {value}",
   "admin.global_attributes.attribute_details.type.field_locked_applies_to_aria_label": "Typ: {value}. Låst medan det här attributet gäller för en resurs.",
-  "admin.global_attributes.attribute_details.type.field_locked_aria_label": "Typ: Text. Låst medan attributet är kopplat till en extern källa.",
   "admin.global_attributes.attribute_details.type.field_locked_graph_aria_label": "Typ: {value}. Låst eftersom ett hierarkiskt attribut inte kan konverteras till en annan typ.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label": "Typ: {value}. Låst eftersom det här attributet hanteras av ett plugin.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label": "Typ: {value}. Låst eftersom det här attributet hanterades av ett plugin som inte längre är installerat.",

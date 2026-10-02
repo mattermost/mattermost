@@ -1642,7 +1642,6 @@
   "admin.global_attributes.attribute_details.title": "Nouvel attribut",
   "admin.global_attributes.attribute_details.type.field_aria_label": "Type : {value}",
   "admin.global_attributes.attribute_details.type.field_locked_applies_to_aria_label": "Type : {value}. Verrouillé tant que cet attribut s'applique à une ressource.",
-  "admin.global_attributes.attribute_details.type.field_locked_aria_label": "Type : Texte. Verrouillé tant que l'attribut est lié à une source externe.",
   "admin.global_attributes.attribute_details.type.field_locked_graph_aria_label": "Type : {value}. Verrouillé, car un attribut hiérarchique ne peut pas être converti vers un autre type.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label": "Type : {value}. Verrouillé, car cet attribut est géré par un plugin.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label": "Type : {value}. Verrouillé, car cet attribut était géré par un plugin qui n'est plus installé.",

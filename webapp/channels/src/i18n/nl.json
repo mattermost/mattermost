@@ -1644,7 +1644,6 @@
   "admin.global_attributes.attribute_details.title": "Nieuw attribuut",
   "admin.global_attributes.attribute_details.type.field_aria_label": "Type: {value}",
   "admin.global_attributes.attribute_details.type.field_locked_applies_to_aria_label": "Type: {value}. Vergrendeld zolang dit attribuut op een bron van toepassing is.",
-  "admin.global_attributes.attribute_details.type.field_locked_aria_label": "Type: Tekst. Vergrendeld zolang er een koppeling met een externe bron bestaat.",
   "admin.global_attributes.attribute_details.type.field_locked_graph_aria_label": "Type: {value}. Vergrendeld omdat een hiërarchisch attribuut niet naar een ander type kan worden omgezet.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label": "Type: {value}. Vergrendeld omdat dit attribuut door een plugin wordt beheerd.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label": "Type: {value}. Vergrendeld omdat dit attribuut werd beheerd door een plugin die niet meer geïnstalleerd is.",
