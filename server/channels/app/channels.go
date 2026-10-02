@@ -101,6 +101,8 @@ type Channels struct {
 	postReminderTask  leaderTask
 	scheduledPostTask leaderTask
 
+	healthCheckTask leaderTask
+
 	interruptQuitChan chan struct{}
 }
 
@@ -327,6 +329,7 @@ func (ch *Channels) Stop() error {
 	ch.dndTask.stop()
 	ch.postReminderTask.stop()
 	ch.scheduledPostTask.stop()
+	ch.healthCheckTask.stop()
 
 	close(ch.interruptQuitChan)
 
