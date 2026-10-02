@@ -16,7 +16,6 @@ import {expect, test, getAdminClient, licenseTier} from '@mattermost/playwright-
 import {
     CLASSIFICATION_MARKINGS_ADMIN_PATH,
     deleteClassificationMarkingsFieldIfExists,
-    setClassificationMarkingsFeatureFlag,
     setupClassificationFieldWithGlobalBanner,
 } from './classification_markings_helpers';
 
@@ -28,17 +27,6 @@ async function selectClassificationPreset(page: Page, optionLabel: string) {
 }
 
 test.describe('System Console - Classification markings', () => {
-    test.beforeAll(async () => {
-        const {adminClient} = await getAdminClient({skipLog: true});
-        await setClassificationMarkingsFeatureFlag(adminClient, true);
-        const config = await adminClient.getConfig();
-        test.skip(
-            config.FeatureFlags?.ClassificationMarkings !== true &&
-                config.FeatureFlags?.ClassificationMarkings !== 'true',
-            'ClassificationMarkings feature flag is off (probably overridden by env); skipping.',
-        );
-    });
-
     test.describe.configure({mode: 'serial'});
 
     test.beforeEach(async ({pw}) => {
@@ -70,19 +58,14 @@ test.describe('System Console - Classification markings', () => {
         'MM-T6201 classification markings: feature flag off redirects away from admin URL',
         {tag: ['@system_console', '@classification_markings']},
         async ({pw}) => {
-            const {adminUser, adminClient} = await getAdminClient();
+            const {adminUser} = await getAdminClient();
 
-            if (!adminUser || !adminClient) {
+            if (!adminUser) {
                 throw new Error('Failed to get admin user');
             }
 
             // # Turn off ClassificationMarkings in server config
-            await setClassificationMarkingsFeatureFlag(adminClient, false);
-            const {FeatureFlags} = await adminClient.getConfig();
-            test.skip(
-                FeatureFlags.ClassificationMarkings === true,
-                'ClassificationMarkings stays enabled (e.g. MM_FEATUREFLAGS or split-key overrides); cannot assert flag-off in this environment.',
-            );
+            await pw.ensureFeatureFlag('ClassificationMarkings', false);
 
             // # Open system console and navigate directly to the classification markings path
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -110,7 +93,7 @@ test.describe('System Console - Classification markings', () => {
             }
 
             // # Enable flag and clear any existing classification field
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
+            await pw.ensureFeatureFlag('ClassificationMarkings', true);
             await deleteClassificationMarkingsFieldIfExists(adminClient);
 
             // # Log in and open the classification markings URL
@@ -138,7 +121,7 @@ test.describe('System Console - Classification markings', () => {
             }
 
             // # Enable feature flag and ensure no classification field exists
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
+            await pw.ensureFeatureFlag('ClassificationMarkings', true);
             await deleteClassificationMarkingsFieldIfExists(adminClient);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -174,7 +157,7 @@ test.describe('System Console - Classification markings', () => {
             }
 
             // # Enable flag and start from no classification field
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
+            await pw.ensureFeatureFlag('ClassificationMarkings', true);
             await deleteClassificationMarkingsFieldIfExists(adminClient);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -214,7 +197,7 @@ test.describe('System Console - Classification markings', () => {
             }
 
             // # Enable flag and clear field, then prepare saved UK levels
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
+            await pw.ensureFeatureFlag('ClassificationMarkings', true);
             await deleteClassificationMarkingsFieldIfExists(adminClient);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -261,7 +244,7 @@ test.describe('System Console - Classification markings', () => {
             }
 
             // # Enable flag and save Canada preset as baseline
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
+            await pw.ensureFeatureFlag('ClassificationMarkings', true);
             await deleteClassificationMarkingsFieldIfExists(adminClient);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -299,7 +282,7 @@ test.describe('System Console - Classification markings', () => {
         async ({pw}) => {
             const {adminUser, adminClient} = await pw.initSetup();
 
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
+            await pw.ensureFeatureFlag('ClassificationMarkings', true);
             await deleteClassificationMarkingsFieldIfExists(adminClient);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -330,7 +313,7 @@ test.describe('System Console - Classification markings', () => {
         async ({pw}) => {
             const {adminUser, adminClient} = await pw.initSetup();
 
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
+            await pw.ensureFeatureFlag('ClassificationMarkings', true);
             await deleteClassificationMarkingsFieldIfExists(adminClient);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -395,7 +378,7 @@ test.describe('System Console - Classification markings', () => {
         async ({pw}) => {
             const {adminUser, adminClient} = await pw.initSetup();
 
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
+            await pw.ensureFeatureFlag('ClassificationMarkings', true);
 
             // # Seed a field and banner config via API (skip the UI save step)
             await setupClassificationFieldWithGlobalBanner(
@@ -451,7 +434,7 @@ test.describe('System Console - Classification markings', () => {
         async ({pw}) => {
             const {adminUser, adminClient} = await pw.initSetup();
 
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
+            await pw.ensureFeatureFlag('ClassificationMarkings', true);
 
             // # Seed two levels and a banner pointing at the first one
             await setupClassificationFieldWithGlobalBanner(
@@ -509,7 +492,7 @@ test.describe('System Console - Classification markings', () => {
         async ({pw}) => {
             const {adminUser, adminClient} = await pw.initSetup();
 
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
+            await pw.ensureFeatureFlag('ClassificationMarkings', true);
             await deleteClassificationMarkingsFieldIfExists(adminClient);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -574,7 +557,7 @@ test.describe('System Console - Classification markings', () => {
         async ({pw}) => {
             const {adminUser, adminClient} = await pw.initSetup();
 
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
+            await pw.ensureFeatureFlag('ClassificationMarkings', true);
             await deleteClassificationMarkingsFieldIfExists(adminClient);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);

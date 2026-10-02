@@ -14,7 +14,6 @@ import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
 
 import {
     deleteClassificationFieldsIfExist,
-    setClassificationMarkingsFeatureFlag,
     setupClassificationWithChannelField,
 } from '../../channels/channel_classification/helpers';
 
@@ -28,13 +27,8 @@ test.describe(
         // Shares the server-wide ClassificationMarkings flag with its sibling specs.
         test.describe.configure({mode: 'serial'});
 
-        let originalClassificationMarkings: boolean | undefined;
-
-        test.beforeAll(async () => {
-            const {adminClient} = await getAdminClient();
-            const {FeatureFlags} = await adminClient.getConfig();
-            originalClassificationMarkings = FeatureFlags.ClassificationMarkings === true;
-            await setClassificationMarkingsFeatureFlag(adminClient, true);
+        test.beforeEach(async ({pw}) => {
+            await pw.ensureFeatureFlag('ClassificationMarkings', true);
         });
 
         test.afterAll(async () => {
@@ -43,9 +37,6 @@ test.describe(
                 return;
             }
             await deleteClassificationFieldsIfExist(adminClient);
-            if (originalClassificationMarkings !== undefined) {
-                await setClassificationMarkingsFeatureFlag(adminClient, originalClassificationMarkings);
-            }
         });
 
         /**
@@ -53,7 +44,7 @@ test.describe(
          */
         test('shows the definition read-only and links to Classification Markings', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const {levels} = await setupClassificationWithChannelField(adminClient);
 
@@ -67,9 +58,7 @@ test.describe(
                 await expect(globalAttributes.classificationLevels).toContainText(level.name);
             }
             // The display name is shown, but as a disabled field.
-            const displayName = systemConsolePage.page.getByTestId('classificationAttribute').getByRole('textbox');
-            await expect(displayName).toHaveCount(1);
-            await expect(displayName).not.toBeEditable();
+            await expect(systemConsolePage.page.getByTestId('classificationAttributeName')).toBeDisabled();
 
             // * The one place levels can be changed is a link away
             await expect(globalAttributes.classificationMarkingsLink).toHaveAttribute(
@@ -83,7 +72,7 @@ test.describe(
          */
         test('applies a header chip to channels once Header is chosen', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const {levels} = await setupClassificationWithChannelField(adminClient);
             const {team, user} = await pw.initSetup();
@@ -127,7 +116,10 @@ test.describe(
          */
         test('asks for classification at channel creation only once Required is on', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            // Courtesy path: classification is offered while optional only when
+            // ChannelAttributesRequired is off. Enable enforcement later, before
+            // marking the field required via the System Console toggle.
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: false});
 
             const {levels} = await setupClassificationWithChannelField(adminClient);
             const {team} = await pw.initSetup();
@@ -136,14 +128,15 @@ test.describe(
             await channelsPage.goto(team.name);
             await channelsPage.toBeVisible();
 
-            // * Optional attributes are not asked for at creation, so Create is free
+            // * Classification is offered as a courtesy while optional, but Create stays free
             let modal = await channelsPage.openNewChannelModal();
             await modal.fillDisplayName(`Optional Classification ${pw.random.id()}`);
-            await expect(channelsPage.page.getByTestId('channelAttribute-classification')).toHaveCount(0);
+            await expect(channelsPage.page.getByTestId('channelAttribute-classification')).toBeVisible();
             await expect(modal.createButton).toBeEnabled();
             await modal.cancel();
 
-            // # Mark it required on its attribute page
+            // # Enable enforcement so the Required toggle is available, then mark it required
+            await pw.ensureFeatureFlag('ChannelAttributesRequired', true);
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.globalAttributes.gotoClassificationAttribute();
             await systemConsolePage.globalAttributes.appliesToChannels.setRequired(true);
@@ -173,7 +166,7 @@ test.describe(
          */
         test('stops bannering when the display locations exclude the banner', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const {levels} = await setupClassificationWithChannelField(adminClient);
             const {team, user} = await pw.initSetup();
@@ -212,7 +205,7 @@ test.describe(
          */
         test('removes the Channels resource only after confirming, and keeps it removed', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             await setupClassificationWithChannelField(adminClient);
 

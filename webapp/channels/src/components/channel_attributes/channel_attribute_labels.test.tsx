@@ -565,6 +565,63 @@ describe('ChannelAttributeLabels', () => {
         expect(screen.queryByTestId('channelAttributeLabelsOverflow-header')).not.toBeInTheDocument();
     });
 
+    // Regression: a multiselect losing its second value collapses the surviving
+    // chip's id back to the field's bare id. That chip is a freshly mounted DOM
+    // node and can report a momentary zero width before layout catches up; the
+    // row must retry rather than staying hidden forever.
+    test('recovers the row after a multiselect value collapses from two chips to one', async () => {
+        let zeroWidthMeasurementsLeft = 0;
+        jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function(this: HTMLElement) {
+            const isLabels = this.classList.contains('ChannelAttributeLabels');
+            const isParentOfLabels = Boolean(this.querySelector?.(':scope > .ChannelAttributeLabels'));
+            if (isLabels || isParentOfLabels) {
+                return {width: 1000} as DOMRect;
+            }
+            if (this.classList.contains('ChannelAttributeLabels__item') && zeroWidthMeasurementsLeft > 0) {
+                zeroWidthMeasurementsLeft -= 1;
+                return {width: 0} as DOMRect;
+            }
+            return {width: 60} as DOMRect;
+        });
+
+        const caveats = field('caveats');
+        caveats.type = 'multiselect';
+        caveats.attrs = {
+            ...caveats.attrs,
+            options: [
+                {id: 'opt_noforn', name: 'NOFORN'},
+                {id: 'opt_orcon', name: 'ORCON'},
+            ],
+        };
+
+        const state = makeState([caveats]);
+        state.entities!.properties!.values!.byTargetId![CHANNEL_ID]!.caveats = value('caveats', ['opt_noforn', 'opt_orcon']);
+
+        const {store} = renderWithContext(
+            <ChannelAttributeLabels
+                channelId={CHANNEL_ID}
+                surface='header'
+            />,
+            state,
+        );
+
+        const row = await screen.findByTestId('channelAttributeLabels-header');
+        await waitFor(() => expect(row).toBeVisible());
+        expect(screen.getAllByTestId('attributeChip')).toHaveLength(2);
+
+        // Dropping back to one value reuses the field's bare id for the lone
+        // survivor, which measures zero a couple of times before it settles.
+        zeroWidthMeasurementsLeft = 2;
+        jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([value('caveats', ['opt_orcon'])]);
+
+        await act(async () => {
+            await setChannelAttributeValue(store.dispatch, CHANNEL_ID, 'caveats', ['opt_orcon']);
+        });
+
+        await waitFor(() => expect(row).toBeVisible());
+        expect(screen.getAllByTestId('attributeChip').map((chip) => chip.textContent)).toEqual(['CAVEATS: ORCON']);
+    });
+
     test('in the thread header, chips read as labels because Channel Info cannot open there', async () => {
         stubWidths(110);
         const showChannelInfo = jest.spyOn(rhsActions, 'showChannelInfo');

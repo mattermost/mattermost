@@ -935,8 +935,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
             // (use_allowed_resource_types.ts) -- Channels additionally needs the
             // Enterprise Advanced tier. Without both flags on, the picker offers
             // fewer types and the 3-item assertion below fails.
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-            await pw.skipIfFeatureFlagNotSet('PostAttributes', true);
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true});
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
@@ -987,7 +986,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
 
             // See the "offers only unselected types" test above: Channels requires the
             // ChannelAttributes flag on top of the Enterprise-tier license.
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
@@ -1037,7 +1036,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
 
             // See the "offers only unselected types" test above: Channels requires the
             // ChannelAttributes flag on top of the Enterprise-tier license.
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const timestamp = Date.now();
             const displayName = `Playwright Applies To ${timestamp}`;
@@ -1099,8 +1098,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
             // See the "offers only unselected types" test above: Channels requires the
             // ChannelAttributes flag on top of the Enterprise-tier license, and Posts
             // requires PostAttributes. This test adds all three resources.
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-            await pw.skipIfFeatureFlagNotSet('PostAttributes', true);
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true});
 
             const timestamp = Date.now();
             // Kept short: see the "saves Profile display..." test below -- a full
@@ -1955,7 +1953,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          */
         test('renames a matching linked channel display_name when the template display name changes', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const timestamp = Date.now();
             const name = `business_unit_${timestamp}`;
@@ -1999,7 +1997,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          */
         test('does not overwrite a diverged linked channel display_name when renaming the template', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const timestamp = Date.now();
             const name = `department_${timestamp}`;

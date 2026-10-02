@@ -10,12 +10,11 @@
  * Professional-only licenses hide this admin route (React Router redirects away).
  */
 
-import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 import {
     CLASSIFICATION_MARKINGS_ADMIN_PATH,
     deleteClassificationMarkingsFieldIfExists,
-    setClassificationMarkingsFeatureFlag,
 } from '../site_configuration/classification_markings_helpers';
 
 import {
@@ -30,21 +29,6 @@ import {
 
 test.describe('System Console - Global Attributes listing', {tag: '@system_console'}, () => {
     test.describe.configure({mode: 'serial'});
-
-    let originalClassificationFlagValue: boolean | undefined;
-
-    test.beforeAll(async () => {
-        const {adminClient} = await getAdminClient();
-        const {FeatureFlags} = await adminClient.getConfig();
-        originalClassificationFlagValue = FeatureFlags.ClassificationMarkings === true;
-    });
-
-    test.afterAll(async () => {
-        const {adminClient} = await getAdminClient();
-        if (adminClient && originalClassificationFlagValue !== undefined) {
-            await setClassificationMarkingsFeatureFlag(adminClient, originalClassificationFlagValue);
-        }
-    });
 
     test.describe('access gate', () => {
         /**
@@ -320,8 +304,7 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
                 // global_classification_banner.spec.ts) — those specs are NOT otherwise
                 // concurrency-guarded against each other; the tag is this suite's existing
                 // (if informal) convention for grouping tests that share this exact resource.
-                await setClassificationMarkingsFeatureFlag(adminClient, true);
-                await pw.skipIfFeatureFlagNotSet('ClassificationMarkings', true);
+                await pw.ensureFeatureFlag('ClassificationMarkings', true);
 
                 const timestamp = Date.now();
                 const classificationDisplayName = `E2E Classification Attribute ${timestamp}`;

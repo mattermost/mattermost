@@ -540,19 +540,28 @@ export function handleManagedCategoryPropertyValuesUpdated(parsedPropertyValuesU
             return;
         }
 
-        const first = parsedPropertyValuesUpdated.values[0];
-        const propertyGroup = getPropertyGroupById(state, first.group_id);
-        const propertyField = getPropertyFieldById(state, first.field_id);
-        if (propertyField?.name !== ManagedCategoryPropertyFieldName || propertyGroup?.name !== ManagedCategoryPropertyGroupName) {
-            return;
-        }
-
-        const categoryName = first.value;
-        const teamId = getChannel(doGetState(), parsedPropertyValuesUpdated.target_id)?.team_id;
+        const teamId = getChannel(state, parsedPropertyValuesUpdated.target_id)?.team_id;
         if (!teamId) {
             return;
         }
 
+        const first = parsedPropertyValuesUpdated.values[0];
+        const propertyGroup = getPropertyGroupById(state, first.group_id);
+        const propertyField = getPropertyFieldById(state, first.field_id);
+
+        // Property metadata is loaded best-effort in fetchManagedCategories. When it
+        // is missing we cannot identify the event, so refetch mappings for the team
+        // instead of dropping the update (which left the sidebar ungrouped).
+        if (!propertyGroup || !propertyField) {
+            doDispatch(fetchManagedCategories(teamId));
+            return;
+        }
+
+        if (propertyField.name !== ManagedCategoryPropertyFieldName || propertyGroup.name !== ManagedCategoryPropertyGroupName) {
+            return;
+        }
+
+        const categoryName = first.value;
         if (categoryName) {
             doDispatch(addChannelToManagedCategory(teamId, parsedPropertyValuesUpdated.target_id, categoryName));
         } else {
@@ -572,26 +581,26 @@ function fetchManagedCategories(teamId: string): ThunkActionFunc<unknown> {
         if (!propertyGroup) {
             try {
                 const fields = await Client4.getPropertyFields(ManagedCategoryPropertyGroupName, 'channel', 'system');
-                if (fields.length === 0) {
-                    return {error: new Error(`No property fields found for ${ManagedCategoryPropertyGroupName}`)};
-                }
-                dispatch(batchActions([
-                    {
-                        type: PropertyTypes.RECEIVED_PROPERTY_FIELDS,
-                        data: {fields},
-                    },
-                    {
-                        type: PropertyTypes.RECEIVED_PROPERTY_GROUP,
-                        data: {
-                            id: fields[0].group_id,
-                            name: ManagedCategoryPropertyGroupName,
+                if (fields.length > 0) {
+                    dispatch(batchActions([
+                        {
+                            type: PropertyTypes.RECEIVED_PROPERTY_FIELDS,
+                            data: {fields},
                         },
-                    },
-                ]));
+                        {
+                            type: PropertyTypes.RECEIVED_PROPERTY_GROUP,
+                            data: {
+                                id: fields[0].group_id,
+                                name: ManagedCategoryPropertyGroupName,
+                            },
+                        },
+                    ]));
+                }
             } catch (error) {
+                // Best-effort: metadata is only needed to identify websocket events.
+                // Mappings still come from getManagedCategories below.
                 forceLogoutIfNecessary(error, dispatch, getState);
                 dispatch(logError(error));
-                return {error};
             }
         }
 

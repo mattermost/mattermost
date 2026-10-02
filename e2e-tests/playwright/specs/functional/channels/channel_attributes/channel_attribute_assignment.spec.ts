@@ -17,8 +17,6 @@ import {
 } from './helpers';
 
 test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, () => {
-    test.describe.configure({mode: 'serial'});
-
     /**
      * @objective Verify every supported attribute control can be assigned while creating a channel.
      */
@@ -27,7 +25,7 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
 
         // The Properties route gate is evaluated when the API router is built, so
         // the flag has to be in the server config before boot.
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -109,7 +107,7 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
      */
     test('assigns attribute values when creating a private channel', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -156,7 +154,7 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
      */
     test('rejects a create that omits a required attribute', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
         const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();

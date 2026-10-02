@@ -140,6 +140,10 @@ export default class ConfigurationSettings {
         return this.container.getByTestId('bannerAttributePreview');
     }
 
+    get bannerTokenPreviewEmptyNotice() {
+        return this.container.getByTestId('bannerPreviewEmptyNotice');
+    }
+
     bannerTokenChip(name: string) {
         return this.container.getByTestId(`bannerTextEditorChip-${name}`);
     }

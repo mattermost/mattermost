@@ -6,8 +6,7 @@ import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {expect, getRandomId, testConfig} from '@mattermost/playwright-lib';
-import type {PlaywrightExtended} from '@mattermost/playwright-lib';
+import {expect, getRandomId} from '@mattermost/playwright-lib';
 
 import {setupCustomProfileAttributeValuesForUser} from '../../../channels/custom_profile_attributes/helpers';
 import {
@@ -17,28 +16,6 @@ import {
     getPolicyIdByName,
     getUserAttributeFieldByName,
 } from '../support';
-
-/**
- * Require a feature flag to be on, in whichever mode the suite is running.
- *
- * FeatureFlags cannot be changed on a running server — with no Split key configured the
- * config store's readOnlyFF handling reverts a FeatureFlags patch before it is persisted,
- * so /config/patch returns 200 and changes nothing. Only a boot-time MM_FEATUREFLAGS_*
- * env var takes effect.
- *
- * In testcontainers mode ensureFeatureFlag restarts the server with the flag set, which is
- * why these flags do not need adding to SERVER_ENV_BASELINE. Against an external server
- * there is nothing to restart, and ensureFeatureFlag skips unconditionally there — even
- * when the flag is already on — so check-and-skip is the best available, and a dev server
- * booted with the flag still runs the tests.
- */
-export async function requireFeatureFlag(pw: PlaywrightExtended, name: string): Promise<void> {
-    if (testConfig.useTestContainers) {
-        await pw.ensureFeatureFlag(name, true);
-    } else {
-        await pw.skipIfFeatureFlagNotSet(name, true);
-    }
-}
 
 /**
  * Department value the grant policy matches on. Arbitrary, but distinct enough that no
