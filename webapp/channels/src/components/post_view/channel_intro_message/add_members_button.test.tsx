@@ -109,8 +109,8 @@ describe('components/post_view/AddMembersButton', () => {
 
         test('should render only the invite button when below the users limit', () => {
             const props = {
-                totalUsers: 10,
-                usersLimit: 100,
+                totalUsers: 9,
+                usersLimit: 10,
                 channel,
                 pluginButtons,
             };

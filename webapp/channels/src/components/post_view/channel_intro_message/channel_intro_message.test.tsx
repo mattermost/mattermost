@@ -419,6 +419,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
                             permissions: [
                                 Permissions.ADD_USER_TO_TEAM,
                                 Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS,
+                                Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES,
                             ],
                         },
                     },
@@ -461,6 +462,8 @@ describe('components/post_view/ChannelIntroMessages', () => {
                 stateWithPluginButton,
             );
 
+            // Scoped to AddMembersButton's own plugin slot: the standard intro also renders a
+            // sibling PluggableIntroButtons today, the duplicate tracked by MM-58181.
             const addMembers = screen.getByRole('button', {name: /Add people/}).closest('.MoreThanMaxFreeUsersWrapper');
             expect(addMembers).not.toBeNull();
 
@@ -482,8 +485,9 @@ describe('components/post_view/ChannelIntroMessages', () => {
             expect(screen.getByText('Invite others to the workspace')).toBeInTheDocument();
             expect(screen.queryByText(PLUGIN_BUTTON_TEXT)).not.toBeInTheDocument();
             expect(screen.queryByText('Add people')).not.toBeInTheDocument();
-            expect(screen.queryByText('Set header')).not.toBeInTheDocument();
-            expect(screen.queryByLabelText('Favorite')).not.toBeInTheDocument();
+
+            // The invite CTA takes the place of every other intro control.
+            expect(screen.getAllByRole('button')).toHaveLength(1);
         });
 
         test('renders the plugin button in a DM intro regardless of the users limit', () => {
