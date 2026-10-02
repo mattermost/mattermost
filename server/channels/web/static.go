@@ -46,6 +46,13 @@ type docsFileSystem struct {
 }
 
 func (d docsFileSystem) Open(name string) (http.File, error) {
+	// No http.FileServer sits in front of this, so the request path arrives
+	// unnormalised. root is an interface, so containment cannot be left to
+	// whichever http.FileSystem is injected.
+	if strings.Contains(name, "..") {
+		return nil, fs.ErrNotExist
+	}
+
 	if f, err := d.root.Open(name); err == nil {
 		st, statErr := f.Stat()
 		if statErr == nil && !st.IsDir() {

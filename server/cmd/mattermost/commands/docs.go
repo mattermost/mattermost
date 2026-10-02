@@ -82,7 +82,7 @@ func docsCmdF(command *cobra.Command, args []string) error {
 	}
 
 	url := fmt.Sprintf("http://%s/%s/", addr, web.DocsURLPrefix)
-	CommandPrintln("Serving documentation at " + url + " — press Ctrl-C to stop")
+	_, _ = CommandPrintln("Serving documentation at " + url + " — press Ctrl-C to stop")
 
 	srv := &http.Server{Handler: mux}
 	errCh := make(chan error, 1)
@@ -95,7 +95,7 @@ func docsCmdF(command *cobra.Command, args []string) error {
 
 	select {
 	case sig := <-sigCh:
-		CommandPrintln("Received " + sig.String() + ", shutting down")
+		_, _ = CommandPrintln("Received " + sig.String() + ", shutting down")
 		_ = srv.Close()
 		return nil
 	case err := <-errCh:

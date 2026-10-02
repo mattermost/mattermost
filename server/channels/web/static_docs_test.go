@@ -23,11 +23,11 @@ func writeDocsFixture(t *testing.T) string {
 	docsDir := filepath.Join(staticDir, DocsDir)
 
 	files := map[string]string{
-		"index.html":                                  "<html><body>docs root</body></html>",
-		"administration-guide.html":                   "<html><body>admin guide</body></html>",
-		"administration-guide/manage/scale.html":      "<html><body>deep page</body></html>",
-		"assets/css/styles.abcd1234.css":              "body{color:red}",
-		"manage/command-line-tools/index.html":        "<html><body>redirect stub</body></html>",
+		"index.html":                             "<html><body>docs root</body></html>",
+		"administration-guide.html":              "<html><body>admin guide</body></html>",
+		"administration-guide/manage/scale.html": "<html><body>deep page</body></html>",
+		"assets/css/styles.abcd1234.css":         "body{color:red}",
+		"manage/command-line-tools/index.html":   "<html><body>redirect stub</body></html>",
 	}
 	for name, body := range files {
 		full := filepath.Join(docsDir, name)
