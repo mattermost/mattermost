@@ -34,8 +34,18 @@ const SKIP_DIRS = new Set([
 
 const CONTENT_EXT = /\.mdx?$/;
 const ATTR = /\b(href|src)="(\/[^"]*)"/g;
-const FENCE = /^\s*(?:```|~~~)/;
+// CommonMark: close only with same char, ≥ open length, trailing whitespace only.
+const OPEN_FENCE = /^(\s*)(`{3,}|~{3,})/;
 const INLINE_CODE = /`[^`]*`/g;
+
+function closingFence(line, char, length) {
+  const match = line.match(/^(\s*)([`~]+)\s*$/);
+  if (!match) {
+    return false;
+  }
+  const marker = match[2];
+  return marker[0] === char && marker.length >= length;
+}
 
 function* walk(dir) {
   for (const entry of readdirSync(dir, {withFileTypes: true})) {
@@ -57,16 +67,22 @@ let scanned = 0;
 for (const root of CONTENT_ROOTS) {
   for (const file of walk(join(DOCS_ROOT, root))) {
     scanned++;
-    let inFence = false;
+    let fence = null;
 
     readFileSync(file, 'utf8')
       .split('\n')
       .forEach((rawLine, index) => {
-        if (FENCE.test(rawLine)) {
-          inFence = !inFence;
+        if (fence) {
+          if (closingFence(rawLine, fence.char, fence.length)) {
+            fence = null;
+          }
           return;
         }
-        if (inFence) {
+
+        const open = rawLine.match(OPEN_FENCE);
+        if (open) {
+          const marker = open[2];
+          fence = {char: marker[0], length: marker.length};
           return;
         }
 
