@@ -5545,7 +5545,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.subject",
-    "translation": "Ліцэнзія Mattermost Enterprise была адключана."
+    "translation": "Тэрмін дзеяння вашай ліцэнзіі {{.SkuName}} скончыўся"
   },
   {
     "id": "api.templates.questions_footer.info",
@@ -5593,7 +5593,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
-    "translation": "Ваша ліцэнзія падлягае падоўжэнню"
+    "translation": "Ваша ліцэнзія {{.SkuName}} падлягае падоўжэнню"
   },
   {
     "id": "api.templates.invite_subject",
@@ -5870,9 +5870,10 @@
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
-      "few": "{{.Count}} выявы адпраўлена: {{.Filenames}}",
-      "many": "{{.Count}} выяў адпраўлена: {{.Filenames}}",
-      "one": "{{.Count}} выява адпраўлена: {{.Filenames}}"
+      "one": "Адпраўлена {{.Count}} выява: {{.Filenames}}",
+      "few": "Адпраўлена {{.Count}} выявы: {{.Filenames}}",
+      "many": "Адпраўлена {{.Count}} выяў: {{.Filenames}}",
+      "other": "Адпраўлена {{.Count}} выявы: {{.Filenames}}"
     }
   },
   {
@@ -6571,9 +6572,10 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
-      "few": "[{{.SiteName}}] Новыя апавяшчэнне за {{.Day}} {{.Month}}, {{.Year}}",
-      "many": "[{{.SiteName}}] Новыя апавяшчэнне за {{.Day}} {{.Month}}, {{.Year}}",
-      "one": "[{{.SiteName}}] Новае апавяшчэнне за {{.Day}} {{.Month}}, {{.Year}}"
+      "one": "[{{.SiteName}}] Новае апавяшчэнне за {{.Day}} {{.Month}} {{.Year}}",
+      "few": "[{{.SiteName}}] Новыя апавяшчэнні за {{.Day}} {{.Month}} {{.Year}}",
+      "many": "[{{.SiteName}}] Новыя апавяшчэнні за {{.Day}} {{.Month}} {{.Year}}",
+      "other": "[{{.SiteName}}] Новыя апавяшчэнні за {{.Day}} {{.Month}} {{.Year}}"
     }
   },
   {
@@ -6595,9 +6597,10 @@
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
     "translation": {
+      "one": "{{.User}} ужо знаходзіцца ў канале.",
       "few": "{{.User}} ужо знаходзяцца ў канале.",
       "many": "{{.User}} ужо знаходзяцца ў канале.",
-      "one": "{{.User}} ужо знаходзіцца ў канале."
+      "other": "{{.User}} ужо знаходзяцца ў канале."
     }
   },
   {
@@ -6659,9 +6662,10 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
-      "few": "Не ўдалося знайсці карыстальнікаў",
-      "many": "Не ўдалося знайсці карыстальнікаў",
-      "one": "Не ўдалося знайсці карыстальніка: {{.Users}}"
+      "one": "Не атрымалася знайсці карыстальніка: {{.Users}}",
+      "few": "Не атрымалася знайсці карыстальнікаў: {{.Users}}",
+      "many": "Не атрымалася знайсці карыстальнікаў: {{.Users}}",
+      "other": "Не атрымалася знайсці карыстальнікаў: {{.Users}}"
     }
   },
   {
@@ -11087,17 +11091,19 @@
   {
     "id": "app.scheduled_post.failed_messages",
     "translation": {
-      "few": "Не ўдалося адправіць {{.Count}} запланаваных допіса.",
-      "many": "Не ўдалося адправіць {{.Count}} запланаваных допісаў.",
-      "one": "Не ўдалося адправіць {{.Count}} запланаваны допіс."
+      "one": "Не ўдалося адправіць {{.Count}} запланаванае паведамленне.",
+      "few": "Не ўдалося адправіць {{.Count}} запланаваныя паведамленні.",
+      "many": "Не ўдалося адправіць {{.Count}} запланаваных паведамленняў.",
+      "other": "Не ўдалося адправіць {{.Count}} запланаванага паведамлення."
     }
   },
   {
     "id": "app.scheduled_post.failed_message_detail",
     "translation": {
-      "few": "- {{.Count}} ў канале {{.ChannelName}}. Прычына: {{.ErrorReason}}",
+      "one": "- {{.Count}} у канале {{.ChannelName}}. Прычына: {{.ErrorReason}}",
+      "few": "- {{.Count}} у канале {{.ChannelName}}. Прычына: {{.ErrorReason}}",
       "many": "- {{.Count}} у канале {{.ChannelName}}. Прычына: {{.ErrorReason}}",
-      "one": "- {{.Count}} у канале {{.ChannelName}}. Прычына: {{.ErrorReason}}"
+      "other": "- {{.Count}} у канале {{.ChannelName}}. Прычына: {{.ErrorReason}}"
     }
   },
   {
