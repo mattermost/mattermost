@@ -13,7 +13,7 @@ import {
 } from '@mattermost/playwright-lib';
 
 import type {CustomProfileAttribute} from '../../../channels/custom_profile_attributes/helpers';
-import {setupCustomProfileAttributeFields} from '../../../channels/custom_profile_attributes/helpers';
+import {patchCpaField, setupCustomProfileAttributeFields} from '../../../channels/custom_profile_attributes/helpers';
 import {
     createUserForABAC,
     testAccessRule,
@@ -52,7 +52,7 @@ async function ensureManagedDepartmentAndOfficeFields(adminClient: Client4): Pro
 
         const existing = (await adminClient.getCustomProfileAttributeFields()).find((f) => f.name === name);
         if (existing) {
-            const patched = await adminClient.patchCustomProfileAttributeField(existing.id, patch);
+            const patched = await patchCpaField(adminClient, existing.id, patch);
             attributeFieldsMap[patched.id] = patched;
             continue;
         }
@@ -64,7 +64,7 @@ async function ensureManagedDepartmentAndOfficeFields(adminClient: Client4): Pro
             // Race: another worker created it first — patch that one instead.
             const raceCreated = (await adminClient.getCustomProfileAttributeFields()).find((f) => f.name === name);
             if (raceCreated) {
-                const patched = await adminClient.patchCustomProfileAttributeField(raceCreated.id, patch);
+                const patched = await patchCpaField(adminClient, raceCreated.id, patch);
                 attributeFieldsMap[patched.id] = patched;
             }
         }

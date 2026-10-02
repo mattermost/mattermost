@@ -15,7 +15,7 @@ import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {getRandomId, newTestPassword} from '@mattermost/playwright-lib';
 
 import type {CustomProfileAttribute} from '../../channels/custom_profile_attributes/helpers';
-import {setupCustomProfileAttributeValuesForUser} from '../../channels/custom_profile_attributes/helpers';
+import {patchCpaField, setupCustomProfileAttributeValuesForUser} from '../../channels/custom_profile_attributes/helpers';
 
 /**
  * Verify policy exists with better waiting and retry logic
@@ -1393,10 +1393,12 @@ export async function deleteMembershipPolicyByName(client: Client4, policyName: 
  * users to set their own value. Call this in `afterEach` for every field ID a test
  * admin-managed, after its policies have been deleted.
  *
- * Both attrs are patched in a single call: `attrs.managed` is merged (server-side PATCH
- * merges `attrs` by key), while `permission_values` is a top-level field pinned explicitly
- * so the server's "never downgrade a caller pin" rule doesn't leave the old sysadmin pin in
- * place. Best-effort — a field that no longer exists, or a permission error, is ignored so
+ * Both attrs are patched in a single call via `patchCpaField`: `attrs.managed` is merged
+ * (server-side PATCH merges `attrs` by key), while `permission_values` is a top-level field
+ * pinned explicitly so the server's "never downgrade a caller pin" rule doesn't leave the
+ * old sysadmin pin in place. `patchCpaField` also tolerates the field having been linked to
+ * a Global Attribute template by an upgraded server's one-shot migration — see its doc
+ * comment. Best-effort — a field that no longer exists, or a permission error, is ignored so
  * cleanup never fails the test it runs after.
  */
 export async function resetManagedCpaFieldPermissions(client: Client4, fieldIds: string[]): Promise<void> {
@@ -1406,11 +1408,10 @@ export async function resetManagedCpaFieldPermissions(client: Client4, fieldIds:
                 return;
             }
             try {
-                const patch = {
+                await patchCpaField(client, fieldId, {
                     attrs: {managed: ''},
                     permission_values: 'member',
-                } as any;
-                await client.patchCustomProfileAttributeField(fieldId, patch);
+                });
             } catch {
                 // Field may no longer exist, or cleanup may have already run — safe to ignore.
             }
