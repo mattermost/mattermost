@@ -6657,7 +6657,7 @@
   },
   "admin.global_attributes.attribute_details.type.field_locked_external_source_aria_label": {
     "defaultMessage": "Type: {value}. Locked while linked to an external source.",
-    "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes while the attribute is linked to AD/LDAP or SAML. {value} is the current type."
+    "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes while the attribute is linked to AD/LDAP, SAML, or OpenID Connect. {value} is the current type."
   },
   "admin.global_attributes.attribute_details.type.field_locked_graph_aria_label": {
     "defaultMessage": "Type: {value}. Locked because a hierarchical attribute cannot be converted to another type.",
