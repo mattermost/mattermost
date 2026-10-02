@@ -1,11 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {duration, expect, test} from '@mattermost/playwright-lib';
 
 import {sendDemoSlashCommand} from '../../helpers';
 
 test('should send ephemeral post with Update and Delete actions via /ephemeral command', async ({pw}) => {
+    // A concurrent plugin_crash.spec.ts worker can leave the demo plugin's post-action hooks
+    // broken for up to ~50s while it crashes and fully recovers the shared plugin (see that
+    // spec for the recovery budget the retries below are sized against). test.slow() triples
+    // the test timeout so those retries have room to outlast that window.
+    test.slow();
+
     // # Setup
     const {user, team} = await pw.initSetup();
     await pw.ensureDemoPlugin();
@@ -46,28 +52,55 @@ test('should send ephemeral post with Update and Delete actions via /ephemeral c
     await expect(ephemeralPost.getByRole('button', {name: 'Update', exact: true})).toBeVisible();
     await expect(ephemeralPost.getByRole('button', {name: 'Delete', exact: true})).toBeVisible();
 
-    // # Click Update.
+    // # Click Update (with retries if the plugin is transiently unavailable, e.g. during a
+    // concurrent plugin_crash.spec.ts recovery cycle, in which case the button-click action
+    // request can fail silently and the post never updates — re-clicking Update is safe
+    // since it's still showing its pre-update content and button on failure).
     // After clicking Update the text changes — re-find the post by its new content.
     // toBeVisible() re-resolves the locator on every retry, so it rides out the virtual
     // list's re-render on its own.
-    await ephemeralPost.getByRole('button', {name: 'Update', exact: true}).click();
     const updatedPost = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: 'updated ephemeral action'})
         .last();
+    for (let attempt = 0; attempt < 8; attempt++) {
+        await ephemeralPost.getByRole('button', {name: 'Update', exact: true}).click();
+        try {
+            await expect(updatedPost.getByText('updated ephemeral action', {exact: true})).toBeVisible({
+                timeout: duration.ten_sec,
+            });
+            break;
+        } catch (err) {
+            if (attempt === 7) {
+                throw err;
+            }
+        }
+    }
 
     // * Verify post text and button label change
     await expect(updatedPost.getByText('updated ephemeral action', {exact: true})).toBeVisible();
     await expect(updatedPost.getByRole('button', {name: 'Update 1', exact: true})).toBeVisible();
     await expect(updatedPost.getByRole('button', {name: 'Delete', exact: true})).toBeVisible();
 
-    // # Click Delete.
+    // # Click Delete (with the same retry rationale as Update above).
     // After delete the text changes again — re-find by the new content.
-    await updatedPost.getByRole('button', {name: 'Delete', exact: true}).click();
     const deletedPost = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: '(message deleted)'})
         .last();
+    for (let attempt = 0; attempt < 8; attempt++) {
+        await updatedPost.getByRole('button', {name: 'Delete', exact: true}).click();
+        try {
+            await expect(deletedPost.getByText('(message deleted)', {exact: true})).toBeVisible({
+                timeout: duration.ten_sec,
+            });
+            break;
+        } catch (err) {
+            if (attempt === 7) {
+                throw err;
+            }
+        }
+    }
 
     // * Verify post content is removed and buttons are gone
     await expect(deletedPost.getByText('(message deleted)', {exact: true})).toBeVisible();
