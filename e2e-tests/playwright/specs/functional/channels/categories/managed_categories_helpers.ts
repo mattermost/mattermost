@@ -15,14 +15,6 @@ export function managedCategorySelectorWrapper(container: Locator): Locator {
     return container.locator('.CategorySelector').last();
 }
 
-// Managed categories are gated solely by FeatureFlags.ManagedChannelCategories
-// (MM-68496 / MM-68608). The old TeamSettings.EnableManagedChannelCategories
-// config key no longer exists — these helpers remain as explicit no-ops so call
-// sites stay readable next to ensureFeatureFlag('ManagedChannelCategories', …).
-export async function enableManagedCategories() {}
-
-export async function disableManagedCategories() {}
-
 /**
  * Creates a uniquely-named team and user per test and adds the user to the team.
  */

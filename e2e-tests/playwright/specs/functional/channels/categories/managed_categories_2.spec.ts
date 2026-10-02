@@ -5,7 +5,6 @@ import {expect, test} from '@mattermost/playwright-lib';
 
 import {
     createChannelWithManagedCategory,
-    enableManagedCategories,
     managedCategorySelectorWrapper,
     setupManagedCategoriesTest,
 } from './managed_categories_helpers';
@@ -17,10 +16,9 @@ test.describe('Managed Channel Categories', () => {
     test('managed category can be assigned when creating a new channel', {tag: '@managed_categories'}, async ({pw}) => {
         await pw.ensureFeatureFlag('ManagedChannelCategories', true);
 
-        // # Initialize setup and enable managed categories
+        // # Initialize setup
         const {adminUser, adminClient, team} = await setupManagedCategoriesTest(pw);
         await pw.skipIfNoLicense();
-        await enableManagedCategories();
         await adminClient.addToTeam(team.id, adminUser.id);
 
         // # Log in and open the new channel modal
@@ -67,7 +65,6 @@ test.describe('Managed Channel Categories', () => {
             // # Initialize setup and create a channel with a managed category
             const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await pw.skipIfNoLicense();
-            await enableManagedCategories();
             await adminClient.addToTeam(team.id, adminUser.id);
 
             const channel = await createChannelWithManagedCategory(adminClient, team.id, 'Alpha Priority', 'alpha');
@@ -107,7 +104,6 @@ test.describe('Managed Channel Categories', () => {
             // # Initialize setup and create a channel with a managed category (without adding the user)
             const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await pw.skipIfNoLicense();
-            await enableManagedCategories();
             await adminClient.addToTeam(team.id, adminUser.id);
 
             await createChannelWithManagedCategory(adminClient, team.id, 'Secret Ops', 'secret');
