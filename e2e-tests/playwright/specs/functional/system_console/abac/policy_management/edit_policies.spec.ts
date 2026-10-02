@@ -23,6 +23,8 @@ import {
     waitForPolicySyncJob,
     getPolicyIdByName,
     enableUserManagedAttributes,
+    deleteMembershipPolicyByName,
+    resetManagedCpaFieldPermissions,
 } from '../support';
 
 /**
@@ -76,6 +78,25 @@ async function ensureManagedDepartmentAndOfficeFields(adminClient: Client4): Pro
  * Tests for editing existing ABAC policies
  */
 test.describe('ABAC Policy Management - Edit Policies', () => {
+    // These tests apply membership policies to 'Department'/'Office' — system-wide CPA
+    // fields other specs (e.g. custom_profile_attributes tests) also reuse as plain
+    // attributes. `ensureManagedDepartmentAndOfficeFields` admin-manages those fields
+    // (attrs.managed = 'admin'), which pins their `permission_values` to sysadmin-only and
+    // is never reverted by deleting the policy — it would otherwise break any other spec's
+    // normal users trying to set their own value for that field. Track each test's created
+    // policy names and admin-managed field IDs, and clean both up afterward so neither
+    // outlives the test that caused it.
+    let createdPolicyNames: string[] = [];
+    let managedFieldIds: string[] = [];
+
+    test.afterEach(async ({pw}) => {
+        const {adminClient} = await pw.getAdminClient();
+        await Promise.all(createdPolicyNames.map((name) => deleteMembershipPolicyByName(adminClient, name)));
+        await resetManagedCpaFieldPermissions(adminClient, managedFieldIds);
+        createdPolicyNames = [];
+        managedFieldIds = [];
+    });
+
     /**
      * MM-T5790: Editing value of existing attribute-based access policy applies access control as specified (without auto-add)
      *
@@ -154,6 +175,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // SETUP: Create policy with ORIGINAL value (Engineering), Auto-add OFF
         // ===========================================
         const policyName = `ABAC-Edit-Test-${pw.random.id()}`;
+        createdPolicyNames.push(policyName);
 
         await createBasicPolicy(page, {
             name: policyName,
@@ -380,6 +402,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // Ensure the Department/Office fields exist with the attrs this test needs,
         // reusing them in place rather than deleting and recreating system-wide fields.
         const attributeFieldsMap = await ensureManagedDepartmentAndOfficeFields(adminClient);
+        managedFieldIds.push(...Object.keys(attributeFieldsMap));
 
         // Wait for attributes to be indexed
         await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -423,6 +446,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // Auto-add ON so users are auto-added
         // ===========================================
         const policyName = `ABAC-AddAttr-Test-${pw.random.id()}`;
+        createdPolicyNames.push(policyName);
 
         await createBasicPolicy(page, {
             name: policyName,
@@ -613,6 +637,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // Ensure the Department/Office fields exist with the attrs this test needs,
         // reusing them in place rather than deleting and recreating system-wide fields.
         const attributeFieldsMap = await ensureManagedDepartmentAndOfficeFields(adminClient);
+        managedFieldIds.push(...Object.keys(attributeFieldsMap));
 
         // Wait for attributes to be indexed
         await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -659,6 +684,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // Auto-add ON
         // ===========================================
         const policyName = `ABAC-RemoveRule-${pw.random.id()}`;
+        createdPolicyNames.push(policyName);
 
         await adminClient.patchConfig({
             AccessControlSettings: {
@@ -864,6 +890,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         // Create two policies with different names
         const policyName1 = `Edit Dup Test A ${pw.random.id()}`;
+        createdPolicyNames.push(policyName1);
         await createBasicPolicy(page, {
             name: policyName1,
             attribute: 'Department',
@@ -877,6 +904,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         const privateChannel2 = await createPrivateChannelForABAC(adminClient, team.id);
         const policyName2 = `Edit Dup Test B ${pw.random.id()}`;
+        createdPolicyNames.push(policyName2);
         await createBasicPolicy(page, {
             name: policyName2,
             attribute: 'Department',

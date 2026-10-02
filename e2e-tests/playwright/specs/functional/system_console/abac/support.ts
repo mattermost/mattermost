@@ -1336,6 +1336,89 @@ export async function getPolicyIdByName(
 }
 
 /**
+ * Delete a membership (parent-type) access control policy by name, first unassigning any
+ * channels so the server drops their per-channel child policies — deleting a parent with
+ * live children fails with "cannot delete policy with child policies". Safe to call with
+ * an empty name or a policy that doesn't exist (e.g. a test failed before creating it).
+ *
+ * Note: deleting the policy does NOT undo a field's `attrs.managed = 'admin'` upgrade —
+ * the server never reverts `permission_values` back to member-writable on its own, and it
+ * is the field's `managed` attr (not the policy's existence) that pins it to sysadmin-only
+ * (see enforceGroupPermissions in server/channels/app/properties). Callers that explicitly
+ * admin-manage a shared CPA field (e.g. via `ensureManagedDepartmentAndOfficeFields`) must
+ * also call `resetManagedCpaFieldPermissions` on those field IDs during cleanup, or the
+ * lock outlives this test and breaks any other spec reusing that same field name.
+ */
+export async function deleteMembershipPolicyByName(client: Client4, policyName: string): Promise<void> {
+    if (!policyName) {
+        return;
+    }
+
+    try {
+        // Use the default retry count (not a single attempt) — this runs right as the test
+        // finishes, which can race the policy search index catching up with a just-created
+        // or just-renamed policy.
+        const policyId = await getPolicyIdByName(client, policyName);
+        if (!policyId) {
+            return;
+        }
+
+        try {
+            const {channels} = await (client as any).getChannelsForAccessControlPolicy(policyId, '', 100);
+            const channelIds = (channels ?? []).map((c: any) => c.id).filter(Boolean);
+            if (channelIds.length > 0) {
+                await (client as any).unassignChannelsFromAccessControlPolicy(policyId, channelIds);
+            }
+        } catch {
+            // Best-effort — fall through to the delete attempt regardless.
+        }
+
+        await client.deleteAccessControlPolicy(policyId).catch(() => {});
+    } catch {
+        // Policy may not exist, or cleanup may have already run — safe to ignore.
+    }
+}
+
+/**
+ * Reverts a shared CPA field's `attrs.managed` upgrade and `permission_values` pin back to
+ * member-writable (empty `managed`, `permission_values: 'member'`), undoing what
+ * `ensureManagedDepartmentAndOfficeFields` (and similar helpers) set up for an ABAC test.
+ *
+ * Deleting a membership policy never reverts this: `enforceGroupPermissions` only upgrades
+ * `permission_values` to sysadmin when `managed === 'admin'` or the field has owners — it
+ * never downgrades a field whose `PermissionValues` is already non-nil (see
+ * server/channels/app/properties/access_control_attribute_validation.go). So a field left
+ * admin-managed after a test stays sysadmin-only forever, breaking any other spec that
+ * reuses the same field name (e.g. custom_profile_attributes tests) and expects normal
+ * users to set their own value. Call this in `afterEach` for every field ID a test
+ * admin-managed, after its policies have been deleted.
+ *
+ * Both attrs are patched in a single call: `attrs.managed` is merged (server-side PATCH
+ * merges `attrs` by key), while `permission_values` is a top-level field pinned explicitly
+ * so the server's "never downgrade a caller pin" rule doesn't leave the old sysadmin pin in
+ * place. Best-effort — a field that no longer exists, or a permission error, is ignored so
+ * cleanup never fails the test it runs after.
+ */
+export async function resetManagedCpaFieldPermissions(client: Client4, fieldIds: string[]): Promise<void> {
+    await Promise.all(
+        fieldIds.map(async (fieldId) => {
+            if (!fieldId) {
+                return;
+            }
+            try {
+                const patch = {
+                    attrs: {managed: ''},
+                    permission_values: 'member',
+                } as any;
+                await client.patchCustomProfileAttributeField(fieldId, patch);
+            } catch {
+                // Field may no longer exist, or cleanup may have already run — safe to ignore.
+            }
+        }),
+    );
+}
+
+/**
  * Create a permission policy using the CEL (Advanced) editor.
  * Caller must already be on the Permission Policies list page.
  * Available permissions: 'download_file_attachment' | 'upload_file_attachment'
