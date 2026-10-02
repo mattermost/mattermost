@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {test} from '@playwright/test';
+import type {Client4} from '@mattermost/client';
 
 import {bootEnvMatches, restartMattermostContainer} from '../containers/stack';
 
@@ -34,34 +35,41 @@ export async function ensureServerEnv(key: string, value: string): Promise<void>
 }
 
 /**
- * Restarts the server with ServiceSettings.SiteURL set to the host-reachable baseURL, if it
- * isn't already, and confirms the running server reports that value, skipping the test otherwise.
+ * Points ServiceSettings.SiteURL at the host-reachable baseURL, which SSO redirects need, and
+ * confirms the server reports it, skipping the test otherwise.
  *
- * This persists once set: restartMattermostContainer() merges env, so every spec sharing this
- * reused server afterward also sees the host-facing SiteURL. Only call this when a spec genuinely
- * needs a host-reachable SiteURL.
+ * It lasts until the next initSetup(), whose default config puts SiteURL back to
+ * internalBaseURL: the server has to reach itself at its SiteURL to embed permalink previews and
+ * call plugins back for interactive dialogs and buttons, and it can't reach the host-mapped port.
  */
 export async function ensureSiteUrl(): Promise<void> {
     if (!testConfig.useTestContainers) {
-        test.skip(true, 'Skipping test - SiteURL restart requires PW_USE_TESTCONTAINERS=true');
+        test.skip(true, 'Skipping test - a host-facing SiteURL requires PW_USE_TESTCONTAINERS=true');
         return;
     }
 
     try {
-        const env = {MM_SERVICESETTINGS_SITEURL: testConfig.baseURL};
-        if (!bootEnvMatches(env)) {
-            await restartMattermostContainer(env);
-        }
-
         const {adminClient} = await getAdminClient();
+        await adminClient.patchConfig({ServiceSettings: {SiteURL: testConfig.baseURL}});
+
         const config = await adminClient.getConfig();
         if (config.ServiceSettings.SiteURL !== testConfig.baseURL) {
             throw new Error(
-                `ServiceSettings.SiteURL is "${config.ServiceSettings.SiteURL}" after restart, expected ` +
-                    `"${testConfig.baseURL}".`,
+                `ServiceSettings.SiteURL is "${config.ServiceSettings.SiteURL}", expected "${testConfig.baseURL}". ` +
+                    'A stack started before SiteURL moved out of the boot env pins it; run `npm run testcontainers:down`.',
             );
         }
     } catch (error) {
         test.skip(true, `Skipping test - SiteURL check failed: ${String(error)}`);
     }
+}
+
+/**
+ * The SiteURL the server currently runs with: the origin a permalink must use for the server to
+ * recognize it as its own and embed a preview. It is testConfig.internalBaseURL unless the test
+ * called ensureSiteUrl().
+ */
+export async function getSiteUrl(adminClient: Client4): Promise<string> {
+    const config = await adminClient.getConfig();
+    return config.ServiceSettings.SiteURL;
 }

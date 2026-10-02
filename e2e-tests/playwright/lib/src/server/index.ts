@@ -78,7 +78,7 @@ export {ensureAzurite, listAzuriteBlobNames} from './azurite';
 export {ensureLocalFile, listMattermostDataFiles} from './filestore';
 export {ensurePostgresSearch} from './postgres_search';
 export {ensureFeatureFlag} from './feature_flags';
-export {ensureServerEnv, ensureSiteUrl} from './server_env';
+export {ensureServerEnv, ensureSiteUrl, getSiteUrl} from './server_env';
 export {generateTotp, enableUserMfa, disableMfa} from './mfa';
 export {runMmctl, runMmctlLocal, ensureMmctl} from './mmctl';
 export type {MmctlResult} from './mmctl';

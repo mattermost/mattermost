@@ -34,6 +34,11 @@ export async function baseGlobalSetup() {
         ({client: adminClient, user: adminUser} = await makeClient(defaultAdmin));
     }
 
+    // The server's own address, until a spec that needs the host-facing one calls ensureSiteUrl().
+    if (testConfig.useTestContainers) {
+        await adminClient.patchConfig({ServiceSettings: {SiteURL: testConfig.internalBaseURL}});
+    }
+
     // Print playwright configs
     printPlaywrightTestConfig();
 
