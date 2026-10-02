@@ -47,11 +47,11 @@ jobs:
         working-directory: docs/site
         run: npm ci
 
-      - name: Build docs site for /documentation
+      - name: Build docs site for /_documentation
         working-directory: docs/site
         run: npm run build
         env:
-          BASE_URL: /documentation/
+          BASE_URL: /_documentation/
           ALGOLIA_APP_ID: ${{ vars.ALGOLIA_APP_ID }}
           ALGOLIA_SEARCH_API_KEY: ${{ vars.ALGOLIA_SEARCH_API_KEY }}
 
@@ -71,7 +71,7 @@ jobs:
           trap 'kill "${server_pid}" 2>/dev/null || true' EXIT
 
           for _ in $(seq 1 30); do
-            if curl -fsS -o /dev/null http://127.0.0.1:8066/documentation/; then
+            if curl -fsS -o /dev/null http://127.0.0.1:8066/_documentation/; then
               break
             fi
             sleep 1
@@ -99,7 +99,7 @@ jobs:
             stem="${f#./}"
             stem="${stem%.html}"
             if [ -d "${build}/${stem}" ]; then
-              deep="/documentation/${stem}"
+              deep="/_documentation/${stem}"
               break
             fi
           done <<< "${candidates}"
@@ -109,7 +109,7 @@ jobs:
           fi
           echo "discovered clean-URL case: ${deep}"
 
-          check /documentation/ 200
+          check /_documentation/ 200
           check "${deep}" 200
 
           # Nothing outside the bundle may ever be served. This is a backstop,
@@ -117,7 +117,7 @@ jobs:
           # ServeMux collapses dot segments before the handler sees them, so
           # containment is asserted directly in static_docs_test.go.
           got=$(curl -s --path-as-is -L -o /dev/null -w '%{http_code}' \
-            "http://127.0.0.1:8066/documentation/../../config/config.json")
+            "http://127.0.0.1:8066/_documentation/../../config/config.json")
           if [ "${got}" = "200" ]; then
             echo "FAIL traversal served a file from outside the bundle"
             exit 1
