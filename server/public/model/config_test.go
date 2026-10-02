@@ -3381,6 +3381,38 @@ func TestSanitizeDataSource(t *testing.T) {
 			credential: "sentinel_pw_foxtrot",
 		},
 		{
+			name:       "unescaped slash in password",
+			dataSource: "postgres://mmuser:sentinel_pw_slash/tail@localhost:5432/mattermost",
+			rejected:   true,
+			credential: "sentinel_pw_slash",
+			absent:     []string{"tail"},
+		},
+		{
+			name:       "unescaped question mark in password",
+			dataSource: "postgres://mmuser:sentinel_pw_query?tail@localhost:5432/mattermost",
+			rejected:   true,
+			credential: "sentinel_pw_query",
+			absent:     []string{"tail"},
+		},
+		{
+			name:       "unescaped hash in password",
+			dataSource: "postgres://mmuser:#sentinel_pw_hash@localhost:5432/mattermost",
+			rejected:   true,
+			credential: "sentinel_pw_hash",
+		},
+		{
+			name:       "unescaped hash after a numeric password start",
+			dataSource: "postgres://mmuser:5432#sentinel_pw_numhash@db.internal:5432/mattermost",
+			rejected:   true,
+			credential: "sentinel_pw_numhash",
+		},
+		{
+			name:       "unescaped question mark after a numeric password start",
+			dataSource: "postgres://mmuser:5432?sentinel_pw_numquery@db.internal/mattermost",
+			rejected:   true,
+			credential: "sentinel_pw_numquery",
+		},
+		{
 			name:       "unusable character in host",
 			dataSource: "postgres://mmuser:sentinel_pw_golf@marklocal^markhost/mattermost",
 			rejected:   true,

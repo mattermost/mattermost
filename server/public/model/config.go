@@ -5714,6 +5714,21 @@ func SanitizeDataSource(driverName, dataSource string) (string, error) {
 		return "", errors.New("invalid data source: only postgres connection URLs are supported")
 	}
 
+	// A password holding an unescaped '/', '?' or '#' ends the authority at that
+	// character, so the '@' that separates the credentials from the host lands in
+	// the path, query, or fragment. url.Parse keeps those parts, so the credentials
+	// would survive redaction. The authority runs up to the first '/', '?' or '#';
+	// if the '@' only appears past it, the credentials are not isolated and the
+	// connection string cannot be partially redacted.
+	rest := dataSource[strings.Index(dataSource, "://")+len("://"):]
+	authority := rest
+	if end := strings.IndexAny(rest, "/?#"); end >= 0 {
+		authority = rest[:end]
+	}
+	if !strings.Contains(authority, "@") && strings.Contains(rest, "@") {
+		return "", errors.New("invalid data source")
+	}
+
 	u, err := url.Parse(dataSource)
 	if err != nil {
 		return "", dataSourceParseError(err)
@@ -5734,31 +5749,11 @@ func SanitizeDataSource(driverName, dataSource string) (string, error) {
 	return out, nil
 }
 
-// dataSourceParseError returns why a connection string could not be read as a URL,
-// on its own: the description reported by [url.Parse] is kept, the connection string
-// it was given is not. Errors reported in any other shape are described generically.
-func dataSourceParseError(err error) error {
-	var urlErr *url.Error
-	if errors.As(err, &urlErr) && urlErr.Err != nil {
-		return &dataSourceError{err: &url.Error{Op: urlErr.Op, Err: urlErr.Err}}
-	}
-
+// dataSourceParseError reports that a connection string could not be read as a URL
+// without retaining any part of it. The description reported by [url.Parse] can quote
+// the malformed input, credentials included, so it is never surfaced.
+func dataSourceParseError(error) error {
 	return errors.New("invalid data source")
-}
-
-// dataSourceError reports why a connection string could not be read as a URL. It
-// unwraps to the [url.Error] carrying that description, with the connection string
-// left out.
-type dataSourceError struct {
-	err *url.Error
-}
-
-func (e *dataSourceError) Error() string {
-	return "invalid data source: " + e.err.Err.Error()
-}
-
-func (e *dataSourceError) Unwrap() error {
-	return e.err
 }
 
 type FilterTag struct {

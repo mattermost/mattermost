@@ -44,6 +44,12 @@ func TestSetupConnectionDataSourceLogField(t *testing.T) {
 			wantLogField: `"dataSource":"postgres://` + model.SanitizedPassword + `:` + model.SanitizedPassword + `@127.0.0.1:1/mattermost?sslmode=disable"`,
 		},
 		{
+			name:         "URL with an unescaped special character in the password",
+			dataSource:   "postgres://mmuser:#sentinel_pw_foxtrot@127.0.0.1:1/mattermost?sslmode=disable",
+			credential:   "sentinel_pw_foxtrot",
+			wantLogField: fullyRedacted,
+		},
+		{
 			name:         "keyword/value",
 			dataSource:   "user=mmuser password=sentinel_pw_charlie host=127.0.0.1 port=1 dbname=mattermost sslmode=disable",
 			credential:   "sentinel_pw_charlie",
