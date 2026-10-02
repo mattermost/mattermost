@@ -2000,16 +2000,16 @@
     "description": "Title of the modal showing results after testing an attribute-based access rule against real users in the System Console."
   },
   "admin.accesscontrol.enableAuditLogging.desc": {
-    "defaultMessage": "When enabled, attribute-based access control policy decisions are written to the server audit log. Requires server audit logging to be active.",
+    "defaultMessage": "When enabled, membership policy decisions are written to the server audit log. Requires server audit logging to be active.",
     "description": "Admin console help text under the audit-logging toggle on the System Attributes > Attribute-Based Access Control page."
   },
   "admin.accesscontrol.enableAuditLogging.disabled": {
-    "defaultMessage": "When enabled, attribute-based access control policy decisions are written to the server audit log. This setting requires attribute-based access control to be enabled and server audit logging to be active (enable file audit logging or configure an advanced audit logging target).",
+    "defaultMessage": "When enabled, membership policy decisions are written to the server audit log. This setting requires attribute-based access control to be enabled and server audit logging to be active (enable file audit logging or configure an advanced audit logging target).",
     "description": "Alternate admin console help text for the access-control audit-logging toggle, shown when its prerequisites (ABAC and server audit logging) are not enabled."
   },
   "admin.accesscontrol.enableAuditLogging.title": {
-    "defaultMessage": "Enable audit logging for access control decisions",
-    "description": "Admin console setting label (toggle) on the Attribute-Based Access Control page for logging policy decisions."
+    "defaultMessage": "Enable audit logging for membership policy decisions",
+    "description": "Admin console setting label (toggle) on the Attribute-Based Access Control page for logging membership policy decisions."
   },
   "admin.accesscontrol.enableChannelPolicyIndicatorsDesc": {
     "defaultMessage": "When enabled, channels restricted by a membership access policy display the matching user attributes as tags in the channel members list and the invite dialog. Disable this to avoid revealing policy details to end users.",
@@ -18598,10 +18598,6 @@
   "channel_attributes.info.add": {
     "defaultMessage": "Add attribute",
     "description": "Button (with a + icon), and its menu's screen-reader label, at the bottom of the Channel Attributes section in the channel info right-hand panel. Opens a list of attributes that can still be set on the channel."
-  },
-  "channel_attributes.info.clear": {
-    "defaultMessage": "Clear {label}",
-    "description": "Menu item or button in the value picker of a channel attribute in the channel info right-hand panel. It removes the attribute's value. {label} is the attribute's display name. 'Clear' is a verb."
   },
   "channel_attributes.info.edit": {
     "defaultMessage": "Edit {label}",
