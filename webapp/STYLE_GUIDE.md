@@ -105,7 +105,7 @@ The following guidelines should be applied to both new and existing code. Howeve
     - **Buttons**: Use `Button` from `@mattermost/compass-ui/components/button` instead of React Bootstrap's `Button` or raw Bootstrap like `<button class="btn btn-primary">`. For when to adopt Compass vs leave existing call sites, see `webapp/AGENTS.md` (do not mass-migrate).
     - **Tooltips**: Use `WithTooltip` from `@mattermost/shared` instead of React Bootstrap's `OverlayTrigger`, `Tooltip`, Floating UI, or other tooltip primitives.
 - **MUI**: Consult with the team before using MUI. If it is used, wrap the usage in another component to avoid leaking implementation details.
-- **Popovers**: Use `WithTooltip` for simple tooltips. Use Floating UI for popovers and other advanced overlays (not for tooltips).
+- **Popovers**: Use `WithTooltip` for simple tooltips. Use Floating UI for more advanced overlays.
 - **Icons**: Prefer using icon components from `@mattermost/compass-icons` for icons.
 
 ### Redux & Data Fetching
