@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {demoPluginId, duration, expect, test} from '@mattermost/playwright-lib';
+
+import {sendDemoSlashCommand} from '../helpers';
 
 test('should show Demo Plugin enabled/disabled status in left sidebar header', async ({pw}) => {
     // # Setup
-    const {user, team} = await pw.initSetup();
+    const {adminClient, user, team} = await pw.initSetup();
     await pw.ensureDemoPlugin();
 
     // # Login and navigate to Town Square — slash commands work from any channel
@@ -21,22 +23,49 @@ test('should show Demo Plugin enabled/disabled status in left sidebar header', a
         .locator('span')
         .last();
 
-    // * Verify initial state — hooks enabled by the demo plugin setup
-    await expect(hookStatus).toHaveText('Enabled');
+    // Local helper: send /demo_plugin <enabled> and wait for the indicator to update, retrying
+    // if the plugin is transiently inactive (e.g. during a concurrent plugin_crash.spec.ts
+    // recovery cycle) rather than assuming ambient state.
+    async function setHooks(enabled: boolean) {
+        const expectedText = enabled ? 'Enabled' : 'Disabled';
+        for (let attempt = 0; attempt < 4; attempt++) {
+            await sendDemoSlashCommand(channelsPage.page, async () => {
+                await channelsPage.centerView.postCreate.input.fill(`/demo_plugin ${enabled}`);
+                await channelsPage.centerView.postCreate.sendMessage();
+            });
+            try {
+                await expect(hookStatus).toHaveText(expectedText, {timeout: duration.ten_sec});
+                return;
+            } catch (err) {
+                if (attempt === 3) {
+                    throw err;
+                }
+                try {
+                    await adminClient.enablePlugin(demoPluginId);
+                } catch {
+                    // Already enabled or transient error — ignore.
+                }
+                await expect
+                    .poll(() => pw.isPluginActive(adminClient, demoPluginId), {
+                        timeout: duration.half_min,
+                        intervals: [duration.two_sec],
+                    })
+                    .toBe(true);
+            }
+        }
+    }
+
+    // # Explicitly enable hooks first. A concurrently running instance of this spec
+    // (e.g. via --repeat-each) or another worker's spec toggling the same global
+    // /demo_plugin hooks state could have left it disabled, so the initial "Enabled"
+    // state cannot be assumed as an ambient default.
+    await setHooks(true);
 
     // # Disable hooks
-    await channelsPage.centerView.postCreate.input.fill('/demo_plugin false');
-    await channelsPage.centerView.postCreate.sendMessage();
-
-    // * Verify the indicator updates to Disabled
-    await expect(hookStatus).toHaveText('Disabled');
+    await setHooks(false);
 
     // # Re-enable hooks
-    await channelsPage.centerView.postCreate.input.fill('/demo_plugin true');
-    await channelsPage.centerView.postCreate.sendMessage();
-
-    // * Verify the indicator restores to Enabled
-    await expect(hookStatus).toHaveText('Enabled');
+    await setHooks(true);
 });
 
 test('should show demo plugin plug icon at the bottom of the team sidebar', async ({pw}) => {
