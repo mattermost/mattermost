@@ -6210,1403 +6210,1409 @@
   },
   {
     "id": "app.command_webhook.create_command_webhook.existing",
-    "translation": ""
+    "translation": "Du kan ikke oppdatere en eksisterende CommandWebhook."
   },
   {
     "id": "app.command_webhook.create_command_webhook.internal_error",
-    "translation": ""
+    "translation": "Kan ikke lagre CommandWebhook."
   },
   {
     "id": "app.command_webhook.get.internal_error",
-    "translation": ""
+    "translation": "Kan ikke hente webhooken."
   },
   {
     "id": "app.command_webhook.get.missing",
-    "translation": ""
+    "translation": "Finner ikke webhooken."
   },
   {
     "id": "app.command_webhook.handle_command_webhook.parse",
-    "translation": ""
+    "translation": "Kan ikke tolke innkommende data."
   },
   {
     "id": "app.command_webhook.try_use.internal_error",
-    "translation": ""
+    "translation": "Kan ikke bruke webhooken."
   },
   {
     "id": "app.command_webhook.try_use.invalid",
-    "translation": ""
+    "translation": "Ugyldig webhook."
   },
   {
     "id": "app.compile_csv_chunks.header_error",
-    "translation": ""
+    "translation": "Kunne ikke skrive CSV-overskriftene."
   },
   {
     "id": "app.compile_csv_chunks.write_error",
-    "translation": ""
+    "translation": "Kunne ikke skrive CSV-dataene."
   },
   {
     "id": "app.compile_report_chunks.unsupported_format",
-    "translation": ""
+    "translation": "Rapportformatet støttes ikke."
   },
   {
     "id": "app.compliance.get.finding.app_error",
-    "translation": ""
+    "translation": "Det oppstod en feil under henting av samsvarsrapportene."
   },
   {
     "id": "app.compliance.save.saving.app_error",
-    "translation": ""
+    "translation": "Det oppstod en feil under lagring av samsvarsrapporten."
   },
   {
     "id": "app.create_basic_user.save_member.app_error",
-    "translation": ""
+    "translation": "Kan ikke opprette standard teammedlemskap"
   },
   {
     "id": "app.create_basic_user.save_member.conflict.app_error",
-    "translation": ""
+    "translation": "Kan ikke opprette standard teammedlemskap fordi det allerede finnes"
   },
   {
     "id": "app.create_basic_user.save_member.max_accounts.app_error",
-    "translation": ""
+    "translation": "Kan ikke opprette standard teammedlemskap fordi det ikke er plass til flere medlemmer i det teamet"
   },
   {
     "id": "app.custom_group.unique_name",
-    "translation": ""
+    "translation": "gruppenavnet er ikke unikt"
   },
   {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
-    "translation": ""
+    "translation": "Kan ikke konvertere egenskapsfeltet til et brukerattributtfelt"
   },
   {
     "id": "app.data_spillage.assign_reviewer.no_reviewer_field.app_error",
-    "translation": ""
+    "translation": "Fant ikke egenskapsfeltet for gransker-ID."
   },
   {
     "id": "app.data_spillage.assign_reviewer.update_status_property_value.app_error",
-    "translation": ""
+    "translation": "Kunne ikke oppdatere egenskapsverdien for status ved tildeling av gransker."
   },
   {
     "id": "app.data_spillage.assign_reviewer.upsert_property_value.app_error",
-    "translation": ""
+    "translation": "Kunne ikke angi gransker for det flaggede innlegget."
   },
   {
     "id": "app.data_spillage.can_flag_post.in_progress",
-    "translation": ""
+    "translation": "Kan ikke sette dette innlegget i karantene fordi det allerede er i karantene for gransking."
   },
   {
     "id": "app.data_spillage.can_flag_post.removed",
-    "translation": ""
+    "translation": "Kan ikke sette dette innlegget i karantene fordi det ble fjernet i en tidligere gransking."
   },
   {
     "id": "app.data_spillage.can_flag_post.retained",
-    "translation": ""
+    "translation": "Kan ikke sette dette innlegget i karantene fordi det ble beholdt i en tidligere gransking."
   },
   {
     "id": "app.data_spillage.can_flag_post.unknown",
-    "translation": ""
+    "translation": "Kan ikke sette dette innlegget i karantene fordi det har ukjent status."
   },
   {
     "id": "app.data_spillage.create_property_values.app_error",
-    "translation": ""
+    "translation": "Kan ikke lagre egenskapsverdier for det flaggede innlegget."
   },
   {
     "id": "app.data_spillage.exposure.column.email",
-    "translation": ""
+    "translation": "E-post"
   },
   {
     "id": "app.data_spillage.exposure.column.is_deactivated",
-    "translation": ""
+    "translation": "Deaktivert"
   },
   {
     "id": "app.data_spillage.exposure.column.is_guest",
-    "translation": ""
+    "translation": "Gjest"
   },
   {
     "id": "app.data_spillage.exposure.column.is_remote",
-    "translation": ""
+    "translation": "Ekstern bruker"
   },
   {
     "id": "app.data_spillage.exposure.column.last_activity_at",
-    "translation": ""
+    "translation": "Tidspunkt for brukerens siste aktivitet (YYYY-MM-DDTHH:MM:SSZ)"
   },
   {
     "id": "app.data_spillage.exposure.column.last_viewed_at",
-    "translation": ""
+    "translation": "Kanalen sist vist (YYYY-MM-DDTHH:MM:SSZ)"
   },
   {
     "id": "app.data_spillage.exposure.column.user_id",
-    "translation": ""
+    "translation": "Bruker-ID"
   },
   {
     "id": "app.data_spillage.exposure.column.username",
-    "translation": ""
+    "translation": "Brukernavn"
   },
   {
     "id": "app.data_spillage.exposure.column.was_channel_member",
-    "translation": ""
+    "translation": "Var kanalmedlem"
   },
   {
     "id": "app.data_spillage.exposure.edit_history_post.app_error",
-    "translation": ""
+    "translation": "Kan ikke generere en eksponeringsrapport for en revisjon i redigeringshistorikken. Bruk ID-en til det gjeldende innlegget."
   },
   {
     "id": "app.data_spillage.exposure.get_channel_members.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente kanalmedlemshistorikken for det flaggede innlegget."
   },
   {
     "id": "app.data_spillage.exposure.get_last_activity.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente sesjonsaktiviteten for det flaggede innlegget."
   },
   {
     "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente lesestatusen for kanalen for det flaggede innlegget."
   },
   {
     "id": "app.data_spillage.exposure.meta.channel",
-    "translation": ""
+    "translation": "Kanal"
   },
   {
     "id": "app.data_spillage.exposure.meta.generated_at",
-    "translation": ""
+    "translation": "Generert"
   },
   {
     "id": "app.data_spillage.exposure.meta.post_id",
-    "translation": ""
+    "translation": "Innleggs-ID"
   },
   {
     "id": "app.data_spillage.exposure.meta.report_version",
-    "translation": ""
+    "translation": "Rapportversjon"
   },
   {
     "id": "app.data_spillage.exposure.meta.total_users",
-    "translation": ""
+    "translation": "Totalt antall brukere"
   },
   {
     "id": "app.data_spillage.exposure.meta.window_end",
-    "translation": ""
+    "translation": "Flagget"
   },
   {
     "id": "app.data_spillage.exposure.meta.window_start",
-    "translation": ""
+    "translation": "Innlegget opprettet"
   },
   {
     "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
-    "translation": ""
+    "translation": "Det flaggede innlegget har ikke noe registrert rapporteringstidspunkt, så eksponeringsvinduet kan ikke fastslås."
   },
   {
     "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
-    "translation": ""
+    "translation": "Eksponeringsrapporter støttes ikke for direktemeldinger og gruppemeldinger."
   },
   {
     "id": "app.data_spillage.exposure.value.never_viewed",
-    "translation": ""
+    "translation": "I/T"
   },
   {
     "id": "app.data_spillage.exposure.value.no",
-    "translation": ""
+    "translation": "Nei"
   },
   {
     "id": "app.data_spillage.exposure.value.no_sessions",
-    "translation": ""
+    "translation": "Ingen sesjoner funnet"
   },
   {
     "id": "app.data_spillage.exposure.value.unknown",
-    "translation": ""
+    "translation": "Ukjent"
   },
   {
     "id": "app.data_spillage.exposure.value.yes",
-    "translation": ""
+    "translation": "Ja"
   },
   {
     "id": "app.data_spillage.flag_post.marshal_comment.app_error",
-    "translation": ""
+    "translation": "Kunne ikke serialisere kommentaren fra brukeren som flagget"
   },
   {
     "id": "app.data_spillage.flag_post.marshal_reason.app_error",
-    "translation": ""
+    "translation": "Kunne ikke serialisere årsaken fra brukeren som flagget"
   },
   {
     "id": "app.data_spillage.flag_post_confirmation.message",
-    "translation": ""
+    "translation": "Meldingen fra @{{.username}} er satt i karantene for gransking. Du får beskjed når den er gransket av en gransker."
   },
   {
     "id": "app.data_spillage.get_group.error",
-    "translation": ""
+    "translation": "Kan ikke hente egenskapsgruppen for innholdsflagging."
   },
   {
     "id": "app.data_spillage.get_reviewer_settings.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente innstillingene for innholdsgranskere fra databasen"
   },
   {
     "id": "app.data_spillage.get_status_property.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente egenskapsfeltet for status."
   },
   {
     "id": "app.data_spillage.get_thread_replies.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente trådsvarene for det flaggede innlegget."
   },
   {
     "id": "app.data_spillage.get_users_in_team.app_error",
-    "translation": ""
+    "translation": "Kunne ikke søke etter granskere i teamet."
   },
   {
     "id": "app.data_spillage.keep_flag_post.marshal_comment.app_error",
-    "translation": ""
+    "translation": "Kunne ikke serialisere granskerens kommentar"
   },
   {
     "id": "app.data_spillage.keep_post.status_update.app_error",
-    "translation": ""
+    "translation": "Kunne ikke oppdatere statusen til det flaggede innlegget ved gjenoppretting av det flaggede innlegget "
   },
   {
     "id": "app.data_spillage.keep_post.undelete.app_error",
-    "translation": ""
+    "translation": "Kunne ikke oppdatere innlegget i databasen ved forsøk på å gjenopprette det flaggede innlegget og tilhørende data."
   },
   {
     "id": "app.data_spillage.marshal_property_values.app_error",
-    "translation": ""
+    "translation": "Kunne ikke serialisere egenskapsverdiene for innholdsflagging til sending i WebSocket-hendelsen."
   },
   {
     "id": "app.data_spillage.missing_flagged_post_id_field.app_error",
-    "translation": ""
+    "translation": "Finner ikke egenskapsfeltet for ID for flagget innlegg."
   },
   {
     "id": "app.data_spillage.missing_manage_by_field.app_error",
-    "translation": ""
+    "translation": "Fant ikke egenskapsfeltet for administreres av."
   },
   {
     "id": "app.data_spillage.missing_reporting_user_id_field.app_error",
-    "translation": ""
+    "translation": "Finner ikke feltet for rapporterende bruker."
   },
   {
     "id": "app.data_spillage.missing_reporting_user_id_property_value.app_error",
-    "translation": ""
+    "translation": "Finner ikke verdien for feltet for rapporterende bruker."
   },
   {
     "id": "app.data_spillage.missing_status_field.app_error",
-    "translation": ""
+    "translation": "Fant ikke egenskapsfeltet for status."
   },
   {
     "id": "app.data_spillage.no_status_property.app_error",
-    "translation": ""
+    "translation": "Kan ikke hente flagget innlegg fordi innlegget ikke er flagget."
   },
   {
     "id": "app.data_spillage.permanently_delete.marshal_comment.app_error",
-    "translation": ""
+    "translation": "Kunne ikke serialisere granskerens kommentar"
   },
   {
     "id": "app.data_spillage.permanently_delete.update_property_value.app_error",
-    "translation": ""
+    "translation": "Kunne ikke oppdatere statusen til det flaggede innlegget ved permanent sletting av det flaggede innlegget."
   },
   {
     "id": "app.data_spillage.report.attachments_omitted.file_text",
-    "translation": ""
+    "translation": "Vedleggene til denne meldingen ble utelatt fra denne rapporten fordi du ikke oppfyller kanalens policy for filnedlasting."
   },
   {
     "id": "app.data_spillage.report.attachments_omitted.notification",
-    "translation": ""
+    "translation": "Rapporten du genererte, inkluderte ikke filvedleggene til meldingen i karantene, fordi du ikke oppfyller kanalens policy for filnedlasting."
   },
   {
     "id": "app.data_spillage.report.cleared",
-    "translation": ""
+    "translation": "Fjernet"
   },
   {
     "id": "app.data_spillage.report.close.app_error",
-    "translation": ""
+    "translation": "Kunne ikke lukke rapportfilen for det flaggede innlegget."
   },
   {
     "id": "app.data_spillage.report.column.detail",
-    "translation": ""
+    "translation": "Detaljer"
   },
   {
     "id": "app.data_spillage.report.column.status",
-    "translation": ""
+    "translation": "Status"
   },
   {
     "id": "app.data_spillage.report.column.step",
-    "translation": ""
+    "translation": "Trinn"
   },
   {
     "id": "app.data_spillage.report.detail.deleted",
-    "translation": ""
+    "translation": "Slettet."
   },
   {
     "id": "app.data_spillage.report.detail.failed_retrieve_edit_history",
-    "translation": ""
+    "translation": "Kunne ikke hente redigeringshistorikken."
   },
   {
     "id": "app.data_spillage.report.detail.file_attachments_info_ids",
-    "translation": ""
+    "translation": "**Filinfo-ID-er:** {{.FileInfoIDs}}"
   },
   {
     "id": "app.data_spillage.report.detail.file_names",
-    "translation": ""
+    "translation": {
+      "one": "Fjernet {{.Count}} fil fra disk.",
+      "other": "Fjernet {{.Count}} filer fra disk."
+    }
   },
   {
     "id": "app.data_spillage.report.detail.no_data_found",
-    "translation": ""
+    "translation": "Ingen data funnet."
   },
   {
     "id": "app.data_spillage.report.detail.no_files",
-    "translation": ""
+    "translation": "Ingen filer funnet."
   },
   {
     "id": "app.data_spillage.report.detail.no_rows_to_delete",
-    "translation": ""
+    "translation": "Ingen rader å slette."
   },
   {
     "id": "app.data_spillage.report.detail.post_scrubbed_deleted",
-    "translation": ""
+    "translation": "Innlegget er renset og slettet."
   },
   {
     "id": "app.data_spillage.report.detail.revisions_cleared",
-    "translation": ""
+    "translation": {
+      "one": "Fjernet {{.Count}} av {{.Total}} revisjoner.",
+      "other": "Fjernet {{.Count}} av {{.Total}} revisjoner."
+    }
   },
   {
     "id": "app.data_spillage.report.detail.thread_data_deleted",
-    "translation": ""
+    "translation": "Tråder, reaksjoner og tilhørende data er slettet."
   },
   {
     "id": "app.data_spillage.report.error_log",
-    "translation": ""
+    "translation": "Feillogg"
   },
   {
     "id": "app.data_spillage.report.generated",
-    "translation": ""
+    "translation": "Generert:"
   },
   {
     "id": "app.data_spillage.report.incomplete_warning",
-    "translation": ""
+    "translation": "Slettingen av innlegget er ufullstendig. Se gjennom feilloggen og eskaler til en systemadministrator for manuell utbedring."
   },
   {
     "id": "app.data_spillage.report.post_id",
-    "translation": ""
+    "translation": "Innleggs-ID:"
   },
   {
     "id": "app.data_spillage.report.revision",
-    "translation": ""
+    "translation": "Revisjon"
   },
   {
     "id": "app.data_spillage.report.revisions_found",
-    "translation": ""
+    "translation": "Revisjoner funnet:"
   },
   {
     "id": "app.data_spillage.report.status.failed",
-    "translation": ""
+    "translation": "Mislyktes"
   },
   {
     "id": "app.data_spillage.report.status.not_applicable",
-    "translation": ""
+    "translation": "Ikke aktuelt"
   },
   {
     "id": "app.data_spillage.report.status.partial",
-    "translation": ""
+    "translation": "Delvis"
   },
   {
     "id": "app.data_spillage.report.status.removed",
-    "translation": ""
+    "translation": "Fjernet"
   },
   {
     "id": "app.data_spillage.report.status.unknown",
-    "translation": ""
+    "translation": "Ukjent"
   },
   {
     "id": "app.data_spillage.report.step.acknowledgements",
-    "translation": ""
+    "translation": "Anerkjennelser"
   },
   {
     "id": "app.data_spillage.report.step.edit_histories",
-    "translation": ""
+    "translation": "Redigeringshistorikk"
   },
   {
     "id": "app.data_spillage.report.step.file_attachments",
-    "translation": ""
+    "translation": "Filvedlegg"
   },
   {
     "id": "app.data_spillage.report.step.fileinfo_rows",
-    "translation": ""
+    "translation": "Oppføringer for filvedlegg"
   },
   {
     "id": "app.data_spillage.report.step.persistent_notifications",
-    "translation": ""
+    "translation": "Vedvarende varsler"
   },
   {
     "id": "app.data_spillage.report.step.post_itself",
-    "translation": ""
+    "translation": "Innleggsoppføring"
   },
   {
     "id": "app.data_spillage.report.step.priority_data",
-    "translation": ""
+    "translation": "Prioritetsmetadata"
   },
   {
     "id": "app.data_spillage.report.step.reminders",
-    "translation": ""
+    "translation": "Påminnelser"
   },
   {
     "id": "app.data_spillage.report.step.thread_data",
-    "translation": ""
+    "translation": "Tråd, svar og reaksjoner"
   },
   {
     "id": "app.data_spillage.report.summary",
-    "translation": ""
+    "translation": "Sammendrag"
   },
   {
     "id": "app.data_spillage.report.sync.app_error",
-    "translation": ""
+    "translation": "Kunne ikke synkronisere rapportfilen for det flaggede innlegget til disk."
   },
   {
     "id": "app.data_spillage.report.tempfile.app_error",
-    "translation": ""
+    "translation": "Kunne ikke opprette en midlertidig fil for rapporten om det flaggede innlegget."
   },
   {
     "id": "app.data_spillage.report.title",
-    "translation": ""
+    "translation": "Rapport om sletting av innlegg"
   },
   {
     "id": "app.data_spillage.report.total_steps",
-    "translation": ""
+    "translation": "Totalt antall trinn:"
   },
   {
     "id": "app.data_spillage.report.write_attachments_omitted.app_error",
-    "translation": ""
+    "translation": "Kunne ikke skrive merknaden om utelatte vedlegg til rapporten om det flaggede innlegget."
   },
   {
     "id": "app.data_spillage.report.write_edit_yaml.app_error",
-    "translation": ""
+    "translation": "Kunne ikke skrive oppføringen fra redigeringshistorikken til rapporten om det flaggede innlegget."
   },
   {
     "id": "app.data_spillage.report.write_exposure_csv.app_error",
-    "translation": ""
+    "translation": "Kunne ikke skrive eksponeringsrapporten til rapporten om det flaggede innlegget."
   },
   {
     "id": "app.data_spillage.report.write_metadata_yaml.app_error",
-    "translation": ""
+    "translation": "Kunne ikke skrive metadata til rapporten om det flaggede innlegget."
   },
   {
     "id": "app.data_spillage.report.write_post_yaml.app_error",
-    "translation": ""
+    "translation": "Kunne ikke skrive innleggsdetaljene til rapporten om det flaggede innlegget."
   },
   {
     "id": "app.data_spillage.report.write_review_yaml.app_error",
-    "translation": ""
+    "translation": "Kunne ikke skrive detaljene om innholdsgranskingen til rapporten om det flaggede innlegget."
   },
   {
     "id": "app.data_spillage.report.zip_close.app_error",
-    "translation": ""
+    "translation": "Kunne ikke lukke rapportarkivet for det flaggede innlegget."
   },
   {
     "id": "app.data_spillage.report.zip_copy.app_error",
-    "translation": ""
+    "translation": "Kunne ikke kopiere innholdet i vedlegget til rapportarkivet for det flaggede innlegget."
   },
   {
     "id": "app.data_spillage.report.zip_create.app_error",
-    "translation": ""
+    "translation": "Kunne ikke opprette en oppføring i rapportarkivet for det flaggede innlegget."
   },
   {
     "id": "app.data_spillage.save_reviewer_settings.app_error",
-    "translation": ""
+    "translation": "Kunne ikke lagre innstillingene for innholdsgranskere i databasen."
   },
   {
     "id": "app.data_spillage.search_common_reviewers.app_error",
-    "translation": ""
+    "translation": "Kunne ikke søke etter søketermen blant felles granskere."
   },
   {
     "id": "app.data_spillage.search_property_fields.app_error",
-    "translation": ""
+    "translation": "Kunne ikke søke etter egenskapsfelt for innholdsflagging."
   },
   {
     "id": "app.data_spillage.search_property_values.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente innleggets egenskapsverdier for innholdsflagging fra databasen."
   },
   {
     "id": "app.data_spillage.search_reviewer_posts.app_error",
-    "translation": ""
+    "translation": "Kunne ikke søke etter granskerinnlegg for det flaggede innlegget."
   },
   {
     "id": "app.data_spillage.search_status_property.app_error",
-    "translation": ""
+    "translation": "Kunne ikke søke etter egenskapsverdier for det flaggede innlegget."
   },
   {
     "id": "app.data_spillage.search_sysadmin_reviewers.app_error",
-    "translation": ""
+    "translation": "Kunne ikke søke etter søketermen blant systemadministrator-granskere."
   },
   {
     "id": "app.data_spillage.search_team_admin_reviewers.app_error",
-    "translation": ""
+    "translation": "Kunne ikke søke etter søketermen blant teamadministrator-granskere."
   },
   {
     "id": "app.data_spillage.search_team_reviewers.app_error",
-    "translation": ""
+    "translation": "Kunne ikke søke etter søketermen blant teamets granskere."
   },
   {
     "id": "app.data_spillage.set_thread_replies_properties.app_error",
-    "translation": ""
+    "translation": "Kunne ikke sette egenskapsverdier på trådsvarene for det flaggede innlegget."
   },
   {
     "id": "app.delete_scheduled_post.delete_error",
-    "translation": ""
+    "translation": "Kunne ikke slette den planlagte meldingen fra databasen."
   },
   {
     "id": "app.delete_scheduled_post.delete_permission.error",
-    "translation": ""
+    "translation": "Du har ikke tillatelse til å slette denne ressursen."
   },
   {
     "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
-    "translation": ""
+    "translation": "Den planlagte meldingen finnes ikke."
   },
   {
     "id": "app.delete_scheduled_post.get_scheduled_post.error",
-    "translation": ""
+    "translation": "Kan ikke hente den eksisterende planlagte meldingen fra databasen."
   },
   {
     "id": "app.delivery_tracking.dm_gm_not_allowed.app_error",
-    "translation": ""
+    "translation": "Direktemeldinger og gruppemeldinger kan ikke velges for revisjonslogging av meldingslevering."
   },
   {
     "id": "app.delivery_tracking.get_config.app_error",
-    "translation": ""
+    "translation": "Kunne ikke lese innstillingene for revisjonslogging av meldingslevering fra databasen."
   },
   {
     "id": "app.delivery_tracking.invalid_channel.app_error",
-    "translation": ""
+    "translation": "Én eller flere av de valgte kanalene ble ikke funnet."
   },
   {
     "id": "app.delivery_tracking.save_config.app_error",
-    "translation": ""
+    "translation": "Kunne ikke lagre innstillingene for revisjonslogging av meldingslevering i databasen."
   },
   {
     "id": "app.desktop_token.generateServerToken.invalid_or_expired",
-    "translation": ""
+    "translation": "Tokenet finnes ikke eller er utløpt"
   },
   {
     "id": "app.desktop_token.validate.invalid",
-    "translation": ""
+    "translation": "Tokenet er ikke gyldig eller er utløpt"
   },
   {
     "id": "app.desktop_token.validate.no_user",
-    "translation": ""
+    "translation": "Finner ingen bruker for dette tokenet"
   },
   {
     "id": "app.draft.delete.app_error",
-    "translation": ""
+    "translation": "Kan ikke slette utkastet."
   },
   {
     "id": "app.draft.feature_disabled",
-    "translation": ""
+    "translation": "Funksjonen for utkast er deaktivert."
   },
   {
     "id": "app.draft.get.app_error",
-    "translation": ""
+    "translation": "Kan ikke hente utkastet."
   },
   {
     "id": "app.draft.get_drafts.app_error",
-    "translation": ""
+    "translation": "Kan ikke hente brukerens utkast."
   },
   {
     "id": "app.draft.get_for_draft.app_error",
-    "translation": ""
+    "translation": "Kan ikke hente filer for utkastet."
   },
   {
     "id": "app.draft.save.app_error",
-    "translation": ""
+    "translation": "Kan ikke lagre utkastet."
   },
   {
     "id": "app.draft.upsert.rejected_by_plugin",
-    "translation": ""
+    "translation": "Utkastet ble avvist av plugin: {{.Reason}}"
   },
   {
     "id": "app.drafts.permanent_delete_by_user.app_error",
-    "translation": ""
+    "translation": "Kan ikke slette utkastene for brukeren."
   },
   {
     "id": "app.email.no_rate_limiter.app_error",
-    "translation": ""
+    "translation": "Hastighetsbegrenseren er ikke satt opp."
   },
   {
     "id": "app.email.rate_limit_exceeded.app_error",
-    "translation": ""
+    "translation": "Grensen for antall invitasjons-e-poster er overskredet. Tidtakeren tilbakestilles om {{.ResetAfter}} sekunder. Prøv på nytt om {{.RetryAfter}} sekunder."
   },
   {
     "id": "app.email.setup_rate_limiter.app_error",
-    "translation": ""
+    "translation": "Det oppstod en feil i hastighetsbegrenseren."
   },
   {
     "id": "app.emoji.create.internal_error",
-    "translation": ""
+    "translation": "Kan ikke lagre emojien."
   },
   {
     "id": "app.emoji.delete.app_error",
-    "translation": ""
+    "translation": "Kan ikke slette emojien."
   },
   {
     "id": "app.emoji.delete.no_results",
-    "translation": ""
+    "translation": "Vi fant ikke emojien som skulle slettes."
   },
   {
     "id": "app.emoji.get.app_error",
-    "translation": ""
+    "translation": "Kan ikke hente emojien."
   },
   {
     "id": "app.emoji.get.no_result",
-    "translation": ""
+    "translation": "Vi fant ikke emojien."
   },
   {
     "id": "app.emoji.get_by_name.app_error",
-    "translation": ""
+    "translation": "Kan ikke hente emojien."
   },
   {
     "id": "app.emoji.get_by_name.no_result",
-    "translation": ""
+    "translation": "Vi fant ikke emojien."
   },
   {
     "id": "app.emoji.get_list.internal_error",
-    "translation": ""
+    "translation": "Kan ikke hente emojiene."
   },
   {
     "id": "app.export.channel_requires_team.error",
-    "translation": ""
+    "translation": "Et kanalnavn krever at et teamnavn er angitt."
   },
   {
     "id": "app.export.export_all_channels.channel_not_found.error",
-    "translation": ""
+    "translation": "Den angitte kanalen ble ikke funnet i noen av de angitte teamene."
   },
   {
     "id": "app.export.export_all_teams.team_deleted.error",
-    "translation": ""
+    "translation": "Det angitte teamet er slettet."
   },
   {
     "id": "app.export.export_all_teams.team_not_found.error",
-    "translation": ""
+    "translation": "Det angitte teamet ble ikke funnet."
   },
   {
     "id": "app.export.export_attachment.copy_file.error",
-    "translation": ""
+    "translation": "Kunne ikke kopiere filen under eksporten."
   },
   {
     "id": "app.export.export_attachment.create_file.error",
-    "translation": ""
+    "translation": "Kunne ikke opprette filen under eksporten."
   },
   {
     "id": "app.export.export_attachment.mkdirall.error",
-    "translation": ""
+    "translation": "Kunne ikke opprette mappen under eksporten."
   },
   {
     "id": "app.export.export_attachment.zip_create_header.error",
-    "translation": ""
+    "translation": "Kunne ikke opprette zip-header under eksporten."
   },
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
-    "translation": ""
+    "translation": "Kan ikke kopiere bildene for egendefinerte emojier"
   },
   {
     "id": "app.export.export_custom_emoji.mkdir.error",
-    "translation": ""
+    "translation": "Kan ikke opprette en mappe for bildene for egendefinerte emojier"
   },
   {
     "id": "app.export.export_version.scope_marshal.error",
-    "translation": ""
+    "translation": "Kunne ikke skrive team- og kanalavgrensningen til eksporten. Avbryter i stedet for å produsere et arkiv som ville blitt importert som en gjenoppretting av hele instansen."
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
-    "translation": ""
+    "translation": "Det oppstod en feil under skriving av eksportdataene."
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": ""
+    "translation": "Det oppstod en feil under serialisering av JSON-dataene for eksport."
   },
   {
     "id": "app.export.generate_presigned_url.config.app_error",
-    "translation": ""
+    "translation": "Denne handlingen krever bruk av et dedikert eksportlager."
   },
   {
     "id": "app.export.generate_presigned_url.direct_download.app_error",
-    "translation": ""
+    "translation": "Direkte nedlasting av eksporter er bare tilgjengelig i Mattermost Cloud."
   },
   {
     "id": "app.export.generate_presigned_url.driver.app_error",
-    "translation": ""
+    "translation": "Driveren for eksportlageret ditt støtter ikke generering av forhåndssignerte URL-er."
   },
   {
     "id": "app.export.generate_presigned_url.fileexist.app_error",
-    "translation": ""
+    "translation": "Kan ikke sjekke om filen finnes."
   },
   {
     "id": "app.export.generate_presigned_url.link.app_error",
-    "translation": ""
+    "translation": "Kan ikke generere den forhåndssignerte URL-en."
   },
   {
     "id": "app.export.generate_presigned_url.notfound.app_error",
-    "translation": ""
+    "translation": "Eksportfilen ble ikke funnet."
   },
   {
     "id": "app.export.marshal.app_error",
-    "translation": ""
+    "translation": "Kan ikke serialisere svaret."
   },
   {
     "id": "app.export.zip_create.error",
-    "translation": ""
+    "translation": "Kunne ikke legge til filen i zip-arkivet under eksporten."
   },
   {
     "id": "app.file.cloud.get.app_error",
-    "translation": ""
+    "translation": "Kan ikke hente filen fordi den overskrider grensen i skyabonnementet."
   },
   {
     "id": "app.file_info.delete_for_post_ids.app_error",
-    "translation": ""
+    "translation": "Kunne ikke fjerne de forespurte filene fra databasen"
   },
   {
     "id": "app.file_info.get.app_error",
-    "translation": ""
+    "translation": "Kan ikke hente filinformasjonen."
   },
   {
     "id": "app.file_info.get.gif.app_error",
-    "translation": ""
+    "translation": "Kunne ikke dekode GIF-en."
   },
   {
     "id": "app.file_info.get_by_ids.app_error",
-    "translation": ""
+    "translation": "Kan ikke hente filinformasjonen etter ID-er for redigeringshistorikken til innlegget."
   },
   {
     "id": "app.file_info.get_by_post_id.app_error",
-    "translation": ""
+    "translation": "Fant ikke filer for innlegget."
   },
   {
     "id": "app.file_info.get_count.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente antall filer totalt."
   },
   {
     "id": "app.file_info.get_for_post.app_error",
-    "translation": ""
+    "translation": "Kan ikke hente filinformasjonen for innlegget."
   },
   {
     "id": "app.file_info.get_storage_usage.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente lagringsbruken for alle filer."
   },
   {
     "id": "app.file_info.get_with_options.app_error",
-    "translation": ""
+    "translation": "Kan ikke hente filinformasjonen med alternativer"
   },
   {
     "id": "app.file_info.not_found",
-    "translation": ""
+    "translation": "Filen ble ikke funnet i fillageret på den angitte banen."
   },
   {
     "id": "app.file_info.permanent_delete_by_user.app_error",
-    "translation": ""
+    "translation": "Kan ikke slette brukerens vedlegg."
   },
   {
     "id": "app.file_info.permanent_delete_for_post.app_error",
-    "translation": ""
+    "translation": "Kunne ikke slette filen for innlegget permanent."
   },
   {
     "id": "app.file_info.remove_file.app_error",
-    "translation": ""
+    "translation": "Kunne ikke fjerne filen fra fillageret."
   },
   {
     "id": "app.file_info.save.app_error",
-    "translation": ""
+    "translation": "Kan ikke lagre filinformasjonen."
   },
   {
     "id": "app.file_info.seek.gif.app_error",
-    "translation": ""
+    "translation": "Kan ikke gå til begynnelsen av GIF-dataene."
   },
   {
     "id": "app.file_info.set_searchable_content.app_error",
-    "translation": ""
+    "translation": "Kan ikke angi det søkbare innholdet i filen."
   },
   {
     "id": "app.file_info.undelete_for_post_ids.app_error",
-    "translation": ""
+    "translation": "Kunne ikke gjenopprette filvedleggene til innleggene."
   },
   {
     "id": "app.get_user_team_scheduled_posts.error",
-    "translation": ""
+    "translation": "Det oppstod en feil under henting av planlagte meldinger."
   },
   {
     "id": "app.group.create_syncable_memberships.error",
-    "translation": ""
+    "translation": "Kan ikke opprette gruppesynkroniserte medlemskap."
   },
   {
     "id": "app.group.crud_permission",
-    "translation": ""
+    "translation": "Kan ikke utføre operasjonen for denne kildetypen."
   },
   {
     "id": "app.group.delete_invalid_syncable_memberships.error",
-    "translation": ""
+    "translation": "Kan ikke slette ugyldige gruppesynkroniserte medlemskap."
   },
   {
     "id": "app.group.group_syncable_already_deleted",
-    "translation": ""
+    "translation": "gruppekoblingen er allerede slettet"
   },
   {
     "id": "app.group.id.app_error",
-    "translation": ""
+    "translation": "ugyldig ID-egenskap for gruppen."
   },
   {
     "id": "app.group.license_error",
-    "translation": ""
+    "translation": "LDAP-lisens kreves."
   },
   {
     "id": "app.group.no_rows",
-    "translation": ""
+    "translation": "fant ingen samsvarende gruppe"
   },
   {
     "id": "app.group.permanent_delete_members_by_user.app_error",
-    "translation": ""
+    "translation": "Kan ikke fjerne gruppemedlemmet med bruker-ID «{{.UserId}}»."
   },
   {
     "id": "app.group.uniqueness_error",
-    "translation": ""
+    "translation": "gruppemedlemmet finnes allerede"
   },
   {
     "id": "app.group.user_not_found",
-    "translation": ""
+    "translation": "Feil ved oppdatering av gruppen. Fant ingen bruker med brukernavnet «{{.Username}}»."
   },
   {
     "id": "app.group.username_conflict",
-    "translation": ""
+    "translation": "det finnes allerede en bruker med brukernavnet «{{.Username}}»."
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": ""
+    "translation": "Kan ikke dempe helsefunnet."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
-    "translation": ""
+    "translation": "Fant ikke helsefunnet."
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": ""
+    "translation": "Kan ikke fjerne dempingen av helsefunnet."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": ""
+    "translation": "Fant ikke helsefunnet."
   },
   {
     "id": "app.import.attachment.bad_file.error",
-    "translation": ""
+    "translation": "Feil ved lesing av filen på: «{{.FilePath}}»"
   },
   {
     "id": "app.import.attachment.file_stat.error",
-    "translation": ""
+    "translation": "Feil ved lesing av filstatusen: «{{.FilePath}}»"
   },
   {
     "id": "app.import.attachment.file_upload.error",
-    "translation": ""
+    "translation": "Feil ved opplasting av filen: «{{.FilePath}}»"
   },
   {
     "id": "app.import.attachment.seek_file.error",
-    "translation": ""
+    "translation": "Feil ved posisjonering i filen: «{{.FilePath}}»"
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",
-    "translation": ""
+    "translation": "--destination-channel-name krever en kanalavgrenset eksport."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_single_channel_scope.error",
-    "translation": ""
+    "translation": "--destination-channel-name krever en eksport av én enkelt kanal; denne eksporten inneholder flere kanaler."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_single_team_scope.error",
-    "translation": ""
+    "translation": "--destination-channel-name krever en eksport avgrenset til nøyaktig ett team, ellers er kanalnavnet tvetydig."
   },
   {
     "id": "app.import.bulk_import.destination_team_requires_single_team_scope.error",
-    "translation": ""
+    "translation": "--destination-team-name krever en eksport av ett enkelt team; denne eksporten inneholder flere team."
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
-    "translation": ""
+    "translation": "Feil ved lesing av importdatafilen."
   },
   {
     "id": "app.import.bulk_import.imported_users_choice_required.error",
-    "translation": ""
+    "translation": "Dette er en avgrenset eksport, så --imported-users må settes til enten \"active\" eller \"inactive\"; det finnes ingen trygg standardverdi. Bruk --imported-users=active når du importerer til en ny instans som disse brukerne flytter til, slik at de kan logge inn – ellers blir hver konto importen oppretter, deaktivert, og ingen, heller ikke SSO-brukere, kan logge inn før en administrator reaktiverer dem én etter én. Bruk --imported-users=inactive når du importerer til en eksisterende instans som allerede inneholder andre personers innhold, slik at kontoer som opprettes ut fra svake treff på brukernavn eller e-post, forblir deaktivert til en administrator har gått gjennom dem. Uansett forblir brukere som var deaktivert på kildeserveren, deaktivert, og kontoer som allerede finnes på målet, blir matchet i stedet for opprettet og påvirkes derfor ikke av dette valget."
   },
   {
     "id": "app.import.bulk_import.json_decode.error",
-    "translation": ""
+    "translation": "JSON-dekoding av linjen mislyktes."
   },
   {
     "id": "app.import.bulk_import.unsupported_version.error",
-    "translation": ""
+    "translation": "Feil eller manglende versjon i dataimportfilen. Kontroller at version er det første objektet i importfilen, og prøv på nytt."
   },
   {
     "id": "app.import.custom_status.error",
-    "translation": ""
+    "translation": "Kan ikke angi egendefinert status."
   },
   {
     "id": "app.import.emoji.bad_file.error",
-    "translation": ""
+    "translation": "Feil ved lesing av bildefilen for importert emoji. Emoji med navn: «{{.EmojiName}}»"
   },
   {
     "id": "app.import.generate_password.app_error",
-    "translation": ""
+    "translation": "Feil ved generering av passord."
   },
   {
     "id": "app.import.get_teams_by_names.some_teams_not_found.error",
-    "translation": ""
+    "translation": "Noen team ble ikke funnet"
   },
   {
     "id": "app.import.get_users_by_username.some_users_not_found.error",
-    "translation": ""
+    "translation": "Noen brukere ble ikke funnet"
   },
   {
     "id": "app.import.import_bot.lookup_error",
-    "translation": ""
+    "translation": "Kunne ikke slå opp eksisterende bot"
   },
   {
     "id": "app.import.import_bot.owner_could_not_found.error",
-    "translation": ""
+    "translation": "Finner ikke eieren av boten"
   },
   {
     "id": "app.import.import_bot.user_not_found.error",
-    "translation": ""
+    "translation": "Fant ikke brukeren for boten"
   },
   {
     "id": "app.import.import_channel.deleting.app_error",
-    "translation": ""
+    "translation": "Kan ikke arkivere den importerte kanalen."
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
-    "translation": ""
+    "translation": "Kan ikke sette en kanal til å bruke et slettet skjema."
   },
   {
     "id": "app.import.import_channel.scheme_wrong_scope.error",
-    "translation": ""
+    "translation": "Kanalen må tilordnes et skjema med kanalomfang."
   },
   {
     "id": "app.import.import_channel.team_not_found.error",
-    "translation": ""
+    "translation": "Feil ved import av kanal. Fant ikke noe team med navnet «{{.TeamName}}»."
   },
   {
     "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": ""
+    "translation": "Kunne ikke opprette direktekanalen"
   },
   {
     "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": ""
+    "translation": "Kunne ikke opprette gruppekanalen"
   },
   {
     "id": "app.import.import_direct_channel.get_channel_members.error",
-    "translation": ""
+    "translation": "Kunne ikke hente kanalmedlemmene for direktekanalen"
   },
   {
     "id": "app.import.import_direct_channel.get_ever_members.error",
-    "translation": ""
+    "translation": "Kunne ikke hente historikken over medlemmer som noen gang har tilhørt direktekanalen"
   },
   {
     "id": "app.import.import_direct_channel.no_members.error",
-    "translation": ""
+    "translation": "Det finnes ingen medlemmer for direktekanalen"
   },
   {
     "id": "app.import.import_direct_channel.save_member.error",
-    "translation": ""
+    "translation": "Kunne ikke lagre kanalmedlemmet under import av direktekanal"
   },
   {
     "id": "app.import.import_direct_channel.update_header_failed.error",
-    "translation": ""
+    "translation": "Kunne ikke oppdatere overskriften for direktekanalen"
   },
   {
     "id": "app.import.import_direct_post.create_direct_channel.error",
-    "translation": ""
+    "translation": "Kunne ikke hente direktekanalen"
   },
   {
     "id": "app.import.import_direct_post.create_group_channel.error",
-    "translation": ""
+    "translation": "Kunne ikke hente gruppekanalen"
   },
   {
     "id": "app.import.import_line.null_bot.error",
-    "translation": ""
+    "translation": "Importdatalinjen har typen \"bot\", men bot-objektet er null"
   },
   {
     "id": "app.import.import_line.null_channel.error",
-    "translation": ""
+    "translation": "Importdatalinjen har typen \"channel\", men channel-objektet er null."
   },
   {
     "id": "app.import.import_line.null_direct_channel.error",
-    "translation": ""
+    "translation": "Importdatalinjen har typen \"direct_channel\", men direct_channel-objektet er null."
   },
   {
     "id": "app.import.import_line.null_direct_post.error",
-    "translation": ""
+    "translation": "Importdatalinjen har typen \"direct_post\", men direct_post-objektet er null."
   },
   {
     "id": "app.import.import_line.null_emoji.error",
-    "translation": ""
+    "translation": "Importdatalinjen har typen \"emoji\", men emoji-objektet er null."
   },
   {
     "id": "app.import.import_line.null_post.error",
-    "translation": ""
+    "translation": "Importdatalinjen har typen \"post\", men post-objektet er null."
   },
   {
     "id": "app.import.import_line.null_role.error",
-    "translation": ""
+    "translation": "Importdatalinjen har typen \"role\", men role-objektet er null."
   },
   {
     "id": "app.import.import_line.null_scheme.error",
-    "translation": ""
+    "translation": "Importdatalinjen har typen \"scheme\", men scheme-objektet er null."
   },
   {
     "id": "app.import.import_line.null_team.error",
-    "translation": ""
+    "translation": "Importdatalinjen har typen \"team\", men team-objektet er null."
   },
   {
     "id": "app.import.import_line.null_user.error",
-    "translation": ""
+    "translation": "Importdatalinjen har typen \"user\", men user-objektet er null."
   },
   {
     "id": "app.import.import_line.unknown_line_type.error",
-    "translation": ""
+    "translation": "Importdatalinjen har den ukjente typen «{{.Type}}»."
   },
   {
     "id": "app.import.import_post.channel_not_found.error",
-    "translation": ""
+    "translation": "Feil ved import av innlegg. Fant ikke noen kanal med navnet «{{.ChannelName}}»."
   },
   {
     "id": "app.import.import_post.save_preferences.error",
-    "translation": ""
+    "translation": "Feil ved import av innlegg. Kunne ikke lagre innstillingene."
   },
   {
     "id": "app.import.import_post.user_not_found.error",
-    "translation": ""
+    "translation": "Feil ved import av innlegg. Fant ikke noen bruker med brukernavnet «{{.Username}}»."
   },
   {
     "id": "app.import.import_scheme.scope_change.error",
-    "translation": ""
+    "translation": "Masseimporten kan ikke endre omfanget til et skjema som allerede finnes."
   },
   {
     "id": "app.import.import_team.scheme_deleted.error",
-    "translation": ""
+    "translation": "Kan ikke sette et team til å bruke et slettet skjema."
   },
   {
     "id": "app.import.import_team.scheme_wrong_scope.error",
-    "translation": ""
+    "translation": "Teamet må tilordnes et skjema med teamomfang."
   },
   {
     "id": "app.import.import_user.save_preferences.error",
-    "translation": ""
+    "translation": "Feil ved import av brukerinnstillinger. Kunne ikke lagre innstillingene."
   },
   {
     "id": "app.import.import_user_channels.channel_not_found.error",
-    "translation": ""
+    "translation": "Feil ved import av brukerens kanaler. Fant ikke kanalen."
   },
   {
     "id": "app.import.import_user_channels.save_preferences.error",
-    "translation": ""
+    "translation": "Feil ved import av brukerens kanalmedlemskap. Kunne ikke lagre innstillingene."
   },
   {
     "id": "app.import.import_user_teams.save_members.conflict.app_error",
-    "translation": ""
+    "translation": "Kan ikke importere det nye teammedlemskapet fordi det allerede finnes"
   },
   {
     "id": "app.import.import_user_teams.save_members.error",
-    "translation": ""
+    "translation": "Kan ikke importere teammedlemskap"
   },
   {
     "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
-    "translation": ""
+    "translation": "Kan ikke importere teammedlemskapet fordi det ikke er plass til flere medlemmer i det teamet"
   },
   {
     "id": "app.import.import_user_teams.save_preferences.error",
-    "translation": ""
+    "translation": "Kan ikke lagre temainnstillingene for teamet"
   },
   {
     "id": "app.import.pre_create_sso_user.missing_fields.app_error",
-    "translation": ""
+    "translation": "Importdataene for SSO-brukeren mangler påkrevde felt (brukernavn eller e-post)."
   },
   {
     "id": "app.import.preflight.auth_provider_not_configured.error",
-    "translation": ""
+    "translation": "Autentiseringsleverandøren {{.Service}} er ikke konfigurert på denne serveren: {{.Detail}}"
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
-    "translation": ""
+    "translation": "Kan ikke lese versjonen av dataimportfilen."
   },
   {
     "id": "app.import.profile_image.open.app_error",
-    "translation": ""
+    "translation": "Kunne ikke åpne profilbildefilen: {{.FileName}}"
   },
   {
     "id": "app.import.profile_image.read_data.app_error",
-    "translation": ""
+    "translation": "Kunne ikke lese profilbildedataene."
   },
   {
     "id": "app.import.validate_attachment_import_data.invalid_path.error",
-    "translation": ""
+    "translation": "Kunne ikke validere importdataene for vedlegget. Ugyldig bane: «{{.Path}}»"
   },
   {
     "id": "app.import.validate_bot_import_data.owner_missing.error",
-    "translation": ""
+    "translation": "Boteier mangler"
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
-    "translation": ""
+    "translation": "Kanalens display_name er ikke innenfor de tillatte lengdebegrensningene."
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
-    "translation": ""
+    "translation": "Kanaloverskriften er for lang."
   },
   {
     "id": "app.import.validate_channel_import_data.name_characters.error",
-    "translation": ""
+    "translation": "Kanalnavnet inneholder ugyldige tegn."
   },
   {
     "id": "app.import.validate_channel_import_data.name_length.error",
-    "translation": ""
+    "translation": "Kanalnavnet er for langt."
   },
   {
     "id": "app.import.validate_channel_import_data.name_missing.error",
-    "translation": ""
+    "translation": "Påkrevd kanalegenskap mangler: name"
   },
   {
     "id": "app.import.validate_channel_import_data.purpose_length.error",
-    "translation": ""
+    "translation": "Kanalformålet er for langt."
   },
   {
     "id": "app.import.validate_channel_import_data.scheme_invalid.error",
-    "translation": ""
+    "translation": "Ugyldig skjemanavn for kanalen."
   },
   {
     "id": "app.import.validate_channel_import_data.team_missing.error",
-    "translation": ""
+    "translation": "Påkrevd kanalegenskap mangler: team"
   },
   {
     "id": "app.import.validate_channel_import_data.type_invalid.error",
-    "translation": ""
+    "translation": "Kanaltypen er ugyldig."
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
-    "translation": ""
+    "translation": "Påkrevd kanalegenskap mangler: type."
   },
   {
     "id": "app.import.validate_direct_channel_import_data.header_length.error",
-    "translation": ""
+    "translation": "Overskriften for direktekanalen er for lang"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_required.error",
-    "translation": ""
+    "translation": "Påkrevd egenskap for direktekanal mangler: members"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
-    "translation": ""
+    "translation": "Medlemslisten for direktekanalen inneholder for få elementer"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
-    "translation": ""
+    "translation": "Medlemslisten for direktekanalen inneholder for mange elementer"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
-    "translation": ""
+    "translation": "En direktekanal kan bare legges til i favoritter av medlemmer. «{{.Username}}» er ikke medlem."
   },
   {
     "id": "app.import.validate_direct_post_import_data.attachment.error",
-    "translation": ""
+    "translation": "Kunne ikke validere vedleggsdataene for direkteinnlegget."
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
-    "translation": ""
+    "translation": "Påkrevd egenskap for direkteinnlegg mangler: channel_members"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
-    "translation": ""
+    "translation": "Listen over kanalmedlemmer for direkteinnlegget inneholder for få elementer"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
-    "translation": ""
+    "translation": "Listen over kanalmedlemmer for direkteinnlegget inneholder for mange elementer"
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
-    "translation": ""
+    "translation": "Påkrevd egenskap for direkteinnlegg mangler: create_at"
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
-    "translation": ""
+    "translation": "CreateAt må være større enn 0"
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_length.error",
-    "translation": ""
+    "translation": "Meldingen er for lang"
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
-    "translation": ""
+    "translation": "Påkrevd egenskap for direkteinnlegg mangler: message"
   },
   {
     "id": "app.import.validate_direct_post_import_data.thread_follower.error",
-    "translation": ""
+    "translation": "Kunne ikke validere dataene om trådfølgere for direkteinnlegget."
   },
   {
     "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
-    "translation": ""
+    "translation": "Et direkteinnlegg kan bare flagges av medlemmer av kanalen det ligger i. «{{.Username}}» er ikke medlem."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
-    "translation": ""
+    "translation": "Påkrevd egenskap for direkteinnlegg mangler: user"
   },
   {
     "id": "app.import.validate_emoji_import_data.empty.error",
-    "translation": ""
+    "translation": "Importdataene for emojien er tomme."
   },
   {
     "id": "app.import.validate_emoji_import_data.image_missing.error",
-    "translation": ""
+    "translation": "Bildefeltet for den importerte emojien mangler eller er tomt."
   },
   {
     "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
-    "translation": ""
+    "translation": "Bildefeltet for den importerte emojien har en ugyldig bane: «{{.Path}}»"
   },
   {
     "id": "app.import.validate_emoji_import_data.name_missing.error",
-    "translation": ""
+    "translation": "Navnefeltet for den importerte emojien mangler eller er tomt."
   },
   {
     "id": "app.import.validate_post_import_data.attachment.error",
-    "translation": ""
+    "translation": "Kunne ikke validere vedleggsdataene for innlegget."
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
-    "translation": ""
+    "translation": "Påkrevd Post-egenskap mangler: Channel."
   },
   {
     "id": "app.import.validate_post_import_data.create_at_missing.error",
-    "translation": ""
+    "translation": "Påkrevd Post-egenskap mangler: create_at."
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": ""
+    "translation": "Egenskapen CreateAt for Post kan ikke være null."
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
-    "translation": ""
+    "translation": "Egenskapen Message for Post er lengre enn den maksimalt tillatte lengden."
   },
   {
     "id": "app.import.validate_post_import_data.message_missing.error",
-    "translation": ""
+    "translation": "Påkrevd Post-egenskap mangler: Message."
   },
   {
     "id": "app.import.validate_post_import_data.props_too_large.error",
-    "translation": ""
+    "translation": "Props for Post er lengre enn den maksimalt tillatte lengden."
   },
   {
     "id": "app.import.validate_post_import_data.team_missing.error",
-    "translation": ""
+    "translation": "Påkrevd Post-egenskap mangler: Team."
   },
   {
     "id": "app.import.validate_post_import_data.thread_follower.error",
-    "translation": ""
+    "translation": "Kunne ikke validere dataene om trådfølgere for innlegget."
   },
   {
     "id": "app.import.validate_post_import_data.user_missing.error",
-    "translation": ""
+    "translation": "Påkrevd Post-egenskap mangler: User."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
-    "translation": ""
+    "translation": "Egenskapen CreateAt for Reaction må være større enn CreateAt for det overordnede innlegget."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_missing.error",
-    "translation": ""
+    "translation": "Påkrevd Reaction-egenskap mangler: create_at."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_zero.error",
-    "translation": ""
+    "translation": "Egenskapen CreateAt for Reaction kan ikke være null."
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": ""
+    "translation": "Egenskapen EmojiName for Reaction er lengre enn den maksimalt tillatte lengden."
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
-    "translation": ""
+    "translation": "Påkrevd Reaction-egenskap mangler: EmojiName."
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
-    "translation": ""
+    "translation": "Påkrevd Reaction-egenskap mangler: User."
   },
   {
     "id": "app.import.validate_reply_import_data.attachment.error",
-    "translation": ""
+    "translation": "Kunne ikke validere vedleggsdataene for svaret."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
-    "translation": ""
+    "translation": "Påkrevd Reply-egenskap mangler: create_at."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_zero.error",
-    "translation": ""
+    "translation": "Egenskapen CreateAt for Reply kan ikke være null."
   },
   {
     "id": "app.import.validate_reply_import_data.message_length.error",
-    "translation": ""
+    "translation": "Egenskapen Message for Reply er lengre enn den maksimalt tillatte lengden."
   },
   {
     "id": "app.import.validate_reply_import_data.message_missing.error",
-    "translation": ""
+    "translation": "Påkrevd Reply-egenskap mangler: Message."
   },
   {
     "id": "app.import.validate_reply_import_data.user_missing.error",
-    "translation": ""
+    "translation": "Påkrevd Reply-egenskap mangler: User."
   },
   {
     "id": "app.import.validate_role_import_data.description_invalid.error",
-    "translation": ""
+    "translation": "Ugyldig rollebeskrivelse."
   },
   {
     "id": "app.import.validate_role_import_data.display_name_invalid.error",
-    "translation": ""
+    "translation": "Ugyldig visningsnavn for rollen."
   },
   {
     "id": "app.import.validate_role_import_data.invalid_permission.error",
-    "translation": ""
+    "translation": "Ugyldig tillatelse på rollen."
   },
   {
     "id": "app.import.validate_role_import_data.name_invalid.error",
-    "translation": ""
+    "translation": "Ugyldig rollenavn."
   },
   {
     "id": "app.import.validate_scheme_import_data.description_invalid.error",
-    "translation": ""
+    "translation": "Ugyldig skjemabeskrivelse."
   },
   {
     "id": "app.import.validate_scheme_import_data.display_name_invalid.error",
-    "translation": ""
+    "translation": "Ugyldig visningsnavn for skjemaet."
   },
   {
     "id": "app.import.validate_scheme_import_data.name_invalid.error",
-    "translation": ""
+    "translation": "Ugyldig skjemanavn."
   },
   {
     "id": "app.import.validate_scheme_import_data.null_scope.error",
-    "translation": ""
+    "translation": "Skjemaomfang er påkrevd."
   },
   {
     "id": "app.import.validate_scheme_import_data.unknown_scheme.error",
-    "translation": ""
+    "translation": "Ukjent skjemaomfang."
   },
   {
     "id": "app.import.validate_scheme_import_data.wrong_roles_for_scope.error",
-    "translation": ""
+    "translation": "Feil roller ble angitt for et skjema med dette omfanget."
   },
   {
     "id": "app.import.validate_team_import_data.description_length.error",
-    "translation": ""
+    "translation": "Teambeskrivelsen er for lang."
   },
   {
     "id": "app.import.validate_team_import_data.display_name_length.error",
-    "translation": ""
+    "translation": "Teamets display_name er ikke innenfor de tillatte lengdebegrensningene."
   },
   {
     "id": "app.import.validate_team_import_data.display_name_missing.error",
-    "translation": ""
+    "translation": "Påkrevd teamegenskap mangler: display_name."
   },
   {
     "id": "app.import.validate_team_import_data.name_characters.error",
-    "translation": ""
+    "translation": "Teamnavnet inneholder ugyldige tegn."
   },
   {
     "id": "app.import.validate_team_import_data.name_length.error",
-    "translation": ""
+    "translation": "Teamnavnet er for langt."
   },
   {
     "id": "app.import.validate_team_import_data.name_missing.error",
-    "translation": ""
+    "translation": "Påkrevd teamegenskap mangler: name."
   },
   {
     "id": "app.import.validate_team_import_data.name_reserved.error",
@@ -10410,1403 +10416,1403 @@
   },
   {
     "id": "app.view.update_sort_order.invalid_input.app_error",
-    "translation": ""
+    "translation": "Ugyldige inndata for oppdatering av sorteringsrekkefølgen for visninger."
   },
   {
     "id": "app.view.update_sort_order.not_found.app_error",
-    "translation": ""
+    "translation": "Fant ikke visningen."
   },
   {
     "id": "app.webhooks.analytics_incoming_count.app_error",
-    "translation": ""
+    "translation": "Kan ikke telle de innkommende webhookene."
   },
   {
     "id": "app.webhooks.analytics_outgoing_count.app_error",
-    "translation": ""
+    "translation": "Kan ikke telle de utgående webhookene."
   },
   {
     "id": "app.webhooks.delete_incoming.app_error",
-    "translation": ""
+    "translation": "Kan ikke slette webhooken."
   },
   {
     "id": "app.webhooks.delete_outgoing.app_error",
-    "translation": ""
+    "translation": "Kan ikke slette webhooken."
   },
   {
     "id": "app.webhooks.get_incoming.app_error",
-    "translation": ""
+    "translation": "Kan ikke hente webhooken."
   },
   {
     "id": "app.webhooks.get_incoming_by_channel.app_error",
-    "translation": ""
+    "translation": "Kan ikke hente webhookene."
   },
   {
     "id": "app.webhooks.get_incoming_by_user.app_error",
-    "translation": ""
+    "translation": "Kan ikke hente webhooken."
   },
   {
     "id": "app.webhooks.get_incoming_count.app_error",
-    "translation": ""
+    "translation": "Kan ikke hente webhooken for teamID={{.TeamID}}, userID={{.UserID}}, feil={{.Error}}."
   },
   {
     "id": "app.webhooks.get_outgoing.app_error",
-    "translation": ""
+    "translation": "Kan ikke hente webhooken."
   },
   {
     "id": "app.webhooks.get_outgoing_by_channel.app_error",
-    "translation": ""
+    "translation": "Kan ikke hente webhookene."
   },
   {
     "id": "app.webhooks.get_outgoing_by_team.app_error",
-    "translation": ""
+    "translation": "Kan ikke hente webhookene."
   },
   {
     "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
-    "translation": ""
+    "translation": "Kan ikke slette webhooken."
   },
   {
     "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
-    "translation": ""
+    "translation": "Kan ikke slette webhooken."
   },
   {
     "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": ""
+    "translation": "Kan ikke slette webhooken."
   },
   {
     "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": ""
+    "translation": "Kan ikke slette webhooken."
   },
   {
     "id": "app.webhooks.save_incoming.app_error",
-    "translation": ""
+    "translation": "Kan ikke lagre IncomingWebhook."
   },
   {
     "id": "app.webhooks.save_incoming.existing.app_error",
-    "translation": ""
+    "translation": "Du kan ikke overskrive en eksisterende IncomingWebhook."
   },
   {
     "id": "app.webhooks.save_outgoing.app_error",
-    "translation": ""
+    "translation": "Kan ikke lagre OutgoingWebhook."
   },
   {
     "id": "app.webhooks.save_outgoing.override.app_error",
-    "translation": ""
+    "translation": "Du kan ikke overskrive en eksisterende OutgoingWebhook."
   },
   {
     "id": "app.webhooks.update_incoming.app_error",
-    "translation": ""
+    "translation": "Kan ikke oppdatere IncomingWebhook."
   },
   {
     "id": "app.webhooks.update_outgoing.app_error",
-    "translation": ""
+    "translation": "Kan ikke oppdatere webhooken."
   },
   {
     "id": "basic_security_check.url.too_long_error",
-    "translation": ""
+    "translation": "URL-en er for lang"
   },
   {
     "id": "brand.save_brand_image.check_image_limits.app_error",
-    "translation": ""
+    "translation": "Kontrollen av bildegrensene mislyktes. Oppløsningen er for høy."
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
-    "translation": ""
+    "translation": "Kan ikke dekode bildedataene."
   },
   {
     "id": "brand.save_brand_image.encode.app_error",
-    "translation": ""
+    "translation": "Kan ikke konvertere bildedataene til PNG-format. Prøv igjen."
   },
   {
     "id": "brand.save_brand_image.open.app_error",
-    "translation": ""
+    "translation": "Kan ikke laste opp det egendefinerte merkevarebildet. Kontroller at bildet er mindre enn 2 MB, og prøv igjen."
   },
   {
     "id": "brand.save_brand_image.save_image.app_error",
-    "translation": ""
+    "translation": "Kan ikke skrive bildefilen til fillageret ditt. Kontroller tilkoblingen og prøv igjen."
   },
   {
     "id": "common.parse_error_int64",
-    "translation": ""
+    "translation": "Kunne ikke tolke verdien:{{.Value}} som int64"
   },
   {
     "id": "ent.access_control.job_data_conversion.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente ut data fra den forrige jobben."
   },
   {
     "id": "ent.access_control.sync_job.app_error",
-    "translation": ""
+    "translation": "Kunne ikke kjøre synkroniseringsjobben for tilgangskontroll."
   },
   {
     "id": "ent.account_migration.get_all_failed",
-    "translation": ""
+    "translation": "Kan ikke hente brukere."
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
-    "translation": ""
+    "translation": "Kan ikke hente SAML-brukere."
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
-    "translation": ""
+    "translation": " la ved en fil."
   },
   {
     "id": "ent.autotranslation.add_task.missing_object_id",
-    "translation": ""
+    "translation": "Oversettelsesoppgaven må inneholde en objekt-ID."
   },
   {
     "id": "ent.autotranslation.add_task.missing_object_type",
-    "translation": ""
+    "translation": "Oversettelsesoppgaven må inneholde en objekttype."
   },
   {
     "id": "ent.autotranslation.add_task.nil_task",
-    "translation": ""
+    "translation": "Oversettelsesoppgaven kan ikke være null."
   },
   {
     "id": "ent.autotranslation.add_task.worker_stopped",
-    "translation": ""
+    "translation": "Oversettelsesoppgaven kan ikke legges til fordi arbeideren er stoppet."
   },
   {
     "id": "ent.autotranslation.create_translation_failed",
-    "translation": ""
+    "translation": "Kunne ikke opprette oversettelsen."
   },
   {
     "id": "ent.autotranslation.detect_language.nil_context",
-    "translation": ""
+    "translation": "Kontekst er påkrevd for språkgjenkjenning."
   },
   {
     "id": "ent.autotranslation.detect_language.text_too_large",
-    "translation": ""
+    "translation": "Teksten overskrider maksimal størrelse for språkgjenkjenning."
   },
   {
     "id": "ent.autotranslation.detect_remote.error",
-    "translation": ""
+    "translation": "Kunne ikke gjenkjenne språket ved hjelp av oversettelsesleverandøren."
   },
   {
     "id": "ent.autotranslation.extract_content.mask_error",
-    "translation": ""
+    "translation": "Kunne ikke maskere innholdet for oversettelse."
   },
   {
     "id": "ent.autotranslation.extract_post.nil_post",
-    "translation": ""
+    "translation": "Innleggsobjektet kan ikke være null."
   },
   {
     "id": "ent.autotranslation.feature_unavailable",
-    "translation": ""
+    "translation": "Automatisk oversettelse er ikke tilgjengelig. Kontakt systemadministratoren om oppgradering av Enterprise-lisensen."
   },
   {
     "id": "ent.autotranslation.invalid_input",
-    "translation": ""
+    "translation": "Ugyldig språkkode oppgitt."
   },
   {
     "id": "ent.autotranslation.mask_verification_failed",
-    "translation": ""
+    "translation": "Kunne ikke oppdatere oversettelsen med nye maskeverdier."
   },
   {
     "id": "ent.autotranslation.no_translatable_content",
-    "translation": ""
+    "translation": "Innholdet inneholder ingen tekst som kan oversettes."
   },
   {
     "id": "ent.autotranslation.provider_not_available",
-    "translation": ""
+    "translation": "Oversettelsesleverandøren er ikke tilgjengelig."
   },
   {
     "id": "ent.autotranslation.provider_not_initialized",
-    "translation": ""
+    "translation": "Oversettelsesleverandøren er ikke initialisert."
   },
   {
     "id": "ent.autotranslation.store_error",
-    "translation": ""
+    "translation": "Kan ikke behandle forespørselen om automatisk oversettelse."
   },
   {
     "id": "ent.autotranslation.unmask.missing_mask",
-    "translation": ""
+    "translation": "Oversettelsen inneholder ukjente tokener."
   },
   {
     "id": "ent.autotranslation.unmask.orphan_token",
-    "translation": ""
+    "translation": "Oversettelsen inneholder ugyldige tokener."
   },
   {
     "id": "ent.autotranslation.validate_content.invalid_json",
-    "translation": ""
+    "translation": "Kan ikke tolke JSON-innholdet."
   },
   {
     "id": "ent.autotranslation.validate_content.invalid_type",
-    "translation": ""
+    "translation": "Innholdstypen støttes ikke for oversettelse."
   },
   {
     "id": "ent.autotranslation.validate_content.nil_content",
-    "translation": ""
+    "translation": "Innholdet kan ikke være null."
   },
   {
     "id": "ent.autotranslation.validate_content.text_too_large",
-    "translation": ""
+    "translation": "Innholdet overskrider maksimal størrelse for oversettelse."
   },
   {
     "id": "ent.autotranslation.validate_id.empty",
-    "translation": ""
+    "translation": "Påkrevd ID kan ikke være tom."
   },
   {
     "id": "ent.autotranslation.validate_id.invalid",
-    "translation": ""
+    "translation": "Ugyldig ID-format."
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": ""
+    "translation": "Klyngekonfigurasjonen er endret for id={{ .id }}. Klyngen kan bli ustabil, og en omstart er nødvendig. For å sikre at klyngen er riktig konfigurert, bør du utføre en rullerende omstart umiddelbart."
   },
   {
     "id": "ent.cluster.json_encode.error",
-    "translation": ""
+    "translation": "Det oppstod en feil under serialisering av JSON-forespørselen"
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": ""
+    "translation": "Systemkonsollen er skrivebeskyttet når høy tilgjengelighet er aktivert, med mindre ReadOnlyConfig er deaktivert i konfigurasjonsfilen."
   },
   {
     "id": "ent.cluster.timeout.error",
-    "translation": ""
+    "translation": "Tidsavbrudd under venting på svar fra klyngen"
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
-    "translation": ""
+    "translation": "Samsvarsfunksjonaliteten er deaktivert av gjeldende lisens. Kontakt systemadministratoren om oppgradering av Enterprise-lisensen."
   },
   {
     "id": "ent.compliance.run_failed.error",
-    "translation": ""
+    "translation": "Samsvarseksporten mislyktes for jobben «{{.JobName}}» på «{{.FilePath}}»"
   },
   {
     "id": "ent.data_retention.generic.license.error",
-    "translation": ""
+    "translation": "Lisensen din støtter ikke dataoppbevaring."
   },
   {
     "id": "ent.data_retention.policies.internal_error",
-    "translation": ""
+    "translation": "Det oppstod en feil under utføring av den forespurte operasjonen."
   },
   {
     "id": "ent.data_retention.policies.invalid_policy",
-    "translation": ""
+    "translation": "Policyen er ugyldig."
   },
   {
     "id": "ent.data_retention.run_failed.error",
-    "translation": ""
+    "translation": "Dataoppbevaringsjobben mislyktes."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": ""
+    "translation": "Aggregeringsarbeideren for {{.Backend}} kunne ikke opprette indekseringsjobben"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": ""
+    "translation": "Aggregeringsarbeideren for {{.Backend}} kunne ikke slette indeksene"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": ""
+    "translation": "Aggregeringsarbeideren for {{.Backend}} kunne ikke hente indeksene"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": ""
+    "translation": "Aggregeringsarbeideren for {{.Backend}} mislyktes fordi indekseringsjobben mislyktes"
   },
   {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
-    "translation": ""
+    "translation": "{{.Backend}} kunne ikke etterfylle kanaltype på innlegg"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": ""
+    "translation": "Kunne ikke åpne CA-filen for {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": ""
+    "translation": "Dekoding av klientsertifikatet for {{.Backend}} mislyktes"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": ""
+    "translation": "Kunne ikke åpne klientsertifikatfilen for {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": ""
+    "translation": "Kunne ikke åpne klientnøkkelfilen for {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": ""
+    "translation": "Oppsett av {{.Backend}}-klienten mislyktes"
   },
   {
     "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
-    "translation": ""
+    "translation": "Kunne ikke opprette bulk processor for Elasticsearch"
   },
   {
     "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
-    "translation": ""
+    "translation": "Kunne ikke opprette synkron bulk processor for Elasticsearch"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": ""
+    "translation": "Kunne ikke opprette {{.Backend}}-mal for kanaler"
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": ""
+    "translation": "Kunne ikke opprette {{.Backend}}-mal for filer"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": ""
+    "translation": "Kunne ikke opprette {{.Backend}}-mal for innlegg. Kontroller at den påkrevde pluginen analysis-icu er installert på alle {{.Backend}}-noder, og start deretter {{.Backend}} på nytt"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": ""
+    "translation": "Kunne ikke opprette {{.Backend}}-mal for brukere"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": ""
+    "translation": "Kunne ikke slette {{.Backend}}-indeksen"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": ""
+    "translation": "Kunne ikke hente {{.Backend}}-indeksene"
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
-    "translation": ""
+    "translation": "Kunne ikke slette kanalen"
   },
   {
     "id": "ent.elasticsearch.delete_channel_posts.error",
-    "translation": ""
+    "translation": "Kunne ikke slette innleggene i kanalen"
   },
   {
     "id": "ent.elasticsearch.delete_file.error",
-    "translation": ""
+    "translation": "Kunne ikke slette filen"
   },
   {
     "id": "ent.elasticsearch.delete_files_batch.error",
-    "translation": ""
+    "translation": "Kunne ikke slette filgruppen"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
-    "translation": ""
+    "translation": "Kunne ikke slette innlegget"
   },
   {
     "id": "ent.elasticsearch.delete_post_files.error",
-    "translation": ""
+    "translation": "Kunne ikke slette filene til innlegget"
   },
   {
     "id": "ent.elasticsearch.delete_user.error",
-    "translation": ""
+    "translation": "Kunne ikke slette brukeren"
   },
   {
     "id": "ent.elasticsearch.delete_user_files.error",
-    "translation": ""
+    "translation": "Kunne ikke slette filene til brukeren"
   },
   {
     "id": "ent.elasticsearch.delete_user_posts.error",
-    "translation": ""
+    "translation": "Kunne ikke slette innleggene til brukeren"
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": ""
+    "translation": "{{.Backend}}-søk er ikke aktivert på denne serveren"
   },
   {
     "id": "ent.elasticsearch.getAllChannelMembers.error",
-    "translation": ""
+    "translation": "Kunne ikke hente alle kanalmedlemmer"
   },
   {
     "id": "ent.elasticsearch.getAllTeamMembers.error",
-    "translation": ""
+    "translation": "Kunne ikke hente alle teammedlemmer"
   },
   {
     "id": "ent.elasticsearch.healthcheck.not_started.app_error",
-    "translation": ""
+    "translation": "{{.Backend}} er ikke startet."
   },
   {
     "id": "ent.elasticsearch.healthcheck.unreachable.app_error",
-    "translation": ""
+    "translation": "Helsesjekken for {{.Backend}} mislyktes: kunne ikke fullføre sjekken."
   },
   {
     "id": "ent.elasticsearch.index_channel.error",
-    "translation": ""
+    "translation": "Kunne ikke indeksere kanalen"
   },
   {
     "id": "ent.elasticsearch.index_channels_batch.error",
-    "translation": ""
+    "translation": "Kan ikke hente kanalgruppen for indeksering."
   },
   {
     "id": "ent.elasticsearch.index_file.error",
-    "translation": ""
+    "translation": "Kunne ikke indeksere filen"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
-    "translation": ""
+    "translation": "Kunne ikke indeksere innlegget"
   },
   {
     "id": "ent.elasticsearch.index_user.error",
-    "translation": ""
+    "translation": "Kunne ikke indeksere brukeren"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.bulk_failures.error",
-    "translation": ""
+    "translation": "Indekseringsjobben ble fullført, men {{.NumFailed}} dokument(er) ble avvist av søkemotoren og ikke indeksert"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.create_bulk_processor.error",
-    "translation": ""
+    "translation": "Indekseringsarbeideren kunne ikke initialisere bulk processor"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
-    "translation": ""
+    "translation": "Den eldste entiteten (bruker, kanal eller innlegg) kunne ikke hentes fra databasen"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": ""
+    "translation": "Indekseringsarbeideren for {{.Backend}} kunne ikke tolke sluttidspunktet"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": ""
+    "translation": "Indekseringsarbeideren for {{.Backend}} kunne ikke tolke starttidspunktet"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
-    "translation": ""
+    "translation": "Forsøker å indeksere en ny gruppe når alle entitetene er fullført"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": ""
+    "translation": "{{.Backend}} er ikke startet"
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
-    "translation": ""
+    "translation": "Kan ikke hente filgruppen for indeksering."
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
-    "translation": ""
+    "translation": "Kan ikke hente innleggsgruppen for indeksering."
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": ""
+    "translation": "Kunne ikke slette en søkeindeks"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.unknown_index",
-    "translation": ""
+    "translation": "Kunne ikke slette den angitte indeksen, den er ukjent"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": ""
+    "translation": "Kunne ikke oppdatere søkeindeksene"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": ""
+    "translation": "{{.Backend}}-søk er deaktivert på denne serveren"
   },
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
-    "translation": ""
+    "translation": "Søket kunne ikke fullføres"
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
-    "translation": ""
+    "translation": "Kunne ikke dekode søkeresultatene"
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": ""
+    "translation": "{{.Backend}}-filsøk er deaktivert på denne serveren"
   },
   {
     "id": "ent.elasticsearch.search_files.search_failed",
-    "translation": ""
+    "translation": "Søket kunne ikke fullføres"
   },
   {
     "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
-    "translation": ""
+    "translation": "Kunne ikke dekode søkeresultatene"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": ""
+    "translation": "{{.Backend}}-søk er deaktivert på denne serveren"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": ""
+    "translation": "Kunne ikke tolke treffene i søkeresultatene"
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
-    "translation": ""
+    "translation": "Søket kunne ikke fullføres"
   },
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
-    "translation": ""
+    "translation": "Kunne ikke dekode søkeresultatene"
   },
   {
     "id": "ent.elasticsearch.search_users.search_failed",
-    "translation": ""
+    "translation": "Søket kunne ikke fullføres"
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
-    "translation": ""
+    "translation": "Kunne ikke dekode søkeresultatene"
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente serverversjonen for {{.Backend}}."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": ""
+    "translation": "Kunne ikke tolke serverversjonen for {{.Backend}}."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": ""
+    "translation": "{{.Backend}} er deaktivert."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": ""
+    "translation": "Mattermost-lisensen din støtter ikke indeksert søk."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": ""
+    "translation": "URL-en til søkeserveren eller brukernavnet er endret. Skriv inn passordet på nytt for å teste tilkoblingen."
   },
   {
     "id": "ent.elasticsearch.update_posts_channel_type.error",
-    "translation": ""
+    "translation": "{{.Backend}} kunne ikke oppdatere kanaltype på innlegg"
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
-    "translation": ""
+    "translation": "Lisensen din støtter ikke ID Loaded-push-varsler."
   },
   {
     "id": "ent.intune.login.account_not_found.app_error",
-    "translation": ""
+    "translation": "Kontoen din er ikke ferdig satt opp ennå. Logg inn på Mattermost via nettleseren eller skrivebordsappen først."
   },
   {
     "id": "ent.intune.login.extract_auth_data.app_error",
-    "translation": ""
+    "translation": "Autentiseringen mislyktes. Prøv igjen eller kontakt systemadministratoren."
   },
   {
     "id": "ent.intune.login.not_configured.app_error",
-    "translation": ""
+    "translation": "Autentisering med Microsoft Intune er ikke konfigurert."
   },
   {
     "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
-    "translation": ""
+    "translation": "Autentiseringen mislyktes. Ugyldig konfigurasjon."
   },
   {
     "id": "ent.intune.validate_token.invalid_token.app_error",
-    "translation": ""
+    "translation": "Autentiseringen mislyktes. Prøv igjen."
   },
   {
     "id": "ent.intune.validate_token.jwks_init.app_error",
-    "translation": ""
+    "translation": "Initialisering av autentiseringstjenesten mislyktes. Kontakt systemadministratoren."
   },
   {
     "id": "ent.intune.validate_token.missing_claims.app_error",
-    "translation": ""
+    "translation": "Autentiseringen mislyktes. Påkrevd brukerinformasjon mangler."
   },
   {
     "id": "ent.intune.validate_token.token_expired.app_error",
-    "translation": ""
+    "translation": "Autentiseringssesjonen er utløpt. Prøv å logge inn på nytt."
   },
   {
     "id": "ent.jobs.start_synchronize_job.timeout",
-    "translation": ""
+    "translation": "Tidsavbrudd for AD/LDAP-synkroniseringsjobben er nådd."
   },
   {
     "id": "ent.ldap.app_error",
-    "translation": ""
+    "translation": "ldap-grensesnittet var nil."
   },
   {
     "id": "ent.ldap.connection.test_failed",
-    "translation": ""
+    "translation": "LDAP-tilkoblingstesten mislyktes. Server: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Feil: {{.Error}}"
   },
   {
     "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": ""
+    "translation": "Kunne ikke hente CPA-feltene"
   },
   {
     "id": "ent.ldap.create_fail",
-    "translation": ""
+    "translation": "Kan ikke opprette LDAP-brukeren."
   },
   {
     "id": "ent.ldap.disabled.app_error",
-    "translation": ""
+    "translation": "AD/LDAP er deaktivert, eller lisensen støtter ikke AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
-    "translation": ""
+    "translation": "Kan ikke binde til AD/LDAP-serveren. Kontroller BindUsername og BindPassword."
   },
   {
     "id": "ent.ldap.do_login.certificate.app_error",
-    "translation": ""
+    "translation": "Feil ved lasting av LDAP TLS-sertifikatfilen."
   },
   {
     "id": "ent.ldap.do_login.invalid_id",
-    "translation": ""
+    "translation": "Ugyldig AD/LDAP-ID"
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
-    "translation": ""
+    "translation": "Ugyldig passord."
   },
   {
     "id": "ent.ldap.do_login.key.app_error",
-    "translation": ""
+    "translation": "Feil ved lasting av LDAP TLS-nøkkelfilen."
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": ""
+    "translation": "AD/LDAP-funksjonaliteten er deaktivert av gjeldende lisens. Kontakt systemadministratoren om oppgradering av Enterprise-lisensen."
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
-    "translation": ""
+    "translation": "Det oppgitte brukernavnet samsvarer med flere brukere."
   },
   {
     "id": "ent.ldap.do_login.search_ldap_server.app_error",
-    "translation": ""
+    "translation": "Kunne ikke søke i AD/LDAP-serveren."
   },
   {
     "id": "ent.ldap.do_login.unable_to_connect.app_error",
-    "translation": ""
+    "translation": "Kan ikke koble til AD/LDAP-serveren."
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": ""
+    "translation": "AD/LDAP-kontoen din har ikke tillatelse til å bruke denne Mattermost-serveren. Be systemadministratoren om å kontrollere brukerfilteret for AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
-    "translation": ""
+    "translation": "Brukeren er ikke registrert på AD/LDAP-serveren."
   },
   {
     "id": "ent.ldap.do_login.x509.app_error",
-    "translation": ""
+    "translation": "Feil ved oppretting av nøkkelpar"
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente brukeren."
   },
   {
     "id": "ent.ldap.no.users.checkcertificate",
-    "translation": ""
+    "translation": "Fant ingen LDAP-brukere. Kontroller brukerfilteret og sertifikatene."
   },
   {
     "id": "ent.ldap.save_user.email_exists.ldap_app_error",
-    "translation": ""
+    "translation": "Denne kontoen bruker ikke AD/LDAP-autentisering. Logg inn med e-post og passord."
   },
   {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
-    "translation": ""
+    "translation": "Det finnes allerede en konto med det brukernavnet. Kontakt administratoren."
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": ""
+    "translation": "Kan ikke hente alle brukere via AD/LDAP."
   },
   {
     "id": "ent.ldap.syncronize.get_all_groups.app_error",
-    "translation": ""
+    "translation": "feil ved henting av grupper."
   },
   {
     "id": "ent.ldap.syncronize.populate_syncables",
-    "translation": ""
+    "translation": "feil ved utfylling av synkroniserbare objekter"
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
-    "translation": ""
+    "translation": "Kunne ikke søke etter brukere i AD/LDAP. Test om Mattermost-serveren kan koble til AD/LDAP-serveren, og prøv igjen."
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": ""
+    "translation": "Størrelsesgrensen er overskredet. Prøv å øke innstillingen for maksimal sidestørrelse. Se https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded for mer informasjon."
   },
   {
     "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": ""
+    "translation": "Tom verdi for LDAP-attributt"
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
-    "translation": ""
+    "translation": "Ugyldig administratorfilter for AD/LDAP."
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
-    "translation": ""
+    "translation": "Ugyldig AD/LDAP-filter."
   },
   {
     "id": "ent.ldap.validate_group_filter.app_error",
-    "translation": ""
+    "translation": "Ugyldig gruppefilter for AD/LDAP."
   },
   {
     "id": "ent.ldap.validate_guest_filter.app_error",
-    "translation": ""
+    "translation": "Ugyldig gjestefilter for AD/LDAP."
   },
   {
     "id": "ent.ldap_groups.group_search_error",
-    "translation": ""
+    "translation": "feil ved henting av ldap-gruppe"
   },
   {
     "id": "ent.ldap_groups.groups_search_error",
-    "translation": ""
+    "translation": "feil ved henting av ldap-grupper"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
-    "translation": ""
+    "translation": "Ugyldig AD/LDAP-id"
   },
   {
     "id": "ent.ldap_groups.members_of_group_error",
-    "translation": ""
+    "translation": "feil ved henting av medlemmer i gruppen"
   },
   {
     "id": "ent.ldap_groups.no_rows",
-    "translation": ""
+    "translation": "fant ingen grupper med samsvarende uid"
   },
   {
     "id": "ent.ldap_groups.reachable_groups_error",
-    "translation": ""
+    "translation": "feil ved henting av grupper for brukeren"
   },
   {
     "id": "ent.ldap_id_migrate.app_error",
-    "translation": ""
+    "translation": "kan ikke migrere."
   },
   {
     "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
-    "translation": ""
+    "translation": "Beregner kanalaktivitet: {{.NumCompleted}}/{{.NumChannels}} kanaler fullført."
   },
   {
     "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
-    "translation": ""
+    "translation": "Eksporterer kanalinformasjon for {{.NumChannels}} kanaler."
   },
   {
     "id": "ent.message_export.calculate_channel_exports.app_error",
-    "translation": ""
+    "translation": "Kunne ikke beregne eksportdataene for kanalene."
   },
   {
     "id": "ent.message_export.job_data_conversion.app_error",
-    "translation": ""
+    "translation": "Kunne ikke konvertere en verdi fra jobbens datafelt."
   },
   {
     "id": "ent.message_export.run_export.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente dataene for meldingseksporten."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": ""
+    "translation": "Kan ikke migrere AD/LDAP-brukere med det angitte feltet. Duplisert oppføring oppdaget. Fjern alle duplikater og prøv igjen."
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
-    "translation": ""
+    "translation": "Fant ikke brukeren på AD/LDAP-serveren: "
   },
   {
     "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
-    "translation": ""
+    "translation": "E-postadressen brukes allerede av en annen SAML-bruker."
   },
   {
     "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
-    "translation": ""
+    "translation": "Fant ikke brukeren i brukerfilen."
   },
   {
     "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
-    "translation": ""
+    "translation": "Brukernavnet brukes allerede av en annen Mattermost-bruker."
   },
   {
     "id": "ent.outgoing_oauth_connections.authenticate.app_error",
-    "translation": ""
+    "translation": "Det oppstod en feil under autentisering av den utgående OAuth-tilkoblingen: {{ .Error }}"
   },
   {
     "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
-    "translation": ""
+    "translation": "Det finnes allerede en utgående OAuth-tilkobling for det oppgitte målet (audience)."
   },
   {
     "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
-    "translation": ""
+    "translation": "Det finnes ingen utgående OAuth-tilkobling for det oppgitte målet (audience)."
   },
   {
     "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
-    "translation": ""
+    "translation": "Det oppstod en feil under sletting av den utgående OAuth-tilkoblingen."
   },
   {
     "id": "ent.outgoing_oauth_connections.feature_disabled",
-    "translation": ""
+    "translation": "Utgående OAuth-tilkoblinger er ikke tilgjengelige på denne serveren."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connection.app_error",
-    "translation": ""
+    "translation": "Det oppstod en feil under henting av den utgående OAuth-tilkoblingen."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
-    "translation": ""
+    "translation": "Fant ikke den utgående OAuth-tilkoblingen."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
-    "translation": ""
+    "translation": "Det oppstod en feil under henting av den utgående OAuth-tilkoblingen for målet (audience)."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
-    "translation": ""
+    "translation": "Fant ikke noen utgående OAuth-tilkobling for det oppgitte målet (audience)."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connections.app_error",
-    "translation": ""
+    "translation": "Det oppstod en feil under henting av de utgående OAuth-tilkoblingene."
   },
   {
     "id": "ent.outgoing_oauth_connections.license_disable.app_error",
-    "translation": ""
+    "translation": "Lisensen din støtter ikke utgående OAuth-tilkoblinger."
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.app_error",
-    "translation": ""
+    "translation": "Det oppstod en feil under lagring av den utgående OAuth-tilkoblingen: {{ .Error }}"
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
-    "translation": ""
+    "translation": "Det finnes allerede en utgående OAuth-tilkobling for det oppgitte målet (audience): {{ .Audience }}"
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
-    "translation": ""
+    "translation": "Det oppgitte målet (audience) er ugyldig: {{ .Error }}"
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.app_error",
-    "translation": ""
+    "translation": "Det oppstod en feil under oppdatering av den utgående OAuth-tilkoblingen: {{ .Error }}"
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
-    "translation": ""
+    "translation": "Det finnes allerede en utgående OAuth-tilkobling for det oppgitte målet (audience): {{ .Audience }}"
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
-    "translation": ""
+    "translation": "Det oppgitte målet (audience) er ugyldig: {{ .Error }}"
   },
   {
     "id": "ent.push_proxy.delete.app_error",
-    "translation": ""
+    "translation": "Kunne ikke slette autentiseringstokenet for push-proxyen."
   },
   {
     "id": "ent.push_proxy.generate.bad_status.app_error",
-    "translation": ""
+    "translation": "Kunne ikke hente autentiseringstoken fra push-proxy-serveren."
   },
   {
     "id": "ent.push_proxy.generate.create_request.app_error",
-    "translation": ""
+    "translation": "Kunne ikke opprette HTTP-forespørsel for autentisering mot push-proxyen."
   },
   {
     "id": "ent.push_proxy.generate.empty_token.app_error",
-    "translation": ""
+    "translation": "Push-proxyen returnerte et tomt autentiseringstoken."
   },
   {
     "id": "ent.push_proxy.generate.encrypt.app_error",
-    "translation": ""
+    "translation": "Kunne ikke kryptere nyttelasten for autentisering mot push-proxyen."
   },
   {
     "id": "ent.push_proxy.generate.http_request.app_error",
-    "translation": ""
+    "translation": "Kunne ikke sende HTTP-forespørsel til push-proxyen."
   },
   {
     "id": "ent.push_proxy.generate.marshal.app_error",
-    "translation": ""
+    "translation": "Kunne ikke serialisere nyttelasten for autentisering mot push-proxyen."
   },
   {
     "id": "ent.push_proxy.generate.marshal_request.app_error",
-    "translation": ""
+    "translation": "Kunne ikke serialisere forespørselsinnholdet for autentisering mot push-proxyen."
   },
   {
     "id": "ent.push_proxy.generate.no_key.app_error",
-    "translation": ""
+    "translation": "Ingen krypteringsnøkkel tilgjengelig for autentisering mot push-proxyen."
   },
   {
     "id": "ent.push_proxy.generate.parse_response.app_error",
-    "translation": ""
+    "translation": "Kunne ikke tolke svaret fra autentiseringsendepunktet til push-proxyen."
   },
   {
     "id": "ent.push_proxy.generate.save_system.app_error",
-    "translation": ""
+    "translation": "Kunne ikke lagre autentiseringstokenet."
   },
   {
     "id": "ent.push_proxy.worker.interface_nil.app_error",
-    "translation": ""
+    "translation": "Push-proxy-grensesnittet er nil."
   },
   {
     "id": "ent.saml.attribute.app_error",
-    "translation": ""
+    "translation": "SAML-innloggingen mislyktes fordi ett av attributtene er feil. Kontakt systemadministratoren."
   },
   {
     "id": "ent.saml.build_request.app_error",
-    "translation": ""
+    "translation": "Det oppstod en feil under oppstart av forespørselen til identitetsleverandøren. Kontakt systemadministratoren."
   },
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
-    "translation": ""
+    "translation": "SAML kunne ikke laste inn identitetsleverandørens offentlige sertifikat. Kontakt systemadministratoren."
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
-    "translation": ""
+    "translation": "SAML-innloggingen mislyktes fordi kryptering ikke er aktivert. Kontakt systemadministratoren."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
-    "translation": ""
+    "translation": "SAML-innloggingen mislyktes fordi tjenesteleverandørens private nøkkel ikke ble funnet. Kontakt systemadministratoren."
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
-    "translation": ""
+    "translation": "SAML-innloggingen mislyktes fordi svaret fra identitetsleverandøren ikke er kryptert. Kontakt systemadministratoren."
   },
   {
     "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": ""
+    "translation": "Kunne ikke hente CPA-felt"
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
-    "translation": ""
+    "translation": "Vi mottok et tomt svar fra identitetsleverandøren."
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
-    "translation": ""
+    "translation": "Vi mottok en ugyldig signatur i svaret fra identitetsleverandøren. Kontakt systemadministratoren."
   },
   {
     "id": "ent.saml.do_login.invalid_time.app_error",
-    "translation": ""
+    "translation": "Vi mottok et ugyldig tidspunkt i svaret fra identitetsleverandøren. Kontakt systemadministratoren."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
-    "translation": ""
+    "translation": "Det oppstod en feil under tolkning av svaret fra identitetsleverandøren. Kontakt systemadministratoren."
   },
   {
     "id": "ent.saml.license_disable.app_error",
-    "translation": ""
+    "translation": "Lisensen din støtter ikke SAML-autentisering."
   },
   {
     "id": "ent.saml.login.ldap_user_missing",
-    "translation": ""
+    "translation": "Ingen bruker registrert på AD/LDAP-serveren samsvarer med SAML-brukeren."
   },
   {
     "id": "ent.saml.metadata.app_error",
-    "translation": ""
+    "translation": "Det oppstod en feil under bygging av tjenesteleverandørens metadata."
   },
   {
     "id": "ent.saml.save_user.email_exists.saml_app_error",
-    "translation": ""
+    "translation": "Denne kontoen bruker ikke SAML-autentisering. Logg inn med e-post og passord."
   },
   {
     "id": "ent.saml.save_user.username_exists.saml_app_error",
-    "translation": ""
+    "translation": "Det finnes allerede en konto med det brukernavnet. Kontakt administratoren."
   },
   {
     "id": "ent.saml.service_disable.app_error",
-    "translation": ""
+    "translation": "SAML 2.0 er ikke konfigurert eller støttet på denne serveren."
   },
   {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
-    "translation": ""
+    "translation": "Attributterklæringen i SAML-påstanden er ugyldig"
   },
   {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": ""
+    "translation": "Kan ikke fullføre SAML-innloggingen med en tom e-postadresse."
   },
   {
     "id": "error",
-    "translation": ""
+    "translation": "Feil"
   },
   {
     "id": "group_not_associated_to_synced_team",
-    "translation": ""
+    "translation": "Gruppen kan ikke knyttes til kanalen før den først er knyttet til det overordnede gruppesynkroniserte teamet."
   },
   {
     "id": "groups.unsupported_syncable_type",
-    "translation": ""
+    "translation": "Synkroniserbar type «{{.Value}}» støttes ikke."
   },
   {
     "id": "humanize.list_join",
-    "translation": ""
+    "translation": "{{.OtherItems}} og {{.LastItem}}"
   },
   {
     "id": "import_process.worker.do_job.file_exists",
-    "translation": ""
+    "translation": "Kan ikke behandle importen: filen finnes ikke."
   },
   {
     "id": "import_process.worker.do_job.missing_file",
-    "translation": ""
+    "translation": "Kan ikke behandle importen: parameteren import_file mangler."
   },
   {
     "id": "import_process.worker.do_job.missing_jsonl",
-    "translation": ""
+    "translation": "Kan ikke behandle importen: JSONL-filen mangler."
   },
   {
     "id": "import_process.worker.do_job.open_file",
-    "translation": ""
+    "translation": "Kan ikke behandle importen: kunne ikke åpne filen."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
-    "translation": ""
+    "translation": "Kunne ikke dekode base64 for trigger-ID-en til den interaktive dialogen."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
-    "translation": ""
+    "translation": "Kunne ikke dekode base64-signaturen til trigger-ID-en for den interaktive dialogen."
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": ""
+    "translation": "Trigger-ID-en for den interaktive dialogen er utløpt. Trigger-ID-er er gyldige i maksimalt {{.Duration}}."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
-    "translation": ""
+    "translation": "Trigger-ID-en mangler påkrevde data for den interaktive dialogen."
   },
   {
     "id": "interactive_message.decode_trigger_id.signature_decode_failed",
-    "translation": ""
+    "translation": "Kunne ikke dekode base64-signaturen til trigger-ID-en for den interaktive dialogen."
   },
   {
     "id": "interactive_message.decode_trigger_id.verify_signature_failed",
-    "translation": ""
+    "translation": "Signaturverifiseringen av trigger-ID-en for den interaktive dialogen mislyktes."
   },
   {
     "id": "interactive_message.generate_trigger_id.signing_failed",
-    "translation": ""
+    "translation": "Kunne ikke signere den genererte trigger-ID-en for den interaktive dialogen."
   },
   {
     "id": "jobs.request_cancellation.status.error",
-    "translation": ""
+    "translation": "Kunne ikke be om avbrytelse av en jobb som ikke er i en tilstand der den kan avbrytes."
   },
   {
     "id": "jobs.set_job_error.update.error",
-    "translation": ""
+    "translation": "Kunne ikke sette jobbstatusen til error"
   },
   {
     "id": "license_error.feature_unavailable",
-    "translation": ""
+    "translation": "Funksjonen er ikke tilgjengelig med gjeldende lisens"
   },
   {
     "id": "license_error.feature_unavailable.specific",
-    "translation": ""
+    "translation": "Funksjonen {{.Feature}} er ikke tilgjengelig med gjeldende lisens"
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
-    "translation": ""
+    "translation": "Kan ikke tolke URL-en."
   },
   {
     "id": "manaultesting.test_autolink.unable.app_error",
-    "translation": ""
+    "translation": "Kan ikke hente kanaler."
   },
   {
     "id": "mattermost.bulletin.subject",
-    "translation": ""
+    "translation": "Sikkerhetsbulletin fra Mattermost"
   },
   {
     "id": "mfa.activate.app_error",
-    "translation": ""
+    "translation": "Kan ikke oppdatere MFA-aktiveringsstatusen for brukeren."
   },
   {
     "id": "mfa.activate.bad_token.app_error",
-    "translation": ""
+    "translation": "Ugyldig MFA-kode."
   },
   {
     "id": "mfa.deactivate.app_error",
-    "translation": ""
+    "translation": "Kan ikke oppdatere MFA-aktiveringsstatusen for brukeren."
   },
   {
     "id": "mfa.generate_qr_code.create_code.app_error",
-    "translation": ""
+    "translation": "Feil ved generering av QR-kode."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
-    "translation": ""
+    "translation": "Flerfaktorautentisering er deaktivert på denne serveren."
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": ""
+    "translation": "Ugyldig MFA-kode."
   },
   {
     "id": "migrations.system.save.app_error",
-    "translation": ""
+    "translation": "Det oppstod en feil under lagring av systemegenskapen."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
-    "translation": ""
+    "translation": "Migreringen mislyktes på grunn av ugyldige fremdriftsdata."
   },
   {
     "id": "migrations.worker.run_migration.unknown_key",
-    "translation": ""
+    "translation": "Kan ikke kjøre migreringsjobben på grunn av ukjent migreringsnøkkel."
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
-    "translation": ""
+    "translation": "Ugyldig tilgangstoken."
   },
   {
     "id": "model.access.is_valid.client_id.app_error",
-    "translation": ""
+    "translation": "Ugyldig klient-ID."
   },
   {
     "id": "model.access.is_valid.redirect_uri.app_error",
-    "translation": ""
+    "translation": "Ugyldig omdirigerings-URI."
   },
   {
     "id": "model.access.is_valid.refresh_token.app_error",
-    "translation": ""
+    "translation": "Ugyldig oppdateringstoken."
   },
   {
     "id": "model.access.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Ugyldig bruker-ID."
   },
   {
     "id": "model.access_control_decision.is_valid.action_empty.app_error",
-    "translation": ""
+    "translation": "Handlingsnavn kan ikke være tomme."
   },
   {
     "id": "model.access_control_decision.is_valid.actions_too_many.app_error",
-    "translation": ""
+    "translation": "For mange handlinger forespurt."
   },
   {
     "id": "model.access_control_decision.is_valid.resource_id.app_error",
-    "translation": ""
+    "translation": "Ugyldig ressurs-ID."
   },
   {
     "id": "model.access_control_decision.is_valid.resource_type.app_error",
-    "translation": ""
+    "translation": "Ressurstype er påkrevd."
   },
   {
     "id": "model.access_control_decision.is_valid.subject_id.app_error",
-    "translation": ""
+    "translation": "Ugyldig subjekt-ID."
   },
   {
     "id": "model.access_policy.inherit.already_imported.app_error",
-    "translation": ""
+    "translation": "Den overordnede policyen er allerede importert."
   },
   {
     "id": "model.access_policy.inherit.parent_type.app_error",
-    "translation": ""
+    "translation": "Importer må peke på en overordnet medlemskapspolicy."
   },
   {
     "id": "model.access_policy.inherit.permission.app_error",
-    "translation": ""
+    "translation": "Tillatelsespolicyer kan ikke arve fra andre policyer."
   },
   {
     "id": "model.access_policy.inherit.version.app_error",
-    "translation": ""
+    "translation": "Kunne ikke arve policyen for tilgangskontroll."
   },
   {
     "id": "model.access_policy.is_valid.actions.app_error",
-    "translation": ""
+    "translation": "Handlingen(e) er ikke gyldig(e)."
   },
   {
     "id": "model.access_policy.is_valid.actions.membership_combined.app_error",
-    "translation": ""
+    "translation": "Medlemskap kan ikke kombineres med andre handlinger i samme regel."
   },
   {
     "id": "model.access_policy.is_valid.actions.permission_type.app_error",
-    "translation": ""
+    "translation": "Regler med tillatelseshandlinger er bare tillatt i kanalpolicyer."
   },
   {
     "id": "model.access_policy.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Ugyldig policy-ID."
   },
   {
     "id": "model.access_policy.is_valid.imports.app_error",
-    "translation": ""
+    "translation": "Ugyldige importer for policyen."
   },
   {
     "id": "model.access_policy.is_valid.name.app_error",
-    "translation": ""
+    "translation": "Ugyldig navn for policyen."
   },
   {
     "id": "model.access_policy.is_valid.plugin_type.app_error",
-    "translation": ""
+    "translation": "Ugyldig policy for tilgangskontroll: typen er ikke en gyldig plugin-ressurstype."
   },
   {
     "id": "model.access_policy.is_valid.revision.app_error",
-    "translation": ""
+    "translation": "Ugyldig policyrevisjon."
   },
   {
     "id": "model.access_policy.is_valid.roles.app_error",
-    "translation": ""
+    "translation": "Tillatelsespolicyer må brukes på nøyaktig én rolle."
   },
   {
     "id": "model.access_policy.is_valid.rule_expression.app_error",
-    "translation": ""
+    "translation": "Bare en medlemskapsregel kan utelate uttrykket sitt."
   },
   {
     "id": "model.access_policy.is_valid.rule_metadata_auto_add.app_error",
-    "translation": ""
+    "translation": "Automatisk tillegging av medlemmer kan bare angis på policyens medlemskapsregel."
   },
   {
     "id": "model.access_policy.is_valid.rule_metadata_auto_add_mode.app_error",
-    "translation": ""
+    "translation": "«{{.Mode}}» er ikke en støttet måte å legge til medlemmer automatisk på."
   },
   {
     "id": "model.access_policy.is_valid.rule_metadata_auto_add_type.app_error",
-    "translation": ""
+    "translation": "Måten medlemmer legges til automatisk på, må oppgis som tekst."
   },
   {
     "id": "model.access_policy.is_valid.rule_metadata_key.app_error",
-    "translation": ""
+    "translation": "Regelmetadataene inneholder en ukjent nøkkel."
   },
   {
     "id": "model.access_policy.is_valid.rule_name.app_error",
-    "translation": ""
+    "translation": "Tillatelsesregler krever et navn som ikke er tomt og som er innenfor policyens maksimale lengde."
   },
   {
     "id": "model.access_policy.is_valid.rule_name_unique.app_error",
-    "translation": ""
+    "translation": "Navnene på tillatelsesregler må være unike innenfor policyen."
   },
   {
     "id": "model.access_policy.is_valid.rule_role.app_error",
-    "translation": ""
+    "translation": "Ugyldig rolle for regelen."
   },
   {
     "id": "model.access_policy.is_valid.rules.app_error",
-    "translation": ""
+    "translation": "Regelen(e) er ikke gyldig(e)."
   },
   {
     "id": "model.access_policy.is_valid.rules_imports.app_error",
-    "translation": ""
+    "translation": "Policyen må enten importere eller definere regler."
   },
   {
     "id": "model.access_policy.is_valid.scope.app_error",
-    "translation": ""
+    "translation": "Ugyldig omfangsverdi for denne policyen for tilgangskontroll."
   },
   {
     "id": "model.access_policy.is_valid.scope_id.app_error",
-    "translation": ""
+    "translation": "Omfangs-ID må være en gyldig ID når omfang er angitt."
   },
   {
     "id": "model.access_policy.is_valid.scope_id_without_scope.app_error",
-    "translation": ""
+    "translation": "Omfangs-ID kan ikke angis uten et omfang."
   },
   {
     "id": "model.access_policy.is_valid.session_attribute_on_membership.app_error",
-    "translation": ""
+    "translation": "Medlemskapsregler kan ikke referere til sesjonsattributter (user.session). Bruk en tillatelsespolicy i stedet."
   },
   {
     "id": "model.access_policy.is_valid.type.app_error",
-    "translation": ""
+    "translation": "Ugyldig policytype."
   },
   {
     "id": "model.access_policy.is_valid.version.app_error",
-    "translation": ""
+    "translation": "Versjonen er ikke gyldig for denne policyen for tilgangskontroll."
   },
   {
     "id": "model.acknowledgement.is_valid.channel_id.app_error",
-    "translation": ""
+    "translation": "Ugyldig kanal-ID."
   },
   {
     "id": "model.acknowledgement.is_valid.post_id.app_error",
-    "translation": ""
+    "translation": "Ugyldig innleggs-ID."
   },
   {
     "id": "model.acknowledgement.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Ugyldig bruker-ID."
   },
   {
     "id": "model.authorize.is_valid.auth_code.app_error",
-    "translation": ""
+    "translation": "Ugyldig autorisasjonskode."
   },
   {
     "id": "model.authorize.is_valid.client_id.app_error",
-    "translation": ""
+    "translation": "Ugyldig klient-ID."
   },
   {
     "id": "model.authorize.is_valid.code_challenge.app_error",
-    "translation": ""
+    "translation": "Code challenge er påkrevd ved bruk av PKCE."
   },
   {
     "id": "model.authorize.is_valid.code_challenge.format.app_error",
-    "translation": ""
+    "translation": "Code challenge må være base64url-kodet (med tegnene A-Z, a-z, 0-9, -, _)."
   },
   {
     "id": "model.authorize.is_valid.code_challenge.length.app_error",
-    "translation": ""
+    "translation": "Code challenge må være mellom 43 og 128 tegn lang."
   },
   {
     "id": "model.authorize.is_valid.code_challenge_method.app_error",
-    "translation": ""
+    "translation": "Code challenge-metode er påkrevd ved bruk av PKCE."
   },
   {
     "id": "model.authorize.is_valid.code_challenge_method.unsupported.app_error",
-    "translation": ""
+    "translation": "Bare code challenge-metoden 'S256' støttes."
   },
   {
     "id": "model.authorize.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Create at må være et gyldig tidspunkt."
   },
   {
     "id": "model.authorize.is_valid.expires.app_error",
-    "translation": ""
+    "translation": "Expires in må være angitt."
   },
   {
     "id": "model.authorize.is_valid.redirect_uri.app_error",
-    "translation": ""
+    "translation": "Ugyldig omdirigerings-URI."
   },
   {
     "id": "model.authorize.is_valid.resource.has_fragment.app_error",
-    "translation": ""
+    "translation": "Resource-parameteren kan ikke inneholde en fragmentdel."
   },
   {
     "id": "model.authorize.is_valid.resource.invalid_uri.app_error",
-    "translation": ""
+    "translation": "Resource-parameteren må være en gyldig URI."
   },
   {
     "id": "model.authorize.is_valid.resource.length.app_error",
-    "translation": ""
+    "translation": "Resource-parameteren kan ikke overskride 512 tegn."
   },
   {
     "id": "model.authorize.is_valid.resource.not_absolute.app_error",
-    "translation": ""
+    "translation": "Resource-parameteren må være en absolutt URI."
   },
   {
     "id": "model.authorize.is_valid.response_type.app_error",
-    "translation": ""
+    "translation": "Ugyldig svartype."
   },
   {
     "id": "model.authorize.is_valid.scope.app_error",
-    "translation": ""
+    "translation": "Ugyldig scope."
   },
   {
     "id": "model.authorize.is_valid.state.app_error",
-    "translation": ""
+    "translation": "Ugyldig state."
   },
   {
     "id": "model.authorize.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Ugyldig bruker-ID."
   },
   {
     "id": "model.authorize.validate_pkce.not_used_in_auth.app_error",
-    "translation": ""
+    "translation": "PKCE code verifier ble oppgitt, men PKCE ble ikke brukt under autorisasjonen."
   },
   {
     "id": "model.authorize.validate_pkce.public_client_required.app_error",
-    "translation": ""
+    "translation": "PKCE (Proof Key for Code Exchange) er påkrevd for offentlige klienter."
   },
   {
     "id": "model.authorize.validate_pkce.verification_failed.app_error",
-    "translation": ""
+    "translation": "PKCE code verifier samsvarer ikke med code challenge."
   },
   {
     "id": "model.authorize.validate_pkce.verifier_required.app_error",
-    "translation": ""
+    "translation": "PKCE code verifier er påkrevd når PKCE brukes."
   },
   {
     "id": "model.bot.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Ugyldig create at."
   },
   {
     "id": "model.bot.is_valid.creator_id.app_error",
-    "translation": ""
+    "translation": "Ugyldig oppretter-ID."
   },
   {
     "id": "model.bot.is_valid.description.app_error",
-    "translation": ""
+    "translation": "Ugyldig beskrivelse."
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": ""
+    "translation": "Ugyldig update at."
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Ugyldig bruker-ID."
   },
   {
     "id": "model.bot.is_valid.username.app_error",
-    "translation": ""
+    "translation": "Ugyldig brukernavn."
   },
   {
     "id": "model.channel.is_valid.1_or_more.app_error",
-    "translation": ""
+    "translation": "Navnet må bestå av ett eller flere alfanumeriske tegn med små bokstaver."
   },
   {
     "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
-    "translation": ""
+    "translation": "Fargen på kanalbanneret kan ikke være tom når kanalbanneret er aktivert"
   },
   {
     "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
-    "translation": ""
+    "translation": "Fargen på kanalbanneret må være en gyldig heksadesimal farge (f.eks. #FF0000 eller #F00)"
   },
   {
     "id": "model.channel.is_valid.banner_info.channel_type.app_error",
-    "translation": ""
+    "translation": "Kanalbanner kan bare konfigureres i åpne og private kanaler"
   },
   {
     "id": "model.channel.is_valid.banner_info.text.empty.app_error",
-    "translation": ""
+    "translation": "Teksten i kanalbanneret kan ikke være tom når kanalbanneret er aktivert"
   },
   {
     "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
-    "translation": ""
+    "translation": "Teksten i kanalbanneret er for lang. Maksimal tillatt lengde er {{.maxLength}} tegn."
   },
   {
     "id": "model.channel.is_valid.create_at.app_error",
