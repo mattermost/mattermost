@@ -1216,12 +1216,11 @@ test(
         await expect(channelsPage.centerView.autotranslationBadge).not.toBeVisible();
 
         await channelsPage.centerView.header.openChannelMenu();
-        const channelMenu = page
-            .getByRole('menu')
-            .filter({has: page.getByRole('menuitem', {name: /Auto-translation|Channel Settings/})});
-        await expect(channelMenu.getByText('Auto-translation', {exact: true})).toBeVisible();
-        await expect(channelMenu.getByText('Your language is not supported')).toBeVisible();
-        const autotranslationItem = page.getByRole('menuitem', {name: /Auto-translation/});
+
+        // * The menu tells the user, in French, that their language is not supported
+        const autotranslationItem = page.locator('#channelAutotranslation');
+        await expect(autotranslationItem).toContainText('Traduction automatique');
+        await expect(autotranslationItem).toContainText("Votre langue n'est pas prise en charge");
         await expect(autotranslationItem).toBeDisabled();
     },
 );

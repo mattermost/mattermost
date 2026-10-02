@@ -505,12 +505,11 @@ test(
         await expect(channelsPage.centerView.autotranslationBadge).not.toBeVisible({timeout: 30000});
 
         await channelsPage.centerView.header.openChannelMenu();
-        const channelMenu = page
-            .getByRole('menu')
-            .filter({has: page.getByRole('menuitem', {name: /Auto-translation|Channel Settings/})});
-        await expect(channelMenu.getByText('Auto-translation', {exact: true})).toBeVisible({timeout: 30000});
-        await expect(channelMenu.getByText('Your language is not supported')).toBeVisible({timeout: 30000});
-        const autotranslationItem = page.getByRole('menuitem', {name: /Auto-translation/});
+
+        // * The menu tells the user, in French, that their language is not supported
+        const autotranslationItem = page.locator('#channelAutotranslation');
+        await expect(autotranslationItem).toContainText('Traduction automatique', {timeout: 30000});
+        await expect(autotranslationItem).toContainText("Votre langue n'est pas prise en charge");
         await expect(autotranslationItem).toBeDisabled();
     },
 );
