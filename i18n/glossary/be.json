@@ -1,0 +1,459 @@
+{
+  "Mattermost": {
+    "target": "Mattermost",
+    "note": "Brand name; never translate, transliterate or decline (у Mattermost, для Mattermost)."
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition",
+    "note": "Keep in English. Existing catalog once renders it 'Карпаратыўная версія' (about.teamEditiont1) — do not follow."
+  },
+  "Team Edition": {
+    "target": "Team Edition",
+    "note": "Keep in English. Existing catalog once renders it 'Каманднае выданне' — do not follow."
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels",
+    "note": "Product name stays in English; the common noun is 'канал'."
+  },
+  "Playbooks": {
+    "target": "Playbooks"
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls",
+    "note": "Product name stays in English; the common noun is 'званок'."
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth",
+    "note": "Compounds: 'OAuth-злучэнне', 'праграма OAuth 2.0'."
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP",
+    "note": "Keep 'AD/LDAP' as-is."
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA",
+    "note": "Spelled out: 'шматфактарная аўтэнтыфікацыя'."
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Gossip": {
+    "target": "Gossip",
+    "note": "Protocol name; never 'плёткі'."
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay"
+  },
+  "System Console": {
+    "target": "Сістэмная кансоль",
+    "note": "Established rendering (locative 'у Сістэмнай кансолі'). Decline it; the catalog sometimes leaves it undeclined after 'у' — avoid."
+  },
+  "marketplace": {
+    "target": "маркетплэйс",
+    "note": "Catalog uses 'маркетплэйс' (admin.plugins.settings.marketplaceUrl, marketplace_modal). Capitalise as 'Маркетплэйс' when used as the feature name."
+  },
+  "channel": {
+    "target": "канал",
+    "note": "Plural 'каналы', gen. pl. 'каналаў'. Lower-case mid-sentence; the catalog's capitalised 'Канал' in menu items is a legacy habit, do not extend it."
+  },
+  "team": {
+    "target": "каманда",
+    "note": "Plural 'каманды'. Also the catalog word for a 'slash command' is 'каманда' — rely on context ('слэш-каманда' when it is a command)."
+  },
+  "post": {
+    "target": "паведамленне",
+    "note": "Same word as 'message'; 'публікаваць' for the verb 'to post'."
+  },
+  "message": {
+    "target": "паведамленне",
+    "note": "Plural 'паведамленні', gen. pl. 'паведамленняў'."
+  },
+  "thread": {
+    "target": "гілка",
+    "note": "Majority rendering (52×). The catalog also has 'трэд' (3×) and 'тэмы адказаў' — do not reuse those. Plural 'гілкі', gen. pl. 'гілак'."
+  },
+  "reply": {
+    "target": "адказ",
+    "note": "Verb 'адказаць'; plural 'адказы'."
+  },
+  "direct message": {
+    "target": "асабістае паведамленне",
+    "note": "Majority rendering (53×). 'Прамое паведамленне' appears once (notification.dm) — do not reuse."
+  },
+  "group message": {
+    "target": "групавое паведамленне"
+  },
+  "mention": {
+    "target": "згадка",
+    "note": "Verb 'згадаць'; plural 'згадкі'."
+  },
+  "notification": {
+    "target": "апавяшчэнне",
+    "note": "Plural 'апавяшчэнні'."
+  },
+  "pin": {
+    "target": "замацаваць",
+    "note": "Pinned messages = 'замацаваныя паведамленні'; unpin = 'адмацаваць'. The catalog also has 'прымацаваць' (post_info.pin) — prefer 'замацаваць'."
+  },
+  "bookmark": {
+    "target": "закладка",
+    "note": "Plural 'закладкі'; verb 'дадаць закладку'."
+  },
+  "saved messages": {
+    "target": "захаваныя паведамленні",
+    "note": "Save = 'захаваць паведамленне'; unsave = 'выдаліць з захаваных'."
+  },
+  "draft": {
+    "target": "чарнавік",
+    "note": "Plural 'чарнавікі', gen. pl. 'чарнавікоў'."
+  },
+  "scheduled post": {
+    "target": "запланаванае паведамленне",
+    "note": "Plural 'запланаваныя паведамленні'."
+  },
+  "emoji": {
+    "target": "эмодзі",
+    "note": "Indeclinable, neuter/plural by context."
+  },
+  "custom emoji": {
+    "target": "карыстальніцкае эмодзі",
+    "note": "Established in the catalog (add_emoji.*)."
+  },
+  "reaction": {
+    "target": "рэакцыя",
+    "note": "Verb 'рэагаваць' / 'дадаць рэакцыю'."
+  },
+  "status": {
+    "target": "статус",
+    "note": "The catalog twice has 'статут' (a typo) — do not reuse."
+  },
+  "custom status": {
+    "target": "уласны статус",
+    "note": "Catalog mixes 'уласны статус' (userAccountMenu) and 'карыстальніцкі статус' (one occurrence) — prefer 'уласны статус'."
+  },
+  "do not disturb": {
+    "target": "Не турбаваць"
+  },
+  "away": {
+    "target": "Адышоў",
+    "note": "Established status label (mobile.set_status.away.icon, modal.manual_status). 'Адсутнічае' is the ordinary word for 'is missing' in the catalog."
+  },
+  "online": {
+    "target": "У сетцы",
+    "note": "Status label. In running text 'анлайн' is used ('Апошні раз анлайн')."
+  },
+  "offline": {
+    "target": "Не ў сетцы",
+    "note": "Status label (mobile.set_status.offline.icon). Also 'Па-за сеткай' appears once for connections — prefer 'Не ў сетцы' for user status."
+  },
+  "out of office": {
+    "target": "Па-за офісам",
+    "note": "userAccountMenu uses 'Па-за офісам'; modal.manual_status uses 'Не на працы'. Prefer 'Па-за офісам'."
+  },
+  "guest": {
+    "target": "госць",
+    "note": "Plural 'госці', gen. pl. 'гасцей'; adjective 'гасцявы' (гасцявы доступ)."
+  },
+  "member": {
+    "target": "удзельнік",
+    "note": "Plural 'удзельнікі', gen. pl. 'удзельнікаў'. After a vowel the catalog writes 'ўдзельнік'."
+  },
+  "user": {
+    "target": "карыстальнік",
+    "note": "Plural 'карыстальнікі', gen. pl. 'карыстальнікаў'."
+  },
+  "system admin": {
+    "target": "сістэмны адміністратар",
+    "note": "The catalog capitalises 'Сістэмны адміністратар' as a role name; either is acceptable, keep consistent within a string."
+  },
+  "team admin": {
+    "target": "адміністратар каманды"
+  },
+  "channel admin": {
+    "target": "адміністратар канала"
+  },
+  "session": {
+    "target": "сеанс",
+    "note": "Catalog is split between 'сеанс' (35×) and 'сесія' (25×); prefer 'сеанс'."
+  },
+  "sign in": {
+    "target": "увайсці",
+    "note": "Noun 'уваход'. Use for both 'log in' and 'sign in'."
+  },
+  "sign out": {
+    "target": "выйсці",
+    "note": "Noun 'выхад'. Use for both 'log out' and 'sign out'."
+  },
+  "join": {
+    "target": "далучыцца",
+    "note": "'далучыцца да канала/каманды'; 'далучыўся' (past)."
+  },
+  "leave": {
+    "target": "пакінуць",
+    "note": "'пакінуць канал/каманду'."
+  },
+  "archive": {
+    "target": "архіваваць",
+    "note": "Archived = 'заархіваваны'."
+  },
+  "unarchive": {
+    "target": "разархіваваць"
+  },
+  "mute": {
+    "target": "заглушыць",
+    "note": "Established for channels (sidebar_left.sidebar_channel_menu.mute). Muted = 'заглушаны'; unmute = 'уключыць гук' in the catalog, or 'зняць заглушэнне'. Do not use 'Выключыць апавяшчэнні' as the primary rendering."
+  },
+  "follow": {
+    "target": "сачыць",
+    "note": "'сачыць за гілкай'; following = 'адсочваецца'. The catalog also has 'адсочваць' — acceptable as a synonym."
+  },
+  "unfollow": {
+    "target": "перастаць сачыць",
+    "note": "Catalog also has 'Адключыць адсочванне' and 'Адпісацца' — prefer 'перастаць сачыць (за гілкай)'."
+  },
+  "favorite": {
+    "target": "абранае",
+    "note": "Catalog mixes 'Абранае' (sidebar) and 'Выбранае' (channel header); prefer 'абранае'. Verb: 'дадаць у абранае' / 'выдаліць з абранага'."
+  },
+  "search": {
+    "target": "пошук",
+    "note": "Verb 'шукаць'."
+  },
+  "integration": {
+    "target": "інтэграцыя",
+    "note": "Plural 'інтэграцыі'."
+  },
+  "slash command": {
+    "target": "слэш-каманда",
+    "note": "Majority rendering (31×); 'slash-каманда' appears twice — do not reuse."
+  },
+  "webhook": {
+    "target": "webhook",
+    "note": "Majority rendering keeps the English word (116×, e.g. 'уваходны webhook'); 'вэбхук' appears 33×. Keep 'webhook' undeclined; plural 'webhooks' in headers."
+  },
+  "incoming webhook": {
+    "target": "уваходны webhook"
+  },
+  "outgoing webhook": {
+    "target": "выходны webhook"
+  },
+  "trigger word": {
+    "target": "слова-трыгер",
+    "note": "Plural 'словы-трыгеры'."
+  },
+  "plugin": {
+    "target": "плагін",
+    "note": "Plural 'плагіны', gen. pl. 'плагінаў'. 'убудова' appears twice — do not reuse."
+  },
+  "bot": {
+    "target": "бот",
+    "note": "Bot account = 'уліковы запіс бота'."
+  },
+  "role": {
+    "target": "роля",
+    "note": "Plural 'ролі'."
+  },
+  "permission": {
+    "target": "дазвол",
+    "note": "Plural 'дазволы', gen. pl. 'дазволаў'."
+  },
+  "scheme": {
+    "target": "схема",
+    "note": "'схема дазволаў', 'схема каманды'."
+  },
+  "license": {
+    "target": "ліцэнзія"
+  },
+  "seat": {
+    "target": "месца",
+    "note": "Plural 'месцы', gen. pl. 'месцаў'."
+  },
+  "trial": {
+    "target": "пробны перыяд",
+    "note": "Adjective 'пробны' (пробная версія)."
+  },
+  "workspace": {
+    "target": "працоўная прастора",
+    "note": "Plural 'працоўныя прасторы'."
+  },
+  "subscription": {
+    "target": "падпіска"
+  },
+  "deactivate": {
+    "target": "дэактываваць",
+    "note": "Deactivated = 'дэактываваны'."
+  },
+  "invite": {
+    "target": "запрасіць",
+    "note": "Noun: 'запрашэнне'; invited = 'запрошаны'."
+  },
+  "invitation": {
+    "target": "запрашэнне",
+    "note": "Plural 'запрашэнні'."
+  },
+  "sidebar": {
+    "target": "бакавая панэль"
+  },
+  "unread": {
+    "target": "непрачытанае",
+    "note": "Plural 'непрачытаныя'; sidebar category 'Непрачытаныя'."
+  },
+  "attachment": {
+    "target": "укладанне",
+    "note": "Plural 'укладанні'; verb 'далучыць файл'."
+  },
+  "public channel": {
+    "target": "публічны канал"
+  },
+  "private channel": {
+    "target": "прыватны канал"
+  },
+  "shared channel": {
+    "target": "супольны канал",
+    "note": "The catalog has 'Агульныя каналы' twice, but 'Агульны канал' is also the established server rendering of the Town Square channel name, so prefer 'супольны канал' to avoid the clash."
+  },
+  "channel header": {
+    "target": "загаловак канала"
+  },
+  "channel purpose": {
+    "target": "прызначэнне канала",
+    "note": "Established (edit_channel_purpose_modal). Not 'мэта'."
+  },
+  "system message": {
+    "target": "сістэмнае паведамленне"
+  },
+  "persistent notification": {
+    "target": "пастаяннае апавяшчэнне",
+    "note": "Plural 'пастаянныя апавяшчэнні'."
+  },
+  "message priority": {
+    "target": "прыярытэт паведамлення"
+  },
+  "urgent": {
+    "target": "тэрмінова",
+    "note": "Label 'Тэрмінова'; adjective 'тэрміновае паведамленне'."
+  },
+  "recap": {
+    "target": "агляд",
+    "note": "Feature is untranslated in the catalog; use 'агляд' (plural 'агляды') for the AI summary."
+  },
+  "agent": {
+    "target": "агент",
+    "note": "Plural 'агенты'; capitalised 'Агенты' when it names the Mattermost Agents feature."
+  },
+  "burn-on-read": {
+    "target": "спальванне пасля прачытання",
+    "note": "Established (admin.burn_on_read_feature_discovery). Adjectival use: 'паведамленне са спальваннем пасля прачытання'."
+  },
+  "magic link": {
+    "target": "чароўная спасылка",
+    "note": "Established (admin.guest_access.*)."
+  },
+  "personal access token": {
+    "target": "персанальны токен доступу",
+    "note": "Established (admin.manage_tokens.*)."
+  },
+  "announcement banner": {
+    "target": "банер аб'яў",
+    "note": "Established (admin.announcement_banner_feature_discovery)."
+  },
+  "channel banner": {
+    "target": "банер канала"
+  },
+  "keyword": {
+    "target": "ключавое слова",
+    "note": "Plural 'ключавыя словы'."
+  },
+  "user group": {
+    "target": "група карыстальнікаў",
+    "note": "Shortened to 'група' where the catalog does (user_groups_modal)."
+  },
+  "permalink": {
+    "target": "пастаянная спасылка",
+    "note": "Menu item in the catalog is 'Скапіяваць спасылку'."
+  },
+  "profile": {
+    "target": "профіль"
+  },
+  "username": {
+    "target": "імя карыстальніка"
+  },
+  "nickname": {
+    "target": "псеўданім",
+    "note": "Established (user.settings.general.nickname)."
+  },
+  "display name": {
+    "target": "адлюстраванае імя",
+    "note": "For channels/teams: 'адлюстраваная назва'."
+  },
+  "collapsed reply threads": {
+    "target": "згорнутыя гілкі адказаў",
+    "note": "The catalog once has 'Згорнутыя тэмы адказаў' — use 'гілкі' for consistency with 'thread'."
+  },
+  "auto-translation": {
+    "target": "аўтапераклад",
+    "note": "Auto-translated = 'аўтаматычна перакладзена'."
+  },
+  "data retention": {
+    "target": "захоўванне даных",
+    "note": "Policy = 'палітыка захоўвання даных' (admin.sidebar). 'захавання даных' appears once — prefer 'захоўвання'."
+  },
+  "compliance export": {
+    "target": "экспарт адпаведнасці",
+    "note": "Established (admin.complianceExport.*)."
+  },
+  "access control": {
+    "target": "кантроль доступу",
+    "note": "Policy = 'палітыка кантролю доступу'."
+  },
+  "attribute": {
+    "target": "атрыбут",
+    "note": "Plural 'атрыбуты'; custom profile attribute = 'карыстальніцкі атрыбут профілю'."
+  },
+  "onboarding": {
+    "target": "азнаямленне",
+    "note": "No settled rendering in the catalog; use 'азнаямленне' / 'азнаямленчы тур'."
+  },
+  "Town Square": {
+    "target": "Агульны канал",
+    "note": "Server catalog renders the default channel as 'Агульны канал'; keep for consistency."
+  },
+  "Off-Topic": {
+    "target": "Не па тэме",
+    "note": "Not yet rendered in the catalogs; use 'Не па тэме' consistently."
+  },
+  "read-only": {
+    "target": "толькі для чытання"
+  },
+  "server": {
+    "target": "сервер",
+    "note": "Plural 'серверы', loc. 'на серверы'."
+  }
+}
