@@ -27,6 +27,7 @@ import {
     hintOf,
     httpErrorOf,
     chevronOf,
+    labelOf,
     maybeRow,
     openMenu,
     opt,
@@ -37,6 +38,7 @@ import {
     settle,
     statusRow,
     trigger,
+    triggerButton,
 } from './hierarchical_value_menu_test_helpers';
 
 import {GRAPH_MAX_SEARCH_ROWS} from '../graph';
@@ -802,26 +804,53 @@ describe('HierarchicalValueMenu chrome (mounted)', () => {
 
         test('ariaLabel names the trigger, defaulting to the placeholder', () => {
             const {rerenderWith} = renderMenu();
-            expect(trigger()).toHaveAccessibleName(COPY.placeholder);
+            expect(triggerButton()).toHaveAccessibleName(COPY.placeholder);
 
             rerenderWith({ariaLabel: 'Programs'});
 
-            expect(trigger()).toHaveAccessibleName('Programs');
+            expect(triggerButton()).toHaveAccessibleName('Programs');
         });
 
         test('buttonClassName lands on the trigger', () => {
             renderMenu({buttonClassName: 'policy-row__value-trigger'});
 
-            expect(trigger()).toHaveClass('hierarchical-value-menu__button');
-            expect(trigger()).toHaveClass('policy-row__value-trigger');
+            expect(triggerButton()).toHaveClass('hierarchical-value-menu__button');
+            expect(triggerButton()).toHaveClass('policy-row__value-trigger');
+        });
+
+        test('defaults to the input variant with a chevron and no inline class', () => {
+            const {container} = renderMenu();
+
+            expect(container.querySelector('.hierarchical-value-menu')).not.toHaveClass('hierarchical-value-menu--inline');
+            expect(trigger().querySelector('svg')).toBeInTheDocument();
+        });
+
+        test('variant=inline marks the root and omits the trigger chevron', () => {
+            const {container} = renderMenu({variant: 'inline'});
+
+            expect(container.querySelector('.hierarchical-value-menu')).toHaveClass('hierarchical-value-menu--inline');
+            expect(trigger().querySelector('svg')).not.toBeInTheDocument();
         });
 
         test('disabled marks the trigger disabled and adds the disabled class', () => {
             renderMenu({disabled: true});
 
-            expect(trigger()).toBeDisabled();
-            expect(trigger()).toHaveClass('hierarchical-value-menu__button');
-            expect(trigger()).toHaveClass('disabled');
+            expect(triggerButton()).toHaveAttribute('aria-disabled', 'true');
+            expect(triggerButton()).toHaveClass('hierarchical-value-menu__button');
+            expect(triggerButton()).toHaveClass('disabled');
+        });
+
+        test('the open menu caps at 320px so long labels can ellipsize', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            renderMenu();
+
+            await openMenu();
+            await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
+
+            const menu = screen.getByRole('menu');
+            expect(menu).toHaveClass('hierarchical-value-menu__menu');
+            expect(menu).toHaveStyle({maxWidth: '320px'});
+            expect(labelOf('Air Program')).toHaveClass('hierarchical-value-menu__label');
         });
 
         test('the trigger keeps its data-testid and the menu keeps its id', async () => {
