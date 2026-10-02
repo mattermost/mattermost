@@ -45,9 +45,7 @@ const AddMembersButton: React.FC<AddMembersButtonProps> = ({totalUsers, usersLim
             permissions={[Permissions.ADD_USER_TO_TEAM, Permissions.INVITE_GUEST]}
         >
             {inviteUsers ? (
-                <LessThanMaxFreeUsers
-                    pluginButtons={pluginButtons}
-                />
+                <LessThanMaxFreeUsers/>
             ) : (
                 <MoreThanMaxFreeUsers
                     channel={channel}
@@ -58,32 +56,31 @@ const AddMembersButton: React.FC<AddMembersButtonProps> = ({totalUsers, usersLim
     );
 };
 
-const LessThanMaxFreeUsers = ({pluginButtons}: {pluginButtons: React.ReactNode}) => {
+// Plugin buttons are deliberately omitted here: while the workspace is below the user limit, the
+// invite call to action is the only button shown in the channel intro.
+const LessThanMaxFreeUsers = () => {
     const {formatMessage} = useIntl();
 
     return (
-        <>
-            {pluginButtons}
-            <div className='LessThanMaxFreeUsers'>
-                <ToggleModalButton
-                    id='introTextInvite'
-                    className={buttonClassNames({emphasis: 'primary', size: 'sm'})}
-                    modalId={ModalIdentifiers.INVITATION}
-                    dialogType={InvitationModal}
-                    dialogProps={{focusOriginElement: 'browseOrAddChannelMenuButton'}}
-                >
-                    <i
-                        className='icon-email-plus-outline'
-                        title={formatMessage({id: 'generic_icons.add', defaultMessage: 'Add Icon'})}
-                        aria-hidden='true'
-                    />
-                    <FormattedMessage
-                        id='intro_messages.inviteOthersToWorkspace.button'
-                        defaultMessage='Invite others to the workspace'
-                    />
-                </ToggleModalButton>
-            </div>
-        </>
+        <div className='LessThanMaxFreeUsers'>
+            <ToggleModalButton
+                id='introTextInvite'
+                className={buttonClassNames({emphasis: 'primary', size: 'sm'})}
+                modalId={ModalIdentifiers.INVITATION}
+                dialogType={InvitationModal}
+                dialogProps={{focusOriginElement: 'browseOrAddChannelMenuButton'}}
+            >
+                <i
+                    className='icon-email-plus-outline'
+                    title={formatMessage({id: 'generic_icons.add', defaultMessage: 'Add Icon'})}
+                    aria-hidden='true'
+                />
+                <FormattedMessage
+                    id='intro_messages.inviteOthersToWorkspace.button'
+                    defaultMessage='Invite others to the workspace'
+                />
+            </ToggleModalButton>
+        </div>
     );
 };
 

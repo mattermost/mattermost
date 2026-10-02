@@ -16,9 +16,11 @@ jest.mock('@mattermost/compass-icons/components', () => ({
 import type {Channel, ChannelType} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {Permissions} from 'mattermost-redux/constants';
+
 import {compassIconForName} from 'components/channel_type_icon';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, within} from 'tests/react_testing_utils';
 import {Constants} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -390,6 +392,93 @@ describe('components/post_view/ChannelIntroMessages', () => {
 
             // DM text is present
             expect(screen.getByText('This is the start of your direct message history with this teammate.', {exact: false})).toBeInTheDocument();
+        });
+    });
+
+    describe('plugin intro buttons', () => {
+        const PLUGIN_BUTTON_TEXT = 'Create a board';
+
+        const stateWithPluginButton = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                users: {
+                    ...initialState.entities.users,
+                    currentUserId: 'test-user-id',
+                    profiles: {
+                        ...initialState.entities.users.profiles,
+                        'test-user-id': TestHelper.getUserMock({
+                            id: 'test-user-id',
+                            roles: 'test_role',
+                        }),
+                    },
+                },
+                roles: {
+                    roles: {
+                        test_role: {
+                            permissions: [
+                                Permissions.ADD_USER_TO_TEAM,
+                                Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS,
+                            ],
+                        },
+                    },
+                },
+                channels: {
+                    ...initialState.entities.channels,
+                    channels: {channel_id: channel},
+                    myMembers: {
+                        channel_id: TestHelper.getChannelMembershipMock({
+                            channel_id: 'channel_id',
+                            user_id: 'test-user-id',
+                        }),
+                    },
+                },
+                teams: {
+                    ...initialState.entities.teams,
+                    currentTeamId: 'team-id',
+                },
+            },
+            plugins: {
+                components: {
+                    ChannelIntroButton: [{
+                        id: 'intro-button-1',
+                        pluginId: 'test-plugin',
+                        icon: <span data-testid='plugin-button-icon'/>,
+                        text: PLUGIN_BUTTON_TEXT,
+                        action: jest.fn(),
+                    }],
+                },
+            },
+        } as any;
+
+        test('renders the plugin button next to Add people when above the users limit', () => {
+            renderWithContext(
+                <ChannelIntroMessage
+                    {...baseProps}
+                    stats={{total_users_count: 100}}
+                    usersLimit={10}
+                />,
+                stateWithPluginButton,
+            );
+
+            const addMembers = screen.getByText('Add people').closest('.MoreThanMaxFreeUsersWrapper');
+            expect(addMembers).not.toBeNull();
+            expect(within(addMembers as HTMLElement).getByText(PLUGIN_BUTTON_TEXT)).toBeInTheDocument();
+        });
+
+        test('renders only the invite button when below the users limit', () => {
+            renderWithContext(
+                <ChannelIntroMessage
+                    {...baseProps}
+                    stats={{total_users_count: 5}}
+                    usersLimit={10}
+                />,
+                stateWithPluginButton,
+            );
+
+            expect(screen.getByText('Invite others to the workspace')).toBeInTheDocument();
+            expect(screen.queryByText(PLUGIN_BUTTON_TEXT)).not.toBeInTheDocument();
+            expect(screen.queryByText('Add people')).not.toBeInTheDocument();
         });
     });
 
