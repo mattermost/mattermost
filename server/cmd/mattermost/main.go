@@ -21,3 +21,4 @@ func main() {
 		os.Exit(1)
 	}
 }
+// CI test run
