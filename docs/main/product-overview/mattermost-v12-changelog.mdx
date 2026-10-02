@@ -70,6 +70,7 @@ Platform and OS scope reflects reported and tested environments and may not repr
  - Added GIN index ``idx_access_control_policies_rules`` on ``AccessControlPolicies(Data -> 'rules')`` to speed up access-control policy membership lookups with no downtime or locking impact.
  - Added a GIN index on ``AccessControlPolicies(Data -> 'imports')`` using ``jsonb_path_ops``, eliminating sequential scans on imports containment queries with no downtime or lock impact on normal traffic.
  - Removed stale ``ldap`` and ``saml`` keys from the ``Attrs JSONB`` column in ``PropertyFields`` for all non-user, non-template rows; irreversible data cleanup with no expected downtime but potential full-table scan on unindexed deployments.
+ - Added GIN full-text ``index idx_posts_message_txt`` on ``posts(message)`` using ``CREATE INDEX CONCURRENTLY``; large deployments should expect an extended, I/O-intensive build with no downtime.
 
 #### config.json
 New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
