@@ -4662,7 +4662,6 @@
   "channel_attributes.description": "Наладзьце атрыбуты і значэнні для гэтага канала.",
   "channel_attributes.enter_value": "Увядзіце значэнне",
   "channel_attributes.info.add": "Дадаць атрыбут",
-  "channel_attributes.info.clear": "Ачысціць {label}",
   "channel_attributes.info.edit": "Рэдагаваць {label}",
   "channel_attributes.info.heading": "Атрыбуты канала",
   "channel_attributes.info.locked": "Гэты атрыбут нельга змяніць пасля таго, як ён зададзены",

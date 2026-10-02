@@ -4662,7 +4662,6 @@
   "channel_attributes.description": "Konfiguriraj atribute i vrijednosti za ovaj kanal.",
   "channel_attributes.enter_value": "Upiši vrijednost",
   "channel_attributes.info.add": "Dodaj atribut",
-  "channel_attributes.info.clear": "Očisti {label}",
   "channel_attributes.info.edit": "Uredi {label}",
   "channel_attributes.info.heading": "Atributi kanala",
   "channel_attributes.info.locked": "Ovaj se atribut ne može promijeniti nakon što je postavljen",

@@ -4662,7 +4662,6 @@
   "channel_attributes.description": "Sukonfigūruokite šio kanalo atributus ir reikšmes.",
   "channel_attributes.enter_value": "Įveskite reikšmę",
   "channel_attributes.info.add": "Pridėti atributą",
-  "channel_attributes.info.clear": "Išvalyti {label}",
   "channel_attributes.info.edit": "Redaguoti {label}",
   "channel_attributes.info.heading": "Kanalo atributai",
   "channel_attributes.info.locked": "Šio atributo negalima pakeisti po to, kai jis nustatytas",

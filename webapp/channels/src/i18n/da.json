@@ -4662,7 +4662,6 @@
   "channel_attributes.description": "Konfigurer attributter og værdier for denne kanal.",
   "channel_attributes.enter_value": "Indtast en værdi",
   "channel_attributes.info.add": "Tilføj attribut",
-  "channel_attributes.info.clear": "Ryd {label}",
   "channel_attributes.info.edit": "Rediger {label}",
   "channel_attributes.info.heading": "Kanalattributter",
   "channel_attributes.info.locked": "Denne attribut kan ikke ændres, når den først er angivet",

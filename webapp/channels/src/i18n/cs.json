@@ -4662,7 +4662,6 @@
   "channel_attributes.description": "Nakonfigurujte atributy a hodnoty pro tento kanál.",
   "channel_attributes.enter_value": "Zadejte hodnotu",
   "channel_attributes.info.add": "Přidat atribut",
-  "channel_attributes.info.clear": "Vymazat {label}",
   "channel_attributes.info.edit": "Upravit {label}",
   "channel_attributes.info.heading": "Atributy kanálu",
   "channel_attributes.info.locked": "Tento atribut nelze po nastavení změnit",

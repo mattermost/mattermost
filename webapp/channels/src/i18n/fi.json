@@ -4662,7 +4662,6 @@
   "channel_attributes.description": "Määritä tämän kanavan attribuutit ja arvot.",
   "channel_attributes.enter_value": "Syötä arvo",
   "channel_attributes.info.add": "Lisää attribuutti",
-  "channel_attributes.info.clear": "Tyhjennä {label}",
   "channel_attributes.info.edit": "Muokkaa: {label}",
   "channel_attributes.info.heading": "Kanavan attribuutit",
   "channel_attributes.info.locked": "Tätä attribuuttia ei voi muuttaa sen asettamisen jälkeen",
