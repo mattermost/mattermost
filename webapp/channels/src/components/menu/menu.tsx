@@ -54,10 +54,6 @@ type MenuButtonProps = {
     'aria-describedby'?: string;
     disabled?: boolean;
     class?: string;
-
-    /**
-     * A component must spread its props, including `ref`, onto the element it renders.
-     */
     as?: 'button' | 'div' | ComponentType<MenuButtonComponentProps>;
     children?: ReactNode;
 

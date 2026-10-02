@@ -8,7 +8,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
-import PhoneOutlineIcon from '@mattermost/compass-icons/components/phone-outline';
+import PhoneIcon from '@mattermost/compass-icons/components/phone';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
@@ -136,7 +136,7 @@ export default function CallButton({pluginCallComponents, currentChannel, channe
         >
             <MenuWrapper onToggle={(toggle: boolean) => setActive(toggle)}>
                 <button className={classNames('style--none call-button dropdown', {active})}>
-                    <PhoneOutlineIcon
+                    <PhoneIcon
                         color='inherit'
                         aria-label={formatMessage({id: 'generic_icons.call', defaultMessage: 'Call icon'}).toLowerCase()}
                     />
@@ -165,9 +165,9 @@ export default function CallButton({pluginCallComponents, currentChannel, channe
 const StartCallMenuButton = (props: MenuButtonComponentProps) => (
     <Button
         {...props}
-        emphasis='tertiary'
+        emphasis='quaternary'
         size='small'
-        leadingIcon={<Icon glyph={<PhoneOutlineIcon/>}/>}
+        leadingIcon={<Icon glyph={<PhoneIcon/>}/>}
         trailingIcon={<Icon glyph={<ChevronDownIcon/>}/>}
     >
         <FormattedMessage
