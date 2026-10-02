@@ -5,9 +5,9 @@ import React, {useState, useEffect, useCallback} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/compass-ui/components/button';
 import type {Group} from '@mattermost/types/groups';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import MemberListGroup from 'components/admin_console/member_list_group';
 
 type Props = {

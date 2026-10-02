@@ -5,8 +5,7 @@ import React, {useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
-
+import {Button} from '@mattermost/compass-ui/components/button';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getBool as getBoolPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';

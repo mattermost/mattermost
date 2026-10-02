@@ -5,8 +5,8 @@ import React, {useCallback, useState} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
 import {MagnifyIcon, PlusIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
-
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import Input from 'components/widgets/inputs/input/input';
 
@@ -68,11 +68,9 @@ const GlobalAttributes = ({disabled = false}: Props) => {
                         getHistory().push(ATTRIBUTE_DETAILS_ROUTE);
                     }}
                     data-testid='newAttributeButton'
+                    leadingIcon={<Icon glyph={<PlusIcon/>}/>}
                 >
-                    <PlusIcon size={18}/>
-                    <span>
-                        <FormattedMessage {...messages.newAttribute}/>
-                    </span>
+                    <FormattedMessage {...messages.newAttribute}/>
                 </Button>
             </AdminHeader>
             <div className='admin-console__wrapper'>

@@ -4,10 +4,10 @@
 import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {Role} from '@mattermost/types/roles';
 import type {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import DataGrid from 'components/admin_console/data_grid/data_grid';

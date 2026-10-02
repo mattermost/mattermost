@@ -3,8 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
-
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';

@@ -4,10 +4,10 @@
 import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 import type {Group} from '@mattermost/types/groups';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import AddGroupsToChannelModal from 'components/add_groups_to_channel_modal';
 import ToggleModalButton from 'components/toggle_modal_button';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';

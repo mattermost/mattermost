@@ -18,10 +18,10 @@ import {
 import React, {useCallback, useId, useState, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
 import {supportsOptions} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import './session_attribute_editor.scss';
 
 type SessionAttributeEditorButtonProps = {

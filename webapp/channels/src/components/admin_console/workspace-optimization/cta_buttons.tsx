@@ -3,8 +3,7 @@
 
 import React, {type JSX} from 'react';
 import {useHistory} from 'react-router-dom';
-
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import './dashboard.scss';
 
@@ -40,7 +39,7 @@ const CtaButtons = ({
             {(actionLink || actionButtonCallback) && actionText && (
                 <Button
                     emphasis='primary'
-                    size='sm'
+                    size='small'
                     className='annnouncementBar__purchaseNow'
                     onClick={getClickHandler('cta', actionLink)}
                 >
@@ -50,7 +49,7 @@ const CtaButtons = ({
             {learnMoreLink && learnMoreText && (
                 <Button
                     emphasis='tertiary'
-                    size='sm'
+                    size='small'
                     onClick={getClickHandler('learn-more', learnMoreLink)}
                 >
                     {learnMoreText}

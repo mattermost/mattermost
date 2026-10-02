@@ -4,7 +4,6 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
-
 import {buttonClassNames} from '@mattermost/shared/components/button';
 
 import BlockableLink from 'components/admin_console/blockable_link';

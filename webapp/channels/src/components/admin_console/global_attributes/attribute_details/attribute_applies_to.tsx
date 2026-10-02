@@ -7,10 +7,10 @@ import React, {useMemo} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
-import type {ButtonEmphasis} from '@mattermost/shared/components/button';
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {FieldVisibility} from '@mattermost/types/properties';
 
+import type {ButtonEmphasis} from '@mattermost/compass-ui/components/button';
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import Card from 'components/card/card';
 import * as Menu from 'components/menu';
 

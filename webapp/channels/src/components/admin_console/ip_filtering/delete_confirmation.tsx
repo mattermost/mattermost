@@ -5,9 +5,9 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
 import type {AllowedIPRange} from '@mattermost/types/config';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import './delete_confirmation.scss';
 
 type Props = {
@@ -50,7 +50,7 @@ export default function DeleteConfirmationModal({onExited, onConfirm, filterToDe
                 <Button
                     type='button'
                     emphasis='primary'
-                    variant='destructive'
+                    destructive={true}
                     onClick={() => onConfirm?.(filterToDelete!)}
                 >
                     {formatMessage({id: 'admin.ip_filtering.delete_filter', defaultMessage: 'Delete filter'})}

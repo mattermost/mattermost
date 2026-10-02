@@ -70,7 +70,7 @@ describe('AttributeOptionsGraphValues', () => {
         expect(screen.getByText('Start with a top-level value. You can add parents and children from its row.')).toBeInTheDocument();
         expect(screen.getByText('Up to 100 parents per value, 100 levels deep.')).toBeInTheDocument();
         expect(screen.getByTestId('attributeOptionsGraphEmpty__addButton')).toBeDisabled();
-        expect(screen.getByTestId('attributeOptionsGraphEmpty__addButton')).toHaveClass('btn-primary');
+        expect(screen.getByTestId('attributeOptionsGraphEmpty__addButton').className).toMatch(/button--emphasis-primary/);
         expect(screen.getByTestId('attributeOptionsGraphEmpty__nameInput')).toHaveAttribute('placeholder', 'Value name');
         expect(screen.queryByTestId('attributeOptionsGraphList')).not.toBeInTheDocument();
     });
@@ -163,7 +163,7 @@ describe('AttributeOptionsGraphValues', () => {
         expect(screen.queryByTestId('attributeOptionsGraphEmpty')).not.toBeInTheDocument();
         expect(screen.getByTestId('attributeOptionsGraphList')).toBeInTheDocument();
         expect(screen.getByTestId('attributeOptionsGraphAddTop__nameInput')).toHaveAttribute('placeholder', 'Add a top-level value');
-        expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton')).toHaveClass('btn-secondary');
+        expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton').className).toMatch(/button--emphasis-secondary/);
         expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton')).toBeDisabled();
 
         const row = getRow('Root');
@@ -186,8 +186,8 @@ describe('AttributeOptionsGraphValues', () => {
         await userEvent.type(screen.getByTestId('attributeOptionsGraphAddTop__nameInput'), 'Trunk');
 
         expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton')).not.toBeDisabled();
-        expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton')).toHaveClass('btn-secondary');
-        expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton')).not.toHaveClass('btn-primary');
+        expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton').className).toMatch(/button--emphasis-secondary/);
+        expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton').className).not.toMatch(/button--emphasis-primary/);
     });
 
     it('adds a trimmed child from the overflow menu as an indented sibling row', async () => {

@@ -4,8 +4,7 @@
 import React, {PureComponent} from 'react';
 import type {CSSProperties, MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
-
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import ReloadIcon from 'components/widgets/icons/fa_reload_icon';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';

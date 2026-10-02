@@ -6,9 +6,7 @@
 import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage} from 'react-intl';
-
-import {Button} from '@mattermost/shared/components/button';
-import type {ButtonEmphasis} from '@mattermost/shared/components/button';
+import {Button, type ButtonEmphasis} from '@mattermost/compass-ui/components/button';
 
 import SuccessIcon from 'components/widgets/icons/fa_success_icon';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';

@@ -4,9 +4,9 @@
 import React, {useState, useEffect, useMemo, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import type {Row, Column} from 'components/admin_console/data_grid/data_grid';

@@ -5,8 +5,7 @@ import React, {useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
-
+import {Button} from '@mattermost/compass-ui/components/button';
 import {revokeSessionsForAllUsers} from 'mattermost-redux/actions/users';
 import {Permissions} from 'mattermost-redux/constants';
 
@@ -38,7 +37,7 @@ export function RevokeSessionsButton() {
         <SystemPermissionGate permissions={[Permissions.REVOKE_USER_ACCESS_TOKEN]}>
             <Button
                 emphasis='tertiary'
-                variant='destructive'
+                destructive={true}
                 onClick={handleModalToggle}
             >
                 <FormattedMessage

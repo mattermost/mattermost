@@ -463,10 +463,14 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen a
                   </p>
                   <p>
                     <button
-                      class="btn btn-primary"
+                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
                       type="button"
                     >
-                      Restart Server
+                      <span
+                        class="_button__label_doayp_24"
+                      >
+                        Restart Server
+                      </span>
                     </button>
                   </p>
                 </div>
@@ -940,19 +944,23 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
                 <div>
                   <p>
                     <button
-                      class="btn btn-primary"
+                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
                       type="button"
                     >
                       <span
-                        class="LoadingSpinner with-text"
-                        data-testid="loadingSpinner"
-                        id="loadingSpinner"
+                        class="_button__label_doayp_24"
                       >
                         <span
-                          class="fa fa-spinner fa-fw fa-pulse spinner"
-                          title="Loading Icon"
-                        />
-                        Upgrading 42%
+                          class="LoadingSpinner with-text"
+                          data-testid="loadingSpinner"
+                          id="loadingSpinner"
+                        >
+                          <span
+                            class="fa fa-spinner fa-fw fa-pulse spinner"
+                            title="Loading Icon"
+                          />
+                          Upgrading 42%
+                        </span>
                       </span>
                     </button>
                   </p>
@@ -5713,10 +5721,14 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     class="trial"
                   >
                     <button
-                      class="btn btn-primary"
+                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
                       type="button"
                     >
-                      Start trial
+                      <span
+                        class="_button__label_doayp_24"
+                      >
+                        Start trial
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -5737,10 +5749,15 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                 class="StarterLeftPanel"
               >
                 <button
-                  class="btn btn-tertiary btn-sm PlanDetails__viewPlansButton"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-small_doayp_40 PlanDetails__viewPlansButton"
                   id="starter_edition_view_plans"
+                  type="button"
                 >
-                  View plans
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    View plans
+                  </span>
                 </button>
                 <div
                   class="title"
@@ -5786,10 +5803,15 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                     class="uploadButtons"
                   >
                     <button
-                      class="btn btn-primary"
+                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
                       id="open-modal"
+                      type="button"
                     >
-                      Upload File
+                      <span
+                        class="_button__label_doayp_24"
+                      >
+                        Upload File
+                      </span>
                     </button>
                     <input
                       accept=".mattermost-license"
@@ -6254,10 +6276,14 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     class="trial"
                   >
                     <button
-                      class="btn btn-primary"
+                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
                       type="button"
                     >
-                      Start trial
+                      <span
+                        class="_button__label_doayp_24"
+                      >
+                        Start trial
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -6278,10 +6304,15 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                 class="StarterLeftPanel"
               >
                 <button
-                  class="btn btn-tertiary btn-sm PlanDetails__viewPlansButton"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-small_doayp_40 PlanDetails__viewPlansButton"
                   id="starter_edition_view_plans"
+                  type="button"
                 >
-                  View plans
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    View plans
+                  </span>
                 </button>
                 <div
                   class="title"
@@ -6333,10 +6364,15 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     class="uploadButtons"
                   >
                     <button
-                      class="btn btn-primary"
+                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
                       id="open-modal"
+                      type="button"
                     >
-                      Upload File
+                      <span
+                        class="_button__label_doayp_24"
+                      >
+                        Upload File
+                      </span>
                     </button>
                     <input
                       accept=".mattermost-license"
@@ -7176,10 +7212,14 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                 <div>
                   <p>
                     <button
-                      class="btn btn-primary"
+                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
                       type="button"
                     >
-                      Upgrade to Enterprise Edition
+                      <span
+                        class="_button__label_doayp_24"
+                      >
+                        Upgrade to Enterprise Edition
+                      </span>
                     </button>
                   </p>
                   <p
@@ -7270,10 +7310,14 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     class="trial"
                   >
                     <button
-                      class="btn btn-primary"
+                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
                       type="button"
                     >
-                      Upgrade Server And Start trial
+                      <span
+                        class="_button__label_doayp_24"
+                      >
+                        Upgrade Server And Start trial
+                      </span>
                     </button>
                   </div>
                   <p
@@ -7678,10 +7722,14 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                 <div>
                   <p>
                     <button
-                      class="btn btn-primary"
+                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
                       type="button"
                     >
-                      Upgrade to Enterprise Edition
+                      <span
+                        class="_button__label_doayp_24"
+                      >
+                        Upgrade to Enterprise Edition
+                      </span>
                     </button>
                   </p>
                   <p
@@ -7757,10 +7805,15 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                 class="StarterLeftPanel"
               >
                 <button
-                  class="btn btn-tertiary btn-sm PlanDetails__viewPlansButton"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-small_doayp_40 PlanDetails__viewPlansButton"
                   id="starter_edition_view_plans"
+                  type="button"
                 >
-                  View plans
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    View plans
+                  </span>
                 </button>
                 <div
                   class="title"
@@ -7806,10 +7859,15 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                     class="uploadButtons"
                   >
                     <button
-                      class="btn btn-primary"
+                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
                       id="open-modal"
+                      type="button"
                     >
-                      Upload File
+                      <span
+                        class="_button__label_doayp_24"
+                      >
+                        Upload File
+                      </span>
                     </button>
                     <input
                       accept=".mattermost-license"

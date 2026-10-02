@@ -5,8 +5,7 @@ import React from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
-
+import {Button} from '@mattermost/compass-ui/components/button';
 import Input from 'components/widgets/inputs/input/input';
 
 import Constants from 'utils/constants';
@@ -162,7 +161,7 @@ export function ChildDraftRow({
             <Button
                 type='button'
                 emphasis='secondary'
-                size='sm'
+                size='small'
                 onClick={onCommit}
                 disabled={!canAdd}
                 data-testid='attributeOptionsGraphRow__childAddButton'
@@ -172,7 +171,7 @@ export function ChildDraftRow({
             <Button
                 type='button'
                 emphasis='tertiary'
-                size='sm'
+                size='small'
                 onClick={onCancel}
                 data-testid='attributeOptionsGraphRow__childCancelButton'
             >

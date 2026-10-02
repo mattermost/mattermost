@@ -6,14 +6,24 @@ exports[`components/admin_console/workspace-optimization/cta_buttons should matc
     class="ctaButtons"
   >
     <button
-      class="btn btn-primary btn-sm annnouncementBar__purchaseNow"
+      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-small_doayp_40 annnouncementBar__purchaseNow"
+      type="button"
     >
-      Action Text
+      <span
+        class="_button__label_doayp_24"
+      >
+        Action Text
+      </span>
     </button>
     <button
-      class="btn btn-tertiary btn-sm"
+      class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-small_doayp_40"
+      type="button"
     >
-      Learn More
+      <span
+        class="_button__label_doayp_24"
+      >
+        Learn More
+      </span>
     </button>
   </div>
 </div>
