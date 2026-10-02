@@ -62,10 +62,23 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
     // Radio Option Selector — required
     await dialog.getByRole('radio', {name: 'Option1'}).click();
 
-    // # Submit the dialog
-    await dialog.getByRole('button', {name: 'Submit'}).click();
+    // # Submit the dialog (with retries if the plugin is transiently unavailable, e.g.
+    // during a concurrent plugin_crash.spec.ts recovery cycle, in which case the submit
+    // request can fail silently and the dialog never closes — re-clicking Submit is safe
+    // since the filled-in fields are retained)
+    for (let attempt = 0; attempt < 4; attempt++) {
+        await dialog.getByRole('button', {name: 'Submit'}).click();
+        try {
+            await expect(dialog).not.toBeVisible({timeout: duration.ten_sec});
+            break;
+        } catch (err) {
+            if (attempt === 3) {
+                throw err;
+            }
+        }
+    }
 
-    // * Verify the dialog closes and the submit post appears in the channel
+    // * Verify the dialog closed and the submit post appears in the channel
     // Note: "Interative" is a typo in the demo plugin — not a test error
     await expect(dialog).not.toBeVisible();
     await expect(
@@ -109,15 +122,35 @@ test('should post cancellation notification when /dialog is cancelled', async ({
     await expect(dialog.getByRole('button', {name: 'Cancel'})).toBeVisible();
     await expect(dialog.getByRole('button', {name: 'Submit'})).toBeVisible();
 
-    // # Cancel the dialog
-    await dialog.getByRole('button', {name: 'Cancel'}).click();
-
-    // * Verify the dialog closes and the cancellation post appears in the channel
-    // Note: "Interative" is a typo in the demo plugin — not a test error
-    await expect(dialog).not.toBeVisible();
-    await expect(
-        channelsPage.centerView.container.locator('p').filter({hasText: 'canceled an Interative Dialog'}),
-    ).toBeVisible();
+    // # Cancel the dialog and verify the cancellation post appears (with retries if the
+    // plugin is transiently unavailable, e.g. during a concurrent plugin_crash.spec.ts
+    // recovery cycle: the client-side dialog close can succeed while the server-side
+    // cancel notification silently fails, so reopen and cancel again on failure)
+    const cancellationPost = channelsPage.centerView.container
+        .locator('p')
+        .filter({hasText: 'canceled an Interative Dialog'});
+    for (let attempt = 0; attempt < 4; attempt++) {
+        if (await dialog.isVisible()) {
+            await dialog.getByRole('button', {name: 'Cancel'}).click();
+        }
+        try {
+            await expect(dialog).not.toBeVisible({timeout: duration.ten_sec});
+            // * Verify the cancellation post appears in the channel
+            // Note: "Interative" is a typo in the demo plugin — not a test error
+            await expect(cancellationPost).toBeVisible({timeout: duration.ten_sec});
+            break;
+        } catch (err) {
+            if (attempt === 3) {
+                throw err;
+            }
+            // Reopen the dialog for the next attempt
+            await sendDemoSlashCommand(channelsPage.page, async () => {
+                await channelsPage.centerView.postCreate.input.fill('/dialog');
+                await channelsPage.centerView.postCreate.sendMessage();
+            });
+            await expect(dialog).toBeVisible({timeout: duration.ten_sec});
+        }
+    }
 });
 
 test('should show validation errors when required fields are submitted empty', async ({pw}) => {

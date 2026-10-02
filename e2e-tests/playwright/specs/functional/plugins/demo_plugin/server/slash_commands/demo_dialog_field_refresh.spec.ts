@@ -3,6 +3,8 @@
 
 import {duration, expect, test} from '@mattermost/playwright-lib';
 
+import {sendDemoSlashCommand} from '../../helpers';
+
 test('should update form fields dynamically when project type changes via /dialog field-refresh', async ({pw}) => {
     // # Setup
     const {user, team} = await pw.initSetup();
@@ -17,19 +19,22 @@ test('should update form fields dynamically when project type changes via /dialo
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // # Send /dialog field-refresh command (with one retry if the dialog doesn't appear)
+    // # Send /dialog field-refresh command (with retries if the plugin is transiently
+    // unavailable, e.g. during a concurrent plugin_crash.spec.ts recovery cycle)
     const dialog = channelsPage.page.getByRole('dialog');
-    for (let attempt = 0; attempt < 2; attempt++) {
-        await channelsPage.centerView.postCreate.input.fill('/dialog field-refresh');
-        await channelsPage.centerView.postCreate.sendMessage();
+    for (let attempt = 0; attempt < 4; attempt++) {
+        await sendDemoSlashCommand(channelsPage.page, async () => {
+            await channelsPage.centerView.postCreate.input.fill('/dialog field-refresh');
+            await channelsPage.centerView.postCreate.sendMessage();
+        });
         try {
             await expect(dialog).toBeVisible({timeout: duration.ten_sec});
             break; // dialog appeared — proceed
         } catch (err) {
-            if (attempt === 1) {
+            if (attempt === 3) {
                 throw err; // exhausted retries — let the error surface naturally
             }
-            // attempt 0 timed out — retry the slash command once
+            // attempt timed out — retry the slash command
         }
     }
 
@@ -90,9 +95,23 @@ test('should update form fields dynamically when project type changes via /dialo
     await dialog.locator('[class*="Select__control"], [class*="react-select__control"]').last().click();
     await channelsPage.page.getByRole('option', {name: 'PostgreSQL'}).click();
 
-    await dialog.getByRole('button', {name: 'Create Project'}).click();
+    // # Submit the dialog (with retries if the plugin is transiently unavailable, e.g.
+    // during a concurrent plugin_crash.spec.ts recovery cycle, in which case the submit
+    // request can fail silently and the dialog never closes — re-clicking Create Project
+    // is safe since the filled-in fields are retained)
+    for (let attempt = 0; attempt < 4; attempt++) {
+        await dialog.getByRole('button', {name: 'Create Project'}).click();
+        try {
+            await expect(dialog).not.toBeVisible({timeout: duration.ten_sec});
+            break;
+        } catch (err) {
+            if (attempt === 3) {
+                throw err;
+            }
+        }
+    }
 
-    // * Verify the dialog closes and the response post appears in the channel
+    // * Verify the dialog closed and the response post appears in the channel
     await expect(dialog).not.toBeVisible();
     await expect(
         channelsPage.centerView.container.locator('p').filter({hasText: 'api project: Test Project'}),
