@@ -14,6 +14,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
@@ -137,10 +139,16 @@ func ESPostFromPostForIndexing(post *model.PostForIndexing, mmBlocksEnabled bool
 		ChannelType: post.ChannelType,
 	}
 
-	// Message stays in its own field; everything else searchable (attachments, mm_blocks, Block Kit blocks,
-	// Adaptive cards) comes from model.Post.AllStrings (attachment Fallback is omitted), omitting the leading message segment when it is
-	// the same bytes as post.Message so it is not duplicated in the ES "attachments" text field.
-	allStrings := post.AllStrings(model.AllStringsOptions{OmitInteractiveBlocks: !mmBlocksEnabled})
+	// Message stays in its own field; everything else searchable (searchable props such as the Boards card
+	// title, attachments, mm_blocks, Block Kit blocks, Adaptive cards) comes from model.Post.AllStrings
+	// (attachment Fallback is omitted), omitting the leading message segment when it is the same bytes as
+	// post.Message so it is not duplicated in the ES "attachments" text field.
+	// Documents indexed before a prop became searchable get it only when re-indexed, e.g. with a posts-only job:
+	// mmctl job create elasticsearch_post_indexing --data index_channels=false,index_users=false,index_files=false,start_time=<ms>
+	allStrings := post.AllStrings(model.AllStringsOptions{
+		OmitInteractiveBlocks:  !mmBlocksEnabled,
+		IncludeSearchableProps: true,
+	})
 	allStringsButMessage := allStrings
 	if len(allStringsButMessage) > 0 && strings.TrimSpace(post.Message) != "" && allStringsButMessage[0] == post.Message {
 		allStringsButMessage = allStringsButMessage[1:]
@@ -160,6 +168,17 @@ func ESPostFromPostForIndexing(post *model.PostForIndexing, mmBlocksEnabled bool
 	}
 
 	return &searchPost
+}
+
+// SearchPostTypesQuery matches the post types SearchPosts returns. Other types, such as system
+// messages, are indexed but never returned.
+func SearchPostTypesQuery() types.Query {
+	postTypes := append([]string{"default", model.PostTypeMessageAttachment}, model.SearchableCustomPostTypes()...)
+	should := make([]types.Query, 0, len(postTypes))
+	for _, postType := range postTypes {
+		should = append(should, types.Query{Term: map[string]types.TermQuery{"type": {Value: postType}}})
+	}
+	return types.Query{Bool: &types.BoolQuery{Should: should}}
 }
 
 func extractURLsFromMessage(message string) []string {

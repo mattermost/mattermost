@@ -888,18 +888,54 @@ func (o *Post) HasUnsafeLinks() bool {
 	return ok && s == "true"
 }
 
+const (
+	// PostTypeBoardsCard is a card of the Boards plugin (mattermost-plugin-boards). Not to be
+	// confused with PostTypeCard, the Integrated Boards type.
+	PostTypeBoardsCard       = PostCustomTypePrefix + "board_card"
+	PostPropsBoardsCardTitle = "card_title"
+)
+
+// searchablePropsByPostType lists the custom post types that search engines return in post
+// search results, with the props of each that are indexed as searchable text. The props must
+// hold plain human-readable strings; other values are ignored.
+var searchablePropsByPostType = map[string][]string{
+	PostTypeBoardsCard: {PostPropsBoardsCardTitle},
+}
+
+// SearchablePropsForPostType returns the props indexed as searchable text for posts of the type.
+func SearchablePropsForPostType(postType string) []string {
+	return slices.Clone(searchablePropsByPostType[postType])
+}
+
+// SearchableCustomPostTypes returns, sorted, the custom post types search engines return.
+func SearchableCustomPostTypes() []string {
+	return slices.Sorted(maps.Keys(searchablePropsByPostType))
+}
+
 type AllStringsOptions struct {
 	OmitInteractiveBlocks bool
+	// IncludeSearchableProps adds the post type's searchable props right after the message.
+	// Only search indexing sets it; mentions, emoji and image metadata do not read those props.
+	IncludeSearchableProps bool
 }
 
 // AllStrings returns human-readable text from the post: the post Message as stored when it is not
-// whitespace-only (same bytes as Message so markdown structure is preserved), then message attachment
+// whitespace-only (same bytes as Message so markdown structure is preserved), then, with
+// IncludeSearchableProps, the non-whitespace-only string values of the post type's searchable props
+// (see SearchablePropsForPostType), then message attachment
 // author name, title, text, pretext, footer, each attachment field title, each attachment field
 // value (strings trimmed; non-strings rendered like fmt.Sprint for indexing), plus
 // strings from interactive blocks (mm_blocks, Block Kit blocks, Adaptive cards).
 // It is intended for mention checks, search indexing, and similar uses alongside integration metadata.
 func (o *Post) AllStrings(opts AllStringsOptions) []string {
 	out := appendNonWhitespaceOnlyMessage(nil, o.Message)
+	if opts.IncludeSearchableProps {
+		for _, key := range searchablePropsByPostType[o.Type] {
+			if s, ok := o.GetProp(key).(string); ok {
+				out = appendNonWhitespaceOnlyMessage(out, s)
+			}
+		}
+	}
 	for _, attachment := range o.Attachments() {
 		if attachment == nil {
 			continue

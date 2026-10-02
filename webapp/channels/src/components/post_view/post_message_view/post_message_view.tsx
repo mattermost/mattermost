@@ -148,6 +148,7 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                         compactDisplay={compactDisplay}
                         isRHS={isRHS}
                         theme={theme}
+                        options={options}
                     />
                 </PluggableErrorBoundary>
             );

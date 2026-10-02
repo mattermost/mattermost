@@ -5,6 +5,7 @@ package common
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 	"time"
 
@@ -521,6 +522,112 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 		assert.Contains(t, espost.Attachments, "Second")
 		assert.Contains(t, espost.Attachments, "two")
 	})
+
+	t.Run("Boards card", func(t *testing.T) {
+		newCard := func(postType, message string, title any) *model.PostForIndexing {
+			return &model.PostForIndexing{
+				TeamId: model.NewId(),
+				Post: model.Post{
+					Id:        model.NewId(),
+					ChannelId: model.NewId(),
+					UserId:    model.NewId(),
+					CreateAt:  model.GetMillis(),
+					Message:   message,
+					Type:      postType,
+					Props:     map[string]any{model.PostPropsBoardsCardTitle: title},
+				},
+			}
+		}
+
+		t.Run("title is indexed in attachments and the message is unchanged", func(t *testing.T) {
+			post := newCard(model.PostTypeBoardsCard, "Ship the release notes", "Launch checklist")
+
+			espost := ESPostFromPostForIndexing(post, true)
+
+			assert.Equal(t, "Ship the release notes", espost.Message)
+			assert.Equal(t, "Launch checklist", espost.Attachments)
+			assert.Equal(t, model.PostTypeBoardsCard, espost.Type)
+		})
+
+		t.Run("title is indexed when the description is blank", func(t *testing.T) {
+			espost := ESPostFromPostForIndexing(newCard(model.PostTypeBoardsCard, "", "Launch checklist"), true)
+
+			assert.Empty(t, espost.Message)
+			assert.Equal(t, "Launch checklist", espost.Attachments)
+		})
+
+		t.Run("title equal to the description is kept", func(t *testing.T) {
+			espost := ESPostFromPostForIndexing(newCard(model.PostTypeBoardsCard, "Launch", "Launch"), true)
+
+			assert.Equal(t, "Launch", espost.Message)
+			assert.Equal(t, "Launch", espost.Attachments)
+		})
+
+		t.Run("URLs in the title are indexed", func(t *testing.T) {
+			espost := ESPostFromPostForIndexing(newCard(model.PostTypeBoardsCard, "desc", "Review https://example.com/spec"), true)
+
+			assert.Contains(t, espost.URLs, "https://example.com/spec")
+		})
+
+		t.Run("title and attachments are both indexed", func(t *testing.T) {
+			post := newCard(model.PostTypeBoardsCard, "desc", "Launch checklist")
+			post.AddProp(model.PostPropsAttachments, []*model.MessageAttachment{{Text: "attachment text"}})
+
+			espost := ESPostFromPostForIndexing(post, true)
+
+			assert.Equal(t, "Launch checklist attachment text", espost.Attachments)
+		})
+
+		t.Run("non-string title is ignored", func(t *testing.T) {
+			espost := ESPostFromPostForIndexing(newCard(model.PostTypeBoardsCard, "desc", 42), true)
+
+			assert.Empty(t, espost.Attachments)
+		})
+
+		t.Run("card_title on other post types is ignored", func(t *testing.T) {
+			for _, postType := range []string{"", model.PostTypeCard, model.PostCustomTypePrefix + "zoom"} {
+				espost := ESPostFromPostForIndexing(newCard(postType, "desc", "Launch checklist"), true)
+
+				assert.Equal(t, "desc", espost.Message, "type %q", postType)
+				assert.Empty(t, espost.Attachments, "type %q", postType)
+			}
+		})
+
+		t.Run("ESPostFromPost indexes the title", func(t *testing.T) {
+			post := &newCard(model.PostTypeBoardsCard, "desc", "Launch checklist").Post
+
+			espost, err := ESPostFromPost(post, model.NewId(), string(model.ChannelTypeOpen), true)
+			require.NoError(t, err)
+
+			assert.Equal(t, "desc", espost.Message)
+			assert.Equal(t, "Launch checklist", espost.Attachments)
+		})
+	})
+}
+
+func TestSearchPostTypesQuery(t *testing.T) {
+	query := SearchPostTypesQuery()
+	require.NotNil(t, query.Bool)
+	assert.Empty(t, query.Bool.Must)
+	assert.Empty(t, query.Bool.Filter)
+	assert.Empty(t, query.Bool.MustNot)
+
+	var postTypes []string
+	for _, clause := range query.Bool.Should {
+		require.Len(t, clause.Term, 1)
+		term, ok := clause.Term["type"]
+		require.True(t, ok)
+		postType, ok := term.Value.(string)
+		require.True(t, ok)
+		postTypes = append(postTypes, postType)
+	}
+
+	assert.Equal(t, []string{"default", model.PostTypeMessageAttachment, model.PostTypeBoardsCard}, postTypes)
+	for _, postType := range postTypes {
+		assert.False(t, strings.HasPrefix(postType, model.PostSystemMessagePrefix), "type %q", postType)
+	}
+	assert.NotContains(t, postTypes, model.PostTypeBurnOnRead)
+	assert.NotContains(t, postTypes, model.PostTypeCard)
 }
 
 // TestESPostFromPost_CreatePostJSONRoundTrip simulates the exact flow that happens
