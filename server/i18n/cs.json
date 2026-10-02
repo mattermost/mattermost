@@ -3062,17 +3062,19 @@
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
-      "few": "{{.Count}} obrázky odeslány: {{.Filenames}}",
-      "one": "{{.Count}} obrázek odeslán: {{.Filenames}}",
-      "other": "{{.Count}} obrázků odesláno: {{.Filenames}}"
+      "one": "Odeslán {{.Count}} obrázek: {{.Filenames}}",
+      "few": "Odeslány {{.Count}} obrázky: {{.Filenames}}",
+      "many": "Odesláno {{.Count}} obrázku: {{.Filenames}}",
+      "other": "Odesláno {{.Count}} obrázků: {{.Filenames}}"
     }
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
-      "few": "{{.Count}} soubory odeslány: {{.Filenames}}",
-      "one": "{{.Count}} soubor odeslán: {{.Filenames}}",
-      "other": "{{.Count}} souborů odesláno: {{.Filenames}}"
+      "one": "Odeslán {{.Count}} soubor: {{.Filenames}}",
+      "few": "Odeslány {{.Count}} soubory: {{.Filenames}}",
+      "many": "Odesláno {{.Count}} souboru: {{.Filenames}}",
+      "other": "Odesláno {{.Count}} souborů: {{.Filenames}}"
     }
   },
   {
@@ -3650,9 +3652,10 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
-      "few": "[{{.SiteName}}] Nová upozornění k {{.Day}}. {{.Month}} {{.Year}}",
-      "one": "[{{.SiteName}}] Nové upozornění k {{.Day}}. {{.Month}} {{.Year}}",
-      "other": "[{{.SiteName}}] Nových upozornění k {{.Day}}. {{.Month}} {{.Year}}"
+      "one": "[{{.SiteName}}] Nové oznámení ze dne {{.Day}}. {{.Month}} {{.Year}}",
+      "few": "[{{.SiteName}}] Nová oznámení ze dne {{.Day}}. {{.Month}} {{.Year}}",
+      "many": "[{{.SiteName}}] Nová oznámení ze dne {{.Day}}. {{.Month}} {{.Year}}",
+      "other": "[{{.SiteName}}] Nová oznámení ze dne {{.Day}}. {{.Month}} {{.Year}}"
     }
   },
   {
@@ -3966,9 +3969,10 @@
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
     "translation": {
-      "few": "{{.User}} jsou již v kanálu.",
       "one": "{{.User}} je již v kanálu.",
-      "other": "{{.User}} je již v kanálu."
+      "few": "{{.User}} jsou již v kanálu.",
+      "many": "{{.User}} jsou již v kanálu.",
+      "other": "{{.User}} jsou již v kanálu."
     }
   },
   {
@@ -4046,9 +4050,10 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
-      "few": "Nepodařilo se najít uživatele: {{.Users}}",
       "one": "Nelze najít uživatele: {{.Users}}",
-      "other": "Nepodařilo se najít uživatele: {{.Users}}"
+      "few": "Nelze najít uživatele: {{.Users}}",
+      "many": "Nelze najít uživatele: {{.Users}}",
+      "other": "Nelze najít uživatele: {{.Users}}"
     }
   },
   {
@@ -4925,7 +4930,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.subject",
-    "translation": "Licence na Mattermost Enterprise byla deaktivována."
+    "translation": "Platnost vaší licence {{.SkuName}} vypršela"
   },
   {
     "id": "api.team.join_user_to_team.allowed_domains.app_error",
@@ -7197,7 +7202,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, druhé patro, Palo Alto, CA, 94301"
+    "translation": "© 2015 - {{ .CurrentYear }} Mattermost, Inc. 2100 Geng Road, Suite 210, Palo Alto, CA, 94303"
   },
   {
     "id": "api.templates.invite_body.title.reminder",
@@ -8105,7 +8110,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
-    "translation": "Vaše licence je na obnovu"
+    "translation": "Vaše licence {{.SkuName}} čeká na obnovení"
   },
   {
     "id": "app.import.attachment.file_stat.error",
@@ -8526,9 +8531,10 @@
   {
     "id": "app.scheduled_post.failed_message_detail",
     "translation": {
-      "few": "{{.Count}} v kanálu {{.ChannelName}}. Důvod: {{.ErrorReason}}",
-      "one": "{{.Count}} v kanálu {{.ChannelName}}. Důvod: {{.ErrorReason}}",
-      "other": "{{.Count}} v kanálu {{.ChannelName}}. Důvod: {{.ErrorReason}}"
+      "one": "- {{.Count}} v kanálu {{.ChannelName}}. Důvod: {{.ErrorReason}}",
+      "few": "- {{.Count}} v kanálu {{.ChannelName}}. Důvod: {{.ErrorReason}}",
+      "many": "- {{.Count}} v kanálu {{.ChannelName}}. Důvod: {{.ErrorReason}}",
+      "other": "- {{.Count}} v kanálu {{.ChannelName}}. Důvod: {{.ErrorReason}}"
     }
   },
   {
@@ -8550,8 +8556,9 @@
   {
     "id": "app.scheduled_post.failed_messages",
     "translation": {
-      "few": "Nepodařilo se odeslat {{.Count}} naplánované příspěvky.",
       "one": "Nepodařilo se odeslat {{.Count}} naplánovaný příspěvek.",
+      "few": "Nepodařilo se odeslat {{.Count}} naplánované příspěvky.",
+      "many": "Nepodařilo se odeslat {{.Count}} naplánovaného příspěvku.",
       "other": "Nepodařilo se odeslat {{.Count}} naplánovaných příspěvků."
     }
   },
