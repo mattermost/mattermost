@@ -1224,15 +1224,15 @@
     "translation": "Помилка отримання токену доступу з БД перед видаленням."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Реєстрація користувачів вимкнена."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Термін дії посилання на реєстрацію закінчився."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Посилання на реєстрацію, схоже, недійсне."
   },
   {
@@ -3092,11 +3092,11 @@
     "translation": "Не вдалося встановити статус завдання на \"помилка\""
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Не вдалося розібрати URL-адресу."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Не вдалось отримати канали."
   },
   {
@@ -5989,7 +5989,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Не вдалося отримати канали для наданої схеми."
+    "translation": "Не вдалося отримати команди для наданої схеми."
   },
   {
     "id": "app.team.clear_all_custom_role_assignments.select.app_error",
@@ -7433,7 +7433,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Не вдалося скасувати запрошення віддаленого доступу до каналу"
+    "translation": "Не вдалося скасувати запрошення віддаленого сервера до каналу."
   },
   {
     "id": "api.shared_channel.get_shared_channel_remotes_error",
@@ -8448,7 +8448,7 @@
     "translation": "Привіт, ось ваше нагадування про це повідомлення від @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Не вдалося отримати пріоритет для повідомлення"
   },
   {
@@ -8520,7 +8520,7 @@
     "translation": "Не вдалося зберегти інформацію про файл."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Готову версію плагіна не вдалося проаналізувати."
   },
   {
@@ -12355,7 +12355,7 @@
     "translation": "Не вдалося остаточно видалити дані пріоритету допису з бази даних."
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Не вдалося отримати пріоритет для допису з контекстом"
   },
   {
@@ -14595,5 +14595,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Недійсні mention_keys: перевищено обмеження в {{.MaxCount}} ключів або {{.MaxLength}} байтів."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**НЕ ЗНАЙДЕНО**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "видалено"
   }
 ]

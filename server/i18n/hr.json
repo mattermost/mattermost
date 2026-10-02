@@ -3336,15 +3336,15 @@
     "translation": "Greška pri dohvaćanju pristupnog tokena iz baze podataka prije brisanja."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Registracija korisnika je isključena."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Poveznica za registraciju je istekla."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Čini se da poveznica za registraciju nije valjana."
   },
   {
@@ -4117,7 +4117,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Nije moguće ukloniti udaljeni server iz kanala"
+    "translation": "Nije moguće ukloniti udaljeni server iz kanala."
   },
   {
     "id": "api.status.user_not_found.app_error",
@@ -8820,11 +8820,11 @@
     "translation": "Brisanje objave trajne obavijesti nije uspjelo"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Nije moguće dohvatiti prioritet objave"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Nije moguće dohvatiti prioritet objave s kontekstom"
   },
   {
@@ -8856,7 +8856,7 @@
     "translation": "Došlo je do greške pri ažuriranju postavki."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Nije moguće raščlaniti verziju unaprijed zapakiranog dodatka."
   },
   {
@@ -11536,11 +11536,11 @@
     "translation": "Značajka {{.Feature}} nije dostupna uz trenutačnu licencu"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Nije moguće raščlaniti URL."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Nije moguće dohvatiti kanale."
   },
   {
@@ -14602,5 +14602,13 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Nije moguće pronaći korisnika {{.user}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NIJE PRONAĐENA**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "uklonjena"
   }
 ]

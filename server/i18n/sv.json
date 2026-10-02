@@ -980,11 +980,11 @@
     "translation": "Mattermost Tavlan för säkerheten"
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Kan inte hämta kanaler."
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Kan inte tolka URL:en."
   },
   {
@@ -2089,7 +2089,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Kunde inte hitta kanaler med bifogat schema."
+    "translation": "Kunde inte hämta teamen för det angivna schemat."
   },
   {
     "id": "app.team.get_by_name.missing.app_error",
@@ -4944,15 +4944,15 @@
     "translation": "Utgående webhooks har inaktiverats av systemadministratören."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Registreringslänken är ogiltig."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Registreringslänken är inte längre giltig."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Funktionen för användarregistrering är avaktiverad."
   },
   {
@@ -8026,7 +8026,7 @@
     "translation": "Misslyckades att få status för slutförandet av onboarding."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Den förpaketerade plugin-versionen kunde inte tolkas."
   },
   {
@@ -8318,7 +8318,7 @@
     "translation": "Ogiltigt meddelande-id."
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Det går inte att få fram inläggets prioritet"
   },
   {
@@ -9527,7 +9527,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Det gick inte att koppla bort den andra servern från kanalen"
+    "translation": "Det gick inte att koppla bort den andra servern från kanalen."
   },
   {
     "id": "app.import.import_direct_channel.no_members.error",
@@ -12610,7 +12610,7 @@
     "translation": "Misslyckades med att tolka omskrivningssvaret från AI."
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Det går inte att få fram meddelandets prioritet med kontext"
   },
   {
@@ -14580,5 +14580,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Ogiltiga mention_keys: överskrider gränsen på {{.MaxCount}} nyckelord eller {{.MaxLength}} byte."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**HITTADES INTE**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "har tagits bort"
   }
 ]

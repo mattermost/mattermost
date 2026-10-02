@@ -29,7 +29,7 @@ test.describe('Permission Policies - Create Policy', () => {
 
         // * Detail page heading and name input visible
         await expect(
-            systemConsolePage.page.getByText('Attribute Based Permission Policy', {exact: true}),
+            systemConsolePage.page.getByText('Attribute-Based Permission Policy', {exact: true}),
         ).toBeVisible();
         await expect(systemConsolePage.page.getByPlaceholder('Add a unique policy name')).toBeVisible();
     });

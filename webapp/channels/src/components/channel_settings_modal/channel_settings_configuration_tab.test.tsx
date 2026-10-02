@@ -1102,7 +1102,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             await waitFor(() => {
-                expect(screen.getByText(/There has been errors while sharing the channel with some workspaces\. Please try again\./)).toBeInTheDocument();
+                expect(screen.getByText(/There have been errors while sharing the channel with some workspaces\. Please try again\./)).toBeInTheDocument();
             });
         });
     });

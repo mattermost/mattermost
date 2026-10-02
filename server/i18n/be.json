@@ -1152,7 +1152,7 @@
     "translation": "Максімальная даўжыня MattermostAppID складае 32 сімвалы."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Версію папярэдне ўпакаванага плагіна не атрымалася разабраць."
   },
   {
@@ -2476,11 +2476,11 @@
     "translation": "Немагчыма абнавіць актыўны статус MFA для карыстальніка."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Немагчыма атрымаць каналы."
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Немагчыма апрацаваць URL."
   },
   {
@@ -3157,7 +3157,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Немагчыма атрымаць каналы для зададзенай схемы."
+    "translation": "Немагчыма атрымаць каманды для зададзенай схемы."
   },
   {
     "id": "app.team.get_by_name.missing.app_error",
@@ -5966,15 +5966,15 @@
     "translation": "Выходныя вэбхукі адключаны сістэмным адміністратарам."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Спасылка для рэгістрацыі выглядае несапраўднай."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Спасылка для рэгістрацыі састарэла."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Рэгістрацыя карыстальнікаў адключана."
   },
   {
@@ -8749,7 +8749,7 @@
     "translation": "Не атрымалася выдаліць пост пастаяннага апавяшчэння"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Немагчыма атрымаць прыярытэт паведамлення"
   },
   {
@@ -9522,7 +9522,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Не атрымалася адмяніць запрашэнне аддаленага доступу да канала."
+    "translation": "Не атрымалася адклікаць запрашэнне аддаленага сервера ў канал."
   },
   {
     "id": "app.import.import_direct_channel.get_channel_members.error",
@@ -13005,7 +13005,7 @@
     "translation": "Колькасць значэнняў атрыбутаў для гэтых паведамленняў перавышае падтрымліваемы ліміт."
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Немагчыма атрымаць прыярытэт паведамлення з кантэкстам"
   },
   {
@@ -14611,5 +14611,13 @@
   {
     "id": "web.error.unsupported_desktop_app.title",
     "translation": "Патрабуецца абнаўленне"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**НЕ ЗНОЙДЗЕНА**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "выдалена"
   }
 ]

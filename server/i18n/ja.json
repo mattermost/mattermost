@@ -1242,15 +1242,15 @@
     "translation": "削除前にデータベースからアクセストークンを取得できませんでした。"
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "ユーザーの利用登録は無効化されています。"
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "利用登録リンクは有効期限が切れています。"
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "利用登録リンクが不正です。"
   },
   {
@@ -3122,11 +3122,11 @@
     "translation": "ジョブの状態をエラーに設定できませんでした"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "URLを解析できません。"
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "チャンネルが取得できません。"
   },
   {
@@ -6067,7 +6067,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "与えられたスキームにおけるチャンネルを取得できませんでした。"
+    "translation": "与えられたスキームにおけるチームを取得できませんでした。"
   },
   {
     "id": "app.team.get_by_name.missing.app_error",
@@ -7639,7 +7639,7 @@
   },
   {
     "id": "api.command_remote.cluster_removed",
-    "translation": "安全な接続 {{.RemoteId}} {{.Result}}。"
+    "translation": "安全な接続 {{.RemoteId}} は{{.Result}}。"
   },
   {
     "id": "api.command_remote.add_remote.error",
@@ -8038,7 +8038,7 @@
     "translation": "ストアから最初の管理者向けセットアップを取得する際にエラーが発生しました。"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "パッケージ済みプラグインのバージョンを解析できませんでした。"
   },
   {
@@ -8278,7 +8278,7 @@
     "translation": "不正なpost idです。"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "投稿に対する優先度を取得できませんでした"
   },
   {
@@ -9535,7 +9535,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "リモートのチャンネルへの招待を解除できませんでした"
+    "translation": "リモートのチャンネルへの招待を解除できませんでした。"
   },
   {
     "id": "app.import.import_direct_channel.get_channel_members.error",
@@ -12438,7 +12438,7 @@
     "translation": "AIからの書き換えレスポンスを解析できませんでした。"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "コンテキスト付きで投稿の優先度を取得できませんでした"
   },
   {
@@ -14568,5 +14568,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keysが不正です: {{.MaxCount}} 個のキーまたは {{.MaxLength}} バイトの上限を超えています。"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**見つかりませんでした**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "削除されました"
   }
 ]

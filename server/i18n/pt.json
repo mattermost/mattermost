@@ -3062,15 +3062,15 @@
     "translation": "Erro ao obter o token de acesso da base de dados antes da eliminação."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "O registo de utilizadores está desativado."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "A ligação de registo expirou."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "A ligação de registo não parece ser válida."
   },
   {
@@ -3843,7 +3843,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Não foi possível remover o convite do servidor remoto para o canal"
+    "translation": "Não foi possível anular o convite do servidor remoto para o canal."
   },
   {
     "id": "api.status.user_not_found.app_error",
@@ -8840,11 +8840,11 @@
     "translation": "Não foi possível eliminar a mensagem de notificação persistente"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Não é possível obter a prioridade da mensagem"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Não é possível obter a prioridade da mensagem com contexto"
   },
   {
@@ -8876,7 +8876,7 @@
     "translation": "Ocorreu um erro ao atualizar as preferências."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Não foi possível analisar a versão do plugin pré-empacotado."
   },
   {
@@ -11563,11 +11563,11 @@
     "translation": "A funcionalidade {{.Feature}} não está disponível para a licença atual"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Não é possível interpretar o URL."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Não é possível obter os canais."
   },
   {
@@ -14593,5 +14593,13 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Não foi possível encontrar o utilizador {{.user}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NÃO ENCONTRADA**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "removida"
   }
 ]

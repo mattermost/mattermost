@@ -1224,15 +1224,15 @@
     "translation": "Ошибка получения токена из БД перед удалением."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Регистрация пользователя отключена."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Ссылка для регистрации устарела."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Ссылка для регистрации, похоже, неверна."
   },
   {
@@ -3092,11 +3092,11 @@
     "translation": "Не удалось установить статус задания на ошибку"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Невозможно разобрать URL."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Невозможно получить каналы."
   },
   {
@@ -6253,7 +6253,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Невозможно получить каналы для предоставленной схемы."
+    "translation": "Невозможно получить команды для предоставленной схемы."
   },
   {
     "id": "app.team.clear_all_custom_role_assignments.select.app_error",
@@ -7964,7 +7964,7 @@
     "translation": "Не удалось расшифровать полный запрос на подключение."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Предварительно упакованная версия плагина не может быть проанализирована."
   },
   {
@@ -8248,7 +8248,7 @@
     "translation": "Неверный идентификатор сообщения."
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Невозможно получить приоритет для сообщения"
   },
   {
@@ -9533,7 +9533,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Не удалось отменить приглашение дистанционного пользователя на канал"
+    "translation": "Не удалось отменить приглашение удалённого сервера в канал."
   },
   {
     "id": "api.file.zip_file_reader.app_error",
@@ -12111,7 +12111,7 @@
     "translation": "Не удалось окончательно удалить данные приоритета сообщения из базы данных."
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Невозможно получить приоритет для сообщения с контекстом"
   },
   {
@@ -14595,5 +14595,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Неверное значение mention_keys: превышен предел в {{.MaxCount}} ключей или {{.MaxLength}} байт."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**НЕ НАЙДЕНО**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "удалено"
   }
 ]

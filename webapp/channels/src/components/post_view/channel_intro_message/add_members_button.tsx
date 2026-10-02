@@ -119,7 +119,7 @@ const MoreThanMaxFreeUsers = ({channel, pluginButtons}: {channel: Channel; plugi
                         />
                         {channel.group_constrained &&
                             <FormattedMessage
-                                id='intro_messages.inviteGropusToChannel.button'
+                                id='intro_messages.inviteGroupsToChannel.button'
                                 defaultMessage='Add groups'
                             />}
                         {!channel.group_constrained &&

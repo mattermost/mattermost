@@ -3065,15 +3065,15 @@
     "translation": "Feil under henting av tilgangstokenet fra databasen før sletting."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Brukerregistrering er deaktivert."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Registreringslenken er utløpt."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Registreringslenken ser ikke ut til å være gyldig."
   },
   {
@@ -3846,7 +3846,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Kunne ikke trekke tilbake invitasjonen til den eksterne serveren fra kanalen"
+    "translation": "Kunne ikke fjerne den eksterne serveren fra kanalen."
   },
   {
     "id": "api.status.user_not_found.app_error",
@@ -8767,11 +8767,11 @@
     "translation": "Kunne ikke slette innlegget med vedvarende varsel"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Kan ikke hente innleggsprioritet for innlegget"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Kan ikke hente innleggsprioritet for innlegget med kontekst"
   },
   {
@@ -8803,7 +8803,7 @@
     "translation": "Det oppstod en feil under oppdatering av innstillinger."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Versjonen til den forhåndspakkede pluginen kunne ikke tolkes."
   },
   {
@@ -11463,11 +11463,11 @@
     "translation": "Funksjonen {{.Feature}} er ikke tilgjengelig med gjeldende lisens"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Kan ikke tolke URL-en."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Kan ikke hente kanaler."
   },
   {
@@ -14593,5 +14593,13 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Finner ikke brukeren {{.user}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**IKKE FUNNET**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "fjernet"
   }
 ]

@@ -1245,15 +1245,15 @@
     "translation": "Beim Abruf des Zugriffstokens, vor der Löschung aus der Datenbank, ist ein Fehler aufgetreten."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Benutzerregistrierung ist deaktiviert."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Der Registrierungslink ist abgelaufen."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Der Einladungslink scheint nicht gültig zu sein."
   },
   {
@@ -3127,11 +3127,11 @@
     "translation": "Konnte Job-Status nicht auf fehlerhaft setzen"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Verarbeiten der URL nicht möglich."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Konnte die Kanäle nicht abrufen."
   },
   {
@@ -6032,7 +6032,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Konnte Kanäle für das angegebene Schema nicht abrufen."
+    "translation": "Konnte Teams für das angegebene Schema nicht abrufen."
   },
   {
     "id": "app.team.clear_all_custom_role_assignments.select.app_error",
@@ -8042,7 +8042,7 @@
     "translation": "Fehler beim Senden der Email"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Die vorgepackte Plugin-Version konnte nicht geparst werden."
   },
   {
@@ -8286,7 +8286,7 @@
     "translation": "Ungültige Nachrichten-ID."
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Die Priorität der Nachricht kann nicht ermittelt werden"
   },
   {
@@ -9503,7 +9503,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Die Gegenseite konnte nicht vom Kanal ausgeladen werden"
+    "translation": "Die Gegenseite konnte nicht vom Kanal ausgeladen werden."
   },
   {
     "id": "app.import.import_direct_channel.get_channel_members.error",
@@ -11408,7 +11408,7 @@
     "translation": "Öffentlicher Datei Download durch Plugin abgelehnt"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Nachrichtenpriorität für Beitrag mit Kontext kann nicht abgerufen werden"
   },
   {
@@ -14580,5 +14580,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Ungültige mention_keys: überschreitet die Grenze von {{.MaxCount}} Schlüsseln oder {{.MaxLength}} Bytes."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NICHT GEFUNDEN**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "gelöscht"
   }
 ]

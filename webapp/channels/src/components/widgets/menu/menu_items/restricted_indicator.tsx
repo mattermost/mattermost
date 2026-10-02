@@ -97,7 +97,7 @@ const RestrictedIndicator = ({
                             {blocked ? (
                                 getTooltipMessageBlocked()
                             ) : (
-                                tooltipMessage || formatMessage({id: 'restricted_indicator.tooltip.mesage', defaultMessage: 'During your trial you are able to use this feature.'})
+                                tooltipMessage || formatMessage({id: 'restricted_indicator.tooltip.message', defaultMessage: 'During your trial you are able to use this feature.'})
                             )}
                         </span>
                     </div>

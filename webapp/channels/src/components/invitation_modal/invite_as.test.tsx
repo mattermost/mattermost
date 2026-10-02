@@ -128,7 +128,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
         const guestRadioButton = screen.getByDisplayValue('GUEST');
         expect(guestRadioButton).toBeDisabled();
 
-        expect(screen.getByText('Professional feature- try it out free')).toBeInTheDocument();
+        expect(screen.getByText('Professional feature - try it out free')).toBeInTheDocument();
     });
 
     test('restricted badge shows "Upgrade" for cloud post trial', () => {
@@ -216,7 +216,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
         const guestRadioButton = screen.getByDisplayValue('GUEST');
         expect(guestRadioButton).toBeDisabled();
 
-        expect(screen.getByText('Professional feature- try it out free')).toBeInTheDocument();
+        expect(screen.getByText('Professional feature - try it out free')).toBeInTheDocument();
     });
 
     test('restricted badge shows "Upgrade" for self hosted starter post trial', () => {

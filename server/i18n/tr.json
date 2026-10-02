@@ -1245,15 +1245,15 @@
     "translation": "Silinmeden önce erişim kodu veri tabanından alınırken sorun çıktı."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Kullanıcı hesap açma özelliği kapalı."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Hesap açma bağlantısının süresi geçmiş."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Hesap açma bağlantısı geçersiz gibi görünüyor."
   },
   {
@@ -3127,11 +3127,11 @@
     "translation": "İş durumu hata olarak ayarlanamadı"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Adres işlenemedi."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Kanallar alınamadı."
   },
   {
@@ -6164,7 +6164,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Belirtilen şemanın uygulanabileceği kanallar alınamadı."
+    "translation": "Belirtilen şemanın uygulandığı takımlar alınamadı."
   },
   {
     "id": "app.post.get_posts_since.app_error",
@@ -8054,7 +8054,7 @@
     "translation": "E-posta gönderilirken sorun çıktı"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Önceden hazırlanmış uygulama eki sürümü işlenemedi."
   },
   {
@@ -8318,7 +8318,7 @@
     "translation": "İleti kimliği geçersiz."
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "İletinin önceliği alınamadı"
   },
   {
@@ -9519,7 +9519,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Uzak taraf kanal daveti kaldırılamadı"
+    "translation": "Uzak tarafın kanal daveti kaldırılamadı"
   },
   {
     "id": "app.post.save.thread_membership.app_error",
@@ -12490,7 +12490,7 @@
     "translation": "Yapay zekadan gelen yeniden yazma yanıtı ayrıştırılamadı."
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Bağlam ile iletinin önceliği alınamadı"
   },
   {
@@ -14580,5 +14580,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys geçersiz: {{.MaxCount}} anahtar ya da {{.MaxLength}} bayt sınırı aşılıyor."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**BULUNAMADI**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "silindi"
   }
 ]

@@ -1245,15 +1245,15 @@
     "translation": "Fout bij het ophalen van het access token uit de database, voor het verwijderen."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Gebruikers registratie is uitgeschakeld."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "De aanmeldlink is verlopen."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "De aanmeldlink lijkt niet geldig te zijn."
   },
   {
@@ -3127,11 +3127,11 @@
     "translation": "Kan taakstatus niet instellen op fout"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Kan URL niet verwerken."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Kan de kanalen niet ophalen."
   },
   {
@@ -6380,7 +6380,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Fout bij het ophalen van kanalen voor het opgegeven schema."
+    "translation": "Fout bij het ophalen van teams voor het opgegeven schema."
   },
   {
     "id": "app.team.get_by_name.app_error",
@@ -8054,7 +8054,7 @@
     "translation": "Fout bij het verzenden van de e-mail"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Voorverpakte plugin versie kon niet geparsed worden."
   },
   {
@@ -8314,7 +8314,7 @@
     "translation": "Ongeldig bericht-id."
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Kon geen berichtprioriteit ophalen voor bericht"
   },
   {
@@ -9551,7 +9551,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Kan uitnodiging voor kanaal niet intrekken voor remote"
+    "translation": "Kan uitnodiging van externe voor kanaal niet intrekken."
   },
   {
     "id": "app.import.import_direct_channel.get_channel_members.error",
@@ -11432,7 +11432,7 @@
     "translation": "Publiek bestanden downloaden geweigerd door plugin"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Kan geen postprioriteit krijgen voor bericht met context"
   },
   {
@@ -14592,5 +14592,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Ongeldige mention_keys: overschrijdt de limiet van {{.MaxCount}} sleutels of {{.MaxLength}} bytes."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NIET GEVONDEN**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "verwijderd"
   }
 ]

@@ -1242,15 +1242,15 @@
     "translation": "刪除前從資料庫取得存取代符時遇到錯誤。"
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "使用者註冊已被停用。"
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "註冊連結已過期。"
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "此註冊連結不是有效連結。"
   },
   {
@@ -3070,11 +3070,11 @@
     "translation": "設定工作狀態為錯誤時失敗"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "無法解析網址。"
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "無法取得頻道。"
   },
   {
@@ -5967,7 +5967,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "無法取得提供的策略當中的頻道。"
+    "translation": "無法取得提供的策略當中的團隊。"
   },
   {
     "id": "model.upload_session.is_valid.type.app_error",
@@ -8050,7 +8050,7 @@
     "translation": "無法刪除持續性通知訊息"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "無法取得訊息的 postpriority"
   },
   {
@@ -8058,7 +8058,7 @@
     "translation": "哈囉，提醒您來自 @{{.Username}} 的這則訊息：{{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "無法解析預先打包的擴充程式版本。"
   },
   {
@@ -9395,7 +9395,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "無法取消遠端加入頻道邀請"
+    "translation": "無法取消遠端加入頻道的邀請。"
   },
   {
     "id": "app.channel.bookmark.get_existing.app_err",
@@ -11946,7 +11946,7 @@
     "translation": "從資料庫永久刪除訊息的優先順序資料失敗。"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "無法取得訊息的 postpriority（含請求內容）"
   },
   {
@@ -14568,5 +14568,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys 無效：超過 {{.MaxCount}} 個關鍵字或 {{.MaxLength}} 位元組的上限。"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**找不到**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "已移除"
   }
 ]

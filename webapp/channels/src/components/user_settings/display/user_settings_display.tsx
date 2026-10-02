@@ -815,7 +815,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             },
             description: defineMessage({
                 id: 'user.settings.display.teammateNameDisplayDescription',
-                defaultMessage: 'Set how to display other user\'s names in posts and the Direct Messages list.',
+                defaultMessage: 'Set how to display other users\' names in posts and the Direct Messages list.',
             }),
             disabled: this.props.lockTeammateNameDisplay,
         });

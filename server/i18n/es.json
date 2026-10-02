@@ -1224,15 +1224,15 @@
     "translation": "Error obteniendo el token de acceso desde la BD antes de ser eliminado."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "El registro de usuario está inhabilitado."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "El enlace de registro ha expirado."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "El enlace de registro parece ser inválido."
   },
   {
@@ -3092,11 +3092,11 @@
     "translation": "No se puede establecer el estado al trabajo de error"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "No se pudo analizar el URL."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "No se pudo obtener los canales."
   },
   {
@@ -6145,7 +6145,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "No se puede obtener los canales para el esquema suministrado."
+    "translation": "No se pueden obtener los equipos para el esquema suministrado."
   },
   {
     "id": "app.team.get_by_name.missing.app_error",
@@ -7956,7 +7956,7 @@
     "translation": "No se pudo obtener todos los jobs por tipo y estado."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "La versión del complemento preempaquetado no pudo ser analizado."
   },
   {
@@ -8597,7 +8597,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "No se pudo anular la invitación de remoto al canal"
+    "translation": "No se pudo anular la invitación del remoto al canal."
   },
   {
     "id": "api.access_control_policy.get_channels.limit.app_error",
@@ -11417,11 +11417,11 @@
     "translation": "Error al eliminar el mensaje de notificación persistente"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "No se pudo obtener la prioridad del mensaje"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "No se pudo obtener la prioridad del mensaje con contexto"
   },
   {
@@ -14577,5 +14577,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys no válido: supera el límite de {{.MaxCount}} claves o {{.MaxLength}} bytes."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NO ENCONTRADA**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "eliminada"
   }
 ]

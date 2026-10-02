@@ -544,7 +544,7 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !*c.App.Config().TeamSettings.EnableUserCreation {
 		utils.RenderWebError(c.App.Config(), w, r, http.StatusBadRequest, url.Values{
-			"message": []string{i18n.T("api.oauth.singup_with_oauth.disabled.app_error")},
+			"message": []string{i18n.T("api.oauth.signup_with_oauth.disabled.app_error")},
 		}, c.App.AsymmetricSigningKey())
 		return
 	}

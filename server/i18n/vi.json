@@ -318,7 +318,7 @@
     "translation": "public link salt không hợp lệ cho các thiết lập tập tin. Phải từ 32 ký tự trở lên."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Link đăng ký không hợp lệ"
   },
   {
@@ -1380,7 +1380,7 @@
     "translation": "Không thể đổi tên nhóm, tên này đã được sử dụng"
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Không thể cập nhật kênh"
   },
   {
@@ -1664,7 +1664,7 @@
     "translation": "Tên vai trò không hợp lệ."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Đăng ký người dùng bị vô hiệu hóa."
   },
   {
@@ -2122,7 +2122,7 @@
     "translation": "Không thể tạo dữ liệu mã thông báo để xác minh email"
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Liên kết đăng ký đã hết hạn"
   },
   {
@@ -4002,7 +4002,7 @@
     "translation": "Trường Create_at phải là thời gian hợp lệ."
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Không thể phân tích URL"
   },
   {
@@ -7086,7 +7086,7 @@
     "translation": "Bạn không thể cập nhật Bài đăng hiện có."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Không thể phân tích cú pháp phiên bản plugin đóng gói sẵn."
   },
   {
@@ -7190,7 +7190,7 @@
     "translation": "Không thể xóa thông báo liên tục của nhóm."
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Không thể nhận được ưu tiên sau cho bài đăng"
   },
   {
@@ -7447,7 +7447,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Không thể nhận được các kênh cho chương trình được cung cấp."
+    "translation": "Không thể lấy các nhóm cho lược đồ được cung cấp."
   },
   {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
@@ -9559,7 +9559,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Không thể hủy mời máy chủ từ xa khỏi kênh"
+    "translation": "Không thể hủy mời máy chủ từ xa khỏi kênh."
   },
   {
     "id": "api.system.logs.download_bytes_buffer.app_error",
@@ -11490,7 +11490,7 @@
     "translation": "Không thể xóa vĩnh viễn dữ liệu mức độ ưu tiên của bài đăng khỏi cơ sở dữ liệu."
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Không thể lấy mức độ ưu tiên cho bài đăng với ngữ cảnh"
   },
   {
@@ -14568,5 +14568,13 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys không hợp lệ: vượt quá giới hạn {{.MaxCount}} khóa hoặc {{.MaxLength}} byte."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**KHÔNG TÌM THẤY**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "đã được xóa"
   }
 ]
