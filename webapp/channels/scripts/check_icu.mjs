@@ -11,9 +11,12 @@
  * than recording.
  *
  *   - the file is valid JSON and every value is a string
+ *   - the file is in canonical form: keys in code-point order, a 2-space
+ *     indent and a trailing newline, so a hand edit changes only what it means to
  *   - no value is empty or whitespace-only. react-intl replaces '' with the
  *     English, exactly as for a missing key, and renders whitespace as a blank.
- *     --warn-missing-keys downgrades this too, for work in progress.
+ *     --warn-missing-keys does not downgrade this: a blank entry is a leftover
+ *     placeholder, not work in progress.
  *   - every value parses with @formatjs/icu-messageformat-parser, the parser
  *     react-intl runs in production, so "parses here" implies "parses there"
  *   - a translation never invents a variable the source does not have. An
@@ -33,7 +36,7 @@
  *
  * Key parity is a separate question from whether the entries that exist are
  * correct. An extra key, one en.json does not have, is always an error: nothing
- * will ever read it. A missing key -- absent, or present but blank -- is an
+ * will ever read it. An absent key is an
  * error by default and a warning under --warn-missing-keys, and is not a
  * runtime defect either way, because react-intl falls back to the source
  * message.
@@ -124,7 +127,7 @@ const TYPES = {
  * English needs a plural far less often than the languages it is translated
  * into: "{count} items were deleted" is one sentence in English and four in
  * Russian. Wrapping a bare {count} in {count, plural, ...} is how a translator
- * makes that sentence grammatical, and it loses nothing -- so it is allowed,
+ * makes that sentence grammatical, and it loses nothing, so it is allowed,
  * even though the source never asked for a plural. Demotion is the reverse and
  * stays fatal.
  *
@@ -141,9 +144,9 @@ const PROMOTIONS = {
 
 /**
  * Map every variable and tag in an AST to the set of types it is used as. A
- * single name is regularly used in more than one role -- "{count, number} new
+ * single name is regularly used in more than one role ("{count, number} new
  * {count, plural, one {message} other {messages}}" uses count as both a number
- * and a plural -- so this has to be a set per name, not a type per name.
+ * and a plural), so this has to be a set per name, not a type per name.
  *
  * Plural categories are deliberately not compared: which categories a message
  * needs is a property of the locale, not of the source string.
@@ -177,13 +180,34 @@ for (const [key, message] of Object.entries(en)) {
     }
 }
 
+// Horizontal arrows and pointers. They are not bidi-mirrored, so in a
+// right-to-left sentence one meaning "next" or "leads to" points backwards.
+// Vertical arrows and the ↵ key symbol read the same either way.
+const HORIZONTAL_GLYPH = /[\u2190\u2192\u21D0\u21D2\u27F5\u27F6\u2794\u279C-\u27BF\u2B05\u25B6\u25B8\u25BA\u25C0\u25C2\u25C4]/u;
+const isRightToLeft = (locale) => {
+    const tag = new Intl.Locale(locale);
+    return (tag.getTextInfo ? tag.getTextInfo() : tag.textInfo).direction === 'rtl';
+};
+
 for (const name of localeNames) {
+    const rightToLeft = isRightToLeft(path.basename(name, '.json'));
     let data;
+    const text = readCatalog(name);
     try {
-        data = JSON.parse(readCatalog(name));
+        data = JSON.parse(text);
     } catch (e) {
         errors.push(`${name}: invalid JSON: ${e.message}`);
         continue;
+    }
+
+    // Keys in code-point order, as every catalog already is, so that a hand edit
+    // cannot reorder or reindent a file and bury its one real change in the diff.
+    // A duplicate key also lands here: JSON.parse keeps only the last one.
+    const canonical = JSON.stringify(Object.fromEntries(Object.keys(data).sort().map((k) => [k, data[k]])), null, 2) + '\n';
+    if (text !== canonical) {
+        const at = [...text].findIndex((c, i) => c !== canonical[i]);
+        const line = text.slice(0, at === -1 ? text.length : at).split('\n').length;
+        errors.push(`${name}: not in canonical form from line ${line}: keys in code-point order, a 2-space indent and a trailing newline`);
     }
 
     for (const key of Object.keys(en)) {
@@ -205,9 +229,16 @@ for (const name of localeNames) {
         // react-intl falls back to the English for '', exactly as for a missing
         // key. A whitespace-only translation is worse: it renders, and the
         // user sees nothing at all.
+        // Unlike a missing key, this is an error even under --warn-missing-keys:
+        // an absent key is work in progress, but an empty one is a placeholder
+        // left behind, such as the translate-i18n skill's seeding.
         if (message.trim() === '') {
-            (warnMissingKeys ? warnings : errors).push(`${name}:${key}: empty translation`);
+            errors.push(`${name}:${key}: empty translation`);
             continue;
+        }
+
+        if (rightToLeft && HORIZONTAL_GLYPH.test(message)) {
+            warnings.push(`${name}:${key}: horizontal arrow in a right-to-left locale points the opposite way to the reading direction`);
         }
 
         // ignoreTag: false parses <b>...</b> as tags rather than literal text,
