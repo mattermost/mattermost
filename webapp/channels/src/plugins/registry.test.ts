@@ -791,3 +791,13 @@ describe('PluginRegistry lifetime', () => {
         expect(mockCurrentStore.getState()).toBe(before);
     });
 });
+
+describe('PluginRegistry — getThreadViewer', () => {
+    jest.mock('components/threading/thread_viewer', () => ({__esModule: true, default: () => null}));
+
+    it('returns the thread viewer component', () => {
+        const registry = new PluginRegistry('test_plugin');
+        const ThreadViewer = jest.requireMock('components/threading/thread_viewer').default;
+        expect(registry.getThreadViewer()).toBe(ThreadViewer);
+    });
+});
