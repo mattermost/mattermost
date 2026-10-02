@@ -4643,7 +4643,6 @@
   "channel_attributes.description": "Attribútumok és értékek beállítása ehhez a csatornához.",
   "channel_attributes.enter_value": "Adjon meg egy értéket",
   "channel_attributes.info.add": "Attribútum hozzáadása",
-  "channel_attributes.info.clear": "{label} törlése",
   "channel_attributes.info.edit": "{label} szerkesztése",
   "channel_attributes.info.heading": "Csatornaattribútumok",
   "channel_attributes.info.locked": "Ez az attribútum a beállítása után nem módosítható",

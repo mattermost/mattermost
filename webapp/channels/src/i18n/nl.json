@@ -4645,7 +4645,6 @@
   "channel_attributes.description": "Configureer attributen en waarden voor dit kanaal.",
   "channel_attributes.enter_value": "Voer een waarde in",
   "channel_attributes.info.add": "Attribuut toevoegen",
-  "channel_attributes.info.clear": "{label} wissen",
   "channel_attributes.info.edit": "{label} bewerken",
   "channel_attributes.info.heading": "Kanaalattributen",
   "channel_attributes.info.locked": "Dit attribuut kan niet worden gewijzigd nadat het is ingesteld",
