@@ -68,9 +68,6 @@ func Desanitize(actual, target *model.Config) {
 	if target.SqlSettings.DataSource != nil && *target.SqlSettings.DataSource == model.FakeSetting && actual.SqlSettings.DataSource != nil {
 		*target.SqlSettings.DataSource = *actual.SqlSettings.DataSource
 	}
-	if target.SqlSettings.AtRestEncryptKey != nil && *target.SqlSettings.AtRestEncryptKey == model.FakeSetting {
-		target.SqlSettings.AtRestEncryptKey = actual.SqlSettings.AtRestEncryptKey
-	}
 
 	if target.ElasticsearchSettings.Password != nil && *target.ElasticsearchSettings.Password == model.FakeSetting && actual.ElasticsearchSettings.Password != nil {
 		*target.ElasticsearchSettings.Password = *actual.ElasticsearchSettings.Password

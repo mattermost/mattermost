@@ -175,9 +175,9 @@ export function getTeamAccessControlPolicy(teamId: string) {
     });
 }
 
-export function getAccessControlFields(after: string, limit: number, channelId?: string, teamId?: string) {
+export function getAccessControlFields(after: string, limit: number, channelId?: string, teamId?: string, includeResourceFields?: boolean) {
     return bindClientFunc({
-        clientFunc: () => Client4.getAccessControlFields(after, limit, channelId, teamId),
+        clientFunc: () => Client4.getAccessControlFields(after, limit, channelId, teamId, includeResourceFields),
         params: [],
     });
 }

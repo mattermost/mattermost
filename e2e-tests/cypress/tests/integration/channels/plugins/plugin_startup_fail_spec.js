@@ -38,17 +38,8 @@ describe('If plugins fail to start, they can be disabled', () => {
                 cy.get('input[type=file]').attachFile({fileContent, fileName: gitlabPlugin.filename, mimeType});
             });
 
-        cy.get('#uploadPlugin').scrollIntoView().should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
-
-        // * Verify that the button shows correct text while uploading
-        cy.findByText('Uploading...', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
-
-        // * Verify that the button shows correct text and is disabled after upload
-        cy.findByText('Upload', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
-        cy.get('#uploadPlugin').and('be.disabled');
-
         // # Enable GitLab plugin
-        cy.findByTestId(gitlabPlugin.id).scrollIntoView().should('be.visible').within(() => {
+        cy.findByTestId(gitlabPlugin.id, {timeout: TIMEOUTS.FIVE_MIN}).scrollIntoView().should('be.visible').within(() => {
             // * Verify GitLab Plugin title is shown
             cy.waitUntil(() => cy.get('strong').scrollIntoView().should('be.visible').then((title) => {
                 return title[0].innerText === 'GitLab';

@@ -1,0 +1,23 @@
+.toc {
+  columns: 2;
+  column-gap: 2rem;
+}
+
+.toc li {
+  break-inside: avoid;
+}
+
+.method {
+  margin: 1.75rem 0;
+}
+
+.method h3 {
+  font-family: var(--mm-font-mono);
+  font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+  .toc {
+    columns: 1;
+  }
+}

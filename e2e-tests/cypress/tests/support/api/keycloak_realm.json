@@ -1393,7 +1393,7 @@
         "bindDn" : [ "cn=admin,dc=mm,dc=test,dc=com" ],
         "changedSyncPeriod" : [ "-1" ],
         "usernameLDAPAttribute" : [ "uid" ],
-        "bindCredential" : [ "mostest" ],
+        "bindCredential" : [ "mostest_password" ],
         "lastSync" : [ "1518169262" ],
         "vendor" : [ "other" ],
         "uuidLDAPAttribute" : [ "entryUUID" ],

@@ -178,7 +178,7 @@ func (worker *OpensearchAggregatorWorker) DoJob(job *model.Job) {
 		return
 	}
 
-	for index := range postIndexesResult.Indices {
+	for index := range *postIndexesResult.IndicesGetRespData {
 		var indexDate time.Time
 		indexDate, err = time.Parse(dateFormat, index)
 		if err != nil {

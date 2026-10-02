@@ -1,5 +1,7 @@
 ---
-title: "Interactive dialogs"
+title: "Use interactive dialogs"
+description: "Interactive dialogs let applications gather structured input from Mattermost users and submit it back to an integration through single-step forms or multi-step workflows."
+sidebar_label: "Interactive dialogs"
 sidebar_position: 70
 ---
 
@@ -7,6 +9,8 @@ Integrations open dialogs by sending an `HTTP POST`, containing some data in the
 [custom slash command](/developers/integrate/slash-commands).
 
 Moreover, [plugins](/developers/integrate/plugins/using-and-managing-plugins) can trigger a dialog based on user actions. For instance, if a plugin adds a button in the channel header, clicking that button may open a dialog.
+
+From Mattermost v11.10, dialogs can be stacked: an [`action_button`](#action-button-elements) element inside a dialog lets a user open a child dialog on top of the current one. Up to three dialogs may be open at once; any request to open a dialog beyond this limit is silently ignored by the client.
 
 Here is an example of what a dialog looks like for creating a Jira issue within the Mattermost user interface:
 
@@ -64,6 +68,8 @@ Each dialog supports elements for users to enter information.
 - `radio`: Radio button option. Use this to quickly select an option from pre-selected choices.
 - `date`: Date picker field. Use this for selecting dates without time information.
 - `datetime`: Date and time picker field. Use this for selecting both date and time with timezone support.
+- `file`: File upload field. Use this to allow users to attach one or more files as part of a dialog submission.
+- `action_button`: Clickable button that opens a child (stacked) dialog. Use this to branch into a follow-up dialog without submitting the current one. (Minimum server version 11.10.)
 
 Each element is required by default, otherwise the client will return an error as shown below. Note that the error message will appear below the help text, if one is specified. To make an element optional, set the field `"optional": "true"`.
 
@@ -436,6 +442,8 @@ The full list of supported fields for `date` elements is included below:
 | `help_text`       | String  | (Optional) Help text displayed below the field. Maximum 150 characters.                                                            |
 | `optional`        | Boolean | (Optional) Set to `true` if this form element is not required. Default is `false`.                                                 |
 | `datetime_config` | Object  | (Optional) Nested date configuration object. See [datetime_config object](#datetime_config-object) for supported properties.       |
+| `min_date`        | String  | (Deprecated — use `datetime_config.min_date`.) Earliest selectable date. Supports ISO date format (YYYY-MM-DD) or relative formats (`today`, `tomorrow`, `+1d`, `-7d`, etc.). Full ISO datetime strings are accepted, but only the date part is parsed; timezone information is ignored. |
+| `max_date`        | String  | (Deprecated — use `datetime_config.max_date`.) Latest selectable date. Supports ISO date format (YYYY-MM-DD) or relative formats (`today`, `+30d`, `+1y`, etc.). Full ISO datetime strings are accepted, but only the date part is parsed; timezone information is ignored. |
 
 #### Date field usage examples
 
@@ -503,6 +511,9 @@ The full list of supported fields for `datetime` elements is included below:
 | `help_text`       | String  | (Optional) Help text displayed below the field. Maximum 150 characters.                                                            |
 | `optional`        | Boolean | (Optional) Set to `true` if this form element is not required. Default is `false`.                                                 |
 | `datetime_config` | Object  | (Optional) Nested datetime configuration object. See [datetime_config object](#datetime_config-object) for supported properties.   |
+| `min_date`        | String  | (Deprecated — use `datetime_config.min_date`.) Earliest selectable date. Supports ISO format or relative formats (`today`, `tomorrow`, `+1d`, `-7d`, etc.). |
+| `max_date`        | String  | (Deprecated — use `datetime_config.max_date`.) Latest selectable date. Supports ISO format or relative formats (`today`, `+30d`, `+1y`, etc.). |
+| `time_interval`   | Integer | (Deprecated — use `datetime_config.time_interval`.) Time selection interval in minutes. Must be between 1 and 1440, and must be a divisor of 1440 to create evenly spaced intervals throughout the day. Common values: 15, 30, 60, 90, 120. Default is 60. |
 
 #### DateTime field usage examples
 
@@ -565,8 +576,9 @@ The `datetime_config` object groups date/datetime configuration into a single ne
 | `time_interval`           | Integer | `datetime`         | 11.6   | (Optional) Time selection interval in minutes. Must be between 1 and 1440, and must be a divisor of 1440. Default is 60.    |
 | `location_timezone`       | String  | `datetime`         | 11.6   | (Optional) IANA timezone used to display and submit the time (e.g. `America/Denver`, `Asia/Tokyo`). When set, all users see the same wall-clock time regardless of their own timezone. Defaults to the viewing user's timezone. |
 | `manual_time_entry`       | Boolean | `datetime`         | 11.8   | (Optional) When `true`, users can type the time directly in addition to using the dropdown. Default is `false`.             |
+| `allow_manual_time_entry` | Boolean | `datetime`         | 11.6 (deprecated in 11.8) | (Deprecated — use `manual_time_entry`.) When both are set, either enabling turns the feature on.         |
 
-> **Breaking change (12.0):** The top-level `min_date`, `max_date`, and `time_interval` fields on `date`/`datetime` elements, and the `datetime_config.allow_manual_time_entry` field, have been removed. Integrations must send these values under `datetime_config` (using `manual_time_entry` instead of `allow_manual_time_entry`) or they will be silently ignored.
+**Backward compatibility (new in 11.8):** The top-level `min_date`, `max_date`, and `time_interval` fields on `date` and `datetime` elements are still accepted for existing integrations, but are deprecated in favor of `datetime_config`. When both are provided on the same element, values inside `datetime_config` take precedence over the legacy top-level values.
 
 #### Date and DateTime field specifications
 
@@ -607,6 +619,118 @@ The `datetime_config` object groups date/datetime configuration into a single ne
 - `"time_interval": 60` creates options: 00:00, 01:00, 02:00, 03:00, etc.
 - Invalid: `"time_interval": 7` (7 is not a divisor of 1440)
 
+### File elements
+#### Minimum Server Version: 11.10
+
+File elements allow users to upload one or more files as part of an interactive dialog submission. Below is an example of a `file` element that requests a single file attachment.
+
+```json
+{
+    "display_name": "Attachment",
+    "name": "attachment",
+    "type": "file",
+    "optional": true
+}
+```
+
+To allow multiple file uploads, set `allow_multiple` to `true`:
+
+```json
+{
+    "display_name": "Attachments",
+    "name": "attachments",
+    "type": "file",
+    "allow_multiple": true,
+    "optional": true
+}
+```
+
+The full list of supported fields is included below:
+
+| Field            | Type    | Description                                                                                                                        |
+|------------------|---------|------------------------------------------------------------------------------------------------------------------------------------|
+| `display_name`   | String  | Display name of the field shown to the user in the dialog. Maximum 24 characters.                                                  |
+| `name`           | String  | Name of the field element used by the integration. Maximum 300 characters. You should use unique `name` fields in the same dialog. |
+| `type`           | String  | Set this value to `file` for a file upload element.                                                                                |
+| `optional`       | Boolean | (Optional) Set to `true` if this form element is not required. Default is `false`.                                                 |
+| `help_text`      | String  | (Optional) Set help text for this form element. Maximum 150 characters.                                                            |
+| `default`        | String  | (Optional) Comma-separated list of file IDs, from files the user previously uploaded, used to pre-populate the field. Limited to a single ID unless `allow_multiple` is `true`, and no more than 10 IDs. Maximum 300 characters. |
+| `placeholder`    | String  | (Optional) Hint text shown beneath the upload button while no file is selected. Maximum 300 characters.                            |
+| `allow_multiple` | Boolean | (Optional) Set to `true` to allow the user to upload more than one file. Default is `false`.                                       |
+
+#### File upload limits
+
+- A maximum of 10 file IDs may be submitted per dialog submission.
+- The server validates that each submitted file ID was uploaded by the submitting user. Referencing a file uploaded by a different user will be rejected.
+- Duplicate file IDs are automatically deduplicated before validation.
+
+#### File IDs in the submission payload
+
+When a dialog containing file elements is submitted, the uploaded file IDs are sent in a top-level `file_ids` array alongside the standard `submission` map. Use `file_ids` as the authoritative source of uploaded file IDs — each ID can be used with the [Files API](https://api.mattermost.com/#tag/files) to attach files to posts or retrieve file metadata.
+
+### Action button elements
+#### Minimum Server Version: 11.10
+
+Action button elements render a clickable button inside a dialog. Instead of submitting the current dialog, clicking the button asks your integration to open a *child* dialog that is stacked on top of the current one. Use this to branch into a follow-up workflow (for example, "Add another item" or "Configure advanced options") while preserving the dialog the user is already working in.
+
+```json
+{
+    "display_name": "Add attachment",
+    "name": "add_attachment",
+    "type": "action_button",
+    "action_button": {
+        "url": "https://your-mattermost-server.com/plugins/your-plugin-id/api/attach",
+        "context": {
+            "action": "open_attachment_dialog"
+        }
+    }
+}
+```
+
+The full list of supported fields is included below:
+
+| Field           | Type   | Description                                                                                                                                       |
+|-----------------|--------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| `display_name`  | String | Display name shown on the button. Maximum 24 characters.                                                                                          |
+| `name`          | String | Name of the field element used by the integration. Maximum 300 characters. You should use unique `name` fields in the same dialog.                |
+| `type`          | String | Set this value to `action_button` for an action button element.                                                                                   |
+| `action_button` | Object | Action button configuration. Required for this element type. See the fields below.                                                                |
+
+The `action_button` object supports:
+
+| Field     | Type   | Description                                                                                                                             |
+|-----------|--------|---------------------------------------------------------------------------------------------------------------------------------------|
+| `url`     | String | The URL the action is sent to when the button is clicked. Required. Must be a valid lookup URL — an HTTPS URL or a `/plugins/` path.   |
+| `context` | Object | (Optional) String map of arbitrary key/value pairs forwarded to your integration when the button is clicked. Use this to identify which button was pressed or to carry state. |
+
+Action button elements are not input fields: their values are never included in the dialog submission payload, and they are not subject to the required/optional validation applied to other elements.
+
+#### Action button flow
+
+When a user clicks an action button, the Mattermost client sends an `HTTP POST` to the `/api/v4/actions/dialogs/execute` endpoint. The server validates the request, generates a new trigger ID, and forwards the button's `context` to the `url` configured on the button. The payload your integration receives is a `PostActionIntegrationRequest`:
+
+```json
+{
+    "type": "dialog_action",
+    "trigger_id": "<new trigger ID generated by the server>",
+    "user_id": "<user ID of the user who clicked the button>",
+    "user_name": "<username of that user>",
+    "channel_id": "<channel ID the user clicked the button from>",
+    "channel_name": "<name of that channel>",
+    "team_id": "<team ID the channel belongs to, empty for DM/GM channels>",
+    "team_name": "<name of that team, empty for DM/GM channels>",
+    "context": {
+        "action": "open_attachment_dialog"
+    }
+}
+```
+
+Use the `trigger_id` from this payload to [open a child dialog](#open-a-dialog) — send an `HTTP POST` to `/api/v4/actions/dialogs/open` exactly as you would for a top-level dialog. The child dialog is displayed stacked on top of the dialog the user clicked the button in.
+
+:::note
+Up to three dialogs may be open at once. If three dialogs are already open, the request to open a further child dialog is silently ignored by the client, so design your workflows to stay within this limit.
+:::
+
 ## Dialog submission
 
 When a user submits a dialog, Mattermost will perform client-side input validation to make sure:
@@ -623,14 +747,19 @@ The submission payload sent to the integration is:
     "state": "<state provided by the integration>",
     "user_id": "<user ID of the user who submitted the dialog>",
     "channel_id": "<channel ID the user was in when submitting the dialog>",
-    "team_id": "<team ID the user was on when submitting the dialog>",
+    "team_id": "<team ID the channel belongs to, empty for DM/GM channels>",
     "submission": {
         "some_element_name": "<value of that element>",
         "some_other_element": "<value of some other element>"
     },
+    "file_ids": ["<file ID 1>", "<file ID 2>"],
     "cancelled": false
 }
 ```
+
+:::note[`team_id` behavior change (server version 11.10)]
+For the `/api/v4/actions/dialogs/submit`, `/api/v4/actions/dialogs/lookup`, and `/api/v4/actions/dialogs/execute` endpoints, the `team_id` forwarded to your integration is now always derived by the server from the channel the dialog was opened in, rather than from the value supplied by the client. Any client-supplied `team_id` is ignored. For direct (DM) and group (GM) message channels — which do not belong to a team — `team_id` is sent as an empty string. If your integration previously relied on a client-supplied `team_id` for team-specific logic, update it to use this channel-derived value (and to handle the empty case for DM/GM channels).
+:::
 
 Optionally, the dialog can send an event back to the integration if `notify_on_cancel` parameter is set to `true`. If this happens, `cancelled` will be set to `true` on the above payload, and `submission` will be empty.
 
@@ -648,7 +777,7 @@ The integration may also return a generic error message to the user that is not 
 
 Support for generic error messages was added in Mattermost v5.18.
 
-Finally, once the request is submitted, we recommend that the integration responds with a system message or an ephemeral message confirming the submission. This should be a separate request back to Mattermost once the service has received and responded to a submission request from a dialog. This can be done either via [the REST API](https://api.mattermost.com/#tag/posts%2Fpaths%2F~1posts~1ephemeral%2Fpost), or via the [Plugin API](/developers/integrate/reference/server/server-reference#API.SendEphemeralPost) if you're developing a plugin.
+Finally, once the request is submitted, we recommend that the integration responds with a system message or an ephemeral message confirming the submission. This should be a separate request back to Mattermost once the service has received and responded to a submission request from a dialog. This can be done either via [the REST API](https://api.mattermost.com/#tag/posts%2Fpaths%2F~1posts~1ephemeral%2Fpost), or via the [Plugin API](/developers/integrate/reference/server#API.SendEphemeralPost) if you're developing a plugin.
 
 ## Multi-step dialogs
 ##### Minimum Server Version: 11.1

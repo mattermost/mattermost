@@ -7,6 +7,7 @@ import styled from 'styled-components';
 
 import type {Channel} from '@mattermost/types/channels';
 
+import ChannelInfoAttributes from 'components/channel_attributes/channel_info_attributes';
 import CopyButton from 'components/copy_button';
 import Markdown from 'components/markdown';
 
@@ -52,9 +53,9 @@ const ChannelDescriptionHeading = styled.div`
     font-style: normal;
     font-weight: 600;
     line-height: 16px;
-    letter-spacing: 0.24px;
+    letter-spacing: 0.11px;
     text-transform: uppercase;
-    padding: 4px 0px;
+    padding: 6px 0;
 `;
 
 const ChannelHeader = styled.div`
@@ -97,6 +98,8 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
                     emptyLabel={formatMessage({id: 'channel_info_rhs.about_area.edit_channel_name', defaultMessage: 'Rename channel'})}
                 />
             </ChannelName>
+
+            <ChannelInfoAttributes channelId={channel.id}/>
 
             {(channel.purpose || canEditChannelProperties) && (
                 <ChannelPurpose>

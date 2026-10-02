@@ -4,12 +4,14 @@
 package commands
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
-	"sort"
+	"slices"
 
 	"github.com/hashicorp/go-multierror"
+
 	"github.com/mattermost/mattermost/server/public/model"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
@@ -259,8 +261,8 @@ func removeDuplicatesAndSortTeams(teams []*model.Team) []*model.Team {
 			result = append(result, team)
 		}
 	}
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].Name < result[j].Name
+	slices.SortFunc(result, func(a, b *model.Team) int {
+		return cmp.Compare(a.Name, b.Name)
 	})
 	return result
 }

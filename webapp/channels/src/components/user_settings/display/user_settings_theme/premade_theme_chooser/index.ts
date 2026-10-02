@@ -12,7 +12,7 @@ import PremadeThemeChooser from './premade_theme_chooser';
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
 
-    const allowedThemes = (config.AllowedThemes && config.AllowedThemes.split(',')) || [];
+    const allowedThemes = config.AllowedThemes?.split(',').map((theme) => theme.trim()).filter((theme) => theme !== '') || [];
 
     return {
         allowedThemes,

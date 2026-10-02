@@ -190,16 +190,14 @@ export type ViewsState = {
         filter: string;
     };
 
-    productMenu: {
-        switcherOpen: boolean;
-    };
-
     channelSidebar: {
         unreadFilterEnabled: boolean;
         draggingState: DraggingState;
         newCategoryIds: string[];
         multiSelectedChannelIds: string[];
         lastSelectedChannel: string;
+        initChannelsLoaded: boolean;
+        initChannelMembershipsLoaded: boolean;
     };
 
     addChannelCtaDropdown: {

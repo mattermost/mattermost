@@ -29,6 +29,7 @@ jobs:
   warm:
     name: Warm Webapp node_modules Cache
     runs-on: ubuntu-24.04
+    if: github.ref == 'refs/heads/master'
     # Bound a hung run so it can't hold the concurrency group for the default
     # 6-hour timeout and block subsequent warm runs.
     timeout-minutes: 60

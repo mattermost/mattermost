@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - "tools/mattermost-govet/**"
+      - "tools/mmgotool/**"
       - ".github/workflows/tools-ci.yml"
 
 concurrency:
@@ -18,11 +19,17 @@ permissions:
 
 jobs:
   check-style:
-    name: check-style (mattermost-govet)
+    name: check-style (${{ matrix.tool }})
     runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        tool:
+          - mattermost-govet
+          - mmgotool
     defaults:
       run:
-        working-directory: tools/mattermost-govet
+        working-directory: tools/${{ matrix.tool }}
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -31,16 +38,22 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
         with:
-          go-version-file: tools/mattermost-govet/go.mod
+          go-version-file: tools/${{ matrix.tool }}/go.mod
       - name: Run check-style
         run: make check-style
 
   test:
-    name: Test (mattermost-govet)
+    name: Test (${{ matrix.tool }})
     runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        tool:
+          - mattermost-govet
+          - mmgotool
     defaults:
       run:
-        working-directory: tools/mattermost-govet
+        working-directory: tools/${{ matrix.tool }}
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -49,6 +62,6 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
         with:
-          go-version-file: tools/mattermost-govet/go.mod
+          go-version-file: tools/${{ matrix.tool }}/go.mod
       - name: Run tests
         run: make test

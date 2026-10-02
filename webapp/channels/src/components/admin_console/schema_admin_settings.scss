@@ -32,6 +32,12 @@
 }
 
 .admin-header-beta-badge {
-    margin-right: auto;
-    margin-inline-start: 8px;
+    margin-inline-start: 0;
+}
+
+.admin-console__header-left {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 8px;
 }

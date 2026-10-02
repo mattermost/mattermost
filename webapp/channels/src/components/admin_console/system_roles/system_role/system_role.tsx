@@ -3,7 +3,7 @@
 
 import difference from 'lodash/difference';
 import uniq from 'lodash/uniq';
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {Role} from '@mattermost/types/roles';

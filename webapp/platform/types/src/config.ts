@@ -60,7 +60,6 @@ export type ClientConfig = {
     EnableCustomEmoji: string;
     EnableCustomGroups: string;
     EnableCustomUserStatuses: string;
-    EnableExperimentalLocales: string;
     EnableUserStatuses: string;
     EnableLastActiveTime: string;
     EnableChannelCategorySorting: string;
@@ -131,8 +130,12 @@ export type ClientConfig = {
     FeatureFlagChannelPermissionPolicies: string;
     FeatureFlagPolicySimulation: string;
     FeatureFlagContentFlagging: string;
+    FeatureFlagPostDeliveryTracking: string;
     FeatureFlagClassificationMarkings: string;
+    FeatureFlagChannelAttributes: string;
+    FeatureFlagChannelAttributesRequired: string;
     FeatureFlagPropertyFieldRank: string;
+    FeatureFlagPropertyFieldGraph: string;
     FeatureFlagManagedChannelCategories: string;
     FeatureFlagSessionAttributes: string;
     FeatureFlagPostAttributes: string;
@@ -406,7 +409,7 @@ export type ServiceSettings = {
     EnableAPITeamDeletion: boolean;
     EnableAPITriggerAdminNotifications: boolean;
     EnableAPIUserDeletion: boolean;
-    ExperimentalEnableHardenedMode: boolean;
+    EnableHardenedMode: boolean;
     ExperimentalStrictCSRFEnforcement: boolean;
     EnableEmailInvitations: boolean;
     DisableBotsWhenOwnerIsDeactivated: boolean;
@@ -494,7 +497,6 @@ export type SqlSettings = {
     ConnMaxIdleTimeMilliseconds: number;
     MaxOpenConns: number;
     Trace: boolean;
-    AtRestEncryptKey: string;
     QueryTimeout: number;
     AnalyticsQueryTimeout: number;
     DisableDatabaseSearch: boolean;
@@ -779,7 +781,6 @@ export type LocalizationSettings = {
     DefaultServerLocale: string;
     DefaultClientLocale: string;
     AvailableLocales: string;
-    EnableExperimentalLocales: boolean;
 };
 
 export type AutoTranslationSettings = {
@@ -843,7 +844,6 @@ export type NativeAppSettings = {
     MobileJailbreakProtection: boolean;
     MobileEnableSecureFilePreview: boolean;
     MobileAllowPdfLinkNavigation: boolean;
-    EnableIntuneMAM: boolean;
 };
 
 export type IntuneSettings = {
@@ -976,6 +976,9 @@ export type MessageExportSettings = {
         SMTPServerTimeout: number;
         CustomSMTPServerName: string;
         CustomSMTPPort: string;
+        CustomHeaderName: string;
+        CustomHeaderValue: string;
+        SenderAddress: string;
     };
 };
 
@@ -1012,7 +1015,6 @@ export type DisplaySettings = {
 export type GuestAccountsSettings = {
     Enable: boolean;
     HideTags: boolean;
-    AllowEmailAccounts: boolean;
     EnforceMultifactorAuthentication: boolean;
     RestrictCreationToDomains: string;
     EnableGuestMagicLink: boolean;
@@ -1050,6 +1052,8 @@ export type AccessControlSettings = {
     TrustProxyDeviceIdentityHeader: boolean;
     EnforceDeviceIDConsistency: boolean;
     EnableAccessControlAuditLogging: boolean;
+    SyncJobIntervalSeconds: number;
+    AttributeRefreshIntervalSeconds: number;
 };
 
 export type ContentFlaggingNotificationSettings = {

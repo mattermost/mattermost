@@ -15,11 +15,14 @@ import {TestHelper} from 'utils/test_helper';
 import type {GlobalState} from 'types/store';
 
 import {
+    isLinkedField,
+    newPendingField,
     useUserPropertyFields,
     ValidationWarningNameInvalidCEL,
     ValidationWarningNameRequired,
     ValidationWarningNameTaken,
     ValidationWarningNameUnique,
+    ValidationWarningOptionsRequired,
 } from './user_properties_utils';
 
 function getBaseState(): DeepPartial<GlobalState> {
@@ -404,6 +407,71 @@ describe('useUserPropertyFields', () => {
         }));
     });
 
+    it('should not warn options required for a select field whose option list was withheld', async () => {
+        const withheldOptionsField: UserPropertyField = {
+            ...baseField,
+            id: 'test-id-withheld',
+            name: 'test_attribute_withheld',
+            type: 'select' as const,
+            attrs: {...baseField.attrs, options: [], options_omitted: true},
+        };
+        getFields.mockResolvedValueOnce([withheldOptionsField]);
+
+        const {result, rerender} = renderHookWithContext(() => useUserPropertyFields(), getBaseState());
+
+        act(() => {
+            jest.runAllTimers();
+        });
+        rerender();
+
+        await waitFor(() => {
+            const [, read] = result.current;
+            expect(read.loading).toBe(false);
+        });
+
+        act(() => {
+            const [fields,,, ops] = result.current;
+            ops.update({...fields.data[withheldOptionsField.id], name: 'renamed_attribute_withheld'});
+        });
+        rerender();
+
+        const [fields] = result.current;
+        expect(fields.warnings?.[withheldOptionsField.id]).toBeUndefined();
+    });
+
+    it('should warn options required for a select field with a genuinely empty option list', async () => {
+        const emptyOptionsField: UserPropertyField = {
+            ...baseField,
+            id: 'test-id-empty-options',
+            name: 'test_attribute_empty_options',
+            type: 'select' as const,
+        };
+        getFields.mockResolvedValueOnce([emptyOptionsField]);
+
+        const {result, rerender} = renderHookWithContext(() => useUserPropertyFields(), getBaseState());
+
+        act(() => {
+            jest.runAllTimers();
+        });
+        rerender();
+
+        await waitFor(() => {
+            const [, read] = result.current;
+            expect(read.loading).toBe(false);
+        });
+
+        act(() => {
+            const [fields,,, ops] = result.current;
+            ops.update({...fields.data[emptyOptionsField.id], name: 'renamed_attribute_empty_options'});
+        });
+        rerender();
+
+        const [fields] = result.current;
+        expect(fields.warnings).toEqual(expect.objectContaining({
+            [emptyOptionsField.id]: {attrs: ValidationWarningOptionsRequired},
+        }));
+    });
+
     it('should NOT trigger Required warning for a freshly-created untouched field', async () => {
         const {result, rerender} = renderHookWithContext(() => useUserPropertyFields(), getBaseState());
 
@@ -621,5 +689,32 @@ describe('useUserPropertyFields', () => {
         const [fields] = result.current;
         const pendingNames = fields.order.slice(-2).map((id) => fields.data[id].name);
         expect(pendingNames).toEqual(['Text', 'Text_2']);
+    });
+});
+
+describe('isLinkedField', () => {
+    it('is true only when the field links to a template field', () => {
+        expect(isLinkedField({})).toBe(false);
+        expect(isLinkedField({linked_field_id: ''})).toBe(false);
+        expect(isLinkedField({linked_field_id: 'template-field-id'})).toBe(true);
+    });
+});
+
+describe('newPendingField', () => {
+    // newPendingField doesn't strip the link, so a pending field keeps whatever
+    // it was handed. That only reaches the collection, not the server: the
+    // commit path sends name/type/attrs, and every linked field is created
+    // directly via Client4.createPropertyField (classification_markings/utils).
+    // Dropping the link is specific to duplication and lives in the dot menu's
+    // handleDuplicate — see user_properties_dot_menu.test.tsx.
+    it('keeps an explicitly requested template link', () => {
+        const pending = newPendingField({
+            name: 'clearance',
+            type: 'rank',
+            linked_field_id: 'template-field-id',
+        } as UserPropertyFieldPatch & Pick<UserPropertyField, 'name'>);
+
+        expect(pending.linked_field_id).toBe('template-field-id');
+        expect(isLinkedField(pending)).toBe(true);
     });
 });

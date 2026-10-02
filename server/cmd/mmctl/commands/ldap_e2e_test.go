@@ -30,7 +30,7 @@ func configForLdap(th *api4.TestHelper) {
 		*cfg.LdapSettings.BaseDN = "dc=mm,dc=test,dc=com"
 		*cfg.LdapSettings.LdapServer = ldapHost
 		*cfg.LdapSettings.BindUsername = "cn=admin,dc=mm,dc=test,dc=com"
-		*cfg.LdapSettings.BindPassword = "mostest"
+		*cfg.LdapSettings.BindPassword = "mostest_password"
 		*cfg.LdapSettings.FirstNameAttribute = "cn"
 		*cfg.LdapSettings.LastNameAttribute = "sn"
 		*cfg.LdapSettings.NicknameAttribute = "cn"
@@ -122,7 +122,7 @@ func (s *MmctlE2ETestSuite) TestLdapIDMigrateCmd() {
 		s.Require().Equal(printer.GetLines()[0], "AD/LDAP IdAttribute migration complete. You can now change your IdAttribute to: "+"cn")
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		updatedUser, appErr := s.th.App.GetUser(ldapUser.Id)
+		updatedUser, appErr := s.th.App.GetUser(s.th.Context, ldapUser.Id)
 		s.Require().Nil(appErr)
 		s.Require().Equal("Dev1", *updatedUser.AuthData)
 	})

@@ -123,11 +123,11 @@ test(
 
         // * Analyze the Direct Messages dialog for accessibility issues
         const accessibilityScanResults = await axe
-            .builder(page, {disableColorContrast: true})
+            .builder(page)
             .include('[role="dialog"]')
             // TODO: Address scrollable-region-focusable violation in the Direct Messages dialog
             // The multiSelectList and sr-only status elements need to be keyboard accessible
-            .disableRules(['scrollable-region-focusable'])
+            .disableRules(['color-contrast', 'scrollable-region-focusable'])
             .analyze();
 
         // * Should have no violations

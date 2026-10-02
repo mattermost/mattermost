@@ -218,27 +218,6 @@ func TestDiffSanitized(t *testing.T) {
 			"",
 		},
 		{
-			"sensitive SqlSettings.AtRestEncryptKey",
-			func() *model.Config {
-				cfg := defaultConfigGen()
-				cfg.SqlSettings.AtRestEncryptKey = new("base")
-				return cfg
-			}(),
-			func() *model.Config {
-				cfg := defaultConfigGen()
-				cfg.SqlSettings.AtRestEncryptKey = new("actual")
-				return cfg
-			}(),
-			ConfigDiffs{
-				{
-					Path:      "SqlSettings.AtRestEncryptKey",
-					BaseVal:   model.FakeSetting,
-					ActualVal: model.FakeSetting,
-				},
-			},
-			"",
-		},
-		{
 			"sensitive SqlSettings.DataSourceReplicas",
 			func() *model.Config {
 				cfg := defaultConfigGen()

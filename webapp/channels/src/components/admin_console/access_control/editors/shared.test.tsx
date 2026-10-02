@@ -7,7 +7,7 @@ import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
-import {TestButton, celPrefixForField, excludeSessionAttributes, hasUsableAttributes, isSimpleCondition, isSimpleExpression, mergeSessionAttributes, toCELEditorAttributes, allowedOperatorLabelsForField, defaultOperatorForField, isNativeBooleanField, isFieldAdvertisedOperator, isNativeMethodOperator, isValidYoungerThanDaysValue, OperatorLabel} from './shared';
+import {TestButton, celPrefixForField, excludeSessionAttributes, hasUsableAttributes, isSimpleCondition, isSimpleExpression, mergeSessionAttributes, referencesResourceAttributes, toCELEditorAttributes, allowedOperatorLabelsForField, defaultOperatorForField, isNativeBooleanField, isFieldAdvertisedOperator, isNativeMethodOperator, isValidYoungerThanDaysValue, OperatorLabel} from './shared';
 
 const makeField = (name: string, attrs: Partial<UserPropertyField['attrs']>, type: UserPropertyField['type'] = 'text'): UserPropertyField => ({
     id: `id-${name}`,
@@ -638,6 +638,44 @@ describe('isSimpleExpression / isSimpleCondition with session attributes', () =>
     });
 });
 
+describe('isSimpleExpression / isSimpleCondition with graph attributes', () => {
+    // Whether an expression is "simple" decides whether the visual table editor
+    // can open it at all — a saved policy that fails this check is stuck in the
+    // raw CEL editor, with the toggle back to the table disabled.
+    test.each(['coversAll', 'coversAny', 'withinAll', 'withinAny'])('%s over a list of option names is simple', (fn) => {
+        expect(isSimpleCondition(`user.attributes.programs.${fn}(["F-18 Program"])`)).toBe(true);
+        expect(isSimpleCondition(`user.attributes.programs.${fn}(["F-18 Program", "Navy Program"])`)).toBe(true);
+    });
+
+    test.each(['coversAll', 'coversAny', 'withinAll', 'withinAny'])('%s against a channel attribute is simple', (fn) => {
+        expect(isSimpleCondition(`user.attributes.programs.${fn}(resource.attributes.programs)`)).toBe(true);
+    });
+
+    test('exact membership on a graph attribute is the plain in form', () => {
+        expect(isSimpleCondition('"F-18 Program" in user.attributes.programs')).toBe(true);
+    });
+
+    test('a hierarchy predicate combines with the other condition kinds', () => {
+        expect(isSimpleExpression('user.attributes.programs.coversAll(["F-18 Program"]) && user.attributes.clearance >= "Secret"')).toBe(true);
+    });
+
+    test('a desugared marker is not simple', () => {
+        // _graph_covers_all is the compiled form the server desugars a predicate
+        // into. It is never author input, so the table editor must not claim it.
+        expect(isSimpleCondition('_graph_covers_all(user.attributes.programs, [["abc"]], "field-id")')).toBe(false);
+    });
+
+    test('a negated hierarchy predicate is not simple', () => {
+        // Legal to save, but the visual format has no representation for `!`,
+        // so the rule belongs in the CEL editor.
+        expect(isSimpleCondition('!user.attributes.programs.coversAll(["F-18 Program"])')).toBe(false);
+    });
+
+    test('a hierarchy predicate on the resource side is not simple', () => {
+        expect(isSimpleCondition('resource.attributes.programs.coversAll(["F-18 Program"])')).toBe(false);
+    });
+});
+
 describe('toCELEditorAttributes', () => {
     test('keeps native attributes (flagged) and drops unsafe CPA when user-managed is off', () => {
         const owned: UserPropertyField = {
@@ -766,5 +804,24 @@ describe('isNativeMethodOperator', () => {
 
     test('false for an unknown operator token', () => {
         expect(isNativeMethodOperator('not an operator')).toBe(false);
+    });
+});
+
+describe('referencesResourceAttributes', () => {
+    test('true for an actual resource attribute reference', () => {
+        expect(referencesResourceAttributes('user.attributes.clearance >= resource.attributes.minClearance')).toBe(true);
+    });
+
+    test('false when the prefix only appears inside a quoted literal', () => {
+        expect(referencesResourceAttributes('user.attributes.note == "resource.attributes.minClearance"')).toBe(false);
+        expect(referencesResourceAttributes("user.attributes.note == 'resource.attributes.minClearance'")).toBe(false);
+    });
+
+    test('true when a real reference coexists with a quoted literal', () => {
+        expect(referencesResourceAttributes('user.attributes.note == "resource.attributes.x" && user.attributes.c >= resource.attributes.min')).toBe(true);
+    });
+
+    test('false for a resource-free expression', () => {
+        expect(referencesResourceAttributes('user.attributes.team == "Sales"')).toBe(false);
     });
 });

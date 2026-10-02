@@ -5,28 +5,9 @@ import type {GlobalState} from 'types/store';
 
 import {getAllLanguages, getLanguageInfo, getLanguages, isLanguageAvailable, languages} from './i18n';
 
-jest.mock('./imports', () => ({
-    langIDs: ['cc'],
-    langFiles: {cc: 'cc.json'},
-    langLabels: {cc: 'CC Language'},
-}));
-
 describe('i18n', () => {
     test('getAllLanguages', () => {
-        // no experimental languages
         expect(getAllLanguages()).toBe(languages);
-        expect(getAllLanguages(false)).toBe(languages);
-
-        // with experimental languages
-        expect(getAllLanguages(true)).toStrictEqual({
-            cc: {
-                name: 'CC Language (Experimental)',
-                value: 'cc',
-                order: 22,
-                url: 'cc.json',
-            },
-            ...languages,
-        });
     });
 
     test('getLanguages', () => {
@@ -39,24 +20,38 @@ describe('i18n', () => {
             },
         } as GlobalState;
 
-        // no experimental languages
         expect(getLanguages(state)).toBe(languages);
+    });
 
-        // with experimental languages
-        state.entities.general.config.EnableExperimentalLocales = 'true';
-        expect(getLanguages(state)).toStrictEqual({
-            cc: {
-                name: 'CC Language (Experimental)',
-                value: 'cc',
-                order: 22,
-                url: 'cc.json',
+    test('getLanguages honours AvailableLocales', () => {
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        AvailableLocales: 'de,fr',
+                    },
+                },
             },
-            ...languages,
-        });
+        } as GlobalState;
+
+        expect(Object.keys(getLanguages(state))).toEqual(['de', 'fr']);
+    });
+
+    test('getLanguages ignores unsupported codes in AvailableLocales', () => {
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        AvailableLocales: 'de,cs',
+                    },
+                },
+            },
+        } as GlobalState;
+
+        expect(Object.keys(getLanguages(state))).toEqual(['de']);
     });
 
     test('getLanguageInfo', () => {
-        // supported language
         expect(getLanguageInfo('en')).toStrictEqual({
             name: 'English (US)',
             order: 1,
@@ -64,15 +59,8 @@ describe('i18n', () => {
             value: 'en',
         });
 
-        // experimental language (e.g. in progress)
-        expect(getLanguageInfo('cc')).toStrictEqual({
-            name: 'CC Language (Experimental)',
-            value: 'cc',
-            order: 22,
-            url: 'cc.json',
-        });
-
-        // non existant
+        // a locale that is not supported
+        expect(getLanguageInfo('cs')).not.toBeDefined();
         expect(getLanguageInfo('invalid')).not.toBeDefined();
     });
 
@@ -86,11 +74,7 @@ describe('i18n', () => {
             },
         } as GlobalState;
 
-        // no experimental languages
-        expect(isLanguageAvailable(state, 'cc')).toBe(false);
-
-        // with experimental languages
-        state.entities.general.config.EnableExperimentalLocales = 'true';
-        expect(isLanguageAvailable(state, 'cc')).toBe(true);
+        expect(isLanguageAvailable(state, 'de')).toBe(true);
+        expect(isLanguageAvailable(state, 'cs')).toBe(false);
     });
 });

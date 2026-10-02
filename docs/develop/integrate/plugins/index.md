@@ -23,7 +23,7 @@ Extend the Mattermost REST API with custom endpoints for use by Web App plugins 
 
 
 <Note title="Tip">
-See the [Mattermost Server SDK Reference](/developers/integrate/reference/server/server-reference) and [Mattermost Client UI SDK Reference](/developers/integrate/reference/webapp/webapp-reference) documentation for details on available server API endpoints and client methods.
+See the [Mattermost Server SDK Reference](/developers/integrate/reference/server) and [Mattermost Client UI SDK Reference](/developers/integrate/reference/webapp) documentation for details on available server API endpoints and client methods.
 </Note>
 
 

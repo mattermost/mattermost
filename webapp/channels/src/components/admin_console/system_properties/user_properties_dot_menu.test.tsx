@@ -418,6 +418,47 @@ describe('UserPropertyDotMenu', () => {
         expect(updateField).not.toHaveBeenCalled();
     });
 
+    it('disables the options-editing actions for a template-linked field but leaves the rest editable', async () => {
+        const linkedField: UserPropertyField = {
+            ...baseField,
+            id: 'template-linked-field',
+            type: 'rank',
+            linked_field_id: 'template-field-id',
+        };
+
+        renderComponent(linkedField);
+
+        await userEvent.click(screen.getByTestId(`user-property-field_dotmenu-${linkedField.id}`));
+
+        // type and options are owned by the template
+        expect(screen.getByRole('menuitem', {name: /Edit ranking/})).toHaveAttribute('aria-disabled', 'true');
+        expect(screen.getByRole('menuitem', {name: /Link attribute to AD\/LDAP/})).toHaveAttribute('aria-disabled', 'true');
+        expect(screen.getByRole('menuitem', {name: /Link attribute to SAML/})).toHaveAttribute('aria-disabled', 'true');
+        expect(screen.getAllByText('Managed by a linked attribute template')).toHaveLength(3);
+
+        // everything else stays editable
+        expect(screen.getByRole('menuitem', {name: /Visibility/})).not.toHaveAttribute('aria-disabled', 'true');
+        expect(within(screen.getByRole('menuitemcheckbox', {name: /Editable by users/})).getByRole('button')).toBeEnabled();
+        expect(screen.getByRole('menuitem', {name: /Duplicate attribute/})).not.toHaveAttribute('aria-disabled', 'true');
+        expect(screen.getByRole('menuitem', {name: /Delete attribute/})).not.toHaveAttribute('aria-disabled', 'true');
+    });
+
+    it('does not open the ranking modal for a template-linked field', async () => {
+        const linkedField: UserPropertyField = {
+            ...baseField,
+            id: 'template-linked-ranking',
+            type: 'rank',
+            linked_field_id: 'template-field-id',
+        };
+
+        renderComponent(linkedField);
+
+        await userEvent.click(screen.getByTestId(`user-property-field_dotmenu-${linkedField.id}`));
+        screen.getByRole('menuitem', {name: /Edit ranking/}).click();
+
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
     it('handles field duplication', async () => {
         renderComponent();
 
@@ -437,6 +478,28 @@ describe('UserPropertyDotMenu', () => {
                 name: 'test_field_copy',
             }));
         });
+    });
+
+    it('duplicating a template-linked field produces an unlinked copy', async () => {
+        const linkedField: UserPropertyField = {
+            ...baseField,
+            id: 'template-linked-duplicate',
+            type: 'rank',
+            linked_field_id: 'template-field-id',
+        };
+
+        renderComponent(linkedField);
+
+        await userEvent.click(screen.getByTestId(`user-property-field_dotmenu-${linkedField.id}`));
+        await userEvent.click(screen.getByText(/Duplicate attribute/));
+
+        // A copy is a standalone field. Carrying the link over would make it
+        // inherit a type and option set the create request cannot send, and would
+        // leave a second dependent on the template.
+        await waitFor(() => {
+            expect(createField).toHaveBeenCalledWith(expect.objectContaining({name: 'test_field_copy'}));
+        });
+        expect(createField.mock.calls[0][0]).not.toHaveProperty('linked_field_id');
     });
 
     it('duplicate produces _2 suffix when base name is already taken', async () => {

@@ -8,7 +8,7 @@ import Tag from 'components/widgets/tag/tag';
 
 type RadioGroupProps = {
     id: string;
-    values: Array<{key: React.ReactNode | React.ReactNodeArray; value: string; testId?: string}>;
+    values: Array<{key: React.ReactNode | readonly React.ReactNode[]; value: string; testId?: string}>;
     value: string;
     badge?: {matchVal: string; badgeContent: ReactNode; extraClass?: string} | undefined | null;
     sideLegend?: {matchVal: string; text: ReactNode};

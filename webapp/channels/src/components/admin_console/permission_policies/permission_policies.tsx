@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useMemo} from 'react';
+import React, {useState, useEffect, useMemo, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
@@ -35,6 +35,7 @@ const ROLE_LABELS: Record<string, string> = {
 const ACTION_LABELS: Record<string, string> = {
     download_file_attachment: 'Download Files',
     upload_file_attachment: 'Upload Files',
+    create_burn_on_read_post: 'Create Burn on Read Message',
 };
 
 function getActionsLabel(policy: AccessControlPolicy): string {
@@ -319,7 +320,7 @@ export default function PermissionPolicyList(props: Props): JSX.Element {
                     <p>
                         <FormattedMessage
                             id='admin.permission_policies.description'
-                            defaultMessage='Create policies to control file upload and download permissions based on user attributes.'
+                            defaultMessage='Create policies to control channel action permissions based on user attributes.'
                         />
                     </p>
                 </div>

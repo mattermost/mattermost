@@ -13,7 +13,7 @@ import type {SectionNoticeButtonProp} from './types';
 import './section_notice.scss';
 
 type Props = {
-    title: string | React.ReactElement;
+    title: string | React.ReactElement<any>;
     text?: string;
     children?: React.ReactNode;
     primaryButton?: SectionNoticeButtonProp;

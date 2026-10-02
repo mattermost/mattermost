@@ -53,7 +53,7 @@ export type Props<T extends Value> = {
         add: (value: T) => void,
         select: (value: T) => void,
     ) => React.ReactNode;
-    selectedItemRef?: React.RefObject<HTMLDivElement>;
+    selectedItemRef?: React.RefObject<HTMLDivElement | null>;
     options: T[];
     perPage: number;
     placeholderText?: string | MessageDescriptor;

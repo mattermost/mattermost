@@ -7,19 +7,13 @@ A team is a digital [workspace](/end-user-guide/end-user-guide-index) where you 
 
 Users with the **Create Teams** permission can [create new teams](#create-a-team) and [manage team settings](/end-user-guide/collaborate/team-settings) for existing teams. System admins can grant the **Create Team** permission to roles via the [System scheme](/administration-guide/onboard/advanced-permissions#system-scheme) or the [Team override scheme](/administration-guide/onboard/advanced-permissions#team-override-scheme).
 
-## Single team versus multiple teams
+## Team structure
 
-Mattermost can be deployed both to a single team and to multiple teams. Currently, we recommend deploying to a single team for the following reasons:
+Mattermost can be deployed to a single team or to multiple teams. Many organizations run on a single team and use channels to organize everything within it, while others create a team per business unit, per security boundary, or for collaboration with people outside the organization.
 
-- Single team deployments promote communication across the organization. When you add multiple teams, groups can become isolated.
-- Integrations (e.g., webhooks and slash commands) are only persistent across single team deployments.
+Features including search, saved posts, and recent mentions work across all the teams you belong to.
 
-However, some Mattermost customers prefer multiple team deployments for the following reasons:
-
-- Teams are useful when there is a purpose for each of them. For example, one team is used for staff members and another team for external users.
-- Performance is better when users are scattered across multiple teams instead of all in the same one. With multiple teams, there is less content to load per team or channel switch and database queries are faster.
-- Creating a shared team for all users, and using advanced permissions to control who can create channels and add members to the shared team, improves cross-team collaboration when using multiple teams. Additionally, an annoucement banner can be used to provide system-wide announcements.
-- The platform supports multiple team functionalities including general search, saved posts, and recent mentions across teams.
+How many teams your organization has is a decision your system admin makes. See the [workspace organization](/administration-guide/manage/admin/workspace-organization#choose-a-team-structure) documentation for guidance and to understand the trade-offs behind each approach.
 
 ## Team sidebar
 
@@ -70,6 +64,12 @@ You can be a member of multiple teams at the same time. To join additional teams
 
 ![Select a team name to join another team.](/images/join-team.png)
 
+<Note>
+
+When your organization uses [team membership access policies](/administration-guide/manage/admin/abac-team-membership), the list of teams you can join depends on your user attributes. Public teams whose requirements you meet are marked **Recommended**, and private teams whose requirements you don't meet aren't listed at all.
+
+</Note>
+
 From Mattermost Mobile v2.40.0, you can join another team from the mobile app by tapping the team name in the channel list header, then tapping **Join Another Team**.
 
 ## Leave a team
@@ -86,7 +86,7 @@ Team admins can remove users from a team via **Team menu \> Manage Members \> Re
 
 When a user is removed from a team, the team will no longer be visible or accessible in their team sidebar. If they currently have the team open, they are redirected to the first team that appears in their team sidebar. If they didn't belong to any other teams, the user is sent to the team selection page.
 
-Removing a user from the team does not deactivate the account. The user will still be able to log in to the site, and join other teams. They will also be able to rejoin the team they were removed from if they receive another invite, or if the team is set to ["Allow anyone with an account on this server to join this team"](/end-user-guide/collaborate/team-settings#users-on-this-server). If the user does rejoin the team, they will no longer belong to the channels they were previously a part of, and they will lose all Admin privileges if they had them previously.
+Removing a user from the team does not deactivate the account. The user will still be able to log in to the site, and join other teams. They will also be able to rejoin the team they were removed from if they receive another invite. When a private team has a team membership access policy, invited users must also satisfy that policy. Users can also rejoin if the team is set to [Public Team](/end-user-guide/collaborate/team-settings#discoverability) and they meet any other join restrictions, such as approved email domains. Team membership access policies on public teams are advisory and don't prevent users from rejoining. If the user does rejoin the team, they will no longer belong to the channels they were previously a part of, and they will lose all Admin privileges if they had them previously.
 
 A system admin can also remove users from teams via **System Console \> Users**, and selecting the dropdown beside a user entry and selecting **Manage Teams**. The list of teams an individual user belongs to can be viewed on the user's profile page via **System Console \> Users** and selecting the member's name from the list provided in the **User Configuration** screen.
 

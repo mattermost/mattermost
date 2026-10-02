@@ -46,28 +46,28 @@ func TestValidateDesktopToken(t *testing.T) {
 	require.NotNil(t, badUserServerToken)
 
 	t.Run("validate token", func(t *testing.T) {
-		user, err := th.App.ValidateDesktopToken(*authenticatedServerToken, time.Now().Add(-TTL).Unix())
+		user, err := th.App.ValidateDesktopToken(th.Context, *authenticatedServerToken, time.Now().Add(-TTL).Unix())
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
 		assert.Equal(t, th.BasicUser.Id, user.Id)
 	})
 
 	t.Run("validate token - expired", func(t *testing.T) {
-		user, err := th.App.ValidateDesktopToken(*expiredServerToken, time.Now().Add(-TTL).Unix())
+		user, err := th.App.ValidateDesktopToken(th.Context, *expiredServerToken, time.Now().Add(-TTL).Unix())
 		assert.NotNil(t, err)
 		assert.Nil(t, user)
 		assert.Equal(t, "app.desktop_token.validate.invalid", err.Id)
 	})
 
 	t.Run("validate token - not authenticated", func(t *testing.T) {
-		user, err := th.App.ValidateDesktopToken("not_real_token", time.Now().Add(-TTL).Unix())
+		user, err := th.App.ValidateDesktopToken(th.Context, "not_real_token", time.Now().Add(-TTL).Unix())
 		assert.NotNil(t, err)
 		assert.Nil(t, user)
 		assert.Equal(t, "app.desktop_token.validate.invalid", err.Id)
 	})
 
 	t.Run("validate token - bad user id", func(t *testing.T) {
-		user, err := th.App.ValidateDesktopToken(*badUserServerToken, time.Now().Add(-TTL).Unix())
+		user, err := th.App.ValidateDesktopToken(th.Context, *badUserServerToken, time.Now().Add(-TTL).Unix())
 		assert.NotNil(t, err)
 		assert.Nil(t, user)
 		assert.Equal(t, "app.desktop_token.validate.no_user", err.Id)

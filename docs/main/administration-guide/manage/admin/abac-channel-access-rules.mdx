@@ -52,6 +52,7 @@ Channel access rules use the same simple interface as system policies, allowing 
     - **Set values**: Enter the required attribute values
 3.  Add multiple conditions as needed. All conditions are combined with logical AND (all must be satisfied).
 4.  Select **Test access rules** to preview which users would be granted access based on your current rules.
+5.  Select **Save** at the bottom of the tab to apply your changes.
 
 ### Auto-sync membership
 
@@ -113,9 +114,25 @@ Public channels with membership policies may appear in **Browse Channels** under
 
 ## Channel-level permission policies
 
-From Mattermost v11.8.0, channel admins can define channel-level permission rules for file upload and file download based on user attributes and channel role. Applicable roles include **channel admin**, **channel member**, and **channel guest**.
+From Mattermost v11.8.0, channel admins can define channel-level permission rules for file upload and file download based on user attributes and channel role. Applicable roles include **channel admin**, **channel member**, and **channel guest**. Burn-on-read message creation can also be restricted this way.
 
-For system-wide permission policies that restrict file upload and download actions, see [Permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies).
+For system-wide permission policies that restrict these actions, see [Permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies).
+
+<Note>
+
+**Channel-level permission policies** require a Mattermost Enterprise Advanced license and are gated by both the `PermissionPolicies` feature flag (`MM_FEATUREFLAGS_PERMISSIONPOLICIES`) and the `ChannelPermissionPolicies` feature flag (`MM_FEATUREFLAGS_CHANNELPERMISSIONPOLICIES`). See the Mattermost developer documentation for details on [enabling feature flags in a self-hosted deployment](https://docs.mattermost.com/developers/contribute/more-info/server/feature-flags/#self-hosted-and-local-development). Mattermost Cloud customers can request this feature flag be enabled by contacting their Mattermost Account Manager or by [creating a support ticket](https://support.mattermost.com/hc/en-us/requests/new?ticket_form_id=11184911962004).
+
+</Note>
+
+After adding or editing a rule in the **Permissions Policy** tab, select **Save** at the bottom of the tab to apply it.
+
+From Mattermost v12, permission rules can also use any [session attributes](/administration-guide/manage/admin/session-attributes) a System Admin has enabled, letting you restrict file actions by device or network rather than by who the user is.
+
+<Warning>
+
+A rule that references a session attribute denies any session that doesn't have it. The server measures `ip_address` and the `user_agent_*` values from every request, but `os_platform` is reported only by Desktop sessions, while `vpn_active` is reported by Desktop and mobile apps. A rule using either attribute denies everyone working in a web browser. Review [platform availability](/administration-guide/manage/admin/session-attributes#platform-availability) and simulate the rule before saving it.
+
+</Warning>
 
 ## Simulate access
 
@@ -123,10 +140,11 @@ From Mattermost v11.8.0, admins can use **Simulate access** in Channel Settings 
 
 - Simulation can evaluate draft rules before they're saved, so you can confirm the intended scope without affecting live channel access.
 - Some denied results may indicate that the decision came from another policy. In that case, Mattermost shows that access was denied by another policy without exposing policy details you aren't authorized to see.
+- From Mattermost v12, a neutral **No recent session** result indicates that the rules reference [session attributes](/administration-guide/manage/admin/session-attributes) and the selected user has no cached session data to evaluate.
 
 <Note>
 
-Channel-level permission policies and **Simulate access** are gated by the `PermissionPolicies` feature flag (`MM_FEATUREFLAGS_PERMISSIONPOLICIES`) and require a Mattermost Enterprise Advanced license. See the Mattermost developer documentation for details on [enabling feature flags in a self-hosted deployment](https://developers.mattermost.com/contribute/more-info/server/feature-flags/#self-hosted-and-local-development). Mattermost Cloud customers can request this feature flag be enabled by contacting their Mattermost Account Manager or by [creating a support ticket](https://support.mattermost.com/hc/en-us/requests/new?ticket_form_id=11184911962004).
+**Simulate access** is gated by the `PermissionPolicies` feature flag (`MM_FEATUREFLAGS_PERMISSIONPOLICIES`) and requires a Mattermost Enterprise Advanced license. See the Mattermost developer documentation for details on [enabling feature flags in a self-hosted deployment](https://docs.mattermost.com/developers/contribute/more-info/server/feature-flags/#self-hosted-and-local-development). Mattermost Cloud customers can request this feature flag be enabled by contacting their Mattermost Account Manager or by [creating a support ticket](https://support.mattermost.com/hc/en-us/requests/new?ticket_form_id=11184911962004).
 
 </Note>
 
@@ -142,7 +160,7 @@ From Mattermost v11.7, Team Admins can create, edit, and delete channel membersh
 
 ### Team Admin workflow
 
-1.  Open **Team Settings** from the team menu, and go to the **Membership Policies** tab. This tab is only visible to Team Admins with the `manage_team_access_rules` permission when ABAC is enabled system-wide.
+1.  Open **Team Settings** from the team menu, and go to the **Channel Membership** tab. This tab is only visible to Team Admins with the `manage_team_access_rules` permission when ABAC is enabled system-wide.
 2.  Select **Add Policy** and enter a name for the policy. Parent policy names must be unique; if you enter a name that's already in use, Mattermost displays a user-friendly error and prevents the policy from being saved.
 3.  Define the attribute rules that determine which users can be members of channels assigned to this policy. Rules use the same attribute conditions available for channel-specific access rules.
 4.  Assign the applicable private channels in the team to the policy.
@@ -150,7 +168,7 @@ From Mattermost v11.7, Team Admins can create, edit, and delete channel membersh
 
 ### Team Settings sync status footer
 
-The **Membership Policies** tab includes a sync status footer that shows:
+The **Channel Membership** tab includes a sync status footer that shows:
 
 - **Last sync time**: The time of the most recent membership synchronization for policies in this team.
 - **Sync now**: An on-demand action that triggers an immediate synchronization for the team's policies.
@@ -303,7 +321,7 @@ The auto-sync toggle is automatically disabled when:
 
 #### How quickly are membership changes applied?
 
-When you save access rules, membership sync job is created and changes are applied as soon as the job is completed. Additionally, Mattermost runs synchronization jobs every 30 minutes to handle attribute changes from external systems (LDAP, SAML).
+When you save access rules, membership sync job is created and changes are applied as soon as the job is completed. Additionally, Mattermost runs synchronization jobs on a schedule to handle attribute changes from external systems (LDAP, SAML). The interval is set by `AccessControlSettings.SyncJobIntervalSeconds` and defaults to 3600 seconds (60 minutes). User attributes used for access control evaluation are refreshed on a separate schedule controlled by `AccessControlSettings.AttributeRefreshIntervalSeconds`, which defaults to 30 seconds.
 
 #### Will users be notified when they're removed from a channel?
 
@@ -321,7 +339,7 @@ You can use any user attributes either synchronized via LDAP/SAML or manually co
 
 #### What happens if a user attribute changes?
 
-During the next synchronization (every 30 minutes), users who no longer match the access rules will be removed from the channel, and new users who now match will be added (if auto-sync is enabled).
+During the next scheduled synchronization (every 60 minutes by default), users who no longer match the access rules will be removed from the channel, and new users who now match will be added (if auto-sync is enabled).
 
 #### Do guest users work with ABAC channels?
 

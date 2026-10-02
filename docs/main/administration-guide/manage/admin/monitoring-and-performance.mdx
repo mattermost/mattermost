@@ -1,24 +1,31 @@
 ---
 title: "Monitoring and performance"
 ---
-This Monitoring and Performance Guide is organized into sections to help you effectively monitor, optimize, and manage the performance of your Mattermost installation.
+Keeping a running deployment healthy: what to measure, where to send it, and what to collect when something goes wrong.
 
-From collecting performance metrics and deploying monitoring tools to configuring health checks and managing notifications, this guide offers comprehensive resources to ensure your Mattermost workspace operates at peak efficiency. Use the navigation below to explore detailed instructions and best practices.
+## Metrics and dashboards
 
-- [Optimize your Mattermost workspace](/administration-guide/configure/optimize-your-workspace) - Learn about optimizing your Mattermost workspace.
-- [Collect performance metrics](/administration-guide/scale/collect-performance-metrics) - Learn about collecting performance metrics for Mattermost.
-- [Deploy Prometheus and Grafana for performance monitoring](/administration-guide/scale/deploy-prometheus-grafana-for-performance-monitoring) - Learn how to deploy Prometheus and Grafana for performance monitoring.
-- [Performance monitoring metrics](/administration-guide/scale/performance-monitoring-metrics) - Learn about performance monitoring metrics for Mattermost.
-- [Deploy Grafana Loki for centralized logging](/administration-guide/scale/deploy-grafana-loki-for-centralized-logging) - Learn how to deploy Grafana Loki for centralized logging.
-- [Push notification health targets](/administration-guide/scale/push-notification-health-targets) - Learn about push notification health targets for Mattermost.
-- [Performance alerting guide](/administration-guide/scale/performance-alerting) - Learn about performance alerting for Mattermost.
-- [Ensuring releases perform at scale](/administration-guide/scale/ensuring-releases-perform-at-scale) - Learn how to ensure releases perform at scale for Mattermost.
-- [Manage user surveys](/administration-guide/configure/manage-user-surveys) - Learn about managing user surveys for Mattermost.
-- [User satisfaction surveys](/administration-guide/manage/user-satisfaction-surveys) - Learn how to send user satisfaction surveys for Mattermost.
-- [Notify admin](/administration-guide/upgrade/notify-admin) - Learn how to notify admins for Mattermost.
-- [System-wide notifications](/administration-guide/manage/system-wide-notifications) - Learn about system-wide notifications for Mattermost.
-- [Statistics](/administration-guide/manage/statistics) - Learn about Mattermost statistics .
-- [In-product notices](/administration-guide/manage/in-product-notices) - Learn how to use in-product notices for Mattermost.
-- [Health checks](/administration-guide/manage/request-server-health-check) - Learn about health checks for Mattermost.
-- [Health check probes](/administration-guide/manage/configure-health-check-probes) - Learn how to set up health check probes for Mattermost.
-- [Product limits](/administration-guide/manage/product-limits) - Learn about product limits for Mattermost.
+- [Collect performance metrics](/administration-guide/scale/collect-performance-metrics) - Turn on the metrics endpoint and decide what to scrape.
+- [Deploy Prometheus and Grafana for performance monitoring](/administration-guide/scale/deploy-prometheus-grafana-for-performance-monitoring) - Stand up the monitoring stack.
+- [Performance monitoring metrics](/administration-guide/scale/performance-monitoring-metrics) - What each metric means.
+- [Performance alerting](/administration-guide/scale/performance-alerting) - Alert thresholds worth setting, and why.
+- [Push notification health targets](/administration-guide/scale/push-notification-health-targets) - Healthy delivery latency and failure rates.
+
+## Logging
+
+- [Mattermost logging](/administration-guide/manage/logging) - Configure what the server logs and where.
+- [Deploy Grafana Loki for centralized logging](/administration-guide/scale/deploy-grafana-loki-for-centralized-logging) - Aggregate logs across servers.
+
+## Health and diagnostics
+
+- [Optimize your Mattermost workspace](/administration-guide/configure/optimize-your-workspace) - Run the System Console health check and act on what it finds.
+- [Statistics](/administration-guide/manage/statistics) - Site and team usage statistics.
+- [Configure server health check probes](/administration-guide/manage/configure-health-check-probes) - Liveness and readiness endpoints for your orchestrator.
+- [Request a server health check](/administration-guide/manage/request-server-health-check) - Have Mattermost review your deployment.
+- [Generate a support packet](/administration-guide/manage/admin/generating-support-packet) - Collect logs and configuration for a support ticket.
+- [Mattermost error codes](/administration-guide/manage/admin/error-codes) - Look up an error a user reported.
+
+## Telemetry
+
+- [Telemetry](/administration-guide/manage/telemetry) - What Mattermost collects, and how to turn it off.
+- [Ensure releases perform at scale](/administration-guide/scale/ensuring-releases-perform-at-scale) - How Mattermost load-tests each release.

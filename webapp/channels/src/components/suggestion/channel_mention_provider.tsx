@@ -195,6 +195,9 @@ export default class ChannelMentionProvider extends Provider {
             matchedPretext: captured[1],
         });
 
+        // Clone myChannels since we've returned it above, but we'll be mutating it more further below
+        myChannels = [...myChannels];
+
         const handleChannels = (channels: Channel[], withError: boolean) => {
             if (prefix !== this.latestPrefix || this.shouldCancelDispatch(prefix)) {
                 return;

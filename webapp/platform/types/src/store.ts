@@ -22,6 +22,7 @@ import type {PostsState} from './posts';
 import type {PreferenceType} from './preferences';
 import type {PropertiesState} from './properties';
 import type {Recap, ScheduledRecap, RecapLimitStatus} from './recaps';
+import type {RenderPermissionsState} from './render_permissions';
 import type {
     AdminRequestsStatuses, ChannelsRequestsStatuses,
     FilesRequestsStatuses, GeneralRequestsStatuses,
@@ -105,6 +106,7 @@ export type GlobalState = {
         };
         contentFlagging: ContentFlaggingState;
         properties: PropertiesState;
+        renderPermissions: RenderPermissionsState;
     };
     errors: any[];
     requests: {

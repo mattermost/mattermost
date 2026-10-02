@@ -48,7 +48,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
       tabindex="0"
     />
     <div
-      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA diqnhj MuiPopover-paper"
+      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA kbkePd MuiPopover-paper"
       style="opacity: 1; transform: scale(1, 1); transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 100ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 0px; left: 0px; transform-origin: 0px 0px;"
       tabindex="-1"
     >
@@ -89,7 +89,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
@@ -181,11 +181,11 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
@@ -253,7 +253,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY fMgZOu"
@@ -341,7 +341,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
       tabindex="0"
     />
     <div
-      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA diqnhj MuiPopover-paper"
+      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA kbkePd MuiPopover-paper"
       style="opacity: 1; transform: scale(1, 1); transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 100ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 0px; left: 0px; transform-origin: 0px 0px;"
       tabindex="-1"
     >
@@ -382,7 +382,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
@@ -474,11 +474,11 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
@@ -546,7 +546,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY fMgZOu"
@@ -634,7 +634,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
       tabindex="0"
     />
     <div
-      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA diqnhj MuiPopover-paper"
+      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA kbkePd MuiPopover-paper"
       style="opacity: 1; transform: scale(1, 1); transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 100ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 0px; left: 0px; transform-origin: 0px 0px;"
       tabindex="-1"
     >
@@ -675,7 +675,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
@@ -767,11 +767,11 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
@@ -839,7 +839,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY fMgZOu"
@@ -927,7 +927,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
       tabindex="0"
     />
     <div
-      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA diqnhj MuiPopover-paper"
+      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA kbkePd MuiPopover-paper"
       style="opacity: 1; transform: scale(1, 1); transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 100ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 0px; left: 0px; transform-origin: 0px 0px;"
       tabindex="-1"
     >
@@ -968,7 +968,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
@@ -1060,11 +1060,11 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY fMgZOu"
@@ -1152,7 +1152,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
       tabindex="0"
     />
     <div
-      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA diqnhj MuiPopover-paper"
+      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA kbkePd MuiPopover-paper"
       style="opacity: 1; transform: scale(1, 1); transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 100ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 0px; left: 0px; transform-origin: 0px 0px;"
       tabindex="-1"
     >
@@ -1193,7 +1193,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
@@ -1285,11 +1285,11 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
@@ -1413,7 +1413,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
       tabindex="0"
     />
     <div
-      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA diqnhj MuiPopover-paper"
+      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA kbkePd MuiPopover-paper"
       style="opacity: 1; transform: scale(1, 1); transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 100ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 0px; left: 0px; transform-origin: 0px 0px;"
       tabindex="-1"
     >
@@ -1454,7 +1454,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
@@ -1543,11 +1543,11 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
@@ -1615,7 +1615,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY fMgZOu"
@@ -1703,7 +1703,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
       tabindex="0"
     />
     <div
-      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA diqnhj MuiPopover-paper"
+      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA kbkePd MuiPopover-paper"
       style="opacity: 1; transform: scale(1, 1); transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 100ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 0px; left: 0px; transform-origin: 0px 0px;"
       tabindex="-1"
     >
@@ -1744,7 +1744,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
@@ -1836,11 +1836,11 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
@@ -1908,7 +1908,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY fMgZOu"
@@ -1996,7 +1996,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
       tabindex="0"
     />
     <div
-      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA diqnhj MuiPopover-paper"
+      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA kbkePd MuiPopover-paper"
       style="opacity: 1; transform: scale(1, 1); transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 100ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 0px; left: 0px; transform-origin: 0px 0px;"
       tabindex="-1"
     >
@@ -2037,7 +2037,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
@@ -2129,11 +2129,11 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
@@ -2201,7 +2201,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY fMgZOu"
@@ -2289,7 +2289,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
       tabindex="0"
     />
     <div
-      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA diqnhj MuiPopover-paper"
+      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA kbkePd MuiPopover-paper"
       style="opacity: 1; transform: scale(1, 1); transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 100ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 0px; left: 0px; transform-origin: 0px 0px;"
       tabindex="-1"
     >
@@ -2330,7 +2330,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
@@ -2422,11 +2422,11 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
@@ -2494,7 +2494,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY fMgZOu"
@@ -2582,7 +2582,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
       tabindex="0"
     />
     <div
-      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA diqnhj MuiPopover-paper"
+      class="MuiPaper-root-jrNovL xmIEL MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation8 MuiPopover-paper-mFrfA kbkePd MuiPopover-paper"
       style="opacity: 1; transform: scale(1, 1); transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,transform 100ms cubic-bezier(0.4, 0, 0.2, 1) 0ms; top: 0px; left: 0px; transform-origin: 0px 0px;"
       tabindex="-1"
     >
@@ -2623,7 +2623,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
@@ -2715,11 +2715,11 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
@@ -2787,7 +2787,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         </li>
         <hr
           aria-orientation="vertical"
-          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+          class="MuiDivider-root-ermPAM dEdkzM MuiDivider-root MuiDivider-fullWidth"
         />
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY fMgZOu"

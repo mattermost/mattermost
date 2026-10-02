@@ -885,6 +885,138 @@ func TestLinkedPropertyFields(t *testing.T) {
 		assert.Equal(t, sourceOpts, linkedOpts)
 	})
 
+	t.Run("create linked field copies source ldap/saml sync attrs", func(t *testing.T) {
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "SyncSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrLDAP: "sAMAccountName",
+			},
+		})
+
+		linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "SyncLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+		require.NoError(t, err)
+		assert.Equal(t, "sAMAccountName", linked.Attrs[model.PropertyFieldAttrLDAP])
+		assert.Equal(t, "ldap", model.GetPropertyFieldSyncSource(linked))
+
+		samlSource := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "SamlSyncSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrSAML: "employeeID",
+			},
+		})
+
+		samlLinked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "SamlSyncLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &samlSource.ID,
+		})
+		require.NoError(t, err)
+		assert.Equal(t, "employeeID", samlLinked.Attrs[model.PropertyFieldAttrSAML])
+		assert.Equal(t, "saml", model.GetPropertyFieldSyncSource(samlLinked))
+	})
+
+	t.Run("create linked field does not copy ldap/saml attrs to non-user object types", func(t *testing.T) {
+		// A template with both ldap and saml attrs set.
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "SyncSourceNonUser-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrLDAP: "sAMAccountName",
+				model.PropertyFieldAttrSAML: "employeeID",
+			},
+		})
+
+		for _, objectType := range []string{
+			model.PropertyFieldObjectTypeChannel,
+			model.PropertyFieldObjectTypePost,
+		} {
+			t.Run(objectType, func(t *testing.T) {
+				linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+					GroupID:       group.ID,
+					ObjectType:    objectType,
+					TargetType:    string(model.PropertyFieldTargetLevelSystem),
+					Name:          "SyncLinked-" + objectType + "-" + model.NewId(),
+					Type:          model.PropertyFieldTypeText,
+					LinkedFieldID: &source.ID,
+				})
+				require.NoError(t, err)
+				assert.Empty(t, linked.Attrs[model.PropertyFieldAttrLDAP], "ldap attr must not be copied to %s field", objectType)
+				assert.Empty(t, linked.Attrs[model.PropertyFieldAttrSAML], "saml attr must not be copied to %s field", objectType)
+				assert.Equal(t, "", model.GetPropertyFieldSyncSource(linked))
+			})
+		}
+	})
+
+	t.Run("create linked field inherits source permission values when the caller sends none", func(t *testing.T) {
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:          group.ID,
+			ObjectType:       model.PropertyFieldObjectTypeTemplate,
+			TargetType:       string(model.PropertyFieldTargetLevelSystem),
+			Type:             model.PropertyFieldTypeText,
+			Name:             "InheritSource-" + model.NewId(),
+			PermissionValues: model.NewPointer(model.PermissionLevelSysadmin),
+		})
+
+		linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeChannel,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "InheritLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, linked.PermissionValues)
+		assert.Equal(t, model.PermissionLevelSysadmin, *linked.PermissionValues)
+	})
+
+	t.Run("create linked field keeps the caller's permission values over the source's", func(t *testing.T) {
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:          group.ID,
+			ObjectType:       model.PropertyFieldObjectTypeTemplate,
+			TargetType:       string(model.PropertyFieldTargetLevelSystem),
+			Type:             model.PropertyFieldTypeText,
+			Name:             "PinSource-" + model.NewId(),
+			PermissionValues: model.NewPointer(model.PermissionLevelSysadmin),
+		})
+
+		// A channel attribute set by any member, defined by a template only
+		// admins may edit.
+		linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:          group.ID,
+			ObjectType:       model.PropertyFieldObjectTypeChannel,
+			TargetType:       string(model.PropertyFieldTargetLevelSystem),
+			Name:             "PinLinked-" + model.NewId(),
+			Type:             model.PropertyFieldTypeText,
+			LinkedFieldID:    &source.ID,
+			PermissionValues: model.NewPointer(model.PermissionLevelMember),
+		})
+		require.NoError(t, err)
+		require.NotNil(t, linked.PermissionValues)
+		assert.Equal(t, model.PermissionLevelMember, *linked.PermissionValues)
+	})
+
 	t.Run("create linked field rejects non-existent source", func(t *testing.T) {
 		fakeID := model.NewId()
 		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
@@ -1148,6 +1280,74 @@ func TestLinkedPropertyFields(t *testing.T) {
 		// Now delete the source
 		err = th.service.DeletePropertyField(rctx, group.ID, source.ID)
 		require.NoError(t, err)
+	})
+
+	t.Run("deleting a graph template is refused while a field links to it, and clears its hierarchy once none does", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeGraph,
+			Name:       "GraphSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Air Program"},
+					map[string]any{"name": "Fighter Jet Program", "parents": []string{"Air Program"}},
+				},
+			},
+		})
+
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "GraphLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText, // will be overwritten
+			LinkedFieldID: &template.ID,
+		})
+		require.Equal(t, model.PropertyFieldTypeGraph, linked.Type)
+
+		// What the template owns: how many live options, and how many parent links
+		// between them.
+		owned := func(t *testing.T) (int, int) {
+			t.Helper()
+			options, err := th.dbStore.PropertyField().CountOptions(template.ID)
+			require.NoError(t, err)
+			edges, err := th.dbStore.PropertyField().GetOptionEdges(template.ID)
+			require.NoError(t, err)
+			return options, len(edges)
+		}
+
+		options, edges := owned(t)
+		require.Equal(t, 2, options)
+		require.Equal(t, 1, edges)
+
+		err := th.service.DeletePropertyField(rctx, group.ID, template.ID)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+
+		// The refusal is what protects the dependent: it serves the template's
+		// hierarchy rather than a copy, so a template deleted underneath it would
+		// leave it serving nothing.
+		options, edges = owned(t)
+		require.Equal(t, 2, options)
+		require.Equal(t, 1, edges)
+
+		// Deleting the dependent is not a route to emptying the template either. It
+		// owns no options at all, and every statement behind a field delete is scoped
+		// to the field's own rows.
+		require.NoError(t, th.service.DeletePropertyField(rctx, group.ID, linked.ID))
+		options, edges = owned(t)
+		require.Equal(t, 2, options)
+		require.Equal(t, 1, edges)
+
+		// With nothing deriving them, the options go with the template.
+		require.NoError(t, th.service.DeletePropertyField(rctx, group.ID, template.ID))
+		options, edges = owned(t)
+		require.Zero(t, options)
+		require.Zero(t, edges)
 	})
 
 	t.Run("unlink field preserves type and options", func(t *testing.T) {

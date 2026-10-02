@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useCallback, useMemo} from 'react';
+import React, {useState, useEffect, useCallback, useMemo, type JSX} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import {buttonClassNames} from '@mattermost/shared/components/button';
-import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
+import {ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ, type AccessControlPolicy, type AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
+import {CHANNEL_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
 
 import {isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -56,6 +57,8 @@ const permissionMessages = defineMessages({
     downloadDescription: {id: 'admin.permission_policies.permission.download_file.description', defaultMessage: 'Allow users to download files to their device'},
     uploadLabel: {id: 'admin.permission_policies.permission.upload_file.label', defaultMessage: 'Upload Files'},
     uploadDescription: {id: 'admin.permission_policies.permission.upload_file.description', defaultMessage: 'Allow users to upload files while sending a message'},
+    createBorLabel: {id: 'admin.permission_policies.permission.create_bor.label', defaultMessage: 'Create Burn-on-Read Message'},
+    createBorDescription: {id: 'admin.permission_policies.permission.create_bor.description', defaultMessage: 'Allow users to send burn-on-read messages'},
 });
 
 const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
@@ -68,6 +71,11 @@ const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
         value: 'upload_file_attachment',
         label: permissionMessages.uploadLabel,
         description: permissionMessages.uploadDescription,
+    },
+    {
+        value: ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
+        label: permissionMessages.createBorLabel,
+        description: permissionMessages.createBorDescription,
     },
 ];
 
@@ -118,7 +126,13 @@ function PermissionPolicyDetails({
     sessionAttributesEnabled,
 }: PermissionPolicyDetailsProps): JSX.Element {
     const [policyName, setPolicyName] = useState(policy?.name || '');
-    const [expression, setExpression] = useState(policy?.rules?.[0]?.expression || '');
+
+    // Not seeded from `policy`: the list leaves the search endpoint's copy in the
+    // store, and search returns rules in their stored form — a rank comparison is
+    // stored desugared as `_rank_ge(...)`, which /cel/visual_ast rejects, so the
+    // editor would fire a doomed parse on mount. fetchPolicy below is the only
+    // source; it also sets the name, role and permissions seeded here.
+    const [expression, setExpression] = useState('');
     const [selectedRole, setSelectedRole] = useState(policy?.roles?.[0] || 'system_user');
     const [selectedPermissions, setSelectedPermissions] = useState<string[]>(
         getPermissionActions(policy?.rules || []),
@@ -131,6 +145,7 @@ function PermissionPolicyDetails({
     const [attributesLoaded, setAttributesLoaded] = useState(false);
     const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
     const [pageLoaded, setPageLoaded] = useState(false);
+    const [loadFailed, setLoadFailed] = useState(false);
     const [showTest, setShowTest] = useState(false);
 
     const {formatMessage} = useIntl();
@@ -143,9 +158,27 @@ function PermissionPolicyDetails({
     // the channel-settings Permissions Policy tab.
     const policySimulationEnabled = useSelector(isPolicySimulationEnabled);
 
+    // The autocomplete mixes the requesting user's attributes (user.attributes.*)
+    // and the accessed channel's attributes (resource.attributes.*), tagged by
+    // object_type. Permission policies are channel-scoped, so they may reference
+    // resource.attributes.*; split so user fields drive rules and channel fields
+    // are comparison targets.
+    const {userFields, resourceFields} = useMemo(() => {
+        const uf: UserPropertyField[] = [];
+        const rf: UserPropertyField[] = [];
+        for (const f of autocompleteResult) {
+            if (f.object_type === CHANNEL_ATTRIBUTES_OBJECT_TYPE) {
+                rf.push(f);
+            } else {
+                uf.push(f);
+            }
+        }
+        return {userFields: uf, resourceFields: rf};
+    }, [autocompleteResult]);
+
     // Permission policies can reference session attributes (e.g. user.session.ip_address),
     // so the editor stays usable even without any configured user attributes when SessionAttributes is on.
-    const noUsableAttributes = attributesLoaded && !sessionAttributesEnabled && !hasUsableAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes);
+    const noUsableAttributes = attributesLoaded && !sessionAttributesEnabled && !hasUsableAttributes(userFields, accessControlSettings.EnableUserManagedAttributes);
 
     const sessionFields = useEnabledSessionAttributeFields(sessionAttributesEnabled);
     const mergedAttributes = useMemo(
@@ -162,7 +195,11 @@ function PermissionPolicyDetails({
     // are recognized as simple and open in table mode.
 
     const loadPage = async (): Promise<void> => {
-        const fieldsPromise = abacActions.getAccessControlFields('', 100).then((result) => {
+        setLoadFailed(false);
+
+        // Permission policies can reference resource.attributes.* (the accessed
+        // channel), so request channel fields too.
+        const fieldsPromise = abacActions.getAccessControlFields('', 100, true).then((result) => {
             if (result.data) {
                 setAutocompleteResult(result.data);
             }
@@ -172,6 +209,7 @@ function PermissionPolicyDetails({
         if (policyId) {
             const policyPromise = actions.fetchPolicy(policyId).then((result: ActionResult) => {
                 if (result.error) {
+                    setLoadFailed(true);
                     setServerError(result.error.message || formatMessage({
                         id: 'admin.permission_policies.edit.error.load',
                         defaultMessage: 'Failed to load policy',
@@ -316,7 +354,23 @@ function PermissionPolicyDetails({
                     />
                 </div>
             </AdminHeader>
-            {pageLoaded ? (
+            {pageLoaded && loadFailed && (
+                <div className='admin-console__wrapper'>
+                    <div className='admin-console__content'>
+                        <div className='admin-console__warning-notice'>
+                            <SectionNotice
+                                type='danger'
+                                title={formatMessage({
+                                    id: 'admin.permission_policies.edit.error.load',
+                                    defaultMessage: 'Failed to load policy',
+                                })}
+                                text={serverError}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+            {pageLoaded && !loadFailed && (
                 <>
                     <div className='admin-console__wrapper'>
                         <div className='admin-console__content'>
@@ -397,7 +451,7 @@ function PermissionPolicyDetails({
                                                 defaultMessage: 'Configure user attributes',
                                             }),
                                             onClick: () => {
-                                                getHistory().push('/admin_console/system_attributes/user_attributes');
+                                                getHistory().push('/admin_console/system_attributes/manage_attributes');
                                             },
                                         }}
                                     />
@@ -538,7 +592,10 @@ function PermissionPolicyDetails({
                                             }}
                                             onValidate={() => {}}
                                             disabled={noUsableAttributes}
-                                            userAttributes={toCELEditorAttributes(mergedAttributes, accessControlSettings.EnableUserManagedAttributes)}
+                                            userAttributes={toCELEditorAttributes(mergeSessionAttributes(userFields, sessionFields), accessControlSettings.EnableUserManagedAttributes)}
+                                            resourceAttributes={resourceFields.map((attr) => ({
+                                                attribute: attr.name,
+                                            }))}
 
                                             // Both editor modes route the test
                                             // button through SimulateAccessModal:
@@ -790,6 +847,7 @@ function PermissionPolicyDetails({
                             actionLabels={{
                                 upload_file_attachment: formatMessage(permissionMessages.uploadLabel),
                                 download_file_attachment: formatMessage(permissionMessages.downloadLabel),
+                                [ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ]: formatMessage(permissionMessages.createBorLabel),
                             }}
                             targetRole={selectedRole}
                             targetScope='system'
@@ -830,7 +888,8 @@ function PermissionPolicyDetails({
                         )}
                     </div>
                 </>
-            ) : (
+            )}
+            {!pageLoaded && (
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'/>
                 </div>

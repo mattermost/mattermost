@@ -29,7 +29,7 @@ exports[`AudioVideoPreview should match snapshot, cannot play 1`] = `
       />
       <img
         alt="file preview"
-        src=""
+        src="test-file-stub"
       />
     </a>
     <div

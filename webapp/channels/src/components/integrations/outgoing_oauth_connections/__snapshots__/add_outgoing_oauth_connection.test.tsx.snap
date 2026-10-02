@@ -98,7 +98,7 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
               autocomplete="off"
               class="form-control"
               id="client_secret"
-              type="text"
+              type="password"
               value=""
             />
             <div

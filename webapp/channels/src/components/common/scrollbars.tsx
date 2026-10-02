@@ -19,7 +19,7 @@ const Scrollbars = React.forwardRef<HTMLElement, ScrollbarsProps>(({
     color,
     onScroll,
 }, ref) => {
-    const removeListener = useRef<() => void>();
+    const removeListener = useRef<() => void>(undefined);
 
     // We can't pass scroll handlers directly to SimpleBar, so we have to attach it to the DOM element directly
     const setScrollRef = useCallback((el: HTMLDivElement) => {

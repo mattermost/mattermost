@@ -29,6 +29,8 @@ type notificationType string
 type pushJWTClaims struct {
 	AckId    string `json:"ack_id"`
 	DeviceId string `json:"device_id"`
+	// set only for session wipe pushes; VerifyWipeSignature rejects signatures without it
+	UserId string `json:"user_id,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -111,6 +113,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 	}
 
 	originalTransportType := msg.Transport
+	originalMessage := msg.DeepCopy()
 	a.ch.RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
 		var replacementNotification *model.PushNotification
 		replacementNotification, rejectionReason = hooks.NotificationWillBePushed(msg, userID)
@@ -165,6 +168,8 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		)
 		return appErr
 	}
+
+	recordDelivery := true
 
 	for _, session := range sessions {
 		// Don't send notifications to this session if it's expired or we want to skip it
@@ -253,6 +258,11 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 				mlog.Err(err),
 			)
 			continue
+		}
+
+		if recordDelivery {
+			a.RecordPushDelivery(rctx, userID, originalMessage)
+			recordDelivery = false
 		}
 
 		rctx.Logger().LogM(mlog.MlvlNotificationTrace, "Notification sent to push proxy",
@@ -517,7 +527,7 @@ func (hub *PushNotificationsHub) start(rctx request.CTX) {
 
 func (hub *PushNotificationsHub) stop() {
 	// Drain the channel.
-	for i := 0; i < hub.buffer+1; i++ {
+	for range hub.buffer + 1 {
 		hub.notificationsChan <- PushNotification{
 			notificationType: notificationTypeDummy,
 		}

@@ -6,11 +6,6 @@
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
         border-collapse: collapse;
-
-        // Fixed layout keeps columns at their declared widths so long value
-        // lists wrap within the Values cell instead of stretching the table
-        // beyond the modal width.
-        table-layout: fixed;
     }
 
     th {
@@ -76,5 +71,21 @@
 
     &__add-button-container {
         padding: 8px;
+    }
+
+    // Value cell holds an optional right-hand-side kind toggle (literal value
+    // vs. channel attribute) next to the value/attribute selector.
+    &__value-cell {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+
+        // The selector fills the width and must be allowed to shrink: its field
+        // defaults to width:100%, which overflows the cell's flex min-content
+        // floor. min-width:0 lets a long value collapse instead of pushing out.
+        > * {
+            min-width: 0;
+        }
     }
 }

@@ -709,16 +709,29 @@ components:
           description: Whether this field is protected from API modification
         permission_field:
           type: string
-          description: Permission level for editing the field definition
-          enum: [none, sysadmin, member]
+          description: >
+            Permission level for editing (and deleting) the field definition.
+            `creator` resolves to the field's `created_by`, in addition to
+            everyone `admin` grants, and is only valid on fields whose object
+            type is `post` or `channel`.
+          enum: [none, sysadmin, member, admin, creator]
         permission_values:
           type: string
-          description: Permission level for setting values on objects
-          enum: [none, sysadmin, member]
+          description: >
+            Permission level for setting values on objects. `creator` resolves
+            to the creator of the object the value is attached to (a post's
+            author, a channel's creator), in addition to everyone `admin`
+            grants, and is only valid on fields whose object type is `post` or
+            `channel`.
+          enum: [none, sysadmin, member, admin, creator]
         permission_options:
           type: string
-          description: Permission level for managing options on select/multiselect fields
-          enum: [none, sysadmin, member]
+          description: >
+            Permission level for managing options on select/multiselect fields.
+            `creator` resolves to the field's `created_by`, in addition to
+            everyone `admin` grants, and is only valid on fields whose object
+            type is `post` or `channel`.
+          enum: [none, sysadmin, member, admin, creator]
         linked_field_id:
           type: string
           nullable: true
@@ -769,7 +782,10 @@ components:
         field_id:
           type: string
         value:
-          type: string
+          description: >
+            The property's value, whose JSON shape depends on the field's type: most types
+            (`text`, `select`, `date`, `user`) store a JSON string, while `multiselect` and
+            `multiuser` store a JSON array of strings.
         create_at:
           type: integer
           format: int64
@@ -932,6 +948,20 @@ components:
             Any acknowledgements made to this point.
           items:
             $ref: "#/components/schemas/PostAcknowledgement"
+        property_values:
+          type: array
+          description: >
+            The property values attached to this post for the property group named in the
+            `propertyGroup` query parameter. Present only when that parameter was
+            supplied, the lookup succeeded, and the post has at least one value in that group.
+          items:
+            $ref: "#/components/schemas/PropertyValue"
+        property_values_unavailable:
+          type: boolean
+          description: >
+            Present and `true` when the lookup of this post's property values failed; omitted
+            otherwise. It does **not** mean the post has no property values, it means they could
+            not be retrieved, and `property_values` is therefore absent or incomplete.
     TeamMap:
       type: object
       description: A mapping of teamIds to teams.
@@ -3205,6 +3235,13 @@ components:
             The minimum Mattermost server version required for the plugin.
 
             Available as server version 5.6.
+        required_add_on:
+          type: string
+          description: |
+            The add-on the server license must grant before the plugin can be
+            enabled.
+
+            Available as server version 12.0.
         backend:
           type: object
           description: Deprecated in Mattermost 5.2 release.
@@ -3472,12 +3509,6 @@ components:
           description: The time in milliseconds that this action was performed.
           type: integer
           format: int64
-    PostIdToReactionsMap:
-      type: object
-      additionalProperties:
-        type: array
-        items:
-          $ref: "#/components/schemas/Reaction"
     Product:
       type: object
       properties:
@@ -5349,6 +5380,117 @@ components:
       required:
         - Enabled
         - ReviewerIds
+    DeliveryTrackingConfig:
+      type: object
+      description: >-
+        Post delivery audit logging configuration. The toggles are stored in the server
+        configuration; the channel list is stored separately in the database.
+      properties:
+        Enable:
+          type: boolean
+          description: >-
+            Whether an audit log entry is recorded each time a post is delivered to a user.
+            The records are emitted on the `audit-delivery` log level, which is not part of
+            the default audit file target — an admin must add a target for it via
+            `ExperimentalAuditSettings.AdvancedLoggingJSON`.
+          example: true
+        EnableForAllChannels:
+          type: boolean
+          description: >-
+            When true, deliveries are recorded in every eligible channel. When false, only in
+            the channels listed in ChannelIds.
+          example: false
+        ChannelIds:
+          type: array
+          items:
+            type: string
+          description: >-
+            IDs of the channels deliveries are recorded in. Only used when
+            EnableForAllChannels is false. On update this fully replaces the stored list;
+            omit the field to leave it unchanged, or send an empty array to clear it. An
+            empty array is only accepted when the resulting configuration is still valid,
+            which means EnableForAllChannels must be true. Direct and group message channels
+            are rejected.
+          example: [ "onymzj7qcjnz7dcnhtjp1noc3w" ]
+    HealthFinding:
+      type: object
+      description: The outcome of one health rule for one subject, as of the server's latest health evaluation.
+      properties:
+        fingerprint:
+          type: string
+          description: The finding's stable identity, derived from its code, subject and scope.
+        code:
+          type: string
+          description: The code of the rule that produced the finding.
+          example: SITE_URL_HTTP
+        subject:
+          type: string
+          description: What the finding is about, such as a configuration key. Never a configuration value.
+          example: ServiceSettings.SiteURL
+        scope:
+          type: string
+          description: The hostname of the node a node-scoped finding belongs to, or empty for a cluster-wide finding.
+        severity:
+          type: string
+          enum: [critical, warning, info]
+        state:
+          type: string
+          description: Whether the rule's condition holds (`firing`), no longer holds (`resolved`), or could not be evaluated (`unknown`).
+          enum: [firing, resolved, unknown]
+        area:
+          type: string
+          enum: [auth, database, search, jobs, cluster, notifications, compliance, platform, license, version]
+        surface:
+          type: string
+          description: Which consumers may see the finding. Always `product` in API responses.
+          enum: [product]
+        message_id:
+          type: string
+          description: The translation id of `message`.
+        details:
+          type: object
+          description: Finding-specific context used to render `message`.
+          additionalProperties:
+            type: string
+        title:
+          type: string
+          description: The rule's title in the request locale.
+        remediation:
+          type: string
+          description: How to resolve the finding, in the request locale.
+        message:
+          type: string
+          description: The finding-specific detail in the request locale. For an `unknown` finding, why the rule could not be evaluated.
+        first_seen_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the finding was first recorded.
+        last_seen_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the finding was last evaluated.
+        state_since:
+          type: integer
+          format: int64
+          description: The time in milliseconds the finding entered its current state.
+        muted_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the finding was muted. Omitted when the finding is not muted.
+        muted_by:
+          type: string
+          description: The id of the user who muted the finding. Omitted when the finding is not muted.
+    HealthFindingList:
+      type: object
+      properties:
+        evaluated_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the server last evaluated its health rules, or 0 if it has not evaluated yet.
+        findings:
+          type: array
+          items:
+            $ref: "#/components/schemas/HealthFinding"
     AccessControlPolicyActiveUpdateRequest:
       type: object
       properties:
@@ -5446,6 +5588,120 @@ components:
           type: integer
           format: int64
           description: The time in milliseconds the recap channel was created
+    AccessControlResource:
+      type: object
+      description: Identifies a resource (type + id) for an ABAC decision request.
+      required:
+        - type
+        - id
+      properties:
+        type:
+          type: string
+          description: The resource type (e.g. "channel").
+        id:
+          type: string
+          description: The resource identifier.
+    RenderPermissionDecision:
+      type: object
+      description: |
+        A non-authoritative, render-time ABAC decision for a single action.
+        Must not be used to authorize an action — server enforcement is authoritative.
+      required:
+        - allowed
+        - evaluated
+      properties:
+        allowed:
+          type: boolean
+          description: Whether the action is permitted for rendering purposes.
+        evaluated:
+          type: boolean
+          description: Whether the server intentionally computed this decision.
+        reason:
+          type: string
+          description: Generic denial reason (e.g. "restricted_by_policy"). Never contains policy names, expressions, or attribute values.
+    ActionSearchResult:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              description: Name of a permitted action. Denial is expressed by omission from the results list.
+    ActionSearchSubject:
+      type: object
+      description: >
+        RESERVED for Phase 3 cross-subject evaluation. In Phase 2 the ID must equal
+        the authenticated session user ID; mismatches return 403. Present to allow
+        Phase 3 as a non-breaking extension.
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+    ActionSearchPage:
+      type: object
+      description: >
+        RESERVED for Phase 3 pagination. Accepted in requests but always ignored;
+        next_token is never emitted in responses. Present to allow Phase 3
+        pagination as a non-breaking extension.
+      properties:
+        next_token:
+          type: string
+    ActionSearchRequest:
+      type: object
+      description: Request body for the Action Search render-decision endpoint.
+      required:
+        - resource
+      properties:
+        resource:
+          $ref: "#/components/schemas/AccessControlResource"
+        actions:
+          type: array
+          description: >
+            Actions to evaluate (max 16). Omit or leave empty for discovery mode:
+            the server evaluates all registered actions for the resource type and
+            returns the permitted set.
+          maxItems: 16
+          items:
+            type: string
+        subject:
+          $ref: "#/components/schemas/ActionSearchSubject"
+        page:
+          $ref: "#/components/schemas/ActionSearchPage"
+    ActionSearchResponse:
+      type: object
+      description: Response from the Action Search render-decision endpoint.
+      required:
+        - resource
+        - results
+        - decisions
+      properties:
+        resource:
+          $ref: "#/components/schemas/AccessControlResource"
+        results:
+          type: array
+          description: >
+            AuthZEN-canonical list: only PERMITTED actions appear here.
+            Denial is expressed by omission. Always present; an empty array []
+            is meaningful (all evaluated actions were denied).
+          items:
+            $ref: "#/components/schemas/ActionSearchResult"
+        decisions:
+          type: object
+          description: >
+            Mattermost extension: all evaluated actions with full decision detail
+            (allowed, evaluated, reason), including denied ones. Always present.
+          additionalProperties:
+            $ref: "#/components/schemas/RenderPermissionDecision"
+        page:
+          $ref: "#/components/schemas/ActionSearchPage"
     RecapLimitStatus:
       type: object
       description: The current user's recap limit status including usage and cooldown information

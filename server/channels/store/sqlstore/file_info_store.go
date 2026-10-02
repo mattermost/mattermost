@@ -714,13 +714,7 @@ func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID
 	query := fs.getQueryBuilder().
 		Select(fs.queryFields...).
 		From("FileInfo").
-		Where(sq.Or{
-			sq.Gt{"FileInfo.CreateAt": startTime},
-			sq.And{
-				sq.Eq{"FileInfo.CreateAt": startTime},
-				sq.Gt{"FileInfo.Id": startFileID},
-			},
-		}).
+		Where("(FileInfo.CreateAt, FileInfo.Id) > (?, ?)", startTime, startFileID).
 		OrderBy("FileInfo.CreateAt ASC, FileInfo.Id ASC").
 		Limit(uint64(limit))
 

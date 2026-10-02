@@ -269,6 +269,11 @@ export type ChannelAccessControlUpdated = BaseWebSocketMessage<WebSocketEvents.C
     channel: JsonEncodedValue<Channel>;
 }>;
 
+// Emitted after a system-scoped (TypePermission) permission policy is created, updated,
+// deleted, or toggled active. No payload — the policy is global so the client reconciles
+// the currently visible channel only.
+export type PermissionPolicyUpdated = BaseWebSocketMessage<WebSocketEvents.PermissionPolicyUpdated, Record<string, never>>;
+
 export type TeamAccessControlUpdated = BaseWebSocketMessage<WebSocketEvents.TeamAccessControlUpdated, {
     team: JsonEncodedValue<TeamType>;
 }>;
@@ -473,7 +478,7 @@ export type CPAFieldDeleted = BaseWebSocketMessage<WebSocketEvents.CPAFieldDelet
 
 export type CPAValuesUpdated = BaseWebSocketMessage<WebSocketEvents.CPAValuesUpdated, {
     user_id: string;
-    values: Array<PropertyValue<unknown>>;
+    values: Record<string, unknown>;
 }>;
 
 // Content flagging messages

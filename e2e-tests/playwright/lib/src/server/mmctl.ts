@@ -3,7 +3,7 @@
 
 import {test} from '@playwright/test';
 
-import {runMmctl as runMmctlContainer} from '../containers/mmctl_container';
+import {runMmctl as runMmctlContainer, runMmctlLocal} from '../containers/mmctl_container';
 import type {MmctlResult} from '../containers/mmctl_container';
 
 import {getAdminClient} from './init';
@@ -11,6 +11,7 @@ import {getAdminClient} from './init';
 import {testConfig} from '@/test_config';
 
 export type {MmctlResult};
+export {runMmctlLocal};
 
 /**
  * Runs an mmctl command as a real remote client: a separate container built from the same server

@@ -35,6 +35,20 @@ type VersionInfoImportData struct {
 	Additional json.RawMessage `json:"additional,omitempty"`
 }
 
+// ExportScopeAdditional is written into the version line's Additional field
+// whenever the export is scoped to one or more teams, optionally narrowed to
+// named channels. Both fields carry comma-separated name sets. The import
+// pipeline reads this to set sourceTeamName/sourceChannelName (for
+// --destination-team and --destination-channel remapping) and to enable scoped
+// mode, in which users absent from the destination are created as shells rather
+// than treated as a fatal dangling reference. Whether those shells arrive active
+// or deactivated is the operator's --imported-users choice, which scoped mode
+// makes mandatory; see model.ImportedUsersPosture.
+type ExportScopeAdditional struct {
+	TeamName    string `json:"team_name,omitempty"`
+	ChannelName string `json:"channel_name,omitempty"`
+}
+
 type TeamImportData struct {
 	Name            *string `json:"name"`
 	DisplayName     *string `json:"display_name"`

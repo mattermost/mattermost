@@ -236,7 +236,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		// Add users that should be synced (including bots and system admins)
 		// Add a bot
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, bot.UserId, th.BasicUser.Id)
 		require.Nil(t, appErr)

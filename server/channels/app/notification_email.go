@@ -21,6 +21,13 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
+func (a *App) emailNotificationContentsType() string {
+	if license := a.Srv().License(); license != nil && *license.Features.EmailNotificationContents {
+		return *a.Config().EmailSettings.EmailNotificationContentsType
+	}
+	return model.EmailNotificationContentsFull
+}
+
 func (a *App) buildEmailNotification(
 	rctx request.CTX,
 	notification *PostNotification,
@@ -49,10 +56,7 @@ func (a *App) buildEmailNotification(
 	senderName := notification.GetSenderName(nameFormat,
 		*a.Config().ServiceSettings.EnablePostUsernameOverride)
 
-	emailNotificationContentsType := model.EmailNotificationContentsFull
-	if license := a.Srv().License(); license != nil && *license.Features.EmailNotificationContents {
-		emailNotificationContentsType = *a.Config().EmailSettings.EmailNotificationContentsType
-	}
+	emailNotificationContentsType := a.emailNotificationContentsType()
 
 	var subject string
 	if channel.Type == model.ChannelTypeDirect {
@@ -260,9 +264,16 @@ func (a *App) sendNotificationEmail(rctx request.CTX, notification *PostNotifica
 		references = referencesVal
 	}
 
+	recordPostDelivery := emailNotification.MessageHTML != ""
+
 	a.Srv().Go(func() {
 		if nErr := a.Srv().EmailService.SendMailWithEmbeddedFiles(user.Email, html.UnescapeString(emailNotification.Subject), bodyText, embeddedFiles, messageID, inReplyTo, references, "Notification"); nErr != nil {
 			rctx.Logger().Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(nErr))
+			return
+		}
+
+		if recordPostDelivery {
+			a.RecordPostDelivery(rctx, user.Id, post, model.DeliveryMechanismEmail)
 		}
 	})
 

@@ -6,7 +6,7 @@ import TabItem from '@theme/TabItem';
 
 <PlanAvailability slug="entry-adv" />
 
-Use this guide to create and manage organization-wide attribute-based access policies in the System Console. For channel-level rules managed by Channel Admins, see [Channel-specific access rules](/administration-guide/manage/admin/abac-channel-access-rules).
+Use this guide to create and manage organization-wide attribute-based access policies in the System Console. Policies can be assigned to both channels and teams. For channel-level rules managed by Channel Admins, see [Channel-specific access rules](/administration-guide/manage/admin/abac-channel-access-rules). For team membership policies, see [Team membership access policies](/administration-guide/manage/admin/abac-team-membership).
 
 ## Prerequisites
 
@@ -14,6 +14,8 @@ Use this guide to create and manage organization-wide attribute-based access pol
 - Then go to **System Console \> System Attributes \> Attribute-Based Access** to enable attribute-based access controls for your Mattermost instance. This functionality requires a Mattermost Enterprise Advanced license.
 
 From Mattermost v10.11, user-managed attributes are excluded from attribute-based access control (ABAC) rules by default for security reasons. This prevents access control policies from being circumvented by users editing their own profile attributes. To include user-managed attributes in ABAC rules, a system admin must explicitly enable the `EnableUserManagedAttributes` configuration setting. See the [user attribute](/administration-guide/manage/admin/user-attributes#before-you-begin) documentation for details on enabling this feature. This configuration setting is available only in Enterprise Edition Advanced and is disabled by default.
+
+From Mattermost v12, [session attributes](/administration-guide/manage/admin/session-attributes) describing the connection a user is on - such as their IP address, VPN status, and device posture - can be used in [permission policies](#permission-policies). Each session attribute must be enabled in **System Console \> System Attributes \> Session Attributes** before a rule can reference it.
 
 ## Define access control policies
 
@@ -61,7 +63,7 @@ Simple Mode is ideal for simple and straightforward access control scenarios. Ea
 </TabItem>
 <TabItem value="advanced-mode" label="Advanced Mode">
 
-Advanced Mode is ideal for complex access control scenarios that require CEL syntax to combine multiple conditions with logical operators that support rules like `user.&lt;attribute&gt; == &lt;value&gt;`, using `&&` / `||` (and/or) for multiple conditions, and `()` to group conditions. The CEL Expression Editor provides real-time syntax validation and feedback, as well as context-aware autocomplete for attributes, operators, and attribute values.
+Advanced Mode is ideal for complex access control scenarios that require CEL syntax to combine multiple conditions with logical operators that support rules like `user.<attribute> == <value>`, using `&&` / `||` (and/or) for multiple conditions, and `()` to group conditions. The CEL Expression Editor provides real-time syntax validation and feedback, as well as context-aware autocomplete for attributes, operators, and attribute values.
 
     You can also start defining rules in Simple Mode and then switch to Advanced Mode to refine the rules further as needed. However, you'll be blocked from switching from Advanced back to Simple Mode if one of the following are true:
 
@@ -69,7 +71,7 @@ Advanced Mode is ideal for complex access control scenarios that require CEL syn
     - Nested logic/grouping (parentheses) are present.
     - Unsupported operators or expressions are detected.
 
-    The syntax structure is `user.&lt;attribute&gt; &lt;operator&gt; &lt;value&gt;`.
+    The syntax structure is `user.<attribute> <operator> <value>`.
 
     As you type, autocompletes show available attributes. As you select attributes, autocomplete suggests appropriate CEL operators. After selecting an operator, when attribute values are pre-defined, autocomplete suggests values to choose from. Mattermost will explicitly indicate issues such as missing operators, incorrect syntax, or incomplete conditions.
 
@@ -93,9 +95,11 @@ From Mattermost v11.8.0, you can use **Simulate access** to preview allowed and 
 
 Simulation can test draft policy changes before they affect live channel access or file permissions. Detailed rule and attribute information is shown only when the denial comes from the policy or scope you're editing; otherwise, Mattermost may show that access was denied by another policy.
 
+From Mattermost v12, results can also show a neutral **No recent session** indicator. This appears when the contributing rules reference [session attributes](/administration-guide/manage/admin/session-attributes) (`user.session.*`) and the selected user has no cached session attributes to evaluate - usually because they haven't connected recently, or haven't connected from a client that reports those attributes.
+
 <Note>
 
-**Simulate access** and channel-level permission policies for file upload and file download are gated by the `PermissionPolicies` feature flag (`MM_FEATUREFLAGS_PERMISSIONPOLICIES`) and require a Mattermost Enterprise Advanced license. See the Mattermost developer documentation for details on [enabling feature flags in a self-hosted deployment](https://developers.mattermost.com/contribute/more-info/server/feature-flags/#self-hosted-and-local-development). Mattermost Cloud customers can request this feature flag be enabled by contacting their Mattermost Account Manager or by [creating a support ticket](https://support.mattermost.com/hc/en-us/requests/new?ticket_form_id=11184911962004).
+**Simulate access** and channel-level permission policies are gated by the `PermissionPolicies` feature flag (`MM_FEATUREFLAGS_PERMISSIONPOLICIES`) and require a Mattermost Enterprise Advanced license. See the Mattermost developer documentation for details on [enabling feature flags in a self-hosted deployment](https://docs.mattermost.com/developers/contribute/more-info/server/feature-flags/#self-hosted-and-local-development). Mattermost Cloud customers can request this feature flag be enabled by contacting their Mattermost Account Manager or by [creating a support ticket](https://support.mattermost.com/hc/en-us/requests/new?ticket_form_id=11184911962004).
 
 </Note>
 
@@ -122,9 +126,24 @@ Private channels with attribute-based access control policies can't have guest u
 
 </Note>
 
+### Assign policies to teams
+
+From Mattermost v11.10, system-wide policies can also be assigned to teams. Go to **System Console \> User Management \> Teams** and open the team you want to configure. In the **Team Management** section, enable **Manage membership with attribute based membership policies** — the **Membership policies** section only appears once this toggle is on. Then link an existing policy and select **Save**.
+
+Group-synced teams cannot use membership policies, so the toggle is unavailable on them.
+
+The policy behaves differently depending on the team's privacy mode:
+
+- **Private teams** — strict enforcement: join is gated, non-qualifying members are removed at sync, and the team is hidden from non-qualifying non-members in Browse Teams.
+- **Public teams** — advisory: the policy is never a gate. Qualifying non-members see a **Recommended** chip in Browse Teams; anyone can still join freely.
+
+For a full description of team assignment, custom rules, sync configuration, and end-user surfaces, see [Team membership access policies](/administration-guide/manage/admin/abac-team-membership).
+
 ### Delete policies
 
-To delete a policy, select the **Delete** button next to the policy you want to remove. You can only delete policies that are not currently assigned to any channels. If a policy is assigned to channels, you must first remove it from those channels before you can delete it.
+To delete a policy, select the **Delete** button next to the policy you want to remove. Policies that are still assigned to channels cannot be deleted — remove the policy from those channels first.
+
+Team assignments are not checked before deletion, so unlink the policy from every team that uses it before deleting it. Otherwise those teams keep a reference to a policy that no longer exists.
 
 ## Define access controls per channel
 
@@ -154,10 +173,29 @@ Permission policies can be used to restrict the following actions based on user 
 
 - **File upload**: Prevent users who don't match the defined attribute rules from uploading file attachments.
 - **File download**: Prevent users who don't match the defined attribute rules from downloading file attachments.
+- **Create burn-on-read message**: Prevent users who don't match the defined attribute rules from sending burn-on-read messages.
 
-When a permission policy applies, users who don't match the configured attribute values can't perform the restricted action. Users may see file attachments as unavailable or redacted in messages they would otherwise have access to. See [Restricted file attachments](/end-user-guide/collaborate/share-files-in-messages#restricted-file-attachments) for the end-user-facing behavior.
+When a permission policy applies, users who don't match the configured attribute values can't perform the restricted action. For example, users may see file attachments as unavailable or redacted in messages they would otherwise have access to, and the **Burn-on-read** icon many not be available in the message toolbar. See [Restricted file attachments](/end-user-guide/collaborate/share-files-in-messages#restricted-file-attachments) and [Send burn-on-read messages](/end-user-guide/collaborate/send-messages#send-burn-on-read-messages) for the end-user-facing behavior.
+
+<Warning>
+
+Permission policies are evaluated when a user acts through a Mattermost client or the REST API. They aren't evaluated for content created or read by integrations:
+
+- **Plugins** aren't subject to permission policies. A plugin runs with server-level trust and can post messages, and upload or read file attachments, on behalf of any user. The plugin API offers a permission check that plugin authors can call, but Mattermost doesn't enforce one on a plugin's behalf.
+- [**Incoming webhooks**](/integrations-guide/incoming-webhooks) and [**custom slash commands**](/integrations-guide/slash-commands#custom-slash-commands) can post messages, including burn-on-read messages, without being evaluated against permission policies. A webhook message is attributed to the user who created the webhook, and a slash command response is attributed to the user who typed the command, including delayed responses sent to the command's response URL. Neither can upload file attachments.
+- **Scheduled messages** are evaluated when the message is scheduled, not when it's sent, so a message scheduled before a policy was tightened is still delivered.
+
+File download restrictions are also applied as messages are delivered to a user's client, so a restricted user doesn't receive file attachments through Mattermost even when a plugin posted the message. This doesn't cover a plugin reading file content on the server.
+
+In channels where you rely on permission policies, review which plugins you install, and control who can create incoming webhooks and custom slash commands using the [integration management permissions](/administration-guide/onboard/advanced-permissions) in the System Console.
+
+</Warning>
+
+The **Create burn-on-read message** restriction applies in addition to the [**Enable burn-on-read messages**](/administration-guide/configure/site-configuration-settings#enable-burn-on-read-messages) configuration setting, which must be enabled for anyone to send burn-on-read messages. A permission policy narrows who can send them; it can't enable them if the configuration setting is disabled.
 
 Permission policies follow the same unique-name requirement as access policies: each parent permission policy must have a unique name, and Mattermost surfaces a user-friendly error if a duplicate name is entered.
+
+From Mattermost v12, permission policy rules can also evaluate [session attributes](/administration-guide/manage/admin/session-attributes) - for example, restricting file downloads to devices on a corporate IP range or to MDM-enrolled devices. Because a rule that references a session attribute denies any session that doesn't report it, review the platform availability of each attribute before applying it to a file action your users depend on. Client-reported attributes such as `mdm_enrolled` are self-attested posture signals rather than proof; for stronger assurance, gate on server-measured values instead - `ip_address` with an IP range check, or `tls_device_id` asserted by your reverse proxy.
 
 ## Attribute value masking
 

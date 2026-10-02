@@ -54,6 +54,9 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
         }
         const actions: AnyAction[] = [];
 
+        const collapsedThreadsEnabled = isCollapsedThreadsEnabled(state);
+        const isCRTReply = collapsedThreadsEnabled && post.root_id;
+
         if (isPostFromCurrentChannel) {
             actions.push({
                 type: ActionTypes.INCREASE_POST_VISIBILITY,
@@ -61,9 +64,6 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
                 amount: 1,
             });
         }
-
-        const collapsedThreadsEnabled = isCollapsedThreadsEnabled(state);
-        const isCRTReply = collapsedThreadsEnabled && post.root_id;
 
         actions.push(
             PostActions.receivedNewPost(post, collapsedThreadsEnabled),

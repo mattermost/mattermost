@@ -3,6 +3,9 @@
 
 import React, {memo, useCallback} from 'react';
 import type {ChangeEventHandler} from 'react';
+import {FormattedMessage} from 'react-intl';
+
+import {Button} from '@mattermost/shared/components/button';
 
 import Setting from './setting';
 
@@ -11,11 +14,13 @@ type Props = {
     options?: Array<{text: string; value: string}>;
     label: React.ReactNode;
     onChange(name: string, value: any): void;
-    value?: string;
+    value?: string | null;
     labelClassName?: string;
     inputClassName?: string;
     helpText?: React.ReactNode;
-
+    labelPosition?: 'before' | 'after';
+    isOptional?: boolean;
+    disabled?: boolean;
 };
 
 const RadioSetting = ({
@@ -27,16 +32,26 @@ const RadioSetting = ({
     label,
     helpText,
     value,
+    labelPosition = 'after',
+    isOptional = false,
+    disabled,
 }: Props) => {
     const handleChange: ChangeEventHandler<HTMLInputElement> = useCallback((e) => {
         onChange(id, e.target.value);
     }, [onChange, id]);
 
+    const handleClear = useCallback(() => {
+        onChange(id, null);
+    }, [onChange, id]);
+
+    const selectedValue = value ?? '';
+    const showClear = isOptional && selectedValue !== '';
+
     return (
         <Setting
             label={label}
             labelClassName={labelClassName}
-            inputClassName={inputClassName}
+            inputClassName={`inline-choice-setting ${inputClassName}`.trim()}
             helpText={helpText}
             inputId={id}
         >
@@ -48,19 +63,39 @@ const RadioSetting = ({
                             key={option}
                         >
                             <label>
+                                {labelPosition === 'before' && (
+                                    <span className='inline-choice-setting__text'>{text}</span>
+                                )}
                                 <input
                                     type='radio'
                                     value={option}
                                     name={id}
-                                    checked={option === value}
+                                    checked={option === selectedValue}
                                     onChange={handleChange}
+                                    disabled={disabled}
                                 />
-                                {text}
+                                {labelPosition === 'after' && (
+                                    <span className='inline-choice-setting__text'>{text}</span>
+                                )}
                             </label>
                         </div>
                     );
                 })
             }
+            {showClear && (
+                <Button
+                    type='button'
+                    emphasis='quaternary'
+                    size='sm'
+                    className='radio-setting__clear'
+                    onClick={handleClear}
+                >
+                    <FormattedMessage
+                        id='interactive_dialog.radio.clear'
+                        defaultMessage='Clear selection'
+                    />
+                </Button>
+            )}
         </Setting>
     );
 };

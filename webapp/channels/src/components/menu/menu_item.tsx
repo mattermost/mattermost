@@ -51,7 +51,7 @@ export interface Props extends MuiMenuItemProps {
      * @note
      * Wraps the labels with element such as span, div etc. to support styling instead of passing text node directly.
      */
-    labels: ReactElement;
+    labels: ReactElement<any>;
 
     /**
      * for some cases we have explicit requirement for labels to be in row instead of stack
@@ -92,6 +92,12 @@ export interface Props extends MuiMenuItemProps {
      * Inverse of forceCloseOnSelect for non-checkbox/radio roles.
      */
     disableCloseOnSelect?: boolean;
+
+    /**
+     * Used when rendering as an external link (component={ExternalLink}).
+     */
+    href?: string;
+    location?: string;
 
     /**
      * ONLY to support submenus. Avoid passing children to this component. Support for children is only added to support submenus.
@@ -164,6 +170,14 @@ export const MenuItem = forwardRef<HTMLLIElement, Props>((props, ref) => {
 
     function handleClick(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
         if (isCorrectKeyPressedOnMenuItem(event)) {
+            // Closing on keydown unmounts an <a> before the browser can follow href.
+            // Activate the link first; the resulting click event closes the menu.
+            if (event.type === EventTypes.KEY_DOWN && event.currentTarget instanceof HTMLAnchorElement && event.currentTarget.hasAttribute('href')) {
+                event.preventDefault();
+                event.currentTarget.click();
+                return;
+            }
+
             // If the menu item is a checkbox or radio button, we don't want to close the menu when it is clicked.
             // unless forceCloseOnSelect is set to true.
             // see https://www.w3.org/WAI/ARIA/apg/patterns/menubar/

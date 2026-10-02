@@ -268,7 +268,7 @@ func (*LoadTestProvider) SetupCommand(a *app.App, rctx request.CTX, args *model.
 		}
 
 		rctx.Logger().Info("Testing environment created")
-		for i := 0; i < len(environment.Teams); i++ {
+		for i := range environment.Teams {
 			rctx.Logger().Info("Team Created: " + environment.Teams[i].Name)
 			rctx.Logger().Info("\t User to login: " + environment.Environments[i].Users[0].Email + ", " + UserPassword)
 		}

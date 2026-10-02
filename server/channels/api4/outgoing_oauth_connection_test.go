@@ -1408,7 +1408,7 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 		require.Equal(t, http.StatusOK, httpRecorder.Code)
 	})
 
-	t.Run("success (stored connection)", func(t *testing.T) {
+	t.Run("does not backfill stored secret", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		defer outgoingOauthConnectionsCleanup(t, th)
 
@@ -1419,8 +1419,10 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 		server := newFakeOAuthServer(t)
 
 		conn := newOutgoingOAuthConnection()
+		conn.Id = model.NewId()
 		conn.CreatorId = model.NewId()
 		conn.OAuthTokenURL = server.URL + "/valid"
+		conn.ClientSecret = ""
 
 		c := &Context{}
 		c.AppContext = th.Context
@@ -1433,9 +1435,6 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 			Roles:  model.SystemUserRoleId,
 		}
 		c.AppContext = th.Context.WithSession(&session)
-		c.Params = &web.Params{
-			OutgoingOAuthConnectionID: conn.Id,
-		}
 
 		th.AddPermissionToRole(t, model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
@@ -1450,7 +1449,6 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = new(true)
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
-		outgoingOauthIface.Mock.On("GetConnection", c.AppContext, conn.Id).Return(conn, nil)
 		outgoingOauthIface.Mock.On("RetrieveTokenForConnection", c.AppContext, conn).Return(&model.OutgoingOAuthConnectionToken{}, nil)
 
 		httpRecorder := httptest.NewRecorder()
@@ -1461,5 +1459,6 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 		handler.ServeHTTP(httpRecorder, req)
 
 		require.Equal(t, http.StatusOK, httpRecorder.Code)
+		outgoingOauthIface.AssertNotCalled(t, "GetConnection", mock.Anything, mock.Anything)
 	})
 }

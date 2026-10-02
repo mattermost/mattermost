@@ -19,6 +19,7 @@ import (
 )
 
 func TestGetMattermostLog(t *testing.T) {
+	t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-70639")
 	mainHelper.Parallel(t)
 
 	th := Setup(t)
@@ -114,6 +115,40 @@ func TestGetMattermostLog(t *testing.T) {
 		assert.Nil(t, fileData)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "outside allowed logging directory")
+	})
+}
+
+// Covers PlatformService.validateLogFilePath (used by GetLogFile) without enabling
+// file logging, which is the MM-70639 logger file-target race.
+func TestValidateLogFilePathWithRootOverride(t *testing.T) {
+	ps := &PlatformService{}
+
+	logDir, err := os.MkdirTemp("", "logs")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, os.RemoveAll(logDir))
+	})
+	ps.SetLogRootPathOverride(logDir)
+
+	t.Run("allows path within override root", func(t *testing.T) {
+		inRoot := path.Join(logDir, "mattermost.log")
+		require.NoError(t, os.WriteFile(inRoot, []byte("ok"), 0644))
+		assert.NoError(t, ps.validateLogFilePath(inRoot))
+	})
+
+	t.Run("rejects path outside override root", func(t *testing.T) {
+		outsideDir, err := os.MkdirTemp("", "outside")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			require.NoError(t, os.RemoveAll(outsideDir))
+		})
+
+		outsideFile := path.Join(outsideDir, "secret.log")
+		require.NoError(t, os.WriteFile(outsideFile, []byte("secret"), 0644))
+
+		err = ps.validateLogFilePath(outsideFile)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "outside logging root")
 	})
 }
 

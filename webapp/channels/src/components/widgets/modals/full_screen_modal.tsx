@@ -74,6 +74,7 @@ class FullScreenModal extends React.PureComponent<Props> {
         return (
             <CSSTransition
                 in={this.props.show}
+                nodeRef={this.modal}
                 classNames='FullScreenModal'
                 mountOnEnter={true}
                 unmountOnExit={true}

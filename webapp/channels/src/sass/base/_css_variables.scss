@@ -128,7 +128,7 @@
     --z-index-tooltip: 1350;
 
     // Tour tips also open on menus, so they should be higher than menus
-    // Since tippy requires passing zIndex as prop, we have it as constant DEFAULT_Z_INDEX_TOUR_TIPS_POPOVER
+    // TourTip passes zIndex as a prop, mirrored by DEFAULT_Z_INDEX_TOUR_TIPS_POPOVER
     --z-index-tour-tips-popover: 1300;
     // Since tour tips are in package/components, we have also defined this in its own scss file
     // backdrop are dark screen behind the tour tips with a cutout for the highlighted element

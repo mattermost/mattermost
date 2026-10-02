@@ -1,5 +1,7 @@
 ---
-title: "Use and manage plugins"
+title: "Use plugins with Mattermost"
+description: "Mattermost supports plugins to customize and extend the platform."
+sidebar_label: "Use and manage plugins"
 sidebar_position: 50
 ---
 
@@ -98,9 +100,9 @@ You should only install custom plugins from sources you trust to avoid compromis
 
 ## Plugin signing
 
-The Marketplace allows System Admins to download and install plugins from a central repository. Plugins installed via the Marketplace must be signed by a public key certificate trusted by the local Mattermost server.
+The Marketplace allows System Admins to download and install plugins from a central repository. Plugins installed via the Marketplace must be signed by a public key trusted by the local Mattermost server.
 
-While the server ships with a default certificate used to verify plugins from the default Mattermost Marketplace, the server can be configured to trust different certificates and point at a different plugin marketplace. This document outlines the steps for generating a public key certificate and signing plugins for use with a custom plugin marketplace. It assumes access to the [GNU Privacy Guard (GPG)](https://gnupg.org) tool.
+While the server ships with a default public key used to verify plugins from the default Mattermost Marketplace, the server can be configured to trust different public keys and point at a different plugin marketplace. This document outlines the steps for generating a public key pair and signing plugins for use with a custom plugin marketplace. It assumes access to the [GNU Privacy Guard (GPG)](https://gnupg.org) tool.
 
 ### Configuration
 
@@ -191,21 +193,17 @@ This command will generate `com.mattermost.demo-plugin-0.1.0.tar.gz.sig`, which 
 
 ## Plugin verification
 
-Mattermost server will verify plugin signatures downloaded from the Marketplace. To add custom public keys, run the following command on the Mattermost server:
+Mattermost server will verify plugin signatures downloaded from the Marketplace. Plugins are verified against a hard-coded Mattermost public key, as well as any additional public keys configured on the server.
 
-`mattermost plugin add key my-pub-key`
+To add custom public keys for plugin signature verification, add the key file names to the `PluginSettings.SignaturePublicKeyFiles` setting in your `config.json`:
 
-Multiple public keys can be added to the Mattermost server:
+```json
+"PluginSettings": {
+    "SignaturePublicKeyFiles": ["my-pub-key-1", "my-pub-key-2"]
+}
+```
 
-`mattermost plugin add key my-pk-file1 my-pk-file2`
-
-To list the names of all public keys installed on your Mattermost server, use:
-
-`mattermost plugin keys`
-
-To delete public key(s) from your Mattermost server, use:
-
-`mattermost plugin delete key my-pk-file1 my-pk-file2`
+The key files themselves must be stored in the Mattermost server's config directory.
 
 ### Implementation
 

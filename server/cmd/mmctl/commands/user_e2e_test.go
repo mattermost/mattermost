@@ -34,7 +34,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		ruser, err := s.th.App.GetUser(user.Id)
+		ruser, err := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(err)
 		s.Require().Zero(ruser.DeleteAt)
 	})
@@ -51,7 +51,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user "+user.Id+": You do not have the appropriate permissions.")
 
-		ruser, err := s.th.App.GetUser(user.Id)
+		ruser, err := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(err)
 		s.Require().NotZero(ruser.DeleteAt)
 	})
@@ -84,7 +84,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		ruser, err := s.th.App.GetUser(user.Id)
+		ruser, err := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(err)
 		s.Require().NotZero(ruser.DeleteAt)
 	})
@@ -101,7 +101,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user "+user.Id+": You do not have the appropriate permissions.")
 
-		ruser, err := s.th.App.GetUser(user.Id)
+		ruser, err := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(err)
 		s.Require().Zero(ruser.DeleteAt)
 	})
@@ -487,7 +487,7 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// make sure user is updated after reset mfa
-		ruser, err := s.th.App.GetUser(user.Id)
+		ruser, err := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(err)
 		s.Require().NotEqual(ruser.UpdateAt, user.UpdateAt)
 	})
@@ -730,7 +730,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		s.Require().Equal(newUser.Username, deletedUser.Username)
 
 		// expect user deleted
-		_, err = s.th.App.GetUser(newUser.Id)
+		_, err = s.th.App.GetUser(s.th.Context, newUser.Id)
 		s.Require().NotNil(err)
 		s.Require().Equal("GetUser: Unable to find the user., resource \"User\" not found, id: "+newUser.Id, err.Error())
 	})
@@ -781,7 +781,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		s.Require().EqualError(err, expectedErr.Error())
 
 		// expect user not deleted
-		user, err := s.th.App.GetUser(newUser.Id)
+		user, err := s.th.App.GetUser(s.th.Context, newUser.Id)
 		s.Require().Nil(err)
 		s.Require().Equal(newUser.Username, user.Username)
 	})
@@ -810,7 +810,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		s.Require().EqualError(err, expectedErr.Error())
 
 		// expect user not deleted
-		user, err := s.th.App.GetUser(newUser.Id)
+		user, err := s.th.App.GetUser(s.th.Context, newUser.Id)
 		s.Require().Nil(err)
 		s.Require().Equal(newUser.Username, user.Username)
 	})
@@ -838,7 +838,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		s.Require().Equal(newUser.Username, deletedUser.Username)
 
 		// expect user deleted
-		_, err = s.th.App.GetUser(newUser.Id)
+		_, err = s.th.App.GetUser(s.th.Context, newUser.Id)
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, "GetUser: Unable to find the user., resource \"User\" not found, id: "+newUser.Id)
 	})
@@ -1061,7 +1061,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 		s.Require().Equal("Successfully migrated accounts.", printer.GetLines()[0])
 		s.Require().Empty(printer.GetErrorLines())
 
-		updatedUser, appErr := s.th.App.GetUser(ldapUser.Id)
+		updatedUser, appErr := s.th.App.GetUser(s.th.Context, ldapUser.Id)
 		s.Require().Nil(appErr)
 		s.Require().Equal(model.UserAuthServiceSaml, updatedUser.AuthService)
 	})
@@ -1090,7 +1090,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 		s.Require().Equal("Successfully migrated accounts.", printer.GetLines()[0])
 		s.Require().Empty(printer.GetErrorLines())
 
-		updatedUser, appErr := s.th.App.GetUser(samlUser.Id)
+		updatedUser, appErr := s.th.App.GetUser(s.th.Context, samlUser.Id)
 		s.Require().Nil(appErr)
 		s.Require().Equal(model.UserAuthServiceLdap, updatedUser.AuthService)
 	})
@@ -1605,7 +1605,7 @@ func (s *MmctlE2ETestSuite) TestUserEditUsernameCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify username was updated
-		updatedUser, appErr := s.th.App.GetUser(user.Id)
+		updatedUser, appErr := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(appErr)
 		s.Require().Equal(newUsername, updatedUser.Username)
 
@@ -1626,7 +1626,7 @@ func (s *MmctlE2ETestSuite) TestUserEditUsernameCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify username was not changed
-		unchangedUser, appErr := s.th.App.GetUser(user.Id)
+		unchangedUser, appErr := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(appErr)
 		s.Require().Equal(user.Username, unchangedUser.Username)
 	})
@@ -1643,7 +1643,7 @@ func (s *MmctlE2ETestSuite) TestUserEditUsernameCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify username was not changed
-		unchangedUser, appErr := s.th.App.GetUser(user.Id)
+		unchangedUser, appErr := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(appErr)
 		s.Require().Equal(user.Username, unchangedUser.Username)
 	})
@@ -1684,7 +1684,7 @@ func (s *MmctlE2ETestSuite) TestUserEditEmailCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify email was updated
-		updatedUser, appErr := s.th.App.GetUser(user.Id)
+		updatedUser, appErr := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(appErr)
 		s.Require().Equal(newEmail, updatedUser.Email)
 
@@ -1705,7 +1705,7 @@ func (s *MmctlE2ETestSuite) TestUserEditEmailCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify email was not changed
-		unchangedUser, appErr := s.th.App.GetUser(user.Id)
+		unchangedUser, appErr := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(appErr)
 		s.Require().Equal(user.Email, unchangedUser.Email)
 	})
@@ -1722,7 +1722,7 @@ func (s *MmctlE2ETestSuite) TestUserEditEmailCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify email was not changed
-		unchangedUser, appErr := s.th.App.GetUser(user.Id)
+		unchangedUser, appErr := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(appErr)
 		s.Require().Equal(user.Email, unchangedUser.Email)
 	})
@@ -1763,7 +1763,7 @@ func (s *MmctlE2ETestSuite) TestUserEditAuthdataCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify authdata was not changed
-		unchangedUser, appErr := s.th.App.GetUser(user.Id)
+		unchangedUser, appErr := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(appErr)
 		s.Require().NotNil(unchangedUser.AuthData)
 		s.Require().Equal("existingauthdata", *unchangedUser.AuthData)
@@ -1779,7 +1779,7 @@ func (s *MmctlE2ETestSuite) TestUserEditAuthdataCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify authdata was not changed
-		unchangedUser, appErr := s.th.App.GetUser(user.Id)
+		unchangedUser, appErr := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(appErr)
 		s.Require().NotNil(unchangedUser.AuthData)
 		s.Require().Equal("existingauthdata", *unchangedUser.AuthData)
@@ -1801,7 +1801,7 @@ func (s *MmctlE2ETestSuite) TestUserEditAuthdataCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify authdata was not changed
-		unchangedUser, appErr := s.th.App.GetUser(user.Id)
+		unchangedUser, appErr := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(appErr)
 		s.Require().NotNil(unchangedUser.AuthData)
 		s.Require().Equal("existingauthdata", *unchangedUser.AuthData)
@@ -1827,7 +1827,7 @@ func (s *MmctlE2ETestSuite) TestUserEditAuthdataCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// Verify authdata was updated
-		updatedUser, appErr := s.th.App.GetUser(user.Id)
+		updatedUser, appErr := s.th.App.GetUser(s.th.Context, user.Id)
 		s.Require().Nil(appErr)
 		s.Require().NotNil(updatedUser.AuthData)
 		s.Require().Equal(newAuthdata, *updatedUser.AuthData)

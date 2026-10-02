@@ -3,7 +3,7 @@
 
 package model
 
-const FlaggedPostReportVersion = "1.0"
+const FlaggedPostReportVersion = "1.1"
 
 type FlaggedPostReportContext struct {
 	Post        *Post
