@@ -10734,1403 +10734,1403 @@
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": ""
+    "translation": "Nepavyko atidaryti {{.Backend}} CA failo"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": ""
+    "translation": "Nepavyko dekoduoti {{.Backend}} kliento sertifikato"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": ""
+    "translation": "Nepavyko atidaryti {{.Backend}} kliento sertifikato failo"
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": ""
+    "translation": "Nepavyko atidaryti {{.Backend}} kliento rakto failo"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": ""
+    "translation": "Nepavyko sukonfigūruoti {{.Backend}} kliento"
   },
   {
     "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
-    "translation": ""
+    "translation": "Nepavyko sukurti Elasticsearch paketinio procesoriaus"
   },
   {
     "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
-    "translation": ""
+    "translation": "Nepavyko sukurti Elasticsearch sinchroninio paketinio procesoriaus"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": ""
+    "translation": "Nepavyko sukurti {{.Backend}} kanalų šablono"
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": ""
+    "translation": "Nepavyko sukurti {{.Backend}} failų šablono"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": ""
+    "translation": "Nepavyko sukurti {{.Backend}} pranešimų šablono. Įsitikinkite, kad kiekviename {{.Backend}} mazge įdiegtas reikalingas analysis-icu papildinys, tada paleiskite {{.Backend}} iš naujo"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": ""
+    "translation": "Nepavyko sukurti {{.Backend}} naudotojų šablono"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": ""
+    "translation": "Nepavyko ištrinti {{.Backend}} indekso"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": ""
+    "translation": "Nepavyko gauti {{.Backend}} indeksų"
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
-    "translation": ""
+    "translation": "Nepavyko ištrinti kanalo"
   },
   {
     "id": "ent.elasticsearch.delete_channel_posts.error",
-    "translation": ""
+    "translation": "Nepavyko ištrinti kanalo pranešimų"
   },
   {
     "id": "ent.elasticsearch.delete_file.error",
-    "translation": ""
+    "translation": "Nepavyko ištrinti failo"
   },
   {
     "id": "ent.elasticsearch.delete_files_batch.error",
-    "translation": ""
+    "translation": "Nepavyko ištrinti failų paketo"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
-    "translation": ""
+    "translation": "Nepavyko ištrinti pranešimo"
   },
   {
     "id": "ent.elasticsearch.delete_post_files.error",
-    "translation": ""
+    "translation": "Nepavyko ištrinti pranešimo failų"
   },
   {
     "id": "ent.elasticsearch.delete_user.error",
-    "translation": ""
+    "translation": "Nepavyko ištrinti naudotojo"
   },
   {
     "id": "ent.elasticsearch.delete_user_files.error",
-    "translation": ""
+    "translation": "Nepavyko ištrinti naudotojo failų"
   },
   {
     "id": "ent.elasticsearch.delete_user_posts.error",
-    "translation": ""
+    "translation": "Nepavyko ištrinti naudotojo pranešimų"
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": ""
+    "translation": "{{.Backend}} paieška šiame serveryje neįjungta"
   },
   {
     "id": "ent.elasticsearch.getAllChannelMembers.error",
-    "translation": ""
+    "translation": "Nepavyko gauti visų kanalo narių"
   },
   {
     "id": "ent.elasticsearch.getAllTeamMembers.error",
-    "translation": ""
+    "translation": "Nepavyko gauti visų komandos narių"
   },
   {
     "id": "ent.elasticsearch.healthcheck.not_started.app_error",
-    "translation": ""
+    "translation": "{{.Backend}} nepaleistas."
   },
   {
     "id": "ent.elasticsearch.healthcheck.unreachable.app_error",
-    "translation": ""
+    "translation": "{{.Backend}} būklės patikra nepavyko: nepavyko užbaigti patikros."
   },
   {
     "id": "ent.elasticsearch.index_channel.error",
-    "translation": ""
+    "translation": "Nepavyko indeksuoti kanalo"
   },
   {
     "id": "ent.elasticsearch.index_channels_batch.error",
-    "translation": ""
+    "translation": "Nepavyksta gauti kanalų paketo indeksavimui."
   },
   {
     "id": "ent.elasticsearch.index_file.error",
-    "translation": ""
+    "translation": "Nepavyko indeksuoti failo"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
-    "translation": ""
+    "translation": "Nepavyko indeksuoti pranešimo"
   },
   {
     "id": "ent.elasticsearch.index_user.error",
-    "translation": ""
+    "translation": "Nepavyko indeksuoti naudotojo"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.bulk_failures.error",
-    "translation": ""
+    "translation": "Indeksavimo užduotis baigta, bet paieškos sistema atmetė ir neindeksavo dokumentų. Atmestų dokumentų skaičius: {{.NumFailed}}"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.create_bulk_processor.error",
-    "translation": ""
+    "translation": "Indeksavimo procesui nepavyko inicijuoti paketinio procesoriaus"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
-    "translation": ""
+    "translation": "Nepavyko iš duomenų bazės gauti seniausio objekto (naudotojo, kanalo ar pranešimo)"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": ""
+    "translation": "{{.Backend}} indeksavimo procesui nepavyko išanalizuoti pabaigos laiko"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": ""
+    "translation": "{{.Backend}} indeksavimo procesui nepavyko išanalizuoti pradžios laiko"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
-    "translation": ""
+    "translation": "Bandoma indeksuoti naują paketą, nors visi objektai jau baigti"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": ""
+    "translation": "{{.Backend}} nepaleistas"
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
-    "translation": ""
+    "translation": "Nepavyksta gauti failų paketo indeksavimui."
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
-    "translation": ""
+    "translation": "Nepavyksta gauti pranešimų paketo indeksavimui."
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": ""
+    "translation": "Nepavyko ištrinti paieškos indekso"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.unknown_index",
-    "translation": ""
+    "translation": "Nepavyko ištrinti nurodyto nežinomo indekso"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": ""
+    "translation": "Nepavyko atnaujinti paieškos indeksų"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": ""
+    "translation": "{{.Backend}} paieška šiame serveryje išjungta"
   },
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
-    "translation": ""
+    "translation": "Paieškos nepavyko užbaigti"
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
-    "translation": ""
+    "translation": "Nepavyko dekoduoti paieškos rezultatų"
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": ""
+    "translation": "{{.Backend}} failų paieška šiame serveryje išjungta"
   },
   {
     "id": "ent.elasticsearch.search_files.search_failed",
-    "translation": ""
+    "translation": "Paieškos nepavyko užbaigti"
   },
   {
     "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
-    "translation": ""
+    "translation": "Nepavyko dekoduoti paieškos rezultatų"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": ""
+    "translation": "{{.Backend}} paieška šiame serveryje išjungta"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": ""
+    "translation": "Nepavyko išanalizuoti paieškos rezultatų atitikmenų"
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
-    "translation": ""
+    "translation": "Paieškos nepavyko užbaigti"
   },
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
-    "translation": ""
+    "translation": "Nepavyko dekoduoti paieškos rezultatų"
   },
   {
     "id": "ent.elasticsearch.search_users.search_failed",
-    "translation": ""
+    "translation": "Paieškos nepavyko užbaigti"
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
-    "translation": ""
+    "translation": "Nepavyko dekoduoti paieškos rezultatų"
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": ""
+    "translation": "Nepavyko gauti {{.Backend}} serverio versijos."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": ""
+    "translation": "Nepavyko išanalizuoti {{.Backend}} serverio versijos."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": ""
+    "translation": "{{.Backend}} išjungtas."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": ""
+    "translation": "Jūsų Mattermost licencija nepalaiko indeksuotos paieškos."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": ""
+    "translation": "Pasikeitė paieškos serverio URL arba naudotojo vardas. Norėdami patikrinti ryšį, iš naujo įveskite slaptažodį."
   },
   {
     "id": "ent.elasticsearch.update_posts_channel_type.error",
-    "translation": ""
+    "translation": "{{.Backend}} nepavyko atnaujinti pranešimų kanalo tipo"
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
-    "translation": ""
+    "translation": "Jūsų licencija nepalaiko pagal ID įkeliamų tiesioginių pranešimų (ID Loaded Push Notifications)."
   },
   {
     "id": "ent.intune.login.account_not_found.app_error",
-    "translation": ""
+    "translation": "Jūsų paskyra dar ne iki galo sukonfigūruota. Pirmiausia prisijunkite prie Mattermost per naršyklę arba darbalaukio programą."
   },
   {
     "id": "ent.intune.login.extract_auth_data.app_error",
-    "translation": ""
+    "translation": "Autentifikavimas nepavyko. Bandykite dar kartą arba kreipkitės į sistemos administratorių."
   },
   {
     "id": "ent.intune.login.not_configured.app_error",
-    "translation": ""
+    "translation": "Microsoft Intune autentifikavimas nesukonfigūruotas."
   },
   {
     "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
-    "translation": ""
+    "translation": "Autentifikavimas nepavyko. Netinkama konfigūracija."
   },
   {
     "id": "ent.intune.validate_token.invalid_token.app_error",
-    "translation": ""
+    "translation": "Autentifikavimas nepavyko. Bandykite dar kartą."
   },
   {
     "id": "ent.intune.validate_token.jwks_init.app_error",
-    "translation": ""
+    "translation": "Nepavyko inicijuoti autentifikavimo paslaugos. Kreipkitės į sistemos administratorių."
   },
   {
     "id": "ent.intune.validate_token.missing_claims.app_error",
-    "translation": ""
+    "translation": "Autentifikavimas nepavyko. Trūksta reikalingos naudotojo informacijos."
   },
   {
     "id": "ent.intune.validate_token.token_expired.app_error",
-    "translation": ""
+    "translation": "Autentifikavimo seansas baigėsi. Pabandykite prisijungti dar kartą."
   },
   {
     "id": "ent.jobs.start_synchronize_job.timeout",
-    "translation": ""
+    "translation": "Baigėsi AD/LDAP sinchronizavimo užduoties laukimo laikas."
   },
   {
     "id": "ent.ldap.app_error",
-    "translation": ""
+    "translation": "ldap sąsaja buvo tuščia (nil)."
   },
   {
     "id": "ent.ldap.connection.test_failed",
-    "translation": ""
+    "translation": "LDAP ryšio patikra nepavyko. Serveris: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Klaida: {{.Error}}"
   },
   {
     "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": ""
+    "translation": "Nepavyko gauti CPA laukų"
   },
   {
     "id": "ent.ldap.create_fail",
-    "translation": ""
+    "translation": "Nepavyksta sukurti LDAP naudotojo."
   },
   {
     "id": "ent.ldap.disabled.app_error",
-    "translation": ""
+    "translation": "AD/LDAP išjungtas arba licencija nepalaiko AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
-    "translation": ""
+    "translation": "Nepavyksta susieti (bind) su AD/LDAP serveriu. Patikrinkite BindUsername ir BindPassword."
   },
   {
     "id": "ent.ldap.do_login.certificate.app_error",
-    "translation": ""
+    "translation": "Klaida įkeliant LDAP TLS sertifikato failą."
   },
   {
     "id": "ent.ldap.do_login.invalid_id",
-    "translation": ""
+    "translation": "Netinkamas AD/LDAP Id"
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
-    "translation": ""
+    "translation": "Netinkamas slaptažodis."
   },
   {
     "id": "ent.ldap.do_login.key.app_error",
-    "translation": ""
+    "translation": "Klaida įkeliant LDAP TLS rakto failą."
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": ""
+    "translation": "AD/LDAP funkcija išjungta pagal dabartinę licenciją. Dėl įmonės licencijos atnaujinimo kreipkitės į sistemos administratorių."
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
-    "translation": ""
+    "translation": "Nurodytas naudotojo vardas atitinka kelis naudotojus."
   },
   {
     "id": "ent.ldap.do_login.search_ldap_server.app_error",
-    "translation": ""
+    "translation": "Nepavyko atlikti paieškos AD/LDAP serveryje."
   },
   {
     "id": "ent.ldap.do_login.unable_to_connect.app_error",
-    "translation": ""
+    "translation": "Nepavyksta prisijungti prie AD/LDAP serverio."
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": ""
+    "translation": "Jūsų AD/LDAP paskyra neturi leidimo naudotis šiuo Mattermost serveriu. Paprašykite sistemos administratoriaus patikrinti AD/LDAP naudotojų filtrą."
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
-    "translation": ""
+    "translation": "Naudotojas neregistruotas AD/LDAP serveryje."
   },
   {
     "id": "ent.ldap.do_login.x509.app_error",
-    "translation": ""
+    "translation": "Klaida kuriant raktų porą"
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
-    "translation": ""
+    "translation": "Nepavyko gauti naudotojo."
   },
   {
     "id": "ent.ldap.no.users.checkcertificate",
-    "translation": ""
+    "translation": "LDAP naudotojų nerasta, patikrinkite naudotojų filtrą ir sertifikatus."
   },
   {
     "id": "ent.ldap.save_user.email_exists.ldap_app_error",
-    "translation": ""
+    "translation": "Ši paskyra nenaudoja AD/LDAP autentifikavimo. Prisijunkite naudodami el. paštą ir slaptažodį."
   },
   {
     "id": "ent.ldap.save_user.username_exists.ldap_app_error",
-    "translation": ""
+    "translation": "Paskyra su tokiu naudotojo vardu jau egzistuoja. Kreipkitės į administratorių."
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti visų naudotojų per AD/LDAP."
   },
   {
     "id": "ent.ldap.syncronize.get_all_groups.app_error",
-    "translation": ""
+    "translation": "klaida gaunant grupes."
   },
   {
     "id": "ent.ldap.syncronize.populate_syncables",
-    "translation": ""
+    "translation": "klaida užpildant sinchronizuojamus objektus"
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
-    "translation": ""
+    "translation": "Nepavyko atlikti naudotojų paieškos AD/LDAP. Patikrinkite, ar Mattermost serveris gali prisijungti prie jūsų AD/LDAP serverio, ir bandykite dar kartą."
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": ""
+    "translation": "Viršytas dydžio limitas. Pabandykite padidinti nustatymą „Didžiausias puslapio dydis“. Daugiau informacijos rasite adresu https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded."
   },
   {
     "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": ""
+    "translation": "Tuščia LDAP atributo reikšmė"
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
-    "translation": ""
+    "translation": "Netinkamas AD/LDAP administratorių filtras."
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
-    "translation": ""
+    "translation": "Netinkamas AD/LDAP filtras."
   },
   {
     "id": "ent.ldap.validate_group_filter.app_error",
-    "translation": ""
+    "translation": "Netinkamas AD/LDAP grupių filtras."
   },
   {
     "id": "ent.ldap.validate_guest_filter.app_error",
-    "translation": ""
+    "translation": "Netinkamas AD/LDAP svečių filtras."
   },
   {
     "id": "ent.ldap_groups.group_search_error",
-    "translation": ""
+    "translation": "klaida gaunant ldap grupę"
   },
   {
     "id": "ent.ldap_groups.groups_search_error",
-    "translation": ""
+    "translation": "klaida gaunant ldap grupes"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
-    "translation": ""
+    "translation": "Netinkamas AD/LDAP id"
   },
   {
     "id": "ent.ldap_groups.members_of_group_error",
-    "translation": ""
+    "translation": "klaida gaunant grupės narius"
   },
   {
     "id": "ent.ldap_groups.no_rows",
-    "translation": ""
+    "translation": "grupių su atitinkančiu uid nerasta"
   },
   {
     "id": "ent.ldap_groups.reachable_groups_error",
-    "translation": ""
+    "translation": "klaida gaunant naudotojo grupes"
   },
   {
     "id": "ent.ldap_id_migrate.app_error",
-    "translation": ""
+    "translation": "nepavyksta perkelti."
   },
   {
     "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
-    "translation": ""
+    "translation": "Skaičiuojamas kanalų aktyvumas: apdorota {{.NumCompleted}}/{{.NumChannels}} kanalų."
   },
   {
     "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
-    "translation": ""
+    "translation": "Eksportuojama kanalų informacija. Kanalų skaičius: {{.NumChannels}}."
   },
   {
     "id": "ent.message_export.calculate_channel_exports.app_error",
-    "translation": ""
+    "translation": "Nepavyko apskaičiuoti kanalų eksporto duomenų."
   },
   {
     "id": "ent.message_export.job_data_conversion.app_error",
-    "translation": ""
+    "translation": "Nepavyko konvertuoti reikšmės iš užduoties duomenų lauko."
   },
   {
     "id": "ent.message_export.run_export.app_error",
-    "translation": ""
+    "translation": "Nepavyko atrinkti pranešimų eksporto duomenų."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": ""
+    "translation": "Nepavyksta perkelti AD/LDAP naudotojų pagal nurodytą lauką. Aptiktas pasikartojantis įrašas. Pašalinkite visus pasikartojimus ir bandykite dar kartą."
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
-    "translation": ""
+    "translation": "Nepavyksta rasti naudotojo AD/LDAP serveryje: "
   },
   {
     "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
-    "translation": ""
+    "translation": "El. pašto adresą jau naudoja kitas SAML naudotojas."
   },
   {
     "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
-    "translation": ""
+    "translation": "Naudotojas nerastas naudotojų faile."
   },
   {
     "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
-    "translation": ""
+    "translation": "Naudotojo vardą jau naudoja kitas Mattermost naudotojas."
   },
   {
     "id": "ent.outgoing_oauth_connections.authenticate.app_error",
-    "translation": ""
+    "translation": "Autentifikuojant siunčiamąjį OAuth ryšį įvyko klaida: {{ .Error }}"
   },
   {
     "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
-    "translation": ""
+    "translation": "Nurodytai auditorijai siunčiamasis OAuth ryšys jau egzistuoja."
   },
   {
     "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
-    "translation": ""
+    "translation": "Nurodytai auditorijai siunčiamojo OAuth ryšio nėra."
   },
   {
     "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
-    "translation": ""
+    "translation": "Trinant siunčiamąjį OAuth ryšį įvyko klaida."
   },
   {
     "id": "ent.outgoing_oauth_connections.feature_disabled",
-    "translation": ""
+    "translation": "Siunčiamieji OAuth ryšiai šiame serveryje nepasiekiami."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connection.app_error",
-    "translation": ""
+    "translation": "Gaunant siunčiamąjį OAuth ryšį įvyko klaida."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
-    "translation": ""
+    "translation": "Siunčiamasis OAuth ryšys nerastas."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
-    "translation": ""
+    "translation": "Gaunant auditorijos siunčiamąjį OAuth ryšį įvyko klaida."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
-    "translation": ""
+    "translation": "Nurodytos auditorijos siunčiamasis OAuth ryšys nerastas."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connections.app_error",
-    "translation": ""
+    "translation": "Gaunant siunčiamuosius OAuth ryšius įvyko klaida."
   },
   {
     "id": "ent.outgoing_oauth_connections.license_disable.app_error",
-    "translation": ""
+    "translation": "Jūsų licencija nepalaiko siunčiamųjų OAuth ryšių."
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.app_error",
-    "translation": ""
+    "translation": "Išsaugant siunčiamąjį OAuth ryšį įvyko klaida: {{ .Error }}"
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
-    "translation": ""
+    "translation": "Nurodytai auditorijai siunčiamasis OAuth ryšys jau egzistuoja: {{ .Audience }}"
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
-    "translation": ""
+    "translation": "Nurodyta auditorija netinkama: {{ .Error }}"
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.app_error",
-    "translation": ""
+    "translation": "Atnaujinant siunčiamąjį OAuth ryšį įvyko klaida: {{ .Error }}"
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
-    "translation": ""
+    "translation": "Nurodytai auditorijai siunčiamasis OAuth ryšys jau egzistuoja: {{ .Audience }}"
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
-    "translation": ""
+    "translation": "Nurodyta auditorija netinkama: {{ .Error }}"
   },
   {
     "id": "ent.push_proxy.delete.app_error",
-    "translation": ""
+    "translation": "Nepavyko ištrinti tiesioginių pranešimų tarpinio serverio autentifikavimo rakto."
   },
   {
     "id": "ent.push_proxy.generate.bad_status.app_error",
-    "translation": ""
+    "translation": "Nepavyko gauti autentifikavimo rakto iš tiesioginių pranešimų tarpinio serverio."
   },
   {
     "id": "ent.push_proxy.generate.create_request.app_error",
-    "translation": ""
+    "translation": "Nepavyko sukurti HTTP užklausos tiesioginių pranešimų tarpinio serverio autentifikavimui."
   },
   {
     "id": "ent.push_proxy.generate.empty_token.app_error",
-    "translation": ""
+    "translation": "Tiesioginių pranešimų tarpinis serveris grąžino tuščią autentifikavimo raktą."
   },
   {
     "id": "ent.push_proxy.generate.encrypt.app_error",
-    "translation": ""
+    "translation": "Nepavyko užšifruoti tiesioginių pranešimų tarpinio serverio autentifikavimo duomenų."
   },
   {
     "id": "ent.push_proxy.generate.http_request.app_error",
-    "translation": ""
+    "translation": "Nepavyko išsiųsti HTTP užklausos tiesioginių pranešimų tarpiniam serveriui."
   },
   {
     "id": "ent.push_proxy.generate.marshal.app_error",
-    "translation": ""
+    "translation": "Nepavyko serializuoti tiesioginių pranešimų tarpinio serverio autentifikavimo duomenų."
   },
   {
     "id": "ent.push_proxy.generate.marshal_request.app_error",
-    "translation": ""
+    "translation": "Nepavyko serializuoti tiesioginių pranešimų tarpinio serverio autentifikavimo užklausos turinio."
   },
   {
     "id": "ent.push_proxy.generate.no_key.app_error",
-    "translation": ""
+    "translation": "Nėra šifravimo rakto tiesioginių pranešimų tarpinio serverio autentifikavimui."
   },
   {
     "id": "ent.push_proxy.generate.parse_response.app_error",
-    "translation": ""
+    "translation": "Nepavyko išanalizuoti tiesioginių pranešimų tarpinio serverio autentifikavimo galinio taško atsakymo."
   },
   {
     "id": "ent.push_proxy.generate.save_system.app_error",
-    "translation": ""
+    "translation": "Nepavyko išsaugoti autentifikavimo rakto."
   },
   {
     "id": "ent.push_proxy.worker.interface_nil.app_error",
-    "translation": ""
+    "translation": "Tiesioginių pranešimų tarpinio serverio sąsaja tuščia (nil)."
   },
   {
     "id": "ent.saml.attribute.app_error",
-    "translation": ""
+    "translation": "SAML prisijungimas nepavyko, nes vienas iš atributų neteisingas. Kreipkitės į sistemos administratorių."
   },
   {
     "id": "ent.saml.build_request.app_error",
-    "translation": ""
+    "translation": "Inicijuojant užklausą tapatybės teikėjui įvyko klaida. Kreipkitės į sistemos administratorių."
   },
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
-    "translation": ""
+    "translation": "SAML nepavyko įkelti tapatybės teikėjo viešojo sertifikato, kreipkitės į sistemos administratorių."
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
-    "translation": ""
+    "translation": "SAML prisijungimas nepavyko, nes neįjungtas šifravimas. Kreipkitės į sistemos administratorių."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
-    "translation": ""
+    "translation": "SAML prisijungimas nepavyko, nes nerastas paslaugų teikėjo privatusis raktas. Kreipkitės į sistemos administratorių."
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
-    "translation": ""
+    "translation": "SAML prisijungimas nepavyko, nes tapatybės teikėjo atsakymas neužšifruotas. Kreipkitės į sistemos administratorių."
   },
   {
     "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": ""
+    "translation": "Nepavyko gauti CPA lauko (-ų)"
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
-    "translation": ""
+    "translation": "Iš tapatybės teikėjo gautas tuščias atsakymas."
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
-    "translation": ""
+    "translation": "Tapatybės teikėjo atsakyme gautas netinkamas parašas. Kreipkitės į sistemos administratorių."
   },
   {
     "id": "ent.saml.do_login.invalid_time.app_error",
-    "translation": ""
+    "translation": "Tapatybės teikėjo atsakyme gautas netinkamas laikas. Kreipkitės į sistemos administratorių."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
-    "translation": ""
+    "translation": "Analizuojant tapatybės teikėjo atsakymą įvyko klaida. Kreipkitės į sistemos administratorių."
   },
   {
     "id": "ent.saml.license_disable.app_error",
-    "translation": ""
+    "translation": "Jūsų licencija nepalaiko SAML autentifikavimo."
   },
   {
     "id": "ent.saml.login.ldap_user_missing",
-    "translation": ""
+    "translation": "AD/LDAP serveryje nėra registruoto naudotojo, atitinkančio SAML naudotoją."
   },
   {
     "id": "ent.saml.metadata.app_error",
-    "translation": ""
+    "translation": "Kuriant paslaugų teikėjo metaduomenis įvyko klaida."
   },
   {
     "id": "ent.saml.save_user.email_exists.saml_app_error",
-    "translation": ""
+    "translation": "Ši paskyra nenaudoja SAML autentifikavimo. Prisijunkite naudodami el. paštą ir slaptažodį."
   },
   {
     "id": "ent.saml.save_user.username_exists.saml_app_error",
-    "translation": ""
+    "translation": "Paskyra su tokiu naudotojo vardu jau egzistuoja. Kreipkitės į administratorių."
   },
   {
     "id": "ent.saml.service_disable.app_error",
-    "translation": ""
+    "translation": "Šiame serveryje SAML 2.0 nesukonfigūruotas arba nepalaikomas."
   },
   {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
-    "translation": ""
+    "translation": "SAML patvirtinimo atributų teiginys netinkamas"
   },
   {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": ""
+    "translation": "Nepavyksta užbaigti SAML prisijungimo su tuščiu el. pašto adresu."
   },
   {
     "id": "error",
-    "translation": ""
+    "translation": "Klaida"
   },
   {
     "id": "group_not_associated_to_synced_team",
-    "translation": ""
+    "translation": "Grupės negalima susieti su kanalu, kol ji nesusieta su pagrindine grupių sinchronizuojama komanda."
   },
   {
     "id": "groups.unsupported_syncable_type",
-    "translation": ""
+    "translation": "Nepalaikomas sinchronizuojamo objekto tipas „{{.Value}}“."
   },
   {
     "id": "humanize.list_join",
-    "translation": ""
+    "translation": "{{.OtherItems}} ir {{.LastItem}}"
   },
   {
     "id": "import_process.worker.do_job.file_exists",
-    "translation": ""
+    "translation": "Nepavyksta apdoroti importo: failas neegzistuoja."
   },
   {
     "id": "import_process.worker.do_job.missing_file",
-    "translation": ""
+    "translation": "Nepavyksta apdoroti importo: trūksta parametro import_file."
   },
   {
     "id": "import_process.worker.do_job.missing_jsonl",
-    "translation": ""
+    "translation": "Nepavyksta apdoroti importo: trūksta JSONL failo."
   },
   {
     "id": "import_process.worker.do_job.open_file",
-    "translation": ""
+    "translation": "Nepavyksta apdoroti importo: nepavyko atidaryti failo."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
-    "translation": ""
+    "translation": "Nepavyko dekoduoti interaktyviojo dialogo aktyviklio ID base64."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
-    "translation": ""
+    "translation": "Nepavyko dekoduoti interaktyviojo dialogo aktyviklio ID base64 parašo."
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": ""
+    "translation": "Interaktyviojo dialogo aktyviklio ID nebegalioja. Aktyviklio ID galioja ne ilgiau kaip {{.Duration}}."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
-    "translation": ""
+    "translation": "Interaktyviojo dialogo aktyviklio ID trūksta reikalingų duomenų."
   },
   {
     "id": "interactive_message.decode_trigger_id.signature_decode_failed",
-    "translation": ""
+    "translation": "Nepavyko dekoduoti interaktyviojo dialogo aktyviklio ID base64 parašo."
   },
   {
     "id": "interactive_message.decode_trigger_id.verify_signature_failed",
-    "translation": ""
+    "translation": "Interaktyviojo dialogo aktyviklio ID parašo patikra nepavyko."
   },
   {
     "id": "interactive_message.generate_trigger_id.signing_failed",
-    "translation": ""
+    "translation": "Nepavyko pasirašyti sugeneruoto interaktyviojo dialogo aktyviklio ID."
   },
   {
     "id": "jobs.request_cancellation.status.error",
-    "translation": ""
+    "translation": "Negalima prašyti atšaukti užduoties, kurios būsena neleidžia jos atšaukti."
   },
   {
     "id": "jobs.set_job_error.update.error",
-    "translation": ""
+    "translation": "Nepavyko nustatyti užduoties būsenos į „error“"
   },
   {
     "id": "license_error.feature_unavailable",
-    "translation": ""
+    "translation": "Funkcija nepasiekiama su dabartine licencija"
   },
   {
     "id": "license_error.feature_unavailable.specific",
-    "translation": ""
+    "translation": "Funkcija {{.Feature}} nepasiekiama su dabartine licencija"
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
-    "translation": ""
+    "translation": "Nepavyksta išanalizuoti URL."
   },
   {
     "id": "manaultesting.test_autolink.unable.app_error",
-    "translation": ""
+    "translation": "Nepavyksta gauti kanalų."
   },
   {
     "id": "mattermost.bulletin.subject",
-    "translation": ""
+    "translation": "Mattermost saugumo biuletenis"
   },
   {
     "id": "mfa.activate.app_error",
-    "translation": ""
+    "translation": "Nepavyksta atnaujinti naudotojo MFA aktyvumo būsenos."
   },
   {
     "id": "mfa.activate.bad_token.app_error",
-    "translation": ""
+    "translation": "Netinkamas MFA kodas."
   },
   {
     "id": "mfa.deactivate.app_error",
-    "translation": ""
+    "translation": "Nepavyksta atnaujinti naudotojo MFA aktyvumo būsenos."
   },
   {
     "id": "mfa.generate_qr_code.create_code.app_error",
-    "translation": ""
+    "translation": "Klaida generuojant QR kodą."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
-    "translation": ""
+    "translation": "Kelių veiksnių autentifikavimas šiame serveryje išjungtas."
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": ""
+    "translation": "Netinkamas MFA kodas."
   },
   {
     "id": "migrations.system.save.app_error",
-    "translation": ""
+    "translation": "Išsaugant sistemos savybę įvyko klaida."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
-    "translation": ""
+    "translation": "Migracija nepavyko dėl netinkamų eigos duomenų."
   },
   {
     "id": "migrations.worker.run_migration.unknown_key",
-    "translation": ""
+    "translation": "Nepavyksta vykdyti migracijos užduoties dėl nežinomo migracijos rakto."
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
-    "translation": ""
+    "translation": "Netinkamas prieigos raktas."
   },
   {
     "id": "model.access.is_valid.client_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas kliento ID."
   },
   {
     "id": "model.access.is_valid.redirect_uri.app_error",
-    "translation": ""
+    "translation": "Netinkamas peradresavimo URI."
   },
   {
     "id": "model.access.is_valid.refresh_token.app_error",
-    "translation": ""
+    "translation": "Netinkamas atnaujinimo raktas."
   },
   {
     "id": "model.access.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas naudotojo ID."
   },
   {
     "id": "model.access_control_decision.is_valid.action_empty.app_error",
-    "translation": ""
+    "translation": "Veiksmų pavadinimai negali būti tušti."
   },
   {
     "id": "model.access_control_decision.is_valid.actions_too_many.app_error",
-    "translation": ""
+    "translation": "Užklausta per daug veiksmų."
   },
   {
     "id": "model.access_control_decision.is_valid.resource_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas ištekliaus ID."
   },
   {
     "id": "model.access_control_decision.is_valid.resource_type.app_error",
-    "translation": ""
+    "translation": "Ištekliaus tipas privalomas."
   },
   {
     "id": "model.access_control_decision.is_valid.subject_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas subjekto ID."
   },
   {
     "id": "model.access_policy.inherit.already_imported.app_error",
-    "translation": ""
+    "translation": "Pagrindinė politika jau importuota."
   },
   {
     "id": "model.access_policy.inherit.parent_type.app_error",
-    "translation": ""
+    "translation": "Importuoti galima tik pagrindinę narystės politiką."
   },
   {
     "id": "model.access_policy.inherit.permission.app_error",
-    "translation": ""
+    "translation": "Leidimų politikos negali paveldėti iš kitų politikų."
   },
   {
     "id": "model.access_policy.inherit.version.app_error",
-    "translation": ""
+    "translation": "Nepavyko paveldėti prieigos kontrolės politikos."
   },
   {
     "id": "model.access_policy.is_valid.actions.app_error",
-    "translation": ""
+    "translation": "Veiksmas (-ai) netinkamas (-i)."
   },
   {
     "id": "model.access_policy.is_valid.actions.membership_combined.app_error",
-    "translation": ""
+    "translation": "Narystės negalima derinti su kitais veiksmais toje pačioje taisyklėje."
   },
   {
     "id": "model.access_policy.is_valid.actions.permission_type.app_error",
-    "translation": ""
+    "translation": "Leidimų veiksmų taisyklės leidžiamos tik kanalų politikose."
   },
   {
     "id": "model.access_policy.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Netinkamas politikos ID."
   },
   {
     "id": "model.access_policy.is_valid.imports.app_error",
-    "translation": ""
+    "translation": "Netinkami politikos importai."
   },
   {
     "id": "model.access_policy.is_valid.name.app_error",
-    "translation": ""
+    "translation": "Netinkamas politikos pavadinimas."
   },
   {
     "id": "model.access_policy.is_valid.plugin_type.app_error",
-    "translation": ""
+    "translation": "Netinkama prieigos kontrolės politika: tipas nėra tinkamas papildinio ištekliaus tipas."
   },
   {
     "id": "model.access_policy.is_valid.revision.app_error",
-    "translation": ""
+    "translation": "Netinkama politikos versija."
   },
   {
     "id": "model.access_policy.is_valid.roles.app_error",
-    "translation": ""
+    "translation": "Leidimų politikos turi būti taikomos lygiai vienam vaidmeniui."
   },
   {
     "id": "model.access_policy.is_valid.rule_expression.app_error",
-    "translation": ""
+    "translation": "Išraišką gali praleisti tik narystės taisyklė."
   },
   {
     "id": "model.access_policy.is_valid.rule_metadata_auto_add.app_error",
-    "translation": ""
+    "translation": "Automatinį narių pridėjimą galima nustatyti tik politikos narystės taisyklei."
   },
   {
     "id": "model.access_policy.is_valid.rule_metadata_auto_add_mode.app_error",
-    "translation": ""
+    "translation": "„{{.Mode}}“ nėra palaikomas automatinio narių pridėjimo būdas."
   },
   {
     "id": "model.access_policy.is_valid.rule_metadata_auto_add_type.app_error",
-    "translation": ""
+    "translation": "Automatinio narių pridėjimo būdas turi būti nurodytas kaip tekstas."
   },
   {
     "id": "model.access_policy.is_valid.rule_metadata_key.app_error",
-    "translation": ""
+    "translation": "Taisyklės metaduomenyse yra neatpažintas raktas."
   },
   {
     "id": "model.access_policy.is_valid.rule_name.app_error",
-    "translation": ""
+    "translation": "Leidimų taisyklėms reikia netuščio pavadinimo, neviršijančio didžiausio politikos ilgio."
   },
   {
     "id": "model.access_policy.is_valid.rule_name_unique.app_error",
-    "translation": ""
+    "translation": "Leidimų taisyklių pavadinimai politikoje turi būti unikalūs."
   },
   {
     "id": "model.access_policy.is_valid.rule_role.app_error",
-    "translation": ""
+    "translation": "Netinkamas taisyklės vaidmuo."
   },
   {
     "id": "model.access_policy.is_valid.rules.app_error",
-    "translation": ""
+    "translation": "Taisyklė (-ės) netinkama (-os)."
   },
   {
     "id": "model.access_policy.is_valid.rules_imports.app_error",
-    "translation": ""
+    "translation": "Politika turi arba importuoti, arba apibrėžti taisykles."
   },
   {
     "id": "model.access_policy.is_valid.scope.app_error",
-    "translation": ""
+    "translation": "Netinkama šios prieigos kontrolės politikos aprėpties reikšmė."
   },
   {
     "id": "model.access_policy.is_valid.scope_id.app_error",
-    "translation": ""
+    "translation": "Kai nustatyta aprėptis, aprėpties ID turi būti tinkamas ID."
   },
   {
     "id": "model.access_policy.is_valid.scope_id_without_scope.app_error",
-    "translation": ""
+    "translation": "Aprėpties ID negalima nustatyti be aprėpties."
   },
   {
     "id": "model.access_policy.is_valid.session_attribute_on_membership.app_error",
-    "translation": ""
+    "translation": "Narystės taisyklės negali remtis seanso atributais (user.session). Vietoj to naudokite leidimų politiką."
   },
   {
     "id": "model.access_policy.is_valid.type.app_error",
-    "translation": ""
+    "translation": "Netinkamas politikos tipas."
   },
   {
     "id": "model.access_policy.is_valid.version.app_error",
-    "translation": ""
+    "translation": "Versija netinkama šiai prieigos kontrolės politikai."
   },
   {
     "id": "model.acknowledgement.is_valid.channel_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas kanalo ID."
   },
   {
     "id": "model.acknowledgement.is_valid.post_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas pranešimo ID."
   },
   {
     "id": "model.acknowledgement.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas naudotojo ID."
   },
   {
     "id": "model.authorize.is_valid.auth_code.app_error",
-    "translation": ""
+    "translation": "Netinkamas įgaliojimo kodas."
   },
   {
     "id": "model.authorize.is_valid.client_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas kliento ID."
   },
   {
     "id": "model.authorize.is_valid.code_challenge.app_error",
-    "translation": ""
+    "translation": "Naudojant PKCE, privalomas code challenge."
   },
   {
     "id": "model.authorize.is_valid.code_challenge.format.app_error",
-    "translation": ""
+    "translation": "Code challenge turi būti užkoduotas base64url (naudojant simbolius A-Z, a-z, 0-9, -, _)."
   },
   {
     "id": "model.authorize.is_valid.code_challenge.length.app_error",
-    "translation": ""
+    "translation": "Code challenge ilgis turi būti nuo 43 iki 128 simbolių."
   },
   {
     "id": "model.authorize.is_valid.code_challenge_method.app_error",
-    "translation": ""
+    "translation": "Naudojant PKCE, privalomas code challenge metodas."
   },
   {
     "id": "model.authorize.is_valid.code_challenge_method.unsupported.app_error",
-    "translation": ""
+    "translation": "Palaikomas tik „S256“ code challenge metodas."
   },
   {
     "id": "model.authorize.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Sukūrimo laikas turi būti tinkamas."
   },
   {
     "id": "model.authorize.is_valid.expires.app_error",
-    "translation": ""
+    "translation": "Galiojimo trukmė (Expires in) turi būti nustatyta."
   },
   {
     "id": "model.authorize.is_valid.redirect_uri.app_error",
-    "translation": ""
+    "translation": "Netinkamas peradresavimo URI."
   },
   {
     "id": "model.authorize.is_valid.resource.has_fragment.app_error",
-    "translation": ""
+    "translation": "Parametre resource negali būti fragmento dalies."
   },
   {
     "id": "model.authorize.is_valid.resource.invalid_uri.app_error",
-    "translation": ""
+    "translation": "Parametras resource turi būti tinkamas URI."
   },
   {
     "id": "model.authorize.is_valid.resource.length.app_error",
-    "translation": ""
+    "translation": "Parametras resource negali būti ilgesnis nei 512 simbolių."
   },
   {
     "id": "model.authorize.is_valid.resource.not_absolute.app_error",
-    "translation": ""
+    "translation": "Parametras resource turi būti absoliutus URI."
   },
   {
     "id": "model.authorize.is_valid.response_type.app_error",
-    "translation": ""
+    "translation": "Netinkamas atsakymo tipas."
   },
   {
     "id": "model.authorize.is_valid.scope.app_error",
-    "translation": ""
+    "translation": "Netinkama aprėptis (scope)."
   },
   {
     "id": "model.authorize.is_valid.state.app_error",
-    "translation": ""
+    "translation": "Netinkama būsena (state)."
   },
   {
     "id": "model.authorize.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas naudotojo ID."
   },
   {
     "id": "model.authorize.validate_pkce.not_used_in_auth.app_error",
-    "translation": ""
+    "translation": "Pateiktas PKCE code verifier, bet įgaliojimo metu PKCE nebuvo naudotas."
   },
   {
     "id": "model.authorize.validate_pkce.public_client_required.app_error",
-    "translation": ""
+    "translation": "Viešiesiems klientams privalomas PKCE (Proof Key for Code Exchange)."
   },
   {
     "id": "model.authorize.validate_pkce.verification_failed.app_error",
-    "translation": ""
+    "translation": "PKCE code verifier neatitinka code challenge."
   },
   {
     "id": "model.authorize.validate_pkce.verifier_required.app_error",
-    "translation": ""
+    "translation": "Naudojant PKCE, privalomas PKCE code verifier."
   },
   {
     "id": "model.bot.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Netinkamas sukūrimo laikas."
   },
   {
     "id": "model.bot.is_valid.creator_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas kūrėjo ID."
   },
   {
     "id": "model.bot.is_valid.description.app_error",
-    "translation": ""
+    "translation": "Netinkamas aprašymas."
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": ""
+    "translation": "Netinkamas atnaujinimo laikas."
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas naudotojo ID."
   },
   {
     "id": "model.bot.is_valid.username.app_error",
-    "translation": ""
+    "translation": "Netinkamas naudotojo vardas."
   },
   {
     "id": "model.channel.is_valid.1_or_more.app_error",
-    "translation": ""
+    "translation": "Pavadinimą turi sudaryti bent 1 mažoji raidė arba skaitmuo."
   },
   {
     "id": "model.channel.is_valid.banner_info.background_color.empty.app_error",
-    "translation": ""
+    "translation": "Kai kanalo reklamjuostė įjungta, jos spalva negali būti tuščia"
   },
   {
     "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
-    "translation": ""
+    "translation": "Kanalo reklamjuostės spalva turi būti tinkama šešioliktainė spalva (pvz., #FF0000 arba #F00)"
   },
   {
     "id": "model.channel.is_valid.banner_info.channel_type.app_error",
-    "translation": ""
+    "translation": "Kanalo reklamjuostę galima konfigūruoti tik viešuosiuose ir privačiuose kanaluose"
   },
   {
     "id": "model.channel.is_valid.banner_info.text.empty.app_error",
-    "translation": ""
+    "translation": "Kai kanalo reklamjuostė įjungta, jos tekstas negali būti tuščias"
   },
   {
     "id": "model.channel.is_valid.banner_info.text.invalid_length.app_error",
-    "translation": ""
+    "translation": "Kanalo reklamjuostės tekstas per ilgas. Didžiausias leidžiamas ilgis – {{.maxLength}} simbolių."
   },
   {
     "id": "model.channel.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Sukūrimo laikas turi būti tinkamas."
   },
   {
     "id": "model.channel.is_valid.creator_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas kūrėjo ID."
   },
   {
     "id": "model.channel.is_valid.discoverable.app_error",
-    "translation": ""
+    "translation": "Aptinkamais galima pažymėti tik privačius kanalus."
   },
   {
     "id": "model.channel.is_valid.display_name.app_error",
-    "translation": ""
+    "translation": "Netinkamas rodomas pavadinimas."
   },
   {
     "id": "model.channel.is_valid.group_constrained.app_error",
-    "translation": ""
+    "translation": "Grupėmis apriboti galima tik viešuosius ir privačius kanalus."
   },
   {
     "id": "model.channel.is_valid.header.app_error",
-    "translation": ""
+    "translation": "Netinkama antraštė."
   },
   {
     "id": "model.channel.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Netinkamas ID."
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": ""
+    "translation": "Kanalo pavadinimas negali būti šešioliktainio formato. Įveskite kitą kanalo pavadinimą."
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",
-    "translation": ""
+    "translation": "Netinkama paskirtis."
   },
   {
     "id": "model.channel.is_valid.type.app_error",
-    "translation": ""
+    "translation": "Netinkamas tipas."
   },
   {
     "id": "model.channel.is_valid.update_at.app_error",
-    "translation": ""
+    "translation": "Atnaujinimo laikas turi būti tinkamas."
   },
   {
     "id": "model.channel.is_valid_board.display_name.app_error",
-    "translation": ""
+    "translation": "Lentos rodomas pavadinimas negali būti tuščias."
   },
   {
     "id": "model.channel.is_valid_board.team_id.app_error",
-    "translation": ""
+    "translation": "Lentos kanalai turi priklausyti komandai."
   },
   {
     "id": "model.channel.is_valid_board.type.app_error",
-    "translation": ""
+    "translation": "Kanalo tipas turi būti BO (atvira lenta) arba BP (privati lenta)."
   },
   {
     "id": "model.channel_bookmark.is_valid.board.file_id.app_error",
-    "translation": ""
+    "translation": "Lentos žymelės negali nurodyti failo."
   },
   {
     "id": "model.channel_bookmark.is_valid.board.image_url.app_error",
-    "translation": ""
+    "translation": "Lentos žymelėms negalima nustatyti paveikslėlio URL."
   },
   {
     "id": "model.channel_bookmark.is_valid.board.link_url.app_error",
-    "translation": ""
+    "translation": "Lentos žymelės nuorodos URL turi būti svetainės vidinis kelias, prasidedantis /, jame negali būti :// ir jis negali viršyti didžiausio ilgio."
   },
   {
     "id": "model.channel_bookmark.is_valid.board.target_id.app_error",
-    "translation": ""
+    "translation": "Lentos žymelėms reikia tinkamo tikslo ID."
   },
   {
     "id": "model.channel_bookmark.is_valid.channel_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas kanalo ID."
   },
   {
     "id": "model.channel_bookmark.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Sukūrimo laikas turi būti tinkamas."
   },
   {
     "id": "model.channel_bookmark.is_valid.display_name.app_error",
-    "translation": ""
+    "translation": "Trūksta rodomo pavadinimo."
   },
   {
     "id": "model.channel_bookmark.is_valid.file_id.missing_or_invalid.app_error",
-    "translation": ""
+    "translation": "Failo ID trūksta arba jis netinkamas."
   },
   {
     "id": "model.channel_bookmark.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Netinkamas ID."
   },
   {
     "id": "model.channel_bookmark.is_valid.image_url.app_error",
-    "translation": ""
+    "translation": "Netinkamas paveikslėlio URL."
   },
   {
     "id": "model.channel_bookmark.is_valid.link_file.app_error",
-    "translation": ""
+    "translation": "Toje pačioje žymelėje negalima nustatyti ir nuorodos, ir failo."
   },
   {
     "id": "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error",
-    "translation": ""
+    "translation": "Nuorodos URL trūksta arba jis netinkamas."
   },
   {
     "id": "model.channel_bookmark.is_valid.original_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas pradinės žymelės ID."
   },
   {
     "id": "model.channel_bookmark.is_valid.owner_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas savininko ID."
   },
   {
     "id": "model.channel_bookmark.is_valid.parent_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas pagrindinės žymelės ID."
   },
   {
     "id": "model.channel_bookmark.is_valid.target_id.app_error",
-    "translation": ""
+    "translation": "Tikslo ID leidžiamas tik tų tipų žymelėms, kurios nurodo kitą objektą."
   },
   {
     "id": "model.channel_bookmark.is_valid.type.app_error",
-    "translation": ""
+    "translation": "Netinkamas tipas."
   },
   {
     "id": "model.channel_bookmark.is_valid.update_at.app_error",
-    "translation": ""
+    "translation": "Atnaujinimo laikas turi būti tinkamas."
   },
   {
     "id": "model.channel_join_request.is_valid.channel_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas kanalo ID."
   },
   {
     "id": "model.channel_join_request.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Sukūrimo laikas turi būti tinkamas."
   },
   {
     "id": "model.channel_join_request.is_valid.denial_reason.app_error",
-    "translation": ""
+    "translation": "Atmetimo priežastis per ilga."
   },
   {
     "id": "model.channel_join_request.is_valid.denial_reason_status.app_error",
-    "translation": ""
+    "translation": "Atmetimo priežastį galima nurodyti tik atmestam prisijungimo prašymui."
   },
   {
     "id": "model.channel_join_request.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Netinkamas ID."
   },
   {
     "id": "model.channel_join_request.is_valid.message.app_error",
-    "translation": ""
+    "translation": "Prisijungimo prašymo žinutė per ilga."
   },
   {
     "id": "model.channel_join_request.is_valid.reviewed_by.app_error",
-    "translation": ""
+    "translation": "Netinkamas peržiūrėtojo ID."
   },
   {
     "id": "model.channel_join_request.is_valid.reviewer.app_error",
-    "translation": ""
+    "translation": "Patvirtintame arba atmestame prisijungimo prašyme turi būti nurodytas peržiūrėtojas ir peržiūros laikas."
   },
   {
     "id": "model.channel_join_request.is_valid.status.app_error",
-    "translation": ""
+    "translation": "Netinkama prisijungimo prašymo būsena."
   },
   {
     "id": "model.channel_join_request.is_valid.update_at.app_error",
-    "translation": ""
+    "translation": "Atnaujinimo laikas turi būti tinkamas."
   },
   {
     "id": "model.channel_join_request.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas naudotojo ID."
   },
   {
     "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
-    "translation": ""
+    "translation": "Netinkama automatinio gijų sekimo kanale reikšmė."
   },
   {
     "id": "model.channel_member.is_valid.channel_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas kanalo ID."
   },
   {
     "id": "model.channel_member.is_valid.email_value.app_error",
-    "translation": ""
+    "translation": "Netinkama el. pašto pranešimų reikšmė."
   },
   {
     "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
-    "translation": ""
+    "translation": "Netinkama kanalo paminėjimų ignoravimo būsena."
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
-    "translation": ""
+    "translation": "Netinkamas pranešimų lygis."
   },
   {
     "id": "model.channel_member.is_valid.notify_props.app_error",
-    "translation": ""
+    "translation": "Viršytas pranešimų nuostatų (notify props) dydžio limitas."
   },
   {
     "id": "model.channel_member.is_valid.push_level.app_error",
-    "translation": ""
+    "translation": "Netinkamas tiesioginių (push) pranešimų lygis."
   },
   {
     "id": "model.channel_member.is_valid.roles_limit.app_error",
-    "translation": ""
+    "translation": "Netinkami kanalo nario vaidmenys, ilgesni nei {{.Limit}} simbolių."
   },
   {
     "id": "model.channel_member.is_valid.unread_level.app_error",
-    "translation": ""
+    "translation": "Netinkamas žymėjimo neskaitytu lygis."
   },
   {
     "id": "model.channel_member.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas naudotojo ID."
   },
   {
     "id": "model.cluster.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "CreateAt turi būti nustatytas."
   },
   {
     "id": "model.cluster.is_valid.hostname.app_error",
-    "translation": ""
+    "translation": "Pagrindinio kompiuterio vardas turi būti nustatytas."
   },
   {
     "id": "model.cluster.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Netinkamas ID."
   },
   {
     "id": "model.cluster.is_valid.last_ping_at.app_error",
-    "translation": ""
+    "translation": "LastPingAt turi būti nustatytas."
   },
   {
     "id": "model.cluster.is_valid.name.app_error",
-    "translation": ""
+    "translation": "ClusterName turi būti nustatytas."
   },
   {
     "id": "model.cluster.is_valid.site_url.app_error",
-    "translation": ""
+    "translation": "SiteURL turi būti nustatytas."
   },
   {
     "id": "model.cluster.is_valid.type.app_error",
-    "translation": ""
+    "translation": "Tipas turi būti nustatytas."
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
-    "translation": ""
+    "translation": "Netinkami AutocompleteData"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
-    "translation": ""
+    "translation": "Sukūrimo laikas turi būti tinkamas."
   },
   {
     "id": "model.command.is_valid.description.app_error",
-    "translation": ""
+    "translation": "Netinkamas aprašymas."
   },
   {
     "id": "model.command.is_valid.display_name.app_error",
-    "translation": ""
+    "translation": "Netinkamas pavadinimas."
   },
   {
     "id": "model.command.is_valid.id.app_error",
-    "translation": ""
+    "translation": "Netinkamas ID."
   },
   {
     "id": "model.command.is_valid.method.app_error",
-    "translation": ""
+    "translation": "Netinkamas metodas."
   },
   {
     "id": "model.command.is_valid.plugin_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas papildinio ID."
   },
   {
     "id": "model.command.is_valid.team_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas komandos ID."
   },
   {
     "id": "model.command.is_valid.token.app_error",
-    "translation": ""
+    "translation": "Netinkamas raktas."
   },
   {
     "id": "model.command.is_valid.trigger.app_error",
-    "translation": ""
+    "translation": "Netinkamas trigeris."
   },
   {
     "id": "model.command.is_valid.update_at.app_error",
-    "translation": ""
+    "translation": "Atnaujinimo laikas turi būti tinkamas."
   },
   {
     "id": "model.command.is_valid.url.app_error",
-    "translation": ""
+    "translation": "Netinkamas URL."
   },
   {
     "id": "model.command.is_valid.url_http.app_error",
-    "translation": ""
+    "translation": "Netinkamas URL. Jis turi būti tinkamas URL ir prasidėti http:// arba https://."
   },
   {
     "id": "model.command.is_valid.user_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas naudotojo ID."
   },
   {
     "id": "model.command_hook.channel_id.app_error",
-    "translation": ""
+    "translation": "Netinkamas kanalo ID."
   },
   {
     "id": "model.command_hook.command_id.app_error",
