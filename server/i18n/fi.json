@@ -1,7 +1,7 @@
 [
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Käyttäjää ei löydetty"
+    "translation": "Käyttäjää {{.user}} ei löytynyt"
   },
   {
     "id": "web.incoming_webhook.text.app_error",
@@ -13,7 +13,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Virheelliset kanavat oikeudet"
+    "translation": "Käyttäjällä {{.user}} ei ole tarvittavia käyttöoikeuksia kanavaan {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
@@ -29,7 +29,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Tällä webhookilla ei ole lupaa kirjoittaa pyydetylle kanavalle"
+    "translation": "Tällä webhookilla ei ole lupaa lähettää viestejä pyydettyyn kanavaan {{.channel_id}}"
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
@@ -41,11 +41,11 @@
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Ei voitu lukea sisääntulevaa dataa"
+    "translation": "Webhookin {{.hook_id}} saapuvaa dataa ei voitu jäsentää."
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Ei löydetty komentoa"
+    "translation": "Komentoa {{.command_id}} ei löytynyt."
   },
   {
     "id": "system.message.name",
@@ -313,11 +313,11 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elasticsearch IndexingEnabled asetus on asetettava päälle kun Elasticsearch SearchEnabled asetetaan päälle."
+    "translation": "{{.EnableIndexing}}-asetuksen on oltava true, kun {{.Searching}}-asetus on true"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Elasticsearch IndexingEnabled asetus on asetettava päälle kun Elasticsearch SearchEnabled asetetaan päälle."
+    "translation": "{{.EnableIndexing}}-asetuksen on oltava true, kun {{.Autocomplete}}-asetus on true"
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -1205,7 +1205,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLabin palveluehdot ovat muuttuneet. Mene osoitteeseen gitlab.com ja hyväksy ne, ja yritä sitten kirjautua Mattermostiin uudestaan."
+    "translation": "GitLabin käyttöehdot ovat päivittyneet. Hyväksy ne osoitteessa {{.URL}} ja yritä sen jälkeen kirjautua Mattermostiin uudelleen."
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
@@ -1661,7 +1661,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Virheellinen ID"
+    "translation": "Virheellinen ID: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.icon_url.app_error",
@@ -2165,7 +2165,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Ei voitu parantaa websocket-yhteyttä"
+    "translation": "URL estetty CORS-käytännön vuoksi. URL: {{.BlockedOrigin}}"
   },
   {
     "id": "api.user.verify_email.token_parse.error",
@@ -2625,7 +2625,7 @@
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch on kytketty pois."
+    "translation": "{{.Backend}} on kytketty pois käytöstä."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -2649,7 +2649,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Elasticsearch-haut poissa käytöstä tällä palvelimella"
+    "translation": "{{.Backend}}-haku on kytketty pois tällä palvelimella"
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
@@ -2661,7 +2661,7 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Elasticsearch-haut poissa käytöstä tällä palvelimella"
+    "translation": "{{.Backend}}-haku on kytketty pois tällä palvelimella"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
@@ -2669,15 +2669,15 @@
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch ei ole käynnistetty"
+    "translation": "{{.Backend}} ei ole käynnissä"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch-indeksointityöskentelijä ei voinut parsia aloitusaikaa"
+    "translation": "{{.Backend}}-indeksointiprosessi ei voinut jäsentää alkamisaikaa"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch-indeksointityöskentelijä ei voinut parsia loppuaikaa"
+    "translation": "{{.Backend}}-indeksointiprosessi ei voinut jäsentää päättymisaikaa"
   },
   {
     "id": "ent.elasticsearch.index_user.error",
@@ -2693,7 +2693,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Elasticsearch-haku ei ole käytössä tällä palvelimella"
+    "translation": "{{.Backend}}-haku ei ole käytössä tällä palvelimella"
   },
   {
     "id": "ent.elasticsearch.delete_user.error",
@@ -2709,31 +2709,31 @@
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Elasticsearch-indeksin haku epäonnistui"
+    "translation": "{{.Backend}}-indeksien hakeminen epäonnistui"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Elasticsearch-indeksin poisto epäonnistui"
+    "translation": "{{.Backend}}-indeksin poistaminen epäonnistui"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Elasticsearch-asiakkaan asettaminen epäonnistui"
+    "translation": "{{.Backend}}-asiakasohjelman määrittäminen epäonnistui"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch-aggregaattorityöskentelijä ei onnistunut koska ideksointityö epäonnistui"
+    "translation": "{{.Backend}}-koostajaprosessi epäonnistui, koska indeksointityö epäonnistui"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch-aggregaattorityöskentelijä ei onnistunut hakemaan indeksejä"
+    "translation": "{{.Backend}}-koostajaprosessi ei voinut hakea indeksejä"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch-aggregaattorityöskentelijä ei onnistunut poistamaan indeksejä"
+    "translation": "{{.Backend}}-koostajaprosessi ei voinut poistaa indeksejä"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch-aggregaattorityöskentelijä ei onnistunut luomaan indeksointityötä"
+    "translation": "{{.Backend}}-koostajaprosessi ei voinut luoda indeksointityötä"
   },
   {
     "id": "ent.data_retention.generic.license.error",
