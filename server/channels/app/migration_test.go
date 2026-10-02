@@ -2516,7 +2516,7 @@ func TestBulkImportKeepsLinesAfterNonFatalWorkerError(t *testing.T) {
 		existing, appErr := th.App.CreateUser(th.Context, &model.User{
 			Email:    "collide-" + model.NewId() + "@mig-test.example.com",
 			Username: "existing-" + model.NewId(),
-			Password: "Password1!",
+			Password: model.NewTestPassword(),
 		})
 		require.Nil(t, appErr)
 

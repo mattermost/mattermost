@@ -2417,8 +2417,13 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 			}
 			readErrCh = make(chan error, 1)
 			go func() {
-				_, readErr := resp.Body.Read(make([]byte, 1))
-				readErrCh <- readErr
+				for {
+					_, readErr := resp.Body.Read(make([]byte, 1))
+					if readErr != nil {
+						readErrCh <- readErr
+						return
+					}
+				}
 			}()
 			select {
 			case err = <-readErrCh:

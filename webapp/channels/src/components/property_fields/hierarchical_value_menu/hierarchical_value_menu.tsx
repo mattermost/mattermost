@@ -70,7 +70,7 @@ export type HierarchicalValueMenuProps = {
     fallbackLabels?: Record<string, string>;
 
     // Successful fetches only. Caller must memoise: an unstable identity re-announces every render.
-    onOptionsLoaded?: (join: GraphOptionJoin) => void;
+    onOptionsLoaded?: (join: GraphOptionJoin, generation: number) => void;
 
     onMenuOpenChange?: (open: boolean) => void;
 
@@ -84,6 +84,10 @@ export type HierarchicalValueMenuProps = {
 
     className?: string;
     buttonClassName?: string;
+
+    // `input` (default): bordered Compass-like trigger for forms / Account Settings.
+    // `inline`: borderless chip chrome matching ChannelInfoAttributes__valueTrigger.
+    variant?: 'input' | 'inline';
 
     trailingChips?: ReactNode;
 
@@ -118,9 +122,11 @@ export default function HierarchicalValueMenu({
     ariaLabel,
     className,
     buttonClassName,
+    variant = 'input',
     trailingChips,
     extraMenuItems,
 }: HierarchicalValueMenuProps) {
+    const isInline = variant === 'inline';
     const {formatMessage} = useIntl();
 
     const [isOpen, setIsOpen] = useState(false);
@@ -425,41 +431,49 @@ export default function HierarchicalValueMenu({
         menuChildren.push(...extraMenuItems);
     }
 
+    // Chips use real <button> removes; the Menu trigger is a <div> so we never
+    // nest button-in-button (invalid HTML / broken for VoiceOver).
+    const triggerChildren = (
+        <span className='hierarchical-value-menu__button-inner'>
+            {selectedIds.length === 0 && !trailingChips ? (
+                <span className='hierarchical-value-menu__placeholder'>
+                    {resolvedPlaceholder}
+                </span>
+            ) : (
+                <SelectedValueChips
+                    selectedIds={selectedIds}
+                    labelForId={labelForId}
+                    disabled={Boolean(disabled)}
+                    onRemove={handleRemoveChip}
+                    trailingChips={trailingChips}
+                />
+            )}
+            {!isInline && (
+                <ChevronDownIcon
+                    size={18}
+                    color='rgba(var(--center-channel-color-rgb), 0.5)'
+                />
+            )}
+        </span>
+    );
+
     return (
-        <div className={classNames('hierarchical-value-menu', className)}>
+        <div className={classNames('hierarchical-value-menu', {'hierarchical-value-menu--inline': isInline}, className)}>
             <Menu.Container
                 menuButton={{
                     id: buttonId,
                     dataTestId: buttonDataTestId,
+                    as: 'div',
                     class: classNames('hierarchical-value-menu__button', buttonClassName, {disabled}),
                     disabled,
                     'aria-label': resolvedAriaLabel,
-                    children: (
-                        <span className='hierarchical-value-menu__button-inner'>
-                            {selectedIds.length === 0 && !trailingChips ? (
-                                <span className='hierarchical-value-menu__placeholder'>
-                                    {resolvedPlaceholder}
-                                </span>
-                            ) : (
-                                <SelectedValueChips
-                                    selectedIds={selectedIds}
-                                    labelForId={labelForId}
-                                    disabled={Boolean(disabled)}
-                                    onRemove={handleRemoveChip}
-                                    trailingChips={trailingChips}
-                                />
-                            )}
-                            <ChevronDownIcon
-                                size={18}
-                                color='rgba(var(--center-channel-color-rgb), 0.5)'
-                            />
-                        </span>
-                    ),
+                    children: triggerChildren,
                 }}
                 menu={{
                     id: menuId,
                     'aria-label': resolvedAriaLabel,
                     className: 'hierarchical-value-menu__menu',
+                    maxWidth: '320px',
                     isMenuOpen: isOpen,
                     onToggle: handleToggle,
                     autoFocusItem: false,

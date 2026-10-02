@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {LockOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
-import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
 
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
-import {canMoveToOption, getPropertyFieldChangePolicy, getPropertyFieldLabel, isPropertyFieldRequired, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
+import {resolveDisplayValue} from 'mattermost-redux/selectors/entities/properties';
+import {canMoveToOption, getPropertyFieldChangePolicy, getPropertyFieldLabel, isPropertyFieldRequired, isPropertyFieldSourceManaged, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
 
 import useCanSetChannelAttributes from 'components/common/hooks/useCanSetChannelAttributes';
 import {selectChannelInfoAttributes} from 'components/common/hooks/useChannelInfoAttributes';
@@ -35,7 +36,7 @@ function optionColor(attribute: ResolvedChannelAttribute): string | undefined {
 // Date and user-valued attributes are storable through the API but have no editor
 // in this release, so they stay read-only rather than offering a dead affordance.
 function hasEditor(field: PropertyField): boolean {
-    return field.type === 'text' || field.type === 'select' || field.type === 'multiselect' || field.type === 'rank';
+    return field.type === 'text' || field.type === 'select' || field.type === 'multiselect' || field.type === 'rank' || field.type === 'graph';
 }
 
 // A directional policy can leave nothing to move to — already at the top rung
@@ -62,23 +63,64 @@ const lockReasons = defineMessages({
         id: 'channel_attributes.info.locked_lower_only',
         defaultMessage: 'This attribute can only be lowered, never raised',
     },
+    source_managed: {
+        id: 'channel_attributes.info.locked_source_managed',
+        defaultMessage: 'This attribute is managed by an integration and cannot be changed here',
+    },
 });
 
 type Props = {
     channelId: string;
+
+    // When true, edits are staged locally rather than saved on each change —
+    // the host (e.g. a SaveChangesPanel-driven tab) drives flush/discard through
+    // the ref handle and decides when a save actually reaches the server.
+    deferred?: boolean;
+    onPendingChange?: (hasPendingChanges: boolean) => void;
 };
+
+export type ChannelInfoAttributesHandle = {
+    hasPendingChanges: () => boolean;
+    flush: () => Promise<boolean>;
+    discard: () => void;
+};
+
+// Overlays a staged-but-unsaved value on top of the resolved attribute so a
+// deferred edit renders exactly as a saved one would, before it is saved.
+function withPendingValue(attribute: ResolvedChannelAttribute, raw: ChannelAttributeValue): ResolvedChannelAttribute {
+    const resolved = resolveDisplayValue(attribute.field, raw);
+    return {
+        ...attribute,
+        value: raw === null ? undefined : {...attribute.value, value: raw} as PropertyValue<unknown>,
+        ...resolved,
+    };
+}
 
 /**
  * The CHANNEL ATTRIBUTES block in Channel Info. A locked attribute is shown with
  * its reason rather than hidden: hiding it makes a correctly configured channel
  * look like one missing a marking.
  */
-const ChannelInfoAttributes = ({channelId}: Props) => {
+const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({channelId, deferred, onPendingChange}, ref) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
     // One resolved list, two views: a second hook would duplicate the fetch.
-    const allAttributes = useResolvedChannelAttributes(channelId);
+    const resolvedAttributes = useResolvedChannelAttributes(channelId);
+
+    // Staged edits, keyed by field id, only ever populated in deferred mode.
+    const [pendingValues, setPendingValues] = useState<Map<string, ChannelAttributeValue>>(() => new Map());
+
+    const allAttributes = useMemo(() => {
+        if (pendingValues.size === 0) {
+            return resolvedAttributes;
+        }
+        return resolvedAttributes.map((attribute) => (pendingValues.has(attribute.field.id) ? withPendingValue(attribute, pendingValues.get(attribute.field.id) ?? null) : attribute));
+    }, [resolvedAttributes, pendingValues]);
+
+    useEffect(() => {
+        onPendingChange?.(pendingValues.size > 0);
+    }, [pendingValues, onPendingChange]);
 
     // Gates editing on top of canSet rather than relying on it: a field carrying the
     // 'member' setter tier would otherwise hand a regular member a pencil, and this
@@ -128,12 +170,14 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
         setSavingFieldId(undefined);
         setFailedFieldId(undefined);
         setRevealedFieldIds([]);
+        setPendingValues(new Map());
     }, [channelId]);
 
     // The panel survives a channel switch, so a save started on one channel can
     // still resolve after the user has moved to another. Fields are keyed by a
     // global template id, so a stale result cannot simply be filtered by field
     // id -- it would still match a same-named field on the new channel.
+    const rootRef = useRef<HTMLDivElement>(null);
     const visitTokenRef = useRef(0);
     useEffect(() => {
         visitTokenRef.current += 1;
@@ -154,6 +198,20 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
     }, []);
 
     const handleSubmit = useCallback(async (field: PropertyField, value: ChannelAttributeValue) => {
+        if (deferred) {
+            // No network round trip here: the host flushes staged values together
+            // on its own Save, so a pick just updates the local map.
+            setFailedFieldId(undefined);
+            setPendingValues((prev) => {
+                const next = new Map(prev);
+                next.set(field.id, value);
+                return next;
+            });
+            setEditingFieldId(undefined);
+            setRevealedFieldIds((prev) => prev.filter((id) => id !== field.id));
+            return;
+        }
+
         const requestVisitToken = visitTokenRef.current;
         const requestSequence = ++saveSequenceRef.current;
         const isStale = () => !isMountedRef.current || visitTokenRef.current !== requestVisitToken || saveSequenceRef.current !== requestSequence;
@@ -177,7 +235,31 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
                 setSavingFieldId(undefined);
             }
         }
-    }, [dispatch, channelId]);
+    }, [dispatch, channelId, deferred]);
+
+    useImperativeHandle(ref, () => ({
+        hasPendingChanges: () => pendingValues.size > 0,
+        discard: () => {
+            setPendingValues(new Map());
+            setFailedFieldId(undefined);
+        },
+        flush: async () => {
+            if (pendingValues.size === 0) {
+                return true;
+            }
+            for (const [fieldId, value] of pendingValues) {
+                try {
+                    // eslint-disable-next-line no-await-in-loop
+                    await setChannelAttributeValue(dispatch, channelId, fieldId, value);
+                } catch {
+                    setFailedFieldId(fieldId);
+                    return false;
+                }
+            }
+            setPendingValues(new Map());
+            return true;
+        },
+    }), [pendingValues, dispatch, channelId]);
 
     const handleAdd = useCallback((fieldId: string) => {
         setRevealedFieldIds((prev) => (prev.includes(fieldId) ? prev : [...prev, fieldId]));
@@ -185,6 +267,16 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
         if (added?.field.type === 'text') {
             setEditingFieldId(fieldId);
         }
+        requestAnimationFrame(() => {
+            let el: HTMLElement | null = rootRef.current;
+            while (el) {
+                if (el.scrollHeight > el.clientHeight && getComputedStyle(el).overflowY !== 'visible') {
+                    el.scrollTop = el.scrollHeight;
+                    break;
+                }
+                el = el.parentElement;
+            }
+        });
     }, [allAttributes]);
 
     const handleCancel = useCallback((fieldId: string) => {
@@ -198,6 +290,7 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
 
     return (
         <div
+            ref={rootRef}
             className='ChannelInfoAttributes'
             data-testid='channelInfoAttributes'
         >
@@ -220,7 +313,12 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
                         const hasValue = isPropertyValueSet(attribute.value?.value);
                         const policy = getPropertyFieldChangePolicy(field);
                         const stuck = hasValue && !hasReachableOption(field, attribute.value?.value);
-                        const locked = hasValue && (policy === 'never' || stuck);
+
+                        // An integration owns this attribute's values whether or not one is
+                        // set yet, so unlike the change policy this locks an empty row too.
+                        const sourceManaged = isPropertyFieldSourceManaged(field);
+                        const locked = sourceManaged || (hasValue && (policy === 'never' || stuck));
+                        const lockReason = sourceManaged ? lockReasons.source_managed : (lockReasons[policy as keyof typeof lockReasons] ?? lockReasons.never);
                         const isText = field.type === 'text';
                         const editable = isChannelAdmin && hasEditor(field) && !stuck && canSet(field, hasValue);
                         const isEditing = editingFieldId === field.id;
@@ -254,7 +352,10 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
                                     data-testid={`channelInfoAttributeEdit-${field.name}`}
                                 >
                                     {attribute.displayValue ? (
-                                        <span className='ChannelInfoAttributes__textValue'>
+                                        <span
+                                            className='ChannelInfoAttributes__textValue'
+                                            data-testid={`channelInfoAttributeTextValue-${field.name}`}
+                                        >
                                             {attribute.displayValue}
                                         </span>
                                     ) : (
@@ -271,14 +372,34 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
                                 </button>
                             );
                         } else if (attribute.displayValue) {
-                            valueControl = (
+                            // One chip per value, as the header chips already do: a
+                            // multiselect's displayValue is its values joined with
+                            // commas, which reads as one marking rather than several.
+                            // Colour only when there is a single value — an array
+                            // value resolves no option, so there is none to take.
+                            const values = attribute.displayValues.length > 0 ? attribute.displayValues : [attribute.displayValue];
+                            valueControl = values.length === 1 ? (
                                 <AttributeChip
+                                    className='ChannelInfoAttributes__chip'
                                     label={label}
-                                    value={attribute.displayValue}
+                                    value={values[0]}
                                     color={optionColor(attribute)}
                                     announceLabel={false}
                                     size='medium'
                                 />
+                            ) : (
+                                <span className='ChannelInfoAttributes__chips'>
+                                    {values.map((value) => (
+                                        <AttributeChip
+                                            key={`${field.id}:${value}`}
+                                            className='ChannelInfoAttributes__chip'
+                                            label={label}
+                                            value={value}
+                                            announceLabel={false}
+                                            size='medium'
+                                        />
+                                    ))}
+                                </span>
                             );
                         } else {
                             valueControl = (
@@ -306,7 +427,7 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
                                         <LockOutlineIcon
                                             size={12}
                                             data-testid={`channelInfoAttributeLock-${field.name}`}
-                                            aria-label={formatMessage(lockReasons[policy as keyof typeof lockReasons] ?? lockReasons.never)}
+                                            aria-label={formatMessage(lockReason)}
                                         />
                                     )}
                                 </span>
@@ -368,6 +489,8 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
             </div>
         </div>
     );
-};
+});
+
+ChannelInfoAttributes.displayName = 'ChannelInfoAttributes';
 
 export default ChannelInfoAttributes;

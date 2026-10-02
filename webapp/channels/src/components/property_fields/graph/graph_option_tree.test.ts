@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyFieldOption} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
 import type {GraphOccurrence} from '.';
 import {
     alsoUnderLabel,
+    asGraphFieldRef,
     asGraphValueIds,
     canvasOccurrenceKey,
     emitIdToName,
@@ -640,6 +641,74 @@ describe('emitIdToName', () => {
 
     test('prefers the option name over the fallback', () => {
         expect(emitIdToName('d', byId, 'Stale')).toBe('D');
+    });
+});
+
+describe('asGraphFieldRef', () => {
+    const field = (overrides: Partial<PropertyField> = {}): PropertyField => ({
+        id: 'f1',
+        group_id: 'g1',
+        name: 'Field',
+        type: 'graph',
+        target_id: '',
+        target_type: '',
+        object_type: 'channel',
+        create_at: 0,
+        update_at: 0,
+        delete_at: 0,
+        created_by: '',
+        updated_by: '',
+        ...overrides,
+    });
+
+    test('carries id, object_type and type', () => {
+        expect(asGraphFieldRef(field())).toEqual({
+            id: 'f1',
+            object_type: 'channel',
+            type: 'graph',
+        });
+    });
+
+    test('keeps a well-formed option list and scalar attrs', () => {
+        const options = diamond();
+        const ref = asGraphFieldRef(field({
+            attrs: {options, options_omitted: false, options_count: 4, access_mode: 'source_only'},
+        }));
+
+        expect(ref.attrs).toEqual({
+            options,
+            options_omitted: false,
+            options_count: 4,
+            access_mode: 'source_only',
+        });
+    });
+
+    test('drops a non-array options', () => {
+        const ref = asGraphFieldRef(field({attrs: {options: 'not-an-array'}}));
+
+        expect(ref.attrs).toBeUndefined();
+    });
+
+    test('drops scalar attrs whose stored value has the wrong type', () => {
+        const ref = asGraphFieldRef(field({
+            attrs: {options_omitted: 'yes', options_count: '4', access_mode: 7},
+        }));
+
+        expect(ref.attrs).toBeUndefined();
+    });
+
+    test('keeps the keys that are well-typed when a sibling is not', () => {
+        const ref = asGraphFieldRef(field({attrs: {options: 'nope', options_count: 4}}));
+
+        expect(ref.attrs).toEqual({options_count: 4});
+    });
+
+    test('converts a field with no attrs without throwing', () => {
+        expect(asGraphFieldRef(field())).toEqual({
+            id: 'f1',
+            object_type: 'channel',
+            type: 'graph',
+        });
     });
 });
 

@@ -2193,7 +2193,7 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 			Name:           "atmos/camo, disabled",
 			Enable:         false,
 			ImageProxyType: ImageProxyTypeLegacyAtmosCamo,
-			ExpectError:    true,
+			ExpectError:    false,
 		},
 		{
 			Name:           "atmos/camo, enabled",

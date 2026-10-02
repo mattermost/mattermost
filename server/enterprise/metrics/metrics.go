@@ -553,6 +553,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		model.ClusterEventInvalidateCacheForPropertyFields,
 		model.ClusterEventInvalidateCacheForAccessControlPolicyEtag,
 		model.ClusterEventInvalidateCacheForUserPropertyValuesEpoch,
+		model.ClusterEventInvalidateCacheForUserAttributes,
 		model.ClusterEventClearSessionCacheForAllUsers,
 		model.ClusterEventInstallPlugin,
 		model.ClusterEventRemovePlugin,
@@ -2172,9 +2173,9 @@ func (mi *MetricsInterfaceImpl) SetReplicaLagTime(node string, value float64) {
 
 func normalizeNotificationPlatform(platform string) string {
 	switch platform {
-	case "apple_rn-v2", "apple_rnbeta-v2", "ios":
+	case "apple_rn-v2", "apple_rnbeta-v2", "apple_oxide-v2", "ios":
 		return "ios"
-	case "android_rn-v2", "android":
+	case "android_rn-v2", "android_oxide-v2", "android":
 		return "android"
 	case model.NotificationNoPlatform:
 		return model.NotificationNoPlatform

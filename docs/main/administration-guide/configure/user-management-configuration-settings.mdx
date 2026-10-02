@@ -121,7 +121,7 @@ If you deactivate a Mattermost user who has integrations tied to their user acco
 
 - **Slash commands** will continue to work after user deactivation. Consider deleting the existing slash command and creating a new slash command associated with a different user account to decouple sensitive token data from the deactivated user account. Alternatively, consider regenerating the token of the existing slash command. Check that the deactivated user doesn't have access to the slash command **Request URL** which is the callback URL to receive the HTTP POST or GET event request when the slash command is run.
 - **Outgoing webhooks** will continue to work after user deactivation. Consider regenerating the webhook token and check that the deactivated user no longer has access to the callback URLs, as having access would result in the deactivating user receiving the outgoing webhooks.
-- **Incoming webhooks** will continue to work after user deactivation. Because the [URL produced](https://developers.mattermost.com/integrate/webhooks/incoming/#create-an-incoming-webhook) includes `xxx-generatedkey-xxx`, anyone who has the URL can post messages to the Mattermost instance. We recommend removing the incoming webhook and creating a new one associated with a different user account.
+- **Incoming webhooks** will continue to work after user deactivation. Because the [URL produced](https://docs.mattermost.com/developers/integrate/webhooks/incoming/#create-an-incoming-webhook) includes `xxx-generatedkey-xxx`, anyone who has the URL can post messages to the Mattermost instance. We recommend removing the incoming webhook and creating a new one associated with a different user account.
 - **Bot accounts** won't continue to work after user deactivation when the [disable bot accounts when owner is deactivated](/administration-guide/configure/integrations-configuration-settings#disable-bot-accounts-when-owner-is-deactivated) is enabled. This configuration setting is enabled by default.
 - **OAuth apps** won't continue to work after user deactivation, and associated tokens are deleted. Manual action is needed to keep these integrations running.
 
@@ -136,8 +136,8 @@ From Mattermost v11.1, you can can view and update user attribute values for ind
 
 <Note>
 
-- User attributes must be created first through **System Console \> Site Configuration \> System Attributes \> User Attributes** before they can be edited in individual user profiles. See the [User attributes](/administration-guide/manage/admin/user-attributes) documentation for details on creating and configuring attributes.
-- Users can edit their own attributes if that attribute is configured as [user-editable](/administration-guide/manage/admin/user-attributes#admin-managed-vs-user-editable-attributes).
+- User attributes must be created first before they can be edited in individual user profiles. From Mattermost v12.0, create them in **System Console \> System Attributes \> Attribute Management** and apply them to **Users**. See [Attribute management](/administration-guide/manage/admin/attribute-management) for details. In earlier releases, create them in **System Console \> System Attributes \> User Attributes**. See [User attributes](/administration-guide/manage/admin/user-attributes) for details.
+- Users can edit their own attributes if that attribute is configured as [user-editable](/administration-guide/manage/admin/user-attributes#admin-managed-vs-user-editable-attributes). From Mattermost v12.0, this is the **Who can set the value** setting on the attribute's [Users resource](/administration-guide/manage/admin/attribute-management#users).
 
 </Note>
 

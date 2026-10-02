@@ -13,6 +13,8 @@ import Permissions from 'mattermost-redux/constants/permissions';
 
 import useChannelAttributes from 'components/common/hooks/useChannelAttributes';
 import useClassificationMarkings from 'components/common/hooks/useClassificationMarkings';
+import {clearPropertyFieldOptionWalks} from 'components/property_fields/graph/page_all_access_control_field_options';
+import {clearGraphOptionNameCache} from 'components/property_fields/graph/use_graph_option_names';
 
 import {
     act,
@@ -1363,6 +1365,15 @@ describe('components/new_channel_modal - channel attributes', () => {
         mockedUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [program]});
         (createChannel as jest.Mock).mockReturnValue(() => Promise.resolve({data: createdChannel, error: null}));
         jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+
+        // The picker pages the options endpoint and caches the walk and the
+        // option names at module level, so both outlive a single test.
+        clearPropertyFieldOptionWalks();
+        clearGraphOptionNameCache();
+        jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValue({
+            options: [{id: 'opt_program', name: 'VALUE_PROGRAM', create_at: 1}],
+            has_more: false,
+        });
     });
 
     async function fillAndSelect() {
@@ -1596,5 +1607,46 @@ describe('components/new_channel_modal - channel attributes', () => {
 
         await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
         expect(screen.getByText('Create channel').closest('button')).toBeDisabled();
+    });
+
+    describe('graph attributes', () => {
+        const graphProgram: PropertyField = {
+            ...program,
+            type: 'graph',
+        };
+
+        beforeEach(() => {
+            mockedUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [graphProgram]});
+        });
+
+        test('offers a required graph attribute at creation', () => {
+            renderWithContext(<NewChannelModal/>, state);
+
+            expect(screen.getByTestId('channelAttributeRow-program')).toBeInTheDocument();
+        });
+
+        test('blocks creation while a required graph attribute has no value', async () => {
+            renderWithContext(<NewChannelModal/>, state);
+
+            await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
+            expect(screen.getByText('Create channel').closest('button')).toBeDisabled();
+
+            await userEvent.click(screen.getByText('Create channel'));
+            expect(createChannel).not.toHaveBeenCalled();
+        });
+
+        test('sends the picked graph option ids with the channel it creates', async () => {
+            renderWithContext(<NewChannelModal/>, state);
+
+            await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
+            await userEvent.click(screen.getByTestId('channelAttribute-program'));
+            await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'VALUE_PROGRAM'}));
+            await userEvent.click(screen.getByText('Create channel'));
+
+            await waitFor(() => expect(createChannel).toHaveBeenCalledTimes(1));
+            expect((createChannel as jest.Mock).mock.calls[0][0]).toMatchObject({
+                property_values: [{field_id: graphProgram.id, value: ['opt_program']}],
+            });
+        });
     });
 });
