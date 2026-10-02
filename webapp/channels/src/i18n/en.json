@@ -2995,6 +2995,22 @@
     "defaultMessage": "Save and Archive Channel",
     "description": "Title of the confirmation modal shown when saving channel settings will also archive the channel."
   },
+  "admin.channel_settings.channel_detail.attributes.not_set": {
+    "defaultMessage": "Not set",
+    "description": ""
+  },
+  "admin.channel_settings.channel_detail.attributes.remove_value": {
+    "defaultMessage": "Remove {value}",
+    "description": ""
+  },
+  "admin.channel_settings.channel_detail.attributesDescription": {
+    "defaultMessage": "Set this channel's value for each channel attribute.",
+    "description": ""
+  },
+  "admin.channel_settings.channel_detail.attributesTitle": {
+    "defaultMessage": "Channel attributes",
+    "description": ""
+  },
   "admin.channel_settings.channel_detail.channel_configuration": {
     "defaultMessage": "Channel Configuration",
     "description": "Page header of the per-channel configuration page in the System Console."
@@ -5931,6 +5947,46 @@
     "defaultMessage": "Channel Info",
     "description": "Checkbox option under 'Display location' in an attribute's Channels settings, and a segment of the collapsed row summary. Refers to the Channel Info side panel in the channel view; it is a localized UI name, so match the translation used for that panel."
   },
+  "admin.global_attributes.applies_to.channels.missing_values.attribute_fallback": {
+    "defaultMessage": "this attribute",
+    "description": ""
+  },
+  "admin.global_attributes.applies_to.channels.missing_values.body": {
+    "defaultMessage": "{count, plural, one {# channel doesn't} other {# channels don't}} have a {attribute} value yet. Set a value on every existing channel before turning Required on.",
+    "description": ""
+  },
+  "admin.global_attributes.applies_to.channels.missing_values.body_already_required": {
+    "defaultMessage": "{count, plural, one {# channel doesn't} other {# channels don't}} have a {attribute} value yet. New channels must set one; existing channels keep working until a value is set.",
+    "description": ""
+  },
+  "admin.global_attributes.applies_to.channels.missing_values.body_create_mode": {
+    "defaultMessage": "Save this attribute first, then set a value on every existing channel before turning Required on.",
+    "description": ""
+  },
+  "admin.global_attributes.applies_to.channels.missing_values.notified": {
+    "defaultMessage": "Notified {count, plural, one {# channel admin} other {# channel admins}}.",
+    "description": ""
+  },
+  "admin.global_attributes.applies_to.channels.missing_values.notified_truncated": {
+    "defaultMessage": "Notified {count, plural, one {# channel admin} other {# channel admins}}. This attribute affects more admins than one run can reach -- click Notify again to reach the rest.",
+    "description": ""
+  },
+  "admin.global_attributes.applies_to.channels.missing_values.notify": {
+    "defaultMessage": "Notify all channel admins",
+    "description": ""
+  },
+  "admin.global_attributes.applies_to.channels.missing_values.notify_failed": {
+    "defaultMessage": "The notifications couldn't be sent. Please try again.",
+    "description": ""
+  },
+  "admin.global_attributes.applies_to.channels.missing_values.title": {
+    "defaultMessage": "Set channel attribute values",
+    "description": ""
+  },
+  "admin.global_attributes.applies_to.channels.missing_values.view_list": {
+    "defaultMessage": "View channel list",
+    "description": ""
+  },
   "admin.global_attributes.applies_to.channels.remove": {
     "defaultMessage": "Remove resource",
     "description": "Destructive button in the expanded Channels row of an attribute's 'Applies to' card in the System Console; stops the attribute from applying to channels."
@@ -5986,6 +6042,66 @@
   "admin.global_attributes.applies_to.channels.toggle.on": {
     "defaultMessage": "On",
     "description": "State text shown next to the Required toggle switch in an attribute's Channels settings when the switch is on."
+  },
+  "admin.global_attributes.applies_to.channels.without_value.close": {
+    "defaultMessage": "Close",
+    "description": ""
+  },
+  "admin.global_attributes.applies_to.channels.without_value.column.admin": {
+    "defaultMessage": "Channel admin",
+    "description": ""
+  },
+  "admin.global_attributes.applies_to.channels.without_value.column.channel": {
+    "defaultMessage": "Channel",
+    "description": ""
+  },
+  "admin.global_attributes.applies_to.channels.without_value.empty": {
+    "defaultMessage": "Every channel has a value",
+    "description": ""
+  },
+  "admin.global_attributes.applies_to.channels.without_value.error": {
+    "defaultMessage": "The channel list couldn't be loaded.",
+    "description": ""
+  },
+  "admin.global_attributes.applies_to.channels.without_value.filter.all": {
+    "defaultMessage": "All ({count})",
+    "description": ""
+  },
+  "admin.global_attributes.applies_to.channels.without_value.filter.local": {
+    "defaultMessage": "Local ({count})",
+    "description": ""
+  },
+  "admin.global_attributes.applies_to.channels.without_value.filter.shared": {
+    "defaultMessage": "Shared ({count})",
+    "description": ""
+  },
+  "admin.global_attributes.applies_to.channels.without_value.next": {
+    "defaultMessage": "Next",
+    "description": ""
+  },
+  "admin.global_attributes.applies_to.channels.without_value.no_admin": {
+    "defaultMessage": "No channel admin",
+    "description": ""
+  },
+  "admin.global_attributes.applies_to.channels.without_value.open_channel_aria": {
+    "defaultMessage": "Open {channel} in a new tab",
+    "description": ""
+  },
+  "admin.global_attributes.applies_to.channels.without_value.previous": {
+    "defaultMessage": "Previous",
+    "description": ""
+  },
+  "admin.global_attributes.applies_to.channels.without_value.retry": {
+    "defaultMessage": "Try again",
+    "description": ""
+  },
+  "admin.global_attributes.applies_to.channels.without_value.subtitle": {
+    "defaultMessage": "{count, plural, one {# channel} other {# channels}} still need a {attribute} value",
+    "description": ""
+  },
+  "admin.global_attributes.applies_to.channels.without_value.title": {
+    "defaultMessage": "Channels without a value",
+    "description": ""
   },
   "admin.global_attributes.applies_to.empty": {
     "defaultMessage": "This attribute does not apply to any resource yet.",
@@ -6762,6 +6878,30 @@
   "admin.global_attributes.confirm.delete.title": {
     "defaultMessage": "Delete {name} attribute",
     "description": "Title of the delete confirmation dialog in System Console > System Attributes > Manage Attributes. {name} is the attribute's display name. \"Delete\" is a verb (imperative)."
+  },
+  "admin.global_attributes.confirm.notify_channel_admins.bullet.no_admin": {
+    "defaultMessage": "{count, plural, one {# channel has} other {# channels have}} no channel admin and won't be notified.",
+    "description": ""
+  },
+  "admin.global_attributes.confirm.notify_channel_admins.bullet.unique_admins": {
+    "defaultMessage": "Notifications go to each unique channel admin — not one message per channel — so {adminCount, plural, one {# admin} other {# admins}} will be contacted for {channelCount, plural, one {# channel} other {# channels}}.",
+    "description": ""
+  },
+  "admin.global_attributes.confirm.notify_channel_admins.confirm": {
+    "defaultMessage": "Send notification",
+    "description": ""
+  },
+  "admin.global_attributes.confirm.notify_channel_admins.message_label": {
+    "defaultMessage": "Message to be sent",
+    "description": ""
+  },
+  "admin.global_attributes.confirm.notify_channel_admins.summary": {
+    "defaultMessage": "{count, plural, one {# channel needs} other {# channels need}} a {attribute} value.",
+    "description": ""
+  },
+  "admin.global_attributes.confirm.notify_channel_admins.title": {
+    "defaultMessage": "Notify all channel admins?",
+    "description": ""
   },
   "admin.global_attributes.confirm.remove_applies_to.body": {
     "defaultMessage": "This will permanently delete every value stored for this attribute on {resources}. This action cannot be undone.",
@@ -31310,6 +31450,18 @@
   "unarchive_channel.del": {
     "defaultMessage": "Unarchive",
     "description": "Confirm button (verb) of the unarchive channel modal; restores an archived channel."
+  },
+  "unarchive_channel.missing_attributes.body": {
+    "defaultMessage": "This channel has no value for {attributes}. {count, plural, one {That attribute is} other {Those attributes are}} required. You can set the {count, plural, one {value} other {values}} after restoring the channel.",
+    "description": "Warning banner body in the unarchive channel modal when the channel lacks values for required channel attributes; {attributes} is a comma-separated list of attribute names, {count} is how many."
+  },
+  "unarchive_channel.missing_attributes.confirm": {
+    "defaultMessage": "Unarchive anyway",
+    "description": "Confirm button of the unarchive channel modal shown instead of 'Unarchive' when required channel attribute values are missing; restoring is still allowed."
+  },
+  "unarchive_channel.missing_attributes.title": {
+    "defaultMessage": "Missing required attribute values",
+    "description": "Title of the warning banner in the unarchive channel modal when the channel is missing values for required channel attributes."
   },
   "unarchiveChannelModal.viewArchived.question": {
     "defaultMessage": "Are you sure you wish to unarchive the <b>{display_name}</b> channel?",

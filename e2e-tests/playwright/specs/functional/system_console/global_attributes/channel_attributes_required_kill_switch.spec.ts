@@ -62,13 +62,17 @@ test.describe(
                 await pw.skipIfFeatureFlagNotSet('ChannelAttributesRequired', true);
 
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-                name = await configureChannelAttribute(systemConsolePage, {
-                    displayName: `Required ${suffix}`,
-                    type: 'Select',
-                    options: ['ALPHA'],
-                    required: true,
-                    displayLocations: ['display_label_header'],
-                });
+                name = await configureChannelAttribute(
+                    systemConsolePage,
+                    {
+                        displayName: `Required ${suffix}`,
+                        type: 'Select',
+                        options: ['ALPHA'],
+                        required: true,
+                        displayLocations: ['display_label_header'],
+                    },
+                    adminClient,
+                );
 
                 // # Ops disables enforcement after the fact (e.g. mobile rollout issue)
                 await setChannelAttributesRequired(adminClient, false);

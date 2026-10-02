@@ -50,6 +50,14 @@ export async function requireGlobalAttributesEnabled(pw: PlaywrightExtended) {
     return {adminUser, adminClient};
 }
 
+export async function setGlobalAttributesFeatureFlag(adminClient: Client4, enabled: boolean) {
+    await adminClient.patchConfig({
+        FeatureFlags: {
+            GlobalAttributes: enabled,
+        },
+    } as Parameters<Client4['patchConfig']>[0]);
+}
+
 /**
  * Hierarchical (graph) authoring is gated on PropertyFieldGraph, which cannot be
  * flipped through the config API — the config store restores feature flags on write.

@@ -26,7 +26,7 @@ const BODY_ID = 'attribute-applies-to-channel-panel';
 // array index, which misattributes state when a row is removed from the
 // middle of the list). Remove is only reachable once expanded -- there is no
 // collapsed-row remove affordance.
-function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disabled = false, lockedTooltip, onRemove}: AttributeAppliesToChannelItemProps): JSX.Element {
+function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disabled = false, lockedTooltip, onRemove, channelFieldId, attributeDisplayName}: AttributeAppliesToChannelItemProps): JSX.Element {
     const intl = useIntl();
     const {formatMessage} = intl;
     const [isOpen, setIsOpen] = useState(false);
@@ -113,6 +113,8 @@ function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disable
                         onChange={onConfigChange}
                         ordered={ordered}
                         disabled={disabled}
+                        channelFieldId={channelFieldId}
+                        attributeDisplayName={attributeDisplayName}
                     />
                 </div>
             )}

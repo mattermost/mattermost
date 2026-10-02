@@ -305,6 +305,7 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
                 channel.id,
                 `chanadmin-lock-${suffix}`,
             );
+            await adminClient.deleteChannel(channel.id);
 
             // The lock bites only once a value exists, so an empty one is still fillable.
             const marking = await createAttribute(adminClient, attributeName('locked_once', suffix), {
@@ -314,6 +315,7 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
                 required: true,
             });
             created.push(marking);
+            await adminClient.unarchiveChannel(channel.id);
 
             const {channelsPage} = await pw.testBrowser.login(channelAdmin);
             await channelsPage.goto(team.name, channel.name);
