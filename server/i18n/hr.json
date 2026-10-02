@@ -3420,10 +3420,6 @@
     "translation": "@{{.Username}} nije obaviješten/a ovim spominjanjem jer nije član ovog tima."
   },
   {
-    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
-    "translation": "Nemaš dozvolu za slanje poruka koje se brišu nakon čitanja u ovom kanalu."
-  },
-  {
     "id": "api.post.create_post.burn_on_read.app_error",
     "translation": "Došlo je do greške pri stvaranju objave koja se briše nakon čitanja."
   },
@@ -3722,10 +3718,6 @@
   {
     "id": "api.property.v2_group_not_found.app_error",
     "translation": "Navedena grupa svojstava nije pronađena."
-  },
-  {
-    "id": "api.property_field.create.creator_cannot_edit.app_error",
-    "translation": "Ne možeš stvoriti polje svojstva s razinama dozvola koje bi ti onemogućile njegovo uređivanje."
   },
   {
     "id": "api.property_field.create.invalid_target_type.app_error",
@@ -7212,22 +7204,6 @@
     "translation": "korisnik s korisničkim imenom \"{{.Username}}\" već postoji."
   },
   {
-    "id": "app.health_finding.mute.app_error",
-    "translation": "Nije moguće utišati nalaz provjere stanja."
-  },
-  {
-    "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "Nalaz provjere stanja nije pronađen."
-  },
-  {
-    "id": "app.health_finding.unmute.app_error",
-    "translation": "Nije moguće poništiti utišavanje nalaza provjere stanja."
-  },
-  {
-    "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "Nalaz provjere stanja nije pronađen."
-  },
-  {
     "id": "app.import.attachment.bad_file.error",
     "translation": "Greška pri čitanju datoteke na putanji: \"{{.FilePath}}\""
   },
@@ -8744,14 +8720,6 @@
     "translation": "Trajno brisanje objave nije uspjelo."
   },
   {
-    "id": "app.post.property_values.field_bound_exceeded.app_error",
-    "translation": "Broj atributa koji se primjenjuju na ovu objavu premašuje podržano ograničenje."
-  },
-  {
-    "id": "app.post.property_values.value_bound_exceeded.app_error",
-    "translation": "Broj vrijednosti atributa za ove objave premašuje podržano ograničenje."
-  },
-  {
     "id": "app.post.restore_post_version.get_single.app_error",
     "translation": "Dohvaćanje stare verzije objave nije uspjelo."
   },
@@ -8940,10 +8908,6 @@
     "translation": "Nije moguće stvoriti zaštićeno polje svojstva."
   },
   {
-    "id": "app.property_field.create.target_limit_reached.app_error",
-    "translation": "Dosegnut je najveći broj polja svojstava za ovaj cilj."
-  },
-  {
     "id": "app.property_field.create.template_cannot_be_linked.app_error",
     "translation": "Polja predloška ne mogu imati povezano polje."
   },
@@ -9130,10 +9094,6 @@
   {
     "id": "app.property_value.delete_for_target.app_error",
     "translation": "Nije moguće izbrisati vrijednosti svojstava za cilj."
-  },
-  {
-    "id": "app.property_value.direct_channel.app_error",
-    "translation": "Atributi izravnih i grupnih poruka ne mogu se izravno postavljati."
   },
   {
     "id": "app.property_value.get.app_error",
@@ -13810,10 +13770,6 @@
   {
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
     "translation": "Neispravno vrijeme obrade."
-  },
-  {
-    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
-    "translation": "Poruke koje se brišu nakon čitanja ne mogu se slati kao ponavljajuće zakazane poruke."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_files.app_error",

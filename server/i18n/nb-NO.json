@@ -3149,10 +3149,6 @@
     "translation": "@{{.Username}} ble ikke varslet av denne omtalen, fordi vedkommende ikke er medlem av dette teamet."
   },
   {
-    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
-    "translation": "Du har ikke tillatelse til å sende Burn-on-Read-meldinger i denne kanalen."
-  },
-  {
     "id": "api.post.create_post.burn_on_read.app_error",
     "translation": "Det oppstod en feil under oppretting av et Burn-on-Read-innlegg."
   },
@@ -3451,10 +3447,6 @@
   {
     "id": "api.property.v2_group_not_found.app_error",
     "translation": "Fant ikke den angitte egenskapsgruppen."
-  },
-  {
-    "id": "api.property_field.create.creator_cannot_edit.app_error",
-    "translation": "Du kan ikke opprette et egenskapsfelt med tillatelsesnivåer som ville hindre deg i å redigere det."
   },
   {
     "id": "api.property_field.create.invalid_target_type.app_error",
@@ -7071,22 +7063,6 @@
     "translation": "det finnes allerede en bruker med brukernavnet «{{.Username}}»."
   },
   {
-    "id": "app.health_finding.mute.app_error",
-    "translation": "Kan ikke dempe helsefunnet."
-  },
-  {
-    "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "Fant ikke helsefunnet."
-  },
-  {
-    "id": "app.health_finding.unmute.app_error",
-    "translation": "Kan ikke fjerne dempingen av helsefunnet."
-  },
-  {
-    "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "Fant ikke helsefunnet."
-  },
-  {
     "id": "app.import.attachment.bad_file.error",
     "translation": "Feil ved lesing av filen på: «{{.FilePath}}»"
   },
@@ -8691,14 +8667,6 @@
     "translation": "Kunne ikke slette innlegget permanent."
   },
   {
-    "id": "app.post.property_values.field_bound_exceeded.app_error",
-    "translation": "Antall attributter som gjelder for dette innlegget, overskrider den støttede grensen."
-  },
-  {
-    "id": "app.post.property_values.value_bound_exceeded.app_error",
-    "translation": "Antall attributtverdier for disse innleggene overskrider den støttede grensen."
-  },
-  {
     "id": "app.post.restore_post_version.get_single.app_error",
     "translation": "Kunne ikke hente den gamle versjonen av innlegget."
   },
@@ -8887,10 +8855,6 @@
     "translation": "Kan ikke opprette et beskyttet egenskapsfelt."
   },
   {
-    "id": "app.property_field.create.target_limit_reached.app_error",
-    "translation": "Maksimalt antall egenskapsfelt for dette målet er nådd."
-  },
-  {
     "id": "app.property_field.create.template_cannot_be_linked.app_error",
     "translation": "Malfelt kan ikke ha et koblet felt."
   },
@@ -9077,10 +9041,6 @@
   {
     "id": "app.property_value.delete_for_target.app_error",
     "translation": "Kan ikke slette egenskapsverdiene for målet."
-  },
-  {
-    "id": "app.property_value.direct_channel.app_error",
-    "translation": "Attributter på direktemeldinger og gruppemeldinger kan ikke angis direkte."
   },
   {
     "id": "app.property_value.get.app_error",
@@ -13737,10 +13697,6 @@
   {
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
     "translation": "Ugyldig behandlingstidspunkt."
-  },
-  {
-    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
-    "translation": "Burn-on-Read-meldinger kan ikke sendes som gjentakende planlagte meldinger."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_files.app_error",

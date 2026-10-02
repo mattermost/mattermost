@@ -3146,10 +3146,6 @@
     "translation": "@{{.Username}} não foi notificado por esta menção porque não é membro desta equipa."
   },
   {
-    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
-    "translation": "Não tem permissão para enviar mensagens de destruição após leitura neste canal."
-  },
-  {
     "id": "api.post.create_post.burn_on_read.app_error",
     "translation": "Ocorreu um erro ao criar uma mensagem de destruição após leitura."
   },
@@ -3448,10 +3444,6 @@
   {
     "id": "api.property.v2_group_not_found.app_error",
     "translation": "O grupo de propriedades especificado não foi encontrado."
-  },
-  {
-    "id": "api.property_field.create.creator_cannot_edit.app_error",
-    "translation": "Não pode criar um campo de propriedade com níveis de permissão que o impeçam de o editar."
   },
   {
     "id": "api.property_field.create.invalid_target_type.app_error",
@@ -7140,22 +7132,6 @@
     "translation": "já existe um utilizador com o nome de utilizador \"{{.Username}}\"."
   },
   {
-    "id": "app.health_finding.mute.app_error",
-    "translation": "Não é possível silenciar o resultado da verificação de estado."
-  },
-  {
-    "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "Resultado da verificação de estado não encontrado."
-  },
-  {
-    "id": "app.health_finding.unmute.app_error",
-    "translation": "Não é possível deixar de silenciar o resultado da verificação de estado."
-  },
-  {
-    "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "Resultado da verificação de estado não encontrado."
-  },
-  {
     "id": "app.import.attachment.bad_file.error",
     "translation": "Erro ao ler o ficheiro em: \"{{.FilePath}}\""
   },
@@ -8764,14 +8740,6 @@
     "translation": "Não foi possível eliminar permanentemente a mensagem."
   },
   {
-    "id": "app.post.property_values.field_bound_exceeded.app_error",
-    "translation": "O número de atributos aplicáveis a esta mensagem excede o limite suportado."
-  },
-  {
-    "id": "app.post.property_values.value_bound_exceeded.app_error",
-    "translation": "O número de valores de atributos destas mensagens excede o limite suportado."
-  },
-  {
     "id": "app.post.restore_post_version.get_single.app_error",
     "translation": "Não foi possível obter a versão anterior da mensagem."
   },
@@ -8960,10 +8928,6 @@
     "translation": "Não é possível criar um campo de propriedade protegido."
   },
   {
-    "id": "app.property_field.create.target_limit_reached.app_error",
-    "translation": "Foi atingido o número máximo de campos de propriedade para este destino."
-  },
-  {
     "id": "app.property_field.create.template_cannot_be_linked.app_error",
     "translation": "Os campos de modelo não podem ter um campo ligado."
   },
@@ -9150,10 +9114,6 @@
   {
     "id": "app.property_value.delete_for_target.app_error",
     "translation": "Não é possível eliminar os valores das propriedades do destino."
-  },
-  {
-    "id": "app.property_value.direct_channel.app_error",
-    "translation": "Os atributos das mensagens diretas e de grupo não podem ser definidos diretamente."
   },
   {
     "id": "app.property_value.get.app_error",
@@ -13837,10 +13797,6 @@
   {
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
     "translation": "Hora de processamento inválida."
-  },
-  {
-    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
-    "translation": "As mensagens de destruição após leitura não podem ser enviadas como mensagens agendadas recorrentes."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_files.app_error",

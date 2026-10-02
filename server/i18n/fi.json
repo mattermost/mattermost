@@ -6443,10 +6443,6 @@
     "translation": "@{{.Username}} ei saanut ilmoitusta tästä maininnasta, koska hän ei ole tämän tiimin jäsen."
   },
   {
-    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
-    "translation": "Sinulla ei ole oikeutta lähettää luettaessa tuhoutuvia viestejä tällä kanavalla."
-  },
-  {
     "id": "api.post.create_post.burn_on_read.app_error",
     "translation": "Luettaessa tuhoutuvaa viestiä luotaessa tapahtui virhe."
   },
@@ -6629,10 +6625,6 @@
   {
     "id": "api.property.v2_group_not_found.app_error",
     "translation": "Määritettyä ominaisuusryhmää ei löytynyt."
-  },
-  {
-    "id": "api.property_field.create.creator_cannot_edit.app_error",
-    "translation": "Et voi luoda ominaisuuskenttää, jonka käyttöoikeustasot estäisivät sinua muokkaamasta sitä."
   },
   {
     "id": "api.property_field.create.invalid_target_type.app_error",
@@ -9373,22 +9365,6 @@
     "translation": "käyttäjä, jonka käyttäjänimi on \"{{.Username}}\", on jo olemassa."
   },
   {
-    "id": "app.health_finding.mute.app_error",
-    "translation": "Kuntotarkistuksen havaintoa ei voitu mykistää."
-  },
-  {
-    "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "Kuntotarkistuksen havaintoa ei löytynyt."
-  },
-  {
-    "id": "app.health_finding.unmute.app_error",
-    "translation": "Kuntotarkistuksen havainnon mykistystä ei voitu poistaa."
-  },
-  {
-    "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "Kuntotarkistuksen havaintoa ei löytynyt."
-  },
-  {
     "id": "app.import.attachment.file_stat.error",
     "translation": "Virhe luettaessa tiedoston tilatietoja: \"{{.FilePath}}\""
   },
@@ -10397,14 +10373,6 @@
     "translation": "Viestin pysyvä poistaminen epäonnistui."
   },
   {
-    "id": "app.post.property_values.field_bound_exceeded.app_error",
-    "translation": "Tähän viestiin sovellettavien attribuuttien määrä ylittää tuetun rajan."
-  },
-  {
-    "id": "app.post.property_values.value_bound_exceeded.app_error",
-    "translation": "Näiden viestien attribuuttiarvojen määrä ylittää tuetun rajan."
-  },
-  {
     "id": "app.post.restore_post_version.get_single.app_error",
     "translation": "Viestin vanhan version hakeminen epäonnistui."
   },
@@ -10593,10 +10561,6 @@
     "translation": "Suojattua ominaisuuskenttää ei voi luoda."
   },
   {
-    "id": "app.property_field.create.target_limit_reached.app_error",
-    "translation": "Tämän kohteen ominaisuuskenttien enimmäismäärä on saavutettu."
-  },
-  {
     "id": "app.property_field.create.template_cannot_be_linked.app_error",
     "translation": "Mallikentillä ei voi olla linkitettyä kenttää."
   },
@@ -10783,10 +10747,6 @@
   {
     "id": "app.property_value.delete_for_target.app_error",
     "translation": "Kohteen ominaisuusarvoja ei voitu poistaa."
-  },
-  {
-    "id": "app.property_value.direct_channel.app_error",
-    "translation": "Suora- ja ryhmäviestien attribuutteja ei voi asettaa suoraan."
   },
   {
     "id": "app.property_value.get.app_error",
@@ -14061,10 +14021,6 @@
   {
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
     "translation": "Virheellinen käsittelyaika."
-  },
-  {
-    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
-    "translation": "Luettaessa tuhoutuvia viestejä ei voi lähettää toistuvina ajoitettuina viesteinä."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_files.app_error",

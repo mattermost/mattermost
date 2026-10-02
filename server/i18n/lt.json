@@ -3031,10 +3031,6 @@
     "translation": "@{{.Username}} apie šį paminėjimą nebuvo įspėtas, nes jis nėra šios komandos narys."
   },
   {
-    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
-    "translation": "Neturite leidimo šiame kanale siųsti perskaičius išnykstančių pranešimų."
-  },
-  {
     "id": "api.post.create_post.burn_on_read.app_error",
     "translation": "Kuriant perskaičius išnykstantį pranešimą įvyko klaida."
   },
@@ -3351,10 +3347,6 @@
   {
     "id": "api.property.v2_group_not_found.app_error",
     "translation": "Nurodyta savybių grupė nerasta."
-  },
-  {
-    "id": "api.property_field.create.creator_cannot_edit.app_error",
-    "translation": "Negalite sukurti savybės lauko su leidimų lygiais, kurie neleistų jums jo redaguoti."
   },
   {
     "id": "api.property_field.create.invalid_target_type.app_error",
@@ -7047,22 +7039,6 @@
     "translation": "naudotojas, kurio naudotojo vardas \"{{.Username}}\", jau egzistuoja."
   },
   {
-    "id": "app.health_finding.mute.app_error",
-    "translation": "Nepavyksta nutildyti būklės patikros radinio."
-  },
-  {
-    "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "Būklės patikros radinys nerastas."
-  },
-  {
-    "id": "app.health_finding.unmute.app_error",
-    "translation": "Nepavyksta atšaukti būklės patikros radinio nutildymo."
-  },
-  {
-    "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "Būklės patikros radinys nerastas."
-  },
-  {
     "id": "app.import.attachment.bad_file.error",
     "translation": "Klaida skaitant failą: \"{{.FilePath}}\""
   },
@@ -8671,14 +8647,6 @@
     "translation": "Nepavyko negrįžtamai ištrinti pranešimo."
   },
   {
-    "id": "app.post.property_values.field_bound_exceeded.app_error",
-    "translation": "Šiam pranešimui taikomų atributų skaičius viršija palaikomą limitą."
-  },
-  {
-    "id": "app.post.property_values.value_bound_exceeded.app_error",
-    "translation": "Šių pranešimų atributų reikšmių skaičius viršija palaikomą limitą."
-  },
-  {
     "id": "app.post.restore_post_version.get_single.app_error",
     "translation": "Nepavyko gauti ankstesnės pranešimo versijos."
   },
@@ -8867,10 +8835,6 @@
     "translation": "Negalima sukurti apsaugoto savybės lauko."
   },
   {
-    "id": "app.property_field.create.target_limit_reached.app_error",
-    "translation": "Pasiektas didžiausias šio objekto savybių laukų skaičius."
-  },
-  {
     "id": "app.property_field.create.template_cannot_be_linked.app_error",
     "translation": "Šablono laukai negali turėti susieto lauko."
   },
@@ -9057,10 +9021,6 @@
   {
     "id": "app.property_value.delete_for_target.app_error",
     "translation": "Nepavyksta ištrinti objekto savybių reikšmių."
-  },
-  {
-    "id": "app.property_value.direct_channel.app_error",
-    "translation": "Tiesioginių ir grupės pranešimų atributų negalima nustatyti tiesiogiai."
   },
   {
     "id": "app.property_value.get.app_error",
@@ -13755,10 +13715,6 @@
   {
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
     "translation": "Netinkamas apdorojimo laikas."
-  },
-  {
-    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
-    "translation": "Perskaičius išnykstančių pranešimų negalima siųsti kaip pasikartojančių suplanuotų pranešimų."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_files.app_error",

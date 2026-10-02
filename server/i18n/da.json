@@ -13271,10 +13271,6 @@
     "translation": "Kunne ikke fortolke formularen til upload af licens."
   },
   {
-    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
-    "translation": "Du har ikke tilladelse til at sende Burn-on-Read-beskeder i denne kanal."
-  },
-  {
     "id": "api.post.create_post.silent_notification.app_error",
     "translation": "Kun beskeder fra bots, webhooks, OAuth-apps og plugins kan leveres lydløst."
   },
@@ -13321,10 +13317,6 @@
   {
     "id": "api.property.session_attributes.license.app_error",
     "translation": "Sessionsattributter kræver en Enterprise Advanced-licens."
-  },
-  {
-    "id": "api.property_field.create.creator_cannot_edit.app_error",
-    "translation": "Du kan ikke oprette et egenskabsfelt med tilladelsesniveauer, der ville forhindre dig i at redigere det."
   },
   {
     "id": "api.property_field.get.invalid_opts.app_error",
@@ -13747,22 +13739,6 @@
     "translation": "Eksportfilen blev ikke fundet."
   },
   {
-    "id": "app.health_finding.mute.app_error",
-    "translation": "Kunne ikke slå lyden fra for helbredsfundet."
-  },
-  {
-    "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "Helbredsfundet blev ikke fundet."
-  },
-  {
-    "id": "app.health_finding.unmute.app_error",
-    "translation": "Kunne ikke slå lyden til for helbredsfundet."
-  },
-  {
-    "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "Helbredsfundet blev ikke fundet."
-  },
-  {
     "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",
     "translation": "--destination-channel-name kræver en eksport afgrænset til kanaler."
   },
@@ -13907,20 +13883,8 @@
     "translation": "Kunne ikke hente ID'er på beskedforfattere for teamet."
   },
   {
-    "id": "app.post.property_values.field_bound_exceeded.app_error",
-    "translation": "Antallet af attributter, der gælder for denne besked, overskrider den understøttede grænse."
-  },
-  {
-    "id": "app.post.property_values.value_bound_exceeded.app_error",
-    "translation": "Antallet af attributværdier for disse beskeder overskrider den understøttede grænse."
-  },
-  {
     "id": "app.property.invalid_input.app_error",
     "translation": "Ændringen af egenskaben blev afvist."
-  },
-  {
-    "id": "app.property_field.create.target_limit_reached.app_error",
-    "translation": "Det maksimale antal egenskabsfelter for dette mål er nået."
   },
   {
     "id": "app.property_field.get_for_group.app_error",
@@ -13981,10 +13945,6 @@
   {
     "id": "app.property_value.change_policy.raise_only.app_error",
     "translation": "Denne attribut kan kun hæves, aldrig sænkes."
-  },
-  {
-    "id": "app.property_value.direct_channel.app_error",
-    "translation": "Attributter på direkte beskeder og gruppebeskeder kan ikke angives direkte."
   },
   {
     "id": "app.property_value.required.app_error",
@@ -14497,10 +14457,6 @@
   {
     "id": "model.member.is_valid.profile_username_duplicate.app_error",
     "translation": "Invitationsprofiler skal have unikke brugernavne"
-  },
-  {
-    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
-    "translation": "Burn-on-Read-beskeder kan ikke sendes som gentagne planlagte beskeder."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_files.app_error",

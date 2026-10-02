@@ -11507,10 +11507,6 @@
     "translation": "Немагчыма ўсталяваць плагін: PluginSettings.Directory канфліктуе з ImportSettings.Directory."
   },
   {
-    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
-    "translation": "У вас няма дазволу адпраўляць паведамленні са спальваннем пасля прачытання ў гэтым канале."
-  },
-  {
     "id": "api.post.create_post.card_type_disabled.app_error",
     "translation": "Паведамленні тыпу «картка» не ўключаны на гэтым серверы."
   },
@@ -11561,10 +11557,6 @@
   {
     "id": "api.property.v2_group_not_found.app_error",
     "translation": "Указаная група ўласцівасцей не знойдзена."
-  },
-  {
-    "id": "api.property_field.create.creator_cannot_edit.app_error",
-    "translation": "Вы не можаце стварыць поле ўласцівасці з узроўнямі дазволаў, якія не дадуць вам яго рэдагаваць."
   },
   {
     "id": "api.property_field.create.invalid_target_type.app_error",
@@ -12681,22 +12673,6 @@
     "translation": "Не ўдалося выдаліць файл са сховішча файлаў."
   },
   {
-    "id": "app.health_finding.mute.app_error",
-    "translation": "Немагчыма заглушыць вынік праверкі стану."
-  },
-  {
-    "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "Вынік праверкі стану не знойдзены."
-  },
-  {
-    "id": "app.health_finding.unmute.app_error",
-    "translation": "Немагчыма зняць заглушэнне з выніку праверкі стану."
-  },
-  {
-    "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "Вынік праверкі стану не знойдзены."
-  },
-  {
     "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",
     "translation": "Для --destination-channel-name патрабуецца экспарт у межах канала."
   },
@@ -12997,14 +12973,6 @@
     "translation": "Немагчыма атрымаць паведамленні для прадстаўлення."
   },
   {
-    "id": "app.post.property_values.field_bound_exceeded.app_error",
-    "translation": "Колькасць атрыбутаў, якія прымяняюцца да гэтага паведамлення, перавышае падтрымліваемы ліміт."
-  },
-  {
-    "id": "app.post.property_values.value_bound_exceeded.app_error",
-    "translation": "Колькасць значэнняў атрыбутаў для гэтых паведамленняў перавышае падтрымліваемы ліміт."
-  },
-  {
     "id": "app.post_prority.get_for_post_with_context.app_error",
     "translation": "Немагчыма атрымаць прыярытэт паведамлення з кантэкстам"
   },
@@ -13087,10 +13055,6 @@
   {
     "id": "app.property_field.create.protected.app_error",
     "translation": "Немагчыма стварыць абароненае поле ўласцівасці."
-  },
-  {
-    "id": "app.property_field.create.target_limit_reached.app_error",
-    "translation": "Дасягнута максімальная колькасць палёў уласцівасцей для гэтай мэты."
   },
   {
     "id": "app.property_field.create.template_cannot_be_linked.app_error",
@@ -13279,10 +13243,6 @@
   {
     "id": "app.property_value.delete_for_target.app_error",
     "translation": "Немагчыма выдаліць значэнні ўласцівасцей для мэты."
-  },
-  {
-    "id": "app.property_value.direct_channel.app_error",
-    "translation": "Атрыбуты асабістых і групавых паведамленняў нельга задаваць напрамую."
   },
   {
     "id": "app.property_value.get.app_error",
@@ -14359,10 +14319,6 @@
   {
     "id": "model.property_group.is_valid.app_error",
     "translation": "Несапраўдная група ўласцівасцей: {{.FieldName}} ({{.Reason}})."
-  },
-  {
-    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
-    "translation": "Паведамленні са спальваннем пасля прачытання нельга адпраўляць як паўторныя запланаваныя паведамленні."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_files.app_error",

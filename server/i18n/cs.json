@@ -11003,10 +11003,6 @@
     "translation": "Plugin nelze nainstalovat: PluginSettings.Directory je v konfliktu s ImportSettings.Directory."
   },
   {
-    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
-    "translation": "Nemáte oprávnění odesílat v tomto kanálu zprávy se zničením po přečtení."
-  },
-  {
     "id": "api.post.create_post.card_type_disabled.app_error",
     "translation": "Příspěvky typu karta nejsou na tomto serveru povoleny."
   },
@@ -11085,10 +11081,6 @@
   {
     "id": "api.property.v2_group_not_found.app_error",
     "translation": "Zadaná skupina vlastností nebyla nalezena."
-  },
-  {
-    "id": "api.property_field.create.creator_cannot_edit.app_error",
-    "translation": "Nemůžete vytvořit pole vlastnosti s úrovněmi oprávnění, které by vám znemožnily jeho úpravu."
   },
   {
     "id": "api.property_field.create.invalid_target_type.app_error",
@@ -12333,22 +12325,6 @@
     "translation": "Nepodařilo se odstranit soubor ze souborového úložiště."
   },
   {
-    "id": "app.health_finding.mute.app_error",
-    "translation": "Nález kontroly stavu serveru nelze ztlumit."
-  },
-  {
-    "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "Nález kontroly stavu serveru nebyl nalezen."
-  },
-  {
-    "id": "app.health_finding.unmute.app_error",
-    "translation": "Nelze zrušit ztlumení nálezu kontroly stavu serveru."
-  },
-  {
-    "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "Nález kontroly stavu serveru nebyl nalezen."
-  },
-  {
     "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",
     "translation": "--destination-channel-name vyžaduje export s rozsahem omezeným na kanály."
   },
@@ -12669,14 +12645,6 @@
     "translation": "Nelze načíst příspěvky pro pohled."
   },
   {
-    "id": "app.post.property_values.field_bound_exceeded.app_error",
-    "translation": "Počet atributů, které se vztahují na tento příspěvek, překračuje podporovaný limit."
-  },
-  {
-    "id": "app.post.property_values.value_bound_exceeded.app_error",
-    "translation": "Počet hodnot atributů u těchto příspěvků překračuje podporovaný limit."
-  },
-  {
     "id": "app.post.rewrite.agent_call_failed",
     "translation": "Volání agenta AI se nezdařilo."
   },
@@ -12779,10 +12747,6 @@
   {
     "id": "app.property_field.create.protected.app_error",
     "translation": "Chráněné pole vlastnosti nelze vytvořit."
-  },
-  {
-    "id": "app.property_field.create.target_limit_reached.app_error",
-    "translation": "Byl dosažen maximální počet polí vlastností pro tento cíl."
   },
   {
     "id": "app.property_field.create.template_cannot_be_linked.app_error",
@@ -12971,10 +12935,6 @@
   {
     "id": "app.property_value.delete_for_target.app_error",
     "translation": "Nelze smazat hodnoty vlastností pro cíl."
-  },
-  {
-    "id": "app.property_value.direct_channel.app_error",
-    "translation": "Atributy přímých a skupinových zpráv nelze nastavovat přímo."
   },
   {
     "id": "app.property_value.get.app_error",
@@ -14359,10 +14319,6 @@
   {
     "id": "model.property_group.is_valid.app_error",
     "translation": "Neplatná skupina vlastností: {{.FieldName}} ({{.Reason}})."
-  },
-  {
-    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
-    "translation": "Zprávy se zničením po přečtení nelze odesílat jako opakované naplánované příspěvky."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_files.app_error",
