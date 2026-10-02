@@ -25383,6 +25383,10 @@
     "defaultMessage": "Mark as read",
     "description": "Title of the confirmation dialog for marking multiple channels as read."
   },
+  "markdown_phone_link.tooltip": {
+    "defaultMessage": "Click to call {phoneNumber}",
+    "description": "Tooltip shown when hovering a phone number link in a message."
+  },
   "marketplace_command.disabled": {
     "defaultMessage": "The marketplace is disabled. Please contact your System Administrator for details.",
     "description": "Error returned when a user runs the /marketplace slash command but the marketplace feature is turned off."
