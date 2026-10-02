@@ -753,6 +753,7 @@
         "ClusterGracefulDrain": false,
         "EnableMFIPluginSignaturePublicKey": false,
         "RecurringScheduledPosts": false,
-        "PostDeliveryTracking": false
+        "PostDeliveryTracking": false,
+        "HealthDashboard": false
     }
 }
