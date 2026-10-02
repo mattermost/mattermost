@@ -80,6 +80,8 @@ type MenuProps = {
     onToggle?: (isOpen: boolean) => void;
     onKeyDown?: (event: KeyboardEvent<HTMLDivElement>, forceCloseMenu?: () => void) => void;
     width?: string;
+    minWidth?: string;
+    maxWidth?: string;
     isMenuOpen?: boolean;
 
     /**
@@ -409,6 +411,8 @@ export function Menu(props: Props) {
                             className={props.menu.className}
                             style={{
                                 width: props.menu.width,
+                                minWidth: props.menu.minWidth,
+                                maxWidth: props.menu.maxWidth,
                             }}
                             autoFocusItem={(props.menu.autoFocusItem ?? true) && isMenuOpen}
                             onKeyDown={handleMenuListKeyDown}
