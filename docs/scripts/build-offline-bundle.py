@@ -121,7 +121,7 @@ def emit_tarball(build_dir: str, out_path: str) -> int:
     os.makedirs(os.path.dirname(os.path.abspath(out_path)) or ".", exist_ok=True)
     # dereference=False keeps hardlinks as links in the archive.
     with tarfile.open(out_path, "w:gz", dereference=False) as tf:
-        tf.add(build_dir, arcname="documentation")
+        tf.add(build_dir, arcname="_documentation")
     return os.path.getsize(out_path)
 
 

@@ -1,9 +1,9 @@
 # Offline documentation bundle
 
 Builds the product documentation into a self-contained bundle that ships inside
-the release tarball at `client/documentation`, so customers running airgapped
+the release tarball at `client/_documentation`, so customers running airgapped
 deployments can read the docs without internet access. The Mattermost server
-serves it at `/documentation`, and `mattermost docs` serves it when the server
+serves it at `/_documentation`, and `mattermost docs` serves it when the server
 is not running at all.
 
 ## Build the bundle
@@ -19,9 +19,9 @@ git submodule update --init docs/vendor/mattermost-plugin-agents
 cd docs/site
 npm ci
 
-# BASE_URL matters. The bundle is served under /documentation, and every
+# BASE_URL matters. The bundle is served under /_documentation, and every
 # absolute asset path in the emitted HTML is baked in at build time.
-BASE_URL=/documentation/ npm run build
+BASE_URL=/_documentation/ npm run build
 
 cd ../..
 python3 docs/scripts/build-offline-bundle.py docs/site/build /tmp/docs-bundle.tar.gz
@@ -50,13 +50,21 @@ it and start the server normally:
 
 ```sh
 cd server
-make client   # symlinks client/ to the webapp build output
-mkdir -p client/documentation
-tar -xzf /tmp/docs-bundle.tar.gz -C client --strip-components=0
-make run-server
+make client   # only symlinks client/ -> ../webapp/channels/dist
+mkdir -p ../webapp/channels/dist
+tar -xzf /tmp/docs-bundle.tar.gz -C ../webapp/channels/dist
+make run-server ENABLED_DOCKER_SERVICES=postgres
 ```
 
-The docs are then at `http://localhost:8065/documentation/`.
+The docs are then at `http://localhost:8065/_documentation/`.
+
+Extract into the symlink *target*, not through the symlink: `make client` only
+creates the link, so on a tree where the webapp has never been built `client` is
+dangling and anything writing through it fails with `No such file or directory`.
+The webapp does not need to be built — `/` fails with a missing `root.html`,
+which does not affect the docs route. If you do build it, extract the bundle
+afterwards, because `webpack.config.js` sets `output.clean: true` and wipes
+`channels/dist`.
 
 ## Package it into a release
 

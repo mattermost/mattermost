@@ -29,11 +29,13 @@ var robotsTxt = []byte("User-agent: *\nDisallow: /\n")
 const (
 	// DocsDir is the subdirectory of model.ClientDir holding the offline
 	// documentation bundle shipped in the release tarball.
-	DocsDir = "documentation"
+	DocsDir = "_documentation"
 
 	// DocsURLPrefix is the path prefix the bundle is built against
-	// (BASE_URL=/documentation/), so it cannot be made configurable.
-	DocsURLPrefix = "documentation"
+	// (BASE_URL=/_documentation/), so it cannot be made configurable. The
+	// leading underscore keeps it out of the namespace the webapp hands to
+	// team URLs, which cannot start with one.
+	DocsURLPrefix = "_documentation"
 )
 
 // docsFileSystem resolves the clean URLs the documentation bundle links to.
@@ -78,7 +80,7 @@ func (d docsFileSystem) Open(name string) (http.File, error) {
 }
 
 // NewDocsHandler serves the offline documentation bundle out of
-// <staticDir>/documentation. Shared with the `mattermost docs` subcommand so
+// <staticDir>/_documentation. Shared with the `mattermost docs` subcommand so
 // the route and the CLI cannot drift.
 func NewDocsHandler(staticDir, subpath string) http.Handler {
 	return NewDocsHandlerForDir(filepath.Join(staticDir, DocsDir), subpath)

@@ -58,47 +58,47 @@ func TestDocsHandlerServesBundle(t *testing.T) {
 	}{
 		{
 			name:         "flat content page",
-			target:       "/documentation/administration-guide.html",
+			target:       "/_documentation/administration-guide.html",
 			expectedCode: http.StatusOK,
 			expectedBody: "admin guide",
 		},
 		{
 			name:         "deep flat content page",
-			target:       "/documentation/administration-guide/manage/scale.html",
+			target:       "/_documentation/administration-guide/manage/scale.html",
 			expectedCode: http.StatusOK,
 			expectedBody: "deep page",
 		},
 		{
 			name:         "explicit index.html",
-			target:       "/documentation/index.html",
+			target:       "/_documentation/index.html",
 			expectedCode: http.StatusOK,
 			expectedBody: "docs root",
 		},
 		{
 			name:         "asset",
-			target:       "/documentation/assets/css/styles.abcd1234.css",
+			target:       "/_documentation/assets/css/styles.abcd1234.css",
 			expectedCode: http.StatusOK,
 			expectedBody: "body{color:red}",
 		},
 		{
 			name:         "redirect stub index",
-			target:       "/documentation/manage/command-line-tools/index.html",
+			target:       "/_documentation/manage/command-line-tools/index.html",
 			expectedCode: http.StatusOK,
 			expectedBody: "redirect stub",
 		},
 		{
 			name:         "missing file",
-			target:       "/documentation/nope.html",
+			target:       "/_documentation/nope.html",
 			expectedCode: http.StatusNotFound,
 		},
 		{
 			name:         "directory with no index is not listed",
-			target:       "/documentation/assets",
+			target:       "/_documentation/assets",
 			expectedCode: http.StatusNotFound,
 		},
 		{
 			name:         "traversal out of the bundle is contained",
-			target:       "/documentation/../../config/config.json",
+			target:       "/_documentation/../../config/config.json",
 			expectedCode: http.StatusNotFound,
 		},
 	}
@@ -126,22 +126,22 @@ func TestDocsHandlerCleanURLs(t *testing.T) {
 	}{
 		{
 			name:         "bundle root as linked by the server route",
-			target:       "/documentation/",
+			target:       "/_documentation/",
 			expectedCode: http.StatusOK,
 		},
 		{
 			name:         "extensionless page as emitted by trailingSlash false",
-			target:       "/documentation/administration-guide",
+			target:       "/_documentation/administration-guide",
 			expectedCode: http.StatusOK,
 		},
 		{
 			name:         "extensionless deep page",
-			target:       "/documentation/administration-guide/manage/scale",
+			target:       "/_documentation/administration-guide/manage/scale",
 			expectedCode: http.StatusOK,
 		},
 		{
 			name:         "legacy redirect stub, extensionless",
-			target:       "/documentation/manage/command-line-tools",
+			target:       "/_documentation/manage/command-line-tools",
 			expectedCode: http.StatusOK,
 		},
 	}
@@ -158,8 +158,8 @@ func TestDocsHandlerAbsentDirectory(t *testing.T) {
 	staticDir := t.TempDir() // no documentation/ subdirectory
 
 	for _, target := range []string{
-		"/documentation/index.html",
-		"/documentation/administration-guide.html",
+		"/_documentation/index.html",
+		"/_documentation/administration-guide.html",
 	} {
 		rec := doDocsRequest(t, staticDir, target)
 		require.Equal(t, http.StatusNotFound, rec.Code, target)
@@ -169,7 +169,7 @@ func TestDocsHandlerAbsentDirectory(t *testing.T) {
 func TestDocsHandlerSecurityHeaders(t *testing.T) {
 	staticDir := writeDocsFixture(t)
 
-	rec := doDocsRequest(t, staticDir, "/documentation/index.html")
+	rec := doDocsRequest(t, staticDir, "/_documentation/index.html")
 	require.Equal(t, http.StatusOK, rec.Code)
 	require.Equal(t, "nosniff", rec.Header().Get("X-Content-Type-Options"))
 	require.Equal(t, "no-referrer", rec.Header().Get("Referrer-Policy"))

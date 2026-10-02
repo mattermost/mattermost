@@ -63,7 +63,7 @@ func docsCmdF(command *cobra.Command, args []string) error {
 		return errors.Errorf("--dir %s is not a directory", docsDir)
 	}
 
-	// The bundle is built with BASE_URL=/documentation/, so absolute links
+	// The bundle is built with BASE_URL=/_documentation/, so absolute links
 	// in the HTML only resolve when the handler is mounted at that prefix.
 	mux := http.NewServeMux()
 	mux.Handle("/"+web.DocsURLPrefix+"/", web.NewDocsHandlerForDir(docsDir, "/"))
