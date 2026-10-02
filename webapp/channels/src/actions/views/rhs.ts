@@ -28,6 +28,7 @@ import {
     getSearchTerms,
     getRhsState,
     getPluggableId,
+    getExplicitSearchTeam,
     getFilesSearchExtFilter,
     getPreviousRhsState,
     getSearchTeam,
@@ -37,9 +38,10 @@ import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 import {ActionTypes, RHSStates, Constants} from 'utils/constants';
 import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
+import {quoteSearchTerms} from 'utils/search';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 
-import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'types/store';
+import type {ActionFunc, ActionFuncAsync, GlobalState, ThunkActionFunc} from 'types/store';
 import type {RhsState} from 'types/store/rhs';
 
 function selectPostWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFunc<boolean> {
@@ -218,13 +220,7 @@ export function performSearch(terms: string, teamId: string, isMentionSearch?: b
         }
 
         if (isMentionSearch) {
-            // For mentions, perform a specific search by quoting all terms.
-            // This ensures terms split by dashes or other symbols are treated as a single unit.
-            const termsArr = searchTerms.split(' ').filter((t) => Boolean(t && t.trim()));
-            for (let i = 0; i < termsArr.length; i++) {
-                termsArr[i] = `"${termsArr[i]}"`;
-            }
-            searchTerms = termsArr.join(' ');
+            searchTerms = quoteSearchTerms(searchTerms);
         }
 
         // timezone offset in seconds
@@ -253,14 +249,18 @@ export function showSearchResults(isMentionSearch = false): ThunkActionFunc<unkn
 
         if (isMentionSearch) {
             dispatch(updateRhsState(RHSStates.MENTION));
-            teamId = '';
+
+            // Mentions are searched across every team unless the search was scoped to one.
+            if (!getExplicitSearchTeam(state)) {
+                teamId = '';
+            }
         } else {
             dispatch(updateRhsState(RHSStates.SEARCH));
         }
         dispatch(updateSearchResultsTerms(searchTerms));
         dispatch(updateSearchResultsType(searchType));
 
-        return dispatch(performSearch(searchTerms, teamId));
+        return dispatch(performSearch(searchTerms, teamId, isMentionSearch));
     };
 }
 
@@ -457,13 +457,17 @@ export function showChannelFiles(channelId: string): ActionFuncAsync<boolean> {
     };
 }
 
+function getMentionSearchTerms(state: GlobalState): string {
+    const termKeys = getCurrentUserMentionKeys(state).filter(({key}) => {
+        return key !== '@channel' && key !== '@all' && key !== '@here';
+    });
+
+    return termKeys.map(({key}) => key).join(' ').trim();
+}
+
 export function showMentions(): ActionFunc<boolean> {
     return (dispatch, getState) => {
-        const termKeys = getCurrentUserMentionKeys(getState()).filter(({key}) => {
-            return key !== '@channel' && key !== '@all' && key !== '@here';
-        });
-
-        const terms = termKeys.map(({key}) => key).join(' ').trim() + ' ';
+        const terms = getMentionSearchTerms(getState()) + ' ';
 
         dispatch(performSearch(terms, '', true));
         dispatch(batchActions([
@@ -474,6 +478,48 @@ export function showMentions(): ActionFunc<boolean> {
             {
                 type: ActionTypes.UPDATE_RHS_STATE,
                 state: RHSStates.MENTION,
+            },
+            {
+                type: ActionTypes.UPDATE_RHS_SEARCH_TEAM,
+                teamId: null,
+            },
+        ]));
+
+        return {data: true};
+    };
+}
+
+// showChannelMentions opens recent mentions filtered down to the current channel.
+export function showChannelMentions(): ActionFunc<boolean> {
+    return (dispatch, getState) => {
+        const state = getState();
+        const channelName = getCurrentChannelNameForSearchShortcut(state);
+        const mentionTerms = getMentionSearchTerms(state);
+
+        // Without any terms to match, an in: filter on its own would return the whole channel rather
+        // than the mentions in it.
+        if (!channelName || !mentionTerms) {
+            return dispatch(showMentions());
+        }
+
+        // The in: filter matches channels by name, so the search is pinned to the current team to keep
+        // it from also matching same-named channels on the user's other teams.
+        const teamId = getCurrentTeamId(state);
+        const terms = `${mentionTerms} in:${channelName} `;
+
+        dispatch(performSearch(terms, teamId, true));
+        dispatch(batchActions([
+            {
+                type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
+                terms,
+            },
+            {
+                type: ActionTypes.UPDATE_RHS_STATE,
+                state: RHSStates.MENTION,
+            },
+            {
+                type: ActionTypes.UPDATE_RHS_SEARCH_TEAM,
+                teamId,
             },
         ]));
 

@@ -300,6 +300,33 @@ describe('Reducers.RHS', () => {
         });
     });
 
+    test('should keep searchTeam when moving to a search or mention state', () => {
+        for (const state of [RHSStates.SEARCH, RHSStates.MENTION]) {
+            const nextState = rhsReducer(
+                {searchTeam: 'team_id'},
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    state,
+                },
+            );
+
+            expect(nextState.searchTeam).toEqual('team_id');
+        }
+    });
+
+    test('should clear searchTeam when moving to a state that is not a search', () => {
+        const nextState = rhsReducer(
+            {searchTeam: 'team_id'},
+            {
+                type: ActionTypes.UPDATE_RHS_STATE,
+                state: RHSStates.PIN,
+                channelId: '123',
+            },
+        );
+
+        expect(nextState.searchTeam).toBeNull();
+    });
+
     test('should match select_post state', () => {
         const nextState1 = rhsReducer(
             {},
