@@ -7840,1403 +7840,1409 @@
   },
   {
     "id": "api.webhook.incoming.user_role.app_error",
-    "translation": ""
+    "translation": "Et voi määrittää webhookia käyttäjälle, jolla on laajemmat oikeudet kuin sinulla."
   },
   {
     "id": "api.websocket_handler.server_busy.app_error",
-    "translation": ""
+    "translation": "Palvelin on varattu, ei-kriittiset palvelut ovat tilapäisesti poissa käytöstä."
   },
   {
     "id": "api4.plugin.reattachPlugin.invalid_request",
-    "translation": ""
+    "translation": "Pyynnön jäsentäminen epäonnistui"
   },
   {
     "id": "app.access_control.build_subject.get_subject.app_error",
-    "translation": ""
+    "translation": "Pääsynhallinnan subjektin hakeminen epäonnistui."
   },
   {
     "id": "app.access_control.build_subject.group_id.app_error",
-    "translation": ""
+    "translation": "Pääsynhallinnan attribuuttiryhmän hakeminen epäonnistui."
   },
   {
     "id": "app.access_control.get_channel_role.app_error",
-    "translation": ""
+    "translation": "Käyttäjän kanavaroolia ei voitu hakea. Yritä uudelleen."
   },
   {
     "id": "app.access_control.get_session_attributes.app_error",
-    "translation": ""
+    "translation": "Istunnon attribuuttien hakeminen epäonnistui."
   },
   {
     "id": "app.access_control.insufficient_permissions",
-    "translation": ""
+    "translation": "Sinulla ei ole oikeutta hallita tätä pääsynhallintakäytäntöä."
   },
   {
     "id": "app.access_control.plugin.evaluation_unavailable.app_error",
-    "translation": ""
+    "translation": "Pääsynhallintaa ei voitu arvioida tälle resurssille."
   },
   {
     "id": "app.access_control.plugin.invalid_acting_user.app_error",
-    "translation": ""
+    "translation": "Toimiva käyttäjä on virheellinen tai sitä ei ole olemassa."
   },
   {
     "id": "app.access_control.plugin.invalid_action.app_error",
-    "translation": ""
+    "translation": "Toiminto ei ole kelvollinen pääsynhallintatoiminto."
   },
   {
     "id": "app.access_control.plugin.invalid_id.app_error",
-    "translation": ""
+    "translation": "Pääsynhallintarajapinnalle annettiin virheellinen tunniste."
   },
   {
     "id": "app.access_control.plugin.invalid_resource_type.app_error",
-    "translation": ""
+    "translation": "Resurssityyppi ei ole kelvollinen lisäosan pääsynhallinnan resurssityyppi."
   },
   {
     "id": "app.access_control.plugin.policy_not_found.app_error",
-    "translation": ""
+    "translation": "Pääsynhallintakäytäntöä ei löytynyt."
   },
   {
     "id": "app.access_control.plugin.resource_type_forbidden.app_error",
-    "translation": ""
+    "translation": "Kutsuva lisäosa ei omista tätä resurssityyppiä."
   },
   {
     "id": "app.access_control.plugin.type_conflict.app_error",
-    "translation": ""
+    "translation": "Tällä ID:llä on jo olemassa toisentyyppinen pääsynhallintakäytäntö."
   },
   {
     "id": "app.access_control_decision.subject_mismatch.app_error",
-    "translation": ""
+    "translation": "Subjekti ei vastaa istunnon todennettua käyttäjää."
   },
   {
     "id": "app.access_control_decision.unsupported_action.app_error",
-    "translation": ""
+    "translation": "Näyttöhetken päätöksissä ei tuettu toiminto: {{.Action}}"
   },
   {
     "id": "app.acknowledgement.batch_save.app_error",
-    "translation": ""
+    "translation": "Kuittausten erän tallentaminen epäonnistui"
   },
   {
     "id": "app.acknowledgement.delete.app_error",
-    "translation": ""
+    "translation": "Kuittausta ei voitu poistaa."
   },
   {
     "id": "app.acknowledgement.delete.missing_post.app_error",
-    "translation": ""
+    "translation": "Puuttuvan viestin kuittausta ei voi poistaa"
   },
   {
     "id": "app.acknowledgement.get.app_error",
-    "translation": ""
+    "translation": "Kuittausta ei voitu hakea."
   },
   {
     "id": "app.acknowledgement.getforpost.get.app_error",
-    "translation": ""
+    "translation": "Viestin kuittauksia ei voitu hakea."
   },
   {
     "id": "app.acknowledgement.save.missing_post.app_error",
-    "translation": ""
+    "translation": "Puuttuvan viestin kuittausta ei voi tallentaa"
   },
   {
     "id": "app.acknowledgement.save.save.app_error",
-    "translation": ""
+    "translation": "Viestin kuittausta ei voitu tallentaa."
   },
   {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
-    "translation": ""
+    "translation": "Identiteetintarjoajalta saatuja XML-metatietoja ei voitu purkaa."
   },
   {
     "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
-    "translation": ""
+    "translation": "Identiteetintarjoajalta saadun vastauksen sisältöä luettaessa tapahtui virhe."
   },
   {
     "id": "app.admin.saml.invalid_response_from_idp.app_error",
-    "translation": ""
+    "translation": "Identiteetintarjoajalta saatua vastausta ei voitu lukea."
   },
   {
     "id": "app.admin.test_site_url.failure",
-    "translation": ""
+    "translation": "Tämä ei ole kelvollinen toimiva URL-osoite"
   },
   {
     "id": "app.agents.get_agents.app_error",
-    "translation": ""
+    "translation": "Agenttien hakeminen epäonnistui."
   },
   {
     "id": "app.agents.get_agents.bridge_call_failed",
-    "translation": ""
+    "translation": "Siltakutsu epäonnistui."
   },
   {
     "id": "app.agents.get_services.app_error",
-    "translation": ""
+    "translation": "LLM-palveluiden hakeminen epäonnistui."
   },
   {
     "id": "app.agents.get_services.bridge_call_failed",
-    "translation": ""
+    "translation": "Siltakutsu epäonnistui."
   },
   {
     "id": "app.ai.summarize.agent_call_failed",
-    "translation": ""
+    "translation": "Tekoälyagentin kutsu epäonnistui."
   },
   {
     "id": "app.ai.summarize.parse_failed",
-    "translation": ""
+    "translation": "Tekoälyn yhteenvetovastauksen jäsentäminen epäonnistui."
   },
   {
     "id": "app.ai_bridge_test_helper.invalid_config",
-    "translation": ""
+    "translation": "Virheellinen kokoonpano tekoälysillan testiapuohjelmalle."
   },
   {
     "id": "app.analytics.getanalytics.internal_error",
-    "translation": ""
+    "translation": "Tilastoja ei voitu hakea."
   },
   {
     "id": "app.audit.get.limit.app_error",
-    "translation": ""
+    "translation": "Sivutuksen raja ylitettiin."
   },
   {
     "id": "app.bot.createbot.reserved_username.app_error",
-    "translation": ""
+    "translation": "Tämä käyttäjänimi on varattu järjestelmän omistamalle botille."
   },
   {
     "id": "app.bot.get_disable_bot_sysadmin_message",
-    "translation": ""
+    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} deaktivoitiin. Hän hallinnoi seuraavia bottitilejä, jotka on nyt poistettu käytöstä.\n\n{{.BotNames}}{{else}}{{.UserName}} deaktivoitiin. Hän hallinnoi {{.NumBots}} bottitiliä, jotka on nyt poistettu käytöstä, mukaan lukien seuraavat:\n\n{{.BotNames}}{{end}}Voit ottaa kunkin botin omistukseesi ottamalla sen käyttöön kohdassa **Integraatiot > Bottitilit** ja luomalla botille uudet tunnukset.\n\nLisätietoja on [dokumentaatiossamme](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} deaktivoitiin. Hän hallinnoi seuraavia bottitilejä, jotka ovat edelleen käytössä.\n\n{{.BotNames}}\n{{else}}{{.UserName}} deaktivoitiin. Hän hallinnoi {{.NumBots}} bottitiliä, jotka ovat edelleen käytössä, mukaan lukien seuraavat:\n\n{{.BotNames}}{{end}}Suosittelemme vahvasti, että otat kunkin botin omistukseesi ottamalla sen uudelleen käyttöön kohdassa **Integraatiot > Bottitilit** ja luomalla botille uudet tunnukset.\n\nLisätietoja on [dokumentaatiossamme](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nJos haluat, että bottitilit poistetaan käytöstä automaattisesti omistajan deaktivoinnin jälkeen, aseta asetus ”Poista bottitilit käytöstä, kun omistaja deaktivoidaan” kohdassa **Järjestelmäkonsoli > Integraatiot > Bottitilit** arvoon tosi.{{end}}"
   },
   {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
-    "translation": ""
+    "translation": "Ylläpitäjien luettelo on tyhjä."
   },
   {
     "id": "app.bot.patchbot.reserved_username.app_error",
-    "translation": ""
+    "translation": "Tämä käyttäjänimi on varattu järjestelmän omistamalle botille."
   },
   {
     "id": "app.bot.permanent_delete.internal_error",
-    "translation": ""
+    "translation": "Bottia ei voitu poistaa pysyvästi."
   },
   {
     "id": "app.bot.update.app_error",
-    "translation": ""
+    "translation": "Bottia ei voitu päivittää."
   },
   {
     "id": "app.bot.update.internal_error",
-    "translation": ""
+    "translation": "Bottia ei voitu päivittää."
   },
   {
     "id": "app.bot.update_bot_active.protected_bot.app_error",
-    "translation": ""
+    "translation": "Järjestelmän omistamaa bottia ei voi poistaa käytöstä."
   },
   {
     "id": "app.burn_post.not_burn_on_read.app_error",
-    "translation": ""
+    "translation": "Tämä viesti ei ole luettaessa tuhoutuva viesti, eikä sitä voi tuhota."
   },
   {
     "id": "app.burn_post.not_revealed.app_error",
-    "translation": ""
+    "translation": "Tätä luettaessa tuhoutuvaa viestiä ei ole vielä paljastettu. Se on paljastettava ennen tuhoamista."
   },
   {
     "id": "app.burn_post.read_receipt.get.error",
-    "translation": ""
+    "translation": "Lukukuittausta haettaessa tapahtui virhe."
   },
   {
     "id": "app.burn_post.read_receipt.update.error",
-    "translation": ""
+    "translation": "Lukukuittausta päivitettäessä tapahtui virhe."
   },
   {
     "id": "app.channel.add_member.deleted_user.app_error",
-    "translation": ""
+    "translation": "Käyttäjää ei voitu lisätä kanavan jäseneksi."
   },
   {
     "id": "app.channel.add_user.to.channel.rejected_by_plugin",
-    "translation": ""
+    "translation": "Lisäosa esti kanavan jäsenen lisäämisen: {{.Reason}}"
   },
   {
     "id": "app.channel.analytics_type_count.app_error",
-    "translation": ""
+    "translation": "Kanavatyyppien määriä ei voitu hakea."
   },
   {
     "id": "app.channel.autofollow.app_error",
-    "translation": ""
+    "translation": "Mainitun käyttäjän ketjun jäsenyyden päivittäminen epäonnistui"
   },
   {
     "id": "app.channel.bookmark.delete.app_error",
-    "translation": ""
+    "translation": "Kirjanmerkkiä ei voitu poistaa."
   },
   {
     "id": "app.channel.bookmark.get.app_error",
-    "translation": ""
+    "translation": "Kirjanmerkkiä ei voitu hakea."
   },
   {
     "id": "app.channel.bookmark.get_existing.app_err",
-    "translation": ""
+    "translation": "Päivitettävää kirjanmerkkiä ei voitu hakea."
   },
   {
     "id": "app.channel.bookmark.save.app_error",
-    "translation": ""
+    "translation": "Kirjanmerkkiä ei voitu tallentaa."
   },
   {
     "id": "app.channel.bookmark.update.app_error",
-    "translation": ""
+    "translation": "Kirjanmerkkiä ei voitu päivittää."
   },
   {
     "id": "app.channel.bookmark.update_sort.app_error",
-    "translation": ""
+    "translation": "Kirjanmerkkiä ei voitu järjestää."
   },
   {
     "id": "app.channel.bookmark.update_sort.invalid_input.app_error",
-    "translation": ""
+    "translation": "Kirjanmerkkiä ei voitu järjestää. Virheellinen syöte."
   },
   {
     "id": "app.channel.bookmark.update_sort.missing_bookmark.app_error",
-    "translation": ""
+    "translation": "Kirjanmerkkiä ei voitu järjestää. Ei löytynyt."
   },
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": ""
+    "translation": "Kanavan jäsenten hakeminen epäonnistui."
   },
   {
     "id": "app.channel.count_posts_since.app_error",
-    "translation": ""
+    "translation": "Viestejä annetun päivämäärän jälkeen ei voitu laskea."
   },
   {
     "id": "app.channel.count_urgent_posts_since.app_error",
-    "translation": ""
+    "translation": "Kiireellisiä viestejä annetun päivämäärän jälkeen ei voitu laskea."
   },
   {
     "id": "app.channel.create_board_channel.boards_not_enabled.app_error",
-    "translation": ""
+    "translation": "Integroitu Boards -ominaisuus ei ole käytössä."
   },
   {
     "id": "app.channel.create_board_channel.internal_error",
-    "translation": ""
+    "translation": "Taulukanavaa ei voitu luoda."
   },
   {
     "id": "app.channel.create_board_channel.invalid.app_error",
-    "translation": ""
+    "translation": "Virheelliset taulukanavan tiedot."
   },
   {
     "id": "app.channel.create_board_channel.limit.app_error",
-    "translation": ""
+    "translation": "Tiimikohtainen kanavien enimmäismäärä on saavutettu."
   },
   {
     "id": "app.channel.create_channel.board_type.app_error",
-    "translation": ""
+    "translation": "Taulukanavia ei voi luoda CreateChannel-kutsulla. Käytä sen sijaan /boards-rajapintaa."
   },
   {
     "id": "app.channel.create_channel.space_type.app_error",
-    "translation": ""
+    "translation": "Space-kanavia ei voi luoda tämän päätepisteen kautta."
   },
   {
     "id": "app.channel.create_channel.spaces_not_enabled.app_error",
-    "translation": ""
+    "translation": "Docs-ominaisuus ei ole käytössä."
   },
   {
     "id": "app.channel.create_initial_sidebar_categories.internal_error",
-    "translation": ""
+    "translation": "Käyttäjän sivupalkin oletuskategorioita ei voitu luoda."
   },
   {
     "id": "app.channel.delete.app_error",
-    "translation": ""
+    "translation": "Kanavaa ei voitu poistaa."
   },
   {
     "id": "app.channel.delete_channel.rejected_by_plugin",
-    "translation": ""
+    "translation": "Lisäosa esti kanavan arkistoinnin: {{.Reason}}"
   },
   {
     "id": "app.channel.get.app_error",
-    "translation": ""
+    "translation": "Kanavaa ei voitu hakea."
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": ""
+    "translation": "Olemassa olevaa kanavaa {{.channel_id}} ei löytynyt."
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": ""
+    "translation": "Kanavaa {{.channel_id}} haettaessa tapahtui virhe."
   },
   {
     "id": "app.channel.get_all.app_error",
-    "translation": ""
+    "translation": "Kaikkia kanavia ei voitu hakea."
   },
   {
     "id": "app.channel.get_all_channels.app_error",
-    "translation": ""
+    "translation": "Kaikkia kanavia ei voitu hakea."
   },
   {
     "id": "app.channel.get_all_channels_count.app_error",
-    "translation": ""
+    "translation": "Kaikkia kanavia ei voitu laskea."
   },
   {
     "id": "app.channel.get_all_direct.app_error",
-    "translation": ""
+    "translation": "Kaikkia suoraviestikanavia ei voitu hakea."
   },
   {
     "id": "app.channel.get_by_name.app_error",
-    "translation": ""
+    "translation": "Kanavaa ei löytynyt nimen perusteella."
   },
   {
     "id": "app.channel.get_by_name.existing.app_error",
-    "translation": ""
+    "translation": "Olemassa olevaa kanavaa ei löytynyt."
   },
   {
     "id": "app.channel.get_by_scheme.app_error",
-    "translation": ""
+    "translation": "Annetun mallin kanavia ei voitu hakea."
   },
   {
     "id": "app.channel.get_channels.get.app_error",
-    "translation": ""
+    "translation": "Kanavia ei voitu hakea."
   },
   {
     "id": "app.channel.get_channels_by_ids.app_error",
-    "translation": ""
+    "translation": "Kanavia ei voitu hakea ID:iden perusteella."
   },
   {
     "id": "app.channel.get_channels_by_ids.get.app_error",
-    "translation": ""
+    "translation": "Kanavia ei voitu hakea."
   },
   {
     "id": "app.channel.get_channels_by_ids.not_found.app_error",
-    "translation": ""
+    "translation": "Kanavaa ei löytynyt."
   },
   {
     "id": "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error",
-    "translation": ""
+    "translation": "Kanavia lukemattomine viesteineen ja mainintoineen ei voitu hakea."
   },
   {
     "id": "app.channel.get_channels_member_count.existing.app_error",
-    "translation": ""
+    "translation": "Annettujen kanavien jäsenmäärää ei löytynyt."
   },
   {
     "id": "app.channel.get_channels_member_count.find.app_error",
-    "translation": ""
+    "translation": "Jäsenmäärää ei löytynyt."
   },
   {
     "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
-    "translation": ""
+    "translation": "Lukemattomia viestejä ja mainintoja ei voitu tarkistaa"
   },
   {
     "id": "app.channel.get_common_teams.app_error",
-    "translation": ""
+    "translation": "Virhe haettaessa kanavan yhteisiä tiimejä"
   },
   {
     "id": "app.channel.get_common_teams.incorrect_channel_type",
-    "translation": ""
+    "translation": "Kanava ei ole ryhmäviesti."
   },
   {
     "id": "app.channel.get_common_teams.store_get_common_teams_error",
-    "translation": ""
+    "translation": "Yhteisiä tiimejä ei voitu hakea."
   },
   {
     "id": "app.channel.get_file_count.app_error",
-    "translation": ""
+    "translation": "Kanavan tiedostomäärää ei voitu hakea"
   },
   {
     "id": "app.channel.get_for_post.app_error",
-    "translation": ""
+    "translation": "Annetun viestin kanavaa ei voitu hakea."
   },
   {
     "id": "app.channel.get_member.app_error",
-    "translation": ""
+    "translation": "Kanavan jäsentä ei voitu hakea."
   },
   {
     "id": "app.channel.get_member.missing.app_error",
-    "translation": ""
+    "translation": "Kyseiselle käyttäjä-ID:lle ja kanava-ID:lle ei löytynyt kanavan jäsenyyttä."
   },
   {
     "id": "app.channel.get_member_count.app_error",
-    "translation": ""
+    "translation": "Kanavan jäsenmäärää ei voitu hakea."
   },
   {
     "id": "app.channel.get_member_ids.app_error",
-    "translation": ""
+    "translation": "Kanavan jäsenten ID:itä ei voitu hakea."
   },
   {
     "id": "app.channel.get_members.app_error",
-    "translation": ""
+    "translation": "Kanavan jäseniä ei voitu hakea."
   },
   {
     "id": "app.channel.get_members_by_ids.app_error",
-    "translation": ""
+    "translation": "Kanavan jäseniä ei voitu hakea."
   },
   {
     "id": "app.channel.get_more_channels.get.app_error",
-    "translation": ""
+    "translation": "Kanavia ei voitu hakea."
   },
   {
     "id": "app.channel.get_pinnedpost_count.app_error",
-    "translation": ""
+    "translation": "Kanavan kiinnitettyjen viestien määrää ei voitu hakea."
   },
   {
     "id": "app.channel.get_priority_for_posts.app_error",
-    "translation": ""
+    "translation": "Viestien prioriteettia ei voitu hakea"
   },
   {
     "id": "app.channel.get_private_channels.get.app_error",
-    "translation": ""
+    "translation": "Yksityisiä kanavia ei voitu hakea."
   },
   {
     "id": "app.channel.get_public_channels.get.app_error",
-    "translation": ""
+    "translation": "Julkisia kanavia ei voitu hakea."
   },
   {
     "id": "app.channel.get_unread.app_error",
-    "translation": ""
+    "translation": "Kanavan lukemattomia viestejä ei voitu hakea."
   },
   {
     "id": "app.channel.gm_conversion_set_categories.delete_all.error",
-    "translation": ""
+    "translation": "Muunnetun ryhmäviestin olemassa olevia sivupalkin kategorioita ei voitu poistaa."
   },
   {
     "id": "app.channel.group_message_conversion.channel_member_missing",
-    "translation": ""
+    "translation": "Käyttäjän kanavan jäsenyyttä ei löytynyt"
   },
   {
     "id": "app.channel.group_message_conversion.incorrect_team",
-    "translation": ""
+    "translation": "Muunnospyynnössä määritetty tiimin ID ei sisällä kaikkia ryhmäviestin jäseniä"
   },
   {
     "id": "app.channel.group_message_conversion.original_channel_not_gm",
-    "translation": ""
+    "translation": "Muunnettava kanava ei ole ryhmäviesti. Vain ryhmäviestejä voi muuntaa"
   },
   {
     "id": "app.channel.group_message_conversion.post_message.error",
-    "translation": ""
+    "translation": "Ryhmäviestin kanavaksi muuntamisesta kertovaa viestiä ei voitu luoda"
   },
   {
     "id": "app.channel.join_request.get.app_error",
-    "translation": ""
+    "translation": "Kanavan liittymispyynnön lataaminen epäonnistui."
   },
   {
     "id": "app.channel.join_request.not_found.app_error",
-    "translation": ""
+    "translation": "Kanavan liittymispyyntöä ei löytynyt."
   },
   {
     "id": "app.channel.join_request.save.app_error",
-    "translation": ""
+    "translation": "Kanavan liittymispyynnön tallentaminen epäonnistui."
   },
   {
     "id": "app.channel.join_request.update.app_error",
-    "translation": ""
+    "translation": "Kanavan liittymispyynnön päivittäminen epäonnistui."
   },
   {
     "id": "app.channel.migrate_channel_members.select.app_error",
-    "translation": ""
+    "translation": "Kanavan jäsenten erän hakeminen epäonnistui."
   },
   {
     "id": "app.channel.move_channel.space.app_error",
-    "translation": ""
+    "translation": "Space-kanavia ei voi siirtää tämän päätepisteen kautta."
   },
   {
     "id": "app.channel.patch_channel_members_notify_props.app_error",
-    "translation": ""
+    "translation": "Kanavan jäsenten ilmoitusasetuksia ei voitu päivittää."
   },
   {
     "id": "app.channel.patch_channel_members_notify_props.too_many",
-    "translation": ""
+    "translation": "Näin montaa kanavan jäsentä ei voi päivittää. Kerralla voi päivittää enintään {{.Max}} kanavan jäsentä."
   },
   {
     "id": "app.channel.permanent_delete.app_error",
-    "translation": ""
+    "translation": "Kanavaa ei voitu poistaa."
   },
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
-    "translation": ""
+    "translation": "Kanavan jäsentä ei voitu poistaa."
   },
   {
     "id": "app.channel.pinned_posts.app_error",
-    "translation": ""
+    "translation": "Kiinnitettyjä viestejä ei löytynyt."
   },
   {
     "id": "app.channel.remove_all_deactivated_members.app_error",
-    "translation": ""
+    "translation": "Deaktivoituja käyttäjiä ei voitu poistaa kanavalta."
   },
   {
     "id": "app.channel.remove_member.app_error",
-    "translation": ""
+    "translation": "Kanavan jäsentä ei voitu poistaa."
   },
   {
     "id": "app.channel.reset_all_channel_schemes.app_error",
-    "translation": ""
+    "translation": "Kanavien malleja ei voitu nollata."
   },
   {
     "id": "app.channel.restore.app_error",
-    "translation": ""
+    "translation": "Kanavaa ei voitu palauttaa."
   },
   {
     "id": "app.channel.restore_channel.rejected_by_plugin",
-    "translation": ""
+    "translation": "Lisäosa esti kanavan palauttamisen: {{.Reason}}"
   },
   {
     "id": "app.channel.save_member.app_error",
-    "translation": ""
+    "translation": "Kanavan jäsentä ei voitu tallentaa."
   },
   {
     "id": "app.channel.save_member.exists.app_error",
-    "translation": ""
+    "translation": "Kanavan jäsen tällä ID:llä on jo olemassa."
   },
   {
     "id": "app.channel.search.app_error",
-    "translation": ""
+    "translation": "Kanavia haettaessa tapahtui virhe."
   },
   {
     "id": "app.channel.search_group_channels.app_error",
-    "translation": ""
+    "translation": "Annetun käyttäjän ja hakusanan ryhmäkanavia ei voitu hakea."
   },
   {
     "id": "app.channel.set_members.context_cancelled.app_error",
-    "translation": ""
+    "translation": "Kanavan jäsenten asettamistoiminto peruutettiin."
   },
   {
     "id": "app.channel.set_members.empty_private.app_error",
-    "translation": ""
+    "translation": "Yksityiseltä kanavalta ei voi poistaa kaikkia jäseniä."
   },
   {
     "id": "app.channel.set_members.get_current.app_error",
-    "translation": ""
+    "translation": "Kanavan nykyisiä jäseniä ei voitu hakea."
   },
   {
     "id": "app.channel.set_members.get_members.app_error",
-    "translation": ""
+    "translation": "Kanavan jäseniä ei voitu hakea roolien täsmäytystä varten."
   },
   {
     "id": "app.channel.sidebar_categories.app_error",
-    "translation": ""
+    "translation": "Tietueen lisääminen tietokantaan epäonnistui."
   },
   {
     "id": "app.channel.update_channel.internal_error",
-    "translation": ""
+    "translation": "Kanavaa ei voitu päivittää."
   },
   {
     "id": "app.channel.update_channel.plugin_type_mutation.app_error",
-    "translation": ""
+    "translation": "Lisäosa {{.PluginID}} yritti muuttaa kanavan tyyppiä ChannelWillBeUpdated-koukussa; tyyppimuutokset on tehtävä niille tarkoitetun tyypinvaihtopolun kautta"
   },
   {
     "id": "app.channel.update_channel.rejected_by_plugin",
-    "translation": ""
+    "translation": "Lisäosa esti kanavan päivityksen: {{.Reason}}"
   },
   {
     "id": "app.channel.update_channel_privacy.space.app_error",
-    "translation": ""
+    "translation": "Space-kanavien yksityisyyttä ei voi muuttaa tämän päätepisteen kautta."
   },
   {
     "id": "app.channel.update_last_viewed_at.app_error",
-    "translation": ""
+    "translation": "Viimeisimmän katseluajan päivittäminen epäonnistui."
   },
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
-    "translation": ""
+    "translation": "Kanavaa ei voitu merkitä lukemattomaksi."
   },
   {
     "id": "app.channel.update_member.app_error",
-    "translation": ""
+    "translation": "Kanavan jäsentä ei voitu päivittää."
   },
   {
     "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
-    "translation": ""
+    "translation": "Kanavan jäsentä ei voitu päivittää, ilmoitusasetusten kokoraja ylittyi."
   },
   {
     "id": "app.channel.user_belongs_to_channels.app_error",
-    "translation": ""
+    "translation": "Ei voitu määrittää, kuuluuko käyttäjä kanavaluettelon kanaviin."
   },
   {
     "id": "app.channel_guard.invalid_channel.app_error",
-    "translation": ""
+    "translation": "Kanavan ID ei ole kelvollinen kanavan tunniste."
   },
   {
     "id": "app.channel_guard.register.app_error",
-    "translation": ""
+    "translation": "Kanavasuojaa ei voitu rekisteröidä."
   },
   {
     "id": "app.channel_guard.register.empty_channel.app_error",
-    "translation": ""
+    "translation": "Kanavan ID vaaditaan kanavasuojan rekisteröintiin."
   },
   {
     "id": "app.channel_guard.unregister.app_error",
-    "translation": ""
+    "translation": "Kanavasuojan rekisteröintiä ei voitu poistaa."
   },
   {
     "id": "app.channel_guard.unregister.empty_channel.app_error",
-    "translation": ""
+    "translation": "Kanavan ID vaaditaan kanavasuojan rekisteröinnin poistamiseen."
   },
   {
     "id": "app.cloud.preview_modal_bucket_url_not_configured",
-    "translation": ""
+    "translation": "Esikatselun bucket-URL-osoitetta ei ole määritetty"
   },
   {
     "id": "app.cloud.preview_modal_data_fetch_error",
-    "translation": ""
+    "translation": "Esikatseluikkunan tietojen hakeminen epäonnistui"
   },
   {
     "id": "app.cloud.preview_modal_data_parse_error",
-    "translation": ""
+    "translation": "Esikatseluikkunan tietojen jäsentäminen epäonnistui"
   },
   {
     "id": "app.cloud.trial_plan_bot_message",
-    "translation": ""
+    "translation": "{{.UsersNum}} työtilan {{.WorkspaceName}} jäsentä on pyytänyt Enterprise-kokeilujakson aloittamista saadakseen käyttöönsä: "
   },
   {
     "id": "app.cloud.trial_plan_bot_message_single",
-    "translation": ""
+    "translation": "{{.UsersNum}} työtilan {{.WorkspaceName}} jäsen on pyytänyt Enterprise-kokeilujakson aloittamista saadakseen käyttöönsä: "
   },
   {
     "id": "app.cloud.upgrade_plan_bot_message",
-    "translation": ""
+    "translation": "{{.UsersNum}} työtilan {{.WorkspaceName}} jäsentä on pyytänyt työtilan päivitystä saadakseen käyttöönsä: "
   },
   {
     "id": "app.cloud.upgrade_plan_bot_message_single",
-    "translation": ""
+    "translation": "{{.UsersNum}} työtilan {{.WorkspaceName}} jäsen on pyytänyt työtilan päivitystä saadakseen käyttöönsä: "
   },
   {
     "id": "app.command.createcommand.internal_error",
-    "translation": ""
+    "translation": "Komentoa ei voitu tallentaa."
   },
   {
     "id": "app.command.deletecommand.internal_error",
-    "translation": ""
+    "translation": "Komentoa ei voitu poistaa."
   },
   {
     "id": "app.command.getcommand.internal_error",
-    "translation": ""
+    "translation": "Komentoa ei voitu hakea."
   },
   {
     "id": "app.command.listallcommands.internal_error",
-    "translation": ""
+    "translation": "Komentoja ei voitu listata."
   },
   {
     "id": "app.command.listautocompletecommands.internal_error",
-    "translation": ""
+    "translation": "Automaattisen täydennyksen komentoja ei voitu listata."
   },
   {
     "id": "app.command.listteamcommands.internal_error",
-    "translation": ""
+    "translation": "Tiimin komentoja ei voitu listata."
   },
   {
     "id": "app.command.movecommand.internal_error",
-    "translation": ""
+    "translation": "Komentoa ei voitu siirtää."
   },
   {
     "id": "app.command.regencommandtoken.internal_error",
-    "translation": ""
+    "translation": "Komennon tunnusta ei voitu luoda uudelleen."
   },
   {
     "id": "app.command.tryexecutecustomcommand.internal_error",
-    "translation": ""
+    "translation": "Mukautettua komentoa ei voitu suorittaa."
   },
   {
     "id": "app.command.updatecommand.internal_error",
-    "translation": ""
+    "translation": "Komentoa ei voitu päivittää."
   },
   {
     "id": "app.command.validatecommandtriggeruniqueness.internal_error",
-    "translation": ""
+    "translation": "Määritetty laukaisusana on jo olemassa."
   },
   {
     "id": "app.command_webhook.create_command_webhook.existing",
-    "translation": ""
+    "translation": "Olemassa olevaa CommandWebhookia ei voi päivittää."
   },
   {
     "id": "app.command_webhook.create_command_webhook.internal_error",
-    "translation": ""
+    "translation": "CommandWebhookia ei voitu tallentaa."
   },
   {
     "id": "app.command_webhook.get.internal_error",
-    "translation": ""
+    "translation": "Webhookia ei voitu hakea."
   },
   {
     "id": "app.command_webhook.get.missing",
-    "translation": ""
+    "translation": "Webhookia ei löytynyt."
   },
   {
     "id": "app.command_webhook.handle_command_webhook.parse",
-    "translation": ""
+    "translation": "Saapuvaa dataa ei voitu jäsentää."
   },
   {
     "id": "app.command_webhook.try_use.internal_error",
-    "translation": ""
+    "translation": "Webhookia ei voitu käyttää."
   },
   {
     "id": "app.command_webhook.try_use.invalid",
-    "translation": ""
+    "translation": "Virheellinen webhook."
   },
   {
     "id": "app.compile_csv_chunks.header_error",
-    "translation": ""
+    "translation": "CSV-otsikoiden kirjoittaminen epäonnistui."
   },
   {
     "id": "app.compile_csv_chunks.write_error",
-    "translation": ""
+    "translation": "CSV-tietojen kirjoittaminen epäonnistui."
   },
   {
     "id": "app.compile_report_chunks.unsupported_format",
-    "translation": ""
+    "translation": "Raporttimuotoa ei tueta."
   },
   {
     "id": "app.compliance.get.finding.app_error",
-    "translation": ""
+    "translation": "Vaatimustenmukaisuusraportteja haettaessa tapahtui virhe."
   },
   {
     "id": "app.compliance.save.saving.app_error",
-    "translation": ""
+    "translation": "Vaatimustenmukaisuusraporttia tallennettaessa tapahtui virhe."
   },
   {
     "id": "app.create_basic_user.save_member.app_error",
-    "translation": ""
+    "translation": "Oletustiimijäsenyyksiä ei voitu luoda"
   },
   {
     "id": "app.create_basic_user.save_member.conflict.app_error",
-    "translation": ""
+    "translation": "Oletustiimijäsenyyttä ei voitu luoda, koska se on jo olemassa"
   },
   {
     "id": "app.create_basic_user.save_member.max_accounts.app_error",
-    "translation": ""
+    "translation": "Oletustiimijäsenyyttä ei voitu luoda, koska tiimiin ei voi lisätä enempää jäseniä"
   },
   {
     "id": "app.custom_group.unique_name",
-    "translation": ""
+    "translation": "ryhmän nimi ei ole yksilöllinen"
   },
   {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
-    "translation": ""
+    "translation": "Ominaisuuskenttää ei voitu muuntaa käyttäjäattribuuttikentäksi"
   },
   {
     "id": "app.data_spillage.assign_reviewer.no_reviewer_field.app_error",
-    "translation": ""
+    "translation": "Reviewer ID -ominaisuuskenttää ei löytynyt."
   },
   {
     "id": "app.data_spillage.assign_reviewer.update_status_property_value.app_error",
-    "translation": ""
+    "translation": "Status-ominaisuuden arvon päivittäminen tarkastajaa asetettaessa epäonnistui."
   },
   {
     "id": "app.data_spillage.assign_reviewer.upsert_property_value.app_error",
-    "translation": ""
+    "translation": "Merkityn viestin tarkastajan asettaminen epäonnistui."
   },
   {
     "id": "app.data_spillage.can_flag_post.in_progress",
-    "translation": ""
+    "translation": "Tätä viestiä ei voi asettaa karanteeniin, koska se on jo karanteenissa tarkastusta varten."
   },
   {
     "id": "app.data_spillage.can_flag_post.removed",
-    "translation": ""
+    "translation": "Tätä viestiä ei voi asettaa karanteeniin, koska se poistettiin aiemmassa tarkastuksessa."
   },
   {
     "id": "app.data_spillage.can_flag_post.retained",
-    "translation": ""
+    "translation": "Tätä viestiä ei voi asettaa karanteeniin, koska se säilytettiin aiemmassa tarkastuksessa."
   },
   {
     "id": "app.data_spillage.can_flag_post.unknown",
-    "translation": ""
+    "translation": "Tätä viestiä ei voi asettaa karanteeniin, koska sen tila on tuntematon."
   },
   {
     "id": "app.data_spillage.create_property_values.app_error",
-    "translation": ""
+    "translation": "Merkityn viestin ominaisuusarvoja ei voitu tallentaa."
   },
   {
     "id": "app.data_spillage.exposure.column.email",
-    "translation": ""
+    "translation": "Sähköposti"
   },
   {
     "id": "app.data_spillage.exposure.column.is_deactivated",
-    "translation": ""
+    "translation": "Deaktivoitu"
   },
   {
     "id": "app.data_spillage.exposure.column.is_guest",
-    "translation": ""
+    "translation": "Vieras"
   },
   {
     "id": "app.data_spillage.exposure.column.is_remote",
-    "translation": ""
+    "translation": "Etäkäyttäjä"
   },
   {
     "id": "app.data_spillage.exposure.column.last_activity_at",
-    "translation": ""
+    "translation": "Käyttäjän viimeisin aktiivisuus (YYYY-MM-DDTHH:MM:SSZ)"
   },
   {
     "id": "app.data_spillage.exposure.column.last_viewed_at",
-    "translation": ""
+    "translation": "Kanava katsottu viimeksi (YYYY-MM-DDTHH:MM:SSZ)"
   },
   {
     "id": "app.data_spillage.exposure.column.user_id",
-    "translation": ""
+    "translation": "Käyttäjä-ID"
   },
   {
     "id": "app.data_spillage.exposure.column.username",
-    "translation": ""
+    "translation": "Käyttäjänimi"
   },
   {
     "id": "app.data_spillage.exposure.column.was_channel_member",
-    "translation": ""
+    "translation": "Oli kanavan jäsen"
   },
   {
     "id": "app.data_spillage.exposure.edit_history_post.app_error",
-    "translation": ""
+    "translation": "Altistumisraporttia ei voi luoda muokkaushistorian versiolle. Käytä nykyisen viestin ID:tä."
   },
   {
     "id": "app.data_spillage.exposure.get_channel_members.app_error",
-    "translation": ""
+    "translation": "Merkityn viestin kanavan jäsenyyshistorian hakeminen epäonnistui."
   },
   {
     "id": "app.data_spillage.exposure.get_last_activity.app_error",
-    "translation": ""
+    "translation": "Merkityn viestin istuntoaktiivisuuden hakeminen epäonnistui."
   },
   {
     "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
-    "translation": ""
+    "translation": "Merkityn viestin kanavan lukutilan hakeminen epäonnistui."
   },
   {
     "id": "app.data_spillage.exposure.meta.channel",
-    "translation": ""
+    "translation": "Kanava"
   },
   {
     "id": "app.data_spillage.exposure.meta.generated_at",
-    "translation": ""
+    "translation": "Luotu"
   },
   {
     "id": "app.data_spillage.exposure.meta.post_id",
-    "translation": ""
+    "translation": "Viestin ID"
   },
   {
     "id": "app.data_spillage.exposure.meta.report_version",
-    "translation": ""
+    "translation": "Raportin versio"
   },
   {
     "id": "app.data_spillage.exposure.meta.total_users",
-    "translation": ""
+    "translation": "Käyttäjiä yhteensä"
   },
   {
     "id": "app.data_spillage.exposure.meta.window_end",
-    "translation": ""
+    "translation": "Merkitty"
   },
   {
     "id": "app.data_spillage.exposure.meta.window_start",
-    "translation": ""
+    "translation": "Viesti luotu"
   },
   {
     "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
-    "translation": ""
+    "translation": "Merkitylle viestille ei ole tallennettu ilmoitusaikaa, joten altistumisikkunaa ei voida määrittää."
   },
   {
     "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
-    "translation": ""
+    "translation": "Altistumisraportteja ei tueta suora- ja ryhmäviesteille."
   },
   {
     "id": "app.data_spillage.exposure.value.never_viewed",
-    "translation": ""
+    "translation": "Ei sovellu"
   },
   {
     "id": "app.data_spillage.exposure.value.no",
-    "translation": ""
+    "translation": "Ei"
   },
   {
     "id": "app.data_spillage.exposure.value.no_sessions",
-    "translation": ""
+    "translation": "Istuntoja ei löytynyt"
   },
   {
     "id": "app.data_spillage.exposure.value.unknown",
-    "translation": ""
+    "translation": "Tuntematon"
   },
   {
     "id": "app.data_spillage.exposure.value.yes",
-    "translation": ""
+    "translation": "Kyllä"
   },
   {
     "id": "app.data_spillage.flag_post.marshal_comment.app_error",
-    "translation": ""
+    "translation": "Merkitsevän käyttäjän kommentin sarjallistaminen epäonnistui"
   },
   {
     "id": "app.data_spillage.flag_post.marshal_reason.app_error",
-    "translation": ""
+    "translation": "Merkitsevän käyttäjän syyn sarjallistaminen epäonnistui"
   },
   {
     "id": "app.data_spillage.flag_post_confirmation.message",
-    "translation": ""
+    "translation": "Käyttäjän @{{.username}} viesti on asetettu karanteeniin tarkastusta varten. Saat ilmoituksen, kun tarkastaja on tarkastanut sen."
   },
   {
     "id": "app.data_spillage.get_group.error",
-    "translation": ""
+    "translation": "Sisällön merkitsemisen ominaisuusryhmää ei voitu hakea."
   },
   {
     "id": "app.data_spillage.get_reviewer_settings.app_error",
-    "translation": ""
+    "translation": "Sisällön tarkastajien asetusten hakeminen tietokannasta epäonnistui"
   },
   {
     "id": "app.data_spillage.get_status_property.app_error",
-    "translation": ""
+    "translation": "Status-ominaisuuskentän hakeminen epäonnistui."
   },
   {
     "id": "app.data_spillage.get_thread_replies.app_error",
-    "translation": ""
+    "translation": "Merkityn viestin ketjun vastausten hakeminen epäonnistui."
   },
   {
     "id": "app.data_spillage.get_users_in_team.app_error",
-    "translation": ""
+    "translation": "Tarkastajien hakeminen tiimistä epäonnistui."
   },
   {
     "id": "app.data_spillage.keep_flag_post.marshal_comment.app_error",
-    "translation": ""
+    "translation": "Tarkastajan kommentin sarjallistaminen epäonnistui"
   },
   {
     "id": "app.data_spillage.keep_post.status_update.app_error",
-    "translation": ""
+    "translation": "Merkityn viestin tilan päivittäminen epäonnistui merkityn viestin poistoa kumottaessa "
   },
   {
     "id": "app.data_spillage.keep_post.undelete.app_error",
-    "translation": ""
+    "translation": "Viestin päivittäminen tietokannassa epäonnistui yritettäessä kumota merkityn viestin ja siihen liittyvien tietojen poisto."
   },
   {
     "id": "app.data_spillage.marshal_property_values.app_error",
-    "translation": ""
+    "translation": "Sisällön merkitsemisen ominaisuusarvojen sarjallistaminen WebSocket-tapahtumaan lähettämistä varten epäonnistui."
   },
   {
     "id": "app.data_spillage.missing_flagged_post_id_field.app_error",
-    "translation": ""
+    "translation": "Flagged Post ID -ominaisuuskenttää ei löytynyt."
   },
   {
     "id": "app.data_spillage.missing_manage_by_field.app_error",
-    "translation": ""
+    "translation": "Manage By -ominaisuuskenttää ei löytynyt."
   },
   {
     "id": "app.data_spillage.missing_reporting_user_id_field.app_error",
-    "translation": ""
+    "translation": "Ilmoittavan käyttäjän kenttää ei löytynyt."
   },
   {
     "id": "app.data_spillage.missing_reporting_user_id_property_value.app_error",
-    "translation": ""
+    "translation": "Ilmoittavan käyttäjän kentän arvoa ei löytynyt."
   },
   {
     "id": "app.data_spillage.missing_status_field.app_error",
-    "translation": ""
+    "translation": "Status-ominaisuuskenttää ei löytynyt."
   },
   {
     "id": "app.data_spillage.no_status_property.app_error",
-    "translation": ""
+    "translation": "Merkittyä viestiä ei voi hakea, koska viestiä ei ole merkitty."
   },
   {
     "id": "app.data_spillage.permanently_delete.marshal_comment.app_error",
-    "translation": ""
+    "translation": "Tarkastajan kommentin sarjallistaminen epäonnistui"
   },
   {
     "id": "app.data_spillage.permanently_delete.update_property_value.app_error",
-    "translation": ""
+    "translation": "Merkityn viestin tilan päivittäminen epäonnistui merkittyä viestiä pysyvästi poistettaessa."
   },
   {
     "id": "app.data_spillage.report.attachments_omitted.file_text",
-    "translation": ""
+    "translation": "Tämän viestin liitteet jätettiin pois tästä raportista, koska et täytä kanavan tiedostojen latauskäytännön ehtoja."
   },
   {
     "id": "app.data_spillage.report.attachments_omitted.notification",
-    "translation": ""
+    "translation": "Luomasi raportti ei sisältänyt karanteeniin asetetun viestin tiedostoliitteitä, koska et täytä kanavan tiedostojen latauskäytännön ehtoja."
   },
   {
     "id": "app.data_spillage.report.cleared",
-    "translation": ""
+    "translation": "Tyhjennetty"
   },
   {
     "id": "app.data_spillage.report.close.app_error",
-    "translation": ""
+    "translation": "Merkityn viestin raporttitiedoston sulkeminen epäonnistui."
   },
   {
     "id": "app.data_spillage.report.column.detail",
-    "translation": ""
+    "translation": "Tiedot"
   },
   {
     "id": "app.data_spillage.report.column.status",
-    "translation": ""
+    "translation": "Tila"
   },
   {
     "id": "app.data_spillage.report.column.step",
-    "translation": ""
+    "translation": "Vaihe"
   },
   {
     "id": "app.data_spillage.report.detail.deleted",
-    "translation": ""
+    "translation": "Poistettu."
   },
   {
     "id": "app.data_spillage.report.detail.failed_retrieve_edit_history",
-    "translation": ""
+    "translation": "Muokkaushistorian hakeminen epäonnistui."
   },
   {
     "id": "app.data_spillage.report.detail.file_attachments_info_ids",
-    "translation": ""
+    "translation": "**Tiedostotietueiden ID:t:** {{.FileInfoIDs}}"
   },
   {
     "id": "app.data_spillage.report.detail.file_names",
-    "translation": ""
+    "translation": {
+      "one": "Poistettiin {{.Count}} tiedosto levyltä.",
+      "other": "Poistettiin {{.Count}} tiedostoa levyltä."
+    }
   },
   {
     "id": "app.data_spillage.report.detail.no_data_found",
-    "translation": ""
+    "translation": "Tietoja ei löytynyt."
   },
   {
     "id": "app.data_spillage.report.detail.no_files",
-    "translation": ""
+    "translation": "Tiedostoja ei löytynyt."
   },
   {
     "id": "app.data_spillage.report.detail.no_rows_to_delete",
-    "translation": ""
+    "translation": "Ei poistettavia rivejä."
   },
   {
     "id": "app.data_spillage.report.detail.post_scrubbed_deleted",
-    "translation": ""
+    "translation": "Viestin sisältö tyhjennetty ja viesti poistettu."
   },
   {
     "id": "app.data_spillage.report.detail.revisions_cleared",
-    "translation": ""
+    "translation": {
+      "one": "Tyhjennettiin {{.Count}} versio / {{.Total}}.",
+      "other": "Tyhjennettiin {{.Count}} versiota / {{.Total}}."
+    }
   },
   {
     "id": "app.data_spillage.report.detail.thread_data_deleted",
-    "translation": ""
+    "translation": "Ketjut, reaktiot ja niihin liittyvät tiedot poistettu."
   },
   {
     "id": "app.data_spillage.report.error_log",
-    "translation": ""
+    "translation": "Virheloki"
   },
   {
     "id": "app.data_spillage.report.generated",
-    "translation": ""
+    "translation": "Luotu:"
   },
   {
     "id": "app.data_spillage.report.incomplete_warning",
-    "translation": ""
+    "translation": "Viestin poisto on kesken. Tarkista Virheloki ja siirrä asia järjestelmänvalvojalle manuaalista korjausta varten."
   },
   {
     "id": "app.data_spillage.report.post_id",
-    "translation": ""
+    "translation": "Viestin ID:"
   },
   {
     "id": "app.data_spillage.report.revision",
-    "translation": ""
+    "translation": "Versio"
   },
   {
     "id": "app.data_spillage.report.revisions_found",
-    "translation": ""
+    "translation": "Löydettyjä versioita:"
   },
   {
     "id": "app.data_spillage.report.status.failed",
-    "translation": ""
+    "translation": "Epäonnistui"
   },
   {
     "id": "app.data_spillage.report.status.not_applicable",
-    "translation": ""
+    "translation": "Ei sovellu"
   },
   {
     "id": "app.data_spillage.report.status.partial",
-    "translation": ""
+    "translation": "Osittainen"
   },
   {
     "id": "app.data_spillage.report.status.removed",
-    "translation": ""
+    "translation": "Poistettu"
   },
   {
     "id": "app.data_spillage.report.status.unknown",
-    "translation": ""
+    "translation": "Tuntematon"
   },
   {
     "id": "app.data_spillage.report.step.acknowledgements",
-    "translation": ""
+    "translation": "Kuittaukset"
   },
   {
     "id": "app.data_spillage.report.step.edit_histories",
-    "translation": ""
+    "translation": "Muokkaushistoria"
   },
   {
     "id": "app.data_spillage.report.step.file_attachments",
-    "translation": ""
+    "translation": "Tiedostoliitteet"
   },
   {
     "id": "app.data_spillage.report.step.fileinfo_rows",
-    "translation": ""
+    "translation": "Tiedostoliitteiden tietueet"
   },
   {
     "id": "app.data_spillage.report.step.persistent_notifications",
-    "translation": ""
+    "translation": "Pysyvät ilmoitukset"
   },
   {
     "id": "app.data_spillage.report.step.post_itself",
-    "translation": ""
+    "translation": "Viestitietue"
   },
   {
     "id": "app.data_spillage.report.step.priority_data",
-    "translation": ""
+    "translation": "Prioriteetin metatiedot"
   },
   {
     "id": "app.data_spillage.report.step.reminders",
-    "translation": ""
+    "translation": "Muistutukset"
   },
   {
     "id": "app.data_spillage.report.step.thread_data",
-    "translation": ""
+    "translation": "Ketju, vastaukset ja reaktiot"
   },
   {
     "id": "app.data_spillage.report.summary",
-    "translation": ""
+    "translation": "Yhteenveto"
   },
   {
     "id": "app.data_spillage.report.sync.app_error",
-    "translation": ""
+    "translation": "Merkityn viestin raporttitiedoston synkronointi levylle epäonnistui."
   },
   {
     "id": "app.data_spillage.report.tempfile.app_error",
-    "translation": ""
+    "translation": "Väliaikaistiedoston luominen merkityn viestin raporttia varten epäonnistui."
   },
   {
     "id": "app.data_spillage.report.title",
-    "translation": ""
+    "translation": "Viestin poistoraportti"
   },
   {
     "id": "app.data_spillage.report.total_steps",
-    "translation": ""
+    "translation": "Vaiheita yhteensä:"
   },
   {
     "id": "app.data_spillage.report.write_attachments_omitted.app_error",
-    "translation": ""
+    "translation": "Pois jätettyjä liitteitä koskevan huomautuksen kirjoittaminen merkityn viestin raporttiin epäonnistui."
   },
   {
     "id": "app.data_spillage.report.write_edit_yaml.app_error",
-    "translation": ""
+    "translation": "Muokkaushistorian merkinnän kirjoittaminen merkityn viestin raporttiin epäonnistui."
   },
   {
     "id": "app.data_spillage.report.write_exposure_csv.app_error",
-    "translation": ""
+    "translation": "Altistumisraportin kirjoittaminen merkityn viestin raporttiin epäonnistui."
   },
   {
     "id": "app.data_spillage.report.write_metadata_yaml.app_error",
-    "translation": ""
+    "translation": "Metatietojen kirjoittaminen merkityn viestin raporttiin epäonnistui."
   },
   {
     "id": "app.data_spillage.report.write_post_yaml.app_error",
-    "translation": ""
+    "translation": "Viestin tietojen kirjoittaminen merkityn viestin raporttiin epäonnistui."
   },
   {
     "id": "app.data_spillage.report.write_review_yaml.app_error",
-    "translation": ""
+    "translation": "Sisällön tarkastuksen tietojen kirjoittaminen merkityn viestin raporttiin epäonnistui."
   },
   {
     "id": "app.data_spillage.report.zip_close.app_error",
-    "translation": ""
+    "translation": "Merkityn viestin raporttiarkiston sulkeminen epäonnistui."
   },
   {
     "id": "app.data_spillage.report.zip_copy.app_error",
-    "translation": ""
+    "translation": "Liitteen sisällön kopioiminen merkityn viestin raporttiarkistoon epäonnistui."
   },
   {
     "id": "app.data_spillage.report.zip_create.app_error",
-    "translation": ""
+    "translation": "Merkinnän luominen merkityn viestin raporttiarkistoon epäonnistui."
   },
   {
     "id": "app.data_spillage.save_reviewer_settings.app_error",
-    "translation": ""
+    "translation": "Sisällön tarkastajien asetusten tallentaminen tietokantaan epäonnistui."
   },
   {
     "id": "app.data_spillage.search_common_reviewers.app_error",
-    "translation": ""
+    "translation": "Hakusanan haku yhteisistä tarkastajista epäonnistui."
   },
   {
     "id": "app.data_spillage.search_property_fields.app_error",
-    "translation": ""
+    "translation": "Sisällön merkitsemisen ominaisuuskenttien hakeminen epäonnistui."
   },
   {
     "id": "app.data_spillage.search_property_values.app_error",
-    "translation": ""
+    "translation": "Viestin sisällön merkitsemisen ominaisuusarvojen hakeminen tietokannasta epäonnistui."
   },
   {
     "id": "app.data_spillage.search_reviewer_posts.app_error",
-    "translation": ""
+    "translation": "Merkityn viestin tarkastajaviestien hakeminen epäonnistui."
   },
   {
     "id": "app.data_spillage.search_status_property.app_error",
-    "translation": ""
+    "translation": "Merkityn viestin ominaisuusarvojen hakeminen epäonnistui."
   },
   {
     "id": "app.data_spillage.search_sysadmin_reviewers.app_error",
-    "translation": ""
+    "translation": "Hakusanan haku järjestelmänvalvojatarkastajista epäonnistui."
   },
   {
     "id": "app.data_spillage.search_team_admin_reviewers.app_error",
-    "translation": ""
+    "translation": "Hakusanan haku tiimin ylläpitäjä -tarkastajista epäonnistui."
   },
   {
     "id": "app.data_spillage.search_team_reviewers.app_error",
-    "translation": ""
+    "translation": "Hakusanan haku tiimin tarkastajista epäonnistui."
   },
   {
     "id": "app.data_spillage.set_thread_replies_properties.app_error",
-    "translation": ""
+    "translation": "Ominaisuusarvojen asettaminen merkityn viestin ketjun vastauksille epäonnistui."
   },
   {
     "id": "app.delete_scheduled_post.delete_error",
-    "translation": ""
+    "translation": "Ajoitetun viestin poistaminen tietokannasta epäonnistui."
   },
   {
     "id": "app.delete_scheduled_post.delete_permission.error",
-    "translation": ""
+    "translation": "Sinulla ei ole oikeutta poistaa tätä resurssia."
   },
   {
     "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
-    "translation": ""
+    "translation": "Ajoitettua viestiä ei ole olemassa."
   },
   {
     "id": "app.delete_scheduled_post.get_scheduled_post.error",
-    "translation": ""
+    "translation": "Olemassa olevaa ajoitettua viestiä ei voitu hakea tietokannasta."
   },
   {
     "id": "app.delivery_tracking.dm_gm_not_allowed.app_error",
-    "translation": ""
+    "translation": "Suora- ja ryhmäviestejä ei voi valita viestien toimituksen auditointikirjaukseen."
   },
   {
     "id": "app.delivery_tracking.get_config.app_error",
-    "translation": ""
+    "translation": "Viestien toimituksen auditointikirjauksen asetusten lukeminen tietokannasta epäonnistui."
   },
   {
     "id": "app.delivery_tracking.invalid_channel.app_error",
-    "translation": ""
+    "translation": "Yhtä tai useampaa valituista kanavista ei löytynyt."
   },
   {
     "id": "app.delivery_tracking.save_config.app_error",
-    "translation": ""
+    "translation": "Viestien toimituksen auditointikirjauksen asetusten tallentaminen tietokantaan epäonnistui."
   },
   {
     "id": "app.desktop_token.generateServerToken.invalid_or_expired",
-    "translation": ""
+    "translation": "Tunnusta ei ole olemassa tai se on vanhentunut"
   },
   {
     "id": "app.desktop_token.validate.invalid",
-    "translation": ""
+    "translation": "Tunnus ei ole kelvollinen tai se on vanhentunut"
   },
   {
     "id": "app.desktop_token.validate.no_user",
-    "translation": ""
+    "translation": "Tälle tunnukselle ei löytynyt käyttäjää"
   },
   {
     "id": "app.draft.delete.app_error",
-    "translation": ""
+    "translation": "Luonnosta ei voitu poistaa."
   },
   {
     "id": "app.draft.feature_disabled",
-    "translation": ""
+    "translation": "Luonnokset-ominaisuus on poistettu käytöstä."
   },
   {
     "id": "app.draft.get.app_error",
-    "translation": ""
+    "translation": "Luonnosta ei voitu hakea."
   },
   {
     "id": "app.draft.get_drafts.app_error",
-    "translation": ""
+    "translation": "Käyttäjän luonnoksia ei voitu hakea."
   },
   {
     "id": "app.draft.get_for_draft.app_error",
-    "translation": ""
+    "translation": "Luonnoksen tiedostoja ei voitu hakea."
   },
   {
     "id": "app.draft.save.app_error",
-    "translation": ""
+    "translation": "Luonnosta ei voitu tallentaa."
   },
   {
     "id": "app.draft.upsert.rejected_by_plugin",
-    "translation": ""
+    "translation": "Lisäosa esti luonnoksen: {{.Reason}}"
   },
   {
     "id": "app.drafts.permanent_delete_by_user.app_error",
-    "translation": ""
+    "translation": "Käyttäjän luonnoksia ei voitu poistaa."
   },
   {
     "id": "app.email.no_rate_limiter.app_error",
-    "translation": ""
+    "translation": "Nopeusrajoitinta ei ole määritetty."
   },
   {
     "id": "app.email.rate_limit_exceeded.app_error",
-    "translation": ""
+    "translation": "Kutsusähköpostien nopeusraja ylittyi. Ajastin nollautuu {{.ResetAfter}} sekunnin kuluttua. Yritä uudelleen {{.RetryAfter}} sekunnin kuluttua."
   },
   {
     "id": "app.email.setup_rate_limiter.app_error",
-    "translation": ""
+    "translation": "Nopeusrajoittimessa tapahtui virhe."
   },
   {
     "id": "app.emoji.create.internal_error",
-    "translation": ""
+    "translation": "Emojia ei voitu tallentaa."
   },
   {
     "id": "app.emoji.get.app_error",
-    "translation": ""
+    "translation": "Emojia ei voitu hakea."
   },
   {
     "id": "app.emoji.get.no_result",
-    "translation": ""
+    "translation": "Emojia ei löytynyt."
   },
   {
     "id": "app.emoji.get_by_name.app_error",
-    "translation": ""
+    "translation": "Emojia ei voitu hakea."
   },
   {
     "id": "app.emoji.get_by_name.no_result",
-    "translation": ""
+    "translation": "Emojia ei löytynyt."
   },
   {
     "id": "app.emoji.get_list.internal_error",
-    "translation": ""
+    "translation": "Emojeja ei voitu hakea."
   },
   {
     "id": "app.export.channel_requires_team.error",
-    "translation": ""
+    "translation": "Kanavan nimen kanssa on määritettävä myös tiimin nimi."
   },
   {
     "id": "app.export.export_all_channels.channel_not_found.error",
-    "translation": ""
+    "translation": "Määritettyä kanavaa ei löytynyt mistään määritetyistä tiimeistä."
   },
   {
     "id": "app.export.export_all_teams.team_deleted.error",
-    "translation": ""
+    "translation": "Määritetty tiimi on poistettu."
   },
   {
     "id": "app.export.export_all_teams.team_not_found.error",
-    "translation": ""
+    "translation": "Määritettyä tiimiä ei löytynyt."
   },
   {
     "id": "app.export.export_attachment.copy_file.error",
-    "translation": ""
+    "translation": "Tiedoston kopiointi viennin aikana epäonnistui."
   },
   {
     "id": "app.export.export_attachment.create_file.error",
-    "translation": ""
+    "translation": "Tiedoston luominen viennin aikana epäonnistui."
   },
   {
     "id": "app.export.export_attachment.mkdirall.error",
-    "translation": ""
+    "translation": "Hakemiston luominen viennin aikana epäonnistui."
   },
   {
     "id": "app.export.export_attachment.zip_create_header.error",
-    "translation": ""
+    "translation": "Zip-otsikon luominen viennin aikana epäonnistui."
   },
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
-    "translation": ""
+    "translation": "Mukautettujen emojien kuvia ei voitu kopioida"
   },
   {
     "id": "app.export.export_custom_emoji.mkdir.error",
-    "translation": ""
+    "translation": "Hakemistoa mukautettujen emojien kuville ei voitu luoda"
   },
   {
     "id": "app.export.export_version.scope_marshal.error",
-    "translation": ""
+    "translation": "Tiimi- ja kanavarajauksen kirjoittaminen vientiin epäonnistui. Vienti keskeytetään sen sijaan, että luotaisiin arkisto, joka tuotaisiin koko instanssin palautuksena."
   },
   {
     "id": "app.export.generate_presigned_url.config.app_error",
-    "translation": ""
+    "translation": "Tämä toiminto edellyttää erillisen vientitallennustilan käyttöä."
   },
   {
     "id": "app.export.generate_presigned_url.direct_download.app_error",
-    "translation": ""
+    "translation": "Vientien suora lataus on saatavilla vain Mattermost Cloudissa."
   },
   {
     "id": "app.export.generate_presigned_url.driver.app_error",
-    "translation": ""
+    "translation": "Vientitallennustilan ajuri ei tue esiallekirjoitettujen URL-osoitteiden luomista."
   },
   {
     "id": "app.export.generate_presigned_url.fileexist.app_error",
-    "translation": ""
+    "translation": "Tiedoston olemassaoloa ei voitu tarkistaa."
   },
   {
     "id": "app.export.generate_presigned_url.link.app_error",
-    "translation": ""
+    "translation": "Esiallekirjoitettua URL-osoitetta ei voitu luoda."
   },
   {
     "id": "app.export.generate_presigned_url.notfound.app_error",
-    "translation": ""
+    "translation": "Vientitiedostoa ei löytynyt."
   },
   {
     "id": "app.export.marshal.app_error",
