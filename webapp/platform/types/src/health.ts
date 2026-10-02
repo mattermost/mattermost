@@ -30,6 +30,13 @@ export type HealthFinding = {
     muted_by?: string;
 };
 
+export type HealthFindingList = {
+
+    // When the server last evaluated, across every stored finding whatever the filter; 0 if never.
+    evaluated_at: number;
+    findings: HealthFinding[];
+};
+
 // Severity, state and area filtering happen client-side over the fetched list; only the mute
 // read-policy is a server parameter. Omitting muted returns unmuted findings only.
 export type HealthFindingFilter = {
@@ -38,4 +45,5 @@ export type HealthFindingFilter = {
 
 export type HealthState = {
     findings: Record<string, HealthFinding>;
+    evaluatedAt: number;
 };

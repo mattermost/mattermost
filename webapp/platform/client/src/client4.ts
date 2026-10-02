@@ -89,7 +89,7 @@ import type {
     GroupStats,
     GroupMember,
 } from '@mattermost/types/groups';
-import type {HealthFinding, HealthFindingFilter} from '@mattermost/types/health';
+import type {HealthFindingFilter, HealthFindingList} from '@mattermost/types/health';
 import type {PostActionResponse} from '@mattermost/types/integration_actions';
 import type {
     Command,
@@ -5492,7 +5492,7 @@ export default class Client4 {
     };
 
     getHealthFindings = (filter: HealthFindingFilter = {}) => {
-        return this.doFetch<HealthFinding[]>(
+        return this.doFetch<HealthFindingList>(
             `${this.getHealthFindingsRoute()}${buildQueryString(filter)}`,
             {method: 'get'},
         );

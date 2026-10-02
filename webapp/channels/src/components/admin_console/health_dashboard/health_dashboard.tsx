@@ -4,7 +4,7 @@
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {HealthFinding, HealthFindingFilter, HealthFindingSeverity} from '@mattermost/types/health';
+import type {HealthFinding, HealthFindingFilter, HealthFindingList, HealthFindingSeverity} from '@mattermost/types/health';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -24,7 +24,7 @@ export type Props = {
     severityCounts: Record<HealthFindingSeverity, number>;
     lastEvaluatedAt: number;
     actions: {
-        getHealthFindings: (filter?: HealthFindingFilter) => Promise<ActionResult<HealthFinding[]>>;
+        getHealthFindings: (filter?: HealthFindingFilter) => Promise<ActionResult<HealthFindingList>>;
     };
 };
 

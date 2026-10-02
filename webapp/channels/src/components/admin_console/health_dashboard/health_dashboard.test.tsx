@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import type {HealthFinding} from '@mattermost/types/health';
+import type {HealthFinding, HealthFindingList} from '@mattermost/types/health';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -32,6 +32,10 @@ function makeFinding(overrides: Partial<HealthFinding> & Pick<HealthFinding, 'fi
     };
 }
 
+function evaluated(findings: HealthFinding[]): HealthFindingList {
+    return {evaluated_at: Date.now(), findings};
+}
+
 function getCounts() {
     const list = screen.getByRole('list', {name: 'Finding counts'});
     return within(list).getAllByRole('listitem').map((item) => item.textContent);
@@ -52,7 +56,7 @@ describe('components/admin_console/health_dashboard', () => {
     });
 
     test('makes exactly one findings request on mount, with no filter, and no other request', async () => {
-        getHealthFindings.mockResolvedValue([makeFinding({fingerprint: 'a'})]);
+        getHealthFindings.mockResolvedValue(evaluated([makeFinding({fingerprint: 'a'})]));
 
         renderWithContext(<HealthDashboard/>);
 
@@ -63,7 +67,7 @@ describe('components/admin_console/health_dashboard', () => {
     });
 
     test('empty state: nothing has been evaluated yet', async () => {
-        getHealthFindings.mockResolvedValue([]);
+        getHealthFindings.mockResolvedValue({evaluated_at: 0, findings: []});
 
         renderWithContext(<HealthDashboard/>);
 
@@ -71,10 +75,21 @@ describe('components/admin_console/health_dashboard', () => {
         expect(screen.queryByRole('list', {name: 'Finding counts'})).not.toBeInTheDocument();
     });
 
+    test('every finding muted: shows the last evaluation and the all-clear, not "Not evaluated yet"', async () => {
+        getHealthFindings.mockResolvedValue(evaluated([]));
+
+        renderWithContext(<HealthDashboard/>);
+
+        expect(await screen.findByText('No problems found')).toBeInTheDocument();
+        expect(screen.getByText(/^Last evaluated/)).toBeInTheDocument();
+        expect(getCounts()).toEqual(['0 Critical', '0 Warning', '0 Info', '0 Unknown']);
+        expect(screen.queryByText('Not evaluated yet')).not.toBeInTheDocument();
+    });
+
     test('all-healthy state: only resolved findings', async () => {
-        getHealthFindings.mockResolvedValue([
+        getHealthFindings.mockResolvedValue(evaluated([
             makeFinding({fingerprint: 'a', state: 'resolved', title: 'Resolved finding'}),
-        ]);
+        ]));
 
         renderWithContext(<HealthDashboard/>);
 
@@ -85,13 +100,13 @@ describe('components/admin_console/health_dashboard', () => {
     });
 
     test('mixed severities: counts per severity, areas ordered by their most severe finding', async () => {
-        getHealthFindings.mockResolvedValue([
+        getHealthFindings.mockResolvedValue(evaluated([
             makeFinding({fingerprint: 'w1', severity: 'warning', area: 'database', title: 'Warning one'}),
             makeFinding({fingerprint: 'w2', severity: 'warning', area: 'database', title: 'Warning two'}),
             makeFinding({fingerprint: 'i1', severity: 'info', area: 'database', title: 'Info one'}),
             makeFinding({fingerprint: 'c1', severity: 'critical', area: 'notifications', title: 'Critical one'}),
             makeFinding({fingerprint: 'u1', severity: 'critical', state: 'unknown', area: 'auth', title: 'Unknown one'}),
-        ]);
+        ]));
 
         renderWithContext(<HealthDashboard/>);
 
@@ -103,10 +118,10 @@ describe('components/admin_console/health_dashboard', () => {
     });
 
     test('unknown findings are excluded from severity counts', async () => {
-        getHealthFindings.mockResolvedValue([
+        getHealthFindings.mockResolvedValue(evaluated([
             makeFinding({fingerprint: 'u1', severity: 'critical', state: 'unknown'}),
             makeFinding({fingerprint: 'u2', severity: 'warning', state: 'unknown'}),
-        ]);
+        ]));
 
         renderWithContext(<HealthDashboard/>);
 
@@ -115,9 +130,9 @@ describe('components/admin_console/health_dashboard', () => {
     });
 
     test('unknown-only state is not presented as an all-clear', async () => {
-        getHealthFindings.mockResolvedValue([
+        getHealthFindings.mockResolvedValue(evaluated([
             makeFinding({fingerprint: 'u1', state: 'unknown', title: 'Unknown one'}),
-        ]);
+        ]));
 
         renderWithContext(<HealthDashboard/>);
 
@@ -128,10 +143,10 @@ describe('components/admin_console/health_dashboard', () => {
     });
 
     test('node-scoped findings of one rule render one row per node', async () => {
-        getHealthFindings.mockResolvedValue([
+        getHealthFindings.mockResolvedValue(evaluated([
             makeFinding({fingerprint: 'n3', code: 'disk_low', scope: 'node-3', title: 'Disk space is low'}),
             makeFinding({fingerprint: 'n5', code: 'disk_low', scope: 'node-5', title: 'Disk space is low'}),
-        ]);
+        ]));
 
         renderWithContext(<HealthDashboard/>);
 
@@ -141,9 +156,9 @@ describe('components/admin_console/health_dashboard', () => {
     });
 
     test('an unrecognized area still renders, labelled with its raw value', async () => {
-        getHealthFindings.mockResolvedValue([
+        getHealthFindings.mockResolvedValue(evaluated([
             makeFinding({fingerprint: 'a', area: 'brand_new_area'}),
-        ]);
+        ]));
 
         renderWithContext(<HealthDashboard/>);
 
