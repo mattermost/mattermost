@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Client4} from '@mattermost/client';
+
 import {
     expect,
     test,
@@ -22,6 +24,52 @@ import {
     getPolicyIdByName,
     enableUserManagedAttributes,
 } from '../support';
+
+/**
+ * Ensures "Department" and "Office" text fields exist with the admin-managed,
+ * when-set-visible attrs these tests rely on, without ever deleting fields —
+ * custom profile attribute fields are a system-wide resource shared by every
+ * worker, so wiping them (as this file previously did) can delete a field
+ * another spec running in parallel (e.g. custom_attributes.spec.ts) just
+ * created, and unconditionally creating "Department"/"Office" races any other
+ * spec doing the same, surfacing as "a property with this name already
+ * exists at the system level".
+ */
+async function ensureManagedDepartmentAndOfficeFields(adminClient: Client4): Promise<Record<string, any>> {
+    const attributeFieldsMap: Record<string, any> = {};
+
+    for (const [name, sortOrder] of [
+        ['Department', 0],
+        ['Office', 1],
+    ] as const) {
+        const patch = {
+            name,
+            type: 'text',
+            attrs: {managed: 'admin', visibility: 'when_set', sort_order: sortOrder},
+        } as any;
+
+        const existing = (await adminClient.getCustomProfileAttributeFields()).find((f) => f.name === name);
+        if (existing) {
+            const patched = await adminClient.patchCustomProfileAttributeField(existing.id, patch);
+            attributeFieldsMap[patched.id] = patched;
+            continue;
+        }
+
+        try {
+            const created = await adminClient.createCustomProfileAttributeField(patch);
+            attributeFieldsMap[created.id] = created;
+        } catch {
+            // Race: another worker created it first — patch that one instead.
+            const raceCreated = (await adminClient.getCustomProfileAttributeFields()).find((f) => f.name === name);
+            if (raceCreated) {
+                const patched = await adminClient.patchCustomProfileAttributeField(raceCreated.id, patch);
+                attributeFieldsMap[patched.id] = patched;
+            }
+        }
+    }
+
+    return attributeFieldsMap;
+}
 
 /**
  * ABAC Policy Management - Edit Policies
@@ -326,40 +374,12 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         const {adminUser, adminClient, team} = await pw.initSetup();
 
-        // Delete ALL existing custom attributes to start fresh
-        try {
-            const existingFields = await adminClient.getCustomProfileAttributeFields();
-            for (const field of existingFields) {
-                try {
-                    await adminClient.deleteCustomProfileAttributeField(field.id);
-                } catch {
-                    // Ignore deletion errors
-                }
-            }
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-        } catch {
-            // Ignore if no fields exist
-        }
-
         // Enable user-managed attributes FIRST (same pattern as MM-T5783)
         await enableUserManagedAttributes(adminClient);
 
-        // create attributes using direct API
-        const attributeFieldsMap: Record<string, any> = {};
-
-        const departmentField = await adminClient.createCustomProfileAttributeField({
-            name: 'Department',
-            type: 'text',
-            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 0},
-        } as any);
-        attributeFieldsMap[departmentField.id] = departmentField;
-
-        const officeField = await adminClient.createCustomProfileAttributeField({
-            name: 'Office',
-            type: 'text',
-            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 1},
-        } as any);
-        attributeFieldsMap[officeField.id] = officeField;
+        // Ensure the Department/Office fields exist with the attrs this test needs,
+        // reusing them in place rather than deleting and recreating system-wide fields.
+        const attributeFieldsMap = await ensureManagedDepartmentAndOfficeFields(adminClient);
 
         // Wait for attributes to be indexed
         await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -587,40 +607,12 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         const {adminUser, adminClient, team} = await pw.initSetup();
 
-        // Delete ALL existing custom attributes to start fresh
-        try {
-            const existingFields = await adminClient.getCustomProfileAttributeFields();
-            for (const field of existingFields) {
-                try {
-                    await adminClient.deleteCustomProfileAttributeField(field.id);
-                } catch {
-                    // Ignore deletion errors
-                }
-            }
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-        } catch {
-            // Ignore if no fields exist
-        }
-
         // Enable user-managed attributes FIRST (same pattern as MM-T5783)
         await enableUserManagedAttributes(adminClient);
 
-        // create attributes using direct API
-        const attributeFieldsMap: Record<string, any> = {};
-
-        const departmentField = await adminClient.createCustomProfileAttributeField({
-            name: 'Department',
-            type: 'text',
-            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 0},
-        } as any);
-        attributeFieldsMap[departmentField.id] = departmentField;
-
-        const officeField = await adminClient.createCustomProfileAttributeField({
-            name: 'Office',
-            type: 'text',
-            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 1},
-        } as any);
-        attributeFieldsMap[officeField.id] = officeField;
+        // Ensure the Department/Office fields exist with the attrs this test needs,
+        // reusing them in place rather than deleting and recreating system-wide fields.
+        const attributeFieldsMap = await ensureManagedDepartmentAndOfficeFields(adminClient);
 
         // Wait for attributes to be indexed
         await new Promise((resolve) => setTimeout(resolve, 2000));
