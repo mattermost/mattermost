@@ -190,6 +190,7 @@ export default function RewriteMenu({
             menuButton={{
                 id: 'rewrite-button',
                 as: 'div',
+                wrapsControl: true,
                 children: (
                     <IconContainer
                         id='rewrite'

@@ -142,6 +142,7 @@ const AIActionsMenu = ({
                 menuButton={{
                     id: 'ai-actions-button',
                     as: 'div',
+                    wrapsControl: true,
                     children: (
                         <IconContainer
                             id='aiActionsMenu'

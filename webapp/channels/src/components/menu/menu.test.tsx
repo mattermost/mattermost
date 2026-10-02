@@ -267,6 +267,64 @@ function OtherMenuItem(props: any) {
     );
 }
 
+describe('Menu with a div trigger', () => {
+    function renderDivTriggerMenu(wrapsControl: boolean) {
+        renderWithContext(
+            <Menu
+                menu={{
+                    id: 'Menu',
+                }}
+                menuButton={{
+                    id: 'Menu-Button',
+                    'aria-label': 'Open the menu',
+                    as: 'div',
+                    wrapsControl,
+                    children: wrapsControl ? (
+                        <button
+                            type='button'
+                            aria-label='Wrapped control'
+                        >
+                            <DotsVerticalIcon size={16}/>
+                        </button>
+                    ) : <DotsVerticalIcon size={16}/>,
+                }}
+            >
+                <MenuItem labels={<span>{'Menu item'}</span>}/>
+            </Menu>,
+        );
+    }
+
+    test('is itself a button that opens the menu from the keyboard', async () => {
+        renderDivTriggerMenu(false);
+
+        const trigger = screen.getByRole('button', {name: 'Open the menu'});
+        expect(trigger.tagName).toBe('DIV');
+
+        await userEvent.tab();
+        expect(trigger).toHaveFocus();
+
+        await userEvent.keyboard('{enter}');
+        expect(screen.getByText('Menu item')).toBeInTheDocument();
+    });
+
+    test('stays a plain wrapper around the control it wraps, which opens the menu', async () => {
+        renderDivTriggerMenu(true);
+
+        // Only the wrapped control is a button and a tab stop.
+        expect(screen.getAllByRole('button')).toHaveLength(1);
+        const control = screen.getByRole('button', {name: 'Wrapped control'});
+        const wrapper = document.getElementById('Menu-Button');
+        expect(wrapper).not.toHaveAttribute('role');
+        expect(wrapper).not.toHaveAttribute('tabindex');
+
+        await userEvent.tab();
+        expect(control).toHaveFocus();
+
+        await userEvent.keyboard('{enter}');
+        expect(screen.getByText('Menu item')).toBeInTheDocument();
+    });
+});
+
 /**
  * In mobile view the menu renders as a modal with no MenuContext, so it can only dismiss
  * once the click bubbles up to the list wrapping the menu items. Items that opt out of

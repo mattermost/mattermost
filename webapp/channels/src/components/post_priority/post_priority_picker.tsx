@@ -239,6 +239,7 @@ function PostPriorityPicker({
             menuButton={{
                 id: 'messagePriority',
                 as: 'div',
+                wrapsControl: true,
                 children: (
                     <IconContainer
                         id='messagePriority'

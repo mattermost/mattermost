@@ -47,6 +47,13 @@ type MenuButtonProps = {
     disabled?: boolean;
     class?: string;
     as?: 'button' | 'div';
+
+    /**
+     * For a div trigger whose children render their own button or input. That
+     * control takes focus and its click reaches the trigger, so the div stays
+     * a plain wrapper instead of becoming a second, nested button.
+     */
+    wrapsControl?: boolean;
     children: ReactNode;
 
     /**
@@ -291,10 +298,10 @@ export function Menu(props: Props) {
     // We construct the menu button so we can set onClick correctly here to support both web and mobile view
     function renderMenuButton() {
         const MenuButtonComponent = props.menuButton?.as ?? 'button';
-        const isDivTrigger = MenuButtonComponent === 'div';
+        const isDivControl = MenuButtonComponent === 'div' && !props.menuButton.wrapsControl;
         const isDisabled = props.menuButton?.disabled ?? false;
         let divTabIndex: number | undefined;
-        if (isDivTrigger) {
+        if (isDivControl) {
             divTabIndex = isDisabled ? -1 : 0;
         }
 
@@ -309,16 +316,16 @@ export function Menu(props: Props) {
 
                 // Native <button> uses disabled. Div triggers are not form
                 // controls, so they expose aria-disabled for AT instead.
-                disabled={isDivTrigger ? undefined : isDisabled}
-                aria-disabled={isDivTrigger ? isDisabled : undefined}
-                role={isDivTrigger ? 'button' : undefined}
+                disabled={MenuButtonComponent === 'button' ? isDisabled : undefined}
+                aria-disabled={isDivControl ? isDisabled : undefined}
+                role={isDivControl ? 'button' : undefined}
                 tabIndex={divTabIndex}
                 aria-label={props.menuButton?.['aria-label']}
                 aria-describedby={props.menuButton?.['aria-describedby']}
                 className={props.menuButton?.class ?? ''}
                 onMouseDown={props.menuButton?.onMouseDown}
                 onClick={isDisabled ? undefined : handleMenuButtonClick}
-                onKeyDown={isDivTrigger && !isDisabled ? handleMenuButtonKeyDown : undefined}
+                onKeyDown={isDivControl && !isDisabled ? handleMenuButtonKeyDown : undefined}
             >
                 {props.menuButton.children}
             </MenuButtonComponent>

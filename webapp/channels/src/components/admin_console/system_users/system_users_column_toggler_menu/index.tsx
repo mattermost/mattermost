@@ -111,6 +111,7 @@ export function SystemUsersColumnTogglerMenu(props: Props) {
                             'Open menu to select columns to display',
                     }),
                     as: 'div',
+                    wrapsControl: true,
                     children: (
                         <Input
                             label={formatMessage({
