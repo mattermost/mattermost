@@ -7,7 +7,6 @@ import {
     createChannelWithManagedCategory,
     enableManagedCategories,
     setupManagedCategoriesTest,
-    skipIfNoEnterpriseLicense,
 } from './managed_categories_helpers';
 
 test.describe('Managed Channel Categories', () => {
@@ -19,7 +18,7 @@ test.describe('Managed Channel Categories', () => {
 
         // # Initialize setup and create two channels with the same managed category
         const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
-        await skipIfNoEnterpriseLicense(adminClient);
+        await pw.skipIfNoLicense();
         await enableManagedCategories();
         await adminClient.addToTeam(team.id, adminUser.id);
 
@@ -75,7 +74,7 @@ test.describe('Managed Channel Categories', () => {
 
         // # Initialize setup and create a channel with a managed category
         const {adminUser, adminClient, team} = await setupManagedCategoriesTest(pw);
-        await skipIfNoEnterpriseLicense(adminClient);
+        await pw.skipIfNoLicense();
         await enableManagedCategories();
         await adminClient.addToTeam(team.id, adminUser.id);
 
@@ -111,7 +110,7 @@ test.describe('Managed Channel Categories', () => {
 
         // # Initialize setup and create a channel with a managed category
         const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
-        await skipIfNoEnterpriseLicense(adminClient);
+        await pw.skipIfNoLicense();
         await enableManagedCategories();
         await adminClient.addToTeam(team.id, adminUser.id);
 

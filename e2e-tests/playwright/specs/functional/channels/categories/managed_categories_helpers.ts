@@ -3,7 +3,7 @@
 
 import type {Locator} from '@playwright/test';
 
-import {getRandomId, test} from '@mattermost/playwright-lib';
+import {getRandomId} from '@mattermost/playwright-lib';
 
 // The managed-category field and the default-category field both render via the
 // shared CategorySelector component (classNamePrefix='CategorySelector' — there is
@@ -13,15 +13,6 @@ import {getRandomId, test} from '@mattermost/playwright-lib';
 // default-category selector is present.
 export function managedCategorySelectorWrapper(container: Locator): Locator {
     return container.locator('.CategorySelector').last();
-}
-
-export async function skipIfNoEnterpriseLicense(adminClient: any) {
-    const license = await adminClient.getClientLicenseOld();
-    const enterpriseSkus = ['enterprise', 'advanced', 'entry'];
-    test.skip(
-        license.IsLicensed !== 'true' || !enterpriseSkus.includes(license.SkuShortName),
-        'Skipping test - server does not have an enterprise license',
-    );
 }
 
 // Managed categories are gated solely by FeatureFlags.ManagedChannelCategories
