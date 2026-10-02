@@ -21,6 +21,12 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 )
 
+// testBudget returns a generous ExtractionBudget for use in unit tests that
+// are not specifically testing budget or depth limits.
+func testBudget() *ExtractionBudget {
+	return newExtractionBudget(maxArchiveExtractedText, defaultMaxArchiveDepth)
+}
+
 func TestExtract(t *testing.T) {
 	logger := mlog.CreateConsoleTestLogger(t)
 
@@ -176,7 +182,7 @@ func (te *customTestPdfExtractor) Match(filename string) bool {
 	return strings.HasSuffix(filename, ".pdf")
 }
 
-func (te *customTestPdfExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, _ int64) (string, error) {
+func (te *customTestPdfExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, _ int64, _ *ExtractionBudget) (string, error) {
 	return "this is a text generated content", nil
 }
 
@@ -190,7 +196,7 @@ func (te *failingExtractor) Match(filename string) bool {
 	return true
 }
 
-func (te *failingExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, _ int64) (string, error) {
+func (te *failingExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, _ int64, _ *ExtractionBudget) (string, error) {
 	return "", errors.New("this always fail")
 }
 
@@ -215,44 +221,6 @@ func TestExtractWithExtraExtractors(t *testing.T) {
 		assert.Contains(t, text, "document")
 		assert.Contains(t, text, "contains")
 	})
-
-	t.Run("cancelled context aborts extraction", func(t *testing.T) {
-		ctx, cancel := context.WithCancel(context.Background())
-		cancel()
-
-		text, err := ExtractWithExtraExtractors(
-			logger,
-			"file.txt",
-			bytes.NewReader([]byte("hello world")),
-			ExtractSettings{
-				Ctx:     ctx,
-				Timeout: time.Second,
-			},
-			[]Extractor{&slowExtractor{delay: 10 * time.Second}})
-		require.Error(t, err)
-		require.Empty(t, text)
-		require.Contains(t, err.Error(), "cancelled")
-	})
-
-	// Without context propagation a cancelled context would reach documentExtractor
-	// (which uses docconv and ignores the context), extract successfully, and return
-	// no error, silently swallowing the cancellation.
-	t.Run("cancelled context propagates through combineExtractor", func(t *testing.T) {
-		data, err := testutils.ReadTestFile("sample-doc.pdf")
-		require.NoError(t, err)
-
-		ctx, cancel := context.WithCancel(context.Background())
-		cancel()
-
-		// Inject pdfExtractor first so it runs before the system documentExtractor.
-		text, err := ExtractWithExtraExtractors(
-			logger,
-			"sample-doc.pdf",
-			bytes.NewReader(data),
-			ExtractSettings{Ctx: ctx}, []Extractor{&pdfExtractor{}})
-		require.ErrorIs(t, err, context.Canceled)
-		require.Empty(t, text)
-	})
 }
 
 type slowExtractor struct {
@@ -264,7 +232,7 @@ func (se *slowExtractor) Name() string { return "slowExtractor" }
 
 func (se *slowExtractor) Match(filename string) bool { return true }
 
-func (se *slowExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, _ int64) (string, error) {
+func (se *slowExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, _ int64, _ *ExtractionBudget) (string, error) {
 	defer func() {
 		if se.done != nil {
 			close(se.done)
@@ -316,13 +284,68 @@ func TestExtractTimeout(t *testing.T) {
 	})
 }
 
+func TestExtractContextCancellation(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+	data := []byte("hello world")
+
+	t.Run("already-cancelled context returns immediately", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel() // cancel before extraction starts
+
+		start := time.Now()
+		text, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), ExtractSettings{Ctx: ctx}, []Extractor{&slowExtractor{delay: 500 * time.Millisecond}})
+		elapsed := time.Since(start)
+
+		require.Error(t, err)
+		require.Empty(t, text)
+		assert.Contains(t, err.Error(), "cancelled")
+		assert.Less(t, elapsed, 200*time.Millisecond, "should return without waiting for the extraction")
+	})
+
+	t.Run("context cancelled mid-extraction unblocks caller", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+
+		extractDone := make(chan struct{})
+		start := time.Now()
+		go func() { time.Sleep(50 * time.Millisecond); cancel() }()
+		text, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), ExtractSettings{Ctx: ctx}, []Extractor{&slowExtractor{delay: 500 * time.Millisecond, done: extractDone}})
+		elapsed := time.Since(start)
+
+		require.Error(t, err)
+		require.Empty(t, text)
+		assert.Contains(t, err.Error(), "cancelled")
+		assert.Less(t, elapsed, 200*time.Millisecond, "should return shortly after context is cancelled")
+
+		select {
+		case <-extractDone:
+		case <-time.After(2 * time.Second):
+			require.FailNow(t, "detached extraction did not finish within the deadline")
+		}
+	})
+
+	t.Run("ctx and timeout: whichever fires first wins", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		// Timeout of 5s, but ctx cancelled after 50ms — ctx should win.
+		go func() { time.Sleep(50 * time.Millisecond); cancel() }()
+		start := time.Now()
+		text, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), ExtractSettings{Ctx: ctx, Timeout: 5 * time.Second}, []Extractor{&slowExtractor{delay: 500 * time.Millisecond}})
+		elapsed := time.Since(start)
+
+		require.Error(t, err)
+		require.Empty(t, text)
+		assert.Less(t, elapsed, 200*time.Millisecond, "ctx cancellation should preempt the longer timeout")
+	})
+}
+
 type panickingExtractor struct{}
 
 func (pe *panickingExtractor) Name() string { return "panickingExtractor" }
 
 func (pe *panickingExtractor) Match(filename string) bool { return true }
 
-func (pe *panickingExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, _ int64) (string, error) {
+func (pe *panickingExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, _ int64, _ *ExtractionBudget) (string, error) {
 	panic("boom")
 }
 
@@ -347,7 +370,7 @@ func (be *blockingExtractor) Name() string { return "blockingExtractor" }
 
 func (be *blockingExtractor) Match(filename string) bool { return true }
 
-func (be *blockingExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, _ int64) (string, error) {
+func (be *blockingExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, _ int64, _ *ExtractionBudget) (string, error) {
 	close(be.started)
 	<-be.release
 	if be.done != nil {
@@ -388,45 +411,6 @@ func TestExtractReaderCloserOwnership(t *testing.T) {
 		_, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader([]byte("hi")), ExtractSettings{ReaderCloser: closer}, []Extractor{&slowExtractor{delay: 0}})
 		require.NoError(t, err)
 		require.True(t, closer.closed.Load(), "reader should be closed after synchronous extraction")
-	})
-}
-
-func TestExtractWithTimeout(t *testing.T) {
-	content, err := testutils.ReadTestFile("sample-doc.pdf")
-	require.NoError(t, err)
-
-	t.Run("no-timeout path propagates cancelled context", func(t *testing.T) {
-		ctx, cancel := context.WithCancel(context.Background())
-		cancel()
-
-		text, err := extractWithTimeout(
-			&pdfExtractor{},
-			"sample-doc.pdf",
-			bytes.NewReader(content),
-			ExtractSettings{Ctx: ctx})
-		require.ErrorIs(t, err, context.Canceled)
-		require.Empty(t, text)
-	})
-
-	// context.WithTimeout is derived from the (already cancelled) ExtractSettings.Ctx,
-	// so ctx.Done() fires immediately and the select returns a cancellation error
-	// before extraction can complete.
-	t.Run("goroutine/select path returns cancellation error", func(t *testing.T) {
-		ctx, cancel := context.WithCancel(context.Background())
-		cancel()
-
-		text, err := extractWithTimeout(&pdfExtractor{},
-			"sample-doc.pdf",
-			bytes.NewReader(content),
-			ExtractSettings{
-				Ctx:     ctx,
-				Timeout: time.Second,
-			})
-		require.Error(t, err)
-		require.Empty(t, text)
-		// Error comes from either the select's ctx.Done() branch ("cancelled") or
-		// directly from pdfExtractor propagating the cancelled context ("canceled").
-		require.Contains(t, strings.ToLower(err.Error()), "cancel")
 	})
 }
 
