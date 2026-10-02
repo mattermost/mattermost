@@ -61,6 +61,9 @@ on:
         required: false
       CWS_EXTRA_HTTP_HEADERS:
         required: false
+      ANTHROPIC_API_KEY:
+        description: "Optional; enables the second judge in E2E triage"
+        required: false
 
 permissions: {}
 
@@ -209,3 +212,4 @@ jobs:
       REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
       CWS_URL: ${{ secrets.CWS_URL }}
       CWS_EXTRA_HTTP_HEADERS: ${{ secrets.CWS_EXTRA_HTTP_HEADERS }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
