@@ -197,9 +197,11 @@ test.describe('System Console - Admin User Profile Editing', () => {
         for (const attr of testUserAttributes) {
             const field = refreshedFields.find((f) => f.name === attr.name);
             if (field?.attrs?.access_mode === 'source_only') {
-                await adminClient.patchCustomProfileAttributeField(field.id, {
-                    attrs: {...field.attrs, access_mode: ''},
-                } as any);
+                // The property field API, since the user attributes API refuses a field linked to a
+                // Global Attribute, as every user attribute of a server upgraded to v12 is.
+                await adminClient.patchPropertyField('access_control', 'user', field.id, {
+                    attrs: {access_mode: ''},
+                });
             }
         }
 

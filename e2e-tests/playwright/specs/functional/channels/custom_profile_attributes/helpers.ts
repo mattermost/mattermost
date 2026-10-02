@@ -316,21 +316,13 @@ export async function updateCustomProfileAttributeVisibility(
 ): Promise<void> {
     const fieldID = getFieldIdByName(fieldsMap, attributeName);
 
-    try {
-        // Update the visibility property
-        const updatedField = await adminClient.patchCustomProfileAttributeField(fieldID, {
-            // @ts-expect-error The type definition requires more properties than we need to set
-            attrs: {
-                visibility,
-            },
-        });
-
-        // Update the fieldsMap with the updated field
-        fieldsMap[updatedField.id] = updatedField;
-    } catch (error) {
-        // eslint-disable-next-line no-console
-        console.log(`Failed to update visibility for attribute ${attributeName}:`, error);
-    }
+    // Patched through the property field API, which merges attrs, rather than the user attributes
+    // API: that one refuses a field linked to a Global Attribute, which every user attribute of a
+    // server upgraded to v12 is.
+    const updatedField = await adminClient.patchPropertyField('access_control', 'user', fieldID, {
+        attrs: {visibility},
+    });
+    fieldsMap[updatedField.id] = updatedField as UserPropertyField;
 }
 
 /**

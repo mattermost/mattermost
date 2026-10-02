@@ -326,40 +326,17 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         const {adminUser, adminClient, team} = await pw.initSetup();
 
-        // Delete ALL existing custom attributes to start fresh
-        try {
-            const existingFields = await adminClient.getCustomProfileAttributeFields();
-            for (const field of existingFields) {
-                try {
-                    await adminClient.deleteCustomProfileAttributeField(field.id);
-                } catch {
-                    // Ignore deletion errors
-                }
-            }
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-        } catch {
-            // Ignore if no fields exist
-        }
-
         // Enable user-managed attributes FIRST (same pattern as MM-T5783)
         await enableUserManagedAttributes(adminClient);
 
-        // create attributes using direct API
-        const attributeFieldsMap: Record<string, any> = {};
-
-        const departmentField = await adminClient.createCustomProfileAttributeField({
-            name: 'Department',
-            type: 'text',
-            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 0},
-        } as any);
-        attributeFieldsMap[departmentField.id] = departmentField;
-
-        const officeField = await adminClient.createCustomProfileAttributeField({
-            name: 'Office',
-            type: 'text',
-            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 1},
-        } as any);
-        attributeFieldsMap[officeField.id] = officeField;
+        // Reuse Department and Office if they already exist rather than deleting every attribute
+        // and recreating them: that would pull fields out from under specs running in parallel,
+        // and on an upgraded server Department is linked to a Global Attribute, so it can't be
+        // deleted or recreated through the user attributes API.
+        const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, [
+            {name: 'Department', type: 'text', value: ''},
+            {name: 'Office', type: 'text', value: ''},
+        ]);
 
         // Wait for attributes to be indexed
         await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -587,40 +564,17 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         const {adminUser, adminClient, team} = await pw.initSetup();
 
-        // Delete ALL existing custom attributes to start fresh
-        try {
-            const existingFields = await adminClient.getCustomProfileAttributeFields();
-            for (const field of existingFields) {
-                try {
-                    await adminClient.deleteCustomProfileAttributeField(field.id);
-                } catch {
-                    // Ignore deletion errors
-                }
-            }
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-        } catch {
-            // Ignore if no fields exist
-        }
-
         // Enable user-managed attributes FIRST (same pattern as MM-T5783)
         await enableUserManagedAttributes(adminClient);
 
-        // create attributes using direct API
-        const attributeFieldsMap: Record<string, any> = {};
-
-        const departmentField = await adminClient.createCustomProfileAttributeField({
-            name: 'Department',
-            type: 'text',
-            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 0},
-        } as any);
-        attributeFieldsMap[departmentField.id] = departmentField;
-
-        const officeField = await adminClient.createCustomProfileAttributeField({
-            name: 'Office',
-            type: 'text',
-            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 1},
-        } as any);
-        attributeFieldsMap[officeField.id] = officeField;
+        // Reuse Department and Office if they already exist rather than deleting every attribute
+        // and recreating them: that would pull fields out from under specs running in parallel,
+        // and on an upgraded server Department is linked to a Global Attribute, so it can't be
+        // deleted or recreated through the user attributes API.
+        const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, [
+            {name: 'Department', type: 'text', value: ''},
+            {name: 'Office', type: 'text', value: ''},
+        ]);
 
         // Wait for attributes to be indexed
         await new Promise((resolve) => setTimeout(resolve, 2000));
