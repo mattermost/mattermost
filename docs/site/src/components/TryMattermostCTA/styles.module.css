@@ -1,0 +1,30 @@
+.wrap {
+  margin: 1.25rem 0 1.75rem;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.7rem 1.25rem;
+  border-radius: 4px;
+  background: var(--mm-color-marigold, #ffbc1f);
+  color: var(--mm-color-denim, #1e325c) !important;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none !important;
+  border: 1px solid transparent;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.button:hover {
+  background: #ffd060;
+  color: var(--mm-color-denim, #1e325c) !important;
+  text-decoration: none !important;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--mm-color-denim, #1e325c);
+  outline-offset: 2px;
+}
