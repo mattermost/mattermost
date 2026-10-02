@@ -75,6 +75,7 @@ const (
 	DraftWillBeUpsertedID                     = 55
 	MessagesWillBeConsumedWithContextID       = 56
 	OnLicenseChangedID                        = 57
+	UserRolesHaveBeenUpdatedID                = 58
 	TotalHooksID                              = iota
 )
 
@@ -533,4 +534,14 @@ type Hooks interface {
 	//
 	// Minimum server version: 11.9
 	DraftWillBeUpserted(c *Context, draft *model.Draft) (*model.Draft, string)
+
+	// UserRolesHaveBeenUpdated is invoked after a user's system roles have changed, including
+	// promotion of a guest to member and demotion of a member to guest. previousRoles holds the
+	// space separated roles the user had before the change.
+	//
+	// A role change revokes the user's sessions, so a plugin that only observes logins cannot
+	// see a role change that is reverted before the user logs in again.
+	//
+	// Minimum server version: 12.0
+	UserRolesHaveBeenUpdated(c *Context, user *model.User, previousRoles string)
 }
