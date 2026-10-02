@@ -2240,11 +2240,11 @@
     "translation": "Bezpečnostní zpravodaj Mattermostu"
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Nepodařilo se načíst kanály."
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Nelze zpracovat URL."
   },
   {
@@ -3362,15 +3362,15 @@
     "translation": "Odchozí webhooky byly zakázány systémovým administrátorem."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Tento registrační odkaz není platný."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Platnost odkazu na registraci vypršela."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Registrace uživatele je zakázána."
   },
   {
@@ -7941,7 +7941,7 @@
     "translation": "Chcete změnit nastavení upozornění?"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Nepodařilo se získat prioritu příspěvku"
   },
   {
@@ -8469,7 +8469,7 @@
     "translation": "Narazili jsme na chybu při mazání předvoleb."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Verzi předinstalovaného pluginu se nepodařilo analyzovat."
   },
   {
@@ -12697,7 +12697,7 @@
     "translation": "Nepodařilo se trvale smazat data priority příspěvku z databáze."
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Nelze načíst prioritu příspěvku s kontextem"
   },
   {

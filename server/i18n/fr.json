@@ -1212,15 +1212,15 @@
     "translation": "Une erreur s'est produite lors de la récupération du jeton d'accès de la base de données avant suppression"
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "L'inscription utilisateur est désactivée."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Le lien d'inscription a expiré."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Le lien d'inscription semble ne pas être valide."
   },
   {
@@ -3016,11 +3016,11 @@
     "translation": "Impossible de définir le statut de la tâche sur erreur"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Impossible d'interpréter l'URL"
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Impossible d'obtenir les canaux"
   },
   {
@@ -7475,7 +7475,7 @@
     "translation": "Le nombre d'ID de poste reçu a dépassé la taille maximale de {{.MaxLength}}"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "La version du plugin pré-packagé n'a pas pu être traitée."
   },
   {
@@ -11084,11 +11084,11 @@
     "translation": "Échec de la suppression définitive des données de priorité du message dans la base de données."
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Impossible de récupérer la priorité du message"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Impossible de récupérer la priorité du message avec le contexte"
   },
   {

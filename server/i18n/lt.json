@@ -2947,15 +2947,15 @@
     "translation": "Klaida gaunant prieigos raktą iš DB prieš trinant."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Naudotojų registracija išjungta."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Registracijos nuoroda nebegalioja."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Registracijos nuoroda atrodo netinkama."
   },
   {
@@ -8747,11 +8747,11 @@
     "translation": "Nepavyko ištrinti nuolatinio pranešimo įrašo"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Nepavyksta gauti pranešimo prioriteto"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Nepavyksta gauti pranešimo prioriteto su kontekstu"
   },
   {
@@ -8783,7 +8783,7 @@
     "translation": "Atnaujinant nuostatas įvyko klaida."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Nepavyko išanalizuoti iš anksto supakuoto papildinio versijos."
   },
   {
@@ -11481,11 +11481,11 @@
     "translation": "Funkcija {{.Feature}} nepasiekiama su dabartine licencija"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Nepavyksta išanalizuoti URL."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Nepavyksta gauti kanalų."
   },
   {

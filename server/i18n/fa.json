@@ -1496,11 +1496,11 @@
     "translation": "بولتن امنیتی Mattermost"
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "دریافت کانال امکان پذیر نیست."
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "تجزیه URL امکان پذیر نیست."
   },
   {
@@ -5610,15 +5610,15 @@
     "translation": "وب بوک های خروجی توسط مدیر سیستم غیرفعال شده اند."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "به نظر نمی رسد پیوند ثبت نام معتبر باشد."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "پیوند ثبت نام منقضی شده است."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "ثبت نام کاربر غیرفعال است."
   },
   {
@@ -11301,11 +11301,11 @@
     "translation": "حذف پست اعلان مداوم ناموفق بود"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "دریافت اولویت پست برای پست امکان‌پذیر نیست"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "دریافت اولویت پست برای پست همراه با زمینه امکان‌پذیر نیست"
   },
   {
@@ -11313,7 +11313,7 @@
     "translation": "سلام، این یادآور شما درباره این پیام از @{{.Username}} است: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "نسخه افزونه ازپیش‌بسته‌بندی‌شده قابل تجزیه نیست."
   },
   {

@@ -139,7 +139,7 @@ export default class GroupTeamsAndChannels extends React.PureComponent<
                 <div className='group-teams-and-channels'>
                     <div className='group-teams-and-channels-empty'>
                         <FormattedMessage
-                            id='admin.group_settings.group_details.group_teams_and_channels.no-teams-or-channels-speicified'
+                            id='admin.group_settings.group_details.group_teams_and_channels.no-teams-or-channels-specified'
                             defaultMessage='No teams or channels specified yet'
                         />
                     </div>

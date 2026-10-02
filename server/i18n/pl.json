@@ -1224,15 +1224,15 @@
     "translation": "Błąd podczas pobierania tokenu dostępu z bazy danych przed jego usunieciem."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Rejestracja użytkowników jest wyłączona."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Łącze rejestracji wygasło."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Łącze rejestracji wydaje się być niepoprawne."
   },
   {
@@ -3092,11 +3092,11 @@
     "translation": "Nie udało się ustawić statusu zadania na błąd"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Nie można przetworzyć adresu URL."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Nie można pobrać kanałów."
   },
   {
@@ -8012,7 +8012,7 @@
     "translation": "Rozmiar partii indeksowania zbiorczego wyszukiwania musi wynosić co najmniej {{.BatchSize}}."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Przygotowana wersja wtyczki nie może być przetworzona."
   },
   {
@@ -8264,7 +8264,7 @@
     "translation": "Nieprawidłowy identyfikator posta."
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Nie można uzyskać priorytetu dla posta"
   },
   {
@@ -11368,7 +11368,7 @@
     "translation": "Pobieranie plików publicznych odrzucone przez wtyczkę"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Nie można uzyskać priorytetu postu z kontekstem"
   },
   {

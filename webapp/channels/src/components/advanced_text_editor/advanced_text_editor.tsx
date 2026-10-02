@@ -812,7 +812,7 @@ const AdvancedTextEditor = ({
     let loginSuccessfulLabel;
     if (!wasNotifiedOfLogIn) {
         loginSuccessfulLabel = formatMessage({
-            id: 'channelView.login.successfull',
+            id: 'channelView.login.successful',
             defaultMessage: 'Login Successful',
         });
 
@@ -934,7 +934,7 @@ const AdvancedTextEditor = ({
                         className='sr-only'
                     >
                         <FormattedMessage
-                            id='channelView.login.successfull'
+                            id='channelView.login.successful'
                             defaultMessage='Login Successful'
                         />
                     </div>

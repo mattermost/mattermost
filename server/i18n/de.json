@@ -1245,15 +1245,15 @@
     "translation": "Beim Abruf des Zugriffstokens, vor der Löschung aus der Datenbank, ist ein Fehler aufgetreten."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Benutzerregistrierung ist deaktiviert."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Der Registrierungslink ist abgelaufen."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Der Einladungslink scheint nicht gültig zu sein."
   },
   {
@@ -3127,11 +3127,11 @@
     "translation": "Konnte Job-Status nicht auf fehlerhaft setzen"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Verarbeiten der URL nicht möglich."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Konnte die Kanäle nicht abrufen."
   },
   {
@@ -8042,7 +8042,7 @@
     "translation": "Fehler beim Senden der Email"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Die vorgepackte Plugin-Version konnte nicht geparst werden."
   },
   {
@@ -8286,7 +8286,7 @@
     "translation": "Ungültige Nachrichten-ID."
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Die Priorität der Nachricht kann nicht ermittelt werden"
   },
   {
@@ -11408,7 +11408,7 @@
     "translation": "Öffentlicher Datei Download durch Plugin abgelehnt"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Nachrichtenpriorität für Beitrag mit Kontext kann nicht abgerufen werden"
   },
   {

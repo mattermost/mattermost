@@ -3694,17 +3694,17 @@
     "description": "Internal error when loading an OAuth access token from the database prior to revoking it fails."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "User sign-up is disabled.",
     "description": "API error when a user tries to create an account through an OAuth provider while account creation is disabled on the server."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "The signup link has expired.",
     "description": "API error shown when a user opens an OAuth signup link whose token has expired."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "The signup link does not appear to be valid.",
     "description": "API error shown when a user opens a malformed or tampered OAuth signup link."
   },
@@ -10946,12 +10946,12 @@
     "description": "Internal error when removing a post's persistent-notification tracking record fails; log-facing."
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Unable to get postpriority for post",
     "description": "Internal error when loading a post's priority metadata fails; developer/log-facing."
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Unable to get postpriority for post with context",
     "description": "Internal error when loading a post's priority metadata (with request context) fails; developer/log-facing."
   },
@@ -10991,7 +10991,7 @@
     "description": "API error shown to end users when saving their preferences (settings) to the database fails."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Prepackaged plugin version could not be parsed.",
     "description": "Internal/log error when the version of a plugin prepackaged with the server cannot be parsed."
   },
@@ -14447,12 +14447,12 @@
     "description": "API error shown when using a feature not covered by the server's license; {{.Feature}} is the English feature name (e.g. 'Channel Banner') inserted at runtime."
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Unable to parse URL.",
     "description": "Error from an internal manual-testing endpoint when the test request URL cannot be parsed; developer-facing only."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Unable to get channels.",
     "description": "Error from an internal manual-testing endpoint when it cannot fetch the channel list; developer-facing only, 'channels' are chat channels."
   },
