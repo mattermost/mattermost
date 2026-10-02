@@ -56,8 +56,7 @@ const AddMembersButton: React.FC<AddMembersButtonProps> = ({totalUsers, usersLim
     );
 };
 
-// Plugin buttons are deliberately omitted here: while the workspace is below the user limit, the
-// invite call to action is the only button shown in the channel intro.
+// Below the users limit, the invite button replaces every other intro button, plugin ones included.
 const LessThanMaxFreeUsers = () => {
     const {formatMessage} = useIntl();
 

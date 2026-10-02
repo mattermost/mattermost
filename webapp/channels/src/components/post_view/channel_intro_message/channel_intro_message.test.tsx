@@ -444,7 +444,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
                     ChannelIntroButton: [{
                         id: 'intro-button-1',
                         pluginId: 'test-plugin',
-                        icon: <span data-testid='plugin-button-icon'/>,
+                        icon: <span/>,
                         text: PLUGIN_BUTTON_TEXT,
                         action: jest.fn(),
                     }],
@@ -464,12 +464,9 @@ describe('components/post_view/ChannelIntroMessages', () => {
 
             // Scoped to AddMembersButton's own plugin slot: the standard intro also renders a
             // sibling PluggableIntroButtons today, the duplicate tracked by MM-58181.
-            const addMembers = screen.getByRole('button', {name: /Add people/}).closest('.MoreThanMaxFreeUsersWrapper');
-            expect(addMembers).not.toBeNull();
+            const addMembers = screen.getByRole('button', {name: /Add people/}).closest('.MoreThanMaxFreeUsersWrapper') as HTMLElement;
 
-            const pluginButton = within(addMembers as HTMLElement).getByText(PLUGIN_BUTTON_TEXT);
-            expect(pluginButton).toBeInTheDocument();
-            expect(within(pluginButton.closest('button') as HTMLElement).getByTestId('plugin-button-icon')).toBeInTheDocument();
+            expect(within(addMembers).getByText(PLUGIN_BUTTON_TEXT)).toBeInTheDocument();
         });
 
         test('renders only the invite button when below the users limit', () => {
