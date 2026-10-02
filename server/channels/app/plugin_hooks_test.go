@@ -7134,8 +7134,12 @@ func TestUserRolesHaveBeenUpdated(t *testing.T) {
 		}
 
 		func (p *MyPlugin) UserRolesHaveBeenUpdated(c *plugin.Context, user *model.User, previousRoles string) {
-			user.Nickname = previousRoles + " -> " + user.Roles
-			p.API.UpdateUser(user)
+			stored, appErr := p.API.GetUser(user.Id)
+			if appErr != nil {
+				return
+			}
+			stored.Nickname = stored.Nickname + "[" + previousRoles + ">" + user.Roles + "]"
+			p.API.UpdateUser(stored)
 		}
 
 		func main() {
@@ -7145,8 +7149,18 @@ func TestUserRolesHaveBeenUpdated(t *testing.T) {
 		}, th.App, th.NewPluginAPI)
 	defer tearDown()
 
-	// The hook plugin records what it observed in the user's nickname, so the assertions
-	// below read back the user and check both that the hook fired and what it was handed.
+	// The hook plugin appends what it observed to the user's nickname, so reading the
+	// nickname back shows that the hook fired, what it was handed, and - because the
+	// plugin appends rather than overwrites - how many times it fired.
+	createUserWithNickname := func(t *testing.T, nickname string, guest bool) *model.User {
+		t.Helper()
+		user := th.CreateUserOrGuest(t, guest)
+		user.Nickname = nickname
+		stored, appErr := th.App.UpdateUser(th.Context, user, false)
+		require.Nil(t, appErr)
+		return stored
+	}
+
 	requireNickname := func(t *testing.T, userID, expected string) {
 		t.Helper()
 		require.EventuallyWithT(t, func(c *assert.CollectT) {
@@ -7158,56 +7172,53 @@ func TestUserRolesHaveBeenUpdated(t *testing.T) {
 		}, 5*time.Second, 100*time.Millisecond)
 	}
 
-	t.Run("fires when a system role is added", func(t *testing.T) {
-		user := th.CreateUser(t)
+	t.Run("fires once when a system role is added", func(t *testing.T) {
+		user := createUserWithNickname(t, "marker", false)
 		require.Equal(t, "system_user", user.Roles)
 
 		_, appErr := th.App.UpdateUserRoles(th.Context, user.Id, "system_user system_admin", false)
 		require.Nil(t, appErr)
 
-		requireNickname(t, user.Id, "system_user -> system_user system_admin")
+		requireNickname(t, user.Id, "marker[system_user>system_user system_admin]")
 	})
 
 	t.Run("does not fire when the roles end up unchanged", func(t *testing.T) {
-		user := th.CreateUser(t)
-		user.Nickname = "not-notified"
-		_, appErr := th.App.UpdateUser(th.Context, user, false)
-		require.Nil(t, appErr)
+		user := createUserWithNickname(t, "marker", false)
 
-		_, appErr = th.App.UpdateUserRoles(th.Context, user.Id, "system_user", false)
+		_, appErr := th.App.UpdateUserRoles(th.Context, user.Id, "system_user", false)
 		require.Nil(t, appErr)
 
 		// Give a hook call time to land before concluding that it never happened.
 		time.Sleep(2 * time.Second)
 		stored, appErr := th.App.GetUser(th.Context, user.Id)
 		require.Nil(t, appErr)
-		require.Equal(t, "not-notified", stored.Nickname)
+		require.Equal(t, "marker", stored.Nickname)
 
 		// A real role change on the same user proves the nickname above was not
 		// preserved simply because the plugin never ran.
 		_, appErr = th.App.UpdateUserRoles(th.Context, user.Id, "system_user system_manager", false)
 		require.Nil(t, appErr)
 
-		requireNickname(t, user.Id, "system_user -> system_user system_manager")
+		requireNickname(t, user.Id, "marker[system_user>system_user system_manager]")
 	})
 
-	t.Run("fires when a member is demoted to guest", func(t *testing.T) {
-		user := th.CreateUser(t)
+	t.Run("fires once when a member is demoted to guest", func(t *testing.T) {
+		user := createUserWithNickname(t, "marker", false)
 		th.LinkUserToTeam(t, user, th.BasicTeam)
 
 		appErr := th.App.DemoteUserToGuest(th.Context, user)
 		require.Nil(t, appErr)
 
-		requireNickname(t, user.Id, "system_user -> system_guest")
+		requireNickname(t, user.Id, "marker[system_user>system_guest]")
 	})
 
-	t.Run("fires when a guest is promoted to member", func(t *testing.T) {
-		user := th.CreateGuest(t)
+	t.Run("fires once when a guest is promoted to member", func(t *testing.T) {
+		user := createUserWithNickname(t, "marker", true)
 		th.LinkUserToTeam(t, user, th.BasicTeam)
 
 		appErr := th.App.PromoteGuestToUser(th.Context, user, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
-		requireNickname(t, user.Id, "system_guest -> system_user")
+		requireNickname(t, user.Id, "marker[system_guest>system_user]")
 	})
 }
