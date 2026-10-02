@@ -690,4 +690,63 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
             }
         });
     });
+
+    test.describe('read-only for non-sysadmin', () => {
+        /**
+         * @objective Ensure a system_manager (non-sysadmin with System Console access) sees
+         * Attribute Management as read-only: New attribute disabled, row menu offers View
+         * instead of Edit, and Delete is disabled. The create/edit page they can still open
+         * is already schema-gated as read-only; this covers the listing that previously
+         * ignored isDisabled.
+         */
+        test('disables New attribute and Delete, and offers View, for a system_manager', async ({pw}) => {
+            const {adminClient} = await requireGlobalAttributesEnabled(pw);
+            const {user: systemManagerUser} = await pw.initSetup();
+
+            const timestamp = Date.now();
+            const name = `e2e_global_attribute_readonly_${timestamp}`;
+            const displayName = `E2E Readonly Attribute ${timestamp}`;
+
+            try {
+                await adminClient.updateUserRoles(systemManagerUser.id, 'system_user system_manager');
+
+                const field = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(systemManagerUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+                await expect(page).toHaveURL(/manage_attributes/);
+
+                // * New attribute is disabled — schema isDisabled wires through the listing
+                await expect(page.getByTestId('newAttributeButton')).toBeDisabled();
+
+                const row = page.locator('tr', {
+                    has: page.getByTestId('global-attribute-name').filter({hasText: displayName}),
+                });
+                await expect(row).toBeVisible();
+
+                // # Open the row actions menu
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+
+                // * View (not Edit) is offered and navigable; Delete stays disabled
+                const viewItem = page.locator(`#global-attribute-actions-${field.id}-edit`);
+                await expect(viewItem).toContainText('View attribute');
+                await expect(viewItem).not.toHaveAttribute('aria-disabled', 'true');
+
+                const deleteItem = page.locator(`#global-attribute-actions-${field.id}-delete`);
+                await expect(deleteItem).toContainText('Delete attribute');
+                await expect(deleteItem).toHaveAttribute('aria-disabled', 'true');
+
+                // # View opens the details page (read-only via the same schema isDisabled)
+                await viewItem.click();
+                await expect(page).toHaveURL(new RegExp(`/attribute_details/${field.id}$`));
+                await expect(page.getByTestId('attributeDisplayNameInput')).toBeDisabled();
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, name);
+            }
+        });
+    });
 });
