@@ -406,7 +406,7 @@ jobs:
         # it to change.
         if: always() && steps.summary.outcome != 'success'
         continue-on-error: true
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-triage@440ae09a9b204a89f4ca5e164ce2724000cfd5c0 # actions/e2e-triage
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-triage@c3170552cc672eae1cb4ea3622c7a7c4cbe3830d # actions/e2e-triage
         with:
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
           status-context: ${{ inputs.context_name }}
