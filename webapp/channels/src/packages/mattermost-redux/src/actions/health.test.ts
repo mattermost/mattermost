@@ -44,26 +44,28 @@ describe('Actions.Health', () => {
         TestHelper.tearDown();
     });
 
-    test('getHealthFindings stores the findings by fingerprint', async () => {
+    test('getHealthFindings stores the findings by fingerprint and the evaluation time', async () => {
+        const list = {evaluated_at: 5000, findings: [finding]};
         nock(Client4.getBaseRoute()).
             get('/health/findings').
-            reply(200, [finding]);
+            reply(200, list);
 
         const result = await store.dispatch(Actions.getHealthFindings());
 
-        expect(result).toEqual({data: [finding]});
+        expect(result).toEqual({data: list});
         expect(store.getState().entities.health.findings).toEqual({[finding.fingerprint]: finding});
+        expect(store.getState().entities.health.evaluatedAt).toBe(5000);
     });
 
     test('getHealthFindings sends the muted filter as a query parameter', async () => {
         nock(Client4.getBaseRoute()).
             get('/health/findings').
             query({muted: 'only'}).
-            reply(200, []);
+            reply(200, {evaluated_at: 5000, findings: []});
 
         const result = await store.dispatch(Actions.getHealthFindings({muted: 'only'}));
 
-        expect(result).toEqual({data: []});
+        expect(result).toEqual({data: {evaluated_at: 5000, findings: []}});
     });
 
     test('getHealthFindings returns the error and keeps the store unchanged on failure', async () => {
@@ -74,6 +76,6 @@ describe('Actions.Health', () => {
         const result = await store.dispatch(Actions.getHealthFindings());
 
         expect(result.error).toBeDefined();
-        expect(store.getState().entities.health.findings).toEqual({});
+        expect(store.getState().entities.health).toEqual({findings: {}, evaluatedAt: 0});
     });
 });

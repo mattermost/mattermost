@@ -30,11 +30,12 @@ function makeFinding(overrides: Partial<HealthFinding> & Pick<HealthFinding, 'fi
     };
 }
 
-function stateWith(findings: HealthFinding[]) {
+function stateWith(findings: HealthFinding[], evaluatedAt = 0) {
     return {
         entities: {
             health: {
                 findings: Object.fromEntries(findings.map((finding) => [finding.fingerprint, finding])),
+                evaluatedAt,
             },
         },
     } as unknown as GlobalState;
@@ -81,8 +82,12 @@ describe('selectors.entities.health', () => {
         expect(getUnknownFindings(state)).toEqual([unknownCritical, unknownWarning]);
     });
 
-    test('getLastEvaluatedAt is the newest last_seen_at, resolved findings included', () => {
-        expect(getLastEvaluatedAt(state)).toBe(1000);
+    test('getLastEvaluatedAt is the stored evaluation time, not derived from the findings', () => {
+        expect(getLastEvaluatedAt(stateWith([resolved], 500))).toBe(500);
         expect(getLastEvaluatedAt(stateWith([]))).toBe(0);
+    });
+
+    test('getLastEvaluatedAt is set when every finding was muted and none were returned', () => {
+        expect(getLastEvaluatedAt(stateWith([], 500))).toBe(500);
     });
 });

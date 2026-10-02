@@ -3,7 +3,7 @@
 
 import {combineReducers} from 'redux';
 
-import type {HealthFinding, HealthState} from '@mattermost/types/health';
+import type {HealthFindingList, HealthState} from '@mattermost/types/health';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {HealthTypes, UserTypes} from 'mattermost-redux/action_types';
@@ -13,7 +13,7 @@ function findings(state: HealthState['findings'] = {}, action: MMReduxAction): H
     switch (action.type) {
     case HealthTypes.RECEIVED_HEALTH_FINDINGS: {
         const next: HealthState['findings'] = {};
-        for (const finding of action.data as HealthFinding[]) {
+        for (const finding of (action.data as HealthFindingList).findings) {
             next[finding.fingerprint] = finding;
         }
         return next;
@@ -25,6 +25,18 @@ function findings(state: HealthState['findings'] = {}, action: MMReduxAction): H
     }
 }
 
+function evaluatedAt(state: HealthState['evaluatedAt'] = 0, action: MMReduxAction): HealthState['evaluatedAt'] {
+    switch (action.type) {
+    case HealthTypes.RECEIVED_HEALTH_FINDINGS:
+        return (action.data as HealthFindingList).evaluated_at;
+    case UserTypes.LOGOUT_SUCCESS:
+        return 0;
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     findings,
+    evaluatedAt,
 });
