@@ -8657,9 +8657,10 @@ func (c *Client4) BurnPost(ctx context.Context, postID string) (*Response, error
 
 // Health Dashboard Section
 
-// GetHealthFindings returns the stored health findings, rendered in the client's locale.
-// Only filter.Muted is sent; the server decides which surfaces are returned.
-func (c *Client4) GetHealthFindings(ctx context.Context, filter HealthFindingFilter) ([]*HealthFinding, *Response, error) {
+// GetHealthFindings returns the stored health findings, rendered in the client's locale, and
+// when the server last evaluated them. Only filter.Muted is sent; the server decides which
+// surfaces are returned.
+func (c *Client4) GetHealthFindings(ctx context.Context, filter HealthFindingFilter) (*HealthFindingList, *Response, error) {
 	query := url.Values{}
 	if filter.Muted != MutedExcluded {
 		query.Set("muted", string(filter.Muted))
@@ -8669,7 +8670,7 @@ func (c *Client4) GetHealthFindings(ctx context.Context, filter HealthFindingFil
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[[]*HealthFinding](r)
+	return DecodeJSONFromResponse[*HealthFindingList](r)
 }
 
 func (c *Client4) MuteHealthFinding(ctx context.Context, fingerprint string) (*Response, error) {

@@ -8,8 +8,9 @@
         `title`, `message` and `remediation` are rendered in the locale of the request's `Accept-Language`
         header, falling back to English. Findings whose rule is no longer registered are left out.
 
-        The server evaluates its health rules once an hour, so a finding can be up to an hour old; each
-        finding's `last_seen_at` is the time it was last evaluated.
+        The server evaluates its health rules once an hour, so a finding can be up to an hour old.
+        `evaluated_at` is when the server last evaluated, whatever the `muted` filter; it is 0 if the
+        server has not evaluated yet.
 
         __Minimum server version__: 12.1
 
@@ -37,9 +38,7 @@
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/HealthFinding"
+                $ref: "#/components/schemas/HealthFindingList"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

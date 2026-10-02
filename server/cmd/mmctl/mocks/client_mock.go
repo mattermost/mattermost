@@ -947,10 +947,10 @@ func (mr *MockClientMockRecorder) GetGroupsByTeam(ctx, teamID, groupOpts any) *g
 }
 
 // GetHealthFindings mocks base method.
-func (m *MockClient) GetHealthFindings(ctx context.Context, filter model.HealthFindingFilter) ([]*model.HealthFinding, *model.Response, error) {
+func (m *MockClient) GetHealthFindings(ctx context.Context, filter model.HealthFindingFilter) (*model.HealthFindingList, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetHealthFindings", ctx, filter)
-	ret0, _ := ret[0].([]*model.HealthFinding)
+	ret0, _ := ret[0].(*model.HealthFindingList)
 	ret1, _ := ret[1].(*model.Response)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2

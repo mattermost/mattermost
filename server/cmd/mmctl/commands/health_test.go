@@ -6,6 +6,7 @@ package commands
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -51,6 +52,10 @@ func healthTestFindings(lastSeen time.Time) []*model.HealthFinding {
 	}
 }
 
+func healthTestList(lastSeen time.Time) *model.HealthFindingList {
+	return &model.HealthFindingList{EvaluatedAt: lastSeen.UnixMilli(), Findings: healthTestFindings(lastSeen)}
+}
+
 func healthTestCommand(includeResolved, includeMuted bool) *cobra.Command {
 	cmd := &cobra.Command{}
 	cmd.Flags().Bool("include-resolved", includeResolved, "")
@@ -75,7 +80,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckCmd() {
 		s.client.
 			EXPECT().
 			GetHealthFindings(context.TODO(), model.HealthFindingFilter{}).
-			Return(healthTestFindings(lastSeen), &model.Response{}, nil).
+			Return(healthTestList(lastSeen), &model.Response{}, nil).
 			Times(1)
 
 		err := healthCheckCmdF(s.client, healthTestCommand(false, false), []string{})
@@ -95,7 +100,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckCmd() {
 		s.client.
 			EXPECT().
 			GetHealthFindings(context.TODO(), model.HealthFindingFilter{}).
-			Return(healthTestFindings(lastSeen), &model.Response{}, nil).
+			Return(healthTestList(lastSeen), &model.Response{}, nil).
 			Times(1)
 
 		err := healthCheckCmdF(s.client, healthTestCommand(true, false), []string{})
@@ -114,7 +119,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckCmd() {
 		s.client.
 			EXPECT().
 			GetHealthFindings(context.TODO(), model.HealthFindingFilter{Muted: model.MutedIncluded}).
-			Return([]*model.HealthFinding{}, &model.Response{}, nil).
+			Return(&model.HealthFindingList{Findings: []*model.HealthFinding{}}, &model.Response{}, nil).
 			Times(1)
 
 		err := healthCheckCmdF(s.client, healthTestCommand(false, true), []string{})
@@ -124,37 +129,56 @@ func (s *MmctlUnitTestSuite) TestHealthCheckCmd() {
 	s.Run("--json prints the same rows as the table", func() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatJSON)
-		findings := healthTestFindings(lastSeen)
+		list := healthTestList(lastSeen)
+		findings := list.Findings
 
 		s.client.
 			EXPECT().
 			GetHealthFindings(context.TODO(), model.HealthFindingFilter{}).
-			Return(findings, &model.Response{}, nil).
+			Return(list, &model.Response{}, nil).
 			Times(1)
 
 		err := healthCheckCmdF(s.client, healthTestCommand(false, false), []string{})
 		s.Require().NoError(err)
 
 		s.Require().Len(printer.GetLines(), 1)
-		s.Equal([]*model.HealthFinding{findings[0], findings[1]}, printer.GetLines()[0])
+		s.Equal(&model.HealthFindingList{EvaluatedAt: lastSeen.UnixMilli(), Findings: []*model.HealthFinding{findings[0], findings[1]}}, printer.GetLines()[0])
 	})
 
 	s.Run("--json with --include-resolved prints every row", func() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatJSON)
-		findings := healthTestFindings(lastSeen)
+		list := healthTestList(lastSeen)
 
 		s.client.
 			EXPECT().
 			GetHealthFindings(context.TODO(), model.HealthFindingFilter{}).
-			Return(findings, &model.Response{}, nil).
+			Return(list, &model.Response{}, nil).
 			Times(1)
 
 		err := healthCheckCmdF(s.client, healthTestCommand(true, false), []string{})
 		s.Require().NoError(err)
 
 		s.Require().Len(printer.GetLines(), 1)
-		s.Equal(findings, printer.GetLines()[0])
+		s.Equal(list, printer.GetLines()[0])
+	})
+
+	s.Run("every finding muted still reports the evaluation", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+
+		s.client.
+			EXPECT().
+			GetHealthFindings(context.TODO(), model.HealthFindingFilter{}).
+			Return(&model.HealthFindingList{EvaluatedAt: lastSeen.UnixMilli(), Findings: []*model.HealthFinding{}}, &model.Response{}, nil).
+			Times(1)
+
+		err := healthCheckCmdF(s.client, healthTestCommand(false, false), []string{})
+		s.Require().NoError(err)
+
+		output := s.printedHealthFindings()
+		s.True(strings.HasPrefix(output, "Last evaluated "), output)
+		s.True(strings.HasSuffix(output, "\n\nNo findings."), output)
 	})
 
 	s.Run("client error", func() {
@@ -180,7 +204,7 @@ func (s *MmctlUnitTestSuite) TestHealthPrintFindings() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
-		printHealthFindings(healthTestFindings(lastSeen), false, now)
+		printHealthFindings(healthTestList(lastSeen), false, now)
 
 		s.Equal(`Last evaluated 2026-09-24 14:02 (38 minutes ago)
 
@@ -201,7 +225,7 @@ Could not evaluate
 		printer.SetFormat(printer.FormatPlain)
 		findings := healthTestFindings(lastSeen)
 
-		printHealthFindings(findings, true, now)
+		printHealthFindings(&model.HealthFindingList{EvaluatedAt: lastSeen.UnixMilli(), Findings: findings}, true, now)
 
 		output := s.printedHealthFindings()
 		for _, finding := range findings {
@@ -223,7 +247,7 @@ Could not evaluate
 			{Severity: "info", State: "firing", Area: model.AreaCluster, Title: "Node info", Scope: "node-1", MutedAt: 1, LastSeenAt: lastSeen.UnixMilli()},
 		}
 
-		printHealthFindings(findings, false, now)
+		printHealthFindings(&model.HealthFindingList{EvaluatedAt: lastSeen.UnixMilli(), Findings: findings}, false, now)
 
 		s.Equal(`Last evaluated 2026-09-24 14:02 (38 minutes ago)
 
@@ -242,38 +266,35 @@ Notifications
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
-		printHealthFindings(healthTestFindings(lastSeen)[2:], false, now)
+		printHealthFindings(&model.HealthFindingList{EvaluatedAt: lastSeen.UnixMilli(), Findings: healthTestFindings(lastSeen)[2:]}, false, now)
 
 		s.Equal("Last evaluated 2026-09-24 14:02 (38 minutes ago)\n\nNo findings.", s.printedHealthFindings())
 	})
 
-	s.Run("no stored findings", func() {
+	s.Run("never evaluated", func() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
-		printHealthFindings([]*model.HealthFinding{}, false, now)
+		printHealthFindings(&model.HealthFindingList{Findings: []*model.HealthFinding{}}, false, now)
 
 		s.Equal("Not evaluated yet. The first check runs within an hour of enabling the feature.", s.printedHealthFindings())
 	})
 
-	s.Run("evaluation time comes from the newest finding, including hidden resolved ones", func() {
+	s.Run("evaluation time comes from the server, not the shown findings", func() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
-		findings := healthTestFindings(lastSeen.Add(-time.Hour))
-		findings[2].LastSeenAt = lastSeen.UnixMilli()
+		list := &model.HealthFindingList{EvaluatedAt: lastSeen.UnixMilli(), Findings: healthTestFindings(lastSeen.Add(-time.Hour))}
 
-		printHealthFindings(findings, false, now)
+		printHealthFindings(list, false, now)
 
-		output := s.printedHealthFindings()
-		s.Contains(output, "Last evaluated 2026-09-24 14:02 (38 minutes ago)\n")
-		s.NotContains(output, "Site URL is empty")
+		s.Contains(s.printedHealthFindings(), "Last evaluated 2026-09-24 14:02 (38 minutes ago)\n")
 	})
 
 	s.Run("evaluation older than two hours appears stopped", func() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
-		printHealthFindings(healthTestFindings(lastSeen), false, lastSeen.Add(2*time.Hour+time.Minute))
+		printHealthFindings(healthTestList(lastSeen), false, lastSeen.Add(2*time.Hour+time.Minute))
 
 		s.Contains(s.printedHealthFindings(), "Last evaluated 2026-09-24 14:02 (121 minutes ago). Evaluation appears to have stopped.\n")
 	})
@@ -282,18 +303,18 @@ Notifications
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
-		printHealthFindings(healthTestFindings(lastSeen), false, lastSeen.Add(2*time.Hour))
+		printHealthFindings(healthTestList(lastSeen), false, lastSeen.Add(2*time.Hour))
 
 		s.NotContains(s.printedHealthFindings(), "Evaluation appears to have stopped")
 	})
 
-	s.Run("json output with no stored findings is an empty list", func() {
+	s.Run("json output when never evaluated has an empty list", func() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatJSON)
 
-		printHealthFindings([]*model.HealthFinding{}, false, now)
+		printHealthFindings(&model.HealthFindingList{Findings: []*model.HealthFinding{}}, false, now)
 
 		s.Require().Len(printer.GetLines(), 1)
-		s.Equal([]*model.HealthFinding{}, printer.GetLines()[0])
+		s.Equal(&model.HealthFindingList{Findings: []*model.HealthFinding{}}, printer.GetLines()[0])
 	})
 }

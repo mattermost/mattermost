@@ -69,13 +69,14 @@ func getHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	findings, appErr := c.App.GetHealthFindings(c.AppContext, model.HealthFindingFilter{Muted: muted})
+	list, appErr := c.App.GetHealthFindings(c.AppContext, model.HealthFindingFilter{Muted: muted})
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
+	list.Findings = renderFindings(c, list.Findings)
 
-	if err := json.NewEncoder(w).Encode(renderFindings(c, findings)); err != nil {
+	if err := json.NewEncoder(w).Encode(list); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

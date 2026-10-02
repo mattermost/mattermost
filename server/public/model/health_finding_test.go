@@ -99,3 +99,15 @@ func TestMutedFilterIsValid(t *testing.T) {
 	}
 	assert.False(t, MutedFilter("all").IsValid())
 }
+
+func TestMutedFilterMatches(t *testing.T) {
+	muted := &HealthFinding{MutedAt: 1}
+	unmuted := &HealthFinding{}
+
+	assert.True(t, MutedExcluded.Matches(unmuted))
+	assert.False(t, MutedExcluded.Matches(muted))
+	assert.True(t, MutedIncluded.Matches(unmuted))
+	assert.True(t, MutedIncluded.Matches(muted))
+	assert.False(t, MutedOnly.Matches(unmuted))
+	assert.True(t, MutedOnly.Matches(muted))
+}

@@ -126,10 +126,11 @@ func TestHealthDashboardAccess(t *testing.T) {
 	t.Run("admin with the flag and license", func(t *testing.T) {
 		th := setupHealthDashboard(t, true)
 
-		findings, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
+		list, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		assert.Empty(t, findings)
+		assert.Empty(t, list.Findings)
+		assert.Zero(t, list.EvaluatedAt)
 	})
 }
 
@@ -139,10 +140,10 @@ func TestHealthDashboardLocal(t *testing.T) {
 	storeHealthFindings(t, th, finding)
 
 	t.Run("get is served", func(t *testing.T) {
-		findings, resp, err := th.LocalClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
+		list, resp, err := th.LocalClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		assert.Equal(t, []string{finding.Fingerprint}, findingFingerprints(findings))
+		assert.Equal(t, []string{finding.Fingerprint}, findingFingerprints(list.Findings))
 	})
 
 	t.Run("mute is not routed", func(t *testing.T) {
@@ -178,10 +179,10 @@ func TestGetHealthFindingsMutedFilter(t *testing.T) {
 		{model.MutedOnly, []string{muted.Fingerprint}},
 	} {
 		t.Run("muted="+string(tc.muted), func(t *testing.T) {
-			findings, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{Muted: tc.muted})
+			list, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{Muted: tc.muted})
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
-			assert.ElementsMatch(t, tc.expected, findingFingerprints(findings))
+			assert.ElementsMatch(t, tc.expected, findingFingerprints(list.Findings))
 		})
 	}
 
@@ -210,12 +211,12 @@ func TestGetHealthFindingsRendering(t *testing.T) {
 	})
 
 	t.Run("response is rendered and drops unregistered codes", func(t *testing.T) {
-		findings, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
+		list, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Len(t, findings, 1)
+		require.Len(t, list.Findings, 1)
 
-		rendered := findings[0]
+		rendered := list.Findings[0]
 		assert.Equal(t, finding.Fingerprint, rendered.Fingerprint)
 		assert.Equal(t, "SiteURL uses http:// (not https)", rendered.Title)
 		assert.Equal(t, "Serve via HTTPS and update SiteURL accordingly.", rendered.Remediation)
@@ -234,11 +235,11 @@ func TestGetHealthFindingsRendering(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		require.Len(t, french, 1)
-		require.Len(t, english, 1)
-		assert.Equal(t, english[0].Title, french[0].Title)
-		assert.Equal(t, english[0].Message, french[0].Message)
-		assert.Equal(t, english[0].Remediation, french[0].Remediation)
+		require.Len(t, french.Findings, 1)
+		require.Len(t, english.Findings, 1)
+		assert.Equal(t, english.Findings[0].Title, french.Findings[0].Title)
+		assert.Equal(t, english.Findings[0].Message, french.Findings[0].Message)
+		assert.Equal(t, english.Findings[0].Remediation, french.Findings[0].Remediation)
 	})
 }
 
@@ -280,13 +281,39 @@ func TestGetHealthFindingsHidesInternalSurface(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			for _, muted := range []model.MutedFilter{model.MutedExcluded, model.MutedIncluded} {
-				findings, resp, err := client.GetHealthFindings(context.Background(), model.HealthFindingFilter{Muted: muted})
+				list, resp, err := client.GetHealthFindings(context.Background(), model.HealthFindingFilter{Muted: muted})
 				require.NoError(t, err)
 				CheckOKStatus(t, resp)
-				assert.Equal(t, []string{product.Fingerprint}, findingFingerprints(findings))
+				assert.Equal(t, []string{product.Fingerprint}, findingFingerprints(list.Findings))
 			}
 		})
 	}
+}
+
+func TestGetHealthFindingsEvaluatedAt(t *testing.T) {
+	th := setupHealthDashboard(t, true)
+
+	muted := newHealthFinding("SITE_URL_HTTP", healthcheck.SurfaceProduct)
+	internal := newHealthFinding("SITE_URL_EMPTY", healthcheck.SurfaceInternal)
+	internal.LastSeenAt = muted.LastSeenAt + 1000
+	storeHealthFindings(t, th, muted, internal)
+	require.NoError(t, th.App.Srv().Store().HealthFinding().Mute(muted.Fingerprint, th.SystemAdminUser.Id, model.GetMillis()))
+
+	for _, filter := range []model.MutedFilter{model.MutedExcluded, model.MutedIncluded, model.MutedOnly} {
+		t.Run("muted="+string(filter), func(t *testing.T) {
+			list, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{Muted: filter})
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			assert.Equal(t, internal.LastSeenAt, list.EvaluatedAt)
+		})
+	}
+
+	t.Run("every product finding muted", func(t *testing.T) {
+		list, _, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
+		require.NoError(t, err)
+		assert.Empty(t, list.Findings)
+		assert.NotZero(t, list.EvaluatedAt)
+	})
 }
 
 func TestMuteHealthFinding(t *testing.T) {
@@ -415,12 +442,12 @@ func TestHealthCheckPushURLRoundTrip(t *testing.T) {
 		t.Helper()
 		require.NoError(t, th.App.RunHealthCheck(th.Context))
 
-		findings, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
+		list, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
 		byCode := map[string]*model.HealthFinding{}
-		for _, f := range findings {
+		for _, f := range list.Findings {
 			if strings.HasPrefix(f.Code, "PUSH_") {
 				byCode[f.Code] = f
 			}

@@ -53,20 +53,20 @@ func healthCheckCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		filter.Muted = model.MutedIncluded
 	}
 
-	findings, _, err := c.GetHealthFindings(context.TODO(), filter)
+	list, _, err := c.GetHealthFindings(context.TODO(), filter)
 	if err != nil {
 		return fmt.Errorf("failed to get health findings: %w", err)
 	}
 
-	printHealthFindings(findings, includeResolved, time.Now())
+	printHealthFindings(list, includeResolved, time.Now())
 	return nil
 }
 
 // printHealthFindings prints already-rendered findings, leaving out resolved ones unless
 // includeResolved is set.
-func printHealthFindings(findings []*model.HealthFinding, includeResolved bool, now time.Time) {
-	shown := make([]*model.HealthFinding, 0, len(findings))
-	for _, finding := range findings {
+func printHealthFindings(list *model.HealthFindingList, includeResolved bool, now time.Time) {
+	shown := make([]*model.HealthFinding, 0, len(list.Findings))
+	for _, finding := range list.Findings {
 		if includeResolved || finding.State != string(healthcheck.StateResolved) {
 			shown = append(shown, finding)
 		}
@@ -74,15 +74,15 @@ func printHealthFindings(findings []*model.HealthFinding, includeResolved bool, 
 
 	if printer.GetFormat() == printer.FormatJSON {
 		printer.SetSingle(true)
-		printer.PrintT("", shown)
+		printer.PrintT("", &model.HealthFindingList{EvaluatedAt: list.EvaluatedAt, Findings: shown})
 		return
 	}
 
-	printer.Print(formatHealthFindings(findings, shown, now))
+	printer.Print(formatHealthFindings(list.EvaluatedAt, shown, now))
 }
 
-func formatHealthFindings(fetched, shown []*model.HealthFinding, now time.Time) string {
-	if len(fetched) == 0 {
+func formatHealthFindings(evaluatedAt int64, shown []*model.HealthFinding, now time.Time) string {
+	if evaluatedAt == 0 {
 		return "Not evaluated yet. The first check runs within an hour of enabling the feature."
 	}
 
@@ -100,7 +100,7 @@ func formatHealthFindings(fetched, shown []*model.HealthFinding, now time.Time) 
 		}
 	}
 
-	blocks := []string{formatHealthEvaluationTime(fetched, now)}
+	blocks := []string{formatHealthEvaluationTime(evaluatedAt, now)}
 
 	for i := 0; i < len(firing); {
 		area := firing[i].Area
@@ -132,15 +132,8 @@ func formatHealthFindings(fetched, shown []*model.HealthFinding, now time.Time) 
 	return strings.Join(blocks, "\n\n")
 }
 
-// formatHealthEvaluationTime reports the newest LastSeenAt: every cycle upserts every evaluated
-// subject, so that is when the server last evaluated.
-func formatHealthEvaluationTime(findings []*model.HealthFinding, now time.Time) string {
-	var newest int64
-	for _, finding := range findings {
-		newest = max(newest, finding.LastSeenAt)
-	}
-
-	evaluatedAt := time.UnixMilli(newest)
+func formatHealthEvaluationTime(evaluatedAtMillis int64, now time.Time) string {
+	evaluatedAt := time.UnixMilli(evaluatedAtMillis)
 	age := now.Sub(evaluatedAt)
 	minutes := int(age.Minutes())
 	unit := "minutes"

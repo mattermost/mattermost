@@ -5480,6 +5480,17 @@ components:
         muted_by:
           type: string
           description: The id of the user who muted the finding. Omitted when the finding is not muted.
+    HealthFindingList:
+      type: object
+      properties:
+        evaluated_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the server last evaluated its health rules, or 0 if it has not evaluated yet.
+        findings:
+          type: array
+          items:
+            $ref: "#/components/schemas/HealthFinding"
     AccessControlPolicyActiveUpdateRequest:
       type: object
       properties:
