@@ -12,7 +12,7 @@ import (
 
 func TestHealthFindingRender(t *testing.T) {
 	text := RuleText{
-		SummaryID:     "health.rule.summary",
+		TitleID:       "health.rule.title",
 		RemediationID: "health.rule.remediation",
 	}
 
@@ -36,7 +36,7 @@ func TestHealthFindingRender(t *testing.T) {
 		rendered := f.Render(translate, text)
 
 		require.NotNil(t, rendered)
-		assert.Equal(t, "health.rule.summary:node-1", rendered.Summary)
+		assert.Equal(t, "health.rule.title:node-1", rendered.Title)
 		assert.Equal(t, "health.rule.remediation:node-1", rendered.Remediation)
 		assert.Equal(t, "health.rule.message:node-1", rendered.Message)
 	})
@@ -63,7 +63,7 @@ func TestHealthFindingRender(t *testing.T) {
 
 		rendered := f.Render(nil, text)
 
-		assert.Equal(t, "health.rule.summary", rendered.Summary)
+		assert.Equal(t, "health.rule.title", rendered.Title)
 		assert.Equal(t, "health.rule.remediation", rendered.Remediation)
 		assert.Equal(t, "health.rule.message", rendered.Message)
 	})
@@ -75,7 +75,7 @@ func TestHealthFindingRender(t *testing.T) {
 			return "translated"
 		}, RuleText{})
 
-		assert.Empty(t, rendered.Summary)
+		assert.Empty(t, rendered.Title)
 		assert.Empty(t, rendered.Remediation)
 		assert.Empty(t, rendered.Message)
 	})
@@ -87,7 +87,7 @@ func TestHealthFindingRender(t *testing.T) {
 			return "translated"
 		}, text)
 
-		assert.Empty(t, f.Summary)
+		assert.Empty(t, f.Title)
 		assert.Empty(t, f.Remediation)
 		assert.Empty(t, f.Message)
 	})
