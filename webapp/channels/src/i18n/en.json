@@ -4068,7 +4068,7 @@
     "description": "Admin console setting label (toggle) on Site Configuration > Posts for syncing message drafts to the server."
   },
   "admin.customization.allowSyncedDraftsDesc": {
-    "defaultMessage": "When enabled, users message drafts will sync with the server so they can be accessed from any device. Users may opt out of this behaviour in Account settings.",
+    "defaultMessage": "When enabled, users' message drafts will sync with the server so they can be accessed from any device. Users may opt out of this behaviour in Account settings.",
     "description": "Help text for the setting that lets users' message drafts sync to the server, on a System Console site configuration page."
   },
   "admin.customization.androidAppDownloadLinkDesc": {
@@ -4204,7 +4204,7 @@
     "description": "Admin console setting label (toggle) on the Integrations > GIF page enabling GIF selection from the emoji picker."
   },
   "admin.customization.enableInlineLatexDesc": {
-    "defaultMessage": "Enable rendering of inline Latex code. If false, Latex can only be rendered in a code block using syntax highlighting. Please review our <link>documentation</link> for details about text formatting.",
+    "defaultMessage": "Enable rendering of inline LaTeX code. If false, LaTeX can only be rendered in a code block using syntax highlighting. Please review our <link>documentation</link> for details about text formatting.",
     "description": "Admin console help text for the inline LaTeX toggle on the Site Configuration > Posts page; <link> wraps the word linking to documentation; 'Latex' is the typesetting language name."
   },
   "admin.customization.enableInlineLatexTitle": {
@@ -4284,7 +4284,7 @@
     "description": "Admin console field label on the Customization page for the iOS app download URL."
   },
   "admin.customization.maxMarkdownNodesDesc": {
-    "defaultMessage": "When rendering Markdown text in the mobile app, controls the maximum number of Markdown elements (eg. emojis, links, table cells, etc) that can be in a single piece of text. If set to 0, a default limit will be used.",
+    "defaultMessage": "When rendering Markdown text in the mobile app, controls the maximum number of Markdown elements (e.g. emojis, links, table cells, etc.) that can be in a single piece of text. If set to 0, a default limit will be used.",
     "description": "Admin console help text for the maximum Markdown nodes field on the Posts page; applies to the mobile app renderer."
   },
   "admin.customization.maxMarkdownNodesTitle": {
@@ -4976,7 +4976,7 @@
     "description": "Help text for the Purge Indexes button warning about the consequences of deleting indexes."
   },
   "admin.elasticsearch.rebuildChannelsIndex.helpText": {
-    "defaultMessage": "This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.\n\n<b>Note- Please ensure no other indexing job is in progress in the table above.</b>",
+    "defaultMessage": "This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.\n\n<b>Note: Please ensure no other indexing job is in progress in the table above.</b>",
     "description": "Help text for the Rebuild Channels Index button; contains newlines and <b></b> tags around the cautionary note."
   },
   "admin.elasticsearch.rebuildChannelsIndex.title": {
@@ -5404,7 +5404,7 @@
     "description": "Error shown in the invite-members flow when email cannot be sent because SMTP is not configured; <a> wraps the word 'here' linking to the System Console SMTP settings."
   },
   "admin.environment.smtp.smtpPassword.description": {
-    "defaultMessage": "Obtain this credential from administrator setting up your email server.",
+    "defaultMessage": "Obtain this credential from the administrator setting up your email server.",
     "description": "Help text for the SMTP Server Password setting, telling the admin where to get the credential."
   },
   "admin.environment.smtp.smtpPassword.placeholder": {
@@ -5444,7 +5444,7 @@
     "description": "Success message shown after the SMTP Test Connection button sends a test email without errors."
   },
   "admin.environment.smtp.smtpUsername.description": {
-    "defaultMessage": "Obtain this credential from administrator setting up your email server.",
+    "defaultMessage": "Obtain this credential from the administrator setting up your email server.",
     "description": "Help text for the SMTP Server Username setting, telling the admin where to get the credential."
   },
   "admin.environment.smtp.smtpUsername.placeholder": {
@@ -7212,7 +7212,7 @@
     "description": "Headline on the feature discovery (upsell) page for AD/LDAP group sync; mentions the required plan."
   },
   "admin.guest_access_feature_discovery.copy": {
-    "defaultMessage": "Collaborate with users outside of your organization while tightly controlling their access channels and team members.",
+    "defaultMessage": "Collaborate with users outside of your organization while tightly controlling their access to channels and team members.",
     "description": "Body copy on the feature discovery (upsell) page for guest accounts."
   },
   "admin.guest_access_feature_discovery.title": {
@@ -7264,7 +7264,7 @@
     "description": "Admin console toggle setting name for the Guest Access feature; trailing space is intentional."
   },
   "admin.guest_access.helpText": {
-    "defaultMessage": "When true, external guest can be invited to channels within teams. Please see <a>Permissions Schemes</a> for which roles can invite guests.",
+    "defaultMessage": "When true, external guests can be invited to channels within teams. Please see <a>Permissions Schemes</a> for which roles can invite guests.",
     "description": "Admin console help text for the Enable Guest Access toggle; <a></a> wraps a link to the Permissions Schemes page."
   },
   "admin.guest_access.hideTags": {
@@ -8068,7 +8068,7 @@
     "description": "Admin console help text for the Admin Filter field on the AD/LDAP settings page; the filter selects which users become System Admins."
   },
   "admin.ldap.adminFilterFilterDescHover": {
-    "defaultMessage": "The users selected by the query will have access to your Mattermost server as System Admins. By default, System Admins have complete access to the Mattermost System Console. Existing members that are identified by this attribute will be promoted from member to System Admin upon next login. The next login is based upon Session lengths set in System Console > Session Lengths. It is highly recommend to manually demote users to members in System Console > User Management to ensure access is restricted immediately.\n \nNote: If this filter is removed/changed, System Admins that were promoted via this filter will be demoted to members and will not retain access to the System Console. When this filter is not in use, System Admins can be manually promoted/demoted in System Console > User Management.",
+    "defaultMessage": "The users selected by the query will have access to your Mattermost server as System Admins. By default, System Admins have complete access to the Mattermost System Console. Existing members that are identified by this attribute will be promoted from member to System Admin upon next login. The next login is based upon Session lengths set in System Console > Session Lengths. It is highly recommended to manually demote users to members in System Console > User Management to ensure access is restricted immediately.\n \nNote: If this filter is removed/changed, System Admins that were promoted via this filter will be demoted to members and will not retain access to the System Console. When this filter is not in use, System Admins can be manually promoted/demoted in System Console > User Management.",
     "description": "Hover tooltip for the Admin Filter field in the AD/LDAP wizard, explaining how the filter promotes/demotes System Admins; audience is system admins."
   },
   "admin.ldap.adminFilterTitle": {
@@ -8228,7 +8228,7 @@
     "description": "Admin console help text for the Group ID Attribute field on the AD/LDAP settings page."
   },
   "admin.ldap.groupIdAttributeDescHover": {
-    "defaultMessage": "This should be a AD/LDAP attribute with a value that does not change such as entryUUID for LDAP or objectGUID for Active Directory.",
+    "defaultMessage": "This should be an AD/LDAP attribute with a value that does not change such as entryUUID for LDAP or objectGUID for Active Directory.",
     "description": "Hover tooltip for the Group ID Attribute field in the AD/LDAP wizard; entryUUID and objectGUID are literal LDAP attribute names."
   },
   "admin.ldap.groupIdAttributeEx": {
@@ -8248,7 +8248,7 @@
     "description": "Admin console help text for the Guest Filter field; 'Guest Access' is another System Console feature that must be enabled first."
   },
   "admin.ldap.guestFilterFilterDescHover": {
-    "defaultMessage": "Only the users selected by the query will be able to access Mattermost as Guests. Guests are prevented from accessing teams or channels upon logging in until they are assigned a team and at least one channel.\n \nNote: If this filter is removed/changed, active guests will not be promoted to a member and will retain their Guest role. Guests can be promoted in System Console > User Management. Existing members that are identified by this attribute as a guest will be demoted from a member to a guest when they are asked to login next. The next login is based upon Session lengths set in System Console > Session Lengths. It is highly recommend to manually demote users to guests in System Console > User Management  to ensure access is restricted immediately.",
+    "defaultMessage": "Only the users selected by the query will be able to access Mattermost as Guests. Guests are prevented from accessing teams or channels upon logging in until they are assigned a team and at least one channel.\n \nNote: If this filter is removed/changed, active guests will not be promoted to a member and will retain their Guest role. Guests can be promoted in System Console > User Management. Existing members that are identified by this attribute as a guest will be demoted from a member to a guest when they are asked to log in next. The next login is based upon Session lengths set in System Console > Session Lengths. It is highly recommended to manually demote users to guests in System Console > User Management to ensure access is restricted immediately.",
     "description": "Hover tooltip for the Guest Filter field in the AD/LDAP wizard, explaining how the filter affects guest accounts."
   },
   "admin.ldap.guestFilterTitle": {
@@ -8612,7 +8612,7 @@
     "description": "Hover tooltip for the User Filter field in the AD/LDAP wizard."
   },
   "admin.ldap.userFilterEx": {
-    "defaultMessage": "Ex. \"(objectClass=user)\"",
+    "defaultMessage": "E.g.: \"(objectClass=user)\"",
     "description": "Placeholder in the User Filter input showing an example LDAP filter expression."
   },
   "admin.ldap.userFilterTitle": {
@@ -8676,7 +8676,7 @@
     "description": "Title of the danger banner in the license preview modal when the uploaded license is a lower plan tier than the current one."
   },
   "admin.license.diff.banner.entry_to_advanced.description": {
-    "defaultMessage": "Mattermost Enterprise Advanced includes all Enterprise features, unlocks unlimited message history, and adds exclusive capabilities like Zero Trust security, sensitive information controls, and mobile security hardening for mission-critical operations",
+    "defaultMessage": "Mattermost Enterprise Advanced includes all Enterprise features, unlocks unlimited message history, and adds exclusive capabilities like Zero Trust security, sensitive information controls, and mobile security hardening for mission-critical operations.",
     "description": "Body of the success banner in the license preview modal when applying an Enterprise Advanced license over Mattermost Entry."
   },
   "admin.license.diff.banner.entry_to_advanced.title": {
@@ -9160,7 +9160,7 @@
     "description": "Loading text on the restart-server button on the Edition and License page while the server restarts."
   },
   "admin.licenseSettings.teamEdition.teamEditionRightPanel.upgradedRestart": {
-    "defaultMessage": "You have upgraded your binary to mattermost enterprise, please restart the server to start using the new binary. You can do it right here:",
+    "defaultMessage": "You have upgraded your binary to Mattermost Enterprise. Please restart the server to start using the new binary. You can do it right here:",
     "description": "Message shown after the server binary was upgraded to Enterprise Edition, prompting the admin to restart via the button below."
   },
   "admin.lockTeammateNameDisplay": {
@@ -10128,7 +10128,7 @@
     "description": "Button on the permission policy edit page that switches the rule editor from advanced CEL mode back to the simple table mode."
   },
   "admin.permission_policies.edit.title": {
-    "defaultMessage": "Attribute Based Permission Policy",
+    "defaultMessage": "Attribute-Based Permission Policy",
     "description": "Page title of the attribute-based permission policy edit page in the System Console."
   },
   "admin.permission_policies.edit.who.attributes_subtitle": {
@@ -11220,7 +11220,7 @@
     "description": "Role category label ('System Role' as opposed to team/channel roles) shown for the System Admin on the System Roles page."
   },
   "admin.permissions.roles.system_custom_group_admin.deauthorize_reminder": {
-    "defaultMessage": "Don't forget to deauthorize all other system users from administering Custom Groups by unchecking the associated permissions checkbox in System console > User Management > Permissions.",
+    "defaultMessage": "Don't forget to deauthorize all other system users from administering Custom Groups by unchecking the associated permissions checkbox in System Console > User Management > Permissions.",
     "description": "Paragraph in the Privileges panel on the Custom Group Manager role page, reminding admins to remove the equivalent permission from other users; 'System console > User Management > Permissions' is a UI navigation path."
   },
   "admin.permissions.roles.system_custom_group_admin.description": {
@@ -11316,7 +11316,7 @@
     "description": "Name of the 'Edition and License' System Console subsection in the admin role privileges list."
   },
   "admin.permissions.sysconsole_section_about.description": {
-    "defaultMessage": "The ability to install or upgrade your servers enterprise licensing.",
+    "defaultMessage": "The ability to install or upgrade your server's enterprise licensing.",
     "description": "Description of the 'About' System Console section, shown when configuring an admin role's access to that section."
   },
   "admin.permissions.sysconsole_section_about.name": {
@@ -12312,7 +12312,7 @@
     "description": "Setting label (toggle) on the Posts admin page; controls whether guest users can send repeating notifications."
   },
   "admin.posts.persistentNotificationsInterval.desc": {
-    "defaultMessage": "Configure the number of minutes between repeated notifications for urgent messages send with persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.",
+    "defaultMessage": "Configure the number of minutes between repeated notifications for urgent messages sent with persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.",
     "description": "Admin console help text under the persistent notification frequency field; <link> wraps the word documentation."
   },
   "admin.posts.persistentNotificationsInterval.minValue": {
@@ -12328,7 +12328,7 @@
     "description": "Admin console help text under the persistent notification count field; <link> wraps the word documentation."
   },
   "admin.posts.persistentNotificationsMaxCount.title": {
-    "defaultMessage": "Total number of persistent notification per post",
+    "defaultMessage": "Total number of persistent notifications per post",
     "description": "Setting label for a numeric field on the Posts admin page; post here is a noun (a message). The maximum number of repeat notifications sent per message."
   },
   "admin.posts.persistentNotificationsMaxRecipients.desc": {
@@ -12452,7 +12452,7 @@
     "description": "Error message shown to the admin when the cache purge action fails; {error} is the server error message."
   },
   "admin.rate.enableLimiterDescription": {
-    "defaultMessage": "When true, APIs are throttled at rates specified below. Rate limiting prevents server overload from too many requests. This is useful to prevent third-party applications or malicous attacks from impacting your server.",
+    "defaultMessage": "When true, APIs are throttled at rates specified below. Rate limiting prevents server overload from too many requests. This is useful to prevent third-party applications or malicious attacks from impacting your server.",
     "description": "Admin console help text for the 'Enable Rate Limiting' toggle on the Rate Limiting page."
   },
   "admin.rate.enableLimiterTitle": {
@@ -12484,7 +12484,7 @@
     "description": "Placeholder example value for the Maximum Burst Size input on the System Console Rate Limiting page."
   },
   "admin.rate.memoryDescription": {
-    "defaultMessage": "Maximum number of users sessions connected to the system as determined by \"Vary rate limit by remote address\" and \"Vary rate limit by HTTP header\" settings below.",
+    "defaultMessage": "Maximum number of user sessions connected to the system as determined by \"Vary rate limit by remote address\" and \"Vary rate limit by HTTP header\" settings below.",
     "description": "Admin console help text for the 'Memory Store Size' rate limiting setting; the quoted names refer to the two settings below it on the same page."
   },
   "admin.rate.memoryExample": {
@@ -12744,7 +12744,7 @@
     "description": "Description of the Workspace Optimization check suggesting admins review the default 30-day session length."
   },
   "admin.reporting.workspace_optimization.configuration.session_length.title": {
-    "defaultMessage": "Session lengths is set to default",
+    "defaultMessage": "Session length is set to default",
     "description": "Title of the Workspace Optimization check noting session length is still at its default value."
   },
   "admin.reporting.workspace_optimization.configuration.ssl.description": {
@@ -12972,7 +12972,7 @@
     "description": "Headline on the feature discovery (upsell) page for SAML 2.0; mentions the required plan."
   },
   "admin.saml.adminAttrDesc": {
-    "defaultMessage": "(Optional) The attribute in the SAML Assertion for designating System Admins. The users selected by the query will have access to your Mattermost server as System Admins. By default, System Admins have complete access to the Mattermost System Console.\n \nExisting members that are identified by this attribute will be promoted from member to System Admin upon next login. The next login is based upon Session lengths set in **System Console > Session Lengths**. It is highly recommend to manually demote users to members in **System Console > User Management** to ensure access is restricted immediately.\n \nNote: If this filter is removed/changed, System Admins that were promoted via this filter will be demoted to members and will not retain access to the System Console. When this filter is not in use, System Admins can be manually promoted/demoted in **System Console > User Management**.",
+    "defaultMessage": "(Optional) The attribute in the SAML Assertion for designating System Admins. The users selected by the query will have access to your Mattermost server as System Admins. By default, System Admins have complete access to the Mattermost System Console.\n \nExisting members that are identified by this attribute will be promoted from member to System Admin upon next login. The next login is based upon Session lengths set in **System Console > Session Lengths**. It is highly recommended to manually demote users to members in **System Console > User Management** to ensure access is restricted immediately.\n \nNote: If this filter is removed/changed, System Admins that were promoted via this filter will be demoted to members and will not retain access to the System Console. When this filter is not in use, System Admins can be manually promoted/demoted in **System Console > User Management**.",
     "description": "Admin console help text for the SAML 'Admin Attribute' setting; supports Markdown (bold path references to other System Console pages)."
   },
   "admin.saml.adminAttrEx": {
@@ -13040,7 +13040,7 @@
     "description": "Admin console help text for the SAML-with-AD/LDAP sync toggle; <strong> wraps a System Console navigation path and <link> wraps 'documentation' as a hyperlink."
   },
   "admin.saml.enableSyncWithLdapIncludeAuthDescription": {
-    "defaultMessage": "When true, Mattermost will override the SAML ID attribute with the AD/LDAP ID attribute if configured or override the SAML Email attribute with the AD/LDAP Email attribute if SAML ID attribute is not present. This will allow you automatically migrate users from Email binding to ID binding to prevent creation of new users when an email address changes for a user. Moving from true to false, will remove the override from happening. <strong>Note:</strong> SAML IDs must match the LDAP IDs to prevent disabling of user accounts. Please review <link>documentation</link> for more information.",
+    "defaultMessage": "When true, Mattermost will override the SAML ID attribute with the AD/LDAP ID attribute if configured or override the SAML Email attribute with the AD/LDAP Email attribute if SAML ID attribute is not present. This will allow you to automatically migrate users from Email binding to ID binding to prevent creation of new users when an email address changes for a user. Moving from true to false will remove the override from happening. <strong>Note:</strong> SAML IDs must match the LDAP IDs to prevent disabling of user accounts. Please review <link>documentation</link> for more information.",
     "description": "Admin console help text for the setting that overrides SAML bind data with AD/LDAP data; <strong> wraps 'Note:' and <link> wraps 'documentation' as a hyperlink."
   },
   "admin.saml.enableSyncWithLdapIncludeAuthTitle": {
@@ -13100,7 +13100,7 @@
     "description": "Button label on the SAML settings page; fetches configuration metadata from the Identity Provider (IdP)."
   },
   "admin.saml.guestAttrDesc": {
-    "defaultMessage": "(Optional) Requires Guest Access to be enabled before being applied. The attribute in the SAML Assertion that will be used to apply a guest role to users in Mattermost. Guests are prevented from accessing teams or channels upon logging in until they are assigned a team and at least one channel.\n \nNote: If this attribute is removed/changed from your guest user in SAML and the user is still active, they will not be promoted to a member and will retain their Guest role. Guests can be promoted in **System Console > User Management**.\n \n \nExisting members that are identified by this attribute as a guest will be demoted from a member to a guest when they are asked to login next. The next login is based upon Session lengths set in **System Console > Session Lengths**. It is highly recommend to manually demote users to guests in **System Console > User Management ** to ensure access is restricted immediately.",
+    "defaultMessage": "(Optional) Requires Guest Access to be enabled before being applied. The attribute in the SAML Assertion that will be used to apply a guest role to users in Mattermost. Guests are prevented from accessing teams or channels upon logging in until they are assigned a team and at least one channel.\n \nNote: If this attribute is removed/changed from your guest user in SAML and the user is still active, they will not be promoted to a member and will retain their Guest role. Guests can be promoted in **System Console > User Management**.\n \n \nExisting members that are identified by this attribute as a guest will be demoted from a member to a guest when they are asked to log in next. The next login is based upon Session lengths set in **System Console > Session Lengths**. It is highly recommended to manually demote users to guests in **System Console > User Management** to ensure access is restricted immediately.",
     "description": "Admin console help text for the SAML 'Guest Attribute' setting; supports Markdown (bold System Console path references); 'Guest' is a restricted user role."
   },
   "admin.saml.guestAttrEx": {
@@ -13804,7 +13804,7 @@
     "description": "Admin console label for a true/false setting making MFA mandatory at login; ends with a colon before the radio buttons."
   },
   "admin.service.extendSessionLengthActivity.helpText": {
-    "defaultMessage": "When true, sessions will be automatically extended when the user is active in their Mattermost client. Users sessions will only expire if they are not active in their Mattermost client for the entire duration of the session lengths defined in the fields below. When false, sessions will not extend with activity in Mattermost. User sessions will immediately expire at the end of the session length or idle timeouts defined below. ",
+    "defaultMessage": "When true, sessions will be automatically extended when the user is active in their Mattermost client. User sessions will only expire if they are not active in their Mattermost client for the entire duration of the session lengths defined in the fields below. When false, sessions will not extend with activity in Mattermost. User sessions will immediately expire at the end of the session length or idle timeouts defined below. ",
     "description": "Admin console help text for the 'Extend session length with activity' toggle on the Session Lengths page; trailing space is intentional."
   },
   "admin.service.extendSessionLengthActivity.label": {
@@ -13956,7 +13956,7 @@
     "description": "Help text variant for the mobile session length setting, shown when 'extend session length with activity' is enabled."
   },
   "admin.service.outgoingOAuthConnectionsDesc": {
-    "defaultMessage": "When true, outgoing webhooks and slash commands will use set up oauth connections to authenticate with third party services. See <link>documentation</link> to learn more.",
+    "defaultMessage": "When true, outgoing webhooks and slash commands will use the configured OAuth connections to authenticate with third party services. See <link>documentation</link> to learn more.",
     "description": "Admin console help text for the 'Enable Outgoing OAuth Connections' toggle; <link> wraps 'documentation' as a hyperlink."
   },
   "admin.service.outgoingOAuthConnectionsTitle": {
@@ -15472,8 +15472,8 @@
     "description": "Floating label of the date range selector input above the System Console users table; refers to the reporting time period."
   },
   "admin.system_users.date_range_selector.menuButtonAriaLabel": {
-    "defaultMessage": "Open menu to select columns to display",
-    "description": "Accessibility (aria) label for the button that opens the date range menu of the System Console users table (English source text mistakenly mentions columns)."
+    "defaultMessage": "Open menu to select a date range",
+    "description": "Accessibility (aria) label for the button that opens the date range menu of the System Console users table."
   },
   "admin.system_users.date_range_selector.trailing_message": {
     "defaultMessage": "Note: This filter will only affect values in the <strong>Last Post, Days Active, and Messages Posted</strong> columns.",
@@ -15900,11 +15900,11 @@
     "description": "Validation error on the admin team configuration page when allowed email domains are required but not entered."
   },
   "admin.team_channel_settings.need_groups": {
-    "defaultMessage": "You must add at least one group to manage this team by sync group members.",
+    "defaultMessage": "You must add at least one group to manage this team by syncing group members.",
     "description": "Validation error on the admin team configuration page when group sync is enabled but no group has been added; audience is system admins."
   },
   "admin.team_channel_settings.need_groups_channel": {
-    "defaultMessage": "You must add at least one group to manage this channel by sync group members.",
+    "defaultMessage": "You must add at least one group to manage this channel by syncing group members.",
     "description": "Validation error on the System Console channel configuration page when group-synced membership is enabled but no groups are added."
   },
   "admin.team_channel_settings.removeConfirmModal.messageChannel": {
@@ -16000,7 +16000,7 @@
     "description": "Confirm button of the modal shown when saving a team that is being archived from the admin console; 'Archive' is a verb."
   },
   "admin.team_settings.team_detail.archive_confirm.message": {
-    "defaultMessage": "Archiving will remove the team from the user interface but it's contents remain in the database and may still be accessible with the API. Are you sure you wish to save and archive this team?",
+    "defaultMessage": "Archiving will remove the team from the user interface but its contents remain in the database and may still be accessible with the API. Are you sure you wish to save and archive this team?",
     "description": "Body text of the confirmation modal shown before saving and archiving a team from the admin console team configuration page."
   },
   "admin.team_settings.team_detail.archive_confirm.title": {
@@ -16308,7 +16308,7 @@
     "description": "Admin console label for the text input holding the URL of the Delete Account link in user profile security settings; ends with a colon."
   },
   "admin.team.emailInvitationsDescription": {
-    "defaultMessage": "When true users can invite others to the system using email.",
+    "defaultMessage": "When true, users can invite others to the system using email.",
     "description": "Admin console help text for the 'Enable Email Invitations' toggle."
   },
   "admin.team.emailInvitationsTitle": {
@@ -16548,7 +16548,7 @@
     "description": "Radio button label for the 'true' choice of boolean settings throughout the System Console."
   },
   "admin.user_attributes_feature_discovery.desc": {
-    "defaultMessage": "Define and manage organization-specific user profile attributes as that can synchronize with your AD/LDAP or SAML identity provider.",
+    "defaultMessage": "Define and manage organization-specific user profile attributes that can synchronize with your AD/LDAP or SAML identity provider.",
     "description": "Body copy on the feature discovery (upsell) page for custom user profile attributes."
   },
   "admin.user_attributes_feature_discovery.title": {
@@ -18116,7 +18116,7 @@
     "description": "Title of a danger banner on the cloud Subscription page when the latest payment attempt failed."
   },
   "billing.subscription.info.mostRecentPaymentFailed.description.mostRecentPaymentFailed": {
-    "defaultMessage": "It looks your most recent payment failed because the credit card on your account has expired. Please <link>update your payment information</link> to avoid any disruption.",
+    "defaultMessage": "It looks like your most recent payment failed because the credit card on your account has expired. Please <link>update your payment information</link> to avoid any disruption.",
     "description": "Warning text on the Cloud billing/subscription admin page when the last payment failed due to an expired card; <link> wraps the clickable 'update your payment information' text."
   },
   "bot.add.default_token.expiry": {
@@ -19420,7 +19420,7 @@
     "description": "Body of a tooltip in the 'Create channel' dialog promoting the option to also create a (Boards) kanban board with the channel."
   },
   "channel_modal.create_board.tooltip_title": {
-    "defaultMessage": "Manage your task with a board",
+    "defaultMessage": "Manage your tasks with a board",
     "description": "Title of a tooltip in the 'Create channel' dialog promoting the option to also create a (Boards) kanban board with the channel."
   },
   "channel_modal.createNew": {
@@ -20168,7 +20168,7 @@
     "description": "Label in the Channel Settings sharing section when the channel is not shared with any connected workspaces; 'workspaces' are other Mattermost servers connected via shared channels."
   },
   "channel_settings.sharing_errors": {
-    "defaultMessage": "There has been errors while sharing the channel with some workspaces. Please try again.",
+    "defaultMessage": "There have been errors while sharing the channel with some workspaces. Please try again.",
     "description": "Error on the Configuration tab when sharing the channel with some remote workspaces failed."
   },
   "channel_settings.tab.archive": {
@@ -22420,7 +22420,7 @@
     "description": "File type name for PDF files, shown in file-extension search suggestions; 'Acrobat' refers to Adobe Acrobat."
   },
   "file_type.presentation": {
-    "defaultMessage": "Powerpoint Presentation",
+    "defaultMessage": "PowerPoint Presentation",
     "description": "File type name for PowerPoint presentation files, shown in file-extension search suggestions; 'Powerpoint' is a Microsoft product name."
   },
   "file_type.spreadsheet": {
@@ -22632,7 +22632,7 @@
     "description": "Short badge text next to the Guest option in the Invite People modal during a free trial, indicating a paid-plan feature; compact space."
   },
   "free.professional_feature.try_free": {
-    "defaultMessage": "Professional feature- try it out free",
+    "defaultMessage": "Professional feature - try it out free",
     "description": "Short badge text next to the Guest option in the Invite People modal on a free plan without prior trial, promoting a free trial; compact space."
   },
   "free.professional_feature.upgrade": {
@@ -23628,7 +23628,7 @@
     "description": "Section heading in the mentions help page; '@Mentions' is the feature name."
   },
   "help.mentioning.recent.description": {
-    "defaultMessage": "Click <code>@</code> icon in right side of the top bar next to your profile picture to view your most recent @mentions and words that trigger mentions.",
+    "defaultMessage": "Click the <code>@</code> icon on the right side of the top bar next to your profile picture to view your most recent @mentions and words that trigger mentions.",
     "description": "Paragraph in the mentions help page about viewing recent mentions; <code> wraps the literal '@' character."
   },
   "help.mentioning.recent.title": {
@@ -24776,7 +24776,7 @@
     "description": "In-progress label of the Join button in the Browse Channels modal while the join request is processing."
   },
   "katex.error": {
-    "defaultMessage": "Couldn't compile your Latex code. Please review the syntax and try again.",
+    "defaultMessage": "Couldn't compile your LaTeX code. Please review the syntax and try again.",
     "description": "Error text rendered in place of a LaTeX/math code block or inline math in a message when the LaTeX source fails to compile; shown to end users."
   },
   "keep_remove_quarantined_content_modal.action_keep.body": {
@@ -25676,7 +25676,7 @@
     "description": "Title of the dialog prompting the user to reset their \"Out of office\" status."
   },
   "more_channels.channel_purpose": {
-    "defaultMessage": "Channel Information: Membership Indicator: Joined, Member count {memberCount} , Purpose: {channelPurpose}",
+    "defaultMessage": "Channel Information: Membership Indicator: Joined, Member count {memberCount}, Purpose: {channelPurpose}",
     "description": "Screen-reader description of a channel row in the Browse Channels modal; {memberCount} is the number of members and {channelPurpose} is the channel's purpose text."
   },
   "more_channels.channel_type_filter": {
@@ -26068,7 +26068,7 @@
     "description": "Tooltip on the create-team option during a Cloud free trial, warning that teams created will be archived when the trial ends."
   },
   "navbar_dropdown.entryVersionText": {
-    "defaultMessage": "Entry offers Enterprise Advance capabilities <link>with limits</link> designed to support evaluation.",
+    "defaultMessage": "Entry offers Enterprise Advanced capabilities <link>with limits</link> designed to support evaluation.",
     "description": "Text in the main menu describing the free Entry edition; 'Entry' and 'Enterprise Advanced' are plan names; <link> wraps the linked words."
   },
   "navbar_dropdown.help": {
@@ -26204,7 +26204,7 @@
     "description": "Title of the onboarding task list panel greeting new users; 'Mattermost' is the product name."
   },
   "no_results.channel_files_filtered.subtitle": {
-    "defaultMessage": "This channel doesn't contains any file with the selected file format.",
+    "defaultMessage": "This channel doesn't contain any files with the selected file format.",
     "description": "Explanatory text in the channel Files tab when the selected file-type filter matches no files."
   },
   "no_results.channel_files_filtered.title": {
@@ -26800,7 +26800,7 @@
     "description": "Acknowledgment button of the dialog shown when a persistent-notification message contains no mentioned recipients."
   },
   "persist_notification.too_few.description": {
-    "defaultMessage": "There are no recipients mentioned in your message. You’ll need add mentions to be able to send persistent notifications.",
+    "defaultMessage": "There are no recipients mentioned in your message. You’ll need to add mentions to be able to send persistent notifications.",
     "description": "Body of the dialog shown when a persistent-notification message mentions no one; explains mentions are required before sending."
   },
   "persist_notification.too_many.confirm": {
@@ -29372,7 +29372,7 @@
     "description": "Keyboard shortcuts modal entry (macOS) for strikethrough formatting; keep the tab and '|' separators between key names."
   },
   "shortcuts.msgs.markdown.unordered": {
-    "defaultMessage": "Bulleted List\tShift|Alt|8",
+    "defaultMessage": "Bulleted List:\tShift|Alt|8",
     "description": "Formatting shortcut entry for a bulleted list; description before the tab, keys after it separated by '|'. Keep the tab and pipes; do not translate key names."
   },
   "shortcuts.msgs.markdown.unordered.mac": {
@@ -32104,7 +32104,7 @@
     "description": "Help text shown when the teammate name display setting is locked by the admin and cannot be changed by the user."
   },
   "user.settings.display.teammateNameDisplayDescription": {
-    "defaultMessage": "Set how to display other user's names in posts and the Direct Messages list.",
+    "defaultMessage": "Set how to display other users' names in posts and the Direct Messages list.",
     "description": "Help text in Settings > Display for the Teammate Name Display setting, explaining where the chosen name format appears."
   },
   "user.settings.display.teammateNameDisplayFullname": {

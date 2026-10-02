@@ -59,7 +59,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
 
         expect(container.querySelector('.editionText')).not.toBeNull();
         expect(container.textContent).toContain('ENTRY EDITION');
-        expect(container.textContent).toContain('Entry offers Enterprise Advance capabilities');
+        expect(container.textContent).toContain('Entry offers Enterprise Advanced capabilities');
     });
 
     test('should return null for Professional license', () => {

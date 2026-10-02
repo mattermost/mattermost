@@ -59,7 +59,7 @@ const sessionLength = (
         id: 'session-length',
         title: formatMessage({
             id: 'admin.reporting.workspace_optimization.configuration.session_length.title',
-            defaultMessage: 'Session lengths is set to default',
+            defaultMessage: 'Session length is set to default',
         }),
         description: formatMessage({
             id: 'admin.reporting.workspace_optimization.configuration.session_length.description',

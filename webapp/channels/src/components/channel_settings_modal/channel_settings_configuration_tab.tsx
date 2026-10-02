@@ -717,7 +717,7 @@ function ChannelSettingsConfigurationTab({
             if (errorCount > 1) {
                 setFormError(formatMessage({
                     id: 'channel_settings.sharing_errors',
-                    defaultMessage: 'There has been errors while sharing the channel with some workspaces. Please try again.',
+                    defaultMessage: 'There have been errors while sharing the channel with some workspaces. Please try again.',
                 }));
             }
 

@@ -44,7 +44,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
               class="PermissionSection_description"
               data-testid="permissionSection-description"
             >
-              The ability to install or upgrade your servers enterprise licensing.
+              The ability to install or upgrade your server's enterprise licensing.
             </div>
             <div
               class="PermissionSubsectionsToggle"

@@ -117,7 +117,7 @@ const subtitleMap = defineMessages({
     },
     [NoResultsVariant.ChannelFilesFiltered]: {
         id: 'no_results.channel_files_filtered.subtitle',
-        defaultMessage: "This channel doesn't contains any file with the selected file format.",
+        defaultMessage: "This channel doesn't contain any files with the selected file format.",
     },
     [NoResultsVariant.UserGroups]: {
         id: 'no_results.user_groups.subtitle',
