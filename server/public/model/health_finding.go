@@ -110,7 +110,36 @@ const (
 	MutedOnly MutedFilter = "only"
 )
 
+func (m MutedFilter) IsValid() bool {
+	switch m {
+	case MutedExcluded, MutedIncluded, MutedOnly:
+		return true
+	default:
+		return false
+	}
+}
+
 type HealthFindingFilter struct {
 	Surfaces []string    `json:"surfaces,omitempty"`
 	Muted    MutedFilter `json:"muted,omitempty"`
+}
+
+// Matches reports whether f passes the filter.
+func (m MutedFilter) Matches(f *HealthFinding) bool {
+	switch m {
+	case MutedIncluded:
+		return true
+	case MutedOnly:
+		return f.IsMuted()
+	default:
+		return !f.IsMuted()
+	}
+}
+
+// HealthFindingList is the findings API response.
+type HealthFindingList struct {
+	// EvaluatedAt is when the server last evaluated its health rules, taken across every stored
+	// finding whatever the filter; 0 means nothing has been evaluated yet.
+	EvaluatedAt int64            `json:"evaluated_at"`
+	Findings    []*HealthFinding `json:"findings"`
 }
