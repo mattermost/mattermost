@@ -299,21 +299,22 @@ func TestGetHealthFindingsEvaluatedAt(t *testing.T) {
 	storeHealthFindings(t, th, muted, internal)
 	require.NoError(t, th.App.Srv().Store().HealthFinding().Mute(muted.Fingerprint, th.SystemAdminUser.Id, model.GetMillis()))
 
-	for _, filter := range []model.MutedFilter{model.MutedExcluded, model.MutedIncluded, model.MutedOnly} {
-		t.Run("muted="+string(filter), func(t *testing.T) {
-			list, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{Muted: filter})
+	for _, tc := range []struct {
+		muted    model.MutedFilter
+		expected []string
+	}{
+		{model.MutedExcluded, []string{}},
+		{model.MutedIncluded, []string{muted.Fingerprint}},
+		{model.MutedOnly, []string{muted.Fingerprint}},
+	} {
+		t.Run("muted="+string(tc.muted), func(t *testing.T) {
+			list, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{Muted: tc.muted})
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
+			assert.Equal(t, tc.expected, findingFingerprints(list.Findings))
 			assert.Equal(t, internal.LastSeenAt, list.EvaluatedAt)
 		})
 	}
-
-	t.Run("every product finding muted", func(t *testing.T) {
-		list, _, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
-		require.NoError(t, err)
-		assert.Empty(t, list.Findings)
-		assert.NotZero(t, list.EvaluatedAt)
-	})
 }
 
 func TestMuteHealthFinding(t *testing.T) {
