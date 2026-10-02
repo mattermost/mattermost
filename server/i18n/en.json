@@ -4681,7 +4681,7 @@
   },
   {
     "id": "api.shared_channel.invite_remote_to_channel_error",
-    "translation": "Could not invite remote to channel",
+    "translation": "Could not invite remote to channel.",
     "description": "API error when inviting a remote (connected Mattermost server) to participate in a shared channel fails."
   },
   {
