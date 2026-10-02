@@ -41,7 +41,11 @@ System admins choose which attributes appear in a new channel banner by default.
 
 ## Remove a channel banner
 
-Disable the **Channel Banner** option in the channel settings to remove the native banner from the channel. This setting does not suppress an active classification banner, which follows its own Classification configuration. When channel attributes are enabled, this suppresses the attribute-driven banner without clearing the channel's attribute values or saved banner template.
+Disable the **Channel Banner** option in the channel settings to remove the banner from the channel.
+
+When channel attributes are enabled, this also hides all attribute-driven banner content, including Classification. Mattermost preserves the channel's attribute values and saved banner template, so enabling the banner again restores the resolved content.
+
+When channel attributes aren't enabled, an active Classification marking locks the **Channel Banner** option on. Disable the channel's Classification setting separately to remove that banner.
 
 <Tip>
 
