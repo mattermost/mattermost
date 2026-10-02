@@ -74,17 +74,28 @@ test('should send ephemeral post with Update and Delete actions via /ephemeral c
     await expect(deletedPost.getByRole('button', {name: 'Update 1', exact: true})).not.toBeVisible();
     await expect(deletedPost.getByRole('button', {name: 'Delete', exact: true})).not.toBeVisible();
 
-    // # Send /ephemeral_override command (still in Town Square)
-    await sendDemoSlashCommand(channelsPage.page, async () => {
-        await channelsPage.centerView.postCreate.input.fill('/ephemeral_override');
-        await channelsPage.centerView.postCreate.sendMessage();
-    });
-
-    // * Verify the override ephemeral post appears
+    // # Send /ephemeral_override command (still in Town Square), with retries if the plugin
+    // is transiently unavailable (e.g. during a concurrent plugin_crash.spec.ts recovery cycle)
     const overridePost = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: 'This is a demo of overriding an ephemeral post.'})
         .last();
+    for (let attempt = 0; attempt < 3; attempt++) {
+        await sendDemoSlashCommand(channelsPage.page, async () => {
+            await channelsPage.centerView.postCreate.input.fill('/ephemeral_override');
+            await channelsPage.centerView.postCreate.sendMessage();
+        });
+        try {
+            await expect(overridePost.getByText('(Only visible to you)', {exact: true})).toBeVisible();
+            break;
+        } catch (err) {
+            if (attempt === 2) {
+                throw err;
+            }
+        }
+    }
+
+    // * Verify the override ephemeral post appears
     await expect(overridePost.getByText('(Only visible to you)', {exact: true})).toBeVisible();
     await expect(
         overridePost.getByText('This is a demo of overriding an ephemeral post.', {exact: true}),
