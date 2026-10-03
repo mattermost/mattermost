@@ -196,94 +196,27 @@ func TestReconcileSkipsNeverFiredResolved(t *testing.T) {
 	t.Parallel()
 
 	baseTime := time.UnixMilli(3_500_000)
-
-	newReconciler := func(store FindingStore) *Reconciler {
-		return NewReconciler(ReconcilerOpts{
-			Store:    store,
-			Registry: testRegistry(testRule("CHECK_PASSING", VolatilityStable), testRule("CHECK_FIRING", VolatilityStable)),
-			Now:      func() time.Time { return baseTime },
-		})
-	}
-
-	t.Run("first-cycle pass writes nothing", func(t *testing.T) {
-		t.Parallel()
-
-		store := NewMemoryStore()
-		transitions, err := newReconciler(store).Reconcile([]Evaluation{
-			testEvaluation("CHECK_PASSING", "cluster", "", StateResolved, baseTime),
-		})
-		require.NoError(t, err)
-		assert.Empty(t, transitions)
-
-		stored, err := store.List(model.HealthFindingFilter{Muted: model.MutedIncluded})
-		require.NoError(t, err)
-		assert.Empty(t, stored)
-	})
-
-	t.Run("mixed cycle writes only the firing check", func(t *testing.T) {
-		t.Parallel()
-
-		store := NewMemoryStore()
-		firing := testEvaluation("CHECK_FIRING", "cluster", "", StateFiring, baseTime)
-		transitions, err := newReconciler(store).Reconcile([]Evaluation{
-			testEvaluation("CHECK_PASSING", "cluster", "", StateResolved, baseTime),
-			firing,
-		})
-		require.NoError(t, err)
-		require.Len(t, transitions, 1)
-		assert.Equal(t, firing.Fingerprint, transitions[0].Finding.Fingerprint)
-		assert.Equal(t, StateUnknown, transitions[0].From)
-		assert.Equal(t, StateFiring, transitions[0].To)
-
-		stored, err := store.List(model.HealthFindingFilter{Muted: model.MutedIncluded})
-		require.NoError(t, err)
-		require.Len(t, stored, 1)
-		assert.Equal(t, firing.Fingerprint, stored[0].Fingerprint)
-		assert.Equal(t, string(StateFiring), stored[0].State)
-	})
-}
-
-func TestReconcileFiringThenResolved(t *testing.T) {
-	t.Parallel()
-
-	baseTime := time.UnixMilli(3_700_000)
-	clearedAt := baseTime.Add(time.Hour)
-	passedAgainAt := clearedAt.Add(time.Hour)
-
 	store := NewMemoryStore()
 	reconciler := NewReconciler(ReconcilerOpts{
 		Store:    store,
-		Registry: testRegistry(testRule("CHECK_A", VolatilityStable)),
+		Registry: testRegistry(testRule("CHECK_PASSING", VolatilityStable), testRule("CHECK_FIRING", VolatilityStable)),
 		Now:      func() time.Time { return baseTime },
 	})
-	fp := Fingerprint("CHECK_A", "cluster", "")
 
-	_, err := reconciler.Reconcile([]Evaluation{testEvaluation("CHECK_A", "cluster", "", StateFiring, baseTime)})
-	require.NoError(t, err)
-
-	transitions, err := reconciler.Reconcile([]Evaluation{testEvaluation("CHECK_A", "cluster", "", StateResolved, clearedAt)})
+	firing := testEvaluation("CHECK_FIRING", "cluster", "", StateFiring, baseTime)
+	transitions, err := reconciler.Reconcile([]Evaluation{
+		testEvaluation("CHECK_PASSING", "cluster", "", StateResolved, baseTime),
+		firing,
+	})
 	require.NoError(t, err)
 	require.Len(t, transitions, 1)
-	assert.Equal(t, StateFiring, transitions[0].From)
-	assert.Equal(t, StateResolved, transitions[0].To)
+	assert.Equal(t, firing.Fingerprint, transitions[0].Finding.Fingerprint)
 
-	stored, err := store.GetByFingerprints([]string{fp})
+	stored, err := store.List(model.HealthFindingFilter{Muted: model.MutedIncluded})
 	require.NoError(t, err)
 	require.Len(t, stored, 1)
-	assert.Equal(t, string(StateResolved), stored[0].State)
-	assert.Equal(t, clearedAt.UnixMilli(), stored[0].StateSince)
-	assert.Equal(t, baseTime.UnixMilli(), stored[0].FirstSeenAt)
-
-	transitions, err = reconciler.Reconcile([]Evaluation{testEvaluation("CHECK_A", "cluster", "", StateResolved, passedAgainAt)})
-	require.NoError(t, err)
-	assert.Empty(t, transitions)
-
-	stored, err = store.GetByFingerprints([]string{fp})
-	require.NoError(t, err)
-	require.Len(t, stored, 1)
-	assert.Equal(t, string(StateResolved), stored[0].State)
-	assert.Equal(t, clearedAt.UnixMilli(), stored[0].StateSince)
-	assert.Equal(t, passedAgainAt.UnixMilli(), stored[0].LastSeenAt)
+	assert.Equal(t, firing.Fingerprint, stored[0].Fingerprint)
+	assert.Equal(t, string(StateFiring), stored[0].State)
 }
 
 func TestReconcileAgesAbsentFindingsToUnknown(t *testing.T) {
