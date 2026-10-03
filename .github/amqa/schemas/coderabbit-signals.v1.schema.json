@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "coderabbit-signals.v1",
+  "type": "object",
+  "required": ["schema_version", "pr_number", "change_impact"],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0" },
+    "pr_number": { "type": "integer" },
+    "change_impact": { "enum": ["low", "medium", "high", "unknown"] },
+    "regression_risk": { "type": "string" },
+    "qa_recommendation_raw": { "type": "string" },
+    "parsed_scenarios": { "type": "array" },
+    "cis_score": { "type": "integer" }
+  }
+}
