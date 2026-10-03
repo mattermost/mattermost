@@ -83,7 +83,7 @@ describe('components/post_view/AddMembersButton', () => {
         expect(screen.queryByText('Add people')).toBeInTheDocument();
     });
 
-    test('should match snapshot, setHeader and pluginButtons', () => {
+    describe('plugin buttons', () => {
         const PLUGIN_TEXT = 'Create a board plugin';
         const pluginButtons = (
             <button>
@@ -91,17 +91,54 @@ describe('components/post_view/AddMembersButton', () => {
             </button>
         );
 
-        const props = {
-            totalUsers: 100,
-            usersLimit: 10,
-            channel,
-            pluginButtons,
-        };
-        renderWithContext(
-            <AddMembersButton {...props}/>,
-            initialState,
-        );
+        test('should render plugin buttons alongside the add people button when above the users limit', () => {
+            const props = {
+                totalUsers: 100,
+                usersLimit: 10,
+                channel,
+                pluginButtons,
+            };
+            renderWithContext(
+                <AddMembersButton {...props}/>,
+                initialState,
+            );
 
-        expect(screen.queryByText(PLUGIN_TEXT)).toBeInTheDocument();
+            expect(screen.getByText('Add people')).toBeInTheDocument();
+            expect(screen.getByText(PLUGIN_TEXT)).toBeInTheDocument();
+        });
+
+        test('should render only the invite button when below the users limit', () => {
+            const props = {
+                totalUsers: 9,
+                usersLimit: 10,
+                channel,
+                pluginButtons,
+            };
+            renderWithContext(
+                <AddMembersButton {...props}/>,
+                initialState,
+            );
+
+            expect(screen.getByText('Invite others to the workspace')).toBeInTheDocument();
+            expect(screen.queryByText('Add people')).not.toBeInTheDocument();
+            expect(screen.queryByText(PLUGIN_TEXT)).not.toBeInTheDocument();
+        });
+
+        test('should render plugin buttons when the users count reaches the limit', () => {
+            const props = {
+                totalUsers: 10,
+                usersLimit: 10,
+                channel,
+                pluginButtons,
+            };
+            renderWithContext(
+                <AddMembersButton {...props}/>,
+                initialState,
+            );
+
+            expect(screen.getByText('Add people')).toBeInTheDocument();
+            expect(screen.getByText(PLUGIN_TEXT)).toBeInTheDocument();
+            expect(screen.queryByText('Invite others to the workspace')).not.toBeInTheDocument();
+        });
     });
 });
