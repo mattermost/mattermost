@@ -82,6 +82,8 @@ export const renderMenu = (overrides: Partial<HierarchicalValueMenuProps> = {}) 
 };
 
 export const trigger = () => screen.getByTestId('valueSelectorMenuButton');
+export const triggerButton = trigger;
+
 export const openMenu = async () => {
     await userEvent.click(trigger());
 };
