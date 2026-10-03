@@ -36,7 +36,7 @@ test('shows the Site health page to a system admin', {tag: '@system_console'}, a
     await systemConsolePage.sidebar.reporting.siteHealth.click();
 
     // * Verify the page loaded from the findings API without an error
-    await expect(systemConsolePage.page.getByRole('heading', {name: 'Site health'})).toBeVisible();
+    await expect(systemConsolePage.page.getByTestId('admin-console-header')).toHaveText('Site health');
     await expect(systemConsolePage.page.getByText('Not evaluated yet')).toBeVisible();
     await expect(systemConsolePage.page.getByText('Health findings could not be loaded')).not.toBeVisible();
 });
