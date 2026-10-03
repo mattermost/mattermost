@@ -1992,7 +1992,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'RateLimitSettings.Enable',
                             label: defineMessage({id: 'admin.rate.enableLimiterTitle', defaultMessage: 'Enable Rate Limiting:'}),
-                            help_text: defineMessage({id: 'admin.rate.enableLimiterDescription', defaultMessage: 'When true, APIs are throttled at rates specified below. Rate limiting prevents server overload from too many requests. This is useful to prevent third-party applications or malicous attacks from impacting your server.'}),
+                            help_text: defineMessage({id: 'admin.rate.enableLimiterDescription', defaultMessage: 'When true, APIs are throttled at rates specified below. Rate limiting prevents server overload from too many requests. This is useful to prevent third-party applications or malicious attacks from impacting your server.'}),
                             help_text_markdown: true,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.RATE_LIMITING)),
                         },
