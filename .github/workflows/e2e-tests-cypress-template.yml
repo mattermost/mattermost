@@ -458,10 +458,13 @@ jobs:
         # it to change.
         if: always() && steps.summary.outcome != 'success'
         continue-on-error: true
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-triage@65ea0eee0e21e38d87989774db650bf39b729b41 # actions/e2e-triage
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-triage@39c6c2d2cab50e3fcf23e68bd8247337b4a12878 # actions/e2e-triage
         with:
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
           status-context: ${{ inputs.context_name }}
+          # One triage check for the whole PR, summarising Playwright and Cypress.
+          triage-status-context: e2e-test/triage
+          triage-lanes: e2e-test/playwright-full/enterprise,e2e-test/cypress-full/enterprise
           test-root: e2e-tests/cypress
           github-token: ${{ secrets.GITHUB_TOKEN }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
