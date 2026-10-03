@@ -113,9 +113,10 @@ export const getCurrentSearchForSearchTeam: (state: GlobalState) => Record<strin
     'getCurrentSearchForSearchTeam',
     (state: GlobalState) => state.entities.search.current,
     getSearchTeam,
+    getExplicitSearchTeam,
     (state: GlobalState) => getRhsState(state) === RHSStates.MENTION,
-    (current, teamId, isMentionSearch) => {
-        const team = isMentionSearch ? 'ALL_TEAMS' : teamId || 'ALL_TEAMS';
+    (current, teamId, explicitTeamId, isMentionSearch) => {
+        const team = (isMentionSearch && !explicitTeamId) ? 'ALL_TEAMS' : teamId || 'ALL_TEAMS';
         return current[team];
     },
 );
@@ -138,6 +139,12 @@ export function getSearchTerms(state: GlobalState): string {
 // getSearchTeam returns the team ID that the search is currently scoped to, or current team if no team was specified.
 export function getSearchTeam(state: GlobalState): string {
     return state.views.rhs.searchTeam ?? getCurrentTeamId(state);
+}
+
+// getExplicitSearchTeam returns the team ID the search was explicitly scoped to, or null when it wasn't
+// scoped to one. Recent mentions search every team unless scoped, so callers need to tell the two apart.
+export function getExplicitSearchTeam(state: GlobalState): string | null {
+    return state.views.rhs.searchTeam;
 }
 
 export function getSearchType(state: GlobalState): SearchType {

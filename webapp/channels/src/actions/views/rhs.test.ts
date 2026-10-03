@@ -25,6 +25,7 @@ import {
     showFlaggedPosts,
     showPinnedPosts,
     showMentions,
+    showChannelMentions,
     closeRightHandSide,
     showRHSPlugin,
     hideRHSPlugin,
@@ -486,7 +487,100 @@ describe('rhs view actions', () => {
                     type: ActionTypes.UPDATE_RHS_STATE,
                     state: RHSStates.MENTION,
                 },
+                {
+                    type: ActionTypes.UPDATE_RHS_SEARCH_TEAM,
+                    teamId: null,
+                },
             ]));
+
+            expect(store.getActions()).toEqual(compareStore.getActions());
+        });
+    });
+
+    describe('showChannelMentions', () => {
+        const stateWithChannel = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                channels: {
+                    ...initialState.entities.channels,
+                    channels: {
+                        [currentChannelId]: TestHelper.getChannelMock({
+                            id: currentChannelId,
+                            name: 'town-square',
+                            team_id: currentTeamId,
+                        }),
+                    },
+                },
+            },
+        } as GlobalState;
+
+        test('it searches the mention keys scoped to the current channel and team', () => {
+            store = mockStore(stateWithChannel);
+            store.dispatch(showChannelMentions());
+
+            const terms = '@mattermost in:town-square ';
+            const compareStore = mockStore(stateWithChannel);
+
+            compareStore.dispatch(performSearch(terms, currentTeamId, true));
+            compareStore.dispatch(batchActions([
+                {
+                    type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
+                    terms,
+                },
+                {
+                    type: ActionTypes.UPDATE_RHS_STATE,
+                    state: RHSStates.MENTION,
+                },
+                {
+                    type: ActionTypes.UPDATE_RHS_SEARCH_TEAM,
+                    teamId: currentTeamId,
+                },
+            ]));
+
+            expect(store.getActions()).toEqual(compareStore.getActions());
+        });
+
+        test('it leaves the in: filter unquoted so that it still filters the search', () => {
+            store = mockStore(stateWithChannel);
+            store.dispatch(showChannelMentions());
+
+            const searchAction = store.getActions().find(({type}) => type === 'MOCK_SEARCH_POSTS');
+
+            expect(searchAction.args[0]).toEqual(currentTeamId);
+            expect(searchAction.args[1].terms).toEqual('"@mattermost" in:town-square');
+            expect(searchAction.args[1].is_or_search).toBe(true);
+        });
+
+        test('it falls back to an all teams mention search when there are no mention keys', () => {
+            UserSelectors.getCurrentUserMentionKeys.mockReturnValueOnce([]);
+
+            store = mockStore(stateWithChannel);
+            store.dispatch(showChannelMentions());
+
+            const compareStore = mockStore(stateWithChannel);
+            compareStore.dispatch(showMentions());
+
+            expect(store.getActions()).toEqual(compareStore.getActions());
+        });
+
+        test('it falls back to an all teams mention search when the current channel is unknown', () => {
+            const stateWithoutChannel = {
+                ...stateWithChannel,
+                entities: {
+                    ...stateWithChannel.entities,
+                    channels: {
+                        ...stateWithChannel.entities.channels,
+                        channels: {},
+                    },
+                },
+            } as GlobalState;
+
+            store = mockStore(stateWithoutChannel);
+            store.dispatch(showChannelMentions());
+
+            const compareStore = mockStore(stateWithoutChannel);
+            compareStore.dispatch(showMentions());
 
             expect(store.getActions()).toEqual(compareStore.getActions());
         });
@@ -751,6 +845,10 @@ describe('rhs view actions', () => {
                 {
                     type: ActionTypes.UPDATE_RHS_STATE,
                     state: RHSStates.MENTION,
+                },
+                {
+                    type: ActionTypes.UPDATE_RHS_SEARCH_TEAM,
+                    teamId: null,
                 },
             ]));
 

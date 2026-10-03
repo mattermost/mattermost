@@ -26263,6 +26263,10 @@
     "defaultMessage": "Toggle right sidebar",
     "description": "Accessibility label for the mobile header button that opens/closes the right-hand sidebar."
   },
+  "navbar.viewChannelMentions": {
+    "defaultMessage": "Recent Mentions in this Channel",
+    "description": "Menu item in the channel dropdown menu; opens recent mentions filtered to the current channel."
+  },
   "navbar.viewPinnedPosts": {
     "defaultMessage": "View Pinned Posts",
     "description": "Menu item in the channel dropdown menu; opens the list of messages pinned to the channel."
