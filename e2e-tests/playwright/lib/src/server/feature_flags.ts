@@ -10,16 +10,13 @@ import {getAdminClient} from './init';
 import {testConfig} from '@/test_config';
 
 /**
- * Restarts the server with the given feature flag(s) set to their desired values if they
- * aren't already, and confirms the running server reports those values, skipping the test
- * otherwise.
+ * Restarts the server with the given feature flag(s) set if they aren't already, then verifies
+ * the running server reports those values, skipping the test otherwise. Accepts either a single
+ * `(flagName, value)` pair or a `{flagName: value}` map.
  *
- * Accepts either a single `(flagName, value)` pair or a `{flagName: value}` map so multiple
- * prerequisite flags can be combined into a single restart instead of one per flag.
- *
- * FeatureFlags can't be changed via patchConfig on a running server: with no Split key configured,
- * the config store's readOnlyFF handling reverts any FeatureFlags patch, so only a boot-time
- * MM_FEATUREFLAGS_* env var takes effect.
+ * Call via `pw.ensureFeatureFlag(...)`, passing identical arguments across every test in a spec
+ * file: when the flags already match, this is a no-op, so the server restarts at most once per
+ * file.
  */
 export async function ensureFeatureFlag(flagName: string, value: boolean): Promise<void>;
 export async function ensureFeatureFlag(flags: Record<string, boolean>): Promise<void>;
@@ -51,11 +48,15 @@ export async function ensureFeatureFlag(
         const env = Object.fromEntries(
             mismatched.map(([flagName, flagValue]) => [`MM_FEATUREFLAGS_${flagName.toUpperCase()}`, String(flagValue)]),
         );
+        let verifyClient = adminClient;
         if (!bootEnvMatches(env)) {
             await restartMattermostContainer(env);
+            // Restart points the server at a new container, so the pre-restart adminClient is
+            // now stale. Fetch a fresh one.
+            verifyClient = (await getAdminClient()).adminClient;
         }
 
-        const restartedConfig = await adminClient.getConfig();
+        const restartedConfig = await verifyClient.getConfig();
         for (const [flagName, flagValue] of mismatched) {
             const actual = restartedConfig.FeatureFlags?.[flagName];
             if (String(actual) !== String(flagValue)) {
