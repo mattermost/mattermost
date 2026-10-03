@@ -39,11 +39,6 @@ const OUT = join(SITE_ROOT, 'sidebars', 'documentation.generated.json');
 // if it's standalone. Forgetting logs `WARN: N file(s) missing from *_ORDER`
 // and appends it at the section root, so it surfaces as a build warning
 // rather than disappearing.
-//
-// `for-evaluators/` exists under main/ for direct URLs (cloud preview +
-// quick-start hub) but is intentionally omitted from TOP_LEVEL until that
-// category is ready for the primary Documentation sidebar.
-
 const TOP_LEVEL = [
   {dir: 'product-overview',     label: 'Overview'},
   {dir: 'use-case-guide',       label: 'Use Case Guide'},

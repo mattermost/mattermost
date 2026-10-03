@@ -11,10 +11,7 @@ type Props = {
   children?: React.ReactNode;
 };
 
-/**
- * Starts the hosted 1-hour cloud preview: marketing sign-up (Marketo) then
- * Customer Portal `flow=preview` provisioning.
- */
+/** Button that starts the hosted 1-hour cloud preview on mattermost.com. */
 export default function TryMattermostCTA({
   href = DEFAULT_HREF,
   label = 'Start 1-hour cloud preview',
