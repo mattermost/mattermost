@@ -8,7 +8,7 @@
  * Prerequisites: Enterprise-tier license + ClassificationMarkings feature flag enabled.
  */
 
-import {expect, test, getAdminClient, licenseTier} from '@mattermost/playwright-lib';
+import {expect, test, getAdminClient, licenseTier, ensureFeatureFlag} from '@mattermost/playwright-lib';
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
 import {
@@ -38,6 +38,12 @@ test.beforeAll(async () => {
     if (licenseTier(license.SkuShortName) < 20) {
         return;
     }
+
+    // The dedicated classification toggle tested below is superseded by the generic
+    // Channel Attributes form once ChannelAttributes is on (see new_channel_modal.tsx
+    // and channel_settings_configuration_tab.tsx: canManageClassification is gated on
+    // !channelAttributes.enabled), so force it off to exercise the toggle this suite covers.
+    await ensureFeatureFlag('ChannelAttributes', false);
 
     await setClassificationMarkingsFeatureFlag(adminClient, true);
     const setup = await setupClassificationWithChannelField(adminClient);
