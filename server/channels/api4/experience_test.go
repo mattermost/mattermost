@@ -1115,6 +1115,267 @@ func TestGetInitialLoadPreferenceTombstones(t *testing.T) {
 	})
 }
 
+func TestGetTeamLoad(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = true })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = false })
+
+	teamURL := func(teamID string, params ...string) string {
+		u := fmt.Sprintf("/users/me/teams/%s/load", teamID)
+		if len(params) > 0 {
+			u += "?" + strings.Join(params, "&")
+		}
+		return u
+	}
+
+	t.Run("unauthenticated request is rejected", func(t *testing.T) {
+		client := th.CreateClient()
+		resp, err := client.DoAPIGet(context.Background(), teamURL(th.BasicTeam.Id), "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	})
+
+	t.Run("returns 404 when EnableExperienceAPI is off", func(t *testing.T) {
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = true })
+
+		resp, err := th.Client.DoAPIGet(context.Background(), teamURL(th.BasicTeam.Id), "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
+
+	t.Run("non-member gets 403", func(t *testing.T) {
+		// Create team as system admin so BasicUser is NOT a member.
+		otherTeam := th.CreateTeamWithClient(t, th.SystemAdminClient)
+		resp, err := th.Client.DoAPIGet(context.Background(), teamURL(otherTeam.Id), "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("deleted team gets 403", func(t *testing.T) {
+		deletedTeam, appErr := th.App.CreateTeam(th.Context, &model.Team{
+			DisplayName: "Deleted Team",
+			Name:        model.NewRandomTeamName(),
+			Type:        model.TeamOpen,
+			Email:       th.BasicUser.Email,
+		})
+		require.Nil(t, appErr)
+		_, _, appErr = th.App.AddUserToTeam(th.Context, deletedTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+		appErr = th.App.SoftDeleteTeam(deletedTeam.Id)
+		require.Nil(t, appErr)
+
+		resp, err := th.Client.DoAPIGet(context.Background(), teamURL(deletedTeam.Id), "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("removed membership gets 403", func(t *testing.T) {
+		otherTeam := th.CreateTeamWithClient(t, th.SystemAdminClient)
+		_, _, appErr := th.App.AddUserToTeam(th.Context, otherTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		// Remove the user — soft-deletes the TeamMember row.
+		appErr = th.App.RemoveUserFromTeam(th.Context, otherTeam.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		resp, err := th.Client.DoAPIGet(context.Background(), teamURL(otherTeam.Id), "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("invalid since param returns 400", func(t *testing.T) {
+		resp, err := th.Client.DoAPIGet(context.Background(), teamURL(th.BasicTeam.Id, "since=notanumber"), "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("basic response shape", func(t *testing.T) {
+		resp, err := th.Client.DoAPIGet(context.Background(), teamURL(th.BasicTeam.Id), "")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		defer resp.Body.Close()
+
+		var r model.TeamLoadResponse
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&r))
+
+		// Channels — must include BasicChannel
+		chIDs := make(map[string]struct{}, len(r.Channels))
+		for _, ch := range r.Channels {
+			chIDs[ch.Id] = struct{}{}
+		}
+		assert.Contains(t, chIDs, th.BasicChannel.Id)
+
+		// Channel members — count must match channels
+		assert.Len(t, r.ChannelMembers.Members, len(r.Channels))
+
+		// Sidebar categories present
+		assert.NotNil(t, r.SidebarCategories)
+
+		// Roles present
+		assert.NotEmpty(t, r.Roles)
+
+		// Timestamp set
+		assert.Greater(t, r.Timestamp, int64(0))
+	})
+
+	t.Run("DM and GM channels are excluded", func(t *testing.T) {
+		// Create a DM and a GM so they exist in the DB.
+		user3 := th.CreateUser(t)
+		th.LinkUserToTeam(t, user3, th.BasicTeam)
+		_, _, err := th.Client.CreateDirectChannel(context.Background(), th.BasicUser.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+		_, _, err = th.Client.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		require.NoError(t, err)
+
+		resp, err := th.Client.DoAPIGet(context.Background(), teamURL(th.BasicTeam.Id), "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		var r model.TeamLoadResponse
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&r))
+
+		for _, ch := range r.Channels {
+			assert.NotEqual(t, model.ChannelTypeDirect, ch.Type, "DM channel must not appear in team_load")
+			assert.NotEqual(t, model.ChannelTypeGroup, ch.Type, "GM channel must not appear in team_load")
+		}
+	})
+
+	t.Run("delta since=now returns empty channels and members", func(t *testing.T) {
+		now := model.GetMillis()
+		resp, err := th.Client.DoAPIGet(context.Background(), teamURL(th.BasicTeam.Id, fmt.Sprintf("since=%d", now)), "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		var r model.TeamLoadResponse
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&r))
+
+		assert.Empty(t, r.Channels, "no channels expected in delta when nothing changed")
+		assert.Empty(t, r.ChannelMembers.Members, "no members expected in delta when nothing changed")
+		assert.Empty(t, r.Roles, "no roles expected in delta when nothing changed")
+		assert.Greater(t, r.Timestamp, int64(0))
+	})
+
+	t.Run("sidebar omitted when since cursor is newer than sidebar version", func(t *testing.T) {
+		// First call (cold start) to get the current sidebar version and timestamp.
+		resp, err := th.Client.DoAPIGet(context.Background(), teamURL(th.BasicTeam.Id), "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		var r model.TeamLoadResponse
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&r))
+
+		require.NotNil(t, r.SidebarCategories, "sidebar_categories must be present on cold start")
+
+		// Second call using the returned Timestamp as the since cursor.
+		// Nothing mutated the sidebar, so sidebarVersion <= since → sidebar omitted.
+		resp2, err := th.Client.DoAPIGet(context.Background(), teamURL(th.BasicTeam.Id, fmt.Sprintf("since=%d", r.Timestamp)), "")
+		require.NoError(t, err)
+		defer resp2.Body.Close()
+
+		var r2 model.TeamLoadResponse
+		require.NoError(t, json.NewDecoder(resp2.Body).Decode(&r2))
+
+		assert.Nil(t, r2.SidebarCategories, "sidebar_categories should be omitted when since >= sidebarVersion")
+	})
+
+	t.Run("delta: channel member update includes slim channel companion when channel metadata unchanged", func(t *testing.T) {
+		// A post moves LastPostAt but not Channel.UpdateAt, so the member lands in the
+		// delta without the channel; the slim companion carries the unread counts.
+
+		// Snapshot before any activity.
+		since := model.GetMillis() - 1
+
+		// Post as BasicUser2 so BasicChannel.LastPostAt advances past since.
+		// Channel.UpdateAt is NOT changed by a new post.
+		user2Client := th.CreateClient()
+		_, _, err := user2Client.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
+		require.NoError(t, err)
+		_, _, err = user2Client.CreatePost(context.Background(), &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "team_load slim companion trigger post",
+		})
+		require.NoError(t, err)
+
+		// BasicUser views the channel → LastUpdateAt = greatest(LastViewedAt, LastPostAt) > since.
+		// Channel.UpdateAt is still unchanged.
+		_, _, err = th.Client.ViewChannel(context.Background(), th.BasicUser.Id, &model.ChannelView{
+			ChannelId: th.BasicChannel.Id,
+		})
+		require.NoError(t, err)
+
+		resp, err2 := th.Client.DoAPIGet(context.Background(), teamURL(th.BasicTeam.Id, fmt.Sprintf("since=%d", since)), "")
+		require.NoError(t, err2)
+		defer resp.Body.Close()
+
+		var r model.TeamLoadResponse
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&r))
+
+		// The channel member for BasicChannel must be in the delta.
+		var memberFound bool
+		for _, m := range r.ChannelMembers.Members {
+			if m.ChannelId == th.BasicChannel.Id {
+				memberFound = true
+				break
+			}
+		}
+		require.True(t, memberFound, "BasicChannel member must be in delta channel_members")
+
+		// A slim ExperienceChannel for BasicChannel must accompany the member.
+		var slimFound bool
+		for _, ch := range r.Channels {
+			if ch.Id == th.BasicChannel.Id {
+				slimFound = true
+				assert.Greater(t, ch.TotalMsgCount, int64(0),
+					"slim companion must carry total_msg_count > 0")
+				assert.Greater(t, ch.LastPostAt, int64(0),
+					"slim companion must carry last_post_at > 0")
+				break
+			}
+		}
+		assert.True(t, slimFound,
+			"a slim ExperienceChannel must accompany the BasicChannel member in the delta")
+	})
+
+	t.Run("tombstone: left channel appears in removed_channel_ids", func(t *testing.T) {
+		// Create a new channel and join it.
+		newCh, _, err := th.Client.CreateChannel(context.Background(), &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			Type:        model.ChannelTypeOpen,
+			Name:        model.NewId(),
+			DisplayName: "tombstone-test",
+		})
+		require.NoError(t, err)
+
+		// Join (membership created)
+		_, _, err = th.Client.AddChannelMember(context.Background(), newCh.Id, th.BasicUser.Id)
+		require.NoError(t, err)
+
+		// Snapshot cursor
+		since := model.GetMillis() - 1
+
+		// Leave the channel
+		_, err = th.Client.RemoveUserFromChannel(context.Background(), newCh.Id, th.BasicUser.Id)
+		require.NoError(t, err)
+
+		resp, err := th.Client.DoAPIGet(context.Background(), teamURL(th.BasicTeam.Id, fmt.Sprintf("since=%d", since)), "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		var r model.TeamLoadResponse
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&r))
+
+		assert.Contains(t, r.ChannelMembers.RemovedChannelIds, newCh.Id,
+			"left channel should appear in removed_channel_ids")
+	})
+}
+
 // collectNeededRoles returns the set of role names referenced in Me, TeamMembers,
 // and ChannelMembers — used to verify the Roles field is complete.
 func collectNeededRoles(r model.InitialLoadResponse) map[string]struct{} {
