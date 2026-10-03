@@ -351,7 +351,9 @@ const DEPLOYMENT_GROUPS = {
 // constraints that shape the whole deployment, above the level of the
 // server-specific planning pages.
 const DEPLOYMENT_ROOT_ORDER = [
-  'quick-start-evaluation',
+  // Folder with index (Docker/Azure) + 1-hour cloud preview; auto keeps
+  // sidebar_position order without a hand-maintained items list.
+  {auto: 'quick-start-evaluation'},
   {group: 'deploymentScenarios'},
   {group: 'serverDeployment'},
   {group: 'calls'},
