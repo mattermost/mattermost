@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import type {AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
@@ -187,6 +188,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
         // Mock saveChannelPolicy to resolve successfully
         mockActions.saveChannelPolicy.mockResolvedValue({data: {success: true}});
+        mockActions.deleteChannelPolicy.mockResolvedValue({data: true});
+
+        // clearMocks only clears call records, so give the members lookup a
+        // default here rather than letting an implementation leak between tests.
+        mockActions.getChannelMembers.mockResolvedValue({data: []});
 
         // Mock validateExpressionAgainstRequester to return that user matches
         mockActions.validateExpressionAgainstRequester.mockResolvedValue({
@@ -2259,6 +2265,185 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             await waitFor(() => {
                 expect(screen.getByText(serverMessage)).toBeInTheDocument();
             });
+        });
+    });
+
+    describe('clearing the membership rule with channel permission rules present', () => {
+        const membershipExpression = 'user.attributes.department == "Engineering"';
+
+        const uploadRule = {
+            name: 'Policy 1',
+            actions: ['upload_file_attachment'],
+            role: 'channel_user',
+            expression: membershipExpression,
+        };
+
+        const downloadRule = {
+            name: 'Policy 2',
+            actions: ['download_file_attachment'],
+            role: 'channel_user',
+            expression: membershipExpression,
+        };
+
+        const clearedMembershipRule = {actions: ['membership'], expression: '', metadata: {auto_add: ''}};
+
+        const renderAndClearMembership = async (rules: AccessControlPolicyRule[], state: typeof initialState = initialState) => {
+            mockActions.getChannelPolicy.mockResolvedValue({
+                data: {
+                    id: 'channel_id',
+                    name: 'Test Channel',
+                    type: 'channel',
+                    rules,
+                },
+            });
+            mockActions.searchUsers.mockResolvedValue({data: {users: []}});
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                state,
+            );
+
+            const loadedProps = await waitFor(() => {
+                const calls = MockedTableEditor.mock.calls;
+                expect(calls[calls.length - 1][0].value).toBe(membershipExpression);
+                return calls[calls.length - 1][0];
+            });
+
+            act(() => {
+                loadedProps.onChange('');
+            });
+
+            await waitFor(() => {
+                expect(screen.getByText('Save')).toBeInTheDocument();
+            });
+
+            await userEvent.click(screen.getByText('Save'));
+        };
+
+        test('updates the policy and keeps the permission rules instead of deleting it', async () => {
+            await renderAndClearMembership([
+                {actions: ['membership'], expression: membershipExpression},
+                uploadRule,
+                downloadRule,
+            ]);
+
+            await waitFor(() => {
+                expect(mockActions.saveChannelPolicy).toHaveBeenCalled();
+            });
+
+            expect(mockActions.deleteChannelPolicy).not.toHaveBeenCalled();
+            expect(mockActions.saveChannelPolicy).toHaveBeenCalledWith({
+                id: 'channel_id',
+                name: 'Test Channel',
+                type: 'channel',
+                revision: 1,
+                created_at: expect.any(Number),
+                rules: [clearedMembershipRule, uploadRule, downloadRule],
+                imports: [],
+            });
+
+            // Nothing is left to gate membership on, so there is nothing to sync.
+            expect(mockActions.createAccessControlSyncJob).not.toHaveBeenCalled();
+        });
+
+        test('keeps the permission rules after acknowledging the channel history warning', async () => {
+            const stateWithMessages = {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    channels: {
+                        ...initialState.entities.channels,
+                        messageCounts: {
+                            channel_id: {total: 100, root: 50},
+                        },
+                    },
+                },
+            };
+
+            await renderAndClearMembership([
+                {actions: ['membership'], expression: membershipExpression},
+                uploadRule,
+                downloadRule,
+            ], stateWithMessages);
+
+            expect(await screen.findByText('Exposing channel history')).toBeInTheDocument();
+            expect(mockActions.saveChannelPolicy).not.toHaveBeenCalled();
+
+            await userEvent.click(screen.getByRole('checkbox', {name: /I acknowledge/i}));
+            await userEvent.click(screen.getByText('Save and apply'));
+
+            await waitFor(() => {
+                expect(mockActions.saveChannelPolicy).toHaveBeenCalledWith(expect.objectContaining({
+                    rules: [clearedMembershipRule, uploadRule, downloadRule],
+                }));
+            });
+
+            expect(mockActions.deleteChannelPolicy).not.toHaveBeenCalled();
+        });
+
+        test('keeps the policy when a system policy is still attached', async () => {
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [{
+                    id: 'policy1',
+                    name: 'Test Policy',
+                    type: 'parent',
+                    active: true,
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department == "Sales"'}],
+                }],
+                loading: false,
+                error: null,
+            });
+
+            await renderAndClearMembership([
+                {actions: ['membership'], expression: membershipExpression},
+            ]);
+
+            await waitFor(() => {
+                expect(mockActions.saveChannelPolicy).toHaveBeenCalledWith(expect.objectContaining({
+                    rules: [clearedMembershipRule],
+                    imports: ['policy1'],
+                }));
+            });
+
+            expect(mockActions.deleteChannelPolicy).not.toHaveBeenCalled();
+        });
+
+        test('deletes the policy when the membership rule was the only rule on it', async () => {
+            await renderAndClearMembership([
+                {actions: ['membership'], expression: membershipExpression},
+            ]);
+
+            await waitFor(() => {
+                expect(mockActions.deleteChannelPolicy).toHaveBeenCalledWith('channel_id');
+            });
+
+            expect(mockActions.saveChannelPolicy).not.toHaveBeenCalled();
+            expect(mockActions.createAccessControlSyncJob).not.toHaveBeenCalled();
+            expect(await screen.findByText('Settings saved')).toBeVisible();
+            expect(baseProps.setAreThereUnsavedChanges).toHaveBeenLastCalledWith(false);
+        });
+
+        test('surfaces an error and keeps the form dirty when deleting the policy fails', async () => {
+            mockActions.deleteChannelPolicy.mockResolvedValue({error: {message: 'policy is in use', status_code: 403}});
+
+            await renderAndClearMembership([
+                {actions: ['membership'], expression: membershipExpression},
+            ]);
+
+            expect(await screen.findByText('policy is in use')).toBeInTheDocument();
+            expect(mockActions.saveChannelPolicy).not.toHaveBeenCalled();
+            expect(baseProps.setAreThereUnsavedChanges).toHaveBeenLastCalledWith(true);
+        });
+
+        test('treats a missing policy as a successful delete', async () => {
+            mockActions.deleteChannelPolicy.mockResolvedValue({error: {message: 'Policy not found', status_code: 404}});
+
+            await renderAndClearMembership([
+                {actions: ['membership'], expression: membershipExpression},
+            ]);
+
+            expect(await screen.findByText('Settings saved')).toBeVisible();
+            expect(baseProps.setAreThereUnsavedChanges).toHaveBeenLastCalledWith(false);
         });
     });
 });
