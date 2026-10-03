@@ -3289,6 +3289,17 @@ func (a *App) UpdateThreadReadForUser(rctx request.CTX, currentSessionId, userID
 	message.Add("previous_unread_mentions", previousUnreadMentions)
 	message.Add("previous_unread_replies", previousUnreadReplies)
 	message.Add("channel_id", post.ChannelId)
+
+	// broadcast.team_id is only the caller's current team, so clients route on this
+	// instead. Best-effort: the read state is already committed, so never fail here.
+	if a.Config().FeatureFlags.EnableExperienceAPI {
+		if channel, channelErr := a.GetChannel(rctx, post.ChannelId); channelErr != nil {
+			rctx.Logger().Warn("Failed to fetch channel for thread_team_id enrichment", mlog.String("channel_id", post.ChannelId), mlog.Err(channelErr))
+		} else {
+			message.Add("thread_team_id", channel.TeamId)
+		}
+	}
+
 	a.Publish(message)
 	return thread, nil
 }
