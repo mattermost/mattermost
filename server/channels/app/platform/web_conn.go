@@ -1043,7 +1043,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent, channelKey [16]byt
 			return false
 		}
 
-		if *wc.Platform.Config().ServiceSettings.EnableWebHubChannelIteration {
+		if wc.Platform.hubChannelIteration {
 			// We don't need to do any further checks because this is already scoped
 			// to channel members from web_hub.
 			return true

@@ -26,7 +26,7 @@ func TestChannelSet(t *testing.T) {
 }
 
 func TestHubConnIndexChannelsThatDoNotDecode(t *testing.T) {
-	connIndex := newHubConnectionIndex(inactiveConnReaperInterval, nil, nil, true)
+	connIndex := newHubConnectionIndex(inactiveConnReaperInterval, true)
 	wc := &WebConn{UserId: model.NewId()}
 	wc.SetConnectionID(model.NewId())
 	odd := "l0v2aaaaaaaaaaaaaaaaaaaaaa"
