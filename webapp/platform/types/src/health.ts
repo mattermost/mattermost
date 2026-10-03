@@ -21,6 +21,10 @@ export type HealthFinding = {
     title?: string;
     remediation?: string;
     message?: string;
+    docs_url?: string;
+
+    // An absolute in-app route such as /admin_console/environment/web_server.
+    console_path?: string;
     message_id: string;
     details?: Record<string, string>;
     first_seen_at: number;

@@ -124,6 +124,7 @@ const FindingRow = ({finding, now, expanded, onToggle, hideArea = false}: Props)
             <FindingDetail
                 id={detailId}
                 finding={finding}
+                now={now}
                 hidden={!expanded}
             />
         </li>
