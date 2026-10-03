@@ -144,6 +144,9 @@ type PlatformService struct {
 	// logRootPathOverride overrides MM_LOG_PATH for log root path validation.
 	logRootPathOverride string
 
+	// skipGlobalLogger suppresses this service's claim on the process-wide logging globals.
+	skipGlobalLogger bool
+
 	postDeliveryRecorder func(marker *model.PostDeliveryMarker, userID string)
 }
 
