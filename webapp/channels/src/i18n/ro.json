@@ -4643,7 +4643,6 @@
   "channel_attributes.description": "Configurați atributele și valorile pentru acest canal.",
   "channel_attributes.enter_value": "Introduceți o valoare",
   "channel_attributes.info.add": "Adăugați un atribut",
-  "channel_attributes.info.clear": "Ștergeți {label}",
   "channel_attributes.info.edit": "Editați {label}",
   "channel_attributes.info.heading": "Atributele canalului",
   "channel_attributes.info.locked": "Acest atribut nu poate fi modificat după ce este setat",
