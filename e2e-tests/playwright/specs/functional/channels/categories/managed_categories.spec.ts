@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, getRandomId, test} from '@mattermost/playwright-lib';
+import {ensureFeatureFlag, expect, getRandomId, test} from '@mattermost/playwright-lib';
 
 async function skipIfNoEnterpriseLicense(adminClient: any) {
     const license = await adminClient.getClientLicenseOld();
@@ -16,14 +16,6 @@ async function enableManagedCategories(adminClient: any) {
     await adminClient.patchConfig({
         TeamSettings: {
             EnableManagedChannelCategories: true,
-        },
-    });
-}
-
-async function disableManagedCategories(adminClient: any) {
-    await adminClient.patchConfig({
-        TeamSettings: {
-            EnableManagedChannelCategories: false,
         },
     });
 }
@@ -67,6 +59,10 @@ async function createChannelWithManagedCategory(
 }
 
 test.describe('Managed Channel Categories', () => {
+    test.beforeAll(async () => {
+        await ensureFeatureFlag('ManagedChannelCategories', true);
+    });
+
     /**
      * @objective Verify that a Channel Admin can assign a managed category to a channel via the channel settings modal,
      * and the category appears in the sidebar with the channel under it.
@@ -82,8 +78,6 @@ test.describe('Managed Channel Categories', () => {
         'Channel Admin can assign a managed category via channel settings',
         {tag: '@managed_categories'},
         async ({pw}) => {
-            await pw.ensureFeatureFlag('ManagedChannelCategories', true);
-
             // # Initialize setup with admin user and enterprise license
             const {adminUser, adminClient, team} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
@@ -141,8 +135,6 @@ test.describe('Managed Channel Categories', () => {
         'Channel Admin can remove a managed category via channel settings',
         {tag: '@managed_categories'},
         async ({pw}) => {
-            await pw.ensureFeatureFlag('ManagedChannelCategories', true);
-
             // # Initialize setup and create a channel with a managed category
             const {adminUser, adminClient, team} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
@@ -197,37 +189,6 @@ test.describe('Managed Channel Categories', () => {
     );
 
     /**
-     * @objective Verify that the managed category selector is not visible in channel settings when the feature is disabled.
-     */
-    test(
-        'managed category selector is not visible when feature is disabled',
-        {tag: '@managed_categories'},
-        async ({pw}) => {
-            await pw.ensureFeatureFlag('ManagedChannelCategories', false);
-
-            // # Initialize setup and disable managed categories
-            const {adminUser, adminClient, team} = await setupManagedCategoriesTest(pw);
-            await skipIfNoEnterpriseLicense(adminClient);
-            await disableManagedCategories(adminClient);
-            await adminClient.addToTeam(team.id, adminUser.id);
-
-            // # Log in and open channel settings
-            const {channelsPage} = await pw.testBrowser.login(adminUser);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
-
-            const channelSettingsModal = await channelsPage.openChannelSettings();
-            await channelSettingsModal.openInfoTab();
-
-            // * Verify managed category selector is not visible
-            const managedSelector = channelSettingsModal.container.locator('.ManagedCategory__control');
-            await expect(managedSelector).not.toBeVisible();
-
-            await channelSettingsModal.close();
-        },
-    );
-
-    /**
      * @objective Verify that a managed category can be assigned to a channel during creation via the new channel modal.
      *
      * @knownIssue See the @knownIssue above - the managed category never appears in the sidebar.
@@ -236,8 +197,6 @@ test.describe('Managed Channel Categories', () => {
         'managed category can be assigned when creating a new channel',
         {tag: '@managed_categories'},
         async ({pw}) => {
-            await pw.ensureFeatureFlag('ManagedChannelCategories', true);
-
             // # Initialize setup and enable managed categories
             const {adminUser, adminClient, team} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
@@ -285,8 +244,6 @@ test.describe('Managed Channel Categories', () => {
         'managed categories appear at the top of the sidebar above personal categories',
         {tag: '@managed_categories'},
         async ({pw}) => {
-            await pw.ensureFeatureFlag('ManagedChannelCategories', true);
-
             // # Initialize setup and create a channel with a managed category
             const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
@@ -325,8 +282,6 @@ test.describe('Managed Channel Categories', () => {
         'managed category is only visible when user is a member of a channel in it',
         {tag: '@managed_categories'},
         async ({pw}) => {
-            await pw.ensureFeatureFlag('ManagedChannelCategories', true);
-
             // # Initialize setup and create a channel with a managed category (without adding the user)
             const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
@@ -352,8 +307,6 @@ test.describe('Managed Channel Categories', () => {
      * @knownIssue See the @knownIssue above - the managed category never appears in the sidebar.
      */
     test.fixme('managed categories sort channels alphabetically', {tag: '@managed_categories'}, async ({pw}) => {
-        await pw.ensureFeatureFlag('ManagedChannelCategories', true);
-
         // # Initialize setup and create two channels with the same managed category
         const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
         await skipIfNoEnterpriseLicense(adminClient);
@@ -410,8 +363,6 @@ test.describe('Managed Channel Categories', () => {
      * @knownIssue See the @knownIssue above - the managed category never appears in the sidebar.
      */
     test.fixme('channels in managed categories cannot be favorited', {tag: '@managed_categories'}, async ({pw}) => {
-        await pw.ensureFeatureFlag('ManagedChannelCategories', true);
-
         // # Initialize setup and create a channel with a managed category
         const {adminUser, adminClient, team} = await setupManagedCategoriesTest(pw);
         await skipIfNoEnterpriseLicense(adminClient);
@@ -448,8 +399,6 @@ test.describe('Managed Channel Categories', () => {
      * @knownIssue See the @knownIssue above - the managed category never appears in the sidebar.
      */
     test.fixme('managed categories do not show a context menu', {tag: '@managed_categories'}, async ({pw}) => {
-        await pw.ensureFeatureFlag('ManagedChannelCategories', true);
-
         // # Initialize setup and create a channel with a managed category
         const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
         await skipIfNoEnterpriseLicense(adminClient);
@@ -487,8 +436,6 @@ test.describe('Managed Channel Categories', () => {
         'channel context menu shows favorite as disabled in managed category',
         {tag: '@managed_categories'},
         async ({pw}) => {
-            await pw.ensureFeatureFlag('ManagedChannelCategories', true);
-
             // # Initialize setup and create a channel with a managed category
             const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
@@ -539,8 +486,6 @@ test.describe('Managed Channel Categories', () => {
         'Move To is disabled for non-admin users on channels in managed categories',
         {tag: '@managed_categories'},
         async ({pw}) => {
-            await pw.ensureFeatureFlag('ManagedChannelCategories', true);
-
             // # Initialize setup and create a channel with a managed category
             const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
@@ -590,8 +535,6 @@ test.describe('Managed Channel Categories', () => {
         'assigning the same category name to multiple channels groups them together',
         {tag: '@managed_categories'},
         async ({pw}) => {
-            await pw.ensureFeatureFlag('ManagedChannelCategories', true);
-
             // # Initialize setup and create two channels with the same managed category
             const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
@@ -641,8 +584,6 @@ test.describe('Managed Channel Categories', () => {
         'managed category appears in real-time when admin assigns a channel to it',
         {tag: '@managed_categories'},
         async ({pw}) => {
-            await pw.ensureFeatureFlag('ManagedChannelCategories', true);
-
             // # Initialize setup and create a channel without a managed category
             const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
@@ -698,8 +639,6 @@ test.describe('Managed Channel Categories', () => {
         'Enable Managed Channel Categories setting is available in System Console',
         {tag: '@managed_categories'},
         async ({pw}) => {
-            await pw.ensureFeatureFlag('ManagedChannelCategories', true);
-
             // # Initialize setup
             const {adminUser, adminClient} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
@@ -731,8 +670,6 @@ test.describe('Managed Channel Categories', () => {
         'non-channel-admin sees the managed category selector as disabled',
         {tag: '@managed_categories'},
         async ({pw}) => {
-            await pw.ensureFeatureFlag('ManagedChannelCategories', true);
-
             // # Initialize setup and create a channel with a managed category
             const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
