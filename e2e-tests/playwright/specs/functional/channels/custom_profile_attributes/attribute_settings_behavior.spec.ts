@@ -6,7 +6,11 @@ import type {Client4} from '@mattermost/client';
 import {expect, test} from '@mattermost/playwright-lib';
 
 import type {CpaFieldsMap, CustomProfileAttribute} from './helpers';
-import {deleteCustomProfileAttributes, setupCustomProfileAttributeFields, setupCustomProfileAttributeValues} from './helpers';
+import {
+    deleteCustomProfileAttributes,
+    setupCustomProfileAttributeFields,
+    setupCustomProfileAttributeValues,
+} from './helpers';
 
 // Custom profile attribute fields are server-wide: a field created by one test here (e.g. the
 // "Cancel Test" field below) stays visible in every user's Profile modal for the rest of the CI
