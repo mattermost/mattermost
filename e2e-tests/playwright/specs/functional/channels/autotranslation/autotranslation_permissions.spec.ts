@@ -2,13 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {SystemConsolePage} from '@mattermost/playwright-lib';
-import {
-    enableAutotranslationConfig,
-    disableAutotranslationConfig,
-    hasAutotranslationLicense,
-    expect,
-    test,
-} from '@mattermost/playwright-lib';
+import {enableAutotranslationConfig, hasAutotranslationLicense, expect, test} from '@mattermost/playwright-lib';
 
 test(
     'permission exists; Channel Administrators have Manage Channel Auto Translation ON',
@@ -253,8 +247,10 @@ test.describe('autotranslation configuration tests', () => {
                 ).not.toBeVisible();
             }
 
-            // Restore autotranslation to disabled via patchConfig (race-safe)
-            await disableAutotranslationConfig(adminClient);
+            // Deliberately leave AutoTranslationSettings enabled: it's a global server
+            // config shared by every other autotranslation spec file, and this file can
+            // run concurrently with them in a different worker against the same server.
+            // Disabling it here used to race with (and break) sibling files still mid-test.
         },
     );
 });

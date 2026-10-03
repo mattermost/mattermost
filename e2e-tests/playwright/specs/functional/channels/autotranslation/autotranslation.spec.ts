@@ -3,12 +3,10 @@
 
 import {
     ChannelsPost,
-    disableAutotranslationConfig,
     disableChannelAutotranslation,
     enableAutotranslationConfig,
     enableChannelAutotranslation,
     ensureAutotranslationPermissions,
-    getAdminClient,
     hasAutotranslationLicense,
     setMockSourceLanguage,
     setUserChannelAutotranslation,
@@ -24,17 +22,13 @@ test.beforeEach(async () => {
     test.setTimeout(120000);
 });
 
-// Disable AutoTranslationSettings at end of file so leftover state cannot leak
-// into other suites. Individual tests enable the feature via
-// enableAutotranslationConfig() as needed.
-test.afterAll(async () => {
-    try {
-        const {adminClient} = await getAdminClient({skipLog: true});
-        await disableAutotranslationConfig(adminClient);
-    } catch {
-        // Best-effort cleanup.
-    }
-});
+// AutoTranslationSettings is deliberately left enabled after this file's tests run.
+// It's a global server config shared by every other autotranslation spec file, which
+// Playwright can schedule to run concurrently in a different worker against the same
+// server — disabling it here in an afterAll previously raced with (and broke) sibling
+// files still mid-test. Each test enables exactly what it needs via
+// enableAutotranslationConfig() up front, so no test here depends on this file leaving
+// the feature disabled afterward.
 
 test.fixme(
     'post is translated for user with autotranslation enabled',
@@ -1233,13 +1227,15 @@ test(
 
         await expect(channelsPage.centerView.autotranslationBadge).not.toBeVisible();
 
+        // Setting the user's locale to 'fr' above also switches the webapp's UI language to
+        // French, so the menu renders the French translation of the "unsupported language"
+        // copy rather than the English defaultMessage. Assert on the actual French strings
+        // instead of matching English text that will never appear.
         await channelsPage.centerView.header.openChannelMenu();
-        const channelMenu = page
-            .getByRole('menu')
-            .filter({has: page.getByRole('menuitem', {name: /Auto-translation|Channel Settings/})});
-        await expect(channelMenu.getByText('Auto-translation', {exact: true})).toBeVisible();
-        await expect(channelMenu.getByText('Your language is not supported')).toBeVisible();
-        const autotranslationItem = page.getByRole('menuitem', {name: /Auto-translation/});
+        const channelMenu = page.getByRole('menu');
+        await expect(channelMenu.getByText('Traduction automatique', {exact: true})).toBeVisible();
+        await expect(channelMenu.getByText("Votre langue n'est pas prise en charge")).toBeVisible();
+        const autotranslationItem = channelMenu.getByRole('menuitem', {name: /Traduction automatique/});
         await expect(autotranslationItem).toBeDisabled();
     },
 );
