@@ -4,7 +4,7 @@
 import {CollapsedThreads} from '@mattermost/types/config';
 import type {PropertyField} from '@mattermost/types/properties';
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {ensureFeatureFlag, expect, test} from '@mattermost/playwright-lib';
 
 import {
     DISPLAY_BANNER_TOP,
@@ -23,13 +23,24 @@ import {
 test.describe('Channel attribute display and editing', {tag: ['@channel_attributes']}, () => {
     test.describe.configure({mode: 'serial'});
 
+    // Only a few tests below mark an attribute required, but ChannelAttributesRequired is
+    // purely additive (it unlocks required-attribute semantics, it does not change behavior
+    // for attributes that are not marked required), so the whole file runs under it rather
+    // than splitting the required-attribute tests out over a flag the rest are indifferent
+    // to. The flag-off scenario lives in its own file, channel_attribute_display_flag_off.spec.ts,
+    // since it needs the opposite ChannelAttributes value from every test here. The
+    // "page"/"context" fixtures that `pw` depends on are per-test, not available in beforeAll,
+    // so the restart must go through the bare import instead of pw.ensureFeatureFlag.
+    test.beforeAll(async () => {
+        await ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
+    });
+
     /**
      * @objective Verify a designated attribute renders in both header slots, and that an
      * undesignated one still reaches the Channel Info panel, read-only, for a channel member.
      */
     test('shows a designated attribute in both header slots and Channel Info', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -97,8 +108,6 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
      */
     test('shows the channel chips on a thread opened from the channel and from global Threads', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
-
         const {adminClient, user, userClient, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -185,8 +194,6 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
      */
     test('collapses the thread header chips into +N without moving the thread controls', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
-
         const {adminClient, user, userClient, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -271,8 +278,6 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
         await pw.skipIfNoLicense();
         // required: true below needs the kill switch on; the server refuses to mark
         // any field required while it is off (model.IsChannelAttributesRequiredEnabled).
-        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
-
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -341,8 +346,6 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
      */
     test('collapses overflowing chips into +N without moving header controls', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
-
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -423,8 +426,6 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
      */
     test('renders a locked attribute read-only and validates the lock key server-side', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
-
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -481,8 +482,6 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
      */
     test('adds an optional attribute from Channel Info', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
-
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -533,8 +532,6 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
      */
     test('renders a banner from a banner-designated attribute', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
-
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -575,8 +572,6 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
      */
     test('banners a multiselect attribute filled while creating the channel', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
-
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -630,8 +625,6 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
      */
     test('banners a text attribute filled while creating the channel', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
-
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -670,8 +663,6 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
      */
     test('hides editing from a user without the setter tier', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
-
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -713,48 +704,6 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
                 await addButton.click();
                 await expect(page.getByTestId(`channelInfoAddAttribute-${adminOnly.name}`)).toHaveCount(0);
             }
-        } finally {
-            await deleteAttributes(adminClient, created);
-        }
-    });
-
-    /**
-     * @objective Verify every surface reverts when the feature flag is off.
-     */
-    test('renders no attribute surfaces with the flag off', async ({pw}) => {
-        await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', false);
-
-        const {adminClient, user, team} = await pw.initSetup();
-        const suffix = pw.random.id();
-        const created: PropertyField[] = [];
-
-        try {
-            const marking = await createAttribute(adminClient, attributeName('flagoff', suffix), {
-                options: ['HIDDEN'],
-                actions: [DISPLAY_LABEL_HEADER, DISPLAY_LABEL_INFO],
-            });
-            created.push(marking);
-
-            const channel = await adminClient.createChannel({
-                team_id: team.id,
-                name: `attr-flagoff-${suffix}`,
-                display_name: `Attr FlagOff ${suffix}`,
-                type: 'O',
-            } as Parameters<typeof adminClient.createChannel>[0]);
-            await adminClient.addToChannel(user.id, channel.id);
-            await setChannelValue(adminClient, channel.id, marking, optionId(marking, 'HIDDEN'));
-
-            const {page, channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
-
-            // The value stays in the database; only the surfaces disappear.
-            await expect(page.getByTestId('channelAttributeLabels-info-header')).toHaveCount(0);
-            await expect(page.getByText('HIDDEN')).toHaveCount(0);
-
-            await page.locator('#channel-info-btn').click();
-            await expect(page.getByTestId('channelInfoAttributes')).toHaveCount(0);
         } finally {
             await deleteAttributes(adminClient, created);
         }

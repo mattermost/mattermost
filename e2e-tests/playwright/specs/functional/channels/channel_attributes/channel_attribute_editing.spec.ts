@@ -6,7 +6,7 @@ import type {Client4} from '@mattermost/client';
 import type {Team} from '@mattermost/types/teams';
 
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
-import {expect, test} from '@mattermost/playwright-lib';
+import {ensureFeatureFlag, expect, test} from '@mattermost/playwright-lib';
 
 import {
     DISPLAY_LABEL_HEADER,
@@ -42,12 +42,21 @@ async function promoteToChannelAdmin(
 test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () => {
     test.describe.configure({mode: 'serial'});
 
+    // Only a few tests below mark an attribute required, but ChannelAttributesRequired is
+    // purely additive (it unlocks required-attribute semantics, it does not change behavior
+    // for attributes that are not marked required), so the whole file runs under it rather
+    // than splitting the required-attribute tests out over a flag the rest are indifferent
+    // to. The "page"/"context" fixtures that `pw` depends on are per-test, not available in
+    // beforeAll, so the restart must go through the bare import instead of pw.ensureFeatureFlag.
+    test.beforeAll(async () => {
+        await ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
+    });
+
     /**
      * @objective Verify a text value can be changed from Channel Info and commits on Enter.
      */
     test('edits a text attribute inline and commits on Enter', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -98,8 +107,6 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
      */
     test('commits a text edit on blur and abandons it on Escape', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
-
         const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -153,8 +160,6 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
      */
     test('adds and removes a multiselect option, and the header chips follow', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
-
         const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -216,8 +221,6 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
      */
     test('surfaces an inline error when the value write fails and keeps the previous value', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
-
         const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -284,9 +287,6 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
      */
     test('fills a locked attribute once, after which it is read-only', async ({pw}) => {
         await pw.skipIfNoLicense();
-        // required: true below needs the kill switch on; the server refuses to mark
-        // any field required while it is off (model.IsChannelAttributesRequiredEnabled).
-        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
         const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -348,8 +348,6 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
      */
     test('lets a channel admin edit an admin-tier attribute that a member cannot', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
-
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -407,8 +405,6 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
      */
     test('shows a channel admin every attribute, including unset ones, and lets them add or edit', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
-
         const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -473,8 +469,6 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
      */
     test('shows a plain member only what is already set, read-only, with no way to manage attributes', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
-
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -526,8 +520,6 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
      */
     test('clears a single-select value from its chip remove control', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
-
         const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -583,8 +575,6 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
      */
     test('shows an attribute owned by an integration as read-only, even to a system admin', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
