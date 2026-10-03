@@ -10,7 +10,7 @@
  * which is what these tests exercise.
  */
 
-import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
+import {ensureFeatureFlag, expect, test, getAdminClient} from '@mattermost/playwright-lib';
 
 import {
     deleteClassificationFieldsIfExist,
@@ -30,7 +30,16 @@ test.describe(
 
         let originalClassificationMarkings: boolean | undefined;
 
+        // Only the Required-toggle test below needs ChannelAttributesRequired, but it is
+        // purely additive (it unlocks required-attribute semantics, it does not change
+        // behavior for attributes that are not marked required), so the whole file runs
+        // under it rather than splitting that one test out over a flag the rest are
+        // indifferent to. The "page"/"context" fixtures that `pw` depends on are per-test,
+        // not available in beforeAll, so the restart must go through the bare import
+        // instead of pw.ensureFeatureFlag.
         test.beforeAll(async () => {
+            await ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
+
             const {adminClient} = await getAdminClient();
             const {FeatureFlags} = await adminClient.getConfig();
             originalClassificationMarkings = FeatureFlags.ClassificationMarkings === true;
@@ -53,8 +62,6 @@ test.describe(
          */
         test('shows the definition read-only and links to Classification Markings', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.ensureFeatureFlag('ChannelAttributes', true);
-
             const {levels} = await setupClassificationWithChannelField(adminClient);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -83,8 +90,6 @@ test.describe(
          */
         test('applies a header chip to channels once Header is chosen', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.ensureFeatureFlag('ChannelAttributes', true);
-
             const {levels} = await setupClassificationWithChannelField(adminClient);
             const {team, user} = await pw.initSetup();
 
@@ -127,10 +132,6 @@ test.describe(
          */
         test('asks for classification at channel creation only once Required is on', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-
-            // The Required toggle this test flips only renders in the System Console
-            // while this kill switch is on (model.IsChannelAttributesRequiredEnabled).
-            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
             const {levels} = await setupClassificationWithChannelField(adminClient);
             const {team} = await pw.initSetup();
@@ -176,8 +177,6 @@ test.describe(
          */
         test('stops bannering when the display locations exclude the banner', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.ensureFeatureFlag('ChannelAttributes', true);
-
             const {levels} = await setupClassificationWithChannelField(adminClient);
             const {team, user} = await pw.initSetup();
 
@@ -215,8 +214,6 @@ test.describe(
          */
         test('removes the Channels resource only after confirming, and keeps it removed', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.ensureFeatureFlag('ChannelAttributes', true);
-
             await setupClassificationWithChannelField(adminClient);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
