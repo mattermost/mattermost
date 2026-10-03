@@ -23,21 +23,22 @@
  * button additionally requires `MM_FEATUREFLAGS_POLICYSIMULATION=true`.
  */
 
-import {ChannelsPage, expect, test} from '@mattermost/playwright-lib';
+import {ChannelsPage, ensureFeatureFlag, expect, test} from '@mattermost/playwright-lib';
 
 import {enableABACConfig, ensureDepartmentAttribute, createPrivateChannel} from '../team_settings/helpers';
 
 test.describe('Channel Settings Modal - Permissions Policy tab (v0.4)', () => {
+    // Both flags must be on for the tab to render (the channel-scope sub-flag
+    // depends on the umbrella, mirroring `IsChannelPermissionPoliciesEnabled` on
+    // the server). The "page"/"context" fixtures that `pw` depends on are
+    // per-test, not available in beforeAll, so the restart must go through the
+    // bare import instead of pw.ensureFeatureFlag.
+    test.beforeAll(async () => {
+        await ensureFeatureFlag({PermissionPolicies: true, ChannelPermissionPolicies: true});
+    });
+
     test.beforeEach(async ({pw}) => {
         await pw.skipIfNoLicense();
-        // Skip the suite when either flag is OFF on the server rather
-        // than relying on the tab's UI presence as a proxy — a
-        // UI-based guard would silently mask a regression in the tab
-        // visibility logic itself. Both flags must be on for the tab
-        // to render (the channel-scope sub-flag depends on the
-        // umbrella, mirroring `IsChannelPermissionPoliciesEnabled` on
-        // the server).
-        await pw.ensureFeatureFlag({PermissionPolicies: true, ChannelPermissionPolicies: true});
     });
 
     test('MM-PP_v0_4_c1 Permissions Policy tab visible on private channel when feature flag enabled', async ({pw}) => {

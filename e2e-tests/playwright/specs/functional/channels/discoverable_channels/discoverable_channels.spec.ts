@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {ensureFeatureFlag, expect, test} from '@mattermost/playwright-lib';
 
 /**
  * These specs cover the Discoverable Private Channels request-to-join UX
@@ -9,6 +9,12 @@ import {expect, test} from '@mattermost/playwright-lib';
  * enabled on the server (e.g. MM_FEATUREFLAGS_DiscoverableChannels=true);
  * otherwise they self-skip.
  */
+
+// The "page"/"context" fixtures that `pw` depends on are per-test, not available in
+// beforeAll, so the restart must go through the bare import instead of pw.ensureFeatureFlag.
+test.beforeAll(async () => {
+    await ensureFeatureFlag('DiscoverableChannels', true);
+});
 
 async function createDiscoverableChannel(adminClient: any, teamId: string) {
     const suffix = Date.now();
@@ -34,8 +40,6 @@ test.fixme(
     'MM-68764 non-member requests to join a discoverable private channel from Browse Channels and can withdraw',
     {tag: ['@discoverable_channels']},
     async ({pw}) => {
-        await pw.ensureFeatureFlag('DiscoverableChannels', true);
-
         // # Initialize setup and create a discoverable private channel the user is not a member of
         const {team, user, adminClient} = await pw.initSetup();
         const channel = await createDiscoverableChannel(adminClient, team.id);
@@ -75,8 +79,6 @@ test(
     'MM-68764 selecting a discoverable private channel from Find Channels opens Request to Join, not the legacy join',
     {tag: ['@discoverable_channels']},
     async ({pw}) => {
-        await pw.ensureFeatureFlag('DiscoverableChannels', true);
-
         // # Initialize setup and create a discoverable private channel the user is not a member of
         const {team, user, adminClient} = await pw.initSetup();
         const channel = await createDiscoverableChannel(adminClient, team.id);
