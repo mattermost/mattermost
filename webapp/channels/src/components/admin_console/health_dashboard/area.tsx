@@ -19,7 +19,7 @@ import {
 } from '@mattermost/compass-icons/components';
 import type {HealthFinding} from '@mattermost/types/health';
 
-import {SEVERITIES} from './severity';
+import {HEALTH_SEVERITIES} from 'mattermost-redux/utils/health_utils';
 
 const areaMessages = defineMessages({
     auth: {id: 'admin.health_dashboard.area.auth', defaultMessage: 'Authentication'},
@@ -62,11 +62,11 @@ export const AreaLabel = ({area}: {area: string}) => {
     return <FormattedMessage {...areaMessages[area]}/>;
 };
 
-export const AreaIcon = ({area}: {area: string}) => {
+export const AreaIcon = ({area, size = 16}: {area: string; size?: number}) => {
     const Icon = isKnownArea(area) ? areaIcons[area] : CogOutlineIcon;
     return (
         <Icon
-            size={16}
+            size={size}
             color='currentColor'
             aria-hidden={true}
         />
@@ -78,10 +78,14 @@ function areaRank(area: string) {
     return index === -1 ? areaOrder.length : index;
 }
 
-// Areas holding the most severe finding come first; findings within an area arrive sorted by
-// severity, so the first one is the area's worst.
+// The rank of an area's most severe firing finding; areas with nothing firing rank last.
+function worstFiring(findings: HealthFinding[]) {
+    const firing = findings.filter((finding) => finding.state === 'firing').map((finding) => HEALTH_SEVERITIES.indexOf(finding.severity));
+    return Math.min(HEALTH_SEVERITIES.length, ...firing);
+}
+
 export function orderAreas(findingsByArea: Record<string, HealthFinding[]>): string[] {
-    const worst = (area: string) => SEVERITIES.indexOf(findingsByArea[area][0].severity);
+    const worst = (area: string) => worstFiring(findingsByArea[area]);
     return Object.keys(findingsByArea).sort((a, b) =>
         (worst(a) - worst(b)) || (areaRank(a) - areaRank(b)) || a.localeCompare(b),
     );
