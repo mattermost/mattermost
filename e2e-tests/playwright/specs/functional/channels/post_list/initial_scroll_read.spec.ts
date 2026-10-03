@@ -143,10 +143,10 @@ test.describe('Post list initial scroll in read channel', () => {
 
             test(`${testCase.name} - should stay at the bottom during initial load`, async ({}, testInfo) => {
                 if (testCase.name === 'with multiple pages of post previews') {
-                    // 120 permalink previews each resolve their own post lookup, which can
-                    // take longer than the default budget under loaded CI, so give this case
-                    // more room rather than racing the global test timeout.
-                    testInfo.setTimeout(duration.one_min + duration.half_min);
+                    // 120 permalink previews each resolve their own lookup, which can exceed
+                    // the default timeout under loaded CI; extend it to leave headroom on
+                    // top of the one-minute postPreview.waitFor below.
+                    testInfo.setTimeout(duration.two_min);
                 }
 
                 const watcher = await watchPostListScroll(page, channel.id);
@@ -164,7 +164,8 @@ test.describe('Post list initial scroll in read channel', () => {
 
             test(`${testCase.name} - should stay at the bottom when switching to the channel`, async ({}, testInfo) => {
                 if (testCase.name === 'with multiple pages of post previews') {
-                    testInfo.setTimeout(duration.one_min + duration.half_min);
+                    // See the matching comment in the "initial load" test above.
+                    testInfo.setTimeout(duration.two_min);
                 }
 
                 const watcher = await watchPostListScroll(page, channel.id);
