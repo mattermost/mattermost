@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ensureFeatureFlag, expect, test, verifyUserInChannel} from '@mattermost/playwright-lib';
+import {expect, test, verifyUserInChannel} from '@mattermost/playwright-lib';
 
 import {
     createPrivateChannelForABAC,
@@ -69,15 +69,10 @@ test.describe('ABAC resource.attributes - graph hierarchy sync', {tag: ['@abac',
         {name: f35Program, parents: [fighterJetProgram]},
     ];
 
-    // The "page"/"context" fixtures that `pw` depends on are per-test, not available in
-    // beforeAll, so the restart must go through the bare import instead of pw.ensureFeatureFlag.
-    test.beforeAll(async () => {
-        await ensureFeatureFlag('ResourceAttributesInPolicies', true);
-    });
-
     test('coversAll syncs and enforces hierarchy coverage', async ({pw}) => {
         test.setTimeout(180000);
         await pw.skipIfNoLicense();
+        await pw.ensureFeatureFlag('ResourceAttributesInPolicies', true);
 
         const {adminClient, team} = await pw.initSetup();
         await skipIfNoGraphFields(pw);
@@ -166,6 +161,7 @@ test.describe('ABAC resource.attributes - graph hierarchy sync', {tag: ['@abac',
     test('a member is removed once their value stops covering the channel', async ({pw}) => {
         test.setTimeout(180000);
         await pw.skipIfNoLicense();
+        await pw.ensureFeatureFlag('ResourceAttributesInPolicies', true);
 
         const {adminClient, team} = await pw.initSetup();
         await skipIfNoGraphFields(pw);

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ensureFeatureFlag, test} from '@mattermost/playwright-lib';
+import {test} from '@mattermost/playwright-lib';
 
 import {enableUserManagedAttributes} from '../support';
 
@@ -29,15 +29,6 @@ test.describe('ABAC resource.attributes - masking write path', {tag: ['@abac', '
     // fails every later spec's setup rather than its own.
     const cleanups: Array<() => Promise<void>> = [];
 
-    // The sentinel rejection under test lives inside the server's
-    // AttributeValueMasking branch, so both flags have to be on. The
-    // "page"/"context" fixtures that `pw` depends on are per-test, not available
-    // in beforeAll, so the restart must go through the bare import instead of
-    // pw.ensureFeatureFlag.
-    test.beforeAll(async () => {
-        await ensureFeatureFlag({ResourceAttributesInPolicies: true, AttributeValueMasking: true});
-    });
-
     test.afterEach(async () => {
         // Reverse order, so a policy goes before the fields its rules reference: while
         // attribute-value masking is on, deleting a policy whose field is already gone
@@ -50,6 +41,13 @@ test.describe('ABAC resource.attributes - masking write path', {tag: ['@abac', '
 
     test('rejects saving a resource.attributes condition carrying the masked sentinel', async ({pw}) => {
         await pw.skipIfNoLicense();
+        await pw.ensureFeatureFlag('ResourceAttributesInPolicies', true);
+
+        // The sentinel rejection under test lives inside the server's
+        // AttributeValueMasking branch, so the flag has to be on. It cannot be
+        // turned on from here (the config store restores feature flags on
+        // write), so guard rather than try to set it.
+        await pw.ensureFeatureFlag('AttributeValueMasking', true);
 
         const {adminClient} = await pw.initSetup();
         await enableUserManagedAttributes(adminClient);

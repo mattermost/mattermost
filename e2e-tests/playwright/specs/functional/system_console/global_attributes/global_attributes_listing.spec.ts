@@ -10,7 +10,7 @@
  * Professional-only licenses hide this admin route (React Router redirects away).
  */
 
-import {ensureFeatureFlag, expect, test} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 import {
     GLOBAL_ATTRIBUTES_ADMIN_PATH,
@@ -24,13 +24,6 @@ import {
 
 test.describe('System Console - Global Attributes listing', {tag: '@system_console'}, () => {
     test.describe.configure({mode: 'serial'});
-
-    // Only the "renders a seeded graph field as Hierarchical" test below needs
-    // PropertyFieldGraph; it's purely additive (just unlocks rendering the 'graph'
-    // field type), so it's safe to turn on file-wide rather than split this test out.
-    test.beforeAll(async () => {
-        await ensureFeatureFlag('PropertyFieldGraph', true);
-    });
 
     test.describe('access gate', () => {
         /**
@@ -291,6 +284,7 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
          * not as Free Text or an unknown type.
          */
         test('renders a seeded graph field as Hierarchical with its option count', async ({pw}) => {
+            await pw.ensureFeatureFlag('PropertyFieldGraph', true);
             const {adminUser, adminClient} = await requireHierarchicalAttributesEnabled(pw);
 
             const timestamp = Date.now();

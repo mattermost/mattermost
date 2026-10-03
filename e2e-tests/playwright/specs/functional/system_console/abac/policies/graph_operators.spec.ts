@@ -25,7 +25,7 @@
 import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {ensureFeatureFlag, expect, getRandomId, test} from '@mattermost/playwright-lib';
+import {expect, getRandomId, test} from '@mattermost/playwright-lib';
 
 import {
     createLinkedGraphHierarchy,
@@ -43,17 +43,6 @@ test.describe('System Console - Membership Policy graph operators', () => {
     let adminClient: Client4;
     let adminUser: UserProfile;
     let hierarchy: GraphHierarchy | undefined;
-
-    // Only the last test below needs this flag — comparing a graph attribute
-    // against the accessed channel's attribute is what it gates — but it is purely
-    // additive (it unlocks a comparison target, it does not change existing
-    // behavior), so the whole file runs under it rather than splitting a file over
-    // a flag the other two tests are indifferent to. The "page"/"context" fixtures
-    // that `pw` depends on are per-test, not available in beforeAll, so the restart
-    // must go through the bare import instead of pw.ensureFeatureFlag.
-    test.beforeAll(async () => {
-        await ensureFeatureFlag('ResourceAttributesInPolicies', true);
-    });
 
     test.beforeEach(async ({pw}) => {
         await pw.ensureLicense();
@@ -324,6 +313,14 @@ test.describe('System Console - Membership Policy graph operators', () => {
      * exist, so the channel field is offered as a comparison target.
      */
     test('round-trips a "covers all of" rule against a channel attribute', {tag: '@abac'}, async ({pw}) => {
+        // Only this test in the file needs the flag: comparing against the accessed
+        // channel's attribute is what it gates, and saving such a rule is rejected
+        // while it is off. The two tests above name option names literally.
+        await pw.ensureFeatureFlag('ResourceAttributesInPolicies', true);
+        // May have just restarted the server, leaving the describe-scoped adminClient
+        // (from beforeEach) stale. Refresh it for this test's cleanup and afterEach's.
+        adminClient = (await pw.getAdminClient()).adminClient;
+
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         const {page} = systemConsolePage;
         const policyName = `Graph Channel RT ${getRandomId()}`;

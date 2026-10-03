@@ -1,16 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/**
- * Split out of channel_attribute_display.spec.ts: this is the only test in that
- * suite needing the ChannelAttributes feature flag off, the opposite of every
- * other test there, so it belongs in its own file under the
- * one-ensureFeatureFlag-call-per-file convention.
- */
-
 import type {PropertyField} from '@mattermost/types/properties';
 
-import {ensureFeatureFlag, expect, test} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 import {
     DISPLAY_LABEL_HEADER,
@@ -23,16 +16,11 @@ import {
 } from './helpers';
 
 test.describe('Channel attribute display and editing (flag off)', {tag: ['@channel_attributes']}, () => {
-    // The "page"/"context" fixtures that `pw` depends on are per-test, not available in
-    // beforeAll, so the restart must go through the bare import instead of pw.ensureFeatureFlag.
-    test.beforeAll(async () => {
-        await ensureFeatureFlag('ChannelAttributes', false);
-    });
-
     /**
      * @objective Verify every surface reverts when the feature flag is off.
      */
     test('renders no attribute surfaces with the flag off', async ({pw}) => {
+        await pw.ensureFeatureFlag('ChannelAttributes', false);
         await pw.skipIfNoLicense();
 
         const {adminClient, user, team} = await pw.initSetup();

@@ -1,21 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/**
- * System Console — the Global Attributes listing's special-cased Classification
- * Markings row.
- *
- * Split out of global_attributes_listing.spec.ts: this is the only test in that
- * suite needing the ClassificationMarkings feature flag on, and the new
- * one-ensureFeatureFlag-call-per-file convention means a test needing a flag
- * combination the rest of a file does not share belongs in its own file instead.
- */
-
-import {ensureFeatureFlag, expect, test} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 import {
     CLASSIFICATION_MARKINGS_ADMIN_PATH,
     deleteClassificationMarkingsFieldIfExists,
+    setClassificationMarkingsFeatureFlag,
 } from '../site_configuration/classification_markings_helpers';
 
 import {
@@ -26,12 +17,6 @@ import {
 } from './global_attributes_helpers';
 
 test.describe('System Console - Global Attributes listing (Classification Markings)', {tag: '@system_console'}, () => {
-    // The "page"/"context" fixtures that `pw` depends on are per-test, not available in
-    // beforeAll, so the restart must go through the bare import instead of pw.ensureFeatureFlag.
-    test.beforeAll(async () => {
-        await ensureFeatureFlag('ClassificationMarkings', true);
-    });
-
     /**
      * @objective Ensure a real Classification Markings field (name/object_type/group_id
      * matching production's saveCreateField) renders the read-only subtitle and an
@@ -43,7 +28,19 @@ test.describe('System Console - Global Attributes listing (Classification Markin
         'renders the Classification Markings row as a read-only open-in-new link, leaving an unrelated rank field unaffected',
         {tag: ['@system_console', '@classification_markings']},
         async ({pw}) => {
+            // # The link's destination page is gated by its own independent feature flag
+            // (ClassificationMarkings) — it must be on for the link to render.
+            // Tagged @classification_markings like every other spec that touches this same
+            // shared server-wide field/flag (classification_markings.spec.ts,
+            // global_classification_banner.spec.ts) — those specs are NOT otherwise
+            // concurrency-guarded against each other; the tag is this suite's existing
+            // (if informal) convention for grouping tests that share this exact resource.
+
+            // Must run before requireGlobalAttributesEnabled: it restarts the server, which
+            // would leave an adminClient obtained earlier pointing at a removed container.
+            await pw.ensureFeatureFlag('ClassificationMarkings', true);
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+            await setClassificationMarkingsFeatureFlag(adminClient, true);
 
             const timestamp = Date.now();
             const classificationDisplayName = `E2E Classification Attribute ${timestamp}`;

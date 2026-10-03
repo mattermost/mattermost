@@ -6,7 +6,7 @@ import type {Client4} from '@mattermost/client';
 import type {Team} from '@mattermost/types/teams';
 
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
-import {ensureFeatureFlag, expect, test} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 import {
     DISPLAY_LABEL_INFO,
@@ -39,18 +39,13 @@ async function promoteToChannelAdmin(
 test.describe('Channel attribute editing in Channel Settings', {tag: ['@channel_attributes']}, () => {
     test.describe.configure({mode: 'serial'});
 
-    // The "page"/"context" fixtures that `pw` depends on are per-test, not available in
-    // beforeAll, so the restart must go through the bare import instead of pw.ensureFeatureFlag.
-    test.beforeAll(async () => {
-        await ensureFeatureFlag('ChannelAttributes', true);
-    });
-
     /**
      * @objective Verify an attribute edit made in the Channel Settings modal's Info
      * tab is staged locally -- not written until the tab's own Save is clicked --
      * unlike the same editor in the Channel Info RHS, which writes immediately.
      */
     test('stages an attribute edit and writes it only when Save is clicked', async ({pw}) => {
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
         await pw.skipIfNoLicense();
 
         const {adminClient, team} = await pw.initSetup();
@@ -114,6 +109,7 @@ test.describe('Channel attribute editing in Channel Settings', {tag: ['@channel_
      * attribute edit -- reverting the row in the UI -- without ever writing it.
      */
     test('Reset discards a staged attribute edit without writing it', async ({pw}) => {
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
         await pw.skipIfNoLicense();
 
         const {adminClient, team} = await pw.initSetup();

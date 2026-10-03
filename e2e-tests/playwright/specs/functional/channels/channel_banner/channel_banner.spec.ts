@@ -1,20 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ensureFeatureFlag, test} from '@mattermost/playwright-lib';
+import {test} from '@mattermost/playwright-lib';
 
 const EMOJI_SIZE = 16;
 
-test.beforeAll(async () => {
-    // This suite drives the banner text box via the legacy AdvancedTextbox
-    // (testid channel_banner_banner_text_textbox), which channel_settings_configuration_tab.tsx
-    // only renders when ChannelAttributes is off; with the flag on it renders the
-    // attribute-aware BannerTextEditor instead, so force it off to exercise the control
-    // this suite covers.
-    await ensureFeatureFlag('ChannelAttributes', false);
-});
-
 test('Should show channel banner when configured', async ({pw}) => {
+    // This suite exercises the legacy AdvancedTextbox banner editor, which only
+    // renders when ChannelAttributes is off.
+    await pw.ensureFeatureFlag('ChannelAttributes', false);
+
     const {adminUser, adminClient} = await pw.initSetup();
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
@@ -60,6 +55,8 @@ test('Should show channel banner when configured', async ({pw}) => {
 });
 
 test('Should show channel banner in thread view', async ({pw}) => {
+    await pw.ensureFeatureFlag('ChannelAttributes', false);
+
     const {adminUser, adminClient} = await pw.initSetup();
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
@@ -91,6 +88,8 @@ test('Should show channel banner in thread view', async ({pw}) => {
 });
 
 test('Should not show channel banner in thread view when disabled', async ({pw}) => {
+    await pw.ensureFeatureFlag('ChannelAttributes', false);
+
     const {adminUser, adminClient} = await pw.initSetup();
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
@@ -114,6 +113,8 @@ test('Should not show channel banner in thread view when disabled', async ({pw})
 });
 
 test('Should render image emoticons without clipping', async ({pw}) => {
+    await pw.ensureFeatureFlag('ChannelAttributes', false);
+
     const {adminUser, adminClient} = await pw.initSetup();
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
@@ -139,6 +140,8 @@ test('Should render image emoticons without clipping', async ({pw}) => {
 });
 
 test('Should render unsupported unicode emoji without clipping', async ({pw}) => {
+    await pw.ensureFeatureFlag('ChannelAttributes', false);
+
     const {adminUser, adminClient} = await pw.initSetup();
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
@@ -164,6 +167,8 @@ test('Should render unsupported unicode emoji without clipping', async ({pw}) =>
 });
 
 test('Should render text with descenders without clipping', async ({pw}) => {
+    await pw.ensureFeatureFlag('ChannelAttributes', false);
+
     const {adminUser, adminClient} = await pw.initSetup();
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
@@ -190,6 +195,8 @@ test('Should render text with descenders without clipping', async ({pw}) => {
 });
 
 test('Should render markdown', async ({pw}) => {
+    await pw.ensureFeatureFlag('ChannelAttributes', false);
+
     const {adminUser, adminClient} = await pw.initSetup();
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');

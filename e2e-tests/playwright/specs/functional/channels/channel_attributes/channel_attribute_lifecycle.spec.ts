@@ -3,7 +3,7 @@
 
 import type {PropertyField} from '@mattermost/types/properties';
 
-import {ensureFeatureFlag, expect, test} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 import {
     DISPLAY_BANNER_TOP,
@@ -21,20 +21,11 @@ import {
 test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () => {
     test.describe.configure({mode: 'serial'});
 
-    // Only a couple of tests below mark an attribute required, but ChannelAttributesRequired
-    // is purely additive (it unlocks required-attribute semantics, it does not change behavior
-    // for attributes that are not marked required), so the whole file runs under it rather
-    // than splitting the required-attribute tests out over a flag the rest are indifferent
-    // to. The "page"/"context" fixtures that `pw` depends on are per-test, not available in
-    // beforeAll, so the restart must go through the bare import instead of pw.ensureFeatureFlag.
-    test.beforeAll(async () => {
-        await ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
-    });
-
     /**
      * @objective Verify a required attribute is asked for at creation and blocks it until filled.
      */
     test('blocks channel creation until a required attribute is filled', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
 
         const {adminClient, user, team} = await pw.initSetup();
@@ -92,6 +83,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
      * @objective Verify a value changed elsewhere reaches an open session without a reload.
      */
     test('updates an open session when a value changes, and when it is cleared', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -143,6 +135,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
      * @objective Verify a required attribute left unset after creation is visible and recoverable from Channel Info.
      */
     test('shows a required attribute as unset and lets it be filled from Channel Info', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -208,6 +201,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
      * @objective Verify the banner renders attribute tokens, and that a manual banner text still wins.
      */
     test('renders a token banner and honours a manual override', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -273,6 +267,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
      * @objective Verify a direct message shows no attribute chips even when values exist through the API.
      */
     test('shows no chips on a direct message', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -312,6 +307,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
      * @objective Verify the configured colour reaches the chip, since a marking's colour is part of how it is read.
      */
     test('applies the configured colour to a chip', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();

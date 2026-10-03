@@ -51,13 +51,10 @@ export async function requireGlobalAttributesEnabled(pw: PlaywrightExtended) {
 }
 
 /**
- * Shared precondition for every test that needs hierarchical (graph) authoring
- * reachable, on top of {@link requireGlobalAttributesEnabled}'s license check.
- *
- * Does not itself turn PropertyFieldGraph on: ensureFeatureFlag restarts the
- * server and may only be called once per spec file, in a single top-level
- * test.beforeAll() (see the one-ensureFeatureFlag-call-per-file convention).
- * The caller's own beforeAll must include {PropertyFieldGraph: true}.
+ * Precondition for hierarchical (graph) authoring, on top of
+ * {@link requireGlobalAttributesEnabled}'s license check. Does not enable
+ * PropertyFieldGraph itself -- callers must include it in their own
+ * pw.ensureFeatureFlag() call.
  */
 export async function requireHierarchicalAttributesEnabled(pw: PlaywrightExtended) {
     return requireGlobalAttributesEnabled(pw);

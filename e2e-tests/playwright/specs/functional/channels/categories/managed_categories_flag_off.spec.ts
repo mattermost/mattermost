@@ -1,22 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/**
- * Split out of managed_categories.spec.ts: this is the only test in that suite needing
- * the ManagedChannelCategories feature flag off, the opposite of every other test there,
- * so it belongs in its own file under the one-ensureFeatureFlag-call-per-file convention.
- */
-
-import {ensureFeatureFlag, expect, getRandomId, test} from '@mattermost/playwright-lib';
-
-async function skipIfNoEnterpriseLicense(adminClient: any) {
-    const license = await adminClient.getClientLicenseOld();
-    const enterpriseSkus = ['enterprise', 'advanced', 'entry'];
-    test.skip(
-        license.IsLicensed !== 'true' || !enterpriseSkus.includes(license.SkuShortName),
-        'Skipping test - server does not have an enterprise license',
-    );
-}
+import {expect, getRandomId, test} from '@mattermost/playwright-lib';
 
 async function disableManagedCategories(adminClient: any) {
     await adminClient.patchConfig({
@@ -49,10 +34,6 @@ async function setupManagedCategoriesTest(pw: any) {
 }
 
 test.describe('Managed Channel Categories (flag off)', () => {
-    test.beforeAll(async () => {
-        await ensureFeatureFlag('ManagedChannelCategories', false);
-    });
-
     /**
      * @objective Verify that the managed category selector is not visible in channel settings when the feature is disabled.
      */
@@ -60,9 +41,10 @@ test.describe('Managed Channel Categories (flag off)', () => {
         'managed category selector is not visible when feature is disabled',
         {tag: '@managed_categories'},
         async ({pw}) => {
+            await pw.ensureFeatureFlag('ManagedChannelCategories', false);
             // # Initialize setup and disable managed categories
             const {adminUser, adminClient, team} = await setupManagedCategoriesTest(pw);
-            await skipIfNoEnterpriseLicense(adminClient);
+            await pw.skipIfNoLicense();
             await disableManagedCategories(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);
 
