@@ -3,7 +3,7 @@
 
 import type {PropertyField} from '@mattermost/types/properties';
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {ensureFeatureFlag, expect, test} from '@mattermost/playwright-lib';
 
 import {
     DISPLAY_BANNER_TOP,
@@ -24,12 +24,22 @@ const BANNER_COLOR = '#1e325c';
 test.describe('Channel attribute banner composition', {tag: ['@channel_attributes']}, () => {
     test.describe.configure({mode: 'serial'});
 
+    // Only the last test below marks an attribute required, but ChannelAttributesRequired
+    // is purely additive (it unlocks required-attribute semantics, it does not change
+    // behavior for attributes that are not marked required), so the whole file runs
+    // under it rather than splitting one test out over a flag the rest are indifferent
+    // to. The "page"/"context" fixtures that `pw` depends on are per-test, not available
+    // in beforeAll, so the restart must go through the bare import instead of
+    // pw.ensureFeatureFlag.
+    test.beforeAll(async () => {
+        await ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
+    });
+
     /**
      * @objective Verify an attribute token can be inserted from Channel Settings and previews its resolved value.
      */
     test('inserts an attribute token from the Attributes menu and previews the resolved text', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -78,8 +88,6 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      */
     test('composes one banner from every designated attribute and offers to remove them', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -136,8 +144,6 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      */
     test('shows the banner section as on when an attribute drives the banner', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -191,8 +197,6 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      */
     test('saves a banner mixing custom text with a token', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -238,8 +242,6 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      */
     test('tidies the separator when one of two tokens is unset', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -297,8 +299,6 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      */
     test('says so when every token in the template is unset', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -348,8 +348,6 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      */
     test('keeps resolving after the attribute display name changes', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -407,8 +405,6 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      */
     test('treats classification as one attribute among many', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -455,8 +451,6 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
         pw,
     }) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
-
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -500,9 +494,6 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      */
     test('banner toggle is disabled when a required attribute designates the banner', async ({pw}) => {
         await pw.skipIfNoLicense();
-        // required: true below needs the kill switch on; the server refuses to mark
-        // any field required while it is off (model.IsChannelAttributesRequiredEnabled).
-        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();

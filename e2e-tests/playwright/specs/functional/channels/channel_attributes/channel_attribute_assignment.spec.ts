@@ -3,7 +3,7 @@
 
 import type {PropertyField} from '@mattermost/types/properties';
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {ensureFeatureFlag, expect, test} from '@mattermost/playwright-lib';
 
 import {
     assertNoForeignRequiredAttributes,
@@ -19,17 +19,21 @@ import {
 test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, () => {
     test.describe.configure({mode: 'serial'});
 
+    // The Properties route gate is evaluated when the API router is built, so the
+    // flag has to be in the server config before boot. required: true below needs
+    // the kill switch on; the server refuses to mark any field required while it
+    // is off (model.IsChannelAttributesRequiredEnabled). The "page"/"context"
+    // fixtures that `pw` depends on are per-test, not available in beforeAll, so
+    // the restart must go through the bare import instead of pw.ensureFeatureFlag.
+    test.beforeAll(async () => {
+        await ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
+    });
+
     /**
      * @objective Verify every supported attribute control can be assigned while creating a channel.
      */
     test('assigns select, multiselect, and text attribute values at channel creation', async ({pw}) => {
         await pw.skipIfNoLicense();
-
-        // The Properties route gate is evaluated when the API router is built, so
-        // the flag has to be in the server config before boot.
-        // required: true below needs the kill switch on; the server refuses to mark
-        // any field required while it is off (model.IsChannelAttributesRequiredEnabled).
-        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -111,7 +115,6 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
      */
     test('assigns attribute values when creating a private channel', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -158,7 +161,6 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
      */
     test('rejects a create that omits a required attribute', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
         const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();

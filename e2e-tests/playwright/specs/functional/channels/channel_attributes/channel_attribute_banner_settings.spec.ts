@@ -3,7 +3,7 @@
 
 import type {PropertyField} from '@mattermost/types/properties';
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {ensureFeatureFlag, expect, test} from '@mattermost/playwright-lib';
 
 import {
     deleteClassificationFieldsIfExist,
@@ -31,13 +31,18 @@ const CLASSIFICATION = 'classification';
 test.describe('Channel attribute banner settings', {tag: ['@channel_attributes']}, () => {
     test.describe.configure({mode: 'serial'});
 
+    // The "page"/"context" fixtures that `pw` depends on are per-test, not available in
+    // beforeAll, so the restart must go through the bare import instead of pw.ensureFeatureFlag.
+    test.beforeAll(async () => {
+        await ensureFeatureFlag('ChannelAttributes', true);
+    });
+
     /**
      * @objective Verify the colour picker is locked to the classification colour only while
      * classification is in the banner text, and is the channel's to set once it is removed.
      */
     test('locks the colour to classification only while its token is in the banner', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -109,7 +114,6 @@ test.describe('Channel attribute banner settings', {tag: ['@channel_attributes']
      */
     test('keeps a deliberately emptied banner empty when it is switched back on', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -168,7 +172,6 @@ test.describe('Channel attribute banner settings', {tag: ['@channel_attributes']
      */
     test('offers to save an edit made after a previous save', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -225,7 +228,6 @@ test.describe('Channel attribute banner settings', {tag: ['@channel_attributes']
      */
     test('hides an attribute-driven banner once it is switched off', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
