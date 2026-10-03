@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {createMemoryHistory} from 'history';
 import React from 'react';
 
 import {
@@ -92,7 +93,8 @@ describe('components/new_search/NewSearch', () => {
     });
 
     test('should open the search ctrl+shift+f is press on web app', async () => {
-        renderWithContext(<div><NewSearch/>{'Outside'}</div>);
+        const history = createMemoryHistory({initialEntries: ['/myteam/channels/town-square']});
+        renderWithContext(<div><NewSearch/>{'Outside'}</div>, {}, {history});
 
         expect(screen.queryByText('Messages')).not.toBeInTheDocument();
 
@@ -103,5 +105,19 @@ describe('components/new_search/NewSearch', () => {
         ));
 
         expect(screen.getByText('Messages')).toBeInTheDocument();
+    });
+
+    test('should not open search with ctrl+shift+f on integrations pages', async () => {
+        const history = createMemoryHistory({initialEntries: ['/myteam/integrations/bots']});
+        renderWithContext(<div><NewSearch/>{'Outside'}</div>, {}, {history});
+
+        expect(screen.queryByText('Messages')).not.toBeInTheDocument();
+
+        await act(() => fireEvent.keyDown(
+            screen.getByText('Outside'),
+            {key: 'f', code: 'KeyF', keyCode: 70, charCode: 70, ctrlKey: true, shiftKey: true},
+        ));
+
+        expect(screen.queryByText('Messages')).not.toBeInTheDocument();
     });
 });
