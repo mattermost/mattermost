@@ -9721,6 +9721,46 @@
     "description": "Bulk-import validation error when a user's team membership entry has no team name."
   },
   {
+    "id": "app.initial_load.base_data.error",
+    "translation": "Unable to load the base data for the initial load.",
+    "description": ""
+  },
+  {
+    "id": "app.initial_load.channel_history.error",
+    "translation": "Unable to get the channels the user has left since the given time.",
+    "description": ""
+  },
+  {
+    "id": "app.initial_load.dm_profiles.error",
+    "translation": "Unable to get the profiles for the direct and group message channels.",
+    "description": ""
+  },
+  {
+    "id": "app.initial_load.dm_thread_counts.error",
+    "translation": "Unable to get the unread thread counts for direct and group message channels.",
+    "description": ""
+  },
+  {
+    "id": "app.initial_load.get_group_memberships.app_error",
+    "translation": "Unable to get the group memberships for the initial load.",
+    "description": ""
+  },
+  {
+    "id": "app.initial_load.get_preference_tombstones.app_error",
+    "translation": "Unable to get the deleted preferences for the initial load.",
+    "description": ""
+  },
+  {
+    "id": "app.initial_load.profile_role_data.error",
+    "translation": "Unable to load the profile and role data for the initial load.",
+    "description": ""
+  },
+  {
+    "id": "app.initial_load.team_data.error",
+    "translation": "Unable to load the team data for the initial load.",
+    "description": ""
+  },
+  {
     "id": "app.insert_error",
     "translation": "insert error",
     "description": "Low-level database error detail meaning an insert query failed; terse developer-facing text used in group-related API errors."
@@ -12232,6 +12272,11 @@
     "description": "API error when computing which teams a set of users all share fails."
   },
   {
+    "id": "app.team.get_deleted.app_error",
+    "translation": "Unable to get the teams deleted since the given time.",
+    "description": ""
+  },
+  {
     "id": "app.team.get_member.app_error",
     "translation": "Unable to get the team member.",
     "description": "API error returned when fetching a team member record fails due to a server error."
@@ -12375,6 +12420,11 @@
     "id": "app.team.user_belongs_to_teams.app_error",
     "translation": "Unable to determine if the user belongs to a list of teams.",
     "description": "API error when checking whether a user is a member of any of a given list of teams fails."
+  },
+  {
+    "id": "app.team.user_can_join_any_team.app_error",
+    "translation": "Unable to determine whether the user can join any team.",
+    "description": ""
   },
   {
     "id": "app.teams.analytics_teams_count.app_error",

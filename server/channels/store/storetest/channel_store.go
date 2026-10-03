@@ -166,6 +166,7 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("SetShared", func(t *testing.T) { testSetShared(t, rctx, ss) })
 	t.Run("GetTeamForChannel", func(t *testing.T) { testGetTeamForChannel(t, rctx, ss) })
 	t.Run("GetChannelsWithUnreadsAndWithMentions", func(t *testing.T) { testGetChannelsWithUnreadsAndWithMentions(t, rctx, ss) })
+	t.Run("GetDMGMProfilesByChannelIds", func(t *testing.T) { testGetDMGMProfilesByChannelIds(t, rctx, ss) })
 	t.Run("GetDirectMessagesWithUnreadAndMentions", func(t *testing.T) { testGetDirectMessagesWithUnreadAndMentions(t, rctx, ss) })
 	t.Run("GetTeamChannelsWithUnreadAndMentions", func(t *testing.T) { testGetTeamChannelsWithUnreadAndMentions(t, rctx, ss) })
 	t.Run("SaveBoardChannel", func(t *testing.T) { testChannelStoreSaveBoardChannel(t, rctx, ss) })
@@ -5278,13 +5279,13 @@ func testChannelStoreUpdateLastViewedAt(t *testing.T, rctx request.CTX, ss store
 	rm1, err := ss.Channel().GetMember(rctx, m1.ChannelId, m1.UserId)
 	assert.NoError(t, err)
 	assert.Equal(t, o1.LastPostAt, rm1.LastViewedAt)
-	assert.Equal(t, o1.LastPostAt, rm1.LastUpdateAt)
+	assert.GreaterOrEqual(t, rm1.LastUpdateAt, o1.LastPostAt, "LastUpdateAt must be >= LastPostAt (wall-clock time of the view)")
 	assert.Equal(t, o1.TotalMsgCount, rm1.MsgCount)
 
 	rm2, err := ss.Channel().GetMember(rctx, m2.ChannelId, m2.UserId)
 	assert.NoError(t, err)
 	assert.Equal(t, o2.LastPostAt, rm2.LastViewedAt)
-	assert.Equal(t, o2.LastPostAt, rm2.LastUpdateAt)
+	assert.GreaterOrEqual(t, rm2.LastUpdateAt, o2.LastPostAt, "LastUpdateAt must be >= LastPostAt (wall-clock time of the view)")
 	assert.Equal(t, o2.TotalMsgCount, rm2.MsgCount)
 
 	_, err = ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, "missing id")
@@ -9202,6 +9203,53 @@ func testGetChannelsWithUnreadsAndWithMentions(t *testing.T, rctx request.CTX, s
 		require.Len(t, unreads, 0)
 		require.Len(t, mentions, 0)
 		require.Len(t, times, 0)
+	})
+}
+
+func testGetDMGMProfilesByChannelIds(t *testing.T, rctx request.CTX, ss store.Store) {
+	u1 := &model.User{Email: MakeEmail(), Nickname: model.NewId()}
+	_, err := ss.User().Save(rctx, u1)
+	require.NoError(t, err)
+	u2 := &model.User{Email: MakeEmail(), Nickname: model.NewId()}
+	_, err = ss.User().Save(rctx, u2)
+	require.NoError(t, err)
+
+	dm, nErr := ss.Channel().CreateDirectChannel(rctx, u1, u2)
+	require.NoError(t, nErr)
+
+	t.Run("empty channel id list returns nil", func(t *testing.T) {
+		result, err := ss.Channel().GetDMGMProfilesByChannelIds(nil, u1.Id, 0)
+		require.NoError(t, err)
+		require.Nil(t, result)
+	})
+
+	t.Run("cold start returns the other member's profile, excluding the requesting user", func(t *testing.T) {
+		result, err := ss.Channel().GetDMGMProfilesByChannelIds([]string{dm.Id}, u1.Id, 0)
+		require.NoError(t, err)
+		require.Contains(t, result, dm.Id)
+		require.Len(t, result[dm.Id], 1)
+		assert.Equal(t, u2.Id, result[dm.Id][0].Id)
+	})
+
+	t.Run("self-DM: requesting user is excluded, resulting in no profiles", func(t *testing.T) {
+		selfDM, nErr := ss.Channel().CreateDirectChannel(rctx, u1, u1)
+		require.NoError(t, nErr)
+
+		result, err := ss.Channel().GetDMGMProfilesByChannelIds([]string{selfDM.Id}, u1.Id, 0)
+		require.NoError(t, err)
+		assert.Empty(t, result[selfDM.Id])
+	})
+
+	t.Run("delta mode: only profiles updated or deleted since the cursor are returned", func(t *testing.T) {
+		since := model.GetMillis()
+
+		result, err := ss.Channel().GetDMGMProfilesByChannelIds([]string{dm.Id}, u1.Id, since+1000)
+		require.NoError(t, err)
+		assert.Empty(t, result[dm.Id])
+
+		result, err = ss.Channel().GetDMGMProfilesByChannelIds([]string{dm.Id}, u1.Id, since-1000)
+		require.NoError(t, err)
+		require.Len(t, result[dm.Id], 1)
 	})
 }
 
