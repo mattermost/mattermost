@@ -44,7 +44,7 @@ func WriteFileResponse(filename string, contentType string, contentSize int64, l
 
 	if contentSize > 0 {
 		contentSizeStr := strconv.Itoa(int(contentSize))
-		if webserverMode == "gzip" {
+		if webserverMode == "gzip" || webserverMode == "brotli" {
 			w.Header().Set("X-Uncompressed-Content-Length", contentSizeStr)
 		} else {
 			w.Header().Set("Content-Length", contentSizeStr)
