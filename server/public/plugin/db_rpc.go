@@ -5,8 +5,9 @@ package plugin
 
 import (
 	"database/sql/driver"
-	"log"
 	"net/rpc"
+
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 // dbRPCClient contains the client-side logic to handle the RPC communication
@@ -14,6 +15,7 @@ import (
 // new methods to be added very frequently.
 type dbRPCClient struct {
 	client *rpc.Client
+	api    API
 }
 
 // dbRPCServer is the server-side component which is responsible for calling
@@ -46,7 +48,7 @@ func (db *dbRPCClient) Conn(isMaster bool) (string, error) {
 	ret := &Z_DbStrErrReturn{}
 	err := db.client.Call("Plugin.Conn", isMaster, ret)
 	if err != nil {
-		log.Printf("error during Plugin.Conn: %v", err)
+		db.LogError("error during Plugin.Conn", mlog.Err(err))
 	}
 	ret.B = decodableError(ret.B)
 	return ret.A, ret.B
@@ -62,7 +64,7 @@ func (db *dbRPCClient) ConnPing(connID string) error {
 	ret := &Z_DbErrReturn{}
 	err := db.client.Call("Plugin.ConnPing", connID, ret)
 	if err != nil {
-		log.Printf("error during Plugin.ConnPing: %v", err)
+		db.LogError("error during Plugin.ConnPing", mlog.Err(err))
 	}
 	ret.A = decodableError(ret.A)
 	return ret.A
@@ -78,7 +80,7 @@ func (db *dbRPCClient) ConnClose(connID string) error {
 	ret := &Z_DbErrReturn{}
 	err := db.client.Call("Plugin.ConnClose", connID, ret)
 	if err != nil {
-		log.Printf("error during Plugin.ConnClose: %v", err)
+		db.LogError("error during Plugin.ConnClose", mlog.Err(err))
 	}
 	ret.A = decodableError(ret.A)
 	return ret.A
@@ -103,7 +105,7 @@ func (db *dbRPCClient) Tx(connID string, opts driver.TxOptions) (string, error) 
 	ret := &Z_DbStrErrReturn{}
 	err := db.client.Call("Plugin.Tx", args, ret)
 	if err != nil {
-		log.Printf("error during Plugin.Tx: %v", err)
+		db.LogError("error during Plugin.Tx", mlog.Err(err))
 	}
 	ret.B = decodableError(ret.B)
 	return ret.A, ret.B
@@ -119,7 +121,7 @@ func (db *dbRPCClient) TxCommit(txID string) error {
 	ret := &Z_DbErrReturn{}
 	err := db.client.Call("Plugin.TxCommit", txID, ret)
 	if err != nil {
-		log.Printf("error during Plugin.TxCommit: %v", err)
+		db.LogError("error during Plugin.TxCommit", mlog.Err(err))
 	}
 	ret.A = decodableError(ret.A)
 	return ret.A
@@ -135,7 +137,7 @@ func (db *dbRPCClient) TxRollback(txID string) error {
 	ret := &Z_DbErrReturn{}
 	err := db.client.Call("Plugin.TxRollback", txID, ret)
 	if err != nil {
-		log.Printf("error during Plugin.TxRollback: %v", err)
+		db.LogError("error during Plugin.TxRollback", mlog.Err(err))
 	}
 	ret.A = decodableError(ret.A)
 	return ret.A
@@ -160,7 +162,7 @@ func (db *dbRPCClient) Stmt(connID, q string) (string, error) {
 	ret := &Z_DbStrErrReturn{}
 	err := db.client.Call("Plugin.Stmt", args, ret)
 	if err != nil {
-		log.Printf("error during Plugin.Stmt: %v", err)
+		db.LogError("error during Plugin.Stmt", mlog.Err(err))
 	}
 	ret.B = decodableError(ret.B)
 	return ret.A, ret.B
@@ -176,7 +178,7 @@ func (db *dbRPCClient) StmtClose(stID string) error {
 	ret := &Z_DbErrReturn{}
 	err := db.client.Call("Plugin.StmtClose", stID, ret)
 	if err != nil {
-		log.Printf("error during Plugin.StmtClose: %v", err)
+		db.LogError("error during Plugin.StmtClose", mlog.Err(err))
 	}
 	ret.A = decodableError(ret.A)
 	return ret.A
@@ -196,7 +198,7 @@ func (db *dbRPCClient) StmtNumInput(stID string) int {
 	ret := &Z_DbIntReturn{}
 	err := db.client.Call("Plugin.StmtNumInput", stID, ret)
 	if err != nil {
-		log.Printf("error during Plugin.StmtNumInput: %v", err)
+		db.LogError("error during Plugin.StmtNumInput", mlog.Err(err))
 	}
 	return ret.A
 }
@@ -219,7 +221,7 @@ func (db *dbRPCClient) StmtQuery(stID string, argVals []driver.NamedValue) (stri
 	ret := &Z_DbStrErrReturn{}
 	err := db.client.Call("Plugin.StmtQuery", args, ret)
 	if err != nil {
-		log.Printf("error during Plugin.StmtQuery: %v", err)
+		db.LogError("error during Plugin.StmtQuery", mlog.Err(err))
 	}
 	ret.B = decodableError(ret.B)
 	return ret.A, ret.B
@@ -239,7 +241,7 @@ func (db *dbRPCClient) StmtExec(stID string, argVals []driver.NamedValue) (Resul
 	ret := &Z_DbResultContErrReturn{}
 	err := db.client.Call("Plugin.StmtExec", args, ret)
 	if err != nil {
-		log.Printf("error during Plugin.StmtExec: %v", err)
+		db.LogError("error during Plugin.StmtExec", mlog.Err(err))
 	}
 	ret.A.LastIDError = decodableError(ret.A.LastIDError)
 	ret.A.RowsAffectedError = decodableError(ret.A.RowsAffectedError)
@@ -270,7 +272,7 @@ func (db *dbRPCClient) ConnQuery(connID, q string, argVals []driver.NamedValue) 
 	ret := &Z_DbStrErrReturn{}
 	err := db.client.Call("Plugin.ConnQuery", args, ret)
 	if err != nil {
-		log.Printf("error during Plugin.ConnQuery: %v", err)
+		db.LogError("error during Plugin.ConnQuery", mlog.Err(err))
 	}
 	ret.B = decodableError(ret.B)
 	return ret.A, ret.B
@@ -296,7 +298,7 @@ func (db *dbRPCClient) ConnExec(connID, q string, argVals []driver.NamedValue) (
 	ret := &Z_DbResultContErrReturn{}
 	err := db.client.Call("Plugin.ConnExec", args, ret)
 	if err != nil {
-		log.Printf("error during Plugin.ConnExec: %v", err)
+		db.LogError("error during Plugin.ConnExec", mlog.Err(err))
 	}
 	ret.A.LastIDError = decodableError(ret.A.LastIDError)
 	ret.A.RowsAffectedError = decodableError(ret.A.RowsAffectedError)
@@ -320,7 +322,7 @@ func (db *dbRPCClient) RowsColumns(rowsID string) []string {
 	ret := &Z_DbStrSliceReturn{}
 	err := db.client.Call("Plugin.RowsColumns", rowsID, ret)
 	if err != nil {
-		log.Printf("error during Plugin.RowsColumns: %v", err)
+		db.LogError("error during Plugin.RowsColumns", mlog.Err(err))
 	}
 	return ret.A
 }
@@ -334,7 +336,7 @@ func (db *dbRPCClient) RowsClose(resID string) error {
 	ret := &Z_DbErrReturn{}
 	err := db.client.Call("Plugin.RowsClose", resID, ret)
 	if err != nil {
-		log.Printf("error during Plugin.RowsClose: %v", err)
+		db.LogError("error during Plugin.RowsClose", mlog.Err(err))
 	}
 	ret.A = decodableError(ret.A)
 	return ret.A
@@ -364,7 +366,7 @@ func (db *dbRPCClient) RowsNext(rowsID string, dest []driver.Value) error {
 	ret := &Z_DbRowScanReturn{}
 	err := db.client.Call("Plugin.RowsNext", args, ret)
 	if err != nil {
-		log.Printf("error during Plugin.RowsNext: %v", err)
+		db.LogError("error during Plugin.RowsNext", mlog.Err(err))
 	}
 	ret.A = decodableError(ret.A)
 	copy(dest, ret.B)
@@ -385,7 +387,7 @@ func (db *dbRPCClient) RowsHasNextResultSet(rowsID string) bool {
 	ret := &Z_DbBoolReturn{}
 	err := db.client.Call("Plugin.RowsHasNextResultSet", rowsID, ret)
 	if err != nil {
-		log.Printf("error during Plugin.RowsHasNextResultSet: %v", err)
+		db.LogError("error during Plugin.RowsHasNextResultSet", mlog.Err(err))
 	}
 	return ret.A
 }
@@ -399,7 +401,7 @@ func (db *dbRPCClient) RowsNextResultSet(rowsID string) error {
 	ret := &Z_DbErrReturn{}
 	err := db.client.Call("Plugin.RowsNextResultSet", rowsID, ret)
 	if err != nil {
-		log.Printf("error during Plugin.RowsNextResultSet: %v", err)
+		db.LogError("error during Plugin.RowsNextResultSet", mlog.Err(err))
 	}
 	ret.A = decodableError(ret.A)
 	return ret.A
@@ -424,7 +426,7 @@ func (db *dbRPCClient) RowsColumnTypeDatabaseTypeName(rowsID string, index int) 
 	var ret string
 	err := db.client.Call("Plugin.RowsColumnTypeDatabaseTypeName", args, &ret)
 	if err != nil {
-		log.Printf("error during Plugin.RowsColumnTypeDatabaseTypeName: %v", err)
+		db.LogError("error during Plugin.RowsColumnTypeDatabaseTypeName", mlog.Err(err))
 	}
 	return ret
 }
@@ -448,7 +450,7 @@ func (db *dbRPCClient) RowsColumnTypePrecisionScale(rowsID string, index int) (i
 	ret := &Z_DbRowsColumnTypePrecisionScaleReturn{}
 	err := db.client.Call("Plugin.RowsColumnTypePrecisionScale", args, ret)
 	if err != nil {
-		log.Printf("error during Plugin.RowsColumnTypePrecisionScale: %v", err)
+		db.LogError("error during Plugin.RowsColumnTypePrecisionScale", mlog.Err(err))
 	}
 	return ret.A, ret.B, ret.C
 }
@@ -456,4 +458,20 @@ func (db *dbRPCClient) RowsColumnTypePrecisionScale(rowsID string, index int) (i
 func (db *dbRPCServer) RowsColumnTypePrecisionScale(args *Z_DbRowsColumnArg, ret *Z_DbRowsColumnTypePrecisionScaleReturn) error {
 	ret.A, ret.B, ret.C = db.dbImpl.RowsColumnTypePrecisionScale(args.A, args.B)
 	return nil
+}
+
+func (db *dbRPCClient) LogError(msg string, keyValuePairs ...any) {
+	db.api.LogError(msg, keyValuePairs...)
+}
+
+func (db *dbRPCClient) LogWarn(msg string, keyValuePairs ...any) {
+	db.api.LogWarn(msg, keyValuePairs...)
+}
+
+func (db *dbRPCClient) LogInfo(msg string, keyValuePairs ...any) {
+	db.api.LogInfo(msg, keyValuePairs...)
+}
+
+func (db *dbRPCClient) LogDebug(msg string, keyValuePairs ...any) {
+	db.api.LogDebug(msg, keyValuePairs...)
 }
