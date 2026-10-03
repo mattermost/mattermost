@@ -60,6 +60,14 @@ func registerDummyWebConn(t *testing.T, th *TestHelper, addr net.Addr, session *
 	return wc
 }
 
+// loadChannelIDs loads a user's channel IDs the way Hub.Register does.
+func loadChannelIDs(tb testing.TB, th *TestHelper, userID string) channelList {
+	tb.Helper()
+	channelIDs, err := th.Service.loadChannelMembership(userID)
+	require.NoError(tb, err)
+	return channelIDs
+}
+
 func TestHubStopWithMultipleConnections(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -202,7 +210,7 @@ func TestHubConnIndex(t *testing.T) {
 	for _, fastIterate := range []bool{true, false} {
 		t.Run(fmt.Sprintf("fastIterate=%t", fastIterate), func(t *testing.T) {
 			t.Run("Basic", func(t *testing.T) {
-				connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, fastIterate)
+				connIndex := newHubConnectionIndex(1*time.Second, fastIterate)
 
 				// User1
 				wc1 := &WebConn{
@@ -238,14 +246,10 @@ func TestHubConnIndex(t *testing.T) {
 				wc4.SetConnectionID(model.NewId())
 				wc4.SetSession(&model.Session{})
 
-				errAdd := connIndex.Add(wc1)
-				require.NoError(t, errAdd)
-				err = connIndex.Add(wc2)
-				require.NoError(t, err)
-				err = connIndex.Add(wc3)
-				require.NoError(t, err)
-				err = connIndex.Add(wc4)
-				require.NoError(t, err)
+				connIndex.Add(wc1, channelList{})
+				connIndex.Add(wc2, channelList{})
+				connIndex.Add(wc3, channelList{})
+				connIndex.Add(wc4, channelList{})
 
 				t.Run("Basic", func(t *testing.T) {
 					assert.True(t, connIndex.Has(wc1))
@@ -293,7 +297,7 @@ func TestHubConnIndex(t *testing.T) {
 			})
 
 			t.Run("ByConnectionId", func(t *testing.T) {
-				connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, fastIterate)
+				connIndex := newHubConnectionIndex(1*time.Second, fastIterate)
 
 				// User1
 				wc1ID := model.NewId()
@@ -332,10 +336,8 @@ func TestHubConnIndex(t *testing.T) {
 				})
 
 				t.Run("adding", func(t *testing.T) {
-					err = connIndex.Add(wc1)
-					require.NoError(t, err)
-					err = connIndex.Add(wc3)
-					require.NoError(t, err)
+					connIndex.Add(wc1, channelList{})
+					connIndex.Add(wc3, channelList{})
 
 					assert.Len(t, connIndex.byConnectionId, 2)
 					assert.Equal(t, wc1, connIndex.ForConnection(wc1ID))
@@ -356,7 +358,7 @@ func TestHubConnIndex(t *testing.T) {
 	}
 
 	t.Run("ByChannelId", func(t *testing.T) {
-		connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, true)
+		connIndex := newHubConnectionIndex(1*time.Second, true)
 
 		// User1
 		wc1ID := model.NewId()
@@ -387,12 +389,9 @@ func TestHubConnIndex(t *testing.T) {
 		wc3.SetConnectionID(wc3ID)
 		wc3.SetSession(&model.Session{})
 
-		err = connIndex.Add(wc1)
-		require.NoError(t, err)
-		err = connIndex.Add(wc2)
-		require.NoError(t, err)
-		err = connIndex.Add(wc3)
-		require.NoError(t, err)
+		connIndex.Add(wc1, loadChannelIDs(t, th, wc1.UserId))
+		connIndex.Add(wc2, loadChannelIDs(t, th, wc2.UserId))
+		connIndex.Add(wc3, loadChannelIDs(t, th, wc3.UserId))
 
 		t.Run("ForChannel", func(t *testing.T) {
 			require.Len(t, connIndex.byChannelKey, 1)
@@ -415,7 +414,7 @@ func TestHubConnIndex(t *testing.T) {
 		require.NoError(t, err)
 
 		t.Run("InvalidateCMCacheForUser", func(t *testing.T) {
-			require.NoError(t, connIndex.InvalidateCMCacheForUser(th.BasicUser2.Id))
+			connIndex.InvalidateCMCacheForUser(th.BasicUser2.Id, loadChannelIDs(t, th, th.BasicUser2.Id))
 			require.Len(t, connIndex.byChannelKey, 2)
 			require.Len(t, slices.Collect(forChannel(connIndex, th.BasicChannel.Id)), 3)
 			require.Len(t, slices.Collect(forChannel(connIndex, ch.Id)), 2)
@@ -433,7 +432,7 @@ func TestHubConnIndexIncorrectRemoval(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, false)
+	connIndex := newHubConnectionIndex(1*time.Second, false)
 
 	// User2
 	wc2 := &WebConn{
@@ -460,12 +459,9 @@ func TestHubConnIndexIncorrectRemoval(t *testing.T) {
 	wc4.SetConnectionID("last")
 	wc4.SetSession(&model.Session{})
 
-	err := connIndex.Add(wc2)
-	require.NoError(t, err)
-	err = connIndex.Add(wc3)
-	require.NoError(t, err)
-	err = connIndex.Add(wc4)
-	require.NoError(t, err)
+	connIndex.Add(wc2, channelList{})
+	connIndex.Add(wc3, channelList{})
+	connIndex.Add(wc4, channelList{})
 
 	for wc := range connIndex.ForUser(wc2.UserId) {
 		if !connIndex.Has(wc) {
@@ -483,7 +479,7 @@ func TestHubConnIndexInactive(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	connIndex := newHubConnectionIndex(2*time.Second, th.Service.Store, th.Service.logger, false)
+	connIndex := newHubConnectionIndex(2*time.Second, false)
 
 	// User1
 	wc1 := &WebConn{
@@ -511,12 +507,9 @@ func TestHubConnIndexInactive(t *testing.T) {
 	wc3.SetConnectionID("conn3")
 	wc3.SetSession(&model.Session{})
 
-	err := connIndex.Add(wc1)
-	require.NoError(t, err)
-	err = connIndex.Add(wc2)
-	require.NoError(t, err)
-	err = connIndex.Add(wc3)
-	require.NoError(t, err)
+	connIndex.Add(wc1, channelList{})
+	connIndex.Add(wc2, channelList{})
+	connIndex.Add(wc3, channelList{})
 
 	assert.Nil(t, connIndex.RemoveInactiveByConnectionID(wc2.UserId, "conn2"))
 	assert.Equal(t, connIndex.ForUserActiveCount(wc2.UserId), 1)
@@ -527,8 +520,7 @@ func TestHubConnIndexInactive(t *testing.T) {
 	assert.Len(t, slices.Collect(connIndex.ForUser(wc2.UserId)), 1)
 
 	wc3.lastUserActivityAt = model.GetMillis()
-	err = connIndex.Add(wc3)
-	require.NoError(t, err)
+	connIndex.Add(wc3, channelList{})
 	connIndex.RemoveInactiveConnections()
 	assert.True(t, connIndex.Has(wc3))
 	assert.Len(t, slices.Collect(connIndex.ForUser(wc2.UserId)), 2)
@@ -647,7 +639,7 @@ var globalIter iter.Seq[*WebConn]
 func BenchmarkHubConnIndexIteratorForUser(b *testing.B) {
 	th := Setup(b)
 
-	connIndex := newHubConnectionIndex(2*time.Second, th.Service.Store, th.Service.logger, false)
+	connIndex := newHubConnectionIndex(2*time.Second, false)
 
 	// User1
 	wc1 := &WebConn{
@@ -675,9 +667,9 @@ func BenchmarkHubConnIndexIteratorForUser(b *testing.B) {
 	wc3.SetConnectionID("conn3")
 	wc3.SetSession(&model.Session{})
 
-	require.NoError(b, connIndex.Add(wc1))
-	require.NoError(b, connIndex.Add(wc2))
-	require.NoError(b, connIndex.Add(wc3))
+	connIndex.Add(wc1, channelList{})
+	connIndex.Add(wc2, channelList{})
+	connIndex.Add(wc3, channelList{})
 
 	b.Run("2 users", func(b *testing.B) {
 		for b.Loop() {
@@ -693,7 +685,7 @@ func BenchmarkHubConnIndexIteratorForUser(b *testing.B) {
 	wc4.SetConnectionID("conn4")
 	wc4.SetSession(&model.Session{})
 
-	require.NoError(b, connIndex.Add(wc4))
+	connIndex.Add(wc4, channelList{})
 	b.Run("3 users", func(b *testing.B) {
 		for b.Loop() {
 			globalIter = connIndex.ForUser(wc2.UserId)
@@ -708,7 +700,7 @@ func BenchmarkHubConnIndexIteratorForUser(b *testing.B) {
 	wc5.SetConnectionID("conn5")
 	wc5.SetSession(&model.Session{})
 
-	require.NoError(b, connIndex.Add(wc5))
+	connIndex.Add(wc5, channelList{})
 	b.Run("4 users", func(b *testing.B) {
 		for b.Loop() {
 			globalIter = connIndex.ForUser(wc2.UserId)
@@ -736,7 +728,7 @@ func BenchmarkHubConnIndexIteratorForChannel(b *testing.B) {
 	})
 	require.NoError(b, err)
 
-	connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, true)
+	connIndex := newHubConnectionIndex(1*time.Second, true)
 
 	// User1
 	wc1ID := model.NewId()
@@ -767,9 +759,9 @@ func BenchmarkHubConnIndexIteratorForChannel(b *testing.B) {
 	wc3.SetConnectionID(wc3ID)
 	wc3.SetSession(&model.Session{})
 
-	require.NoError(b, connIndex.Add(wc1))
-	require.NoError(b, connIndex.Add(wc2))
-	require.NoError(b, connIndex.Add(wc3))
+	connIndex.Add(wc1, loadChannelIDs(b, th, wc1.UserId))
+	connIndex.Add(wc2, loadChannelIDs(b, th, wc2.UserId))
+	connIndex.Add(wc3, loadChannelIDs(b, th, wc3.UserId))
 
 	for b.Loop() {
 		globalIter = forChannel(connIndex, th.BasicChannel.Id)
@@ -780,7 +772,7 @@ func BenchmarkHubConnIndexIteratorForChannel(b *testing.B) {
 // See: https://github.com/golang/go/issues/27217.
 func BenchmarkHubConnIndex(b *testing.B) {
 	th := Setup(b).InitBasic(b)
-	connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, false)
+	connIndex := newHubConnectionIndex(1*time.Second, false)
 
 	// User1
 	wc1 := &WebConn{
@@ -797,10 +789,8 @@ func BenchmarkHubConnIndex(b *testing.B) {
 	}
 	b.Run("Add", func(b *testing.B) {
 		for b.Loop() {
-			err := connIndex.Add(wc1)
-			require.NoError(b, err)
-			err = connIndex.Add(wc2)
-			require.NoError(b, err)
+			connIndex.Add(wc1, channelList{})
+			connIndex.Add(wc2, channelList{})
 
 			// Cleanup
 			b.StopTimer()
@@ -814,10 +804,8 @@ func BenchmarkHubConnIndex(b *testing.B) {
 		for b.Loop() {
 			// Setup
 			b.StopTimer()
-			err := connIndex.Add(wc1)
-			require.NoError(b, err)
-			err = connIndex.Add(wc2)
-			require.NoError(b, err)
+			connIndex.Add(wc1, channelList{})
+			connIndex.Add(wc2, channelList{})
 
 			b.StartTimer()
 			connIndex.Remove(wc1)
@@ -830,7 +818,7 @@ func TestHubConnIndexRemoveMemLeak(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, false)
+	connIndex := newHubConnectionIndex(1*time.Second, false)
 
 	wc := &WebConn{
 		Platform: th.Service,
@@ -845,8 +833,7 @@ func TestHubConnIndexRemoveMemLeak(t *testing.T) {
 		close(ch)
 	})
 
-	err := connIndex.Add(wc)
-	require.NoError(t, err)
+	connIndex.Add(wc, channelList{})
 	connIndex.Remove(wc)
 
 	runtime.GC()
