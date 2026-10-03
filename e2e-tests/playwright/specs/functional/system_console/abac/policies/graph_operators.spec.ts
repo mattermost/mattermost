@@ -5,9 +5,12 @@
  * E2E tests for graph hierarchy operators in the Membership Policy editor.
  *
  * When the selected attribute is of type `graph`, the simple-mode operator
- * dropdown replaces the standard set with the four hierarchy predicates (covers
- * all of, covers any of, is within all of, is within any of) followed by the two
- * exact-membership operators (has any of, has all of), which ignore the hierarchy.
+ * dropdown replaces the standard set with the four hierarchy predicates, grouped
+ * by the direction in the hierarchy they look ("has each of or a parent of" and
+ * "has any of or a parent of"; "is entirely within" and "has any of or a child
+ * of"), followed by the two exact-membership operators (has any of, has all of),
+ * which ignore the hierarchy. Each carries a line of help text, so an item's
+ * accessible name is its label followed by that description.
  *
  * The two right-hand-side shapes a predicate accepts are both authored here,
  * because they are different code paths and only one of them is the driving use
@@ -38,6 +41,40 @@ import {
 const airProgram = 'Air Program';
 const fighterJetProgram = 'Fighter Jet Program';
 const f18Program = 'F-18 Program';
+
+const coversAllLabel = 'has each of or a parent of';
+
+// The graph operator menu, group titles and all, in the order it renders. Each
+// operator's description closes with the policy-expression function it maps to,
+// which is what connects the menu to a hand-written expression.
+// Group titles are given in the casing they are written in; the menu uppercases
+// them in CSS, which text assertions do not see.
+const graphOperatorMenu = [
+    {group: 'Parents (any level)'},
+    {label: coversAllLabel, description: 'The user has each selected value, or a parent of it. (Covers All)'},
+    {
+        label: 'has any of or a parent of',
+        description: 'The user has at least one selected value, or a parent of it. (Covers Any)',
+    },
+    {group: 'Children (any level)'},
+    {
+        label: 'is entirely within',
+        description: 'The user has at least one value, and each is a selected value or a child of one. (Within All)',
+    },
+    {
+        label: 'has any of or a child of',
+        description: 'At least one value the user has is a selected value, or a child of one. (Within Any)',
+    },
+    {group: 'Exact match'},
+    {
+        label: 'has any of',
+        description: 'The user has at least one selected value. A parent or a child is not enough. (Has Any Of)',
+    },
+    {
+        label: 'has all of',
+        description: 'The user has every selected value. A parent or a child is not enough. (Has All Of)',
+    },
+];
 
 test.describe('System Console - Membership Policy graph operators', () => {
     let adminClient: Client4;
@@ -120,7 +157,7 @@ test.describe('System Console - Membership Policy graph operators', () => {
         // * The row is on the graph attribute, which is what every caller assumes:
         //   a graph row defaults to the strictest hierarchy predicate
         const operatorButton = page.locator('[data-testid="operatorSelectorMenuButton"]').first();
-        await expect(operatorButton).toContainText('covers all of');
+        await expect(operatorButton).toHaveText(coversAllLabel);
 
         return operatorButton;
     }
@@ -199,8 +236,10 @@ test.describe('System Console - Membership Policy graph operators', () => {
 
     /**
      * @objective Selecting a graph attribute in the policy editor surfaces the
-     * hierarchy predicates and the exact-membership operators, and removes the
-     * equality/string/ordinal ones; the row defaults to "covers all of".
+     * hierarchy predicates and the exact-membership operators, grouped by the
+     * direction in the hierarchy they look and each explained by a line of help
+     * text, and removes the equality/string/ordinal ones; the row defaults to
+     * "has each of or a parent of".
      *
      * @precondition
      * A graph user field serving an Air → Fighter Jet → F-18 hierarchy exists.
@@ -211,40 +250,133 @@ test.describe('System Console - Membership Policy graph operators', () => {
 
         const operatorButton = await openPolicyEditorOnGraphAttribute(page, `Graph Policy ${getRandomId()}`);
 
-        // * The row defaults to the strictest hierarchy predicate, "covers all of"
-        await expect(operatorButton).toContainText('covers all of');
+        // * The row defaults to the strictest hierarchy predicate, and the closed
+        //   control carries its label alone — not the help text that goes with it
+        await expect(operatorButton).toHaveText(coversAllLabel);
 
         // # Open the operator dropdown
         await operatorButton.click();
+        const menu = page.locator('#operator-selector-menu');
+        await expect(menu).toBeVisible();
 
-        // * The four hierarchy predicates and the two membership operators are offered
-        for (const label of [
-            'covers all of',
-            'covers any of',
-            'is within all of',
-            'is within any of',
-            'has any of',
-            'has all of',
-        ]) {
-            await expect(page.getByRole('menuitemradio', {name: label, exact: true})).toBeVisible();
-        }
+        // * Three titled groups, with their operators and the help text that says
+        //   which direction in the hierarchy counts and what "all" applies to.
+        //   Asserted against the menu's own children in order, so a title landing
+        //   over the wrong operators fails here. Every item in this menu has a
+        //   description, so its label column always holds two elements.
+        await expect
+            .poll(() =>
+                menu.evaluate((list) =>
+                    Array.from(list.children)
+                        .filter((child) => child.tagName === 'H4' || child.getAttribute('role') === 'menuitemradio')
+                        .map((child) => {
+                            if (child.tagName === 'H4') {
+                                return {group: child.textContent};
+                            }
+                            return {
+                                label: child.querySelector('.label-elements > :first-child')?.textContent,
+                                description: child.querySelector('.label-elements > :last-child')?.textContent,
+                            };
+                        }),
+                ),
+            )
+            .toEqual(graphOperatorMenu);
+
+        // * The function name is set below the rest of the description, and every
+        //   description wraps inside the menu rather than running past its edge.
+        //   Neither is visible to the jsdom tests: both come from rules the menu
+        //   has to out-specify on the shared menu item, which sets its labels to
+        //   neither wrap nor shrink.
+        await expect(menu.locator('.operator-selector-menu__function-name').first()).toHaveCSS('opacity', '0.75');
+
+        // One synchronous read, and each description measured against its own
+        // item: the menu animates open, so boxes taken from separate calls are
+        // scaled differently and a few pixels of skew would read as overflow.
+        const clipped = await menu.evaluate((list) =>
+            Array.from(list.querySelectorAll('li[role="menuitemradio"]'))
+                .filter((item) => {
+                    const description = item.querySelector('.label-elements > :last-child')!;
+                    return description.getBoundingClientRect().right > item.getBoundingClientRect().right;
+                })
+                .map((item) => item.textContent),
+        );
+        expect(clipped).toEqual([]);
 
         // * Nothing that would compare a name against an option identifier, or
         //   order a hierarchy, is offered
         for (const label of ['is', 'is not', 'in', 'starts with', 'ends with', 'contains', 'is at least']) {
-            await expect(page.getByRole('menuitemradio', {name: label, exact: true})).toHaveCount(0);
+            await expect(menu.getByText(label, {exact: true})).toHaveCount(0);
         }
     });
 
     /**
-     * @objective A "covers all of <option names>" rule built in the editor survives
-     * a save/reopen round-trip: the stored marker form rehydrates to the predicate
-     * form and the table editor re-renders the same operator and option names.
+     * @objective The labels are presentation only: picking the operator labelled
+     * "is entirely within" saves the rule as withinAll, the function its help text
+     * names, and reopening the policy puts the row back on that operator.
      *
      * @precondition
      * A graph user field serving an Air → Fighter Jet → F-18 hierarchy exists.
      */
-    test('round-trips a "covers all of" rule over option names', {tag: '@abac'}, async ({pw}) => {
+    test('saves withinAll when the label that stands for it is picked', {tag: '@abac'}, async ({pw}) => {
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {page} = systemConsolePage;
+        const policyName = `Graph Within RT ${getRandomId()}`;
+        let policyId: string | undefined;
+
+        try {
+            const operatorButton = await openPolicyEditorOnGraphAttribute(page, policyName);
+
+            // # Move the row off its default onto the operator labelled "is
+            //   entirely within", whose description ends "(Within All)"
+            await operatorButton.click();
+            const menu = page.locator('#operator-selector-menu');
+            await menu.getByText('is entirely within', {exact: true}).click();
+            await expect(operatorButton).toHaveText('is entirely within');
+
+            const valueButton = page.locator('[data-testid="valueSelectorMenuButton"]').first();
+            await valueButton.click();
+            const valueMenu = page.locator('ul[id^="value-selector-menu"]');
+            await valueMenu.waitFor({state: 'visible', timeout: 10000});
+            await page.getByRole('textbox', {name: 'Search values', exact: true}).fill('F-18');
+            await valueMenu.getByRole('menuitemcheckbox', {name: f18Program, exact: true}).click();
+            await expect(valueButton).toContainText(f18Program);
+            await page.keyboard.press('Escape');
+
+            // * The label says nothing about a function; the saved expression is
+            //   withinAll, the one the item's description names
+            policyId = await saveAndReopenInSimpleMode(
+                page,
+                policyName,
+                `user.attributes.${hierarchy!.userFieldName}.withinAll(["${f18Program}"])`,
+                (id) => {
+                    policyId = id;
+                },
+            );
+
+            // * Reopened on the same operator: the stored identifiers are
+            //   independent of the labels, so the saved policy resolves back to
+            //   this row
+            await expect(page.locator('[data-testid="operatorSelectorMenuButton"]').first()).toHaveText(
+                'is entirely within',
+            );
+            await expect(page.locator('[data-testid="valueSelectorMenuButton"]').first()).toContainText(f18Program);
+        } finally {
+            if (policyId) {
+                await adminClient.deleteAccessControlPolicy(policyId).catch(() => {});
+            }
+        }
+    });
+
+    /**
+     * @objective A "has each of or a parent of" (coversAll) rule over option names,
+     * built in the editor, survives a save/reopen round-trip: the stored marker form
+     * rehydrates to the predicate form and the table editor re-renders the same
+     * operator and option names.
+     *
+     * @precondition
+     * A graph user field serving an Air → Fighter Jet → F-18 hierarchy exists.
+     */
+    test('round-trips a coversAll rule over option names', {tag: '@abac'}, async ({pw}) => {
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         const {page} = systemConsolePage;
         const policyName = `Graph Names RT ${getRandomId()}`;
@@ -291,9 +423,7 @@ test.describe('System Console - Membership Policy graph operators', () => {
             // * Same operator and the same option name, by name — the stored form
             //   holds an option identifier, and surfacing that instead would be the
             //   visible symptom of a resolution that did not round-trip
-            await expect(page.locator('[data-testid="operatorSelectorMenuButton"]').first()).toContainText(
-                'covers all of',
-            );
+            await expect(page.locator('[data-testid="operatorSelectorMenuButton"]').first()).toHaveText(coversAllLabel);
             await expect(page.locator('[data-testid="valueSelectorMenuButton"]').first()).toContainText(f18Program);
         } finally {
             if (policyId) {
@@ -312,7 +442,7 @@ test.describe('System Console - Membership Policy graph operators', () => {
      * A graph user field and a graph channel field linked to the same template
      * exist, so the channel field is offered as a comparison target.
      */
-    test('round-trips a "covers all of" rule against a channel attribute', {tag: '@abac'}, async ({pw}) => {
+    test('round-trips a coversAll rule against a channel attribute', {tag: '@abac'}, async ({pw}) => {
         // Only this test in the file needs the flag: comparing against the accessed
         // channel's attribute is what it gates, and saving such a rule is rejected
         // while it is off. The two tests above name option names literally.
@@ -353,9 +483,7 @@ test.describe('System Console - Membership Policy graph operators', () => {
 
             // * The reopened row is the same rule: the predicate, and the channel
             //   attribute as its target rather than a list of values
-            await expect(page.locator('[data-testid="operatorSelectorMenuButton"]').first()).toContainText(
-                'covers all of',
-            );
+            await expect(page.locator('[data-testid="operatorSelectorMenuButton"]').first()).toHaveText(coversAllLabel);
             await expect(page.locator('[data-testid="valueSelectorMenuButton"]').first()).toContainText(
                 `Channel: ${hierarchy!.channelFieldName}`,
             );
