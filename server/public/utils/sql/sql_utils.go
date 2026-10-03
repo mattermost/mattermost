@@ -29,8 +29,10 @@ func SetupConnection(logger mlog.LoggerIFace, connType string, dataSource string
 		return nil, errors.Wrap(err, "failed to open SQL connection")
 	}
 
-	// At this point, we have passed sql.Open, so we deliberately ignore any errors.
-	sanitized, _ := model.SanitizeDataSource(*settings.DriverName, dataSource)
+	sanitized, sanitizeErr := model.SanitizeDataSource(*settings.DriverName, dataSource)
+	if sanitizeErr != nil {
+		sanitized = model.FakeSetting
+	}
 
 	logger = logger.With(
 		mlog.String("database", connType),
