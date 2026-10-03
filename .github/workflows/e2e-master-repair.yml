@@ -1,0 +1,44 @@
+---
+# After each master E2E run, hand the Playwright specs that keep failing (broken
+# twice in a row, or flaky) to the "E2E master repair" Cursor automation, which
+# reproduces them, fixes them, verifies the fix several times and opens one PR. What to repair
+# is decided by the triage engine's trunk rules, not by the agent; the agent's
+# instructions are in .cursor/automations/e2e-master-repair.md.
+#
+# Without the webhook secrets it only writes the job summary. Repository owners
+# can turn it off by setting the variable E2E_MASTER_REPAIR to "off".
+name: E2E master repair
+on:
+  workflow_run:
+    workflows: ["E2E Tests (master/release - merge)"]
+    types: [completed]
+
+permissions: {}
+
+concurrency:
+  group: e2e-master-repair
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    if: github.event.workflow_run.conclusion != 'cancelled' && vars.E2E_MASTER_REPAIR != 'off'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      # The run reports which branch it tested; runs of release branches are ignored.
+      - name: ci/e2e-master-watch
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-master-watch@71b4681c31579a5f875a17c90f9288216335d578 # actions/e2e-master-watch
+        with:
+          repository: ${{ github.repository }}
+          gh-run-id: ${{ github.event.workflow_run.id }}
+          gh-run-attempt: ${{ github.event.workflow_run.run_attempt }}
+          # Playwright only: the agent's instructions cover reproducing Playwright specs, not Cypress.
+          suites: >-
+            [{"name": "playwright-full-enterprise-master", "test_root": "e2e-tests/playwright/specs"},
+             {"name": "playwright-full-fips-master", "test_root": "e2e-tests/playwright/specs"}]
+          github-token: ${{ github.token }}
+          cursor-webhook-url: ${{ secrets.CURSOR_E2E_REPAIR_WEBHOOK_URL }}
+          cursor-webhook-key: ${{ secrets.CURSOR_E2E_REPAIR_WEBHOOK_KEY }}
+          extra-labels: AI/babysit
