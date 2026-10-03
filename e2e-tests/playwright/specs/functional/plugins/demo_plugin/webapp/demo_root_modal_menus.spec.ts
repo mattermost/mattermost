@@ -62,12 +62,7 @@ test('should open Root Modal from channel header dropdown More actions', async (
     await closeRootModal(channelsPage.page);
 });
 
-// Skipped: demo plugin v0.10.3 does not set a URL on the openInteractiveDialog call.
-// The webapp logs "Interactive dialog missing URL - this is a configuration error" and no dialog renders.
-// Re-enable once the demo plugin is fixed and the build URL in helpers.ts is updated.
-test.skip('should open Sample Confirmation Dialog from team dropdown and respond to Confirm and Cancel', async ({
-    pw,
-}) => {
+test('should open Sample Confirmation Dialog from team dropdown and respond to Confirm and Cancel', async ({pw}) => {
     // 1. Setup
     const {adminClient, user, team} = await pw.initSetup();
     await setupDemoPlugin(adminClient, pw);
@@ -97,5 +92,13 @@ test.skip('should open Sample Confirmation Dialog from team dropdown and respond
         channelsPage.centerView.container.locator('p').filter({hasText: 'confirmed an Interactive Dialog'}),
     ).toBeVisible();
 
-    // Cancel test omitted due to unexpected behavior. Will re-add once issue is resolved.
+    // 6. Reopen the dialog and click Cancel — verify it posts a distinct "canceled" message
+    await channelsPage.sidebarLeft.teamMenuButton.click();
+    await channelsPage.page.getByRole('menuitem', {name: 'Sample Confirmation Dialog'}).click();
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole('button', {name: 'Cancel'}).click();
+    await expect(dialog).not.toBeVisible();
+    await expect(
+        channelsPage.centerView.container.locator('p').filter({hasText: 'canceled an Interactive Dialog'}),
+    ).toBeVisible();
 });
