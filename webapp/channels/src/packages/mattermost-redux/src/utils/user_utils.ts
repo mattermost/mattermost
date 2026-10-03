@@ -158,6 +158,13 @@ export function nameSuggestionsForUser(user: UserProfile, includeFullEmail = fal
     const last = (user.last_name || '').toLowerCase();
     const full = first + ' ' + last;
     profileSuggestions.push(first, last, full);
+
+    // Also match "last first", since that is how many people type a name
+    // (e.g. "Smith John"). Only add it when both parts are present, otherwise
+    // it would just be a duplicate of the single name.
+    if (first && last) {
+        profileSuggestions.push(last + ' ' + first);
+    }
     profileSuggestions.push((user.nickname || '').toLowerCase());
     const positionSuggestions = getSuggestionsSplitBy((user.position || '').toLowerCase(), ' ');
     profileSuggestions.push(...positionSuggestions);
