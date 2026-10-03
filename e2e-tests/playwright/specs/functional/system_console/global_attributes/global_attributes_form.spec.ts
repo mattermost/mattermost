@@ -11,7 +11,7 @@
 import type {Locator, Page} from '@playwright/test';
 import type {PropertyField} from '@mattermost/types/properties';
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {ensureFeatureFlag, expect, test} from '@mattermost/playwright-lib';
 
 import {
     GLOBAL_ATTRIBUTES_ADMIN_PATH,
@@ -30,6 +30,15 @@ import {
 test.describe('System Console - Global Attributes form', {tag: '@system_console'}, () => {
     // Serial so create/edit/applies-to tests on the shared server do not overlap mid-save.
     test.describe.configure({mode: 'serial'});
+
+    // Channels and Posts applies-to resources need ChannelAttributes/PostAttributes
+    // (use_allowed_resource_types.ts), and the Hierarchical type needs PropertyFieldGraph.
+    // All three are purely additive -- they unlock extra UI surface for tests that opt
+    // into it without changing behavior for tests that don't -- so one superset flag
+    // combination here covers every test in this file with a single restart.
+    test.beforeAll(async () => {
+        await ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
+    });
 
     test.describe('create attribute', () => {
         /**
@@ -931,12 +940,6 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         }) => {
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
-            // Channels and Posts are each gated behind their own feature flag
-            // (use_allowed_resource_types.ts) -- Channels additionally needs the
-            // Enterprise Advanced tier. Without both flags on, the picker offers
-            // fewer types and the 3-item assertion below fails.
-            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true});
-
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
             await systemConsolePage.page.getByTestId('newAttributeButton').click();
@@ -984,10 +987,6 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         test('removes a pending resource locally with no confirm modal and no delete request', async ({pw}) => {
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
-            // See the "offers only unselected types" test above: Channels requires the
-            // ChannelAttributes flag on top of the Enterprise-tier license.
-            await pw.ensureFeatureFlag('ChannelAttributes', true);
-
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
             await systemConsolePage.page.getByTestId('newAttributeButton').click();
@@ -1033,10 +1032,6 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          */
         test('saves the template plus one linked field per selected resource', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-
-            // See the "offers only unselected types" test above: Channels requires the
-            // ChannelAttributes flag on top of the Enterprise-tier license.
-            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const timestamp = Date.now();
             const displayName = `Playwright Applies To ${timestamp}`;
@@ -1094,11 +1089,6 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          */
         test('rolls back a partial save and lets the admin retry successfully', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-
-            // See the "offers only unselected types" test above: Channels requires the
-            // ChannelAttributes flag on top of the Enterprise-tier license, and Posts
-            // requires PostAttributes. This test adds all three resources.
-            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true});
 
             const timestamp = Date.now();
             // Kept short: see the "saves Profile display..." test below -- a full
@@ -1953,7 +1943,6 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          */
         test('renames a matching linked channel display_name when the template display name changes', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const timestamp = Date.now();
             const name = `business_unit_${timestamp}`;
@@ -1997,7 +1986,6 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          */
         test('does not overwrite a diverged linked channel display_name when renaming the template', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const timestamp = Date.now();
             const name = `department_${timestamp}`;
