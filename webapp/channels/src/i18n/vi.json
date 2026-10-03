@@ -7107,7 +7107,6 @@
   "save_button.saving": "Đang lưu",
   "schedule_post.custom_time_modal.cancel_button_text": "Hủy",
   "schedule_post.custom_time_modal.confirm_button_text": "Lên lịch",
-  "schedule_post.custom_time_modal.dm_user_time": "{dmUserTime} đối với {dmUserName}",
   "schedule_post.custom_time_modal.repeat_weekly": "Lặp lại hằng tuần",
   "schedule_post.custom_time_modal.repeat_weekly.attachments_tooltip": "Tin nhắn có tệp đính kèm không thể lặp lại",
   "schedule_post.custom_time_modal.title": "Lên lịch tin nhắn",

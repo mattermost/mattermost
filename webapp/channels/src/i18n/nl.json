@@ -7109,7 +7109,6 @@
   "save_button.saving": "Opslaan",
   "schedule_post.custom_time_modal.cancel_button_text": "Annuleren",
   "schedule_post.custom_time_modal.confirm_button_text": "Plannen",
-  "schedule_post.custom_time_modal.dm_user_time": "{dmUserTime} voor {dmUserName}",
   "schedule_post.custom_time_modal.repeat_weekly": "Wekelijks herhalen",
   "schedule_post.custom_time_modal.repeat_weekly.attachments_tooltip": "Berichten met bijlagen kunnen niet worden herhaald",
   "schedule_post.custom_time_modal.title": "Bericht plannen",

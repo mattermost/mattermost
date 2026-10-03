@@ -7109,7 +7109,6 @@
   "save_button.saving": "Wird gespeichert",
   "schedule_post.custom_time_modal.cancel_button_text": "Abbrechen",
   "schedule_post.custom_time_modal.confirm_button_text": "Zeitplan",
-  "schedule_post.custom_time_modal.dm_user_time": "{dmUserTime} für {dmUserName}",
   "schedule_post.custom_time_modal.repeat_weekly": "Wöchentlich wiederholen",
   "schedule_post.custom_time_modal.repeat_weekly.attachments_tooltip": "Nachrichten mit Anhängen können nicht wiederholt werden",
   "schedule_post.custom_time_modal.title": "Geplante Nachricht",

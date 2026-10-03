@@ -7109,7 +7109,6 @@
   "save_button.saving": "正在保存",
   "schedule_post.custom_time_modal.cancel_button_text": "取消",
   "schedule_post.custom_time_modal.confirm_button_text": "计划",
-  "schedule_post.custom_time_modal.dm_user_time": "{dmUserName} 的 {dmUserTime}",
   "schedule_post.custom_time_modal.repeat_weekly": "每周重复",
   "schedule_post.custom_time_modal.repeat_weekly.attachments_tooltip": "含附件的消息无法重复发送",
   "schedule_post.custom_time_modal.title": "计划消息",

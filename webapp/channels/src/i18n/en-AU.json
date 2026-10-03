@@ -7109,7 +7109,6 @@
   "save_button.saving": "Saving",
   "schedule_post.custom_time_modal.cancel_button_text": "Cancel",
   "schedule_post.custom_time_modal.confirm_button_text": "Schedule",
-  "schedule_post.custom_time_modal.dm_user_time": "{dmUserTime} for {dmUserName}",
   "schedule_post.custom_time_modal.repeat_weekly": "Repeat weekly",
   "schedule_post.custom_time_modal.repeat_weekly.attachments_tooltip": "Messages with attachments can't repeat",
   "schedule_post.custom_time_modal.title": "Schedule message",

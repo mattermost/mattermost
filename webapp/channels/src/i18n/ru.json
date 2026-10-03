@@ -7109,7 +7109,6 @@
   "save_button.saving": "Сохранение",
   "schedule_post.custom_time_modal.cancel_button_text": "Отмена",
   "schedule_post.custom_time_modal.confirm_button_text": "Запланировать",
-  "schedule_post.custom_time_modal.dm_user_time": "{dmUserTime} для {dmUserName}",
   "schedule_post.custom_time_modal.repeat_weekly": "Повторять еженедельно",
   "schedule_post.custom_time_modal.repeat_weekly.attachments_tooltip": "Сообщения с вложениями не могут повторяться",
   "schedule_post.custom_time_modal.title": "Запланировать сообщение",

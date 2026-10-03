@@ -7107,7 +7107,6 @@
   "save_button.saving": "صرفه جویی در",
   "schedule_post.custom_time_modal.cancel_button_text": "انصراف",
   "schedule_post.custom_time_modal.confirm_button_text": "زمان‌بندی",
-  "schedule_post.custom_time_modal.dm_user_time": "{dmUserTime} برای {dmUserName}",
   "schedule_post.custom_time_modal.repeat_weekly": "تکرار هفتگی",
   "schedule_post.custom_time_modal.repeat_weekly.attachments_tooltip": "پیام‌های دارای پیوست نمی‌توانند تکرار شوند",
   "schedule_post.custom_time_modal.title": "زمان‌بندی پیام",

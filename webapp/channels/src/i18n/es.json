@@ -7107,7 +7107,6 @@
   "save_button.saving": "Guardando",
   "schedule_post.custom_time_modal.cancel_button_text": "Cancelar",
   "schedule_post.custom_time_modal.confirm_button_text": "Programar",
-  "schedule_post.custom_time_modal.dm_user_time": "{dmUserTime} para {dmUserName}",
   "schedule_post.custom_time_modal.repeat_weekly": "Repetir semanalmente",
   "schedule_post.custom_time_modal.repeat_weekly.attachments_tooltip": "Los mensajes con adjuntos no se pueden repetir",
   "schedule_post.custom_time_modal.title": "Programar mensaje",
