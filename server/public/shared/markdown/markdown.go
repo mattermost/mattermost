@@ -132,22 +132,20 @@ func relativeToAbsolutePosition(ranges []Range, position int) int {
 	return ranges[len(ranges)-1].End
 }
 
-func trimBytesFromRanges(ranges []Range, bytes int) (result []Range) {
+func trimBytesFromRanges(ranges []Range, bytes int) []Range {
 	rem := bytes
-	for _, r := range ranges {
+	for i := range ranges {
 		if rem == 0 {
-			result = append(result, r)
-			continue
+			return ranges[i:]
 		}
-		l := r.End - r.Position
+		l := ranges[i].End - ranges[i].Position
 		if rem < l {
-			result = append(result, Range{r.Position + rem, r.End})
-			rem = 0
-			continue
+			ranges[i].Position += rem
+			return ranges[i:]
 		}
 		rem -= l
 	}
-	return
+	return ranges[len(ranges):]
 }
 
 func Parse(markdown string) (*Document, []*ReferenceDefinition) {
