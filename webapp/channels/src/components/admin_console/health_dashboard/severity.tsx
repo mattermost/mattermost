@@ -7,12 +7,13 @@ import {defineMessages} from 'react-intl';
 import {
     AlertCircleOutlineIcon,
     AlertOutlineIcon,
+    CheckCircleOutlineIcon,
     HelpCircleOutlineIcon,
     InformationOutlineIcon,
 } from '@mattermost/compass-icons/components';
 import type {HealthFinding, HealthFindingSeverity} from '@mattermost/types/health';
 
-export const SEVERITIES: HealthFindingSeverity[] = ['critical', 'warning', 'info'];
+import type {HealthFindingSection} from 'mattermost-redux/utils/health_utils';
 
 export const severityMessages = defineMessages<HealthFindingSeverity>({
     critical: {id: 'admin.health_dashboard.severity.critical', defaultMessage: 'Critical'},
@@ -20,16 +21,22 @@ export const severityMessages = defineMessages<HealthFindingSeverity>({
     info: {id: 'admin.health_dashboard.severity.info', defaultMessage: 'Info'},
 });
 
-type Tone = HealthFindingSeverity | 'unknown';
+export const stateMessages = defineMessages({
+    resolved: {id: 'admin.health_dashboard.state.resolved', defaultMessage: 'Recently resolved'},
+    unknown: {id: 'admin.health_dashboard.state.unknown', defaultMessage: 'Unknown'},
+});
+
+export type Tone = HealthFindingSection;
 
 export function getTone(finding: Pick<HealthFinding, 'severity' | 'state'>): Tone {
-    return finding.state === 'unknown' ? 'unknown' : finding.severity;
+    return finding.state === 'firing' ? finding.severity : finding.state;
 }
 
 const icons = {
     critical: AlertCircleOutlineIcon,
     warning: AlertOutlineIcon,
     info: InformationOutlineIcon,
+    resolved: CheckCircleOutlineIcon,
     unknown: HelpCircleOutlineIcon,
 };
 

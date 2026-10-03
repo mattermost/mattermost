@@ -1,52 +1,95 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useId, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {HealthFinding, HealthFindingFilter, HealthFindingList, HealthFindingSeverity} from '@mattermost/types/health';
+import type {HealthFinding, HealthFindingFilter, HealthFindingList} from '@mattermost/types/health';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
+import {
+    countHealthFindingsByTab,
+    filterHealthFindingsByTab,
+    groupHealthFindingsByArea,
+    groupHealthFindingsBySection,
+} from 'mattermost-redux/utils/health_utils';
+import type {HealthFindingTab} from 'mattermost-redux/utils/health_utils';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {orderAreas} from './area';
-import FindingList from './finding_list';
-import SeveritySummary from './severity_summary';
-import UnknownNotice from './unknown_notice';
+import AreaAccordion from './area_accordion';
+import {EmptyState, TabEmptyState} from './empty_state';
+import FindingSection from './finding_section';
+import type {RowState} from './finding_section';
+import FindingTabs, {tabId} from './finding_tabs';
+import GroupByControl from './group_by_control';
+import type {GroupBy} from './group_by_control';
+import RelativeTime from './relative_time';
 
 import './health_dashboard.scss';
 
 export type Props = {
-    findingsByArea: Record<string, HealthFinding[]>;
-    unknownFindings: HealthFinding[];
-    severityCounts: Record<HealthFindingSeverity, number>;
+    findings: HealthFinding[];
     lastEvaluatedAt: number;
     actions: {
         getHealthFindings: (filter?: HealthFindingFilter) => Promise<ActionResult<HealthFindingList>>;
     };
 };
 
-const EmptyState = ({title, body}: {title: React.ReactNode; body: React.ReactNode}) => (
-    <div className='HealthDashboard__empty'>
-        <p className='HealthDashboard__emptyTitle'>{title}</p>
-        <p>{body}</p>
-    </div>
-);
+const FindingGroups = ({findings, groupBy, ...rowState}: RowState & {findings: HealthFinding[]; groupBy: GroupBy}) => {
+    if (groupBy === 'category') {
+        const byArea = groupHealthFindingsByArea(findings);
+        return (
+            <>
+                {orderAreas(byArea).map((area) => (
+                    <AreaAccordion
+                        key={area}
+                        area={area}
+                        findings={byArea[area]}
+                        {...rowState}
+                    />
+                ))}
+            </>
+        );
+    }
 
-const HealthDashboard = ({findingsByArea, unknownFindings, severityCounts, lastEvaluatedAt, actions}: Props) => {
+    return (
+        <>
+            {groupHealthFindingsBySection(findings).map(({section, findings: sectionFindings}) => (
+                <FindingSection
+                    key={section}
+                    section={section}
+                    findings={sectionFindings}
+                    {...rowState}
+                />
+            ))}
+        </>
+    );
+};
+
+const HealthDashboard = ({findings, lastEvaluatedAt, actions}: Props) => {
     const [loading, setLoading] = useState(true);
     const [failed, setFailed] = useState(false);
+    const [now, setNow] = useState(Date.now);
+    const [tab, setTab] = useState<HealthFindingTab>('open');
+    const [groupBy, setGroupBy] = useState<GroupBy>('severity');
+    const [expanded, setExpanded] = useState<string | null>(null);
+    const idPrefix = useId();
+    const panelId = `${idPrefix}-panel`;
 
     useEffect(() => {
         actions.getHealthFindings().then(({error}) => {
             setFailed(Boolean(error));
+            setNow(Date.now());
             setLoading(false);
         });
     }, [actions]);
 
-    const areas = orderAreas(findingsByArea);
+    const toggle = useCallback((fingerprint: string) => {
+        setExpanded((current) => (current === fingerprint ? null : fingerprint));
+    }, []);
 
     let content;
     if (loading) {
@@ -86,60 +129,49 @@ const HealthDashboard = ({findingsByArea, unknownFindings, severityCounts, lastE
             />
         );
     } else {
-        let firingContent;
-        if (areas.length > 0) {
-            firingContent = areas.map((area) => (
-                <FindingList
-                    key={area}
-                    area={area}
-                    findings={findingsByArea[area]}
-                />
-            ));
-        } else if (unknownFindings.length > 0) {
-            firingContent = (
-                <EmptyState
-                    title={
-                        <FormattedMessage
-                            id='admin.health_dashboard.no_firing.title'
-                            defaultMessage='No firing findings'
-                        />
-                    }
-                    body={
-                        <FormattedMessage
-                            id='admin.health_dashboard.no_firing.body'
-                            defaultMessage='Some checks could not be evaluated, so this is not an all-clear.'
-                        />
-                    }
-                />
-            );
-        } else {
-            firingContent = (
-                <EmptyState
-                    title={
-                        <FormattedMessage
-                            id='admin.health_dashboard.all_clear.title'
-                            defaultMessage='No problems found'
-                        />
-                    }
-                    body={
-                        <FormattedMessage
-                            id='admin.health_dashboard.all_clear.body'
-                            defaultMessage='Every health check passed on the last evaluation.'
-                        />
-                    }
-                />
-            );
-        }
+        const visible = filterHealthFindingsByTab(findings, tab, now);
 
         content = (
             <>
-                <SeveritySummary
-                    severityCounts={severityCounts}
-                    unknownCount={unknownFindings.length}
-                    lastEvaluatedAt={lastEvaluatedAt}
-                />
-                {firingContent}
-                <UnknownNotice findings={unknownFindings}/>
+                <p className='HealthDashboard__lastEvaluated'>
+                    <FormattedMessage
+                        id='admin.health_dashboard.last_evaluated'
+                        defaultMessage='Last evaluated {time}'
+                        values={{time: <RelativeTime value={lastEvaluatedAt}/>}}
+                    />
+                </p>
+                <div className='HealthDashboard__toolbar'>
+                    <FindingTabs
+                        idPrefix={idPrefix}
+                        panelId={panelId}
+                        active={tab}
+                        counts={countHealthFindingsByTab(findings, now)}
+                        onChange={setTab}
+                    />
+                </div>
+                <div className='HealthDashboard__toolbar HealthDashboard__toolbar--secondary'>
+                    <GroupByControl
+                        value={groupBy}
+                        onChange={setGroupBy}
+                    />
+                </div>
+                <div
+                    id={panelId}
+                    role='tabpanel'
+                    aria-labelledby={tabId(idPrefix, tab)}
+                >
+                    {visible.length === 0 ? (
+                        <TabEmptyState tab={tab}/>
+                    ) : (
+                        <FindingGroups
+                            findings={visible}
+                            groupBy={groupBy}
+                            now={now}
+                            expanded={expanded}
+                            onToggle={toggle}
+                        />
+                    )}
+                </div>
             </>
         );
     }

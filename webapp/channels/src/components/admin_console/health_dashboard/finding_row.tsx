@@ -1,43 +1,66 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useId, useState} from 'react';
+import classNames from 'classnames';
+import React, {useId} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {ChevronDownIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
+import {ChevronRightIcon, ChevronUpIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
 import type {HealthFinding} from '@mattermost/types/health';
 
+import {AreaIcon, AreaLabel} from './area';
 import FindingDetail from './finding_detail';
-import RelativeTime from './relative_time';
 import {getTone, severityMessages, ToneIcon} from './severity';
+import Trend from './trend';
 
 type Props = {
     finding: HealthFinding;
+    now: number;
+    expanded: boolean;
+    onToggle: (fingerprint: string) => void;
+    hideArea?: boolean;
 };
 
-const FindingRow = ({finding}: Props) => {
+const FindingRow = ({finding, now, expanded, onToggle, hideArea = false}: Props) => {
     const {formatMessage} = useIntl();
-    const [expanded, setExpanded] = useState(false);
     const detailId = useId();
 
     const tone = getTone(finding);
-    const isUnknown = tone === 'unknown';
     const title = finding.title || finding.code;
     const severity = formatMessage(severityMessages[finding.severity]);
 
     let message = finding.message;
-    if (!message && isUnknown) {
+    if (!message && finding.state === 'unknown') {
         message = formatMessage({
             id: 'admin.health_dashboard.finding.unknown_fallback',
             defaultMessage: 'This check could not run, so its result is unknown.',
         });
     }
 
-    const Chevron = expanded ? ChevronDownIcon : ChevronRightIcon;
+    let badge: React.ReactNode = severity;
+    if (finding.state === 'unknown') {
+        badge = (
+            <FormattedMessage
+                id='admin.health_dashboard.finding.unknown_badge'
+                defaultMessage='Unknown ({severity} when firing)'
+                values={{severity}}
+            />
+        );
+    } else if (finding.state === 'resolved') {
+        badge = (
+            <FormattedMessage
+                id='admin.health_dashboard.finding.resolved_badge'
+                defaultMessage='Resolved ({severity} when firing)'
+                values={{severity}}
+            />
+        );
+    }
+
+    const Chevron = expanded ? ChevronUpIcon : ChevronRightIcon;
 
     return (
         <li
-            className={`HealthFinding HealthFinding--${tone}`}
+            className={classNames('HealthFinding', `HealthFinding--${tone}`, {'HealthFinding--expanded': expanded})}
             data-testid={`healthFinding-${finding.fingerprint}`}
         >
             <button
@@ -45,7 +68,7 @@ const FindingRow = ({finding}: Props) => {
                 className='HealthFinding__header'
                 aria-expanded={expanded}
                 aria-controls={detailId}
-                onClick={() => setExpanded(!expanded)}
+                onClick={() => onToggle(finding.fingerprint)}
             >
                 <span className='HealthFinding__icon'>
                     <ToneIcon
@@ -65,29 +88,29 @@ const FindingRow = ({finding}: Props) => {
                     </span>
                     {message && <span className='HealthFinding__message'>{message}</span>}
                     <span className='HealthFinding__meta'>
-                        <span className='HealthFinding__badge'>
-                            {isUnknown ? (
-                                <FormattedMessage
-                                    id='admin.health_dashboard.finding.unknown_badge'
-                                    defaultMessage='Unknown ({severity} when firing)'
-                                    values={{severity}}
+                        <span className='HealthFinding__badge'>{badge}</span>
+                        {!hideArea && (
+                            <span
+                                className='HealthFinding__tag'
+                                data-testid='healthFindingArea'
+                            >
+                                <AreaIcon
+                                    area={finding.area}
+                                    size={14}
                                 />
-                            ) : severity}
-                        </span>
-                        <span>
-                            {isUnknown ? (
-                                <FormattedMessage
-                                    id='admin.health_dashboard.finding.unknown_since'
-                                    defaultMessage='Became unknown {time}'
-                                    values={{time: <RelativeTime value={finding.state_since}/>}}
-                                />
-                            ) : (
-                                <FormattedMessage
-                                    id='admin.health_dashboard.finding.firing_since'
-                                    defaultMessage='Started firing {time}'
-                                    values={{time: <RelativeTime value={finding.state_since}/>}}
-                                />
-                            )}
+                                <AreaLabel area={finding.area}/>
+                            </span>
+                        )}
+                        <span className='HealthFinding__tag'>
+                            <ClockOutlineIcon
+                                size={14}
+                                color='currentColor'
+                                aria-hidden={true}
+                            />
+                            <Trend
+                                finding={finding}
+                                now={now}
+                            />
                         </span>
                     </span>
                 </span>
