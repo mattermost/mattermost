@@ -7439,6 +7439,10 @@
     "defaultMessage": "First detected",
     "description": "Label in an expanded finding on the System Console Site health page; followed by a relative time such as \"3 days ago\"."
   },
+  "admin.health_dashboard.detail.go_to_setting": {
+    "defaultMessage": "Go to setting",
+    "description": "Primary button in an expanded finding on the System Console Site health page that opens the System Console setting that resolves the finding."
+  },
   "admin.health_dashboard.detail.last_seen": {
     "defaultMessage": "Last checked",
     "description": "Label in an expanded finding on the System Console Site health page; followed by a relative time of the most recent evaluation."
@@ -7447,9 +7451,25 @@
     "defaultMessage": "Node",
     "description": "Label in an expanded finding on the System Console Site health page; followed by the hostname of the cluster node the finding applies to."
   },
+  "admin.health_dashboard.detail.open_setting": {
+    "defaultMessage": "Open this setting in the System Console",
+    "description": "Link card in an expanded finding on the System Console Site health page that opens the related setting in the System Console."
+  },
+  "admin.health_dashboard.detail.read_docs": {
+    "defaultMessage": "Read the documentation",
+    "description": "Link card in an expanded finding on the System Console Site health page that opens the related documentation in a new tab."
+  },
   "admin.health_dashboard.detail.remediation": {
     "defaultMessage": "How to fix it",
     "description": "Heading above the remediation steps in an expanded finding on the System Console Site health page."
+  },
+  "admin.health_dashboard.detail.resolve": {
+    "defaultMessage": "Resolve here",
+    "description": "Heading above the setting and documentation links in an expanded finding on the System Console Site health page."
+  },
+  "admin.health_dashboard.detail.state": {
+    "defaultMessage": "State",
+    "description": "Label in the details list of an expanded finding on the System Console Site health page; the value says how long the finding has been firing, unevaluated or when it resolved."
   },
   "admin.health_dashboard.duration.days": {
     "defaultMessage": "{days}d",
