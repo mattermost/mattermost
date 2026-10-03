@@ -1,9 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test} from '@mattermost/playwright-lib';
+import {ensureFeatureFlag, test} from '@mattermost/playwright-lib';
 
 const EMOJI_SIZE = 16;
+
+test.beforeAll(async () => {
+    // This suite drives the banner text box via the legacy AdvancedTextbox
+    // (testid channel_banner_banner_text_textbox), which channel_settings_configuration_tab.tsx
+    // only renders when ChannelAttributes is off; with the flag on it renders the
+    // attribute-aware BannerTextEditor instead, so force it off to exercise the control
+    // this suite covers.
+    await ensureFeatureFlag('ChannelAttributes', false);
+});
 
 test('Should show channel banner when configured', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
