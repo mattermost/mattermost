@@ -1,0 +1,24 @@
+{
+  "extends": [
+    "stylelint-config-standard",
+    "stylelint-config-idiomatic-order"
+  ],
+  "customSyntax": "postcss-styled-syntax",
+  "rules": {
+    "color-function-alias-notation": "with-alpha",
+    "alpha-value-notation": "number",
+    "selector-class-pattern": null,
+    "no-descending-specificity": null,
+    "order/properties-order": null,
+    "font-family-no-missing-generic-family-keyword": null,
+    "block-no-empty": [
+      true,
+      {
+          "ignore": ["comments"]
+      }
+    ],
+    "rule-empty-line-before": ["always", {
+      "except": ["first-nested", "after-single-line-comment"]
+    }]
+  }
+}

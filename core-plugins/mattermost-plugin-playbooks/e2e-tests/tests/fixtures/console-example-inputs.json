@@ -1,0 +1,425 @@
+[
+    {
+        "section": "about.license",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/about/license",
+                "selector": "remove-button"
+            }
+        ]
+    },
+    {
+        "section": "reporting.system_analytics",
+        "disabledInputs": []
+    },
+    {
+        "section": "reporting.team_statistics",
+        "disabledInputs": []
+    },
+    {
+        "section": "reporting.server_logs",
+        "disabledInputs": []
+    },
+    {
+        "section": "user_management.system_users",
+        "disabledInputs": []
+    },
+    {
+        "section": "user_management.groups",
+        "disabledInputs": []
+    },
+    {
+        "section": "user_management.teams",
+        "disabledInputs": []
+    },
+    {
+        "section": "user_management.channel",
+        "disabledInputs": []
+    },
+    {
+        "section": "user_management.permissions",
+        "disabledInputs": []
+    },
+    {
+        "section": "environment.web_server",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/environment/web_server",
+                "selector": "ServiceSettings.ListenAddressinput"
+            }
+        ]
+    },
+    {
+        "section": "site.customization",
+        "disabledInputs": [
+            {
+                "path": "admin_console/site_config/customization",
+                "selector": "TeamSettings.SiteNameinput"
+            }
+        ]
+    },
+    {
+        "section": "site.localization",
+        "disabledInputs": [
+            {
+                "path": "admin_console/site_config/localization",
+                "selector": "LocalizationSettings.DefaultServerLocaledropdown"
+            }
+        ]
+    },
+    {
+        "section": "site.users_and_teams",
+        "disabledInputs": [
+            {
+                "path": "admin_console/site_config/users_and_teams",
+                "selector": "TeamSettings.MaxUsersPerTeamnumber"
+            }
+        ]
+    },
+    {
+        "section": "site.notifications",
+        "disabledInputs": [
+            {
+                "path": "admin_console/environment/notifications",
+                "selector": "TeamSettings.EnableConfirmNotificationsToChanneltrue"
+            }
+        ]
+    },
+    {
+        "section": "site.announcement_banner",
+        "disabledInputs": [
+            {
+                "path": "admin_console/site_config/announcement_banner",
+                "selector": "AnnouncementSettings.EnableBannertrue"
+            }
+        ]
+    },
+    {
+        "section": "site.emoji",
+        "disabledInputs": [
+            {
+                "path": "admin_console/site_config/emoji",
+                "selector": "ServiceSettings.EnableEmojiPickertrue"
+            }
+        ]
+    },
+    {
+        "section": "site.posts",
+        "disabledInputs": [
+            {
+                "path": "admin_console/site_config/posts",
+                "selector": "ServiceSettings.EnableLinkPreviewstrue"
+            }
+        ]
+    },
+    {
+        "section": "site.file_sharing_downloads",
+        "disabledInputs": [
+            {
+                "path": "admin_console/site_config/file_sharing_downloads",
+                "selector": "FileSettings.EnableFileAttachmentstrue"
+            }
+        ]
+    },
+    {
+        "section": "site.public_links",
+        "disabledInputs": [
+            {
+                "path": "admin_console/site_config/public_links",
+                "selector": "FileSettings.EnablePublicLinktrue"
+            }
+        ]
+    },
+    {
+        "section": "site.notices",
+        "disabledInputs": [
+            {
+                "path": "admin_console/site_config/notices",
+                "selector": "AnnouncementSettings.AdminNoticesEnabledtrue"
+            }
+        ]
+    },
+    {
+        "section": "environment.database",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/environment/database",
+                "selector": "maxIdleConnsinput"
+            }
+        ]
+    },
+    {
+        "section": "environment.elasticsearch",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/environment/elasticsearch",
+                "selector": "enableIndexingtrue"
+            }
+        ]
+    },
+    {
+        "section": "environment.storage",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/environment/file_storage",
+                "selector": "FileSettings.DriverNamedropdown"
+            }
+        ]
+    },
+    {
+        "section": "environment.image_proxy",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/environment/image_proxy",
+                "selector": "ImageProxySettings.Enabletrue"
+            }
+        ]
+    },
+    {
+        "section": "environment.smtp",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/environment/smtp",
+                "selector": "EmailSettings.EnableSMTPAuthtrue"
+            }
+        ]
+    },
+    {
+        "section": "environment.push_notification_server",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/environment/push_notification_server",
+                "selector": "pushNotificationServerTypedropdown"
+            }
+        ]
+    },
+    {
+        "section": "environment.high_availability",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/environment/high_availability",
+                "selector": "Enabletrue"
+            }
+        ]
+    },
+    {
+        "section": "environment.rate_limiting",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/environment/rate_limiting",
+                "selector": "RateLimitSettings.Enabletrue"
+            }
+        ]
+    },
+    {
+        "section": "environment.logging",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/environment/logging",
+                "selector": "LogSettings.ConsoleLeveldropdown"
+            }
+        ]
+    },
+    {
+        "section": "environment.session_lengths",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/environment/session_lengths",
+                "selector": "sessionLengthWebInDaysinput"
+            }
+        ]
+    },
+    {
+        "section": "environment.metrics",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/environment/performance_monitoring",
+                "selector": "MetricsSettings.ListenAddressinput"
+            }
+        ]
+    },
+    {
+        "section": "environment.developer",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/environment/developer",
+                "selector": "ServiceSettings.EnableTestingtrue"
+            }
+        ]
+    },
+    {
+        "section": "authentication.signup",
+        "disabledInputs":[
+            {
+                "path": "/admin_console/authentication/signup",
+                "selector": "TeamSettings.EnableUserCreationfalse"
+            }
+        ]
+    },
+    {
+        "section": "authentication.email",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/authentication/email",
+                "selector": "EmailSettings.EnableSignUpWithEmailfalse"
+            }
+        ]
+    },
+    {
+        "section": "authentication.password",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/authentication/password",
+                "selector": "passwordMinimumLengthinput"
+            }
+        ]
+    },
+    {
+        "section": "authentication.mfa",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/authentication/mfa",
+                "selector": "ServiceSettings.EnableMultifactorAuthenticationfalse"
+            }
+        ]
+    },
+    {
+        "section": "authentication.ldap",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/authentication/ldap",
+                "selector": "LdapSettings.Enablefalse"
+            }
+        ]
+    },
+    {
+        "section": "authentication.saml",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/authentication/saml",
+                "selector": "SamlSettings.Enablefalse"
+            }
+        ]
+    },
+    {
+        "section": "authentication.openid",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/authentication/openid",
+                "selector": "openidTypedropdown"
+            }
+        ]
+    },
+    {
+        "section": "authentication.guest_access",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/authentication/guest_access",
+                "selector": "GuestAccountsSettings.Enablefalse"
+            }
+        ]
+    },
+    {
+        "section": "plugins",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/plugins/plugin_management",
+                "selector": "marketplaceUrlinput"
+            }
+        ]
+    },
+    {
+        "section": "integrations.integration_management",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/integrations/integration_management",
+                "selector": "ServiceSettings.EnableIncomingWebhookstrue"
+            }
+        ]
+    },
+    {
+        "section": "integrations.bot_accounts",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/integrations/bot_accounts",
+                "selector": "ServiceSettings.EnableBotAccountCreationtrue"
+            }
+        ]
+    },
+    {
+        "section": "integrations.gif",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/integrations/gif",
+                "selector": "ServiceSettings.EnableGifPickertrue"
+            }
+        ]
+    },
+    {
+        "section": "integrations.cors",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/integrations/cors",
+                "selector": "ServiceSettings.AllowCorsFrominput"
+            }
+        ]
+    },
+    {
+        "section": "compliance.data_retention",
+        "disabledInputs": []
+    },
+    {
+        "section": "compliance.message_export",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/compliance/export",
+                "selector": "enableComplianceExporttrue"
+            }
+        ]
+    },
+    {
+        "section": "compliance.audits",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/compliance/monitoring",
+                "selector": "ComplianceSettings.Enabletrue"
+            }
+        ]
+    },
+    {
+        "section": "compliance.custom_terms_of_service",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/compliance/custom_terms_of_service",
+                "selector": "SupportSettings.CustomTermsOfServiceEnabledtrue"
+            }
+        ]
+    },
+    {
+        "section": "experimental.experimental_features",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/experimental/features",
+                "selector": "ExperimentalSettings.LinkMetadataTimeoutMillisecondsnumber"
+            }
+        ]
+    },
+    {
+        "section": "experimental.feature_flags",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/experimental/feature_flags",
+                "selector": ""
+            }
+        ]
+    },
+    {
+        "section": "experimental.bleve",
+        "disabledInputs": [
+            {
+                "path": "/admin_console/experimental/blevesearch",
+                "selector": "indexDirinput"
+            }
+        ]
+    }
+]
