@@ -29,7 +29,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
      */
     test('shows a designated attribute in both header slots and Channel Info', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -97,7 +97,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
      */
     test('shows the channel chips on a thread opened from the channel and from global Threads', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, user, userClient, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -185,7 +185,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
      */
     test('collapses the thread header chips into +N without moving the thread controls', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, user, userClient, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -269,7 +269,9 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
      */
     test('keeps an undesignated required attribute editable in Channel Info for a channel admin', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        // required: true below needs the kill switch on; the server refuses to mark
+        // any field required while it is off (model.IsChannelAttributesRequiredEnabled).
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -339,7 +341,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
      */
     test('collapses overflowing chips into +N without moving header controls', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -421,7 +423,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
      */
     test('renders a locked attribute read-only and validates the lock key server-side', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -479,7 +481,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
      */
     test('adds an optional attribute from Channel Info', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -531,7 +533,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
      */
     test('renders a banner from a banner-designated attribute', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -573,7 +575,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
      */
     test('banners a multiselect attribute filled while creating the channel', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -628,7 +630,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
      */
     test('banners a text attribute filled while creating the channel', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -668,7 +670,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
      */
     test('hides editing from a user without the setter tier', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -721,7 +723,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
      */
     test('renders no attribute surfaces with the flag off', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', false);
+        await pw.ensureFeatureFlag('ChannelAttributes', false);
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();

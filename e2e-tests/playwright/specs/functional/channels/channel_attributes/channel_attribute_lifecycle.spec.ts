@@ -26,7 +26,9 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
      */
     test('blocks channel creation until a required attribute is filled', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        // required: true below needs the kill switch on; the server refuses to mark
+        // any field required while it is off (model.IsChannelAttributesRequiredEnabled).
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -84,7 +86,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
      */
     test('updates an open session when a value changes, and when it is cleared', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -137,7 +139,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
      */
     test('shows a required attribute as unset and lets it be filled from Channel Info', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -204,7 +206,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
      */
     test('renders a token banner and honours a manual override', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -271,7 +273,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
      */
     test('shows no chips on a direct message', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -312,7 +314,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
      */
     test('applies the configured colour to a chip', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();

@@ -31,7 +31,9 @@ test.describe(
          */
         test('creates a linked channel field carrying the configured keys', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            // The Required toggle this test flips only renders in the System Console
+            // while this kill switch is on (model.IsChannelAttributesRequiredEnabled).
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
             const suffix = pw.random.id();
             const displayName = `Program ${suffix}`;
@@ -75,7 +77,7 @@ test.describe(
             pw,
         }) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
             const suffix = pw.random.id();
             let name = '';
@@ -121,7 +123,7 @@ test.describe(
          */
         test('renders a Banner-only attribute as a banner, with no chip', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
             const suffix = pw.random.id();
             let name = '';
@@ -163,7 +165,7 @@ test.describe(
          */
         test('stores a value for an attribute with no display location and renders it nowhere', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
             const suffix = pw.random.id();
             let name = '';
@@ -219,7 +221,7 @@ test.describe(
          */
         test('locks the value in Channel Info when the change policy forbids changes', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
             const suffix = pw.random.id();
             let name = '';
@@ -272,7 +274,7 @@ test.describe(
          */
         test('keeps a console-configured attribute out of a plain member reach', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
             const suffix = pw.random.id();
             let name = '';
@@ -331,7 +333,7 @@ test.describe(
          */
         test('channel-linked field does not inherit ldap/saml sync attrs from the template', async ({pw}) => {
             const {adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.ensureFeatureFlag('ChannelAttributes', true);
 
             const suffix = pw.random.id();
             const name = `sync_attr_regression_${suffix}`;

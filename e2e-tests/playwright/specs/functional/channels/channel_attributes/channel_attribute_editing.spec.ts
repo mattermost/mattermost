@@ -47,7 +47,7 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
      */
     test('edits a text attribute inline and commits on Enter', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -98,7 +98,7 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
      */
     test('commits a text edit on blur and abandons it on Escape', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -153,7 +153,7 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
      */
     test('adds and removes a multiselect option, and the header chips follow', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -216,7 +216,7 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
      */
     test('surfaces an inline error when the value write fails and keeps the previous value', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -284,7 +284,9 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
      */
     test('fills a locked attribute once, after which it is read-only', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        // required: true below needs the kill switch on; the server refuses to mark
+        // any field required while it is off (model.IsChannelAttributesRequiredEnabled).
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
         const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -346,7 +348,7 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
      */
     test('lets a channel admin edit an admin-tier attribute that a member cannot', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -405,7 +407,7 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
      */
     test('shows a channel admin every attribute, including unset ones, and lets them add or edit', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
         const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -471,7 +473,7 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
      */
     test('shows a plain member only what is already set, read-only, with no way to manage attributes', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -524,7 +526,7 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
      */
     test('clears a single-select value from its chip remove control', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -581,7 +583,7 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
      */
     test('shows an attribute owned by an integration as read-only, even to a system admin', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
 
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
