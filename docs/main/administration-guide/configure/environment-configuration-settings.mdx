@@ -905,7 +905,8 @@ MySQL databases must be configured to support searching strings shorter than thr
 </colgroup>
 <tbody>
 <tr>
-<td>When <a href="/administration-guide/scale/enterprise-search">enterprise-scale search</a>, | - System Config path: <strong>Environment &gt; Database</strong> database search can be disabled from performing searches. | - <code>config.json</code> setting: <code>SqlSettings</code> &gt; <code>DisableDatabaseSearch</code> &gt; <code>false</code> | | - Environment variable: <code>MM_SQLSETTINGS_DISABLEDATABASESEARCH</code> | - <strong>true</strong>: Disables the use of the database to perform | | searches. If another search engine isn't configured, | | setting this value to <code>true</code> will result in empty search | | results. | | - <strong>false</strong>: <strong>(Default)</strong> Database search isn't disabled. | |</td>
+<td>Enable or disable the use of the database to perform searches.<p><ul><li><strong>true</strong>: Disables the use of the database to perform searches. If another search engine isn't configured, setting this value to <code>true</code> will result in empty search results.</li><li><strong>false</strong>: <strong>(Default)</strong> Database search isn't disabled.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Database</strong></li><li><code>config.json</code> setting: <code>SqlSettings</code> &gt; <code>DisableDatabaseSearch</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_SQLSETTINGS_DISABLEDATABASESEARCH</code></li></ul></td>
 </tr>
 </tbody>
 </table>
