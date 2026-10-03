@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package cluster
+package platform
 
 import (
 	"strings"
@@ -22,7 +22,7 @@ const (
 
 var siteURLEmpty = healthcheck.Rule{
 	Code:     "SITE_URL_EMPTY",
-	Area:     model.AreaCluster,
+	Area:     model.AreaPlatform,
 	Severity: healthcheck.SeverityCritical,
 	RuleText: model.RuleText{
 		TitleID:       healthcheck.TranslationId("health.rule.site_url_empty.title"),
@@ -38,7 +38,7 @@ var siteURLEmpty = healthcheck.Rule{
 
 var siteURLHTTP = healthcheck.Rule{
 	Code:     "SITE_URL_HTTP",
-	Area:     model.AreaCluster,
+	Area:     model.AreaPlatform,
 	Severity: healthcheck.SeverityWarning,
 	RuleText: model.RuleText{
 		TitleID:       healthcheck.TranslationId("health.rule.site_url_http.title"),
