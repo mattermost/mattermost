@@ -146,7 +146,17 @@ export async function fetchSecurityUpdates(): Promise<{
   tabs: SecurityUpdateTab[];
   lastModified: string | null;
 }> {
-  const response = await fetch(FEED_URL, {cache: 'no-store'});
+  let response: Response;
+  try {
+    response = await fetch(FEED_URL, {cache: 'no-store'});
+  } catch {
+    // The feed is live data, so it is simply unavailable in the offline
+    // documentation bundle. Say so rather than surfacing "Failed to fetch".
+    throw new Error(
+      `This table is generated from a live feed at ${FEED_URL}, which could not be reached. ` +
+        'If you are reading the documentation bundled with a Mattermost release, it requires internet access and is not available offline.',
+    );
+  }
   if (!response.ok) {
     throw new Error(`Security updates feed returned ${response.status}.`);
   }
