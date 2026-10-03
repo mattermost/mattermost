@@ -6,12 +6,7 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {getHealthFindings} from 'mattermost-redux/actions/health';
-import {
-    getFindingsByArea,
-    getLastEvaluatedAt,
-    getSeverityCounts,
-    getUnknownFindings,
-} from 'mattermost-redux/selectors/entities/health';
+import {getFindings, getLastEvaluatedAt} from 'mattermost-redux/selectors/entities/health';
 
 import type {GlobalState} from 'types/store';
 
@@ -19,9 +14,7 @@ import HealthDashboard from './health_dashboard';
 
 function mapStateToProps(state: GlobalState) {
     return {
-        findingsByArea: getFindingsByArea(state),
-        unknownFindings: getUnknownFindings(state),
-        severityCounts: getSeverityCounts(state),
+        findings: getFindings(state),
         lastEvaluatedAt: getLastEvaluatedAt(state),
     };
 }
