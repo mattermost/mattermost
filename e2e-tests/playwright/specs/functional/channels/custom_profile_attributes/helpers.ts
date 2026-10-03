@@ -301,6 +301,50 @@ export async function verifyAttributeNotInPopover(channelsPage: ChannelsPage, at
     await expect(nameElement).not.toBeVisible();
 }
 
+const CPA_LINKED_FIELD_ERROR_ID = 'api.custom_profile_attributes.linked_field.app_error';
+
+type ApiError = {status_code?: number; server_error_id?: string};
+
+/**
+ * Patches a system-wide CPA field's `attrs`/`permission_values`, tolerating a field the
+ * server's one-shot CPA-to-Global-Attributes migration has since linked to a Global
+ * Attribute template. A freshly created test server never links the fields this suite
+ * reuses by name (Department/Office/Title/...), but an e2e rolling-upgrade server runs
+ * that migration on its first post-upgrade boot and links every pre-existing system CPA
+ * field it finds — any of these fields created in the pre-upgrade phase. Once linked, the
+ * dedicated User Attributes (CPA) API permanently rejects any patch to it with
+ * `api.custom_profile_attributes.linked_field.app_error` (see patchCPAField in
+ * server/channels/api4/custom_profile_attributes.go).
+ *
+ * The fallback — PATCHing the SAME linked field's own ID (not its template) via the
+ * generic Property Fields v2 API — is the supported way to keep editing it afterward: it's
+ * exactly what the "Global Attributes" admin console page does for its Users row (see
+ * patchLinkedAttributeField in
+ * webapp/channels/src/components/admin_console/global_attributes/utils.ts). Patching the
+ * template instead would not work here — the CPA field list serves `attrs` straight off
+ * the linked field's own row, never merged with its template's.
+ */
+export async function patchCpaField(
+    client: Client4,
+    fieldId: string,
+    patch: {attrs?: Record<string, unknown>; permission_values?: 'member' | 'sysadmin'},
+): Promise<UserPropertyField> {
+    try {
+        // @ts-expect-error The type definition requires more properties than we need to set
+        return await client.patchCustomProfileAttributeField(fieldId, patch);
+    } catch (error) {
+        if ((error as ApiError)?.server_error_id !== CPA_LINKED_FIELD_ERROR_ID) {
+            throw error;
+        }
+        return (await client.patchPropertyField(
+            'access_control',
+            'user',
+            fieldId,
+            patch as Record<string, unknown>,
+        )) as unknown as UserPropertyField;
+    }
+}
+
 /**
  * Updates the visibility property of a custom profile attribute field
  * @param {Client4} adminClient - Admin API client
@@ -318,8 +362,7 @@ export async function updateCustomProfileAttributeVisibility(
 
     try {
         // Update the visibility property
-        const updatedField = await adminClient.patchCustomProfileAttributeField(fieldID, {
-            // @ts-expect-error The type definition requires more properties than we need to set
+        const updatedField = await patchCpaField(adminClient, fieldID, {
             attrs: {
                 visibility,
             },

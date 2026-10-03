@@ -1,17 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {demoPluginId, duration, expect, test} from '@mattermost/playwright-lib';
 
-import {sendDemoSlashCommand, setupDemoPlugin} from '../../helpers';
+import {sendDemoSlashCommand} from '../../helpers';
 
 test.fixme('should toggle hooks on and off via /demo_plugin command', async ({pw}) => {
-    test.setTimeout(120000);
-    // 1. Setup: install and activate the demo plugin
+    // # Setup
     const {adminClient, user, team} = await pw.initSetup();
-    await setupDemoPlugin(adminClient, pw);
+    await pw.ensureDemoPlugin();
 
-    // Add test user to the demo_plugin private channel (it's private; not joined by default).
+    // # Add test user to the demo_plugin private channel (it's private; not joined by default).
     // The plugin creates this channel asynchronously on activation, so poll until it exists.
     let demoChannel: any = null;
     for (let i = 0; i < 25; i++) {
@@ -30,12 +29,12 @@ test.fixme('should toggle hooks on and off via /demo_plugin command', async ({pw
     }
     await adminClient.addToChannel(user.id, demoChannel.id);
 
-    // 2. Login
+    // # Login
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
-    // 3. Navigate to the Demo Plugin channel
+    // # Navigate to the Demo Plugin channel
     await channelsPage.goto(team.name, 'demo_plugin');
     await channelsPage.toBeVisible();
 
@@ -46,20 +45,18 @@ test.fixme('should toggle hooks on and off via /demo_plugin command', async ({pw
         .locator('span')
         .last();
 
-    // 4. Confirm last post contains login event
+    // * Verify the last post does not contain a login event
     const lastPost = await channelsPage.centerView.getLastPost();
     await expect(lastPost.container).not.toContainText('ChannelHasBeenCreated');
 
-    await channelsPage.page.waitForTimeout(6000);
-
-    // 5. Disable hooks (retry if plugin not yet ready)
+    // # Disable hooks (retry if plugin not yet ready)
     for (let attempt = 0; attempt < 4; attempt++) {
         await sendDemoSlashCommand(channelsPage.page, async () => {
             await channelsPage.centerView.postCreate.input.fill('/demo_plugin false');
             await channelsPage.centerView.postCreate.sendMessage();
         });
         try {
-            await expect(hookStatus).toHaveText('Disabled', {timeout: 45000});
+            await expect(hookStatus).toHaveText('Disabled', {timeout: duration.ten_sec});
             break;
         } catch (err) {
             if (attempt === 3) {
@@ -68,20 +65,20 @@ test.fixme('should toggle hooks on and off via /demo_plugin command', async ({pw
             // Re-enable without patchConfig to avoid triggering a plugin restart that
             // posts new "Demo Plugin: Enabled" messages after our disable command.
             try {
-                await adminClient.enablePlugin('com.mattermost.demo-plugin');
+                await adminClient.enablePlugin(demoPluginId);
             } catch {
                 // Already enabled or transient error — ignore.
             }
             await expect
-                .poll(() => pw.isPluginActive(adminClient, 'com.mattermost.demo-plugin'), {
-                    timeout: 30_000,
-                    intervals: [2000],
+                .poll(() => pw.isPluginActive(adminClient, demoPluginId), {
+                    timeout: duration.half_min,
+                    intervals: [duration.two_sec],
                 })
                 .toBe(true);
         }
     }
 
-    // 6. Create first token channel (hooks off)
+    // # Create first test channel (hooks off)
     const channel1 = pw.random.channel({
         teamId: team.id,
         name: 'hook-off-channel',
@@ -89,19 +86,21 @@ test.fixme('should toggle hooks on and off via /demo_plugin command', async ({pw
     });
     await adminClient.createChannel(channel1);
 
-    // 7. Confirm no ChannelHasBeenCreated post for channel1
+    // * Verify no ChannelHasBeenCreated post for channel1
     await expect(
         channelsPage.centerView.container.getByText(`ChannelHasBeenCreated: ~${channel1.name}`),
     ).not.toBeVisible();
 
-    // 8. Re-enable hooks
+    // # Re-enable hooks
     await sendDemoSlashCommand(channelsPage.page, async () => {
         await channelsPage.centerView.postCreate.input.fill('/demo_plugin true');
         await channelsPage.centerView.postCreate.sendMessage();
     });
+
+    // * Verify the indicator shows Enabled
     await expect(hookStatus).toHaveText('Enabled');
 
-    // 9. Create second token channel (hooks on)
+    // # Create second test channel (hooks on)
     const channel2 = pw.random.channel({
         teamId: team.id,
         name: 'hook-on-channel',
@@ -109,7 +108,7 @@ test.fixme('should toggle hooks on and off via /demo_plugin command', async ({pw
     });
     await adminClient.createChannel(channel2);
 
-    // 10. Confirm ChannelHasBeenCreated post appears for channel2
+    // * Verify ChannelHasBeenCreated post appears for channel2
     await expect(
         channelsPage.centerView.container.getByText(`ChannelHasBeenCreated: ~${channel2.name}`, {exact: true}),
     ).toBeVisible();

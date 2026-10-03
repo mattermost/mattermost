@@ -1,51 +1,53 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {duration, expect, test} from '@mattermost/playwright-lib';
 
-import {setupDemoPlugin} from '../../helpers';
+import {sendDemoSlashCommand} from '../../helpers';
 
 test('should update form fields dynamically when project type changes via /dialog field-refresh', async ({pw}) => {
-    // Plugin installation can take up to 60 s; extend the test timeout to avoid
-    // a premature timeout before the dialog even opens.
-    test.setTimeout(120000);
+    // A concurrent plugin_crash.spec.ts worker can leave the submit hook broken for up to
+    // ~50s while it crashes and fully recovers the shared demo plugin (see that spec for the
+    // recovery budget this is sized against). test.slow() triples the test timeout so the
+    // retry loop below has room to outlast that window instead of racing the suite default.
+    test.slow();
 
-    // 1. Setup
-    const {adminClient, user, team} = await pw.initSetup();
-    await setupDemoPlugin(adminClient, pw);
+    // # Setup
+    const {user, team} = await pw.initSetup();
+    await pw.ensureDemoPlugin();
 
-    // 2. Login
+    // # Login
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
-    // 3. Navigate to Town Square
+    // # Navigate to Town Square
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // 4. Send /dialog field-refresh command (with one retry if the dialog doesn't appear).
-    // Re-apply guard: concurrent initSetup() resets PluginSettings (Plugins: {}) which
-    // clears the demo plugin config; re-running setupDemoPlugin is fast when the plugin
-    // is already active (alreadyActive guard skips reinstall).
-    await setupDemoPlugin(adminClient, pw);
+    // # Send /dialog field-refresh command (with retries if the plugin is transiently
+    // unavailable, e.g. during a concurrent plugin_crash.spec.ts recovery cycle)
     const dialog = channelsPage.page.getByRole('dialog');
-    for (let attempt = 0; attempt < 2; attempt++) {
-        await channelsPage.centerView.postCreate.input.fill('/dialog field-refresh');
-        await channelsPage.centerView.postCreate.sendMessage();
+    for (let attempt = 0; attempt < 4; attempt++) {
+        await sendDemoSlashCommand(channelsPage.page, async () => {
+            await channelsPage.centerView.postCreate.input.fill('/dialog field-refresh');
+            await channelsPage.centerView.postCreate.sendMessage();
+        });
         try {
-            // 5. Confirm dialog opens with title "Project Configuration"
-            await expect(dialog).toBeVisible({timeout: 15000});
+            await expect(dialog).toBeVisible({timeout: duration.ten_sec});
             break; // dialog appeared — proceed
         } catch (err) {
-            if (attempt === 1) {
+            if (attempt === 3) {
                 throw err; // exhausted retries — let the error surface naturally
             }
-            // attempt 0 timed out — retry the slash command once
+            // attempt timed out — retry the slash command
         }
     }
+
+    // * Verify dialog opens with title "Project Configuration"
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Project Configuration');
 
-    // 6. Verify initial state — only Project Type dropdown visible
+    // * Verify initial state — only Project Type dropdown visible
     await expect(dialog.getByText('Project Type *')).toBeVisible();
     await expect(dialog.getByRole('button', {name: 'Cancel'})).toBeVisible();
     await expect(dialog.getByRole('button', {name: 'Create Project'})).toBeVisible();
@@ -53,21 +55,23 @@ test('should update form fields dynamically when project type changes via /dialo
     await expect(dialog.getByText('Platform')).not.toBeVisible();
     await expect(dialog.getByText('API Type')).not.toBeVisible();
 
-    // 7. Select "Web Application" — new fields should appear
+    // # Select "Web Application"
     // Click the react-select control (not the hidden input) to open the dropdown
     await dialog.locator('[class*="Select__control"], [class*="react-select__control"]').first().click();
     await channelsPage.page.getByRole('option', {name: 'Web Application'}).click();
 
+    // * Verify the new fields appear
     await expect(dialog.getByText('Frontend Framework *')).toBeVisible();
     await expect(dialog.getByText('Enable PWA')).toBeVisible();
     await expect(dialog.getByText('Project Name *')).toBeVisible();
     await expect(dialog.getByText('Platform')).not.toBeVisible();
     await expect(dialog.getByText('API Type')).not.toBeVisible();
 
-    // 8. Change to "Mobile Application" — fields update
+    // # Change to "Mobile Application"
     await dialog.locator('[class*="Select__control"], [class*="react-select__control"]').first().click();
     await channelsPage.page.getByRole('option', {name: 'Mobile Application'}).click();
 
+    // * Verify fields update
     await expect(dialog.getByText('Platform *')).toBeVisible();
     await expect(dialog.getByText('Minimum OS Version *')).toBeVisible();
     await expect(dialog.getByText('Project Name *')).toBeVisible();
@@ -75,10 +79,11 @@ test('should update form fields dynamically when project type changes via /dialo
     await expect(dialog.getByText('Enable PWA')).not.toBeVisible();
     await expect(dialog.getByText('API Type')).not.toBeVisible();
 
-    // 9. Change to "API Service" — fields update again
+    // # Change to "API Service"
     await dialog.locator('[class*="Select__control"], [class*="react-select__control"]').first().click();
     await channelsPage.page.getByRole('option', {name: 'API Service'}).click();
 
+    // * Verify fields update again
     await expect(dialog.getByText('API Type *')).toBeVisible();
     await expect(dialog.getByRole('radio', {name: 'REST API'})).toBeVisible();
     await expect(dialog.getByRole('radio', {name: 'GraphQL API'})).toBeVisible();
@@ -88,7 +93,7 @@ test('should update form fields dynamically when project type changes via /dialo
     await expect(dialog.getByText('Platform')).not.toBeVisible();
     await expect(dialog.getByText('Minimum OS Version')).not.toBeVisible();
 
-    // 10. Fill required fields and submit
+    // # Fill required fields and submit
     await dialog.getByPlaceholder('Enter project name...').fill('Test Project');
     await dialog.getByRole('radio', {name: 'REST API'}).click();
 
@@ -96,10 +101,25 @@ test('should update form fields dynamically when project type changes via /dialo
     await dialog.locator('[class*="Select__control"], [class*="react-select__control"]').last().click();
     await channelsPage.page.getByRole('option', {name: 'PostgreSQL'}).click();
 
-    await dialog.getByRole('button', {name: 'Create Project'}).click();
-    await expect(dialog).not.toBeVisible();
+    // # Submit the dialog (with retries if the plugin is transiently unavailable, e.g.
+    // during a concurrent plugin_crash.spec.ts recovery cycle, in which case the submit
+    // request can fail silently and the dialog never closes — re-clicking Create Project
+    // is safe since the filled-in fields are retained). 8 attempts gives ~80s of total
+    // budget, comfortably outlasting plugin_crash.spec.ts's worst-case ~50s recovery cycle.
+    for (let attempt = 0; attempt < 8; attempt++) {
+        await dialog.getByRole('button', {name: 'Create Project'}).click();
+        try {
+            await expect(dialog).not.toBeVisible({timeout: duration.ten_sec});
+            break;
+        } catch (err) {
+            if (attempt === 7) {
+                throw err;
+            }
+        }
+    }
 
-    // 11. Verify response post in the channel
+    // * Verify the dialog closed and the response post appears in the channel
+    await expect(dialog).not.toBeVisible();
     await expect(
         channelsPage.centerView.container.locator('p').filter({hasText: 'api project: Test Project'}),
     ).toBeVisible();

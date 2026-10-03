@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Client4} from '@mattermost/client';
+
 import {
     expect,
     test,
@@ -11,7 +13,7 @@ import {
 } from '@mattermost/playwright-lib';
 
 import type {CustomProfileAttribute} from '../../../channels/custom_profile_attributes/helpers';
-import {setupCustomProfileAttributeFields} from '../../../channels/custom_profile_attributes/helpers';
+import {patchCpaField, setupCustomProfileAttributeFields} from '../../../channels/custom_profile_attributes/helpers';
 import {
     createUserForABAC,
     testAccessRule,
@@ -21,13 +23,80 @@ import {
     waitForPolicySyncJob,
     getPolicyIdByName,
     enableUserManagedAttributes,
+    deleteMembershipPolicyByName,
+    resetManagedCpaFieldPermissions,
 } from '../support';
+
+/**
+ * Ensures "Department" and "Office" text fields exist with the admin-managed,
+ * when-set-visible attrs these tests rely on, without ever deleting fields —
+ * custom profile attribute fields are a system-wide resource shared by every
+ * worker, so wiping them (as this file previously did) can delete a field
+ * another spec running in parallel (e.g. custom_attributes.spec.ts) just
+ * created, and unconditionally creating "Department"/"Office" races any other
+ * spec doing the same, surfacing as "a property with this name already
+ * exists at the system level".
+ */
+async function ensureManagedDepartmentAndOfficeFields(adminClient: Client4): Promise<Record<string, any>> {
+    const attributeFieldsMap: Record<string, any> = {};
+
+    for (const [name, sortOrder] of [
+        ['Department', 0],
+        ['Office', 1],
+    ] as const) {
+        const patch = {
+            name,
+            type: 'text',
+            attrs: {managed: 'admin', visibility: 'when_set', sort_order: sortOrder},
+        } as any;
+
+        const existing = (await adminClient.getCustomProfileAttributeFields()).find((f) => f.name === name);
+        if (existing) {
+            const patched = await patchCpaField(adminClient, existing.id, patch);
+            attributeFieldsMap[patched.id] = patched;
+            continue;
+        }
+
+        try {
+            const created = await adminClient.createCustomProfileAttributeField(patch);
+            attributeFieldsMap[created.id] = created;
+        } catch {
+            // Race: another worker created it first — patch that one instead.
+            const raceCreated = (await adminClient.getCustomProfileAttributeFields()).find((f) => f.name === name);
+            if (raceCreated) {
+                const patched = await patchCpaField(adminClient, raceCreated.id, patch);
+                attributeFieldsMap[patched.id] = patched;
+            }
+        }
+    }
+
+    return attributeFieldsMap;
+}
 
 /**
  * ABAC Policy Management - Edit Policies
  * Tests for editing existing ABAC policies
  */
 test.describe('ABAC Policy Management - Edit Policies', () => {
+    // These tests apply membership policies to 'Department'/'Office' — system-wide CPA
+    // fields other specs (e.g. custom_profile_attributes tests) also reuse as plain
+    // attributes. `ensureManagedDepartmentAndOfficeFields` admin-manages those fields
+    // (attrs.managed = 'admin'), which pins their `permission_values` to sysadmin-only and
+    // is never reverted by deleting the policy — it would otherwise break any other spec's
+    // normal users trying to set their own value for that field. Track each test's created
+    // policy names and admin-managed field IDs, and clean both up afterward so neither
+    // outlives the test that caused it.
+    let createdPolicyNames: string[] = [];
+    let managedFieldIds: string[] = [];
+
+    test.afterEach(async ({pw}) => {
+        const {adminClient} = await pw.getAdminClient();
+        await Promise.all(createdPolicyNames.map((name) => deleteMembershipPolicyByName(adminClient, name)));
+        await resetManagedCpaFieldPermissions(adminClient, managedFieldIds);
+        createdPolicyNames = [];
+        managedFieldIds = [];
+    });
+
     /**
      * MM-T5790: Editing value of existing attribute-based access policy applies access control as specified (without auto-add)
      *
@@ -106,6 +175,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // SETUP: Create policy with ORIGINAL value (Engineering), Auto-add OFF
         // ===========================================
         const policyName = `ABAC-Edit-Test-${pw.random.id()}`;
+        createdPolicyNames.push(policyName);
 
         await createBasicPolicy(page, {
             name: policyName,
@@ -326,40 +396,13 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         const {adminUser, adminClient, team} = await pw.initSetup();
 
-        // Delete ALL existing custom attributes to start fresh
-        try {
-            const existingFields = await adminClient.getCustomProfileAttributeFields();
-            for (const field of existingFields) {
-                try {
-                    await adminClient.deleteCustomProfileAttributeField(field.id);
-                } catch {
-                    // Ignore deletion errors
-                }
-            }
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-        } catch {
-            // Ignore if no fields exist
-        }
-
         // Enable user-managed attributes FIRST (same pattern as MM-T5783)
         await enableUserManagedAttributes(adminClient);
 
-        // create attributes using direct API
-        const attributeFieldsMap: Record<string, any> = {};
-
-        const departmentField = await adminClient.createCustomProfileAttributeField({
-            name: 'Department',
-            type: 'text',
-            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 0},
-        } as any);
-        attributeFieldsMap[departmentField.id] = departmentField;
-
-        const officeField = await adminClient.createCustomProfileAttributeField({
-            name: 'Office',
-            type: 'text',
-            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 1},
-        } as any);
-        attributeFieldsMap[officeField.id] = officeField;
+        // Ensure the Department/Office fields exist with the attrs this test needs,
+        // reusing them in place rather than deleting and recreating system-wide fields.
+        const attributeFieldsMap = await ensureManagedDepartmentAndOfficeFields(adminClient);
+        managedFieldIds.push(...Object.keys(attributeFieldsMap));
 
         // Wait for attributes to be indexed
         await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -403,6 +446,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // Auto-add ON so users are auto-added
         // ===========================================
         const policyName = `ABAC-AddAttr-Test-${pw.random.id()}`;
+        createdPolicyNames.push(policyName);
 
         await createBasicPolicy(page, {
             name: policyName,
@@ -587,40 +631,13 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         const {adminUser, adminClient, team} = await pw.initSetup();
 
-        // Delete ALL existing custom attributes to start fresh
-        try {
-            const existingFields = await adminClient.getCustomProfileAttributeFields();
-            for (const field of existingFields) {
-                try {
-                    await adminClient.deleteCustomProfileAttributeField(field.id);
-                } catch {
-                    // Ignore deletion errors
-                }
-            }
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-        } catch {
-            // Ignore if no fields exist
-        }
-
         // Enable user-managed attributes FIRST (same pattern as MM-T5783)
         await enableUserManagedAttributes(adminClient);
 
-        // create attributes using direct API
-        const attributeFieldsMap: Record<string, any> = {};
-
-        const departmentField = await adminClient.createCustomProfileAttributeField({
-            name: 'Department',
-            type: 'text',
-            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 0},
-        } as any);
-        attributeFieldsMap[departmentField.id] = departmentField;
-
-        const officeField = await adminClient.createCustomProfileAttributeField({
-            name: 'Office',
-            type: 'text',
-            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 1},
-        } as any);
-        attributeFieldsMap[officeField.id] = officeField;
+        // Ensure the Department/Office fields exist with the attrs this test needs,
+        // reusing them in place rather than deleting and recreating system-wide fields.
+        const attributeFieldsMap = await ensureManagedDepartmentAndOfficeFields(adminClient);
+        managedFieldIds.push(...Object.keys(attributeFieldsMap));
 
         // Wait for attributes to be indexed
         await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -667,6 +684,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // Auto-add ON
         // ===========================================
         const policyName = `ABAC-RemoveRule-${pw.random.id()}`;
+        createdPolicyNames.push(policyName);
 
         await adminClient.patchConfig({
             AccessControlSettings: {
@@ -872,6 +890,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         // Create two policies with different names
         const policyName1 = `Edit Dup Test A ${pw.random.id()}`;
+        createdPolicyNames.push(policyName1);
         await createBasicPolicy(page, {
             name: policyName1,
             attribute: 'Department',
@@ -885,6 +904,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         const privateChannel2 = await createPrivateChannelForABAC(adminClient, team.id);
         const policyName2 = `Edit Dup Test B ${pw.random.id()}`;
+        createdPolicyNames.push(policyName2);
         await createBasicPolicy(page, {
             name: policyName2,
             attribute: 'Department',
