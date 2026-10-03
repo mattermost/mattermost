@@ -9,7 +9,7 @@
   gap: 0.35rem;
   padding: 0.7rem 1.25rem;
   border-radius: 4px;
-  background: var(--mm-color-marigold, #ffbc1f);
+  background: var(--mm-color-sand, #ccc4ae);
   color: var(--mm-color-denim, #1e325c) !important;
   font-weight: 600;
   font-size: 0.95rem;
@@ -19,7 +19,7 @@
 }
 
 .button:hover {
-  background: #ffd060;
+  background: #b8ae96;
   color: var(--mm-color-denim, #1e325c) !important;
   text-decoration: none !important;
 }
