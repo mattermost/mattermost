@@ -8,7 +8,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {Disposable, Locator, Page} from '@playwright/test';
 import type {Post} from '@mattermost/types/posts';
 
-import {expect, setupFileServer, test, testConfig, watchElementSize} from '@mattermost/playwright-lib';
+import {expect, permalinkUrl, setupFileServer, test, watchElementSize} from '@mattermost/playwright-lib';
 import type {ChannelsPage, ChannelsPost, PlaywrightClient4} from '@mattermost/playwright-lib';
 
 test.describe('Post height', () => {
@@ -53,7 +53,7 @@ test.describe('Post height', () => {
     type PostHeightTestCase = {
         name: string;
         /** Returns the post to be measured and does any other prep work needed to set up the post. */
-        makePost: (options: {fileServerUrl: string; siteUrl: string}) => Promise<Post>;
+        makePost: (options: {fileServerUrl: string}) => Promise<Post>;
         /** Extra assertions to run once the post has loaded. */
         additionalCheck?: (args: {postComponent: ChannelsPost}) => Promise<void>;
         /** Playwright project names for which this test case should be skipped. */
@@ -407,25 +407,25 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a post preview',
-            makePost: async ({siteUrl}) => {
+            makePost: async () => {
                 const linkedPost = await seedPost({
                     message: 'This is a post to be previewed.',
                 });
 
                 return seedPost({
-                    message: `${siteUrl}/${team.name}/pl/${linkedPost.id}`,
+                    message: await permalinkUrl(userClient, team.name, linkedPost.id),
                 });
             },
         },
         {
             name: 'post with a long post preview',
-            makePost: async ({siteUrl}) => {
+            makePost: async () => {
                 const linkedPost = await seedPost({
                     message: new Array(50).fill('This is a multi-line post to be previewed.').join('\n'),
                 });
 
                 return seedPost({
-                    message: `${siteUrl}/${team.name}/pl/${linkedPost.id}`,
+                    message: await permalinkUrl(userClient, team.name, linkedPost.id),
                 });
             },
             additionalCheck: async ({postComponent}) => {
@@ -449,7 +449,6 @@ test.describe('Post height', () => {
 
                 const post = await testCase.makePost({
                     fileServerUrl,
-                    siteUrl: testConfig.internalBaseURL,
                 });
 
                 const {sizeWatcher, postComponent} = await openChannelAndGetPost(post.id);

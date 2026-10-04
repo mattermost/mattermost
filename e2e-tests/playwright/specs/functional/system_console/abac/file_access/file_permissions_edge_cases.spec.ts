@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, enableABAC, expectFilesRedacted, getRandomId} from '@mattermost/playwright-lib';
+import {expect, test, enableABAC, expectFilesRedacted, getRandomId, permalinkUrl} from '@mattermost/playwright-lib';
 
 import {createPermissionPolicy, deletePermissionPolicyByName, navigateToPermissionPoliciesPage} from '../support';
 
@@ -105,17 +105,9 @@ test.describe('ABAC file permissions - redaction across surfaces', () => {
             const originalPosts = await adminClient.getPosts(channelId, 0, 1);
             const originalPostId = originalPosts.order[0];
 
-            // The server only resolves a permalink through an internal lookup when the URL is
-            // prefixed by its own SiteURL; anything else it fetches back over HTTP as a plain
-            // link, which yields no preview. Read SiteURL off the running server rather than
-            // assuming testConfig.internalBaseURL: pw.ensureSiteUrl() flips it to the
-            // host-reachable address by restarting the container, and that outlives the spec
-            // that asked for it on a reused server.
-            const {ServiceSettings} = await adminClient.getConfig();
-            const siteUrl = (ServiceSettings.SiteURL ?? '').replace(/\/+$/, '');
-            const permalinkUrl = `${siteUrl}/${team.name}/pl/${originalPostId}`;
-            await adminChannelsPage.centerView.postCreate.postMessage(permalinkUrl);
-            await adminChannelsPage.centerView.waitUntilLastPostContains(permalinkUrl);
+            const permalink = await permalinkUrl(adminClient, team.name, originalPostId);
+            await adminChannelsPage.centerView.postCreate.postMessage(permalink);
+            await adminChannelsPage.centerView.waitUntilLastPostContains(permalink);
 
             // Permalink embeds resolve asynchronously. Wait until the admin view has the
             // preview so later assertions are not racing the first metadata fetch.
