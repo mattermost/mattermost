@@ -90,6 +90,7 @@ jobs:
           EVENT_PR: ${{ github.event.pull_request.number }}
           EVENT_TITLE: ${{ github.event.pull_request.title }}
           EVENT_AUTHOR: ${{ github.event.pull_request.user.login }}
+          EVENT_AUTHOR_TYPE: ${{ github.event.pull_request.user.type }}
           EVENT_MILESTONE_TITLE: ${{ github.event.pull_request.milestone.title }}
           EVENT_MILESTONE_NUMBER: ${{ github.event.pull_request.milestone.number }}
         run: |
@@ -105,6 +106,7 @@ jobs:
             PR_NUMBER="$INPUT_PR"
             TITLE=$(echo "$DATA" | jq -r '.title')
             AUTHOR=$(echo "$DATA" | jq -r '.user.login')
+            AUTHOR_TYPE=$(echo "$DATA" | jq -r '.user.type')
             MILESTONE_TITLE=$(echo "$DATA" | jq -r '.milestone.title // ""')
             MILESTONE_NUMBER=$(echo "$DATA" | jq -r '.milestone.number // ""')
             MERGED=$(echo "$DATA" | jq -r '.merged')
@@ -121,6 +123,7 @@ jobs:
             PR_NUMBER="$EVENT_PR"
             TITLE="$EVENT_TITLE"
             AUTHOR="$EVENT_AUTHOR"
+            AUTHOR_TYPE="$EVENT_AUTHOR_TYPE"
             MILESTONE_TITLE="$EVENT_MILESTONE_TITLE"
             MILESTONE_NUMBER="$EVENT_MILESTONE_NUMBER"
           fi
@@ -130,6 +133,36 @@ jobs:
             exit 1
           fi
 
+          # Docs draft reviewer: source author, or one human reviewer of the
+          # source PR when the author is a bot (type Bot and/or login *[bot]).
+          REVIEWER="$AUTHOR"
+          if [ "$AUTHOR_TYPE" = "Bot" ] || [[ "$AUTHOR" == *"[bot]" ]]; then
+            REVIEWS=$(gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/reviews")
+            REVIEWER=$(echo "$REVIEWS" | jq -r '
+              add // []
+              | [ .[]
+                | select(.state != "PENDING")
+                | select(.user != null)
+                | select((.user.type // "") != "Bot")
+                | select((.user.login // "") | endswith("[bot]") | not)
+                | .user.login
+              ]
+              | unique
+              | .[0] // empty
+            ')
+            if [ -z "$REVIEWER" ]; then
+              REVIEWER=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '
+                [ .requested_reviewers[]?
+                  | select((.type // "") != "Bot")
+                  | select((.login // "") | endswith("[bot]") | not)
+                  | .login
+                ]
+                | unique
+                | .[0] // empty
+              ')
+            fi
+          fi
+
           printf '%s' "$TITLE" > .docs-ai/writer/pr-title.txt
           gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.body // ""' \
             > .docs-ai/writer/pr-body.txt
@@ -137,6 +170,7 @@ jobs:
           {
             echo "pr_number=${PR_NUMBER}"
             echo "pr_author=${AUTHOR}"
+            echo "reviewer=${REVIEWER}"
             echo "milestone_title=${MILESTONE_TITLE}"
             echo "branch=docs/pr-${PR_NUMBER}"
           } >> "$GITHUB_OUTPUT"
@@ -228,7 +262,7 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           BRANCH: ${{ steps.pr.outputs.branch }}
           PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
-          PR_AUTHOR: ${{ steps.pr.outputs.pr_author }}
+          REVIEWER: ${{ steps.pr.outputs.reviewer }}
         run: |
           set -euo pipefail
           EXISTING=$(gh pr list --head "$BRANCH" --state open --json number,url --jq 'first // empty')
@@ -246,7 +280,9 @@ jobs:
               --body-file .docs-ai/writer/pr-body.md \
               --draft)
             NUM=$(gh pr view "$BRANCH" --json number --jq .number)
-            gh pr edit "$NUM" --add-reviewer "$PR_AUTHOR" || true
+            if [ -n "$REVIEWER" ]; then
+              gh pr edit "$NUM" --add-reviewer "$REVIEWER" || true
+            fi
           fi
 
           {
