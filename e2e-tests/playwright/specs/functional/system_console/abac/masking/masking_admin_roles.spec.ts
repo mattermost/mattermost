@@ -417,15 +417,20 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
             await enableABAC(page);
 
             const policyName = `MaskingPolicy ${pw.random.id()}`;
-            const policyId = await createPolicyWithCEL(
-                page,
-                policyName,
-                `user.attributes.${publicFieldName} in ["Alpha"] && user.attributes.${sharedFieldName} in ["Beta"] && user.attributes.${sourceFieldName} in ["Gamma"]`,
-            );
+            const policyExpression = `user.attributes.${publicFieldName} in ["Alpha"] && user.attributes.${sharedFieldName} in ["Beta"] && user.attributes.${sourceFieldName} in ["Gamma"]`;
+            const policyId = await createPolicyWithCEL(page, policyName, policyExpression);
             policyIds.push(policyId);
 
             await setFieldAsSharedOnly(sharedFieldId);
             await setFieldAsSourceOnly(sourceFieldId);
+
+            // The CEL expression combines three attributes — wait for the user-attribute view
+            // to reflect all three before relying on it, the same way the sibling tests above
+            // wait before assigning policies. Without this, the retry loop below is the only
+            // thing standing between this test and the underlying attribute-view computation,
+            // and a three-attribute expression can take longer to resolve than that loop's
+            // budget allows under load.
+            await waitForAttributeViewToInclude(adminClient, policyExpression, [adminUser.id]);
 
             const channel = await createPrivateChannel(adminClient, team.id);
             await assignChannelsToPolicy(adminClient, policyId, [channel.id]);
