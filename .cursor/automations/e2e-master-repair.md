@@ -45,8 +45,8 @@ Repeat with the FIPS image (`mattermostdevelopment/mattermost-enterprise-fips-ed
 `suites` includes a `fips` suite.
 
 - `broken`: each spec must fail in at least 2 of 3 runs. Drop any that doesn't from your fix and
-  name it in the PR as not reproducible. If none reproduces, stop and report your pass counts. Do
-  not open a PR.
+  name it in the PR as not reproducible, with its pass and failure counts. If none reproduces, stop
+  and report your pass counts. Do not open a PR.
 - `flaky`: run it 10 times. You need at least one failure to have something to fix.
 
 ## 3. Find the cause
@@ -82,8 +82,9 @@ Then find every other place with the same defect, before you change anything:
 
 ## 4. Verify, all on your machine, before any push
 
-- Each spec in the request passes `--project=chrome --retries=0 --repeat-each=5` on the regular
-  image, and on FIPS when relevant. For `flaky`, `--repeat-each=10`.
+- Each spec from the request that you reproduced and fixed passes `--project=chrome --retries=0
+  --repeat-each=5` on the regular image, and on FIPS when relevant. For `flaky`,
+  `--repeat-each=10`. Specs you dropped as not reproducible are left unchanged.
 - Every other spec you changed for the same defect passes `--repeat-each=3`, under the condition
   that broke the original (for leaked state, put the server into that state first), and on a
   fresh stack.
@@ -118,7 +119,9 @@ report:
 
 - **Same defect as your fix** (same error, same cause): it is in scope. Fix it in this PR, verify
   it as in step 4, and push.
-- **Fails on master too**: not yours. Post one comment listing these tests, each with the master
-  run where it also failed, so reviewers know they are not caused by this PR. Do not change them.
+- **Fails on master for a different cause**: not yours. Post one comment listing these tests, each
+  with the master run where it also failed, so reviewers know they are not caused by this PR. Do
+  not change them. A test with the same defect as your fix belongs in the first group, even if it
+  also fails on master.
 - **Anything else**: reproduce it locally against your branch. If your change caused it, fix it;
   if not, add it to that comment with your evidence.
