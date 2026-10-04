@@ -13,7 +13,6 @@ import {
     shouldHaveCallsEnabled,
     shouldHaveFeatureFlag,
     shouldRunInLinux,
-    skipIfFeatureFlagNotSet,
     skipIfNoLicense,
 } from './flag';
 import {getBlobFromAsset, getFileFromAsset} from './file';
@@ -128,7 +127,6 @@ export class PlaywrightExtended {
     readonly ensureLicense;
     readonly ensureServerDeployment;
     readonly skipIfNoLicense;
-    readonly skipIfFeatureFlagNotSet;
 
     // ./file
     readonly getBlobFromAsset;
@@ -241,7 +239,6 @@ export class PlaywrightExtended {
         this.ensureLicense = ensureLicense;
         this.ensureServerDeployment = ensureServerDeployment;
         this.skipIfNoLicense = skipIfNoLicense;
-        this.skipIfFeatureFlagNotSet = skipIfFeatureFlagNotSet;
 
         // ./file
         this.getBlobFromAsset = getBlobFromAsset;
