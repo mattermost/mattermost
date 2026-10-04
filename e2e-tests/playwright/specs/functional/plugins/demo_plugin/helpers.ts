@@ -105,7 +105,10 @@ export async function recoverDemoPlugin(adminClient: Client4): Promise<void> {
 // up directly in CI job output without needing a custom server image or extra artifacts.
 export async function logDemoPluginDiagnostics(adminClient: Client4, label: string): Promise<void> {
     try {
-        const [config, status] = await Promise.all([adminClient.getConfig(), getPluginStatus(adminClient, demoPluginId)]);
+        const [config, status] = await Promise.all([
+            adminClient.getConfig(),
+            getPluginStatus(adminClient, demoPluginId),
+        ]);
         // eslint-disable-next-line no-console
         console.log(
             `[demo-plugin-diag] ${label} ${JSON.stringify({

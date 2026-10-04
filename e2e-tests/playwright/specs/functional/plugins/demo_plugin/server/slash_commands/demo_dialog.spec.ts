@@ -9,7 +9,9 @@ import {logDemoPluginDiagnostics, recoverDemoPlugin, sendDemoSlashCommand} from 
 // whether the request ever got a response at all, and with what status/timing, instead of
 // only seeing the client-side symptom (dialog stays visible). See recoverDemoPlugin's doc
 // comment for background. Purely observational — does not alter control flow.
-function attachDialogSubmitResponseLogger(page: {on: (event: 'response', handler: (response: unknown) => void) => void}) {
+function attachDialogSubmitResponseLogger(page: {
+    on: (event: 'response', handler: (response: unknown) => void) => void;
+}) {
     page.on('response', (response: any) => {
         if (typeof response?.url === 'function' && response.url().includes('/api/v4/actions/dialogs/submit')) {
             // eslint-disable-next-line no-console
