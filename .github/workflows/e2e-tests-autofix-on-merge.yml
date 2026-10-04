@@ -31,7 +31,7 @@ jobs:
       # The run reports which branch it tested; runs of release branches are ignored.
       - name: ci/e2e-autofix-plan
         id: plan
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-master-watch@9cc47a406ffdf1151d8155f346c687ee0cd2ff41 # actions/e2e-master-watch
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-master-watch@b22cff775044c885a4e8e675d71ef3c2fdbb3449 # actions/e2e-master-watch
         with:
           repository: ${{ github.repository }}
           gh-run-id: ${{ github.event.workflow_run.id }}
@@ -44,6 +44,12 @@ jobs:
           label: e2e-autofix
           extra-labels: AI/babysit
           instructions: .cursor/automations/e2e-autofix.md
+          # Master stays red until a break is fixed: send every break at once (10 is a safety limit).
+          # Flaky specs share a daily budget, most-flaky first.
+          max-broken-per-run: 10
+          max-flaky-per-day: 6
+          # A break whose suspect commits overlap one already sent waits this long for that agent's PR.
+          cause-hold-hours: 4
 
       # Requests carry test errors and commit titles: they go through env and stdin, never into the script.
       - name: ci/e2e-autofix-send
@@ -73,8 +79,6 @@ jobs:
       # Runs on every trunk run, even one that sent nothing, to keep the record of sent requests alive.
       - name: ci/e2e-autofix-record
         if: always() && steps.plan.outcome == 'success'
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-master-watch/record@9cc47a406ffdf1151d8155f346c687ee0cd2ff41 # actions/e2e-master-watch/record
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-master-watch/record@b22cff775044c885a4e8e675d71ef3c2fdbb3449 # actions/e2e-master-watch/record
         with:
           results: ${{ steps.send.outputs.results || '[]' }}
-          gh-run-id: ${{ github.event.workflow_run.id }}
-          gh-run-attempt: ${{ github.event.workflow_run.run_attempt }}
