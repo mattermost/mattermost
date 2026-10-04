@@ -326,43 +326,25 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         const {adminUser, adminClient, team} = await pw.initSetup();
 
-        // Delete ALL existing custom attributes to start fresh
-        try {
-            const existingFields = await adminClient.getCustomProfileAttributeFields();
-            for (const field of existingFields) {
-                try {
-                    await adminClient.deleteCustomProfileAttributeField(field.id);
-                } catch {
-                    // Ignore deletion errors
-                }
-            }
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-        } catch {
-            // Ignore if no fields exist
-        }
-
         // Enable user-managed attributes FIRST (same pattern as MM-T5783)
         await enableUserManagedAttributes(adminClient);
 
-        // create attributes using direct API
-        const attributeFieldsMap: Record<string, any> = {};
-
-        const departmentField = await adminClient.createCustomProfileAttributeField({
-            name: 'Department',
-            type: 'text',
-            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 0},
-        } as any);
-        attributeFieldsMap[departmentField.id] = departmentField;
-
-        const officeField = await adminClient.createCustomProfileAttributeField({
-            name: 'Office',
-            type: 'text',
-            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 1},
-        } as any);
-        attributeFieldsMap[officeField.id] = officeField;
-
-        // Wait for attributes to be indexed
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        // Reuse the Department/Office fields if they already exist (same helper MM-T5790
+        // above uses) instead of unconditionally deleting every custom profile attribute
+        // field on the system and recreating them from scratch. Tests in this file run
+        // sequentially in a single Playwright worker and share one server, but nothing here
+        // tears down the fields/policies a prior test (e.g. MM-T5790, or this same test on a
+        // retried attempt) left behind. The old "delete everything, then unconditionally
+        // create" approach swallowed delete errors in an empty catch block, so a field that
+        // failed to delete (for example because the previous test's rule or policy still
+        // reference it) silently survived — and the very next line's unconditional create of
+        // a same-named field then collided with that survivor, producing "a property with
+        // this name already exists at the system level". Reusing by name sidesteps the
+        // problem entirely instead of depending on a delete that may not actually happen.
+        const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, [
+            {name: 'Department', type: 'text', value: '', attrs: {managed: 'admin', visibility: 'when_set'}},
+            {name: 'Office', type: 'text', value: '', attrs: {managed: 'admin', visibility: 'when_set'}},
+        ]);
 
         // Create users:
         // 1. engineerRemoteUser: Dept=Engineering, Office=Remote → satisfies BOTH (after edit)
@@ -587,43 +569,17 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         const {adminUser, adminClient, team} = await pw.initSetup();
 
-        // Delete ALL existing custom attributes to start fresh
-        try {
-            const existingFields = await adminClient.getCustomProfileAttributeFields();
-            for (const field of existingFields) {
-                try {
-                    await adminClient.deleteCustomProfileAttributeField(field.id);
-                } catch {
-                    // Ignore deletion errors
-                }
-            }
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-        } catch {
-            // Ignore if no fields exist
-        }
-
         // Enable user-managed attributes FIRST (same pattern as MM-T5783)
         await enableUserManagedAttributes(adminClient);
 
-        // create attributes using direct API
-        const attributeFieldsMap: Record<string, any> = {};
-
-        const departmentField = await adminClient.createCustomProfileAttributeField({
-            name: 'Department',
-            type: 'text',
-            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 0},
-        } as any);
-        attributeFieldsMap[departmentField.id] = departmentField;
-
-        const officeField = await adminClient.createCustomProfileAttributeField({
-            name: 'Office',
-            type: 'text',
-            attrs: {managed: 'admin', visibility: 'when_set', sort_order: 1},
-        } as any);
-        attributeFieldsMap[officeField.id] = officeField;
-
-        // Wait for attributes to be indexed
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        // Reuse the Department/Office fields if they already exist (same helper MM-T5790 and
+        // MM-T5791 above use) instead of deleting every custom profile attribute field on the
+        // system and recreating them from scratch — see MM-T5791 above for why that pattern
+        // caused intermittent "already exists" failures against earlier tests in this file.
+        const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, [
+            {name: 'Department', type: 'text', value: '', attrs: {managed: 'admin', visibility: 'when_set'}},
+            {name: 'Office', type: 'text', value: '', attrs: {managed: 'admin', visibility: 'when_set'}},
+        ]);
 
         // Create users:
         // 1. engineerRemoteUser: Dept=Engineering, Office=Remote → satisfies ORIGINAL (both rules)

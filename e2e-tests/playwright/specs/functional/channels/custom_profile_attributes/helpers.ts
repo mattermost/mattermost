@@ -391,17 +391,62 @@ export async function setupCustomProfileAttributeFields(
         console.log('Error getting existing custom profile fields, will create new ones', error);
     }
 
-    // Create fields sequentially, reusing any that already exist by name AND type.
-    // If a same-name field exists with a different type, delete it first then recreate.
+    // Create fields sequentially, reusing any that already exist by name, type, AND managed
+    // state. If a same-name field exists with a different type or managed state, delete it
+    // first then recreate.
     for (const field of attributeFields) {
         const existing = field.name ? existingByName[field.name] : undefined;
+        const existingManaged = existing?.attrs?.managed ?? '';
+        const requestedManaged = ((field.attrs as Record<string, unknown> | undefined)?.managed as
+            | string
+            | undefined) ?? '';
+        // permission_values is checked directly (not just attrs.managed) because the server
+        // pins it to sysadmin as soon as a field is ever managed: 'admin' and never downgrades
+        // it on a later patch that merely clears the managed attr — so a field that passed
+        // through a managed state at any point in its history can be left permanently
+        // sysadmin-only even once attrs.managed reads back empty.
+        const needsPermissionReset = requestedManaged !== 'admin' && existing?.permission_values === 'sysadmin';
+        const managedStateMatches = existingManaged === requestedManaged && !needsPermissionReset;
 
-        if (existing && existing.type === field.type) {
-            // Name and type both match — safe to reuse without touching ownedIds.
-            fieldsMap[existing.id] = existing;
-        } else if (existing && existing.type !== field.type) {
-            // Same name but wrong type (e.g. a previous spec created 'Location' as 'text'
-            // while this spec needs it as 'select'). Delete the stale field and recreate.
+        if (existing && existing.type === field.type && managedStateMatches) {
+            // Name, type, and managed state all match, but a prior test (an ABAC policy test
+            // or an earlier custom_attributes test, possibly run right before this one on the
+            // same shard) may have left this field with a visibility/value_type/display_name
+            // this test doesn't expect. CPA field names are unique server-wide, so reusing the
+            // field as-is would silently inherit that leftover state instead of the state this
+            // call asked for. Patch it back in line with this definition before reusing it (not
+            // touching ownedIds: the field isn't deleted on cleanup, consistent with "reuse,
+            // don't own" semantics for a field this call didn't create).
+            //
+            // managed is deliberately excluded from this reset: it's already confirmed to
+            // match above, and a changing managed value needs the delete+recreate path below
+            // instead — patching it in place would leave PermissionValues pinned to whatever
+            // the field had before (server "caller pins are never downgraded" rule), which
+            // silently denies normal users write access to a field no longer marked managed.
+            try {
+                const requestedAttrs = (field.attrs ?? {}) as Record<string, unknown>;
+                const resetPatch = {
+                    attrs: {
+                        ...requestedAttrs,
+                        visibility: requestedAttrs.visibility ?? null,
+                        value_type: requestedAttrs.value_type ?? null,
+                        display_name: requestedAttrs.display_name ?? null,
+                    },
+                } as unknown as UserPropertyFieldPatch;
+                const patched = await adminClient.patchCustomProfileAttributeField(existing.id, resetPatch);
+                fieldsMap[patched.id] = patched;
+            } catch {
+                // If the reset patch fails for any reason, fall back to reusing the field
+                // as-is rather than leaving it entirely unmapped.
+                fieldsMap[existing.id] = existing;
+            }
+        } else if (existing) {
+            // Same name but wrong type, or wrong managed state (e.g. a previous spec created
+            // 'Location' as 'text' while this spec needs it as 'select', or a previous ABAC
+            // test left 'Department' with managed: 'admin' while this spec needs a plain
+            // field). Patching managed in place would leave PermissionValues pinned from the
+            // old state (see comment above), so delete the stale field and recreate it instead
+            // — a fresh create computes permissions from scratch for the new managed state.
             try {
                 await adminClient.deleteCustomProfileAttributeField(existing.id);
             } catch {
