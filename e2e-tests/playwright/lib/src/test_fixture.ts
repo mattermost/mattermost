@@ -127,8 +127,8 @@ export class PlaywrightExtended {
     readonly shouldRunInLinux;
     readonly ensureLicense;
     readonly ensureServerDeployment;
-    readonly skipIfNoLicense;
     readonly skipIfFeatureFlagNotSet;
+    readonly skipIfNoLicense;
 
     // ./file
     readonly getBlobFromAsset;
@@ -242,8 +242,8 @@ export class PlaywrightExtended {
         this.shouldRunInLinux = shouldRunInLinux;
         this.ensureLicense = ensureLicense;
         this.ensureServerDeployment = ensureServerDeployment;
-        this.skipIfNoLicense = skipIfNoLicense;
         this.skipIfFeatureFlagNotSet = skipIfFeatureFlagNotSet;
+        this.skipIfNoLicense = skipIfNoLicense;
 
         // ./file
         this.getBlobFromAsset = getBlobFromAsset;
