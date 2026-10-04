@@ -123,6 +123,10 @@ class UniqueCommitFilterTest(unittest.TestCase):
         self._commit("root")
 
         _git(self.tmpdir, "checkout", "-b", "release-12.0")
+        # A distinct parent so the cherry-pick cannot reuse master_api's SHA
+        # (same parent/tree/message/author in the same second).
+        _write(self.tmpdir, "RELEASE", "12.0\n")
+        self._commit("release-only commit")
         release = _git(self.tmpdir, "rev-parse", "HEAD")
 
         _git(self.tmpdir, "checkout", "master")
@@ -132,6 +136,7 @@ class UniqueCommitFilterTest(unittest.TestCase):
         _git(self.tmpdir, "checkout", "release-12.0")
         _git(self.tmpdir, "cherry-pick", master_api)
         head = _git(self.tmpdir, "rev-parse", "HEAD")
+        self.assertNotEqual(head, master_api)
 
         self._point_checker(release, head)
         patches = checker.split_patch_by_file(checker.get_full_patch())
