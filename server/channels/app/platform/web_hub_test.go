@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"iter"
+	"maps"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -428,6 +429,60 @@ func TestHubConnIndex(t *testing.T) {
 	})
 }
 
+func TestHubConnIndexDropsEmptyEntries(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	newConn := func(userID string) *WebConn {
+		wc := &WebConn{UserId: userID}
+		wc.SetConnectionID(model.NewId())
+		return wc
+	}
+	channels := func(ids ...string) channelList {
+		m := make(map[string]string, len(ids))
+		for _, id := range ids {
+			m[id] = ""
+		}
+		return newChannelList(m)
+	}
+	channel1, channel2, channel3 := model.NewId(), model.NewId(), model.NewId()
+
+	t.Run("Remove drops the user's and the channels' entries once empty", func(t *testing.T) {
+		connIndex := newHubConnectionIndex(1*time.Second, true)
+		wc1 := newConn("user1")
+		wc2 := newConn("user1")
+		connIndex.Add(wc1, channels(channel1, channel2))
+		connIndex.Add(wc2, channels(channel1))
+
+		connIndex.Remove(wc1)
+		assert.Len(t, connIndex.byUserId, 1)
+		assert.Len(t, connIndex.byChannelKey, 1, "channel2 had no other connection")
+
+		connIndex.Remove(wc2)
+		assert.Empty(t, connIndex.byUserId)
+		assert.Empty(t, connIndex.byChannelKey)
+	})
+
+	t.Run("InvalidateCMCacheForUser drops channels the user left", func(t *testing.T) {
+		connIndex := newHubConnectionIndex(1*time.Second, true)
+		wc := newConn("user1")
+		other := newConn("user2")
+		connIndex.Add(wc, channels(channel1, channel2))
+		connIndex.Add(other, channels(channel1))
+
+		connIndex.InvalidateCMCacheForUser("user1", channels(channel3))
+		assert.ElementsMatch(t, [][16]byte{decodeChannelID(channel1), decodeChannelID(channel3)}, slices.Collect(maps.Keys(connIndex.byChannelKey)))
+	})
+
+	t.Run("Remove drops the user's entry with channel iteration off", func(t *testing.T) {
+		connIndex := newHubConnectionIndex(1*time.Second, false)
+		wc := newConn("user1")
+		connIndex.Add(wc, channelList{})
+
+		connIndex.Remove(wc)
+		assert.Empty(t, connIndex.byUserId)
+	})
+}
+
 func TestHubConnIndexIncorrectRemoval(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -812,6 +867,46 @@ func BenchmarkHubConnIndex(b *testing.B) {
 			connIndex.Remove(wc2)
 		}
 	})
+}
+
+// BenchmarkHubConnIndexRetainedAfterRemove reports the heap an index still holds after every
+// connection has been removed, for 20000 users in 200 channels each drawn from 20000 channels.
+func BenchmarkHubConnIndexRetainedAfterRemove(b *testing.B) {
+	const users, perUser, channels = 20000, 200, 20000
+	channelIDs := make([]string, channels)
+	for i := range channelIDs {
+		channelIDs[i] = model.NewId()
+	}
+	heap := func() uint64 {
+		runtime.GC()
+		runtime.GC()
+		var m runtime.MemStats
+		runtime.ReadMemStats(&m)
+		return m.HeapAlloc
+	}
+
+	for b.Loop() {
+		connIndex := newHubConnectionIndex(1*time.Second, true)
+		conns := make([]*WebConn, users)
+		base := heap()
+		for u := range conns {
+			wc := &WebConn{UserId: fmt.Sprintf("user%d", u)}
+			wc.SetConnectionID(model.NewId())
+			membership := make(map[string]string, perUser)
+			for k := range perUser {
+				membership[channelIDs[(u*perUser+k)%channels]] = ""
+			}
+			connIndex.Add(wc, newChannelList(membership))
+			conns[u] = wc
+		}
+		full := heap()
+		for _, wc := range conns {
+			connIndex.Remove(wc)
+		}
+		b.ReportMetric(float64(full-base)/1e6, "full-MB")
+		b.ReportMetric(float64(heap()-base)/1e6, "retained-MB")
+		runtime.KeepAlive(connIndex)
+	}
 }
 
 func TestHubConnIndexRemoveMemLeak(t *testing.T) {

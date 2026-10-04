@@ -995,6 +995,9 @@ func (i *hubConnectionIndex) Remove(wc *WebConn) {
 	// Remove from byUserId
 	if userConns, ok := i.byUserId[wc.UserId]; ok {
 		delete(userConns, wc)
+		if len(userConns) == 0 {
+			delete(i.byUserId, wc.UserId)
+		}
 	}
 
 	if i.fastIteration {
