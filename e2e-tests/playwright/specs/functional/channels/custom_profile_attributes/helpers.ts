@@ -316,21 +316,28 @@ export async function updateCustomProfileAttributeVisibility(
 ): Promise<void> {
     const fieldID = getFieldIdByName(fieldsMap, attributeName);
 
-    try {
-        // Update the visibility property
-        const updatedField = await adminClient.patchCustomProfileAttributeField(fieldID, {
-            // @ts-expect-error The type definition requires more properties than we need to set
-            attrs: {
-                visibility,
-            },
-        });
+    // Previously this swallowed patch failures (logging to console and silently returning),
+    // so a field left in a state the server rejects a visibility patch for (e.g. a stale
+    // 'managed'/linked state left behind by an earlier test reusing this same field) would
+    // fail here invisibly, and the only symptom would be a confusing UI assertion failure
+    // minutes later. Let the patch error surface directly, and verify the server actually
+    // persisted the requested value instead of trusting the patch response alone.
+    const updatedField = await adminClient.patchCustomProfileAttributeField(fieldID, {
+        // @ts-expect-error The type definition requires more properties than we need to set
+        attrs: {
+            visibility,
+        },
+    });
 
-        // Update the fieldsMap with the updated field
-        fieldsMap[updatedField.id] = updatedField;
-    } catch (error) {
-        // eslint-disable-next-line no-console
-        console.log(`Failed to update visibility for attribute ${attributeName}:`, error);
+    if (updatedField.attrs?.visibility !== visibility) {
+        throw new Error(
+            `Patched visibility for attribute "${attributeName}" (field ${fieldID}) did not take effect: ` +
+                `expected "${visibility}", server returned "${updatedField.attrs?.visibility}"`,
+        );
     }
+
+    // Update the fieldsMap with the updated field
+    fieldsMap[updatedField.id] = updatedField;
 }
 
 /**
@@ -397,9 +404,8 @@ export async function setupCustomProfileAttributeFields(
     for (const field of attributeFields) {
         const existing = field.name ? existingByName[field.name] : undefined;
         const existingManaged = existing?.attrs?.managed ?? '';
-        const requestedManaged = ((field.attrs as Record<string, unknown> | undefined)?.managed as
-            | string
-            | undefined) ?? '';
+        const requestedManaged =
+            ((field.attrs as Record<string, unknown> | undefined)?.managed as string | undefined) ?? '';
         // permission_values is checked directly (not just attrs.managed) because the server
         // pins it to sysadmin as soon as a field is ever managed: 'admin' and never downgrades
         // it on a later patch that merely clears the managed attr — so a field that passed
