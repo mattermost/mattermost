@@ -5,19 +5,27 @@
 
 /* eslint-disable */
 
+import be from './be.json';
 import bg from './bg.json';
+import cs from './cs.json';
+import da from './da.json';
 import de from './de.json';
 import enAU from './en-AU.json';
 import es from './es.json';
 import fa from './fa.json';
+import fi from './fi.json';
 import fr from './fr.json';
+import hr from './hr.json';
 import hu from './hu.json';
 import it from './it.json';
 import ja from './ja.json';
 import ko from './ko.json';
+import lt from './lt.json';
+import nbNO from './nb-NO.json';
 import nl from './nl.json';
 import pl from './pl.json';
 import ptBR from './pt-BR.json';
+import pt from './pt.json';
 import ro from './ro.json';
 import ru from './ru.json';
 import sv from './sv.json';
@@ -32,19 +40,27 @@ import zhTW from './zh-TW.json';
 export const langFiles: {
     [langID: string]: string;
 } = {
+    be: be as unknown as string,
     bg: bg as unknown as string,
+    cs: cs as unknown as string,
+    da: da as unknown as string,
     de: de as unknown as string,
     'en-AU': enAU as unknown as string,
     es: es as unknown as string,
     fa: fa as unknown as string,
+    fi: fi as unknown as string,
     fr: fr as unknown as string,
+    hr: hr as unknown as string,
     hu: hu as unknown as string,
     it: it as unknown as string,
     ja: ja as unknown as string,
     ko: ko as unknown as string,
+    lt: lt as unknown as string,
+    'nb-NO': nbNO as unknown as string,
     nl: nl as unknown as string,
     pl: pl as unknown as string,
     'pt-BR': ptBR as unknown as string,
+    pt: pt as unknown as string,
     ro: ro as unknown as string,
     ru: ru as unknown as string,
     sv: sv as unknown as string,
