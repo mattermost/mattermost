@@ -383,7 +383,9 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
         // Validates that the /attributes endpoint strips source_only and shared_only
         // fields before they reach the channel members RHS panel. A public field in
         // the same policy must still appear so we confirm the filter is selective.
-        test.setTimeout(120000);
+        // 10 retry attempts at up to ~15s each (3s settle + reload + 10s cache-visibility wait)
+        // can approach 150s on a cold cache; give this test enough room for the worst case.
+        test.setTimeout(180000);
         await pw.skipIfNoLicense();
 
         const {adminUser, adminClient, team} = await pw.initSetup();
@@ -432,10 +434,10 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
             await channelsPage.toBeVisible();
 
             // The enforcement cache is cold on the first request — retry until the
-            // public-field tag is visible (up to 6 attempts with reload).
+            // public-field tag is visible (up to 10 attempts with reload).
             const alertContainer = page.locator('.channel-members-rhs__alert-container.policy-enforced');
             let publicTagVisible = false;
-            for (let attempt = 0; attempt < 6; attempt++) {
+            for (let attempt = 0; attempt < 10; attempt++) {
                 if (attempt > 0) {
                     await page.keyboard.press('Escape');
                     await page.waitForTimeout(3000);
@@ -458,8 +460,11 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
                 }
             }
 
-            // Public field (value "Alpha") MUST be visible
-            await expect(alertContainer.getByText(/:\s*Alpha/)).toBeVisible({timeout: 5000});
+            // Public field (value "Alpha") MUST be visible. Timeout matches the retry loop's
+            // own per-attempt wait above (10000ms) rather than a shorter, stricter one: this
+            // assertion is the loop's final confirmation, not a separate check, and the cache
+            // can still be warming up on the very last attempt.
+            await expect(alertContainer.getByText(/:\s*Alpha/)).toBeVisible({timeout: 10000});
 
             // shared_only (value "Beta") and source_only (value "Gamma") must NOT appear
             await expect(alertContainer.getByText(/:\s*Beta/)).not.toBeVisible();

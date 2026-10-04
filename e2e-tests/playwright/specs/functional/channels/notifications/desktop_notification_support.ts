@@ -107,6 +107,13 @@ export async function expectNoNotification(pw: PlaywrightExtended, page: Page) {
  * Posts into the channel the receiver is viewing so the sender profile is in the client store.
  * Notification bodies use displayUsername only when that profile is already loaded; otherwise
  * they fall back to websocket `sender_name`, which already includes '@' and becomes '@@user'.
+ *
+ * The marker post rendering is not by itself a reliable signal that the profile fetch has
+ * completed: the post list can paint the post (with a placeholder author) before the async
+ * profile fetch resolves, so a notification that fires immediately after can still race it and
+ * fall back to the raw username. Opening (and closing) the marker post's profile popover forces
+ * — and, since the popover only becomes visible once its data has loaded, waits out — the same
+ * profile fetch that getNotificationUsername's `getUser(state, post.user_id)` depends on.
  */
 export async function ensureSenderProfileLoaded(
     senderClient: Client4,
@@ -118,6 +125,11 @@ export async function ensureSenderProfileLoaded(
     const marker = `notification-profile-sync ${Date.now()}`;
     await senderClient.createPost({channel_id: viewedChannelId, message: marker});
     await channelsPage.centerView.waitUntilLastPostContains(marker);
+
+    const markerPost = await channelsPage.centerView.getLastPost();
+    const popover = await channelsPage.openProfilePopover(markerPost);
+    await popover.close();
+
     await pw.clearCapturedNotifications(page);
 }
 
