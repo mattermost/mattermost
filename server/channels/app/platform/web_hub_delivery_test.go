@@ -96,6 +96,21 @@ func TestHubBroadcastDelivery(t *testing.T) {
 		require.Empty(t, spy.calls)
 	})
 
+	t.Run("queues and records nothing when a hook rejects the event", func(t *testing.T) {
+		spy := &deliveryRecorderSpy{}
+		th.Service.SetPostDeliveryRecorder(spy.record)
+		t.Cleanup(func() { th.Service.SetPostDeliveryRecorder(nil) })
+
+		connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, false)
+		wc := newDeliveryTestConn(t, th, connIndex, th.BasicUser2.Id, 1)
+
+		hub := &Hub{platform: th.Service, broadcastHooks: map[string]BroadcastHook{broadcastRejectTest: &testRejectBroadcastHook{}}}
+		hub.broadcastToConn(connIndex, wc, newEvent(), marker, []string{broadcastRejectTest}, []map[string]any{{"reject_user_id": th.BasicUser2.Id}})
+
+		require.Empty(t, wc.send)
+		require.Empty(t, spy.calls)
+	})
+
 	t.Run("records nothing when the send buffer is full", func(t *testing.T) {
 		spy := &deliveryRecorderSpy{}
 		th.Service.SetPostDeliveryRecorder(spy.record)

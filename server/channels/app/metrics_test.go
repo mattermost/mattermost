@@ -184,7 +184,7 @@ func TestWebsocketNotificationCounter(t *testing.T) {
 			"users":          []string{userID},
 		})
 		require.NoError(t, err)
-		require.True(t, msg.Event().GetData()["should_ack"].(bool))
+		require.True(t, msg.Get("should_ack").(bool))
 	}
 
 	t.Run("counts when notification metrics are enabled", func(t *testing.T) {
