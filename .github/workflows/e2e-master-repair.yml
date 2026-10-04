@@ -29,7 +29,7 @@ jobs:
     steps:
       # The run reports which branch it tested; runs of release branches are ignored.
       - name: ci/e2e-master-watch
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-master-watch@fb89cd1fbd7acb4c2939fa05e3358a1586d546b9 # actions/e2e-master-watch
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-master-watch@e755dedf661738f961adfad159f1014e1e73bca2 # actions/e2e-master-watch
         with:
           repository: ${{ github.repository }}
           gh-run-id: ${{ github.event.workflow_run.id }}

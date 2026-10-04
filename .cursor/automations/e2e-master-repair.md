@@ -1,7 +1,14 @@
 # E2E master repair
 
-You are started by `.github/workflows/e2e-master-repair.yml` after a master E2E run.
-The request (JSON) names Playwright spec files that keep failing on master:
+You are started by `.github/workflows/e2e-master-repair.yml` after a master E2E run. The request
+(JSON) is one of two kinds:
+
+- `kind: "e2e-master-repair-conflict"`: one of your repair PRs no longer merges into master.
+  Follow [Resolve a conflict on your repair PR](#resolve-a-conflict-on-your-repair-pr) and nothing
+  else.
+- `kind: "e2e-master-repair"`: Playwright spec files keep failing on master. Follow steps 1 to 6.
+
+A repair request names:
 
 - `specs`, `classification` (`broken`: failed in two master runs in a row, or `flaky`: intermittent).
   Several specs come in one request when their tests last passed on the same commit: they most
@@ -125,3 +132,31 @@ report:
   also fails on master.
 - **Anything else**: reproduce it locally against your branch. If your change caused it, fix it;
   if not, add it to that comment with your evidence.
+
+Your repair PRs stay yours until they merge. When one stops merging cleanly into master, you get a
+conflict request for it.
+
+## Resolve a conflict on your repair PR
+
+The request names `pr`, `pr_url`, `pr_branch` and `pr_head`.
+
+1. Check it still needs you: `gh pr view <pr> --json state,mergeable,headRefOid`. If the PR is
+   closed or merged, or `mergeable` is not `CONFLICTING`, stop without commenting.
+2. Check out `pr_branch`, `git fetch origin master`, and `git merge origin/master`. Never rebase,
+   never force-push: reviewers and other automations may already be working on this branch.
+3. Resolve each conflict so both sides keep doing what they were for:
+   - Keep master's changes. Do not revert someone else's change to make yours apply.
+   - Keep your repair, adapted to master's new code (renamed helpers, moved files, new imports).
+   - If master already fixes the same thing your repair fixes, keep master's version and drop the
+     now-redundant part of yours. If nothing of the repair is left, do not push: comment that
+     master now covers it and stop.
+   - If master changed the same test in a way your repair makes unnecessary (for example, a longer
+     timeout for a wait your fix makes pass), keep master's change and say so in your comment, so
+     the reviewers decide. Do not remove it yourself.
+4. Verify on your machine, as in step 4, for every spec the PR changes: `--project=chrome
+   --retries=0 --repeat-each=3`, under the condition that broke the original and on a fresh stack,
+   then `npm run check`.
+5. Push the merge commit once. Comment on the PR: which files conflicted, how you resolved each,
+   and the pass counts.
+6. If you cannot resolve a conflict with confidence, or verification fails, do not push. Comment
+   with the conflicting files and what blocks you, and stop.
