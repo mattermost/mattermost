@@ -1,13 +1,14 @@
 ---
-# After each master E2E run, hand the Playwright specs that keep failing (broken
-# twice in a row, or flaky) to the "E2E master repair" Cursor automation, which
-# reproduces them, fixes them, verifies the fix several times and opens one PR. What to repair
-# is decided by the triage engine's trunk rules, not by the agent; the agent's
-# instructions are in .cursor/automations/e2e-master-repair.md.
+# E2E autofix on merge. After each master E2E run, hand the Playwright specs that keep
+# failing (broken twice in a row, or flaky) to the E2E autofix Cursor automation, which
+# reproduces them, fixes them, verifies the fix several times and opens one PR. It also
+# sends back its own open PRs that no longer merge into master. What to fix is decided by
+# the triage engine's trunk rules, not by the agent; the agent's instructions are in
+# .cursor/automations/e2e-master-repair.md.
 #
-# Without the webhook secrets it only writes the job summary. Repository owners
-# can turn it off by setting the variable E2E_MASTER_REPAIR to "off".
-name: E2E master repair
+# Without the webhook secrets it only writes the job summary. Repository owners can turn
+# it off by setting the variable E2E_ENABLE_AUTOFIX to "false".
+name: E2E Tests (autofix on merge)
 on:
   workflow_run:
     workflows: ["E2E Tests (master/release - merge)"]
@@ -16,12 +17,12 @@ on:
 permissions: {}
 
 concurrency:
-  group: e2e-master-repair
+  group: e2e-tests-autofix-on-merge
   cancel-in-progress: false
 
 jobs:
-  watch:
-    if: github.event.workflow_run.conclusion != 'cancelled' && vars.E2E_MASTER_REPAIR != 'off'
+  autofix:
+    if: github.event.workflow_run.conclusion != 'cancelled' && vars.E2E_ENABLE_AUTOFIX != 'false'
     runs-on: ubuntu-24.04
     permissions:
       contents: read

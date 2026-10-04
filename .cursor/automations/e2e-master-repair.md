@@ -1,7 +1,7 @@
 # E2E master repair
 
-You are started by `.github/workflows/e2e-master-repair.yml` after a master E2E run. The request
-(JSON) is one of two kinds:
+You are started by `.github/workflows/e2e-tests-autofix-on-merge.yml` after a master E2E
+run. The request (JSON) is one of two kinds:
 
 - `kind: "e2e-master-repair-conflict"`: one of your repair PRs no longer merges into master.
   Follow [Resolve a conflict on your repair PR](#resolve-a-conflict-on-your-repair-pr) and nothing
