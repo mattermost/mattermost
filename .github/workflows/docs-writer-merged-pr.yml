@@ -137,7 +137,7 @@ jobs:
           # source PR when the author is a bot (type Bot and/or login *[bot]).
           REVIEWER="$AUTHOR"
           if [ "$AUTHOR_TYPE" = "Bot" ] || [[ "$AUTHOR" == *"[bot]" ]]; then
-            REVIEWS=$(gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/reviews")
+            REVIEWS=$(gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/reviews" || echo '[]')
             REVIEWER=$(echo "$REVIEWS" | jq -r '
               add // []
               | [ .[]
@@ -159,7 +159,7 @@ jobs:
                 ]
                 | unique
                 | .[0] // empty
-              ')
+              ' || true)
             fi
           fi
 
