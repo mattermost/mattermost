@@ -383,9 +383,13 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
         // Validates that the /attributes endpoint strips source_only and shared_only
         // fields before they reach the channel members RHS panel. A public field in
         // the same policy must still appear so we confirm the filter is selective.
-        // 10 retry attempts at up to ~15s each (3s settle + reload + 10s cache-visibility wait)
-        // can approach 150s on a cold cache; give this test enough room for the worst case.
-        test.setTimeout(180000);
+        // 10 retry attempts at up to ~18s each (3s settle + reload + 10s cache-visibility wait)
+        // can approach 180s on a cold cache, plus up to 45s for waitForAttributeViewToInclude
+        // below to resolve the three-attribute CEL expression — give this test enough room
+        // for the combined worst case rather than risk a silent global test-timeout cutoff
+        // mid-retry (which would surface as a generic "Test timeout exceeded" instead of the
+        // specific assertion failure below, making the real symptom harder to diagnose).
+        test.setTimeout(240000);
         await pw.skipIfNoLicense();
 
         const {adminUser, adminClient, team} = await pw.initSetup();
