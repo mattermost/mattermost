@@ -191,9 +191,11 @@ func (wb *WebsocketBroadcast) copy() *WebsocketBroadcast {
 	c.UserId = wb.UserId
 	c.ChannelId = wb.ChannelId
 	c.TeamId = wb.TeamId
+	c.ConnectionId = wb.ConnectionId
 	c.OmitConnectionId = wb.OmitConnectionId
 	c.ContainsSanitizedData = wb.ContainsSanitizedData
 	c.ContainsSensitiveData = wb.ContainsSensitiveData
+	c.ReliableClusterSend = wb.ReliableClusterSend
 	c.RecordPostDelivery = wb.RecordPostDelivery
 	c.RequiredPermissions = slices.Clone(wb.RequiredPermissions)
 	c.BroadcastHooks = wb.BroadcastHooks

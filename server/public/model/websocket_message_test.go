@@ -176,14 +176,20 @@ func TestWebsocketBroadcastCopy(t *testing.T) {
 		UserId:                "aaa",
 		ChannelId:             "bbb",
 		TeamId:                "ccc",
+		ConnectionId:          "conn-target",
+		OmitConnectionId:      "conn-omit",
 		ContainsSanitizedData: true,
 		ContainsSensitiveData: true,
+		ReliableClusterSend:   true,
 		RecordPostDelivery:    &PostDeliveryMarker{PostId: "ddd", ChannelId: "bbb", UserId: "eee"},
 		RequiredPermissions:   []string{PermissionReadDataRetentionJob.Id},
+		BroadcastHooks:        []string{"hook"},
+		BroadcastHookArgs:     []map[string]any{{"k": "v"}},
 	}
 	wCopy := w.copy()
 	require.Equal(t, w, wCopy)
 	require.NotSame(t, &w.RequiredPermissions[0], &wCopy.RequiredPermissions[0])
+	AssertNotSameMap(t, w.OmitUsers, wCopy.OmitUsers)
 }
 
 func TestWebSocketEventWithoutRecordPostDelivery(t *testing.T) {
