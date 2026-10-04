@@ -3,17 +3,18 @@
 
 import {duration, expect, test} from '@mattermost/playwright-lib';
 
-import {sendDemoSlashCommand} from '../../helpers';
+import {recoverDemoPlugin, sendDemoSlashCommand} from '../../helpers';
 
 test('should post interactive button and respond with click attribution via /interactive command', async ({pw}) => {
-    // A concurrent plugin_crash.spec.ts worker can leave the button-click hook broken for up
-    // to ~50s while it crashes and fully recovers the shared demo plugin (see that spec for
-    // the recovery budget the retry below is sized against). test.slow() triples the test
-    // timeout so the retry has room to outlast that window.
+    // The button-click hook has been observed to stop responding for the rest of a CI
+    // worker's run with no single confirmed trigger (reproduced without plugin_crash.spec.ts
+    // ever running first in the same worker — see recoverDemoPlugin's doc comment). The
+    // retry loop below forces a full plugin recovery cycle partway through, which is the one
+    // action known to clear it, so give it a generous timeout to leave room for that cycle.
     test.slow();
 
     // # Setup
-    const {user, team} = await pw.initSetup();
+    const {adminClient, user, team} = await pw.initSetup();
     await pw.ensureDemoPlugin();
 
     // # Login
@@ -50,13 +51,16 @@ test('should post interactive button and respond with click attribution via /int
     await expect(interactivePost.getByRole('button', {name: 'Interactive Button'})).toBeVisible();
 
     // # Click the Interactive Button (with retries if the plugin is transiently
-    // unavailable, e.g. during a concurrent plugin_crash.spec.ts recovery cycle, in which
-    // case the button-click action request can fail silently and no reply ever appears —
-    // re-clicking is safe since the button stays visible until a reply is posted). 8
-    // attempts gives ~80s of total budget, comfortably outlasting plugin_crash.spec.ts's
-    // worst-case ~50s recovery cycle.
+    // unavailable, in which case the button-click action request can fail silently and no
+    // reply ever appears — re-clicking is safe since the button stays visible until a reply
+    // is posted). If plain retries don't clear it, force a full plugin recovery cycle once
+    // and keep retrying — see recoverDemoPlugin's doc comment for why that is the one
+    // action known to help.
     const replyButton = interactivePost.getByRole('button', {name: /1 reply/});
     for (let attempt = 0; attempt < 8; attempt++) {
+        if (attempt === 4) {
+            await recoverDemoPlugin(adminClient);
+        }
         await interactivePost.getByRole('button', {name: 'Interactive Button'}).click();
         try {
             await expect(replyButton).toBeVisible({timeout: duration.ten_sec});

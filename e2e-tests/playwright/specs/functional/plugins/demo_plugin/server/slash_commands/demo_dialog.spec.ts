@@ -3,19 +3,18 @@
 
 import {duration, expect, test} from '@mattermost/playwright-lib';
 
-import {sendDemoSlashCommand} from '../../helpers';
+import {recoverDemoPlugin, sendDemoSlashCommand} from '../../helpers';
 
 test('should open /dialog and post submit confirmation on submit', async ({pw}) => {
-    // A concurrent plugin_crash.spec.ts worker can leave the submit hook broken for up to
-    // ~50s while it crashes and fully recovers the shared demo plugin (see that spec for the
-    // recovery budget this is sized against). If plugin_crash.spec.ts itself needs a CI
-    // retry (Playwright retries: 1), that window can compound to ~100s+ across both runs.
-    // An explicit timeout (rather than test.slow()'s 3x default) gives the retry loop below
-    // enough headroom to outlast that compounded worst case.
+    // The submit hook has been observed to stop responding for the rest of a CI worker's
+    // run with no single confirmed trigger (reproduced without plugin_crash.spec.ts ever
+    // running first in the same worker — see recoverDemoPlugin's doc comment). The retry
+    // loop below forces a full plugin recovery cycle partway through, which is the one
+    // action known to clear it, so give it a generous timeout to leave room for that cycle.
     test.setTimeout(duration.four_min);
 
     // # Setup
-    const {user, team} = await pw.initSetup();
+    const {adminClient, user, team} = await pw.initSetup();
     await pw.ensureDemoPlugin();
 
     // # Login
@@ -70,12 +69,15 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
     // Radio Option Selector — required
     await dialog.getByRole('radio', {name: 'Option1'}).click();
 
-    // # Submit the dialog (with retries if the plugin is transiently unavailable, e.g.
-    // during a concurrent plugin_crash.spec.ts recovery cycle, in which case the submit
-    // request can fail silently and the dialog never closes — re-clicking Submit is safe
-    // since the filled-in fields are retained). 12 attempts gives ~120s of total budget,
-    // outlasting even a compounded recovery cycle (plugin_crash.spec.ts retried by CI).
+    // # Submit the dialog (with retries if the plugin is transiently unavailable, in which
+    // case the submit request can fail silently and the dialog never closes — re-clicking
+    // Submit is safe since the filled-in fields are retained). If plain retries don't clear
+    // it, force a full plugin recovery cycle once and keep retrying — see
+    // recoverDemoPlugin's doc comment for why that is the one action known to help.
     for (let attempt = 0; attempt < 12; attempt++) {
+        if (attempt === 6) {
+            await recoverDemoPlugin(adminClient);
+        }
         await dialog.getByRole('button', {name: 'Submit'}).click();
         try {
             await expect(dialog).not.toBeVisible({timeout: duration.ten_sec});
@@ -96,13 +98,11 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
 });
 
 test('should post cancellation notification when /dialog is cancelled', async ({pw}) => {
-    // See the submit test above for why this needs extra time: a concurrent
-    // plugin_crash.spec.ts worker can leave the cancel hook broken for up to ~50s,
-    // compounding to ~100s+ if plugin_crash.spec.ts itself needs a CI retry.
+    // See the submit test above for why this needs extra time.
     test.setTimeout(duration.four_min);
 
     // # Setup
-    const {user, team} = await pw.initSetup();
+    const {adminClient, user, team} = await pw.initSetup();
     await pw.ensureDemoPlugin();
 
     // # Login
@@ -137,13 +137,22 @@ test('should post cancellation notification when /dialog is cancelled', async ({
     await expect(dialog.getByRole('button', {name: 'Submit'})).toBeVisible();
 
     // # Cancel the dialog and verify the cancellation post appears (with retries if the
-    // plugin is transiently unavailable, e.g. during a concurrent plugin_crash.spec.ts
-    // recovery cycle: the client-side dialog close can succeed while the server-side
-    // cancel notification silently fails, so reopen and cancel again on failure)
+    // plugin is transiently unavailable: the client-side dialog close can succeed while
+    // the server-side cancel notification silently fails, so reopen and cancel again on
+    // failure). If plain retries don't clear it, force a full plugin recovery cycle once —
+    // see recoverDemoPlugin's doc comment for why that is the one action known to help.
     const cancellationPost = channelsPage.centerView.container
         .locator('p')
         .filter({hasText: 'canceled an Interative Dialog'});
     for (let attempt = 0; attempt < 12; attempt++) {
+        if (attempt === 6) {
+            await recoverDemoPlugin(adminClient);
+            await sendDemoSlashCommand(channelsPage.page, async () => {
+                await channelsPage.centerView.postCreate.input.fill('/dialog');
+                await channelsPage.centerView.postCreate.sendMessage();
+            });
+            await expect(dialog).toBeVisible({timeout: duration.ten_sec});
+        }
         if (await dialog.isVisible()) {
             await dialog.getByRole('button', {name: 'Cancel'}).click();
         }

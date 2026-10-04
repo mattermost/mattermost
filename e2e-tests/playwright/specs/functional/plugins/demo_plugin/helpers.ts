@@ -3,9 +3,10 @@
 
 import path from 'node:path';
 
+import type {Client4} from '@mattermost/client';
 import type {Page} from '@playwright/test';
 
-import {expect} from '@mattermost/playwright-lib';
+import {demoPluginId, duration, expect, isPluginActive} from '@mattermost/playwright-lib';
 
 const assetPath = path.resolve(__dirname, '../../../../asset');
 
@@ -76,4 +77,22 @@ export async function sendDemoSlashCommand(page: Page, send: () => Promise<void>
         {timeout: 45_000},
     );
     await Promise.all([send(), responsePromise]);
+}
+
+/**
+ * Forces the demo plugin through one disable/enable cycle and waits for it to report active
+ * again — the same recovery cycle plugin_crash.spec.ts uses after a deliberate crash.
+ *
+ * isPluginActive() can report true while interactive hooks (dialog submit/cancel, post
+ * action callbacks) are still unresponsive: these hooks have been observed to stay broken
+ * for the rest of a CI worker's run with no single confirmed trigger (reproduced in CI
+ * without plugin_crash.spec.ts ever running first in the same worker), and simply retrying
+ * the same click/submit action does not clear it. A full OnActivate cycle does. Use this as
+ * a last-resort step inside a retry loop once plain retries have been exhausted, rather than
+ * as the first response to a failure.
+ */
+export async function recoverDemoPlugin(adminClient: Client4): Promise<void> {
+    await adminClient.disablePlugin(demoPluginId);
+    await adminClient.enablePlugin(demoPluginId);
+    await expect.poll(() => isPluginActive(adminClient, demoPluginId), {timeout: duration.half_min}).toBe(true);
 }

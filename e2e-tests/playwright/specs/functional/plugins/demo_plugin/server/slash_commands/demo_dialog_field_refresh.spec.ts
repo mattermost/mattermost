@@ -3,19 +3,17 @@
 
 import {duration, expect, test} from '@mattermost/playwright-lib';
 
-import {sendDemoSlashCommand} from '../../helpers';
+import {recoverDemoPlugin, sendDemoSlashCommand} from '../../helpers';
 
 test('should update form fields dynamically when project type changes via /dialog field-refresh', async ({pw}) => {
-    // A concurrent plugin_crash.spec.ts worker can leave the submit hook broken for up to
-    // ~50s while it crashes and fully recovers the shared demo plugin (see that spec for the
-    // recovery budget this is sized against). If plugin_crash.spec.ts itself needs a CI
-    // retry (Playwright retries: 1), that window can compound to ~100s+ across both runs.
-    // An explicit timeout (rather than test.slow()'s 3x default) gives the retry loop below
-    // enough headroom to outlast that compounded worst case.
+    // The submit hook has been observed to stop responding for the rest of a CI worker's
+    // run with no single confirmed trigger (see recoverDemoPlugin's doc comment). The retry
+    // loop below forces a full plugin recovery cycle partway through, which is the one
+    // action known to clear it, so give it a generous timeout to leave room for that cycle.
     test.setTimeout(duration.four_min);
 
     // # Setup
-    const {user, team} = await pw.initSetup();
+    const {adminClient, user, team} = await pw.initSetup();
     await pw.ensureDemoPlugin();
 
     // # Login
@@ -103,12 +101,15 @@ test('should update form fields dynamically when project type changes via /dialo
     await dialog.locator('[class*="Select__control"], [class*="react-select__control"]').last().click();
     await channelsPage.page.getByRole('option', {name: 'PostgreSQL'}).click();
 
-    // # Submit the dialog (with retries if the plugin is transiently unavailable, e.g.
-    // during a concurrent plugin_crash.spec.ts recovery cycle, in which case the submit
-    // request can fail silently and the dialog never closes — re-clicking Create Project
-    // is safe since the filled-in fields are retained). 12 attempts gives ~120s of total
-    // budget, outlasting even a compounded recovery cycle (plugin_crash.spec.ts retried by CI).
+    // # Submit the dialog (with retries if the plugin is transiently unavailable, in which
+    // case the submit request can fail silently and the dialog never closes — re-clicking
+    // Create Project is safe since the filled-in fields are retained). If plain retries
+    // don't clear it, force a full plugin recovery cycle once and keep retrying — see
+    // recoverDemoPlugin's doc comment for why that is the one action known to help.
     for (let attempt = 0; attempt < 12; attempt++) {
+        if (attempt === 6) {
+            await recoverDemoPlugin(adminClient);
+        }
         await dialog.getByRole('button', {name: 'Create Project'}).click();
         try {
             await expect(dialog).not.toBeVisible({timeout: duration.ten_sec});
