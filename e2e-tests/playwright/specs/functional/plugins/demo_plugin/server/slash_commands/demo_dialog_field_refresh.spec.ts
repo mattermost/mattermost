@@ -8,9 +8,11 @@ import {sendDemoSlashCommand} from '../../helpers';
 test('should update form fields dynamically when project type changes via /dialog field-refresh', async ({pw}) => {
     // A concurrent plugin_crash.spec.ts worker can leave the submit hook broken for up to
     // ~50s while it crashes and fully recovers the shared demo plugin (see that spec for the
-    // recovery budget this is sized against). test.slow() triples the test timeout so the
-    // retry loop below has room to outlast that window instead of racing the suite default.
-    test.slow();
+    // recovery budget this is sized against). If plugin_crash.spec.ts itself needs a CI
+    // retry (Playwright retries: 1), that window can compound to ~100s+ across both runs.
+    // An explicit timeout (rather than test.slow()'s 3x default) gives the retry loop below
+    // enough headroom to outlast that compounded worst case.
+    test.setTimeout(duration.four_min);
 
     // # Setup
     const {user, team} = await pw.initSetup();
@@ -104,15 +106,15 @@ test('should update form fields dynamically when project type changes via /dialo
     // # Submit the dialog (with retries if the plugin is transiently unavailable, e.g.
     // during a concurrent plugin_crash.spec.ts recovery cycle, in which case the submit
     // request can fail silently and the dialog never closes — re-clicking Create Project
-    // is safe since the filled-in fields are retained). 8 attempts gives ~80s of total
-    // budget, comfortably outlasting plugin_crash.spec.ts's worst-case ~50s recovery cycle.
-    for (let attempt = 0; attempt < 8; attempt++) {
+    // is safe since the filled-in fields are retained). 12 attempts gives ~120s of total
+    // budget, outlasting even a compounded recovery cycle (plugin_crash.spec.ts retried by CI).
+    for (let attempt = 0; attempt < 12; attempt++) {
         await dialog.getByRole('button', {name: 'Create Project'}).click();
         try {
             await expect(dialog).not.toBeVisible({timeout: duration.ten_sec});
             break;
         } catch (err) {
-            if (attempt === 7) {
+            if (attempt === 11) {
                 throw err;
             }
         }

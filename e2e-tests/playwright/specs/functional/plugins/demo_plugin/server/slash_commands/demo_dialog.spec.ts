@@ -8,9 +8,11 @@ import {sendDemoSlashCommand} from '../../helpers';
 test('should open /dialog and post submit confirmation on submit', async ({pw}) => {
     // A concurrent plugin_crash.spec.ts worker can leave the submit hook broken for up to
     // ~50s while it crashes and fully recovers the shared demo plugin (see that spec for the
-    // recovery budget this is sized against). test.slow() triples the test timeout so the
-    // retry loop below has room to outlast that window instead of racing the suite default.
-    test.slow();
+    // recovery budget this is sized against). If plugin_crash.spec.ts itself needs a CI
+    // retry (Playwright retries: 1), that window can compound to ~100s+ across both runs.
+    // An explicit timeout (rather than test.slow()'s 3x default) gives the retry loop below
+    // enough headroom to outlast that compounded worst case.
+    test.setTimeout(duration.four_min);
 
     // # Setup
     const {user, team} = await pw.initSetup();
@@ -71,15 +73,15 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
     // # Submit the dialog (with retries if the plugin is transiently unavailable, e.g.
     // during a concurrent plugin_crash.spec.ts recovery cycle, in which case the submit
     // request can fail silently and the dialog never closes — re-clicking Submit is safe
-    // since the filled-in fields are retained). 8 attempts gives ~80s of total budget,
-    // comfortably outlasting plugin_crash.spec.ts's worst-case ~50s recovery cycle.
-    for (let attempt = 0; attempt < 8; attempt++) {
+    // since the filled-in fields are retained). 12 attempts gives ~120s of total budget,
+    // outlasting even a compounded recovery cycle (plugin_crash.spec.ts retried by CI).
+    for (let attempt = 0; attempt < 12; attempt++) {
         await dialog.getByRole('button', {name: 'Submit'}).click();
         try {
             await expect(dialog).not.toBeVisible({timeout: duration.ten_sec});
             break;
         } catch (err) {
-            if (attempt === 7) {
+            if (attempt === 11) {
                 throw err;
             }
         }
@@ -95,8 +97,9 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
 
 test('should post cancellation notification when /dialog is cancelled', async ({pw}) => {
     // See the submit test above for why this needs extra time: a concurrent
-    // plugin_crash.spec.ts worker can leave the cancel hook broken for up to ~50s.
-    test.slow();
+    // plugin_crash.spec.ts worker can leave the cancel hook broken for up to ~50s,
+    // compounding to ~100s+ if plugin_crash.spec.ts itself needs a CI retry.
+    test.setTimeout(duration.four_min);
 
     // # Setup
     const {user, team} = await pw.initSetup();
@@ -140,7 +143,7 @@ test('should post cancellation notification when /dialog is cancelled', async ({
     const cancellationPost = channelsPage.centerView.container
         .locator('p')
         .filter({hasText: 'canceled an Interative Dialog'});
-    for (let attempt = 0; attempt < 8; attempt++) {
+    for (let attempt = 0; attempt < 12; attempt++) {
         if (await dialog.isVisible()) {
             await dialog.getByRole('button', {name: 'Cancel'}).click();
         }
@@ -151,7 +154,7 @@ test('should post cancellation notification when /dialog is cancelled', async ({
             await expect(cancellationPost).toBeVisible({timeout: duration.ten_sec});
             break;
         } catch (err) {
-            if (attempt === 7) {
+            if (attempt === 11) {
                 throw err;
             }
             // Reopen the dialog for the next attempt
