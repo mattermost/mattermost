@@ -19,5 +19,8 @@ export async function permalinkUrl(
 ): Promise<string> {
     const {SiteURL} = await client.getClientConfig();
     const siteUrl = (SiteURL ?? '').replace(/\/+$/, '');
+    if (!siteUrl) {
+        throw new Error('permalinkUrl: server SiteURL is empty');
+    }
     return `${siteUrl}/${teamName}/pl/${postId}`;
 }
