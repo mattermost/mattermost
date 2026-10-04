@@ -1,10 +1,10 @@
 ---
-# E2E autofix on merge. After each master E2E run, hand the Playwright specs that keep
-# failing (broken twice in a row, or flaky) to the E2E autofix Cursor automation, which
-# reproduces them, fixes them, verifies the fix several times and opens one PR. It also
-# sends back its own open PRs that no longer merge into master. What to fix is decided by
-# the triage engine's trunk rules, not by the agent; the agent's instructions are in
-# .cursor/automations/e2e-master-repair.md.
+# E2E autofix on merge. After each master E2E run, the toolkit's e2e-master-watch action
+# decides what needs a fix: Playwright specs that keep failing (broken twice in a row, or
+# flaky), and the agent's own open PRs that no longer merge into master. This workflow
+# sends each request to the "E2E Autofix" Cursor automation, which reproduces the
+# failure, fixes it, verifies the fix several times and opens one PR (or merges master
+# into its PR). The agent's instructions are in .cursor/automations/e2e-autofix.md.
 #
 # Without the webhook secrets it only writes the job summary. Repository owners can turn
 # it off by setting the variable E2E_ENABLE_AUTOFIX to "false".
@@ -29,8 +29,9 @@ jobs:
       pull-requests: read
     steps:
       # The run reports which branch it tested; runs of release branches are ignored.
-      - name: ci/e2e-master-watch
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-master-watch@e755dedf661738f961adfad159f1014e1e73bca2 # actions/e2e-master-watch
+      - name: ci/e2e-autofix-plan
+        id: plan
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-master-watch@9cc47a406ffdf1151d8155f346c687ee0cd2ff41 # actions/e2e-master-watch
         with:
           repository: ${{ github.repository }}
           gh-run-id: ${{ github.event.workflow_run.id }}
@@ -40,6 +41,40 @@ jobs:
             [{"name": "playwright-full-enterprise-master", "test_root": "e2e-tests/playwright/specs"},
              {"name": "playwright-full-fips-master", "test_root": "e2e-tests/playwright/specs"}]
           github-token: ${{ github.token }}
-          cursor-webhook-url: ${{ secrets.CURSOR_E2E_REPAIR_WEBHOOK_URL }}
-          cursor-webhook-key: ${{ secrets.CURSOR_E2E_REPAIR_WEBHOOK_KEY }}
+          label: e2e-autofix
           extra-labels: AI/babysit
+          instructions: .cursor/automations/e2e-autofix.md
+
+      # Requests carry test errors and commit titles: they go through env and stdin, never into the script.
+      - name: ci/e2e-autofix-send
+        id: send
+        if: steps.plan.outputs.count != '0'
+        env:
+          REQUESTS: ${{ steps.plan.outputs.requests }}
+          WEBHOOK_URL: ${{ secrets.CURSOR_E2E_AUTOFIX_WEBHOOK_URL }}
+          WEBHOOK_KEY: ${{ secrets.CURSOR_E2E_AUTOFIX_WEBHOOK_KEY }}
+        run: |
+          if [ -z "$WEBHOOK_URL" ] || [ -z "$WEBHOOK_KEY" ]; then
+            echo "No webhook configured: the requests are only in the job summary."
+            echo "results=[]" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          results='[]'
+          while IFS= read -r request; do
+            id=$(jq -r '.id' <<<"$request")
+            status=$(jq -c '.payload' <<<"$request" | curl -sS -o /dev/null -w '%{http_code}' --max-time 30 \
+              -X POST "$WEBHOOK_URL" -H "Authorization: Bearer $WEBHOOK_KEY" -H 'Content-Type: application/json' \
+              --data-binary @-) || true
+            echo "$id: HTTP ${status:-000}"
+            results=$(jq -c --arg id "$id" --arg status "${status:-0}" '. + [{id: $id, status: ($status | tonumber)}]' <<<"$results")
+          done < <(jq -c '.[]' <<<"$REQUESTS")
+          echo "results=$results" >> "$GITHUB_OUTPUT"
+
+      # Runs on every trunk run, even one that sent nothing, to keep the record of sent requests alive.
+      - name: ci/e2e-autofix-record
+        if: always() && steps.plan.outcome == 'success'
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-master-watch/record@9cc47a406ffdf1151d8155f346c687ee0cd2ff41 # actions/e2e-master-watch/record
+        with:
+          results: ${{ steps.send.outputs.results || '[]' }}
+          gh-run-id: ${{ github.event.workflow_run.id }}
+          gh-run-attempt: ${{ github.event.workflow_run.run_attempt }}

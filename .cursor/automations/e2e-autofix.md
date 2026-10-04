@@ -1,14 +1,13 @@
-# E2E master repair
+# E2E autofix
 
 You are started by `.github/workflows/e2e-tests-autofix-on-merge.yml` after a master E2E
 run. The request (JSON) is one of two kinds:
 
-- `kind: "e2e-master-repair-conflict"`: one of your repair PRs no longer merges into master.
-  Follow [Resolve a conflict on your repair PR](#resolve-a-conflict-on-your-repair-pr) and nothing
-  else.
-- `kind: "e2e-master-repair"`: Playwright spec files keep failing on master. Follow steps 1 to 6.
+- `kind: "e2e-autofix-conflict"`: one of your fix PRs no longer merges into master. Follow
+  [Resolve a conflict on your fix PR](#resolve-a-conflict-on-your-fix-pr) and nothing else.
+- `kind: "e2e-autofix"`: Playwright spec files keep failing on master. Follow steps 1 to 6.
 
-A repair request names:
+A fix request names:
 
 - `specs`, `classification` (`broken`: failed in two master runs in a row, or `flaky`: intermittent).
   Several specs come in one request when their tests last passed on the same commit: they most
@@ -32,7 +31,7 @@ within that one cause: no unrelated refactors, cleanups or fixes.
 ## 1. Check nobody is already on it
 
 Search open PRs for each spec path, each failing test's title, and the error's key phrase
-(`gh pr list --state open --search "<text>"`), and list open PRs with the `e2e-master-repair` label.
+(`gh pr list --state open --search "<text>"`), and list open PRs with the `e2e-autofix` label.
 If an open PR already fixes this failure, do not open another. Comment on that PR with what you
 found (the master run, the failure rate) and stop.
 
@@ -133,10 +132,10 @@ report:
 - **Anything else**: reproduce it locally against your branch. If your change caused it, fix it;
   if not, add it to that comment with your evidence.
 
-Your repair PRs stay yours until they merge. When one stops merging cleanly into master, you get a
+Your fix PRs stay yours until they merge. When one stops merging cleanly into master, you get a
 conflict request for it.
 
-## Resolve a conflict on your repair PR
+## Resolve a conflict on your fix PR
 
 The request names `pr`, `pr_url`, `pr_branch` and `pr_head`.
 
