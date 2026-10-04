@@ -6,7 +6,7 @@ import path from 'node:path';
 import type {Client4} from '@mattermost/client';
 import type {Page} from '@playwright/test';
 
-import {demoPluginId, duration, expect, isPluginActive} from '@mattermost/playwright-lib';
+import {demoPluginId, duration, expect, getPluginStatus, isPluginActive} from '@mattermost/playwright-lib';
 
 const assetPath = path.resolve(__dirname, '../../../../asset');
 
@@ -92,7 +92,32 @@ export async function sendDemoSlashCommand(page: Page, send: () => Promise<void>
  * as the first response to a failure.
  */
 export async function recoverDemoPlugin(adminClient: Client4): Promise<void> {
+    await logDemoPluginDiagnostics(adminClient, 'recoverDemoPlugin:before');
     await adminClient.disablePlugin(demoPluginId);
     await adminClient.enablePlugin(demoPluginId);
     await expect.poll(() => isPluginActive(adminClient, demoPluginId), {timeout: duration.half_min}).toBe(true);
+    await logDemoPluginDiagnostics(adminClient, 'recoverDemoPlugin:after');
+}
+
+// DEBUG-ONLY (temporary): visibility into server config/plugin state whenever a dialog
+// submit/cancel attempt is made, to find what correlates with the hooks going unresponsive
+// (see recoverDemoPlugin's doc comment above). Not a fix on its own — console.log so it shows
+// up directly in CI job output without needing a custom server image or extra artifacts.
+export async function logDemoPluginDiagnostics(adminClient: Client4, label: string): Promise<void> {
+    try {
+        const [config, status] = await Promise.all([adminClient.getConfig(), getPluginStatus(adminClient, demoPluginId)]);
+        // eslint-disable-next-line no-console
+        console.log(
+            `[demo-plugin-diag] ${label} ${JSON.stringify({
+                siteUrl: config.ServiceSettings?.SiteURL,
+                allowedUntrustedInternalConnections: config.ServiceSettings?.AllowedUntrustedInternalConnections,
+                outgoingIntegrationRequestsTimeout: config.ServiceSettings?.OutgoingIntegrationRequestsTimeout,
+                isActive: status.isActive,
+                isInstalled: status.isInstalled,
+            })}`,
+        );
+    } catch (err) {
+        // eslint-disable-next-line no-console
+        console.log(`[demo-plugin-diag] ${label} - failed to collect diagnostics: ${String(err)}`);
+    }
 }

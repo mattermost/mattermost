@@ -3,7 +3,20 @@
 
 import {duration, expect, test} from '@mattermost/playwright-lib';
 
-import {recoverDemoPlugin, sendDemoSlashCommand} from '../../helpers';
+import {logDemoPluginDiagnostics, recoverDemoPlugin, sendDemoSlashCommand} from '../../helpers';
+
+// DEBUG-ONLY (temporary): logs every response to the dialog submit API so CI output shows
+// whether the request ever got a response at all, and with what status/timing, instead of
+// only seeing the client-side symptom (dialog stays visible). See recoverDemoPlugin's doc
+// comment for background. Purely observational — does not alter control flow.
+function attachDialogSubmitResponseLogger(page: {on: (event: 'response', handler: (response: unknown) => void) => void}) {
+    page.on('response', (response: any) => {
+        if (typeof response?.url === 'function' && response.url().includes('/api/v4/actions/dialogs/submit')) {
+            // eslint-disable-next-line no-console
+            console.log(`[demo-plugin-diag] dialog submit response: status=${response.status()} url=${response.url()}`);
+        }
+    });
+}
 
 test('should open /dialog and post submit confirmation on submit', async ({pw}) => {
     // The submit hook has been observed to stop responding for the rest of a CI worker's
@@ -19,6 +32,7 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
 
     // # Login
     const {channelsPage} = await pw.testBrowser.login(user);
+    attachDialogSubmitResponseLogger(channelsPage.page); // DEBUG-ONLY (temporary)
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
@@ -74,6 +88,7 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
     // Submit is safe since the filled-in fields are retained). If plain retries don't clear
     // it, force a full plugin recovery cycle once and keep retrying — see
     // recoverDemoPlugin's doc comment for why that is the one action known to help.
+    await logDemoPluginDiagnostics(adminClient, 'submit-loop:attempt=0'); // DEBUG-ONLY (temporary)
     for (let attempt = 0; attempt < 12; attempt++) {
         if (attempt === 6) {
             await recoverDemoPlugin(adminClient);
@@ -83,6 +98,8 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
             await expect(dialog).not.toBeVisible({timeout: duration.ten_sec});
             break;
         } catch (err) {
+            // eslint-disable-next-line no-console
+            console.log(`[demo-plugin-diag] submit-loop:attempt=${attempt} failed to close dialog`); // DEBUG-ONLY (temporary)
             if (attempt === 11) {
                 throw err;
             }
@@ -107,6 +124,7 @@ test('should post cancellation notification when /dialog is cancelled', async ({
 
     // # Login
     const {channelsPage} = await pw.testBrowser.login(user);
+    attachDialogSubmitResponseLogger(channelsPage.page); // DEBUG-ONLY (temporary)
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
@@ -144,6 +162,7 @@ test('should post cancellation notification when /dialog is cancelled', async ({
     const cancellationPost = channelsPage.centerView.container
         .locator('p')
         .filter({hasText: 'canceled an Interative Dialog'});
+    await logDemoPluginDiagnostics(adminClient, 'cancel-loop:attempt=0'); // DEBUG-ONLY (temporary)
     for (let attempt = 0; attempt < 12; attempt++) {
         if (attempt === 6) {
             await recoverDemoPlugin(adminClient);
