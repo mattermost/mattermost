@@ -6,7 +6,7 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {Page} from '@playwright/test';
 
-import {expect, setupFileServer, test, testConfig} from '@mattermost/playwright-lib';
+import {expect, permalinkUrl, setupFileServer, test} from '@mattermost/playwright-lib';
 import type {ChannelsPage, PlaywrightClient4} from '@mattermost/playwright-lib';
 
 import {watchPostListScroll, type PostListScrollWatcher} from './scroll_helpers';
@@ -153,18 +153,19 @@ test.describe('Post list initial scroll in unread channel', () => {
                 const linkedPost = await userClient.createTestPost({
                     channel_id: channel.id,
                 });
+                const permalink = await permalinkUrl(userClient, team.name, linkedPost.id);
 
                 for (let i = 0; i < 80; i++) {
                     await userClient.createTestPost({
                         channel_id: channel.id,
-                        message: `${testConfig.internalBaseURL}/${team.name}/pl/${linkedPost.id}`,
+                        message: permalink,
                     });
                 }
 
                 for (let i = 0; i < 80; i++) {
                     await adminClient.createTestPost({
                         channel_id: channel.id,
-                        message: `${testConfig.internalBaseURL}/${team.name}/pl/${linkedPost.id}`,
+                        message: permalink,
                     });
                 }
             },
