@@ -201,19 +201,12 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                     disabled={item.mandatory}
                                     onChange={() => this.updateCheckStatus(index)}
                                 />
-                                <FormattedMessage
-                                    id='mettormost.plugin.metrics.support.packet'
-                                    defaultMessage={item.label}
+                                <label
+                                    className='CommercialSupportModal__options_checkbox_label'
+                                    htmlFor={item.id}
                                 >
-                                    {(text) => (
-                                        <label
-                                            className='CommercialSupportModal__options_checkbox_label'
-                                            htmlFor={item.id}
-                                        >
-                                            {text}
-                                        </label>)
-                                    }
-                                </FormattedMessage>
+                                    {item.label}
+                                </label>
                             </div>
                         ))}
                         <div className='CommercialSupportModal__download'>

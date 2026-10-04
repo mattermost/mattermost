@@ -93,6 +93,14 @@ var supportedLocales = []string{
 	"zh-CN",
 	"zh-TW",
 	"ja",
+	"da",
+	"cs",
+	"hr",
+	"lt",
+	"nb-NO",
+	"pt",
+	"fi",
+	"be",
 }
 
 var (
