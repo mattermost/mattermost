@@ -153,8 +153,10 @@ The request names `pr`, `pr_url`, `pr_branch` and `pr_head`.
    - If master changed the same test in a way your repair makes unnecessary (for example, a longer
      timeout for a wait your fix makes pass), keep master's change and say so in your comment, so
      the reviewers decide. Do not remove it yourself.
-4. Verify on your machine, as in step 4, for every spec the PR changes: `--project=chrome
-   --retries=0 --repeat-each=3`, under the condition that broke the original and on a fresh stack,
+4. Verify on your machine with step 4's repeat counts, taken from the PR's description: the
+   specs the PR repaired pass `--project=chrome --retries=0 --repeat-each=5` (`--repeat-each=10`
+   if they were flaky), and the other specs it changed for the same defect pass
+   `--repeat-each=3`. Run each under the condition that broke the original and on a fresh stack,
    then `npm run check`.
 5. Push the merge commit once. Comment on the PR: which files conflicted, how you resolved each,
    and the pass counts.
