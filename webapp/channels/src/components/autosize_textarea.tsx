@@ -120,6 +120,43 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
         textarea.current = textareaRef;
     }, [ref]);
 
+    // issue #30977: on Shift+Enter inside a bulleted or numbered list,
+    // continue the list on the next line automatically. The parent's
+    // onKeyDown (from ...otherProps) runs first so QuickInput /
+    // SuggestionBox shortcuts still work; we only take over if the
+    // parent hasn't already consumed the event.
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        (otherProps as {onKeyDown?: React.KeyboardEventHandler<HTMLTextAreaElement>}).onKeyDown?.(e);
+        if (e.defaultPrevented) {
+            return;
+        }
+
+        if (e.key !== 'Enter' || !e.shiftKey) {
+            return;
+        }
+
+        const target = e.currentTarget;
+        const {value, selectionStart} = target;
+
+        // Grab the current line up to the cursor.
+        const lineStart = value.lastIndexOf('\n', selectionStart - 1) + 1;
+        const currentLine = value.slice(lineStart, selectionStart);
+
+        const bullet = currentLine.match(/^(\s*[-*+])\s+/);
+        const numbered = currentLine.match(/^(\s*)(\d+)\.\s+/);
+
+        if (!bullet && !numbered) {
+            return;
+        }
+
+        const prefix = bullet ?
+            `${bullet[1]} ` :
+            `${numbered![1]}${parseInt(numbered![2], 10) + 1}. `;
+
+        e.preventDefault();
+        document.execCommand('insertText', false, '\n' + prefix);
+    };
+
     useEffect(() => {
         recalculateHeight();
         recalculateWidth();
@@ -163,6 +200,7 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
                 disabled={disabled}
                 onChange={onChange}
                 onInput={onInput}
+                onKeyDown={handleKeyDown}
                 value={value}
                 defaultValue={defaultValue}
                 style={showScrollbar ? styles.textAreaWithScroll : styles.textArea}
