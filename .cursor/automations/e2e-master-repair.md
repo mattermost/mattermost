@@ -7,7 +7,8 @@ The request (JSON) names Playwright spec files that keep failing on master:
   Several specs come in one request when their tests last passed on the same commit: they most
   likely share one cause. Fix that cause once.
 - `tests`: each failing test's spec, title, error and recent master history (`tests_omitted`: how
-  many more did not fit)
+  many more did not fit). `trunk.recovered_on_retry_now: true` means the test failed and then
+  passed on retry in that run; it is flaky, not broken.
 - `master_run`, `commit`, `suites`: the run, the master commit it tested, and the suites that failed
 - `last_green_commit`, `first_red_commit`, `suspect_commits` (oldest first, `suspect_commits_total`
   in all): the newest master commit where every failing test passed, the first where one failed,
@@ -35,7 +36,7 @@ the `chrome` project as master CI does. The Enterprise Advanced license must be 
 ```bash
 cd e2e-tests/playwright && npm ci
 PW_USE_TESTCONTAINERS=true SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:master \
-  npx playwright test --project=chrome <spec paths relative to e2e-tests/playwright> --repeat-each=3
+  npx playwright test --project=chrome --retries=0 <spec paths relative to e2e-tests/playwright> --repeat-each=3
 ```
 
 Repeat with the FIPS image (`mattermostdevelopment/mattermost-enterprise-fips-edition:master`) when
@@ -64,7 +65,7 @@ assertion, adding a fixed wait or sleep, raising a timeout, or adding retries.
 
 ## 4. Verify, all on your machine, before any push
 
-- Each spec passes `--project=chrome --repeat-each=5` on the regular image, and on FIPS when
+- Each spec passes `--project=chrome --retries=0 --repeat-each=5` on the regular image, and on FIPS when
   relevant. For `flaky`, `--repeat-each=10`.
 - The other spec files in the same directories, and any spec that uses a page object or helper you
   changed, pass once.
