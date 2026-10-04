@@ -413,8 +413,16 @@ export async function setupCustomProfileAttributeFields(
         // sysadmin-only even once attrs.managed reads back empty.
         const needsPermissionReset = requestedManaged !== 'admin' && existing?.permission_values === 'sysadmin';
         const managedStateMatches = existingManaged === requestedManaged && !needsPermissionReset;
+        // A field whose name happens to match can also be a Global Attribute's linked
+        // dependent field (e.g. a global_attributes_form.spec.ts "Applies to: User" save left
+        // one behind under this name) rather than a plain CPA field. The server rejects any
+        // attrs patch against a linked field ("linked to a Global Attribute template"), so the
+        // reuse branch below would either throw or (worse) silently keep whatever visibility/
+        // value_type the template left it with. Route it through delete+recreate instead, same
+        // as a type/managed mismatch, so callers reliably get a plain field they can patch.
+        const isLinkedField = Boolean(existing?.linked_field_id);
 
-        if (existing && existing.type === field.type && managedStateMatches) {
+        if (existing && existing.type === field.type && managedStateMatches && !isLinkedField) {
             // Name, type, and managed state all match, but a prior test (an ABAC policy test
             // or an earlier custom_attributes test, possibly run right before this one on the
             // same shard) may have left this field with a visibility/value_type/display_name
@@ -447,14 +455,27 @@ export async function setupCustomProfileAttributeFields(
                 fieldsMap[existing.id] = existing;
             }
         } else if (existing) {
-            // Same name but wrong type, or wrong managed state (e.g. a previous spec created
-            // 'Location' as 'text' while this spec needs it as 'select', or a previous ABAC
-            // test left 'Department' with managed: 'admin' while this spec needs a plain
-            // field). Patching managed in place would leave PermissionValues pinned from the
-            // old state (see comment above), so delete the stale field and recreate it instead
-            // — a fresh create computes permissions from scratch for the new managed state.
+            // Same name but wrong type, wrong managed state, or linked to a Global Attribute
+            // template (e.g. a previous spec created 'Location' as 'text' while this spec needs
+            // it as 'select', a previous ABAC test left 'Department' with managed: 'admin' while
+            // this spec needs a plain field, or a previous Global Attributes test left
+            // 'Department' linked to a template). Patching managed or a linked field's attrs in
+            // place would either fail outright or leave PermissionValues pinned from the old
+            // state (see comment above), so delete the stale field and recreate it instead — a
+            // fresh create computes permissions from scratch and is never linked.
             try {
-                await adminClient.deleteCustomProfileAttributeField(existing.id);
+                if (isLinkedField) {
+                    // The CPA-specific delete endpoint rejects any field with a
+                    // linked_field_id ("linked to a Global Attribute template"), the same
+                    // guard that blocks patching one above — it exists to stop deleting the
+                    // *template* out from under live dependents, not to protect the dependent
+                    // field itself. Deleting a dependent field directly is an ordinary
+                    // operation (global_attributes_helpers.ts's own cleanup does exactly this
+                    // via the generic property-field route), so use that route here instead.
+                    await adminClient.deletePropertyField('access_control', 'user', existing.id);
+                } else {
+                    await adminClient.deleteCustomProfileAttributeField(existing.id);
+                }
             } catch {
                 // Ignore delete errors — the field may already be gone.
             }
