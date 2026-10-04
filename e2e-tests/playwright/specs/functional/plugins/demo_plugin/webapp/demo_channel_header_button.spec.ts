@@ -1,30 +1,38 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
-
-import {setupDemoPlugin} from '../helpers';
+import {duration, expect, test} from '@mattermost/playwright-lib';
 
 test('should open right-hand sidebar when demo plugin App Bar button is clicked', async ({pw}) => {
-    // 1. Setup
-    const {adminClient, user, team} = await pw.initSetup();
-    await setupDemoPlugin(adminClient, pw);
+    // # Setup
+    const {user, team} = await pw.initSetup();
+    await pw.ensureDemoPlugin();
 
-    // 2. Login and navigate to Town Square
+    // # Login and navigate to Town Square
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // 3. Locate and click the demo plugin button in the right App Bar
-    await expect(channelsPage.appBar.demoPluginButton).toBeVisible();
-
-    // 4. Click the App Bar button
-    await channelsPage.appBar.demoPluginButton.click();
-
-    // 5. Verify the RHS opens with expected content
+    // # Click the App Bar button and wait for the RHS to open (with reload + retry if the
+    // plugin is transiently unavailable, e.g. during a concurrent plugin_crash.spec.ts
+    // recovery cycle — the App Bar icon can briefly disappear or no-op mid reconnect)
     const rhsPanel = channelsPage.page.getByRole('region', {name: 'Demo Plugin'});
-    await expect(rhsPanel).toBeVisible();
+    for (let attempt = 0; attempt < 4; attempt++) {
+        await expect(channelsPage.appBar.demoPluginButton).toBeVisible();
+        await channelsPage.appBar.demoPluginButton.click();
+        try {
+            await expect(rhsPanel).toBeVisible({timeout: duration.ten_sec});
+            break;
+        } catch (err) {
+            if (attempt === 3) {
+                throw err;
+            }
+            await channelsPage.page.reload();
+            await channelsPage.toBeVisible();
+        }
+    }
 
+    // * Verify the RHS opens with expected content
     await expect(
         rhsPanel.getByText('You have triggered the right-hand sidebar component of the demo plugin.', {exact: true}),
     ).toBeVisible();
@@ -39,18 +47,22 @@ test('should open right-hand sidebar when demo plugin App Bar button is clicked'
     await expect(rhsPanel.getByRole('button', {name: 'Pop Out RHS'})).toBeVisible();
     await expect(rhsPanel.getByRole('button', {name: 'Pop Out via useEffect'})).toBeVisible();
 
-    // 6. Verify pop-out buttons are present and enabled (but do NOT click — pop-out crashes in test env)
+    // * Verify pop-out buttons are present and enabled (but do NOT click — pop-out crashes in test env)
     await expect(rhsPanel.getByRole('button', {name: 'Pop Out RHS'})).toBeEnabled();
     await expect(rhsPanel.getByRole('button', {name: 'Pop Out via useEffect'})).toBeEnabled();
 
-    // 7. Navigate to the /roottest custom route link and verify the page content
+    // # Navigate to the /roottest custom route link
     await rhsPanel.getByText('/plug/com.mattermost.demo-plugin/roottest').click();
+
+    // * Verify the route page content
     await expect(channelsPage.page).toHaveURL(/\/plug\/com\.mattermost\.demo-plugin\/roottest$/);
     await expect(channelsPage.page.getByText('Demo plugin route.')).toBeVisible();
     await channelsPage.page.goBack();
 
-    // 8. Close the RHS and verify it dismisses
+    // # Close the RHS
     const rhsPanelAfterNav = channelsPage.page.getByRole('region', {name: 'Demo Plugin'});
     await rhsPanelAfterNav.getByRole('button', {name: 'Close'}).click();
+
+    // * Verify it dismisses
     await expect(rhsPanelAfterNav).not.toBeVisible();
 });

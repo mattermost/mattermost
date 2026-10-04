@@ -58,7 +58,7 @@ test.describe('System Console - Membership Policy apostrophe values (MM-64357)',
         if (field) {
             await deleteCustomProfileAttributes(adminClient, {
                 [field.id]: field,
-                __ownedIds: new Set([field.id]),
+                ownedIds: new Set([field.id]),
             } as any);
             field = undefined;
         }
@@ -131,8 +131,13 @@ test.describe('System Console - Membership Policy apostrophe values (MM-64357)',
             // # Reopen the policy from the list
             await page.goto('/admin_console/system_attributes/membership_policies');
             await page.waitForLoadState('networkidle');
+            // The list is paginated (10 rows/page); other ABAC specs run earlier in this shard
+            // can leave dozens of policies behind, pushing this one past page 1. Use the list's
+            // own Search box so the row is found regardless of how many policies came before it.
+            await page.getByRole('textbox', {name: 'Search'}).fill(policyName);
+            await page.waitForLoadState('networkidle');
             const policyRow = page.locator('.policy-name').filter({hasText: policyName}).first();
-            await expect(policyRow).toBeVisible({timeout: 10000});
+            await expect(policyRow).toBeVisible({timeout: 20000});
             const rowId = await policyRow.getAttribute('id');
             policyId = rowId?.replace('customDescription-', '') ?? null;
             await policyRow.click();

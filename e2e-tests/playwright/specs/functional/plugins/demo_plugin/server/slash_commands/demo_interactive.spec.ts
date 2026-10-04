@@ -1,29 +1,32 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {duration, expect, test} from '@mattermost/playwright-lib';
 
-import {sendDemoSlashCommand, setupDemoPlugin} from '../../helpers';
+import {recoverDemoPlugin, sendDemoSlashCommand} from '../../helpers';
 
 test('should post interactive button and respond with click attribution via /interactive command', async ({pw}) => {
-    test.setTimeout(120000);
-    // 1. Setup
-    const {adminClient, user, team} = await pw.initSetup();
-    await setupDemoPlugin(adminClient, pw);
+    // The button-click hook has been observed to stop responding for the rest of a CI
+    // worker's run with no single confirmed trigger (reproduced without plugin_crash.spec.ts
+    // ever running first in the same worker — see recoverDemoPlugin's doc comment). The
+    // retry loop below forces a full plugin recovery cycle partway through, which is the one
+    // action known to clear it, so give it a generous timeout to leave room for that cycle.
+    test.slow();
 
-    // 2. Login
+    // # Setup
+    const {adminClient, user, team} = await pw.initSetup();
+    await pw.ensureDemoPlugin();
+
+    // # Login
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
-    // 3. Navigate to Town Square
+    // # Navigate to Town Square
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // Re-apply setupDemoPlugin: concurrent initSetup() resets PluginSettings.Plugins = {}
-    await setupDemoPlugin(adminClient, pw);
-
-    // 4. Send /interactive command (retry once if plugin not yet ready)
+    // # Send /interactive command (retry once on a UI timing miss)
     const interactivePost = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: 'Test interactive button'})
@@ -34,28 +37,45 @@ test('should post interactive button and respond with click attribution via /int
             await channelsPage.centerView.postCreate.sendMessage();
         });
         try {
-            await expect(interactivePost).toBeVisible({timeout: 15000});
+            await expect(interactivePost).toBeVisible({timeout: duration.ten_sec});
             break;
         } catch (err) {
             if (attempt === 3) {
                 throw err;
             }
-            await setupDemoPlugin(adminClient, pw);
         }
     }
 
-    // 5. Confirm post appears with 'Test interactive button' and an 'Interactive Button' button
+    // * Verify post appears with 'Test interactive button' and an 'Interactive Button' button
     await expect(interactivePost).toBeVisible();
     await expect(interactivePost.getByRole('button', {name: 'Interactive Button'})).toBeVisible();
 
-    // 6. Click the Interactive Button
-    await interactivePost.getByRole('button', {name: 'Interactive Button'}).click();
+    // # Click the Interactive Button (with retries if the plugin is transiently
+    // unavailable, in which case the button-click action request can fail silently and no
+    // reply ever appears — re-clicking is safe since the button stays visible until a reply
+    // is posted). If plain retries don't clear it, force a full plugin recovery cycle once
+    // and keep retrying — see recoverDemoPlugin's doc comment for why that is the one
+    // action known to help.
+    const replyButton = interactivePost.getByRole('button', {name: /1 reply/});
+    for (let attempt = 0; attempt < 8; attempt++) {
+        if (attempt === 4) {
+            await recoverDemoPlugin(adminClient);
+        }
+        await interactivePost.getByRole('button', {name: 'Interactive Button'}).click();
+        try {
+            await expect(replyButton).toBeVisible({timeout: duration.ten_sec});
+            break;
+        } catch (err) {
+            if (attempt === 7) {
+                throw err;
+            }
+        }
+    }
 
-    // 7. Wait for thread reply indicator and open the thread
-    await expect(interactivePost.getByRole('button', {name: /1 reply/})).toBeVisible();
-    await interactivePost.getByRole('button', {name: /1 reply/}).click();
+    // # Open the thread
+    await replyButton.click();
 
-    // 8. Confirm bot response in the thread panel
+    // * Verify bot response in the thread panel
     const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
     await expect(threadPanel).toBeVisible();
 

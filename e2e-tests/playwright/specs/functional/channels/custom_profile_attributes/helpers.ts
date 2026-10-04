@@ -316,21 +316,28 @@ export async function updateCustomProfileAttributeVisibility(
 ): Promise<void> {
     const fieldID = getFieldIdByName(fieldsMap, attributeName);
 
-    try {
-        // Update the visibility property
-        const updatedField = await adminClient.patchCustomProfileAttributeField(fieldID, {
-            // @ts-expect-error The type definition requires more properties than we need to set
-            attrs: {
-                visibility,
-            },
-        });
+    // Previously this swallowed patch failures (logging to console and silently returning),
+    // so a field left in a state the server rejects a visibility patch for (e.g. a stale
+    // 'managed'/linked state left behind by an earlier test reusing this same field) would
+    // fail here invisibly, and the only symptom would be a confusing UI assertion failure
+    // minutes later. Let the patch error surface directly, and verify the server actually
+    // persisted the requested value instead of trusting the patch response alone.
+    const updatedField = await adminClient.patchCustomProfileAttributeField(fieldID, {
+        // @ts-expect-error The type definition requires more properties than we need to set
+        attrs: {
+            visibility,
+        },
+    });
 
-        // Update the fieldsMap with the updated field
-        fieldsMap[updatedField.id] = updatedField;
-    } catch (error) {
-        // eslint-disable-next-line no-console
-        console.log(`Failed to update visibility for attribute ${attributeName}:`, error);
+    if (updatedField.attrs?.visibility !== visibility) {
+        throw new Error(
+            `Patched visibility for attribute "${attributeName}" (field ${fieldID}) did not take effect: ` +
+                `expected "${visibility}", server returned "${updatedField.attrs?.visibility}"`,
+        );
     }
+
+    // Update the fieldsMap with the updated field
+    fieldsMap[updatedField.id] = updatedField;
 }
 
 /**
@@ -391,19 +398,84 @@ export async function setupCustomProfileAttributeFields(
         console.log('Error getting existing custom profile fields, will create new ones', error);
     }
 
-    // Create fields sequentially, reusing any that already exist by name AND type.
-    // If a same-name field exists with a different type, delete it first then recreate.
+    // Create fields sequentially, reusing any that already exist by name, type, AND managed
+    // state. If a same-name field exists with a different type or managed state, delete it
+    // first then recreate.
     for (const field of attributeFields) {
         const existing = field.name ? existingByName[field.name] : undefined;
+        const existingManaged = existing?.attrs?.managed ?? '';
+        const requestedManaged =
+            ((field.attrs as Record<string, unknown> | undefined)?.managed as string | undefined) ?? '';
+        // permission_values is checked directly (not just attrs.managed) because the server
+        // pins it to sysadmin as soon as a field is ever managed: 'admin' and never downgrades
+        // it on a later patch that merely clears the managed attr — so a field that passed
+        // through a managed state at any point in its history can be left permanently
+        // sysadmin-only even once attrs.managed reads back empty.
+        const needsPermissionReset = requestedManaged !== 'admin' && existing?.permission_values === 'sysadmin';
+        const managedStateMatches = existingManaged === requestedManaged && !needsPermissionReset;
+        // A field whose name happens to match can also be a Global Attribute's linked
+        // dependent field (e.g. a global_attributes_form.spec.ts "Applies to: User" save left
+        // one behind under this name) rather than a plain CPA field. The server rejects any
+        // attrs patch against a linked field ("linked to a Global Attribute template"), so the
+        // reuse branch below would either throw or (worse) silently keep whatever visibility/
+        // value_type the template left it with. Route it through delete+recreate instead, same
+        // as a type/managed mismatch, so callers reliably get a plain field they can patch.
+        const isLinkedField = Boolean(existing?.linked_field_id);
 
-        if (existing && existing.type === field.type) {
-            // Name and type both match — safe to reuse without touching ownedIds.
-            fieldsMap[existing.id] = existing;
-        } else if (existing && existing.type !== field.type) {
-            // Same name but wrong type (e.g. a previous spec created 'Location' as 'text'
-            // while this spec needs it as 'select'). Delete the stale field and recreate.
+        if (existing && existing.type === field.type && managedStateMatches && !isLinkedField) {
+            // Name, type, and managed state all match, but a prior test (an ABAC policy test
+            // or an earlier custom_attributes test, possibly run right before this one on the
+            // same shard) may have left this field with a visibility/value_type/display_name
+            // this test doesn't expect. CPA field names are unique server-wide, so reusing the
+            // field as-is would silently inherit that leftover state instead of the state this
+            // call asked for. Patch it back in line with this definition before reusing it (not
+            // touching ownedIds: the field isn't deleted on cleanup, consistent with "reuse,
+            // don't own" semantics for a field this call didn't create).
+            //
+            // managed is deliberately excluded from this reset: it's already confirmed to
+            // match above, and a changing managed value needs the delete+recreate path below
+            // instead — patching it in place would leave PermissionValues pinned to whatever
+            // the field had before (server "caller pins are never downgraded" rule), which
+            // silently denies normal users write access to a field no longer marked managed.
             try {
-                await adminClient.deleteCustomProfileAttributeField(existing.id);
+                const requestedAttrs = (field.attrs ?? {}) as Record<string, unknown>;
+                const resetPatch = {
+                    attrs: {
+                        ...requestedAttrs,
+                        visibility: requestedAttrs.visibility ?? null,
+                        value_type: requestedAttrs.value_type ?? null,
+                        display_name: requestedAttrs.display_name ?? null,
+                    },
+                } as unknown as UserPropertyFieldPatch;
+                const patched = await adminClient.patchCustomProfileAttributeField(existing.id, resetPatch);
+                fieldsMap[patched.id] = patched;
+            } catch {
+                // If the reset patch fails for any reason, fall back to reusing the field
+                // as-is rather than leaving it entirely unmapped.
+                fieldsMap[existing.id] = existing;
+            }
+        } else if (existing) {
+            // Same name but wrong type, wrong managed state, or linked to a Global Attribute
+            // template (e.g. a previous spec created 'Location' as 'text' while this spec needs
+            // it as 'select', a previous ABAC test left 'Department' with managed: 'admin' while
+            // this spec needs a plain field, or a previous Global Attributes test left
+            // 'Department' linked to a template). Patching managed or a linked field's attrs in
+            // place would either fail outright or leave PermissionValues pinned from the old
+            // state (see comment above), so delete the stale field and recreate it instead — a
+            // fresh create computes permissions from scratch and is never linked.
+            try {
+                if (isLinkedField) {
+                    // The CPA-specific delete endpoint rejects any field with a
+                    // linked_field_id ("linked to a Global Attribute template"), the same
+                    // guard that blocks patching one above — it exists to stop deleting the
+                    // *template* out from under live dependents, not to protect the dependent
+                    // field itself. Deleting a dependent field directly is an ordinary
+                    // operation (global_attributes_helpers.ts's own cleanup does exactly this
+                    // via the generic property-field route), so use that route here instead.
+                    await adminClient.deletePropertyField('access_control', 'user', existing.id);
+                } else {
+                    await adminClient.deleteCustomProfileAttributeField(existing.id);
+                }
             } catch {
                 // Ignore delete errors — the field may already be gone.
             }

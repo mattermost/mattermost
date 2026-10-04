@@ -5,6 +5,8 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {duration} from '@/util';
+
 export default class DirectChannelsModal {
     readonly container;
 
@@ -38,7 +40,9 @@ export default class DirectChannelsModal {
 
         await row.click();
 
-        await expect(this.getRemoveButton(user.username)).toBeVisible();
+        // Selecting a row re-renders the modal's selected-user chips; under load this can take
+        // longer than the default 10s expect timeout, so wait a bit longer here.
+        await expect(this.getRemoveButton(user.username)).toBeVisible({timeout: duration.half_min});
     }
 
     /**
