@@ -80,6 +80,11 @@ type webConnCountMessage struct {
 	result chan int
 }
 
+type webConnHasUserMessage struct {
+	userID string
+	result chan bool
+}
+
 var hubSemaphoreCount = runtime.NumCPU() * 4
 
 // Hub is the central place to manage all websocket connections in the server.
@@ -105,6 +110,7 @@ type Hub struct {
 	checkRegistered    chan *webConnSessionMessage
 	checkConn          chan *webConnCheckMessage
 	connCount          chan *webConnCountMessage
+	hasUser            chan *webConnHasUserMessage
 	broadcastHooks     map[string]BroadcastHook
 
 	// Hub-specific semaphore for limiting concurrent goroutines
@@ -136,6 +142,7 @@ func newWebHub(ps *PlatformService) *Hub {
 		checkRegistered:    make(chan *webConnSessionMessage),
 		checkConn:          make(chan *webConnCheckMessage),
 		connCount:          make(chan *webConnCountMessage),
+		hasUser:            make(chan *webConnHasUserMessage),
 		hubSemaphore:       make(chan struct{}, hubSemaphoreCount),
 		membershipSeed:     maphash.MakeSeed(),
 	}
@@ -488,6 +495,20 @@ func (h *Hub) WebConnCountForUser(userID string) int {
 	return 0
 }
 
+// HasUser reports whether the hub holds any connection of the user, active or not.
+func (h *Hub) HasUser(userID string) bool {
+	req := &webConnHasUserMessage{
+		userID: userID,
+		result: make(chan bool),
+	}
+	select {
+	case h.hasUser <- req:
+		return <-req.result
+	case <-h.stop:
+	}
+	return false
+}
+
 // Broadcast broadcasts the message to all connections in the hub.
 func (h *Hub) Broadcast(message *model.WebSocketEvent) {
 	// XXX: The hub nil check is because of the way we setup our tests. We call
@@ -515,6 +536,9 @@ func (h *Hub) InvalidateUser(userID string) {
 		mu := h.membershipLock(userID)
 		mu.Lock()
 		defer mu.Unlock()
+		if !h.HasUser(userID) {
+			return
+		}
 		msg.loadedChannels, msg.loadErr = h.platform.loadChannelMembership(userID)
 	}
 	select {
@@ -674,6 +698,8 @@ func (h *Hub) Start() {
 				req.result <- res
 			case req := <-h.connCount:
 				req.result <- connIndex.ForUserActiveCount(req.userID)
+			case req := <-h.hasUser:
+				req.result <- connIndex.HasUser(req.userID)
 			case <-ticker.C:
 				connIndex.RemoveInactiveConnections()
 			case webConnReg := <-h.register:
@@ -1004,6 +1030,11 @@ func (i *hubConnectionIndex) InvalidateCMCacheForUser(userID string, channels ch
 func (i *hubConnectionIndex) Has(wc *WebConn) bool {
 	_, ok := i.byConnection[wc]
 	return ok
+}
+
+// HasUser reports whether any connection of the user, active or not, is in the index.
+func (i *hubConnectionIndex) HasUser(id string) bool {
+	return len(i.byUserId[id]) > 0
 }
 
 // ForUser returns all connections for a user ID.

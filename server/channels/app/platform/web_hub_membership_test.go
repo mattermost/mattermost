@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -398,4 +399,73 @@ func TestHubRegisterOnStoppedHubLoadsNothing(t *testing.T) {
 	ps.HubStop()
 	require.NoError(t, ps.HubRegister(newBroadcastBenchConn(ps, userID)))
 	require.Zero(t, channelStore.numCalls.Load(), "a stopped hub never adds the connection, so there is nothing to load")
+}
+
+// TestHubInvalidateUserLoadsOnlyForConnectedUsers checks that an invalidation loads membership only while the hub holds a connection of the user.
+func TestHubInvalidateUserLoadsOnlyForConnectedUsers(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	ps, channelStore := newMembershipTestPlatform(t, th, true)
+	userID := model.NewId()
+	channelStore.setMembers(userID, "ch1")
+
+	ps.InvalidateChannelCacheForUser(userID)
+	require.Zero(t, channelStore.numCalls.Load(), "no connection on this node, nothing to load")
+
+	wc := newBroadcastBenchConn(ps, userID)
+	require.NoError(t, ps.HubRegister(wc))
+	ps.InvalidateChannelCacheForUser(userID)
+	require.EqualValues(t, 2, channelStore.numCalls.Load(), "the register and the invalidation load once each")
+
+	// An unregistered connection stays in the index, and keeps receiving events for its queue, until it is reaped or reused.
+	ps.HubUnregister(wc)
+	require.Equal(t, 0, ps.WebConnCountForUser(userID))
+	ps.InvalidateChannelCacheForUser(userID)
+	require.EqualValues(t, 3, channelStore.numCalls.Load(), "an inactive connection still gets the new list")
+}
+
+// TestHubInvalidateUserAsksHubUnderLock checks that the invalidation holds the user's lock while it asks the hub for the user's connections.
+func TestHubInvalidateUserAsksHubUnderLock(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	ps, channelStore := newMembershipTestPlatform(t, th, true)
+	userID := model.NewId()
+	channelStore.setMembers(userID, "ch1")
+
+	// A first connection with an unbuffered send queue parks the hub on the hello message until the test reads it.
+	wc := newBroadcastBenchConn(ps, userID)
+	wc.reuseCount = 0
+	wc.send = make(chan model.WebSocketMessage)
+	require.NoError(t, ps.HubRegister(wc))
+
+	invalidated := startGoroutine(func() { ps.InvalidateChannelCacheForUser(userID) })
+	require.Eventually(t, func() bool { return membershipLockHeld(ps, userID) }, 5*time.Second, time.Millisecond, "the invalidation must take the user's lock before it asks the hub")
+
+	require.Equal(t, model.WebsocketEventHello, waitForEvent(t, wc).EventType())
+	requireDone(t, invalidated, "the invalidation")
+	require.EqualValues(t, 2, channelStore.numCalls.Load(), "the register and the invalidation load once each")
+
+	ps.HubUnregister(wc)
+}
+
+// BenchmarkHubInvalidateUser measures one invalidation with channel iteration on, for a user with and without a connection on the hub.
+func BenchmarkHubInvalidateUser(b *testing.B) {
+	th := Setup(b).InitBasic(b)
+	logger, err := mlog.NewLogger()
+	require.NoError(b, err)
+	mlog.InitGlobalLogger(logger)
+	b.Cleanup(func() { mlog.InitGlobalLogger(nil) })
+	for _, connected := range []bool{false, true} {
+		b.Run(fmt.Sprintf("connected=%t", connected), func(b *testing.B) {
+			ps := newBroadcastBenchPlatform(b, logger, th.Service.Store, true)
+			userID := th.BasicUser.Id
+			if connected {
+				require.NoError(b, ps.HubRegister(newBroadcastBenchConn(ps, userID)))
+			}
+			hub := ps.GetHubForUserId(userID)
+			for b.Loop() {
+				hub.InvalidateUser(userID)
+			}
+		})
+	}
 }
