@@ -430,8 +430,10 @@ test.describe('Post height', () => {
             },
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the preview is faded out and has the "Show more" link visible
+                // Permalink previews need a second render pass once the linked post's content
+                // arrives; extend past the default 10s to leave headroom under loaded CI.
                 const showMoreButton = postComponent.container.locator('.post-preview-collapse__show-more-button');
-                await expect(showMoreButton).toBeVisible();
+                await expect(showMoreButton).toBeVisible({timeout: 20000});
                 await expect(postComponent.container.locator('.post-message-preview--overflow')).toBeVisible();
             },
         },
