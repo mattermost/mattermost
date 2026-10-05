@@ -85,8 +85,8 @@ function worstFiring(findings: HealthFinding[]) {
 }
 
 export function orderAreas(findingsByArea: Record<string, HealthFinding[]>): string[] {
-    const worst = (area: string) => worstFiring(findingsByArea[area]);
+    const worst = Object.fromEntries(Object.entries(findingsByArea).map(([area, findings]) => [area, worstFiring(findings)]));
     return Object.keys(findingsByArea).sort((a, b) =>
-        (worst(a) - worst(b)) || (areaRank(a) - areaRank(b)) || a.localeCompare(b),
+        (worst[a] - worst[b]) || (areaRank(a) - areaRank(b)) || a.localeCompare(b),
     );
 }

@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {useId} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 
 import type {HealthFinding} from '@mattermost/types/health';
 
@@ -17,19 +18,10 @@ export type RowState = {
     onToggle: (fingerprint: string) => void;
 };
 
-const SectionLabel = ({section}: {section: HealthFindingSection}) => {
-    if (section === 'unknown') {
-        return (
-            <FormattedMessage
-                id='admin.health_dashboard.unknown.title'
-                defaultMessage='Could not be evaluated'
-            />
-        );
-    }
-    if (section === 'resolved') {
-        return <FormattedMessage {...stateMessages.resolved}/>;
-    }
-    return <FormattedMessage {...severityMessages[section]}/>;
+const sectionMessages: Record<HealthFindingSection, MessageDescriptor> = {
+    ...severityMessages,
+    unknown: defineMessage({id: 'admin.health_dashboard.unknown.title', defaultMessage: 'Could not be evaluated'}),
+    resolved: stateMessages.resolved,
 };
 
 type Props = RowState & {
@@ -55,7 +47,7 @@ const FindingSection = ({section, findings, now, expanded, onToggle}: Props) => 
                         size={20}
                     />
                 </span>
-                <SectionLabel section={section}/>
+                <FormattedMessage {...sectionMessages[section]}/>
                 <span className='HealthDashboard__sectionCount'>{findings.length}</span>
                 <span
                     className='HealthDashboard__sectionRule'

@@ -385,7 +385,7 @@ const AdminDefinition: AdminDefinitionType = {
                     component: HealthDashboard,
                 },
                 isHidden: it.any(
-                    it.clientConfigIsFalse('FeatureFlagHealthDashboard'),
+                    it.configIsFalse('FeatureFlags', 'HealthDashboard'),
                     it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                     it.not(it.isSystemAdmin),
                 ),

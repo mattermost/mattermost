@@ -8,7 +8,7 @@ import {FormattedMessage} from 'react-intl';
 import {ChevronDownIcon} from '@mattermost/compass-icons/components';
 import type {HealthFinding} from '@mattermost/types/health';
 
-import {countFiringBySeverity, HEALTH_SEVERITIES} from 'mattermost-redux/utils/health_utils';
+import {countHealthFindingsByTab, HEALTH_SEVERITIES} from 'mattermost-redux/utils/health_utils';
 
 import {AreaIcon, AreaLabel} from './area';
 import FindingRow from './finding_row';
@@ -22,7 +22,7 @@ type Props = RowState & {
 
 const AreaAccordion = ({area, findings, now, expanded, onToggle}: Props) => {
     const panelId = useId();
-    const counts = countFiringBySeverity(findings);
+    const counts = countHealthFindingsByTab(findings, now);
     const [open, setOpen] = useState(counts.critical > 0);
 
     return (

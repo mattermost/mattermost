@@ -8,9 +8,11 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {ChevronRightIcon, ChevronUpIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
 import type {HealthFinding} from '@mattermost/types/health';
 
+import {getHealthFindingSection} from 'mattermost-redux/utils/health_utils';
+
 import {AreaIcon, AreaLabel} from './area';
 import FindingDetail from './finding_detail';
-import {getTone, severityMessages, ToneIcon} from './severity';
+import {severityMessages, ToneIcon} from './severity';
 import Trend from './trend';
 
 type Props = {
@@ -25,7 +27,7 @@ const FindingRow = ({finding, now, expanded, onToggle, hideArea = false}: Props)
     const {formatMessage} = useIntl();
     const detailId = useId();
 
-    const tone = getTone(finding);
+    const tone = getHealthFindingSection(finding);
     const title = finding.title || finding.code;
     const severity = formatMessage(severityMessages[finding.severity]);
 
@@ -131,4 +133,4 @@ const FindingRow = ({finding, now, expanded, onToggle, hideArea = false}: Props)
     );
 };
 
-export default FindingRow;
+export default React.memo(FindingRow);

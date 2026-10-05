@@ -11,7 +11,7 @@ import {
     HelpCircleOutlineIcon,
     InformationOutlineIcon,
 } from '@mattermost/compass-icons/components';
-import type {HealthFinding, HealthFindingSeverity} from '@mattermost/types/health';
+import type {HealthFindingSeverity} from '@mattermost/types/health';
 
 import type {HealthFindingSection} from 'mattermost-redux/utils/health_utils';
 
@@ -26,12 +26,6 @@ export const stateMessages = defineMessages({
     unknown: {id: 'admin.health_dashboard.state.unknown', defaultMessage: 'Unknown'},
 });
 
-export type Tone = HealthFindingSection;
-
-export function getTone(finding: Pick<HealthFinding, 'severity' | 'state'>): Tone {
-    return finding.state === 'firing' ? finding.severity : finding.state;
-}
-
 const icons = {
     critical: AlertCircleOutlineIcon,
     warning: AlertOutlineIcon,
@@ -41,7 +35,7 @@ const icons = {
 };
 
 type Props = {
-    tone: Tone;
+    tone: HealthFindingSection;
     size?: number;
 };
 
