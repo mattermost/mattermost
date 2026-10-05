@@ -6,7 +6,7 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {Page} from '@playwright/test';
 
-import {expect, setupFileServer, test, testConfig} from '@mattermost/playwright-lib';
+import {duration, expect, setupFileServer, test, testConfig} from '@mattermost/playwright-lib';
 import type {ChannelsPage, PlaywrightClient4} from '@mattermost/playwright-lib';
 
 import {watchPostListScroll, type PostListScrollWatcher} from './scroll_helpers';
@@ -141,7 +141,14 @@ test.describe('Post list initial scroll in read channel', () => {
         test.describe(testCase.name, () => {
             test.beforeEach(testCase.setupPosts);
 
-            test(`${testCase.name} - should stay at the bottom during initial load`, async ({}) => {
+            test(`${testCase.name} - should stay at the bottom during initial load`, async ({}, testInfo) => {
+                if (testCase.name === 'with multiple pages of post previews') {
+                    // 120 permalink previews each resolve their own lookup, which can exceed
+                    // the default timeout under loaded CI; extend it to leave headroom on
+                    // top of the one-minute postPreview.waitFor below.
+                    testInfo.setTimeout(duration.two_min);
+                }
+
                 const watcher = await watchPostListScroll(page, channel.id);
 
                 // # Open the web app directly to that channel
@@ -155,7 +162,12 @@ test.describe('Post list initial scroll in read channel', () => {
                 expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
             });
 
-            test(`${testCase.name} - should stay at the bottom when switching to the channel`, async ({}) => {
+            test(`${testCase.name} - should stay at the bottom when switching to the channel`, async ({}, testInfo) => {
+                if (testCase.name === 'with multiple pages of post previews') {
+                    // See the matching comment in the "initial load" test above.
+                    testInfo.setTimeout(duration.two_min);
+                }
+
                 const watcher = await watchPostListScroll(page, channel.id);
 
                 // # Start in Town Square and wait for its contents to load
@@ -195,7 +207,7 @@ test.describe('Post list initial scroll in read channel', () => {
     // only reports genuinely unexpected scroll changes afterward.
     async function settleAfterPermalinkPreviewsLoad(watcher: PostListScrollWatcher) {
         const lastPost = await channelsPage.centerView.getLastPost();
-        await lastPost.postPreview.waitFor();
+        await lastPost.postPreview.waitFor({timeout: duration.one_min});
         await watcher.reset();
     }
 });
