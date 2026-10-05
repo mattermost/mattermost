@@ -68,8 +68,7 @@ var licenseTrial = healthcheck.Rule{
 	Eval:       evalLicenseTrial,
 }
 
-// timeToExpiry is measured from collection, not now, so a packet read later reports what
-// was true when it was generated. reasonID is empty when both times are known.
+// Measured from CollectedAt, not now, so a packet read later reports what was true then.
 func timeToExpiry(s *healthcheck.Snapshot) (expiresAt time.Time, remaining time.Duration, reasonID string) {
 	expiresAt, ok := s.LicenseExpiresAt()
 	if !ok {
@@ -116,7 +115,7 @@ func evalLicenseTrial(s *healthcheck.Snapshot) []healthcheck.Result {
 	switch {
 	case s.License == nil:
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)}
-	case s.License.IsTrial:
+	case s.License.IsTrialLicense():
 		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.license_trial.message"))}
 	default:
 		return []healthcheck.Result{healthcheck.Resolved()}

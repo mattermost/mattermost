@@ -212,8 +212,7 @@ func selectLeader(nodes []*healthcheck.NodeSnapshot) (leader *healthcheck.NodeSn
 	return leader, reported
 }
 
-// licenseFromSummary rebuilds the license fields the packet records; every other field is
-// left zero. An unlicensed server writes an empty summary, which reads as no license.
+// An unlicensed server writes an empty summary, which reads as no license.
 func licenseFromSummary(diag *model.SupportPacketDiagnostics) *model.License {
 	summary := diag.License
 	if summary == (model.SupportPacketDiagnostics{}).License {

@@ -96,9 +96,7 @@ var seatsLowEngagement = healthcheck.Rule{
 
 func activeUsers(stats *model.SupportPacketStats) *int64 { return stats.ActiveUsers }
 
-// seatsUsed counts seats the way the server does: active users, less single-channel guests
-// on every SKU but Entry. The server also skips the subtraction while guest accounts are
-// disabled, but disabling them deactivates every guest, so the count is 0 either way.
+// seatsUsed mirrors the server's seat count: single-channel guests are free except on Entry.
 func seatsUsed(s *healthcheck.Snapshot) (int64, bool) {
 	active, ok := s.Stat(activeUsers)
 	if !ok {
@@ -116,8 +114,7 @@ func seatsUsed(s *healthcheck.Snapshot) (int64, bool) {
 	return max(active-guests, 0), true
 }
 
-// seatUtilization returns 100*used/seats. reasonID is set when any input is unknown: a ratio
-// with an unknown numerator is not 0%.
+// An unknown input yields a reasonID rather than 0%, which would read as a real ratio.
 func seatUtilization(s *healthcheck.Snapshot) (used int64, seats int, pct float64, reasonID string) {
 	seats, ok := s.LicenseSeats()
 	if !ok {
@@ -166,11 +163,8 @@ func evalSeatsLowUtilization(s *healthcheck.Snapshot) []healthcheck.Result {
 	})
 }
 
-// evalSeatsLimitReached mirrors the server's hard limit, which applies only to licenses that
-// enforce their seat count.
 func evalSeatsLimitReached(s *healthcheck.Snapshot) []healthcheck.Result {
-	// Every license has an expiry, so a missing one marks a packet written before the seat
-	// enforcement flag was recorded, where false would mean "not recorded".
+	// Packets predating the seat enforcement flag also lack an expiry, so false there means unrecorded.
 	if _, ok := s.LicenseExpiresAt(); !ok {
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)}
 	}
@@ -178,13 +172,9 @@ func evalSeatsLimitReached(s *healthcheck.Snapshot) []healthcheck.Result {
 		return []healthcheck.Result{healthcheck.Resolved()}
 	}
 
-	seats, ok := s.LicenseSeats()
-	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)}
-	}
-	used, ok := seatsUsed(s)
-	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)}
+	used, seats, _, reasonID := seatUtilization(s)
+	if reasonID != "" {
+		return []healthcheck.Result{healthcheck.Unknown(reasonID)}
 	}
 
 	limit := int64(seats + model.SafeDereference(s.License.ExtraUsers))
