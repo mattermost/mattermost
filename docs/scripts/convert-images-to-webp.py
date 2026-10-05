@@ -24,21 +24,7 @@ import threading
 import tomllib
 import zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import hashlib
-import json
-import os
-import re
-import shutil
-import struct
-import subprocess
-import sys
-import tempfile
-import threading
-import tomllib
-import zlib
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
-from pathlib import Path
 from pathlib import Path
 
 INSTALL_LINE = (
@@ -621,12 +607,15 @@ def convert_one(
     out = output_path_for(src)
     before = src.stat().st_size
     recorded = state.get(entry.path, {})
+    source_digest = sha256_file(src)
 
+    # Hash both source and output. Git does not preserve mtimes, so an mtime
+    # comparison falsely forces a re-encode after clone/checkout.
     if (
         not check_only
         and out.is_file()
-        and out.stat().st_mtime >= src.stat().st_mtime
         and recorded.get("sha256") == sha256_file(out)
+        and recorded.get("source_sha256") == source_digest
     ):
         return FileOutcome(
             entry=entry,
@@ -662,17 +651,7 @@ def convert_one(
             # Score every ladder rung: output size is not monotonic in -q (PLAN 0.5 / 0.6).
 
         passing = [r for r in results if r.score >= manifest.threshold]
-        pick: CandidateResult | None = None
-        if passing:
-            pick = min(passing, key=lambda r: r.size)
-        else:
-            lossless = next((r for r in results if r.name == "lossless"), None)
-            if (
-                lossless
-                and lossless.size < before
-                and lossless.score >= manifest.threshold
-            ):
-                pick = lossless
+        pick: CandidateResult | None = min(passing, key=lambda r: r.size) if passing else None
 
         ceiling = None
         if any(r.name == "lossless" for r in results):
@@ -896,6 +875,7 @@ def main(argv: list[str] | None = None) -> int:
                 with state_lock:
                     state[entry.path] = {
                         "sha256": outcomes[-1].sha256,
+                        "source_sha256": sha256_file(repo / entry.path),
                         "candidate": outcomes[-1].candidate,
                         "score": outcomes[-1].score,
                         "ceiling": outcomes[-1].ceiling,
@@ -912,6 +892,7 @@ def main(argv: list[str] | None = None) -> int:
                     with state_lock:
                         state[o.entry.path] = {
                             "sha256": o.sha256,
+                            "source_sha256": sha256_file(repo / o.entry.path),
                             "candidate": o.candidate,
                             "score": o.score,
                             "ceiling": o.ceiling,

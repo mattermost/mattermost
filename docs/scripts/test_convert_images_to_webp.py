@@ -96,24 +96,30 @@ class ManifestInventoryTests(unittest.TestCase):
         self.assertEqual(by_path["docs/site/static/img/ime/entadv.png"].skip, "generated")
         self.assertEqual(by_path["docs/site/static/images/ime.png"].skip, "orphaned")
         for img in m.images:
+            src = REPO / img.path
+            webp = conv.output_path_for(src)
             if img.skip == "orphaned":
-                continue
-            self.assertTrue((REPO / img.path).is_file(), img.path)
+                self.assertFalse(src.is_file(), img.path)
+                self.assertFalse(webp.is_file(), str(webp))
+            elif img.skip == "generated":
+                self.assertTrue(src.is_file(), img.path)
+                self.assertFalse(webp.is_file(), str(webp))
+            else:
+                # Dual PNG/JPG sources are dropped after conversion; only .webp remains.
+                self.assertFalse(src.is_file(), img.path)
+                self.assertTrue(webp.is_file(), str(webp))
 
-    def test_manifest_covers_top_25_by_size(self):
+    def test_converted_entries_match_state_hashes(self):
         m = conv.load_manifest(MANIFEST)
-        rows = conv.inventory_rows(REPO)
-        live = [r["path"] for r in rows]
-        deleted_orphans = sum(
-            1
-            for i in m.images
-            if i.skip == "orphaned" and not (REPO / i.path).is_file()
-        )
-        head = set(live[: 25 + deleted_orphans])
-        for img in m.images[:25]:
-            if img.skip == "orphaned" and not (REPO / img.path).is_file():
-                continue
-            self.assertIn(img.path, head, img.path)
+        state = conv.load_state(REPO / "docs/scripts/webp-state.json")
+        converted = [i for i in m.images if not i.skip]
+        self.assertGreaterEqual(len(converted), 23)
+        for img in converted:
+            webp = conv.output_path_for(REPO / img.path)
+            self.assertTrue(webp.is_file(), str(webp))
+            recorded = state[img.path]
+            self.assertEqual(recorded["sha256"], conv.sha256_file(webp), img.path)
+            self.assertIn("source_sha256", recorded, img.path)
 
 
 class SkipHonourTests(unittest.TestCase):
@@ -187,10 +193,25 @@ class GateTests(unittest.TestCase):
 
     def test_icc_stripped_reference_scores_lossless_100(self):
         tools = tools_or_skip()
-        src = REPO / "docs/site/static/images/architecture-ms-teams-collab.png"
-        self.assertTrue(conv.png_has_iccp(src))
+        # Real iCCP chunk from a former docs PNG (sources are dropped after WebP).
+        iccp = bytes.fromhex(
+            "4943432050726f66696c65000028916d90c12b837118c73f63acd68a83841c76"
+            "90d388218e3624b5c38c154abc7bcdd0f6faf5ee95dc1c382ac5c54d737173e3"
+            "e2e03fa09483240717675989f57a5ec336fc7e3d7d3f7d7b9ea7a72f54f934a5"
+            "d26e206358666c34ec9f9a9ef17b9ef0e2a1866e5a343dab42d168445af8d6ca"
+            "97bfc1e5e87587b3ebb179feb510c8ccd55a833b2b27f9d9bffd15cfbb90ccea"
+            "a2ef52415d9916b8ba84a3eb96727853b8c194a384f71d4e15f9d8e14491cf3f"
+            "7b266343c257c2f5fa92b620fc201c4894f9a932cea4d7f4af1b9ceb7d49233e"
+            "21da28d5ca302344e4fb8913a45f7218605c32fa7fa6f773668855141b982c93"
+            "62094ba643e228d22485c730d0e924201ca44baacfc9fa7786256f3507032f50"
+            "bd5bf2120770b60d4db725afed10eab6e0f45269a6f693ac2befce2ef6048bec"
+            "0b43cdbd6d3fb783670f0abbb6fd96b3edc291ecbf830be303a0456486"
+        )
         with tempfile.TemporaryDirectory() as td:
             tmp = Path(td)
+            src = tmp / "orig.png"
+            conv.write_png_rgba(src, 192, 192, gradient_rgba(192, 192), iccp=iccp)
+            self.assertTrue(conv.png_has_iccp(src))
             stripped = tmp / "stripped.png"
             conv.strip_png_iccp(src, stripped)
             self.assertFalse(conv.png_has_iccp(stripped))
@@ -306,12 +327,21 @@ path = "docs/site/static/images/fixture.png"
             ]
             self.assertEqual(conv.main(args), 0)
             webp = repo / "docs/site/static/images/fixture.webp"
+            src = repo / "docs/site/static/images/fixture.png"
             self.assertTrue(webp.is_file())
             page = (repo / "docs/main/page.mdx").read_text(encoding="utf-8")
             self.assertIn("/images/fixture.webp", page)
             self.assertNotIn("/images/fixture.png", page)
             mtime = webp.stat().st_mtime_ns
             digest = conv.sha256_file(webp)
+            state = conv.load_state(repo / "docs/scripts/webp-state.json")
+            self.assertEqual(
+                state["docs/site/static/images/fixture.png"]["source_sha256"],
+                conv.sha256_file(src),
+            )
+            # Simulate a fresh clone: source mtime newer than committed WebP.
+            src.touch()
+            self.assertGreater(src.stat().st_mtime_ns, webp.stat().st_mtime_ns)
             self.assertEqual(conv.main(args), 0)
             self.assertEqual(webp.stat().st_mtime_ns, mtime)
             self.assertEqual(conv.sha256_file(webp), digest)
