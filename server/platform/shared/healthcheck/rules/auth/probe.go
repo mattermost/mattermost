@@ -44,8 +44,7 @@ var samlMetadataUnreachable = healthcheck.Rule{
 	Eval:       gated(samlMetadataConfigured, evalSamlMetadataUnreachable),
 }
 
-// The SAML probe reports a failure whenever IdpMetadataURL is empty, but the URL is
-// optional when the IdP certificate is uploaded instead.
+// The SAML probe fails on an empty IdpMetadataURL, which is valid when the IdP certificate is uploaded.
 func samlMetadataConfigured(s *healthcheck.Snapshot) (bool, bool) {
 	enabled, ok := samlEnabled(s)
 	if !ok || !enabled {

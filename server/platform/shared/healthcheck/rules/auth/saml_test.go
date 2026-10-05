@@ -21,6 +21,8 @@ func samlSnapshot(edit func(cfg *model.Config)) *healthcheck.Snapshot {
 func TestSamlRules(t *testing.T) {
 	t.Parallel()
 
+	const emailClaimURI = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+
 	testCases := []struct {
 		name     string
 		snapshot *healthcheck.Snapshot
@@ -40,21 +42,39 @@ func TestSamlRules(t *testing.T) {
 		{
 			name: "SHA-1 signatures",
 			snapshot: samlSnapshot(func(cfg *model.Config) {
+				cfg.SamlSettings.SignRequest = new(true)
 				cfg.SamlSettings.SignatureAlgorithm = new(model.SamlSettingsSignatureAlgorithmSha1)
 			}),
 			want: map[string]want{"SAML_SIGNATURE_SHA1": firing("health.rule.saml_signature_sha1.message", nil)},
 		},
 		{
+			name: "SHA-1 with unsigned requests",
+			snapshot: samlSnapshot(func(cfg *model.Config) {
+				cfg.SamlSettings.SignRequest = new(false)
+				cfg.SamlSettings.SignatureAlgorithm = new(model.SamlSettingsSignatureAlgorithmSha1)
+			}),
+			want: map[string]want{"SAML_SIGNATURE_SHA1": resolved},
+		},
+		{
 			name: "SHA-512 signatures",
 			snapshot: samlSnapshot(func(cfg *model.Config) {
+				cfg.SamlSettings.SignRequest = new(true)
 				cfg.SamlSettings.SignatureAlgorithm = new(model.SamlSettingsSignatureAlgorithmSha512)
 			}),
 			want: map[string]want{"SAML_SIGNATURE_SHA1": resolved},
 		},
 		{
-			name:     "signature algorithm absent",
-			snapshot: samlSnapshot(func(cfg *model.Config) { cfg.SamlSettings.SignatureAlgorithm = nil }),
+			name:     "sign request absent",
+			snapshot: samlSnapshot(func(cfg *model.Config) { cfg.SamlSettings.SignRequest = nil }),
 			want:     map[string]want{"SAML_SIGNATURE_SHA1": configUnavailable},
+		},
+		{
+			name: "signature algorithm absent",
+			snapshot: samlSnapshot(func(cfg *model.Config) {
+				cfg.SamlSettings.SignRequest = new(true)
+				cfg.SamlSettings.SignatureAlgorithm = nil
+			}),
+			want: map[string]want{"SAML_SIGNATURE_SHA1": configUnavailable},
 		},
 		{
 			name:     "verification off",
@@ -89,6 +109,14 @@ func TestSamlRules(t *testing.T) {
 			snapshot: samlSnapshot(func(cfg *model.Config) { cfg.SamlSettings.IdAttribute = new("EmailAddress") }),
 			want: map[string]want{
 				"SAML_ID_IS_EMAIL": firing("health.rule.saml_id_is_email.message", map[string]string{"attribute": "EmailAddress"}),
+				"SAML_ID_MUTABLE":  resolved,
+			},
+		},
+		{
+			name:     "IdAttribute email claim URI",
+			snapshot: samlSnapshot(func(cfg *model.Config) { cfg.SamlSettings.IdAttribute = new(emailClaimURI) }),
+			want: map[string]want{
+				"SAML_ID_IS_EMAIL": firing("health.rule.saml_id_is_email.message", map[string]string{"attribute": emailClaimURI}),
 				"SAML_ID_MUTABLE":  resolved,
 			},
 		},

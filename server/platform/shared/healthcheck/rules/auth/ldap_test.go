@@ -92,9 +92,28 @@ func TestLdapSettingRules(t *testing.T) {
 			},
 		},
 		{
-			name:     "skip certificate verification",
-			snapshot: ldapSnapshot(func(cfg *model.Config) { cfg.LdapSettings.SkipCertificateVerification = new(true) }),
-			want:     map[string]want{"LDAP_SKIP_CERT": firing("health.rule.ldap_skip_cert.message", nil)},
+			name: "skip certificate verification over TLS",
+			snapshot: ldapSnapshot(func(cfg *model.Config) {
+				cfg.LdapSettings.ConnectionSecurity = new(model.ConnSecurityTLS)
+				cfg.LdapSettings.SkipCertificateVerification = new(true)
+			}),
+			want: map[string]want{"LDAP_SKIP_CERT": firing("health.rule.ldap_skip_cert.message", nil)},
+		},
+		{
+			name: "skip certificate verification over STARTTLS",
+			snapshot: ldapSnapshot(func(cfg *model.Config) {
+				cfg.LdapSettings.ConnectionSecurity = new(model.ConnSecurityStarttls)
+				cfg.LdapSettings.SkipCertificateVerification = new(true)
+			}),
+			want: map[string]want{"LDAP_SKIP_CERT": firing("health.rule.ldap_skip_cert.message", nil)},
+		},
+		{
+			name: "skip certificate verification without connection security",
+			snapshot: ldapSnapshot(func(cfg *model.Config) {
+				cfg.LdapSettings.ConnectionSecurity = new(model.ConnSecurityNone)
+				cfg.LdapSettings.SkipCertificateVerification = new(true)
+			}),
+			want: map[string]want{"LDAP_SKIP_CERT": resolved},
 		},
 		{
 			name:     "skip certificate verification absent",
