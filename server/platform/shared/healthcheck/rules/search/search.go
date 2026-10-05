@@ -67,7 +67,7 @@ var esLocalhostURL = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    connectionURLSubject,
-	Eval:       evalESLocalhostURL,
+	Eval:       whenIndexing(evalESLocalhostURL),
 }
 
 var esServerError = healthcheck.Rule{
@@ -131,7 +131,7 @@ var esLiveBatchSync = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    liveBatchSubject,
-	Eval:       evalESLiveBatchSync,
+	Eval:       whenIndexing(evalESLiveBatchSync),
 }
 
 var esLiveBatchTooHigh = healthcheck.Rule{
@@ -147,7 +147,7 @@ var esLiveBatchTooHigh = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    liveBatchSubject,
-	Eval:       evalESLiveBatchTooHigh,
+	Eval:       whenIndexing(evalESLiveBatchTooHigh),
 }
 
 var esVersionUnsupported = healthcheck.Rule{
@@ -163,7 +163,7 @@ var esVersionUnsupported = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "ElasticsearchSettings.Backend",
-	Eval:       evalESVersionUnsupported,
+	Eval:       whenIndexing(evalESVersionUnsupported),
 }
 
 var esMissingICU = healthcheck.Rule{
@@ -179,7 +179,7 @@ var esMissingICU = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    connectionURLSubject,
-	Eval:       evalESMissingICU,
+	Eval:       whenIndexing(evalESMissingICU),
 }
 
 var esSkipTLSVerify = healthcheck.Rule{
@@ -195,7 +195,7 @@ var esSkipTLSVerify = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "ElasticsearchSettings.SkipTLSVerification",
-	Eval:       evalESSkipTLSVerify,
+	Eval:       whenIndexing(evalESSkipTLSVerify),
 }
 
 func unknownConfig() []healthcheck.Result {
@@ -206,8 +206,18 @@ func resolved() []healthcheck.Result {
 	return []healthcheck.Result{healthcheck.Resolved()}
 }
 
-func indexingEnabled(s *healthcheck.Snapshot) (enabled, ok bool) {
-	return s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ElasticsearchSettings.EnableIndexing })
+// whenIndexing resolves the rule while Elasticsearch indexing is off.
+func whenIndexing(eval func(*healthcheck.Snapshot) []healthcheck.Result) func(*healthcheck.Snapshot) []healthcheck.Result {
+	return func(s *healthcheck.Snapshot) []healthcheck.Result {
+		indexing, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ElasticsearchSettings.EnableIndexing })
+		if !ok {
+			return unknownConfig()
+		}
+		if !indexing {
+			return resolved()
+		}
+		return eval(s)
+	}
 }
 
 func connectionURL(s *healthcheck.Snapshot) (string, bool) {
@@ -253,14 +263,6 @@ func majorVersion(version string) (int, bool) {
 }
 
 func evalESLocalhostURL(s *healthcheck.Snapshot) []healthcheck.Result {
-	indexing, ok := indexingEnabled(s)
-	if !ok {
-		return unknownConfig()
-	}
-	if !indexing {
-		return resolved()
-	}
-
 	clustered, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ClusterSettings.Enable })
 	if !ok {
 		return unknownConfig()
@@ -328,23 +330,16 @@ func evalScaleESRecommended(s *healthcheck.Snapshot) []healthcheck.Result {
 	return evalScale(s, scaleRecommendedPosts, scaleRequiredPosts, healthcheck.TranslationId("health.rule.scale_es_recommended.message"))
 }
 
-// liveBatchSize returns LiveIndexingBatchSize, with enabled=false when indexing is off.
-func liveBatchSize(s *healthcheck.Snapshot) (size int, enabled, ok bool) {
-	enabled, ok = indexingEnabled(s)
-	if !ok || !enabled {
-		return 0, enabled, ok
-	}
-
-	size, ok = s.ConfigInt(func(cfg *model.Config) *int { return cfg.ElasticsearchSettings.LiveIndexingBatchSize })
-	return size, true, ok
+func liveBatchSize(s *healthcheck.Snapshot) (int, bool) {
+	return s.ConfigInt(func(cfg *model.Config) *int { return cfg.ElasticsearchSettings.LiveIndexingBatchSize })
 }
 
 func evalESLiveBatchSync(s *healthcheck.Snapshot) []healthcheck.Result {
-	size, enabled, ok := liveBatchSize(s)
+	size, ok := liveBatchSize(s)
 	switch {
 	case !ok:
 		return unknownConfig()
-	case enabled && size == 1:
+	case size == 1:
 		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.es_live_batch_sync.message"))}
 	default:
 		return resolved()
@@ -352,11 +347,11 @@ func evalESLiveBatchSync(s *healthcheck.Snapshot) []healthcheck.Result {
 }
 
 func evalESLiveBatchTooHigh(s *healthcheck.Snapshot) []healthcheck.Result {
-	size, enabled, ok := liveBatchSize(s)
+	size, ok := liveBatchSize(s)
 	switch {
 	case !ok:
 		return unknownConfig()
-	case enabled && size > maxLiveBatchSize:
+	case size > maxLiveBatchSize:
 		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.es_live_batch_too_high.message")).WithDetail("size", strconv.Itoa(size))}
 	default:
 		return resolved()
@@ -364,14 +359,6 @@ func evalESLiveBatchTooHigh(s *healthcheck.Snapshot) []healthcheck.Result {
 }
 
 func evalESVersionUnsupported(s *healthcheck.Snapshot) []healthcheck.Result {
-	indexing, ok := indexingEnabled(s)
-	if !ok {
-		return unknownConfig()
-	}
-	if !indexing {
-		return resolved()
-	}
-
 	diag, ok := leaderDiag(s, model.SectionSearchEngine)
 	if !ok {
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
@@ -396,14 +383,6 @@ func evalESVersionUnsupported(s *healthcheck.Snapshot) []healthcheck.Result {
 }
 
 func evalESMissingICU(s *healthcheck.Snapshot) []healthcheck.Result {
-	indexing, ok := indexingEnabled(s)
-	if !ok {
-		return unknownConfig()
-	}
-	if !indexing {
-		return resolved()
-	}
-
 	// The plugin list is fetched only after the version, and an empty list is omitted from the packet.
 	diag, ok := leaderDiag(s, model.SectionSearchEngine)
 	if !ok {
@@ -423,14 +402,6 @@ func evalESMissingICU(s *healthcheck.Snapshot) []healthcheck.Result {
 }
 
 func evalESSkipTLSVerify(s *healthcheck.Snapshot) []healthcheck.Result {
-	indexing, ok := indexingEnabled(s)
-	if !ok {
-		return unknownConfig()
-	}
-	if !indexing {
-		return resolved()
-	}
-
 	skip, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ElasticsearchSettings.SkipTLSVerification })
 	if !ok {
 		return unknownConfig()
