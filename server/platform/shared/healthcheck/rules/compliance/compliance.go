@@ -15,7 +15,7 @@ func init() {
 }
 
 const (
-	minTimeBetweenBatchesMilliseconds = 100
+	minTimeBetweenBatchesMilliseconds = model.DataRetentionSettingsDefaultTimeBetweenBatchesMilliseconds
 	minGlobalRelaySMTPTimeoutSeconds  = 30
 )
 
