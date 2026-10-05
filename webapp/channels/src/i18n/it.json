@@ -4655,7 +4655,6 @@
   "channel_attributes.description": "Configura gli attributi e i valori per questo canale.",
   "channel_attributes.enter_value": "Inserisci un valore",
   "channel_attributes.info.add": "Aggiungi attributo",
-  "channel_attributes.info.clear": "Cancella {label}",
   "channel_attributes.info.edit": "Modifica {label}",
   "channel_attributes.info.heading": "Attributi del canale",
   "channel_attributes.info.locked": "Questo attributo non può essere modificato dopo essere stato impostato",
