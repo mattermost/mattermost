@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/mail"
 	"reflect"
 	"strings"
 
@@ -147,6 +148,38 @@ func fixConfig(cfg *model.Config) {
 	fixRetiredFeatureFlags(cfg)
 	fixTLSMinVer(cfg)
 	fixWebserverMode(cfg)
+	fixEmailAddressDisplayNames(cfg)
+}
+
+// fixEmailAddressDisplayNames reduces email settings written as "Name <user@example.com>"
+// to the bare address, which is the only form v12 accepts. Values that do not parse as an
+// address are left for validation to reject.
+func fixEmailAddressDisplayNames(cfg *model.Config) bool {
+	var changed bool
+
+	for _, setting := range []struct {
+		name  string
+		value *string
+	}{
+		{"SupportSettings.SupportEmail", cfg.SupportSettings.SupportEmail},
+		{"EmailSettings.FeedbackEmail", cfg.EmailSettings.FeedbackEmail},
+		{"EmailSettings.ReplyToAddress", cfg.EmailSettings.ReplyToAddress},
+	} {
+		if *setting.value == "" {
+			continue
+		}
+
+		addr, err := mail.ParseAddress(*setting.value)
+		if err != nil || addr.Address == *setting.value {
+			continue
+		}
+
+		mlog.Warn("Email setting must be a plain email address. Removing the display name.", mlog.String("setting", setting.name), mlog.String("value", *setting.value), mlog.String("address", addr.Address))
+		*setting.value = addr.Address
+		changed = true
+	}
+
+	return changed
 }
 
 // fixWebserverMode replaces an unrecognized webserver mode with nogzip, which servers

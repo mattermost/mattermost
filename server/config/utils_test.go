@@ -358,6 +358,40 @@ func TestFixWebserverMode(t *testing.T) {
 	}
 }
 
+func TestFixEmailAddressDisplayNames(t *testing.T) {
+	newConfig := func(value string) *model.Config {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		*cfg.SupportSettings.SupportEmail = value
+		*cfg.EmailSettings.FeedbackEmail = value
+		*cfg.EmailSettings.ReplyToAddress = value
+		return cfg
+	}
+
+	for _, value := range []string{"", "noreply@example.com", "NoReply@Example.com", "not an email"} {
+		t.Run("unchanged "+value, func(t *testing.T) {
+			cfg := newConfig(value)
+
+			assert.False(t, fixEmailAddressDisplayNames(cfg))
+			assert.Equal(t, value, *cfg.SupportSettings.SupportEmail)
+			assert.Equal(t, value, *cfg.EmailSettings.FeedbackEmail)
+			assert.Equal(t, value, *cfg.EmailSettings.ReplyToAddress)
+		})
+	}
+
+	for _, value := range []string{"Mattermost <noreply@example.com>", "<noreply@example.com>", `"Mattermost, Inc." <noreply@example.com>`} {
+		t.Run("display name "+value, func(t *testing.T) {
+			cfg := newConfig(value)
+
+			assert.True(t, fixEmailAddressDisplayNames(cfg))
+			assert.Equal(t, "noreply@example.com", *cfg.SupportSettings.SupportEmail)
+			assert.Equal(t, "noreply@example.com", *cfg.EmailSettings.FeedbackEmail)
+			assert.Equal(t, "noreply@example.com", *cfg.EmailSettings.ReplyToAddress)
+			assert.Nil(t, cfg.IsValid())
+		})
+	}
+}
+
 func TestIsDatabaseDSN(t *testing.T) {
 	testCases := []struct {
 		Name     string
