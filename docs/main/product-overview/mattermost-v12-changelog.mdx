@@ -173,6 +173,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - [Session attributes](https://docs.mattermost.com/administration-guide/manage/admin/session-attributes) (user agent, IP address, device/network posture) are now collected by default.
  - Updated file metadata preparation for post retrieval, channel bookmarks, and notification delivery.
  - Updated custom emoji image processing to use the shared image decoder, so animated GIF sources are subject to the configured maximum image resolution and image decoder concurrency.
+ - Updated how EXIF metadata is read when determining image orientation.
 
 #### mmctl
  - Added ``--expires-in`` flag to ``mmctl bot create --with-token`` for personal access token lifetime enforcement on user-owned bot accounts.
