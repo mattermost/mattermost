@@ -333,6 +333,31 @@ func TestFixTLSMinVer(t *testing.T) {
 	}
 }
 
+func TestFixWebserverMode(t *testing.T) {
+	for _, mode := range []string{"gzip", "nogzip", "disabled"} {
+		t.Run("supported "+mode, func(t *testing.T) {
+			cfg := &model.Config{}
+			cfg.SetDefaults()
+			*cfg.ServiceSettings.WebserverMode = mode
+
+			assert.False(t, fixWebserverMode(cfg))
+			assert.Equal(t, mode, *cfg.ServiceSettings.WebserverMode)
+		})
+	}
+
+	for _, mode := range []string{"", "GZIP", "none"} {
+		t.Run("unsupported "+mode, func(t *testing.T) {
+			cfg := &model.Config{}
+			cfg.SetDefaults()
+			*cfg.ServiceSettings.WebserverMode = mode
+
+			assert.True(t, fixWebserverMode(cfg))
+			assert.Equal(t, "nogzip", *cfg.ServiceSettings.WebserverMode)
+			assert.Nil(t, cfg.IsValid())
+		})
+	}
+}
+
 func TestIsDatabaseDSN(t *testing.T) {
 	testCases := []struct {
 		Name     string

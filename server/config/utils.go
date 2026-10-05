@@ -146,6 +146,20 @@ func fixConfig(cfg *model.Config) {
 	fixLegacyImageProxyType(cfg)
 	fixRetiredFeatureFlags(cfg)
 	fixTLSMinVer(cfg)
+	fixWebserverMode(cfg)
+}
+
+// fixWebserverMode replaces an unrecognized webserver mode with nogzip, which servers
+// before v12 silently used for any value other than gzip or disabled.
+func fixWebserverMode(cfg *model.Config) bool {
+	switch *cfg.ServiceSettings.WebserverMode {
+	case "gzip", "nogzip", "disabled":
+		return false
+	}
+
+	mlog.Warn("ServiceSettings.WebserverMode is not a supported mode. Setting WebserverMode to nogzip.", mlog.String("webserver_mode", *cfg.ServiceSettings.WebserverMode))
+	*cfg.ServiceSettings.WebserverMode = "nogzip"
+	return true
 }
 
 // fixTLSMinVer replaces an unrecognized TLS minimum version with 1.2, which servers
