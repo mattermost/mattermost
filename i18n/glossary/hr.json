@@ -1,0 +1,465 @@
+{
+  "Mattermost": {
+    "target": "Mattermost",
+    "note": "Brand name; never translate. Declined with a hyphen in the existing catalog ('Mattermost-a', 'Mattermost-u'); prefer rephrasing to avoid declension."
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition",
+    "note": "Keep in English. The existing catalog once renders it 'Izdanje za poduzeća' (about.teamEditiont1) — do not follow that."
+  },
+  "Team Edition": {
+    "target": "Team Edition",
+    "note": "Keep in English. Existing 'Timsko izdanje' (about.teamEditiont0) is a legacy rendering."
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud",
+    "note": "Keep in English. Do not render 'Cloud' as 'Oblak' (about.cloudEdition does)."
+  },
+  "Channels": {
+    "target": "Channels",
+    "note": "Product name; keep in English. The common noun 'channels' is 'kanali'."
+  },
+  "Playbooks": {
+    "target": "Playbooks"
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls",
+    "note": "Product name; keep in English. The common noun 'call' is 'poziv'."
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth",
+    "note": "Compounds: 'OAuth aplikacija', 'OAuth 2.0 veza'."
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP",
+    "note": "'AD/LDAP' stays as-is; declined with a hyphen when needed ('AD/LDAP-a')."
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA",
+    "note": "Keep the abbreviation. Spelled-out form in existing strings is 'višefaktorska autentifikacija'."
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Gossip": {
+    "target": "Gossip",
+    "note": "Protocol name; never render literally as 'trač'/'ogovaranje'."
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay",
+    "note": "'Global Relay EML' stays as-is."
+  },
+  "System Console": {
+    "target": "Konzola sustava",
+    "note": "Feminine. No settled rendering in the existing catalog (all strings empty); use 'Konzola sustava' consistently, matching 'administrator sustava'."
+  },
+  "marketplace": {
+    "target": "Marketplace",
+    "note": "The existing catalog keeps the English 'Marketplace' (5 occurrences); keep it. Do not render as 'tržnica'."
+  },
+  "channel": {
+    "target": "kanal",
+    "note": "Masculine; plural 'kanali', genitive plural 'kanala'."
+  },
+  "team": {
+    "target": "tim",
+    "note": "Masculine; plural 'timovi'. Adjective 'timski'."
+  },
+  "post": {
+    "target": "objava",
+    "note": "Existing permission/moderation strings use 'objava'; in user-facing prose 'poruka' is used interchangeably with message."
+  },
+  "message": {
+    "target": "poruka",
+    "note": "Feminine; plural 'poruke', genitive plural 'poruka'."
+  },
+  "thread": {
+    "target": "nit",
+    "note": "Feminine; plural 'niti'. No settled rendering in the existing catalog (threading.* strings are empty); use 'nit' consistently, Threads view = 'Niti'. Avoid 'rasprava' and 'tema'."
+  },
+  "reply": {
+    "target": "odgovor",
+    "note": "Verb: 'odgovori'. Plural 'odgovori', genitive plural 'odgovora'."
+  },
+  "direct message": {
+    "target": "izravna poruka",
+    "note": "Consistent existing rendering (16 occurrences). Not 'direktna poruka'. Abbreviation DM is not expanded."
+  },
+  "group message": {
+    "target": "grupna poruka",
+    "note": "The existing catalog has 'poruka grupe' in two strings; prefer 'grupna poruka' as the natural adjective form."
+  },
+  "mention": {
+    "target": "spominjanje",
+    "note": "Verb: 'spomenuti'. '@mention' = '@spominjanje' or keep the @username literal."
+  },
+  "notification": {
+    "target": "obavijest",
+    "note": "Feminine; plural 'obavijesti'."
+  },
+  "pin": {
+    "target": "prikvači",
+    "note": "Pinned messages = 'Prikvačene poruke'; unpin = 'otkvači'."
+  },
+  "bookmark": {
+    "target": "zabilješka",
+    "note": "Feminine; plural 'zabilješke'. Channel bookmarks = 'zabilješke kanala'. Verb: 'dodaj zabilješku'."
+  },
+  "saved messages": {
+    "target": "Spremljene poruke",
+    "note": "save = 'spremi', unsave = 'ukloni iz spremljenih'."
+  },
+  "draft": {
+    "target": "skica",
+    "note": "Feminine; plural 'skice'. Not 'nacrt'."
+  },
+  "scheduled post": {
+    "target": "zakazana poruka",
+    "note": "Plural 'zakazane poruke'; 'schedule' = 'zakaži'."
+  },
+  "emoji": {
+    "target": "emoji",
+    "note": "Masculine, indeclinable in the existing catalog ('prilagođeni emoji', genitive 'emojija')."
+  },
+  "custom emoji": {
+    "target": "prilagođeni emoji"
+  },
+  "reaction": {
+    "target": "reakcija",
+    "note": "Verb 'react' = 'reagiraj'."
+  },
+  "status": {
+    "target": "stanje",
+    "note": "The existing catalog consistently renders user status as 'stanje' ('Postavi stanje', 'Poništi stanje'); keep it. Technical status columns also use 'Stanje'."
+  },
+  "custom status": {
+    "target": "prilagođeno stanje"
+  },
+  "do not disturb": {
+    "target": "Ne uznemiravaj",
+    "note": "Status label. DND is not abbreviated in Croatian."
+  },
+  "away": {
+    "target": "odsutan",
+    "note": "Status label capitalised 'Odsutan'; noun 'odsutnost' (existing 'Indikator odsutnosti')."
+  },
+  "online": {
+    "target": "online",
+    "note": "Existing catalog uses 'online' ('svi koji su online'); status label 'Online'. Alternative 'Na mreži' is not used."
+  },
+  "offline": {
+    "target": "offline",
+    "note": "Status label 'Offline', matching 'online'."
+  },
+  "out of office": {
+    "target": "Izvan ureda",
+    "note": "Status label; prose uses 'nisam u uredu'."
+  },
+  "guest": {
+    "target": "gost",
+    "note": "Masculine; plural 'gosti'. Guest access = 'pristup za goste'."
+  },
+  "member": {
+    "target": "član",
+    "note": "Masculine; plural 'članovi', genitive plural 'članova'."
+  },
+  "user": {
+    "target": "korisnik",
+    "note": "Plural 'korisnici'. Adjective 'korisnički' (korisničko ime)."
+  },
+  "system admin": {
+    "target": "administrator sustava",
+    "note": "Consistent existing rendering; not 'sistemski administrator'."
+  },
+  "team admin": {
+    "target": "administrator tima"
+  },
+  "channel admin": {
+    "target": "administrator kanala"
+  },
+  "session": {
+    "target": "sesija",
+    "note": "Feminine; plural 'sesije'."
+  },
+  "sign in": {
+    "target": "prijavi se",
+    "note": "Both 'sign in' and 'log in' = 'prijavi se' (noun 'prijava'). The existing catalog addresses the user informally ('ti'); keep that register."
+  },
+  "sign out": {
+    "target": "odjavi se",
+    "note": "Both 'sign out' and 'log out' = 'odjavi se' (noun 'odjava'). The existing catalog has the typo 'Odajvi se' — do not copy it."
+  },
+  "join": {
+    "target": "pridruži se",
+    "note": "Takes dative: 'pridruži se kanalu', 'pridruži se timu'."
+  },
+  "leave": {
+    "target": "napusti",
+    "note": "'Napusti kanal', 'Napusti tim'."
+  },
+  "archive": {
+    "target": "arhiviraj",
+    "note": "Adjective 'archived' = 'arhiviran' ('arhivirani kanal')."
+  },
+  "unarchive": {
+    "target": "vrati iz arhive",
+    "note": "'Vrati kanal iz arhive'. Not 'dearhiviraj'."
+  },
+  "mute": {
+    "target": "isključi zvuk",
+    "note": "Existing: 'Isključi zvuk kanala'; unmute = 'Uključi zvuk'; muted = 'isključen zvuk' / 'utišan'. Not 'utišaj' as the button label."
+  },
+  "follow": {
+    "target": "prati",
+    "note": "'Prati nit'; following = 'pratiš' / 'praćeno'."
+  },
+  "unfollow": {
+    "target": "prestani pratiti"
+  },
+  "favorite": {
+    "target": "favorit",
+    "note": "Sidebar category 'Favoriti'. Verb: 'Dodaj u favorite'; unfavorite: 'Ukloni iz favorita' (existing)."
+  },
+  "search": {
+    "target": "pretraga",
+    "note": "Noun 'pretraga' (existing button label); verb 'pretraži'."
+  },
+  "integration": {
+    "target": "integracija"
+  },
+  "slash command": {
+    "target": "naredba s kosom crtom",
+    "note": "Consistent existing rendering (12 occurrences)."
+  },
+  "webhook": {
+    "target": "webhook",
+    "note": "Kept in English, masculine ('webhooka', 'webhookovi')."
+  },
+  "incoming webhook": {
+    "target": "dolazni webhook"
+  },
+  "outgoing webhook": {
+    "target": "odlazni webhook"
+  },
+  "trigger word": {
+    "target": "riječ za pokretanje",
+    "note": "Existing rendering ('Riječ za pokretanje naredbe'); plural 'riječi za pokretanje'. Not 'okidač'."
+  },
+  "plugin": {
+    "target": "dodatak",
+    "note": "Existing rendering ('Prenesi dodatak', 'Dodatak nije pronađen'); plural 'dodaci', genitive plural 'dodataka'. Not 'plugin'/'priključak'."
+  },
+  "bot": {
+    "target": "bot",
+    "note": "Masculine; plural 'botovi'. Bot account = 'račun bota'."
+  },
+  "role": {
+    "target": "uloga",
+    "note": "Plural 'uloge'."
+  },
+  "permission": {
+    "target": "dozvola",
+    "note": "Consistent existing rendering ('Dozvole'); not 'dopuštenje' or 'ovlast'."
+  },
+  "scheme": {
+    "target": "shema",
+    "note": "Permission scheme = 'shema dozvola'."
+  },
+  "license": {
+    "target": "licenca",
+    "note": "Verb 'licenciran' (existing 'Licenzirano' is a typo — do not copy)."
+  },
+  "seat": {
+    "target": "korisničko mjesto",
+    "note": "No existing rendering; plural 'korisnička mjesta'. Short 'mjesto' where context is clear."
+  },
+  "trial": {
+    "target": "probno razdoblje",
+    "note": "Free trial = 'besplatno probno razdoblje'; 'trial license' = 'probna licenca'."
+  },
+  "workspace": {
+    "target": "radni prostor",
+    "note": "Masculine; plural 'radni prostori'."
+  },
+  "subscription": {
+    "target": "pretplata",
+    "note": "Existing rendering ('Pretplata')."
+  },
+  "deactivate": {
+    "target": "deaktiviraj",
+    "note": "Deactivated account = 'deaktivirani račun'."
+  },
+  "invite": {
+    "target": "pozovi",
+    "note": "Verb (existing 'Pozovi'); as a noun use 'poziv' or 'pozivnica'."
+  },
+  "invitation": {
+    "target": "pozivnica"
+  },
+  "sidebar": {
+    "target": "bočna traka",
+    "note": "Feminine; existing rendering ('Postavke bočne trake')."
+  },
+  "unread": {
+    "target": "nepročitano",
+    "note": "Adjective agrees: 'nepročitani kanali', 'nepročitane poruke'; Unreads view = 'Nepročitano'."
+  },
+  "attachment": {
+    "target": "privitak",
+    "note": "Masculine; plural 'privici'. The catalog mixes 'privitak' and 'prilog'; prefer 'privitak'."
+  },
+  "public channel": {
+    "target": "javni kanal"
+  },
+  "private channel": {
+    "target": "privatni kanal"
+  },
+  "shared channel": {
+    "target": "dijeljeni kanal",
+    "note": "Existing rendering ('Dijeljeni kanali'); not 'zajednički kanal'."
+  },
+  "channel header": {
+    "target": "zaglavlje kanala",
+    "note": "Bare 'header' = 'zaglavlje'."
+  },
+  "channel purpose": {
+    "target": "svrha kanala",
+    "note": "Bare 'purpose' = 'svrha'."
+  },
+  "system message": {
+    "target": "poruka sustava",
+    "note": "Plural 'poruke sustava'."
+  },
+  "persistent notification": {
+    "target": "trajna obavijest"
+  },
+  "message priority": {
+    "target": "prioritet poruke",
+    "note": "Existing rendering."
+  },
+  "urgent": {
+    "target": "Hitno",
+    "note": "Priority label (existing); adjective agrees in prose ('hitna poruka'). 'Important' = 'Važno'."
+  },
+  "recap": {
+    "target": "sažetak",
+    "note": "Masculine; plural 'sažeci'. 'Summary' also renders as 'sažetak'; add 'aktivnosti' when disambiguation is needed."
+  },
+  "agent": {
+    "target": "agent",
+    "note": "Masculine; plural 'agenti'. 'AI agent' = 'AI agent'."
+  },
+  "burn-on-read": {
+    "target": "brisanje nakon čitanja",
+    "note": "Adjectival use: 'poruka koja se briše nakon čitanja'; label 'BRISANJE NAKON ČITANJA'."
+  },
+  "magic link": {
+    "target": "čarobna poveznica",
+    "note": "Feminine; plural 'čarobne poveznice'."
+  },
+  "personal access token": {
+    "target": "osobni token za pristup",
+    "note": "Existing rendering ('osobni tokeni za pristup'); bare 'token' stays 'token'."
+  },
+  "announcement banner": {
+    "target": "baner s obavijesti",
+    "note": "Bare 'banner' = 'baner'."
+  },
+  "channel banner": {
+    "target": "baner kanala"
+  },
+  "keyword": {
+    "target": "ključna riječ",
+    "note": "Existing rendering ('Ključne riječi')."
+  },
+  "user group": {
+    "target": "korisnička grupa",
+    "note": "Bare 'group' = 'grupa'."
+  },
+  "permalink": {
+    "target": "trajna poveznica",
+    "note": "Existing menu label is 'Kopiraj poveznicu'; use 'trajna poveznica' where the term itself is named."
+  },
+  "profile": {
+    "target": "profil"
+  },
+  "username": {
+    "target": "korisničko ime",
+    "note": "The catalog contains the typo 'korisičko ime' — do not copy it."
+  },
+  "nickname": {
+    "target": "nadimak"
+  },
+  "display name": {
+    "target": "prikazno ime",
+    "note": "Existing rendering ('prikazno ime kanala')."
+  },
+  "collapsed reply threads": {
+    "target": "sklopljene niti odgovora",
+    "note": "'Collapsed' = 'sklopljeno' in the existing catalog; capitalise as a feature name 'Sklopljene niti odgovora'."
+  },
+  "auto-translation": {
+    "target": "automatski prijevod",
+    "note": "'auto-translated' = 'automatski prevedeno'."
+  },
+  "data retention": {
+    "target": "zadržavanje podataka",
+    "note": "Existing rendering; policy = 'pravilo zadržavanja podataka'."
+  },
+  "compliance export": {
+    "target": "izvoz za usklađenost",
+    "note": "'Compliance' = 'usklađenost'."
+  },
+  "access control": {
+    "target": "kontrola pristupa",
+    "note": "Attribute-based access control = 'kontrola pristupa temeljena na atributima'; policy = 'pravilo'."
+  },
+  "attribute": {
+    "target": "atribut",
+    "note": "Masculine; plural 'atributi'. Custom profile attribute = 'prilagođeni atribut profila'."
+  },
+  "onboarding": {
+    "target": "uvođenje",
+    "note": "Neuter; 'onboarding checklist' = 'popis zadataka za uvođenje'."
+  },
+  "Town Square": {
+    "target": "Gradski trg",
+    "note": "Established default-channel name in the server catalog."
+  },
+  "Off-Topic": {
+    "target": "Van teme",
+    "note": "Established default-channel name in the server catalog."
+  },
+  "read-only": {
+    "target": "samo za čitanje",
+    "note": "'Ovaj kanal je samo za čitanje.'"
+  },
+  "server": {
+    "target": "server",
+    "note": "The existing catalog uses 'server' (not 'poslužitelj'); declined normally ('serveru', 'servera')."
+  }
+}

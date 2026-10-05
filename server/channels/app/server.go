@@ -330,10 +330,11 @@ func NewServer(options ...Option) (*Server, error) {
 	}, cpaGroup.ID)
 	s.propertyService.AddHook(licenseCheckHook)
 
-	accessControlHook := properties.NewAccessControlHook(s.propertyService, func(pluginID string) bool {
+	pluginChecker := func(pluginID string) bool {
 		_, err := s.ch.GetPluginStatus(pluginID)
 		return err == nil
-	}, cpaGroup.ID)
+	}
+	accessControlHook := properties.NewAccessControlHook(s.propertyService, pluginChecker, cpaGroup.ID)
 	s.propertyService.AddHook(accessControlHook)
 
 	// Attribute validation hook — validates visibility, sort_order on fields,
@@ -351,7 +352,8 @@ func NewServer(options ...Option) (*Server, error) {
 	attrValidationHook := properties.NewAccessControlAttributeValidationHook(s.propertyService, permChecker, cpaGroup.ID).
 		WithRequiredAttributeEnforcement(func() bool {
 			return s.Config().FeatureFlags.IsChannelAttributesRequiredEnabled()
-		})
+		}).
+		WithPluginChecker(pluginChecker)
 	s.propertyService.AddHook(attrValidationHook)
 
 	// Generic property value audit hook — groups opt in with RegisterGroup.
