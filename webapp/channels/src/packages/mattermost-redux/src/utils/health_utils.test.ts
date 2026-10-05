@@ -5,7 +5,6 @@ import type {HealthFinding} from '@mattermost/types/health';
 
 import {
     compareHealthFindings,
-    countFiringBySeverity,
     countHealthFindingsByTab,
     filterHealthFindingsByTab,
     groupHealthFindingsByArea,
@@ -95,10 +94,6 @@ describe('mattermost-redux/utils/health_utils', () => {
                 unknown: 2,
             });
         });
-    });
-
-    test('countFiringBySeverity counts firing findings only, never unknown or resolved', () => {
-        expect(countFiringBySeverity(all)).toEqual({critical: 1, warning: 1, info: 1});
     });
 
     test('compareHealthFindings sorts by severity, then newest state change first', () => {

@@ -4,11 +4,14 @@
 import React from 'react';
 
 import Timestamp from 'components/timestamp';
+import type {Props as TimestampProps} from 'components/timestamp/timestamp';
+
+const UNITS: TimestampProps['units'] = ['now', 'minute', 'hour', 'day', 'week', 'month', 'year'];
 
 const RelativeTime = ({value}: {value: number}) => (
     <Timestamp
         value={value}
-        units={['now', 'minute', 'hour', 'day', 'week', 'month', 'year']}
+        units={UNITS}
         useDate={false}
         useTime={false}
     />

@@ -3,7 +3,8 @@
 
 import classNames from 'classnames';
 import React, {useRef} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 
 import {HEALTH_FINDING_TABS} from 'mattermost-redux/utils/health_utils';
 import type {HealthFindingTab} from 'mattermost-redux/utils/health_utils';
@@ -19,19 +20,10 @@ export function tabId(prefix: string, tab: HealthFindingTab) {
     return `${prefix}-tab-${tab}`;
 }
 
-const TabLabel = ({tab}: {tab: HealthFindingTab}) => {
-    if (tab === 'open') {
-        return (
-            <FormattedMessage
-                id='admin.health_dashboard.tab.open'
-                defaultMessage='Open'
-            />
-        );
-    }
-    if (tab === 'resolved' || tab === 'unknown') {
-        return <FormattedMessage {...stateMessages[tab]}/>;
-    }
-    return <FormattedMessage {...severityMessages[tab]}/>;
+const tabMessages: Record<HealthFindingTab, MessageDescriptor> = {
+    open: defineMessage({id: 'admin.health_dashboard.tab.open', defaultMessage: 'Open'}),
+    ...severityMessages,
+    ...stateMessages,
 };
 
 type Props = {
@@ -97,7 +89,7 @@ const FindingTabs = ({idPrefix, panelId, active, counts, onChange}: Props) => {
                         onKeyDown={handleKeyDown}
                     >
                         {tab !== 'open' && <ToneIcon tone={tab}/>}
-                        <TabLabel tab={tab}/>
+                        <FormattedMessage {...tabMessages[tab]}/>
                         <span className='HealthDashboard__tabCount'>{counts[tab]}</span>
                     </button>
                 );

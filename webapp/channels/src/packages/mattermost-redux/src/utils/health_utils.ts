@@ -17,15 +17,9 @@ export const HEALTH_SEVERITIES: HealthFindingSeverity[] = ['critical', 'warning'
 
 export const RECENTLY_RESOLVED_WINDOW = 7 * 24 * 60 * 60 * 1000;
 
-const severityRank: Record<HealthFindingSeverity, number> = {
-    critical: 0,
-    warning: 1,
-    info: 2,
-};
-
 // Most severe first, then the most recent change of state.
 export function compareHealthFindings(a: HealthFinding, b: HealthFinding) {
-    return (severityRank[a.severity] - severityRank[b.severity]) ||
+    return (HEALTH_SEVERITIES.indexOf(a.severity) - HEALTH_SEVERITIES.indexOf(b.severity)) ||
         (b.state_since - a.state_since) ||
         (a.title ?? '').localeCompare(b.title ?? '') ||
         a.scope.localeCompare(b.scope);
@@ -57,26 +51,9 @@ export function filterHealthFindingsByTab(findings: HealthFinding[], tab: Health
 }
 
 export function countHealthFindingsByTab(findings: HealthFinding[], now: number) {
-    const counts = Object.fromEntries(HEALTH_FINDING_TABS.map((tab) => [tab, 0])) as Record<HealthFindingTab, number>;
-    for (const finding of findings) {
-        for (const tab of HEALTH_FINDING_TABS) {
-            if (isInHealthFindingTab(finding, tab, now)) {
-                counts[tab]++;
-            }
-        }
-    }
-    return counts;
-}
-
-// Firing findings only: an unknown is neither a problem nor an all-clear.
-export function countFiringBySeverity(findings: HealthFinding[]) {
-    const counts: Record<HealthFindingSeverity, number> = {critical: 0, warning: 0, info: 0};
-    for (const finding of findings) {
-        if (finding.state === 'firing') {
-            counts[finding.severity]++;
-        }
-    }
-    return counts;
+    return Object.fromEntries(
+        HEALTH_FINDING_TABS.map((tab) => [tab, filterHealthFindingsByTab(findings, tab, now).length]),
+    ) as Record<HealthFindingTab, number>;
 }
 
 // Non-empty sections in display order; findings keep their incoming order.
