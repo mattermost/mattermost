@@ -580,8 +580,21 @@ def parse_ssim(stderr: str) -> float | None:
     return float(m.group(1))
 
 
-def measure_ssim(ref: Path, dist: Path, width: int, height: int) -> float | None:
-    filt = "[0:v]scale=%d:%d:flags=lanczos,setsar=1[r];[1:v]setsar=1[d];[d][r]ssim" % (width, height)
+def ssim_ref_vf(vf: str | None) -> str | None:
+    """Crop-only preprocess for SSIM refs; scale is handled by measure_ssim."""
+    if vf and vf.startswith("crop="):
+        return vf
+    return None
+
+
+def measure_ssim(
+    ref: Path, dist: Path, width: int, height: int, ref_vf: str | None = None
+) -> float | None:
+    if ref_vf:
+        ref_chain = "%s,scale=%d:%d:flags=lanczos,setsar=1" % (ref_vf, width, height)
+    else:
+        ref_chain = "scale=%d:%d:flags=lanczos,setsar=1" % (width, height)
+    filt = "[0:v]%s[r];[1:v]setsar=1[d];[d][r]ssim" % ref_chain
     proc = subprocess.run(
         [
             ffmpeg_bin(),
@@ -627,6 +640,15 @@ def cmd_verify(manifest: dict, only: str | None) -> int:
                 print("missing output: %s" % out_rel, file=sys.stderr)
                 failures += 1
                 continue
+            committed_hash = sha256_file(dst)
+            expected_hash = entry["output"]["sha256"]
+            if committed_hash != expected_hash:
+                print(
+                    "output hash mismatch %s: manifest %s committed %s"
+                    % (key, expected_hash, committed_hash),
+                    file=sys.stderr,
+                )
+                failures += 1
             source = entry["source"]
             vf = derive_vf(int(source["width"]), int(source["height"]))
             crf = effective_crf(entry, enc["baseline_crf"])
@@ -775,6 +797,7 @@ def review_one(payload: dict) -> dict:
     duration = payload["duration"]
     media = Path(payload["media"])
     stills = Path(payload["stills"])
+    ref_vf = ssim_ref_vf(payload.get("vf"))
     shutil.copy2(src, media / (stem + ".gif"))
     shutil.copy2(dst, media / (stem + ".mp4"))
     percents = (0.10, 0.35, 0.60, 0.85)
@@ -798,7 +821,7 @@ def review_one(payload: dict) -> dict:
     if ssim_path.is_file():
         ssim = float(ssim_path.read_text().strip())
     else:
-        ssim = measure_ssim(src, dst, dims["width"], dims["height"])
+        ssim = measure_ssim(src, dst, dims["width"], dims["height"], ref_vf=ref_vf)
         if ssim is not None:
             ssim_path.write_text("%.6f\n" % ssim)
     return {"key": key, "still_cells": still_cells, "ssim": ssim}
@@ -830,6 +853,7 @@ def cmd_review(manifest: dict, only: str | None) -> int:
                 "dst": str(dst),
                 "stem": Path(key).stem,
                 "duration": float((entry.get("source") or {}).get("duration_s") or 1.0),
+                "vf": entry.get("vf"),
                 "media": str(media),
                 "stills": str(stills),
             }
@@ -952,7 +976,8 @@ def build_parser() -> argparse.ArgumentParser:
     enc.add_argument("--only", help="glob against repo-relative path or basename")
     enc.add_argument("--force", action="store_true")
     enc.add_argument("--jobs", type=int, default=os.cpu_count() or 1)
-    sub.add_parser("verify", help="re-encode to a temp dir, compare against committed")
+    ver = sub.add_parser("verify", help="re-encode to a temp dir, compare against committed")
+    ver.add_argument("--only", help="glob against repo-relative path or basename")
     sub.add_parser("report", help="before/after table, no encoding")
     rev = sub.add_parser("review", help="build /tmp/gif-review/index.html")
     rev.add_argument("--only", help="glob against repo-relative path or basename")
@@ -967,7 +992,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "encode":
         return cmd_encode(manifest, args.only, args.force, args.jobs)
     if args.cmd == "verify":
-        return cmd_verify(manifest, None)
+        return cmd_verify(manifest, args.only)
     if args.cmd == "report":
         return cmd_report(manifest)
     if args.cmd == "review":

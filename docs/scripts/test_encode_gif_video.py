@@ -59,6 +59,18 @@ class DeriveVfTests(unittest.TestCase):
         self.assertEqual(mod.derive_vf(1281, 800), "scale=1280:-2:flags=lanczos")
 
 
+class SsimRefVfTests(unittest.TestCase):
+    def test_crop_passed_through(self):
+        self.assertEqual(
+            mod.ssim_ref_vf("crop=trunc(iw/2)*2:trunc(ih/2)*2"),
+            "crop=trunc(iw/2)*2:trunc(ih/2)*2",
+        )
+
+    def test_scale_and_null_skipped(self):
+        self.assertIsNone(mod.ssim_ref_vf("scale=1280:-2:flags=lanczos"))
+        self.assertIsNone(mod.ssim_ref_vf(None))
+
+
 class GifParserTests(unittest.TestCase):
     def test_parse_real_inventory_gif(self):
         sample = mod.REPO_ROOT / "docs/site/static/images/create-team.gif"
@@ -287,7 +299,23 @@ class EncodeIdempotencyTests(unittest.TestCase):
             if fp.is_file():
                 outputs.append((fp, fp.stat().st_mtime_ns, mod.sha256_file(fp)))
         self.assertGreater(len(outputs), 0)
-        rc = mod.cmd_encode(mod.load_manifest(), only=None, force=False, jobs=1)
+        manifest = mod.load_manifest()
+        mod.assert_tree_consistent(manifest)
+        baseline = int((manifest.get("encoder") or {}).get("baseline_crf", mod.BASELINE_CRF))
+        work = []
+        for key, entry in manifest["files"].items():
+            out = entry.get("output") or {}
+            out_rel = out.get("path") or mod.output_path_for(key)
+            if mod.wants_reencode(
+                entry,
+                mod.REPO_ROOT / key,
+                mod.REPO_ROOT / out_rel,
+                force=False,
+                baseline=baseline,
+            ):
+                work.append(key)
+        self.assertEqual(work, [], "refusing to encode with stale repository inputs or outputs")
+        rc = mod.cmd_encode(manifest, only=None, force=False, jobs=1)
         self.assertEqual(rc, 0)
         changed = []
         for fp, mtime, digest in outputs:
