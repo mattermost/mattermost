@@ -89,16 +89,11 @@ func evalComplianceNoDir(s *healthcheck.Snapshot) []healthcheck.Result {
 // retentionEnabled reports whether the global retention policy runs the deletion job.
 func retentionEnabled(s *healthcheck.Snapshot) (enabled, ok bool) {
 	messages, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.DataRetentionSettings.EnableMessageDeletion })
-	if !ok {
-		return false, false
+	if !ok || messages {
+		return messages, ok
 	}
 
-	files, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.DataRetentionSettings.EnableFileDeletion })
-	if !ok {
-		return false, false
-	}
-
-	return messages || files, true
+	return s.ConfigBool(func(cfg *model.Config) *bool { return cfg.DataRetentionSettings.EnableFileDeletion })
 }
 
 func evalRetentionTightBatches(s *healthcheck.Snapshot) []healthcheck.Result {

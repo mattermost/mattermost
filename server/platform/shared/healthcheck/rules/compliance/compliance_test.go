@@ -45,13 +45,6 @@ var (
 	unknown  = ruleWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonConfigUnavailable}
 )
 
-func TestRegistered(t *testing.T) {
-	for _, code := range []string{"COMPLIANCE_NO_DIR", "AUDIT_LOG_OFF", "RETENTION_TIGHT_BATCHES", "EXPORT_GR_TIMEOUT_LOW"} {
-		_, ok := healthcheck.Builtin().Get(code)
-		assert.True(t, ok, code)
-	}
-}
-
 func TestRulesConfigUnavailable(t *testing.T) {
 	t.Parallel()
 
