@@ -151,7 +151,7 @@ func benchHubChannelBroadcast(b *testing.B, logger *mlog.Logger, channelIteratio
 	}
 
 	slices.Sort(latencies)
-	b.ReportMetric(float64(latencies[len(latencies)*99/100].Microseconds()), "p99-us")
+	b.ReportMetric(float64(latencies[(99*len(latencies)+99)/100-1].Microseconds()), "p99-us")
 	b.ReportMetric(float64(liveBytes-baseBytes)/1e6, "live-MB")
 	b.ReportMetric(float64(liveObjects-baseObjects)/1e3, "live-kobjs")
 	b.ReportMetric(float64(gcTime.Microseconds())/1e3, "gc-ms")
