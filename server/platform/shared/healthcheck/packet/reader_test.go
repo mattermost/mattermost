@@ -7,6 +7,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/fs"
 	"maps"
 	"os"
@@ -413,6 +414,60 @@ func TestReadInvalidPackets(t *testing.T) {
 		assert.True(t, present)
 		assert.ErrorContains(t, err, "stats.yaml: larger than 64 MiB")
 		assert.Nil(t, s.Stats)
+	})
+
+	t.Run("too many nodes", func(t *testing.T) {
+		standalone := fixtureFiles(t, "standalone")
+		files := map[string][]byte{}
+		for i := range maxNodes + 1 {
+			node := fmt.Sprintf("app-%d", i)
+			files[path.Join(node, model.SupportPacketDiagnosticsFileName)] = standalone[model.SupportPacketDiagnosticsFileName]
+			files[path.Join(node, model.SupportPacketConfigFileName)] = standalone[model.SupportPacketConfigFileName]
+		}
+		data := zipFiles(t, files)
+
+		_, err := Read(bytes.NewReader(data), int64(len(data)))
+		assert.ErrorContains(t, err, "the Support Packet has 101 nodes, more than the 100")
+	})
+
+	t.Run("reads past the total budget are errors", func(t *testing.T) {
+		files := fixtureFiles(t, "ha")
+		data := zipFiles(t, files)
+		zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+		require.NoError(t, err)
+
+		budget := len(files["app-1.example.com/diagnostics.yaml"]) + len(files["app-2.example.com/diagnostics.yaml"])
+		p, err := readPacket(&budgetedZip{zr: zr, remaining: int64(budget)})
+		require.NoError(t, err)
+
+		hostnames := make([]string, 0, len(p.Snapshot.Nodes()))
+		for _, node := range p.Snapshot.Nodes() {
+			if _, ok := node.Diag(); ok {
+				hostnames = append(hostnames, node.Hostname)
+			}
+		}
+		assert.Equal(t, []string{"app-1.example.com", "app-2.example.com"}, hostnames)
+		assert.Contains(t, p.Warnings, "failed to read app-3.example.com/diagnostics.yaml: the packet exceeds the total read limit. The node's diagnostics are ignored.")
+
+		present, err := p.Snapshot.SectionErr(model.SectionStats)
+		assert.True(t, present)
+		assert.ErrorContains(t, err, "total read limit")
+	})
+
+	t.Run("oversized members count against the total budget", func(t *testing.T) {
+		data := zipFiles(t, map[string][]byte{
+			"big":   make([]byte, maxMemberSize+1),
+			"small": []byte("small"),
+		})
+		zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+		require.NoError(t, err)
+		z := &budgetedZip{zr: zr, remaining: maxMemberSize + 3}
+
+		_, _, err = z.readRaw("big")
+		assert.ErrorContains(t, err, "larger than 64 MiB")
+
+		_, _, err = z.readRaw("small")
+		assert.ErrorContains(t, err, "total read limit")
 	})
 
 	t.Run("missing file", func(t *testing.T) {

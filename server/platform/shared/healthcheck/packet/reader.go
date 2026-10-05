@@ -56,8 +56,12 @@ func Read(r io.ReaderAt, size int64) (*Packet, error) {
 		return nil, fmt.Errorf("failed to open the Support Packet: %w", err)
 	}
 
-	names := make([]string, 0, len(zr.File))
-	for _, file := range zr.File {
+	return readPacket(&budgetedZip{zr: zr, remaining: maxTotalSize})
+}
+
+func readPacket(z *budgetedZip) (*Packet, error) {
+	names := make([]string, 0, len(z.zr.File))
+	for _, file := range z.zr.File {
 		names = append(names, file.Name)
 	}
 
@@ -65,8 +69,11 @@ func Read(r io.ReaderAt, size int64) (*Packet, error) {
 	if len(byNode) == 0 && !slices.Contains(root, model.SupportPacketDiagnosticsFileName) {
 		return nil, fmt.Errorf("not a Support Packet: no %s found", model.SupportPacketDiagnosticsFileName)
 	}
+	if len(byNode) > maxNodes {
+		return nil, fmt.Errorf("the Support Packet has %d nodes, more than the %d this reader accepts", len(byNode), maxNodes)
+	}
 
-	nodes, warnings := readNodes(zr, root, byNode)
+	nodes, warnings := readNodes(z, root, byNode)
 	leader := selectLeader(nodes)
 
 	snapshot := healthcheck.NewSnapshot(nodes)
@@ -76,17 +83,17 @@ func Read(r io.ReaderAt, size int64) (*Packet, error) {
 	if len(byNode) > 0 {
 		configFile = path.Join(leader.Hostname, configFile)
 	}
-	snapshot.Config = readSection[model.SupportPacketConfig](zr, snapshot.Sections, model.SectionConfig, configFile, json.Unmarshal)
-	snapshot.Stats = readSection[model.SupportPacketStats](zr, snapshot.Sections, model.SectionStats, model.SupportPacketStatsFileName, yaml.Unmarshal)
-	snapshot.Jobs = readSection[model.SupportPacketJobList](zr, snapshot.Sections, model.SectionJobs, model.SupportPacketJobsFileName, yaml.Unmarshal)
-	snapshot.Plugins = readSection[model.SupportPacketPluginList](zr, snapshot.Sections, model.SectionPlugins, model.SupportPacketPluginsFileName, json.Unmarshal)
+	snapshot.Config = readSection[model.SupportPacketConfig](z, snapshot.Sections, model.SectionConfig, configFile, json.Unmarshal)
+	snapshot.Stats = readSection[model.SupportPacketStats](z, snapshot.Sections, model.SectionStats, model.SupportPacketStatsFileName, yaml.Unmarshal)
+	snapshot.Jobs = readSection[model.SupportPacketJobList](z, snapshot.Sections, model.SectionJobs, model.SupportPacketJobsFileName, yaml.Unmarshal)
+	snapshot.Plugins = readSection[model.SupportPacketPluginList](z, snapshot.Sections, model.SectionPlugins, model.SupportPacketPluginsFileName, json.Unmarshal)
 
 	if diag, ok := leader.Diag(); ok {
 		snapshot.Deployment.IsCloud = diag.License.IsCloud
 	}
 
 	var metadata model.PacketMetadata
-	found, err := readMember(zr, model.PacketMetadataFileName, &metadata, yaml.Unmarshal)
+	found, err := z.readMember(model.PacketMetadataFileName, &metadata, yaml.Unmarshal)
 	switch {
 	case !found:
 		warnings = append(warnings, fmt.Sprintf("The packet has no %s, so the time it was generated is unknown.", model.PacketMetadataFileName))
@@ -99,7 +106,7 @@ func Read(r io.ReaderAt, size int64) (*Packet, error) {
 		}
 	}
 
-	generationErrors, found, err := readRaw(zr, model.SupportPacketErrorFile)
+	generationErrors, found, err := z.readRaw(model.SupportPacketErrorFile)
 	switch {
 	case err != nil:
 		warnings = append(warnings, fmt.Sprintf("%s.", err))
@@ -142,7 +149,7 @@ func splitNodeFiles(names []string) (root []string, byNode map[string][]string) 
 // readNodes returns one NodeSnapshot per node directory, sorted by hostname, or a single node
 // from the root files of a standalone packet. A node whose diagnostics.yaml does not parse
 // keeps nil Diagnostics and adds a warning; the other nodes are still read.
-func readNodes(zr *zip.Reader, root []string, byNode map[string][]string) ([]*healthcheck.NodeSnapshot, []string) {
+func readNodes(z *budgetedZip, root []string, byNode map[string][]string) ([]*healthcheck.NodeSnapshot, []string) {
 	var (
 		nodes      []*healthcheck.NodeSnapshot
 		warnings   []string
@@ -152,7 +159,7 @@ func readNodes(zr *zip.Reader, root []string, byNode map[string][]string) ([]*he
 	read := func(hostname, name string) *healthcheck.NodeSnapshot {
 		node := &healthcheck.NodeSnapshot{Hostname: hostname}
 		var diag model.SupportPacketDiagnostics
-		if _, err := readMember(zr, name, &diag, yaml.Unmarshal); err != nil {
+		if _, err := z.readMember(name, &diag, yaml.Unmarshal); err != nil {
 			warnings = append(warnings, fmt.Sprintf("%s. The node's diagnostics are ignored.", err))
 			return node
 		}
@@ -202,9 +209,9 @@ func selectLeader(nodes []*healthcheck.NodeSnapshot) *healthcheck.NodeSnapshot {
 
 // readSection decodes a workspace section file. A present file records its section, with the
 // parse error if it has one; an absent file records nothing, so its accessors report ok=false.
-func readSection[T any](zr *zip.Reader, sections map[model.WorkspaceSection]error, section model.WorkspaceSection, name string, unmarshal func([]byte, any) error) *T {
+func readSection[T any](z *budgetedZip, sections map[model.WorkspaceSection]error, section model.WorkspaceSection, name string, unmarshal func([]byte, any) error) *T {
 	var v T
-	found, err := readMember(zr, name, &v, unmarshal)
+	found, err := z.readMember(name, &v, unmarshal)
 	if !found {
 		return nil
 	}
@@ -216,12 +223,22 @@ func readSection[T any](zr *zip.Reader, sections map[model.WorkspaceSection]erro
 	return &v
 }
 
-// maxMemberSize caps how much of one packet file is read, so a crafted or corrupt packet
-// cannot exhaust memory. Real packet files are a few hundred KB at most.
-const maxMemberSize = 64 << 20
+// These limits keep a crafted or corrupt packet from exhausting memory. Real packet files
+// are a few hundred KB at most, and real clusters have a handful of nodes.
+const (
+	maxMemberSize = 64 << 20
+	maxTotalSize  = 256 << 20
+	maxNodes      = 100
+)
 
-func readMember(zr *zip.Reader, name string, v any, unmarshal func([]byte, any) error) (found bool, err error) {
-	data, found, err := readRaw(zr, name)
+// budgetedZip tracks how many bytes may still be read across all members.
+type budgetedZip struct {
+	zr        *zip.Reader
+	remaining int64
+}
+
+func (z *budgetedZip) readMember(name string, v any, unmarshal func([]byte, any) error) (found bool, err error) {
+	data, found, err := z.readRaw(name)
 	if !found || err != nil {
 		return found, err
 	}
@@ -232,8 +249,8 @@ func readMember(zr *zip.Reader, name string, v any, unmarshal func([]byte, any) 
 	return true, nil
 }
 
-func readRaw(zr *zip.Reader, name string) (data []byte, found bool, err error) {
-	f, err := zr.Open(name)
+func (z *budgetedZip) readRaw(name string) (data []byte, found bool, err error) {
+	f, err := z.zr.Open(name)
 	if errors.Is(err, fs.ErrNotExist) {
 		return nil, false, nil
 	}
@@ -242,12 +259,16 @@ func readRaw(zr *zip.Reader, name string) (data []byte, found bool, err error) {
 	}
 	defer f.Close()
 
-	data, err = io.ReadAll(io.LimitReader(f, maxMemberSize+1))
+	data, err = io.ReadAll(io.LimitReader(f, min(maxMemberSize, z.remaining)+1))
+	z.remaining -= int64(len(data))
 	if err != nil {
 		return nil, true, fmt.Errorf("failed to read %s: %w", name, err)
 	}
 	if len(data) > maxMemberSize {
 		return nil, true, fmt.Errorf("failed to read %s: larger than %d MiB", name, maxMemberSize>>20)
+	}
+	if z.remaining < 0 {
+		return nil, true, fmt.Errorf("failed to read %s: the packet exceeds the total read limit", name)
 	}
 	return data, true, nil
 }
