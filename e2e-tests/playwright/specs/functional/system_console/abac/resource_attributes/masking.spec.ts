@@ -47,7 +47,7 @@ test.describe('ABAC resource.attributes - masking write path', {tag: ['@abac', '
         // AttributeValueMasking branch, so the flag has to be on. It cannot be
         // turned on from here (the config store restores feature flags on
         // write), so guard rather than try to set it.
-        await pw.skipIfFeatureFlagNotSet('AttributeValueMasking', true);
+        await pw.ensureFeatureFlag('AttributeValueMasking', true);
 
         const {adminClient} = await pw.initSetup();
         await enableUserManagedAttributes(adminClient);
