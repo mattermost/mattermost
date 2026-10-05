@@ -30431,49 +30431,53 @@
     "defaultMessage": "Remind Me Later",
     "description": "Button on an in-app system notice that dismisses it temporarily and shows it again later."
   },
-  "system_policy_indicator.base_message": {
-    "defaultMessage": "This {resourceType} has system-level access {policyText} applied",
-    "description": "Compact info banner on a resource; {resourceType} is 'channel', 'team', or 'file', {policyText} is the English word 'policy' or 'policies' inserted as-is."
+  "system_policy_indicator.description_with_names.multiple": {
+    "defaultMessage": "{resourceType, select, team {This team has system-level membership policies applied: {policies}. Any custom membership rules you set here will be applied in addition to these policies.} file {This file has system-level access policies applied: {policies}. Any custom access rules you set here will be applied in addition to these policies.} other {This channel has system-level membership policies applied: {policies}. Any custom membership rules you set here will be applied in addition to these policies.}}",
+    "description": "Body of the detailed info banner, below its heading, naming the policies. Used when two or more policies apply; the number itself is not shown, so this is a fixed \"several policies\" wording rather than a plural. {policies} is the locale-formatted list of the policy names in bold, e.g. \"A, B, and 2 more\", where the last item may be a link to see the rest. resourceType selects the resource the banner sits on: channel and team use membership wording (the policy decides who becomes a member), file uses access wording. Translate each branch as a complete sentence."
   },
-  "system_policy_indicator.base_message_membership": {
-    "defaultMessage": "This {resourceType} has system-level membership {policyText} applied",
-    "description": "Compact indicator text on a channel or team noting that a system-level membership policy applies; {resourceType} is 'channel' or 'team' and {policyText} is 'policy' or 'policies' (both inserted in English at runtime)."
+  "system_policy_indicator.description_with_names.single": {
+    "defaultMessage": "{resourceType, select, team {This team has a system-level membership policy applied: {policies}. Any custom membership rules you set here will be applied in addition to this policy.} file {This file has a system-level access policy applied: {policies}. Any custom access rules you set here will be applied in addition to this policy.} other {This channel has a system-level membership policy applied: {policies}. Any custom membership rules you set here will be applied in addition to this policy.}}",
+    "description": "Body of the detailed info banner, below its heading, naming the policy. Used when exactly one policy applies. {policies} is the locale-formatted list of the policy names in bold, e.g. \"A, B, and 2 more\", where the last item may be a link to see the rest. resourceType selects the resource the banner sits on: channel and team use membership wording (the policy decides who becomes a member), file uses access wording. Translate each branch as a complete sentence."
   },
-  "system_policy_indicator.description_with_membership_policies": {
-    "defaultMessage": "This {resourceType} has system-level membership policies applied{policySuffix}. Any custom membership rules you set here will be applied in addition to these policies.",
-    "description": "Info banner description when multiple admin-defined membership policies apply; {resourceType} is 'channel' or 'team', {policySuffix} is an optional ': policy names' list appended before the period."
+  "system_policy_indicator.description.multiple": {
+    "defaultMessage": "{resourceType, select, team {This team has system-level membership policies applied. Any custom membership rules you set here will be applied in addition to these policies.} file {This file has system-level access policies applied. Any custom access rules you set here will be applied in addition to these policies.} other {This channel has system-level membership policies applied. Any custom membership rules you set here will be applied in addition to these policies.}}",
+    "description": "Body of the detailed info banner, below its heading, when policy names are hidden. Used when two or more policies apply; the number itself is not shown, so this is a fixed \"several policies\" wording rather than a plural. resourceType selects the resource the banner sits on: channel and team use membership wording (the policy decides who becomes a member), file uses access wording. Translate each branch as a complete sentence."
   },
-  "system_policy_indicator.description_with_membership_policy": {
-    "defaultMessage": "This {resourceType} has a system-level membership policy applied{policySuffix}. Any custom membership rules you set here will be applied in addition to this policy.",
-    "description": "Info banner description when one admin-defined membership policy applies; {resourceType} is 'channel' or 'team', {policySuffix} is an optional ': policy name' appended before the period."
+  "system_policy_indicator.description.single": {
+    "defaultMessage": "{resourceType, select, team {This team has a system-level membership policy applied. Any custom membership rules you set here will be applied in addition to this policy.} file {This file has a system-level access policy applied. Any custom access rules you set here will be applied in addition to this policy.} other {This channel has a system-level membership policy applied. Any custom membership rules you set here will be applied in addition to this policy.}}",
+    "description": "Body of the detailed info banner, below its heading, when policy names are hidden. Used when exactly one policy applies. resourceType selects the resource the banner sits on: channel and team use membership wording (the policy decides who becomes a member), file uses access wording. Translate each branch as a complete sentence."
   },
-  "system_policy_indicator.description_with_policies": {
-    "defaultMessage": "This {resourceType} has system-level access policies applied{policySuffix}. Any custom access rules you set here will be applied in addition to these policies.",
-    "description": "Info banner description when multiple admin-defined access policies apply to a file; {resourceType} is the resource kind, {policySuffix} is an optional ': policy names' list."
-  },
-  "system_policy_indicator.description_with_policy": {
-    "defaultMessage": "This {resourceType} has a system-level access policy applied{policySuffix}. Any custom access rules you set here will be applied in addition to this policy.",
-    "description": "Info banner description when one admin-defined access policy applies to a file; {resourceType} is the resource kind, {policySuffix} is an optional ': policy name'."
+  "system_policy_indicator.details_aria_label": {
+    "defaultMessage": "System policy details",
+    "description": "Accessibility (aria) label for the region of the info banner that describes which system policies apply to a channel, team or file."
   },
   "system_policy_indicator.more_policies": {
     "defaultMessage": "{count} more",
-    "description": "Link at the end of a truncated policy name list ('A, B and {count} more'); {count} is the number of additional policies."
+    "description": "Link shown as the last item of a truncated, locale-formatted list of policy names (e.g. 'A, B, and {count} more'); {count} is the number of additional policies not named. The list's separators and conjunction come from the locale, so translate only the link text."
   },
-  "system_policy_indicator.multiple_membership_policies_title": {
-    "defaultMessage": "Multiple system membership policies applied to this {resourceType}",
-    "description": "Heading of the info banner when several system membership policies apply; {resourceType} is 'channel' or 'team'."
+  "system_policy_indicator.more_policies_aria_label": {
+    "defaultMessage": "View {count, plural, one {# more policy} other {# more policies}}",
+    "description": "Accessibility (aria) label for the link at the end of a truncated policy name list; {count} is the number of additional policies not shown."
   },
-  "system_policy_indicator.multiple_policies_title": {
-    "defaultMessage": "Multiple system access policies applied to this {resourceType}",
-    "description": "Heading of the info banner when several system access policies apply; {resourceType} is the resource kind (e.g. 'file')."
+  "system_policy_indicator.summary.multiple": {
+    "defaultMessage": "{resourceType, select, team {This team has system-level membership policies applied} file {This file has system-level access policies applied} other {This channel has system-level membership policies applied}}",
+    "description": "Compact info banner on a channel, team or file settings page saying system-level policies apply. Used when two or more policies apply; the number itself is not shown, so this is a fixed \"several policies\" wording rather than a plural. resourceType selects the resource the banner sits on: channel and team use membership wording (the policy decides who becomes a member), file uses access wording. Translate each branch as a complete sentence."
   },
-  "system_policy_indicator.single_membership_policy_title": {
-    "defaultMessage": "System membership policy applied to this {resourceType}",
-    "description": "Heading of the info banner when one system membership policy applies; {resourceType} is 'channel' or 'team'."
+  "system_policy_indicator.summary.single": {
+    "defaultMessage": "{resourceType, select, team {This team has a system-level membership policy applied} file {This file has a system-level access policy applied} other {This channel has a system-level membership policy applied}}",
+    "description": "Compact info banner on a channel, team or file settings page saying a system-level policy applies. Used when exactly one policy applies. resourceType selects the resource the banner sits on: channel and team use membership wording (the policy decides who becomes a member), file uses access wording. Translate each branch as a complete sentence."
   },
-  "system_policy_indicator.single_policy_title": {
-    "defaultMessage": "System access policy applied to this {resourceType}",
-    "description": "Heading of the info banner when one system access policy applies; {resourceType} is the resource kind (e.g. 'file')."
+  "system_policy_indicator.title.multiple": {
+    "defaultMessage": "{resourceType, select, team {Multiple system membership policies applied to this team} file {Multiple system access policies applied to this file} other {Multiple system membership policies applied to this channel}}",
+    "description": "Heading of the detailed info banner on a channel, team or file settings page. Used when two or more policies apply; the number itself is not shown, so this is a fixed \"several policies\" wording rather than a plural. resourceType selects the resource the banner sits on: channel and team use membership wording (the policy decides who becomes a member), file uses access wording. Translate each branch as a complete sentence."
+  },
+  "system_policy_indicator.title.single": {
+    "defaultMessage": "{resourceType, select, team {System membership policy applied to this team} file {System access policy applied to this file} other {System membership policy applied to this channel}}",
+    "description": "Heading of the detailed info banner on a channel, team or file settings page. Used when exactly one policy applies. resourceType selects the resource the banner sits on: channel and team use membership wording (the policy decides who becomes a member), file uses access wording. Translate each branch as a complete sentence."
+  },
+  "system_policy_indicator.unknown_policy": {
+    "defaultMessage": "Unknown Policy",
+    "description": "Fallback name shown in the policy list when an access control policy has neither a name nor an ID."
   },
   "tag.default.agent": {
     "defaultMessage": "AGENT",
