@@ -16,10 +16,12 @@ import ViewChannelMentions from './view_channel_mentions';
 
 const channelId = 'channel_id';
 const channelName = 'town-square';
+const teamId = 'team_id';
 
-function baseState(rhs: Record<string, unknown>) {
+function stateWithRhs(rhs: Record<string, unknown>) {
     return {
         entities: {
+            teams: {currentTeamId: teamId, teams: {[teamId]: {id: teamId, name: 'team'}}},
             channels: {
                 currentChannelId: channelId,
                 channels: {
@@ -30,6 +32,10 @@ function baseState(rhs: Record<string, unknown>) {
         },
         views: {rhs},
     } as unknown as GlobalState;
+}
+
+async function clickMenuItem() {
+    await userEvent.click(screen.getByRole('menuitem', {name: 'Recent Mentions in this Channel'}));
 }
 
 describe('components/ChannelHeaderMenu/MenuItems/ViewChannelMentions', () => {
@@ -61,10 +67,10 @@ describe('components/ChannelHeaderMenu/MenuItems/ViewChannelMentions', () => {
             <WithTestMenuContext>
                 <ViewChannelMentions/>
             </WithTestMenuContext>,
-            baseState({rhsState: RHSStates.MENTION, searchTerms: `@me in:${channelName} `}),
+            stateWithRhs({rhsState: RHSStates.MENTION, searchTerms: `@me in:${channelName} `, searchTeam: teamId}),
         );
 
-        await userEvent.click(screen.getByRole('menuitem', {name: 'Recent Mentions in this Channel'}));
+        await clickMenuItem();
         expect(rhsActions.closeRightHandSide).toHaveBeenCalledTimes(1);
         expect(rhsActions.showChannelMentions).not.toHaveBeenCalled();
     });
@@ -74,10 +80,10 @@ describe('components/ChannelHeaderMenu/MenuItems/ViewChannelMentions', () => {
             <WithTestMenuContext>
                 <ViewChannelMentions/>
             </WithTestMenuContext>,
-            baseState({rhsState: RHSStates.MENTION, searchTerms: '@me in:other-channel '}),
+            stateWithRhs({rhsState: RHSStates.MENTION, searchTerms: '@me in:other-channel ', searchTeam: teamId}),
         );
 
-        await userEvent.click(screen.getByRole('menuitem', {name: 'Recent Mentions in this Channel'}));
+        await clickMenuItem();
         expect(rhsActions.showChannelMentions).toHaveBeenCalledTimes(1);
         expect(rhsActions.closeRightHandSide).not.toHaveBeenCalled();
     });
@@ -87,10 +93,40 @@ describe('components/ChannelHeaderMenu/MenuItems/ViewChannelMentions', () => {
             <WithTestMenuContext>
                 <ViewChannelMentions/>
             </WithTestMenuContext>,
-            baseState({rhsState: RHSStates.MENTION, searchTerms: '@me '}),
+            stateWithRhs({rhsState: RHSStates.MENTION, searchTerms: '@me ', searchTeam: null}),
         );
 
-        await userEvent.click(screen.getByRole('menuitem', {name: 'Recent Mentions in this Channel'}));
+        await clickMenuItem();
+        expect(rhsActions.showChannelMentions).toHaveBeenCalledTimes(1);
+        expect(rhsActions.closeRightHandSide).not.toHaveBeenCalled();
+    });
+
+    test('re-scopes when a same-named channel on another team is the one scoped', async () => {
+        renderWithContext(
+            <WithTestMenuContext>
+                <ViewChannelMentions/>
+            </WithTestMenuContext>,
+            stateWithRhs({
+                rhsState: RHSStates.MENTION,
+                searchTerms: `@me in:${channelName} `,
+                searchTeam: 'another_team_id',
+            }),
+        );
+
+        await clickMenuItem();
+        expect(rhsActions.showChannelMentions).toHaveBeenCalledTimes(1);
+        expect(rhsActions.closeRightHandSide).not.toHaveBeenCalled();
+    });
+
+    test('re-scopes when a channel name is only a prefix of the scoped one', async () => {
+        renderWithContext(
+            <WithTestMenuContext>
+                <ViewChannelMentions/>
+            </WithTestMenuContext>,
+            stateWithRhs({rhsState: RHSStates.MENTION, searchTerms: `@me in:${channelName}-2 `, searchTeam: teamId}),
+        );
+
+        await clickMenuItem();
         expect(rhsActions.showChannelMentions).toHaveBeenCalledTimes(1);
         expect(rhsActions.closeRightHandSide).not.toHaveBeenCalled();
     });
