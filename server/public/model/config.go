@@ -4889,12 +4889,14 @@ func (s *LdapSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.ldap_security.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if appErr := validatePort(*s.LdapPort, false, "LdapSettings.LdapPort"); appErr != nil {
-		return appErr
-	}
+	if *s.Enable || *s.EnableSync {
+		if appErr := validatePort(*s.LdapPort, false, "LdapSettings.LdapPort"); appErr != nil {
+			return appErr
+		}
 
-	if appErr := validatePositiveNumber(*s.QueryTimeout, "LdapSettings.QueryTimeout"); appErr != nil {
-		return appErr
+		if appErr := validatePositiveNumber(*s.QueryTimeout, "LdapSettings.QueryTimeout"); appErr != nil {
+			return appErr
+		}
 	}
 
 	if *s.SyncIntervalMinutes <= 0 {
