@@ -67,6 +67,12 @@ describe('mattermost-redux/utils/health_utils', () => {
             expect(filterHealthFindingsByTab([resolvedRecent], 'resolved', now + 1)).toEqual([]);
         });
 
+        test('a check that passed on its first run is not recently resolved', () => {
+            const neverFired = makeFinding({fingerprint: 'neverFired', state: 'resolved', first_seen_at: now - hour, state_since: now - hour});
+
+            expect(filterHealthFindingsByTab([neverFired], 'resolved', now)).toEqual([]);
+        });
+
         test('unknown holds unknown findings only', () => {
             expect(fingerprints(filterHealthFindingsByTab(all, 'unknown', now))).toEqual(['unknownCritical', 'unknownWarning']);
         });

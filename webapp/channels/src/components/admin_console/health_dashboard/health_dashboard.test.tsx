@@ -254,6 +254,19 @@ describe('components/admin_console/health_dashboard', () => {
         expect(screen.queryByRole('button', {expanded: true})).not.toBeInTheDocument();
     });
 
+    test('switching tab or grouping collapses the expanded row', async () => {
+        await renderDashboard(evaluated(mixed));
+
+        await userEvent.click(screen.getByRole('button', {name: /Critical one/}));
+        await userEvent.click(screen.getByRole('tab', {name: /^Critical/}));
+        await userEvent.click(screen.getByRole('tab', {name: /^Open/}));
+        expect(screen.getByRole('button', {name: /Critical one/})).toHaveAttribute('aria-expanded', 'false');
+
+        await userEvent.click(screen.getByRole('button', {name: /Critical one/}));
+        await userEvent.click(screen.getByRole('button', {name: 'Category'}));
+        expect(screen.getByRole('button', {name: /Critical one/})).toHaveAttribute('aria-expanded', 'false');
+    });
+
     describe('group by', () => {
         test('defaults to severity and switches to category', async () => {
             await renderDashboard(evaluated(mixed));
@@ -308,6 +321,20 @@ describe('components/admin_console/health_dashboard', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Category'}));
 
             expect(screen.getByRole('button', {name: /^Authentication/})).toHaveAttribute('aria-expanded', 'false');
+        });
+
+        test('every area starts expanded on tabs other than Open', async () => {
+            await renderDashboard(evaluated(mixed));
+
+            await userEvent.click(screen.getByRole('button', {name: 'Category'}));
+            await userEvent.click(screen.getByRole('tab', {name: /^Warning/}));
+
+            expect(screen.getByRole('button', {name: /^Database/})).toHaveAttribute('aria-expanded', 'true');
+
+            await userEvent.click(screen.getByRole('tab', {name: /^Open/}));
+
+            expect(screen.getByRole('button', {name: /^Notifications/})).toHaveAttribute('aria-expanded', 'true');
+            expect(screen.getByRole('button', {name: /^Database/})).toHaveAttribute('aria-expanded', 'false');
         });
     });
 
