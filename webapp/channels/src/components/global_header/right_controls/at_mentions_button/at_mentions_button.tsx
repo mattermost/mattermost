@@ -8,7 +8,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {closeRightHandSide, showMentions} from 'actions/views/rhs';
-import {getRhsState} from 'selectors/rhs';
+import {getExplicitSearchTeam, getRhsState} from 'selectors/rhs';
 
 import HeaderIconButton from 'components/global_header/header_icon_button';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
@@ -21,10 +21,16 @@ const AtMentionsButton = (): JSX.Element => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const rhsState = useSelector((state: GlobalState) => getRhsState(state));
+    const explicitSearchTeam = useSelector(getExplicitSearchTeam);
+
+    // A mention search scoped to a single channel also sits in the MENTION state, so closing on any
+    // MENTION state would turn this button into a dead end for getting back to all mentions. Close
+    // only when the unscoped view this button opens is already the one showing.
+    const isShowingAllMentions = rhsState === RHSStates.MENTION && !explicitSearchTeam;
 
     const mentionButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        if (rhsState === RHSStates.MENTION) {
+        if (isShowingAllMentions) {
             dispatch(closeRightHandSide());
         } else {
             dispatch(showMentions());
