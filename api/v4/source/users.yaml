@@ -1176,6 +1176,56 @@
             feature flag is off.
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /api/v4/sync:
+    post:
+      tags:
+        - users
+      summary: Get everything that changed since a cursor
+      description: >
+        Returns the state that changed since the given cursor, so a client
+        returning after a WebSocket disconnect can catch up in one request
+        instead of re-running a broad set of fetches.
+
+
+        The request scope names the teams to include, and optionally the channel
+        and thread the user is currently viewing, so the response carries their
+        posts along with the authors and mentioned groups those posts reference.
+        Teams the user is no longer a member of are skipped rather than
+        rejected, since a reconnecting client's scope may be out of date.
+
+
+        Store the response's `timestamp` field and pass it back as `since` on
+        the next call.
+
+
+        This endpoint is rate limited per session.
+
+        ##### Permissions
+        Requires an active session but no other permissions.
+      operationId: ReconnectSync
+      requestBody:
+        description: Cursor and scope for the sync
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExperienceSyncRequest"
+      responses:
+        "200":
+          description: Sync data retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExperienceSyncResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Feature disabled. Returned when the `EnableExperienceAPI`
+            feature flag is off.
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   "/api/v4/users/{user_id}":
     get:
       tags:
