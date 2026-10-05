@@ -22,6 +22,8 @@ func ago(d time.Duration) int64 {
 	return collectedAt.Add(-d).UnixMilli()
 }
 
+var stale = &model.Job{Id: "stale", Status: model.JobStatusInProgress, StartAt: ago(48 * time.Hour), LastActivityAt: ago(48 * time.Hour)}
+
 func jobsConfig(enabled bool) *model.Config {
 	cfg := &model.Config{}
 	cfg.LdapSettings.EnableSync = new(enabled)
@@ -96,8 +98,8 @@ func TestBuiltinRegistersJobRules(t *testing.T) {
 func TestJobRulesEmitOneResultPerSubject(t *testing.T) {
 	t.Parallel()
 
-	allTypes := []string{"ldap_sync", "data_retention", "message_export", "elasticsearch_post_indexing", "elasticsearch_post_aggregation"}
-	progressTypes := []string{"ldap_sync", "message_export", "elasticsearch_post_indexing", "elasticsearch_post_aggregation"}
+	allTypes := []string{model.JobTypeLdapSync, model.JobTypeDataRetention, model.JobTypeMessageExport, model.JobTypeElasticsearchPostIndexing, model.JobTypeElasticsearchPostAggregation}
+	progressTypes := []string{model.JobTypeLdapSync, model.JobTypeMessageExport, model.JobTypeElasticsearchPostIndexing, model.JobTypeElasticsearchPostAggregation}
 
 	testCases := []struct {
 		rule     healthcheck.Rule
@@ -135,7 +137,6 @@ func TestJobRulesEmitOneResultPerSubject(t *testing.T) {
 func TestJobRulesUnknownWithoutData(t *testing.T) {
 	t.Parallel()
 
-	stale := &model.Job{Id: "stale", Status: model.JobStatusInProgress, StartAt: ago(48 * time.Hour), LastActivityAt: ago(48 * time.Hour)}
 	full := jobsSnapshot(stale)
 
 	jobsErrored := jobsSnapshot(stale)
@@ -191,7 +192,6 @@ func TestJobRulesUnknownWithoutData(t *testing.T) {
 func TestJobRulesGates(t *testing.T) {
 	t.Parallel()
 
-	stale := &model.Job{Id: "stale", Status: model.JobStatusInProgress, StartAt: ago(48 * time.Hour), LastActivityAt: ago(48 * time.Hour)}
 	failed := &model.Job{Id: "failed", Status: model.JobStatusError, Data: model.StringMap{"error": "boom"}}
 
 	t.Run("gate closed resolves a stale run and a latest error", func(t *testing.T) {
@@ -393,10 +393,7 @@ func TestJobWedgedAtZero(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			results := resultsBySubject(t, jobWedgedAtZero, tc.snapshot)
-			require.Len(t, results, 4)
-			assert.NotContains(t, results, model.JobTypeDataRetention)
-			for subject, result := range results {
+			for subject, result := range resultsBySubject(t, jobWedgedAtZero, tc.snapshot) {
 				assertResult(t, tc.want, result, subject)
 			}
 		})
@@ -495,9 +492,7 @@ func TestJobFailed(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			results := resultsBySubject(t, jobFailed, tc.snapshot)
-			require.Len(t, results, 5)
-			for subject, result := range results {
+			for subject, result := range resultsBySubject(t, jobFailed, tc.snapshot) {
 				assertResult(t, tc.want, result, subject)
 			}
 		})
