@@ -189,6 +189,7 @@ server/prev-gotestsum.json
 server/shard-*.txt
 
 # Docusaurus docs site (docs/)
+docs/scripts/__pycache__/
 docs/site/build/
 docs/site/.docusaurus/
 docs/site/node_modules/
