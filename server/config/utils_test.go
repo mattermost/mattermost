@@ -392,6 +392,88 @@ func TestFixEmailAddressDisplayNames(t *testing.T) {
 	}
 }
 
+func TestFixOutOfRangeNumericSettings(t *testing.T) {
+	t.Run("defaults are in range", func(t *testing.T) {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+
+		assert.False(t, fixOutOfRangeNumericSettings(cfg))
+	})
+
+	t.Run("values in range are kept", func(t *testing.T) {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		*cfg.ServiceSettings.SessionIdleTimeoutInMinutes = 0
+		*cfg.ServiceSettings.SessionCacheInMinutes = 1
+		*cfg.ElasticsearchSettings.PostIndexReplicas = 0
+		*cfg.FileSettings.AmazonS3UploadPartSizeBytes = model.FileSettingsDefaultS3UploadPartSizeBytes
+
+		assert.False(t, fixOutOfRangeNumericSettings(cfg))
+		assert.Equal(t, 0, *cfg.ServiceSettings.SessionIdleTimeoutInMinutes)
+		assert.Equal(t, 1, *cfg.ServiceSettings.SessionCacheInMinutes)
+		assert.Equal(t, 0, *cfg.ElasticsearchSettings.PostIndexReplicas)
+	})
+
+	t.Run("out of range values are reset to defaults", func(t *testing.T) {
+		defaults := &model.Config{}
+		defaults.SetDefaults()
+
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		ints := []*int{
+			cfg.ServiceSettings.IdleTimeout,
+			cfg.ServiceSettings.SessionLengthMobileInDays,
+			cfg.ServiceSettings.SessionLengthMobileInHours,
+			cfg.ServiceSettings.SessionLengthSSOInDays,
+			cfg.ServiceSettings.SessionLengthSSOInHours,
+			cfg.ServiceSettings.SessionCacheInMinutes,
+			cfg.ServiceSettings.SessionIdleTimeoutInMinutes,
+			cfg.ServiceSettings.MinimumHashtagLength,
+			cfg.ServiceSettings.ClusterLogTimeoutMilliseconds,
+			cfg.ServiceSettings.AWSMeteringTimeoutSeconds,
+			cfg.ServiceSettings.FeatureFlagSyncIntervalSeconds,
+			cfg.ServiceSettings.BurnOnReadDurationSeconds,
+			cfg.ServiceSettings.BurnOnReadMaximumTimeToLiveSeconds,
+			cfg.ServiceSettings.BurnOnReadSchedulerFrequencySeconds,
+			cfg.LogSettings.MaxFieldSize,
+			cfg.SupportSettings.CustomTermsOfServiceReAcceptancePeriod,
+			cfg.AnnouncementSettings.NoticesFetchFrequency,
+			cfg.EmailSettings.PushNotificationBuffer,
+			cfg.LdapSettings.QueryTimeout,
+			cfg.ConnectedWorkspacesSettings.GlobalUserSyncBatchSize,
+			cfg.ConnectedWorkspacesSettings.MaxPostsPerSync,
+			cfg.ConnectedWorkspacesSettings.MemberSyncBatchSize,
+			cfg.SqlSettings.MigrationsStatementTimeoutSeconds,
+			cfg.SqlSettings.ReplicaMonitorIntervalSeconds,
+			cfg.ElasticsearchSettings.PostIndexShards,
+			cfg.ElasticsearchSettings.ChannelIndexShards,
+			cfg.ElasticsearchSettings.UserIndexShards,
+			cfg.ElasticsearchSettings.PostIndexReplicas,
+			cfg.ElasticsearchSettings.ChannelIndexReplicas,
+			cfg.ElasticsearchSettings.UserIndexReplicas,
+			cfg.DataRetentionSettings.BatchSize,
+			cfg.DataRetentionSettings.TimeBetweenBatchesMilliseconds,
+			cfg.DataRetentionSettings.RetentionIdsBatchSize,
+		}
+		for _, value := range ints {
+			*value = -1
+		}
+		*cfg.ServiceSettings.TLSStrictTransportMaxAge = -1
+		*cfg.FileSettings.MaxImageResolution = 0
+		*cfg.FileSettings.AmazonS3UploadPartSizeBytes = 1024
+		*cfg.FileSettings.ExportAmazonS3UploadPartSizeBytes = 1024
+
+		require.NotNil(t, cfg.IsValid())
+		assert.True(t, fixOutOfRangeNumericSettings(cfg))
+		assert.Nil(t, cfg.IsValid())
+
+		assert.Equal(t, *defaults.ServiceSettings.SessionCacheInMinutes, *cfg.ServiceSettings.SessionCacheInMinutes)
+		assert.Equal(t, *defaults.EmailSettings.PushNotificationBuffer, *cfg.EmailSettings.PushNotificationBuffer)
+		assert.Equal(t, *defaults.ServiceSettings.TLSStrictTransportMaxAge, *cfg.ServiceSettings.TLSStrictTransportMaxAge)
+		assert.Equal(t, *defaults.FileSettings.ExportAmazonS3UploadPartSizeBytes, *cfg.FileSettings.ExportAmazonS3UploadPartSizeBytes)
+	})
+}
+
 func TestIsDatabaseDSN(t *testing.T) {
 	testCases := []struct {
 		Name     string
