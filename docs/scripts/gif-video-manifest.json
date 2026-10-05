@@ -1,0 +1,1377 @@
+{
+  "encoder": {
+    "ffmpeg": "9.0.2",
+    "libx264": "165.3222",
+    "baseline_crf": 32,
+    "max_width": 1280,
+    "args": [
+      "-an",
+      "-pix_fmt",
+      "yuv420p",
+      "-movflags",
+      "+faststart",
+      "-c:v",
+      "libx264",
+      "-preset",
+      "slow",
+      "-tune",
+      "animation",
+      "-fflags",
+      "+bitexact",
+      "-flags:v",
+      "+bitexact"
+    ]
+  },
+  "files": {
+    "docs/develop/integrate/plugins/interactive-messages/interactive_message.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 561742,
+        "sha256": "d415eafaee3324838a8ad7009368bf028e9a4dcdc30771918a3ab13662e73662",
+        "width": 500,
+        "height": 300,
+        "frames": 156,
+        "duration_s": 7.8,
+        "fps": 20.0
+      },
+      "output": {
+        "path": "docs/develop/integrate/plugins/interactive-messages/interactive_message.mp4",
+        "bytes": 34522,
+        "sha256": "6fffa2b2e1b995c2387223a311c83bd983dc098f1a972967da3aca4fe98163e9",
+        "width": 500,
+        "height": 300
+      },
+      "vf": null
+    },
+    "docs/site/static/images/Global-Drafts-Animated-GIF.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 1801184,
+        "sha256": "2ef0072d9506446080e03d4a8cee72ff9958b61481bafc24c920035091477ce7",
+        "width": 1280,
+        "height": 800,
+        "frames": 241,
+        "duration_s": 16.07,
+        "fps": 14.997
+      },
+      "output": {
+        "path": "docs/site/static/images/Global-Drafts-Animated-GIF.mp4",
+        "bytes": 254881,
+        "sha256": "a4a0c984af5aed7a5f51f73212e583a8cb9f1d24f822938c41ea51741907a923",
+        "width": 1280,
+        "height": 800
+      },
+      "vf": null
+    },
+    "docs/site/static/images/MPA-Animated-GIF-Update-2023-08-15.gif": {
+      "crf": 32,
+      "note": "tier D: downscaled desktop capture, plan §6.2",
+      "source": {
+        "bytes": 3762505,
+        "sha256": "3277e1539a1fb6195bbe3538dfd38d00d07fdcdf516b91011cc574e87b62afdb",
+        "width": 1408,
+        "height": 1002,
+        "frames": 346,
+        "duration_s": 18.3,
+        "fps": 18.907
+      },
+      "output": {
+        "path": "docs/site/static/images/MPA-Animated-GIF-Update-2023-08-15.mp4",
+        "bytes": 211823,
+        "sha256": "7ea2793b582e477d0ef8f6eb290a8a2afdd86bf922375a44da095ba137c34d08",
+        "width": 1280,
+        "height": 910
+      },
+      "vf": "scale=1280:-2:flags=lanczos"
+    },
+    "docs/site/static/images/Retro.gif": {
+      "crf": 32,
+      "note": "tier D: downscaled desktop capture, plan §6.2",
+      "source": {
+        "bytes": 11937532,
+        "sha256": "a1f51f10870a91e52b837343933b990469cdf12c40621f0e018ba844adcb2e6e",
+        "width": 2340,
+        "height": 1560,
+        "frames": 222,
+        "duration_s": 14.0,
+        "fps": 15.857
+      },
+      "output": {
+        "path": "docs/site/static/images/Retro.mp4",
+        "bytes": 469836,
+        "sha256": "c85894419f36b68e1d6b46f1654edbf206346194a2374d853679bfb31d4f48fb",
+        "width": 1280,
+        "height": 854
+      },
+      "vf": "scale=1280:-2:flags=lanczos"
+    },
+    "docs/site/static/images/archive-a-playbook.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 364063,
+        "sha256": "8d4167fc0a25f65f23046daf5abcc7f2033fe7aee11809054b4320263f6be9a8",
+        "width": 640,
+        "height": 503,
+        "frames": 61,
+        "duration_s": 6.1,
+        "fps": 10.0
+      },
+      "output": {
+        "path": "docs/site/static/images/archive-a-playbook.mp4",
+        "bytes": 57946,
+        "sha256": "666891184155406acd5420b24434f3ad4facb582c98f50a04474ab003d026621",
+        "width": 640,
+        "height": 502
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/channel-notification-settings.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 894568,
+        "sha256": "27474e9b8e173ea0287b683fed5d20a22f86d081bafc44f128a4e10b3aa34e0f",
+        "width": 1280,
+        "height": 760,
+        "frames": 125,
+        "duration_s": 8.34,
+        "fps": 14.988
+      },
+      "output": {
+        "path": "docs/site/static/images/channel-notification-settings.mp4",
+        "bytes": 300435,
+        "sha256": "868cbdd50d636e350eda72e6a1367d8a2755a1c3503c90060aa14bf8774108a4",
+        "width": 1280,
+        "height": 760
+      },
+      "vf": null
+    },
+    "docs/site/static/images/channel-sidebar-navigation.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 1117825,
+        "sha256": "1ccbd2947654a23aca172e185bb46101250611cb34f9473225a62582edfdde98",
+        "width": 1280,
+        "height": 800,
+        "frames": 342,
+        "duration_s": 22.8,
+        "fps": 15.0
+      },
+      "output": {
+        "path": "docs/site/static/images/channel-sidebar-navigation.mp4",
+        "bytes": 348835,
+        "sha256": "86ae59b0611c26147696cc9f67e84d6d1de08352dc48602318574b103e9079e4",
+        "width": 1280,
+        "height": 800
+      },
+      "vf": null
+    },
+    "docs/site/static/images/channel_sidebar_updates.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 617738,
+        "sha256": "f1f8a6af0a1f624abb60e2ac829a856ed56cae8c2cae7e32fec98e2710e2b2c0",
+        "width": 558,
+        "height": 491,
+        "frames": 221,
+        "duration_s": 14.74,
+        "fps": 14.993
+      },
+      "output": {
+        "path": "docs/site/static/images/channel_sidebar_updates.mp4",
+        "bytes": 181413,
+        "sha256": "253acf4b477ece890b700e38c310e6480cdad5a4600b611063d9512ac93ae053",
+        "width": 558,
+        "height": 490
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/collapsed-reply-threads.gif": {
+      "crf": 32,
+      "note": "tier D: downscaled desktop capture, plan §6.2",
+      "source": {
+        "bytes": 7943341,
+        "sha256": "ab4468e42e05e3ab7fce0c4ba4bdea6b622a916bce3a22ac8a37927a885aae7c",
+        "width": 1366,
+        "height": 624,
+        "frames": 242,
+        "duration_s": 12.1,
+        "fps": 20.0
+      },
+      "output": {
+        "path": "docs/site/static/images/collapsed-reply-threads.mp4",
+        "bytes": 365110,
+        "sha256": "f6e27a3727ad5150044b00a35c139c843cdc4bd2e5aad3837dd81fa97c345255",
+        "width": 1280,
+        "height": 584
+      },
+      "vf": "scale=1280:-2:flags=lanczos"
+    },
+    "docs/site/static/images/create-team.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 83654,
+        "sha256": "109b2a7f371ca9017d201e458ffdb7bd8c5d610a5c04825f4060fb86c216e564",
+        "width": 508,
+        "height": 547,
+        "frames": 43,
+        "duration_s": 2.87,
+        "fps": 14.983
+      },
+      "output": {
+        "path": "docs/site/static/images/create-team.mp4",
+        "bytes": 39231,
+        "sha256": "84a5719f2a8cb13735a8b16298fb7697beba780f11caab6e3151838957699122",
+        "width": 508,
+        "height": 546
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/dark-theme-via-os.gif": {
+      "crf": 32,
+      "note": "tier D: downscaled desktop capture, plan §6.2",
+      "source": {
+        "bytes": 2858943,
+        "sha256": "37597d673ffeec30c8579e3d46810371224a7176d874bce471ca767c577a12d0",
+        "width": 1679,
+        "height": 820,
+        "frames": 90,
+        "duration_s": 20.58,
+        "fps": 4.373
+      },
+      "output": {
+        "path": "docs/site/static/images/dark-theme-via-os.mp4",
+        "bytes": 164700,
+        "sha256": "e6664b9e8811f8a9a1961afa514198623e416e00bb713a9d1a7229a06b4d632a",
+        "width": 1280,
+        "height": 626
+      },
+      "vf": "scale=1280:-2:flags=lanczos"
+    },
+    "docs/site/static/images/desktop-notification-check.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 794045,
+        "sha256": "5ab944309fa0c78eb471e431692ac34bf6c50f3dd77ef73c8b6e4f26147391bb",
+        "width": 1035,
+        "height": 741,
+        "frames": 113,
+        "duration_s": 13.16,
+        "fps": 8.587
+      },
+      "output": {
+        "path": "docs/site/static/images/desktop-notification-check.mp4",
+        "bytes": 191151,
+        "sha256": "c8e54867d380ccb9dc67865c4d953dcf452c01055f80431c50ee9c19ff87d3e2",
+        "width": 1034,
+        "height": 740
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/desktop-server-notification-check.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 508041,
+        "sha256": "812bd33706f790603f5f16c3dd25d9b9de0aaf3e9fa3ef2c16a906cddcf11de5",
+        "width": 1035,
+        "height": 741,
+        "frames": 114,
+        "duration_s": 11.61,
+        "fps": 9.819
+      },
+      "output": {
+        "path": "docs/site/static/images/desktop-server-notification-check.mp4",
+        "bytes": 169914,
+        "sha256": "590eb13b3cdca29bd190aee9adba254d6575e249a51dbd40265b32060ab3a9e5",
+        "width": 1034,
+        "height": 740
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/dm-display.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 107531,
+        "sha256": "f58cd3ed3b342b50a1a074591f6ef30427f6d24c7252f646ebe7aaf2710475ca",
+        "width": 703,
+        "height": 234,
+        "frames": 69,
+        "duration_s": 4.6,
+        "fps": 15.0
+      },
+      "output": {
+        "path": "docs/site/static/images/dm-display.mp4",
+        "bytes": 31388,
+        "sha256": "64760d024626df11d9333d49c863daa0167554c3633b32f97c1f84834026980d",
+        "width": 702,
+        "height": 234
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/enable-disable-ip-filtering.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 528672,
+        "sha256": "11af9380d9e3f982e2e50085e20a97bf2881aef7c9c3f15dc6999b219c58891f",
+        "width": 1280,
+        "height": 800,
+        "frames": 148,
+        "duration_s": 9.87,
+        "fps": 14.995
+      },
+      "output": {
+        "path": "docs/site/static/images/enable-disable-ip-filtering.mp4",
+        "bytes": 220987,
+        "sha256": "ea3d71b567fa1165536a708890731df595f3b60d403c2b7297c347f71930a7d6",
+        "width": 1280,
+        "height": 800
+      },
+      "vf": null
+    },
+    "docs/site/static/images/keywords-highlighted.gif": {
+      "crf": 28,
+      "note": "tier E: text-highlight demo, plan §6.2",
+      "source": {
+        "bytes": 445293,
+        "sha256": "df960588b71bd99098f42551c02ddd9aa6dbf501b37c3aabb200711eae0a1766",
+        "width": 852,
+        "height": 860,
+        "frames": 342,
+        "duration_s": 23.94,
+        "fps": 14.286
+      },
+      "output": {
+        "path": "docs/site/static/images/keywords-highlighted.mp4",
+        "bytes": 160075,
+        "sha256": "11f8be2786dca03c10aebe9e1676810e517caf0e0e1c318a267188c1bd4f3cf4",
+        "width": 852,
+        "height": 860
+      },
+      "vf": null
+    },
+    "docs/site/static/images/keywords-trigger-mentions.gif": {
+      "crf": 28,
+      "note": "tier E: text-highlight demo, plan §6.2",
+      "source": {
+        "bytes": 490748,
+        "sha256": "910385549af8ae077e4a55f91665cddea29f18ad5c9932117f65394f264319e4",
+        "width": 852,
+        "height": 860,
+        "frames": 331,
+        "duration_s": 23.17,
+        "fps": 14.286
+      },
+      "output": {
+        "path": "docs/site/static/images/keywords-trigger-mentions.mp4",
+        "bytes": 201003,
+        "sha256": "d6f5789d91713f572d23fc74750e9ce6ced0da222668a00729d6612a8178c5b3",
+        "width": 852,
+        "height": 860
+      },
+      "vf": null
+    },
+    "docs/site/static/images/message-formatting-toolbar.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 2247796,
+        "sha256": "2ed3176e418d78733a920eac64279fd17642bacc86bbf0582ad7c3e37eaf3636",
+        "width": 1242,
+        "height": 806,
+        "frames": 262,
+        "duration_s": 13.1,
+        "fps": 20.0
+      },
+      "output": {
+        "path": "docs/site/static/images/message-formatting-toolbar.mp4",
+        "bytes": 184325,
+        "sha256": "a0cfa6cb3b72494f44733761429834f409836114a067fd39ba1110e4a8f1c46b",
+        "width": 1242,
+        "height": 806
+      },
+      "vf": null
+    },
+    "docs/site/static/images/message-navigation.gif": {
+      "crf": 32,
+      "note": "tier D: downscaled desktop capture, plan §6.2",
+      "source": {
+        "bytes": 723505,
+        "sha256": "79889e388f3c551bcce52712c71467a2aaaee7816d2cc477f0542056632640ed",
+        "width": 1920,
+        "height": 1040,
+        "frames": 233,
+        "duration_s": 15.54,
+        "fps": 14.994
+      },
+      "output": {
+        "path": "docs/site/static/images/message-navigation.mp4",
+        "bytes": 115378,
+        "sha256": "a315451796a6c5ac5d1b96d4b26886f8d50a9f982e2cde1927482c8d683bb349",
+        "width": 1280,
+        "height": 694
+      },
+      "vf": "scale=1280:-2:flags=lanczos"
+    },
+    "docs/site/static/images/microsoft-teams-chat-notifications.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 636679,
+        "sha256": "a96dc1f920f9f7682cfc005dd9ef07f47ed3ff99698391479cb343214119f756",
+        "width": 1280,
+        "height": 960,
+        "frames": 23,
+        "duration_s": 2.77,
+        "fps": 8.303
+      },
+      "output": {
+        "path": "docs/site/static/images/microsoft-teams-chat-notifications.mp4",
+        "bytes": 189612,
+        "sha256": "62e90d6a64cf374a95fa6848f87fefd6a315dd4d5d3d33947885d51b293c7aa8",
+        "width": 1280,
+        "height": 960
+      },
+      "vf": null
+    },
+    "docs/site/static/images/mobile-attach-a-file-to-send-in-a-channel.gif": {
+      "crf": 26,
+      "note": "tier A: 600px 30fps mobile capture, plan §6.2",
+      "source": {
+        "bytes": 3166403,
+        "sha256": "bc4d197cca817dfecbd23cd1ed960e5c9eee6842c7b353a6a5f5091d2bd2f74e",
+        "width": 600,
+        "height": 1195,
+        "frames": 205,
+        "duration_s": 6.83,
+        "fps": 30.015
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-attach-a-file-to-send-in-a-channel.mp4",
+        "bytes": 1205813,
+        "sha256": "c54d2d4cc61b688f8ea8cf5a2544f284970e2318bee5da267a71a445d57a65f3",
+        "width": 600,
+        "height": 1194
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/mobile-chat-in-a-call.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 2481799,
+        "sha256": "482a55587aa7ffacc83bc4dc8265111bb7900622f8d00e991134698db4fbdd0d",
+        "width": 600,
+        "height": 1198,
+        "frames": 236,
+        "duration_s": 7.86,
+        "fps": 30.025
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-chat-in-a-call.mp4",
+        "bytes": 480571,
+        "sha256": "7352a6ce00ed1f5e11a7954eb229d5a2da810945bf71acf0e4579bc227504924",
+        "width": 600,
+        "height": 1198
+      },
+      "vf": null
+    },
+    "docs/site/static/images/mobile-copy-a-channel-bookmark-link.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 1988452,
+        "sha256": "6e4a96ddcc1c9a5f49ee9d2d19159cb4e704a4788df708ec2b433877b919297d",
+        "width": 600,
+        "height": 1177,
+        "frames": 245,
+        "duration_s": 8.16,
+        "fps": 30.025
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-copy-a-channel-bookmark-link.mp4",
+        "bytes": 286876,
+        "sha256": "a761d398502bed392ec23618d0fa61473679c5dd81a5a7e1b31f6bc5e0a8b0de",
+        "width": 600,
+        "height": 1176
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/mobile-copy-a-link-to-the-message.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 2651060,
+        "sha256": "ef14fc62877f5a6c510822100f18aae96c13785c47fab3c3ed6ae5d74f4b98f8",
+        "width": 600,
+        "height": 1203,
+        "frames": 214,
+        "duration_s": 7.13,
+        "fps": 30.014
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-copy-a-link-to-the-message.mp4",
+        "bytes": 422987,
+        "sha256": "886f9692c74620c26fe1aa162d669849ebb1e94267c9f7993e0646e1e6283ef0",
+        "width": 600,
+        "height": 1202
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/mobile-delete-a-channel-bookmark.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 2474192,
+        "sha256": "5dfdaac5b8988ac2af65991e508368bc8d2d0e43a1e0830f19752b0ec8feb60a",
+        "width": 600,
+        "height": 1178,
+        "frames": 250,
+        "duration_s": 8.33,
+        "fps": 30.012
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-delete-a-channel-bookmark.mp4",
+        "bytes": 408174,
+        "sha256": "f04a76b1c53fd1ac9ba463694b8a7c975955553c6074644259eb356f6ea773f9",
+        "width": 600,
+        "height": 1178
+      },
+      "vf": null
+    },
+    "docs/site/static/images/mobile-delete-a-message.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 810814,
+        "sha256": "391798cfe6d2787b23a038def32bda33ce66e5909e35d362c7f47721b1c5fe57",
+        "width": 600,
+        "height": 1194,
+        "frames": 59,
+        "duration_s": 1.96,
+        "fps": 30.102
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-delete-a-message.mp4",
+        "bytes": 403393,
+        "sha256": "9961108d9bcea2f14d35993647a44472143cf0d0679d245d1ff368851edcf1d3",
+        "width": 600,
+        "height": 1194
+      },
+      "vf": null
+    },
+    "docs/site/static/images/mobile-draft-a-message.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 1920465,
+        "sha256": "0111e9c5163dc4d10e9326e0ce9f029f8bd058443009ec88075a72585bac0488",
+        "width": 600,
+        "height": 1195,
+        "frames": 184,
+        "duration_s": 6.13,
+        "fps": 30.016
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-draft-a-message.mp4",
+        "bytes": 367574,
+        "sha256": "55b617a9d2658ff0d767d40f0f79ed982d29cc2e804d2a071a2d27f62825011e",
+        "width": 600,
+        "height": 1194
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/mobile-edit-a-channel-bookmark.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 1798868,
+        "sha256": "aba87583bf531a1ce1d141ac38538b8ca185b39fb5436932855a38744be9d4b8",
+        "width": 600,
+        "height": 1179,
+        "frames": 163,
+        "duration_s": 5.43,
+        "fps": 30.018
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-edit-a-channel-bookmark.mp4",
+        "bytes": 263936,
+        "sha256": "3879a67f872ab4714323e1c4420115b09efb393215aa53b5c2a5e58cc3e93003",
+        "width": 600,
+        "height": 1178
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/mobile-edit-a-message.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 1338202,
+        "sha256": "42c396101d52a71f5b1d5ee02a03e3274de2196ba6290987fce7c252d29664f4",
+        "width": 600,
+        "height": 1190,
+        "frames": 64,
+        "duration_s": 2.13,
+        "fps": 30.047
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-edit-a-message.mp4",
+        "bytes": 196040,
+        "sha256": "d9690ec794d9bbdbbd89b89249ab6f774884de392129282396e950a69d8e18c6",
+        "width": 600,
+        "height": 1190
+      },
+      "vf": null
+    },
+    "docs/site/static/images/mobile-follow-a-message-thread-by-tapping-follow.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 227678,
+        "sha256": "89e20c69c095d8e8a64f722d16d8f269b6901af92798fcc989ba0379e36453a9",
+        "width": 600,
+        "height": 1185,
+        "frames": 55,
+        "duration_s": 1.83,
+        "fps": 30.055
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-follow-a-message-thread-by-tapping-follow.mp4",
+        "bytes": 149592,
+        "sha256": "44e73155b38ab65d1594cf438a4859df829574e4059844715a75cfa86d08cb71",
+        "width": 600,
+        "height": 1184
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/mobile-follow-a-message-thread-with-follow-option.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 2102435,
+        "sha256": "2d3617b839da2c0ef3ae6ce818d0d7d2ee7a2a843c2e3859e94a9c1f6c2276a6",
+        "width": 600,
+        "height": 1185,
+        "frames": 119,
+        "duration_s": 3.96,
+        "fps": 30.051
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-follow-a-message-thread-with-follow-option.mp4",
+        "bytes": 351143,
+        "sha256": "87dc794d4100dab18404e72fbc0386a98441132fc7dd6cc87d11d1bd249fe450",
+        "width": 600,
+        "height": 1184
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/mobile-follow-a-message-with-no-replies.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 1943789,
+        "sha256": "4c27881a43f96b68b228ce67d000907b22baa253c0bf0984fd277277c4cda37a",
+        "width": 600,
+        "height": 1191,
+        "frames": 112,
+        "duration_s": 3.73,
+        "fps": 30.027
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-follow-a-message-with-no-replies.mp4",
+        "bytes": 334285,
+        "sha256": "7f1b571628b137af8136a9ae4faa06e7db2cf8422e88af6c0953a99689384f68",
+        "width": 600,
+        "height": 1190
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/mobile-include-emojis-for-a-message-reaction.gif": {
+      "crf": 26,
+      "note": "tier A: 600px 30fps mobile capture, plan §6.2",
+      "source": {
+        "bytes": 6086449,
+        "sha256": "ae60c336212f933147dfd1ecacafad585fbc5b2ff607869b7339026dba981b47",
+        "width": 600,
+        "height": 1185,
+        "frames": 207,
+        "duration_s": 6.9,
+        "fps": 30.0
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-include-emojis-for-a-message-reaction.mp4",
+        "bytes": 1977281,
+        "sha256": "8ffd0a4797cad06b904270d6911419c6b4f6a6554303fa098dd7ec049f647618",
+        "width": 600,
+        "height": 1184
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/mobile-mark-a-message-as-unread.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 2111683,
+        "sha256": "665dabed7eda252559b2295df5046dec4a63ed9db06b9e8ee3fe019adac73e77",
+        "width": 600,
+        "height": 1184,
+        "frames": 156,
+        "duration_s": 5.2,
+        "fps": 30.0
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-mark-a-message-as-unread.mp4",
+        "bytes": 388592,
+        "sha256": "5e738ee557599ad8c327045256bb07a5da6a985bf0a4df6ea6d9896706984e76",
+        "width": 600,
+        "height": 1184
+      },
+      "vf": null
+    },
+    "docs/site/static/images/mobile-pin-a-message-to-the-channel.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 1294007,
+        "sha256": "99506140975bb9fc940db415f9edf7266706076909fa5202c6bdab39917a723a",
+        "width": 600,
+        "height": 1198,
+        "frames": 89,
+        "duration_s": 2.96,
+        "fps": 30.068
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-pin-a-message-to-the-channel.mp4",
+        "bytes": 212619,
+        "sha256": "374aa27bd56270fe598c4fe73f35e77c5af4d235bd02bb8ba38b91e38a8494de",
+        "width": 600,
+        "height": 1198
+      },
+      "vf": null
+    },
+    "docs/site/static/images/mobile-react-using-emojis-in-a-call.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 1694732,
+        "sha256": "3c9b2a1a8461acf06b10f7e01cdd69e0aa454900b624fdcde939a0512adfd9c1",
+        "width": 600,
+        "height": 1179,
+        "frames": 55,
+        "duration_s": 5.5,
+        "fps": 10.0
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-react-using-emojis-in-a-call.mp4",
+        "bytes": 96305,
+        "sha256": "a77c641471081b2f733898bb02e4fcc139120b8bee7caa9bde2d4c93a695ec0e",
+        "width": 600,
+        "height": 1178
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/mobile-reply-to-a-message-by-tapping-on-it.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 1249962,
+        "sha256": "69532068a954d7801d7b8de5f04e992b1645ba7cc2ea25acc69e04cb92f73ab7",
+        "width": 600,
+        "height": 1185,
+        "frames": 138,
+        "duration_s": 4.6,
+        "fps": 30.0
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-reply-to-a-message-by-tapping-on-it.mp4",
+        "bytes": 195160,
+        "sha256": "34963d4e6f7764cec49ba0963b404ba522d7c6ab13a8c0a029bab14783acea28",
+        "width": 600,
+        "height": 1184
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/mobile-reply-to-a-message-using-reply.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 2402476,
+        "sha256": "d0d34f951e2b4b623bf99ca8d8b0e72cda3701d39affc0d9e993829477f56db8",
+        "width": 600,
+        "height": 1185,
+        "frames": 214,
+        "duration_s": 7.13,
+        "fps": 30.014
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-reply-to-a-message-using-reply.mp4",
+        "bytes": 357291,
+        "sha256": "2ebdfec949966cb0b749d346c567e907323d15a56d85a3b72c7c3def98427585",
+        "width": 600,
+        "height": 1184
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/mobile-save-a-message.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 1373237,
+        "sha256": "787c03adf82e2cf9a7fc8e314404703fbdbe4baf167898a000d95f2359b5d825",
+        "width": 600,
+        "height": 1203,
+        "frames": 81,
+        "duration_s": 2.7,
+        "fps": 30.0
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-save-a-message.mp4",
+        "bytes": 202830,
+        "sha256": "3a71d6ead14755d110be3351d7842d793600fdcfca64ea16e4a80c7a739b72be",
+        "width": 600,
+        "height": 1202
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/mobile-sending-a-message.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 515348,
+        "sha256": "4507371ddb9e9d99313dd8a2f183f00ca88f79286223b4b1e6d38e11b868f673",
+        "width": 600,
+        "height": 1193,
+        "frames": 49,
+        "duration_s": 1.63,
+        "fps": 30.061
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-sending-a-message.mp4",
+        "bytes": 263811,
+        "sha256": "8436110d5ed0fd7e2d96a9074a0e110999bdd945c1f6c13bee25f0a69a1301d8",
+        "width": 600,
+        "height": 1192
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/mobile-start-a-call-in-a-channel.gif": {
+      "crf": 26,
+      "note": "tier A: 600px 30fps mobile capture, plan §6.2",
+      "source": {
+        "bytes": 4933374,
+        "sha256": "388aaba26738f9ab7dbeddc6c0b922b1383bdc335689abd107acc3d647648f0b",
+        "width": 600,
+        "height": 1184,
+        "frames": 223,
+        "duration_s": 7.42,
+        "fps": 30.054
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-start-a-call-in-a-channel.mp4",
+        "bytes": 448525,
+        "sha256": "3c2869f532f9d65b5d22497af3767e28eda4160662a7596c5a3fa781d8c92497",
+        "width": 600,
+        "height": 1184
+      },
+      "vf": null
+    },
+    "docs/site/static/images/mobile-start-a-call-recording-using-call-banner.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 1993344,
+        "sha256": "84b9c7e1f5b3e2ce77cbadb62787a7c6a6134c9afd551b81f360d2934ca8feaf",
+        "width": 600,
+        "height": 1174,
+        "frames": 240,
+        "duration_s": 8.0,
+        "fps": 30.0
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-start-a-call-recording-using-call-banner.mp4",
+        "bytes": 385223,
+        "sha256": "e254255554ddbda4c8edc44724f4e88e5f55702fecd476a5f5136223c9e7d8a5",
+        "width": 600,
+        "height": 1174
+      },
+      "vf": null
+    },
+    "docs/site/static/images/mobile-start-a-call-recording-using-slash-commands.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 2124982,
+        "sha256": "6960ffde5e3dcb121442045e9d1c3f9de970b4fa81c2116aff9f1ecba941e6dd",
+        "width": 600,
+        "height": 1191,
+        "frames": 244,
+        "duration_s": 8.13,
+        "fps": 30.012
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-start-a-call-recording-using-slash-commands.mp4",
+        "bytes": 372291,
+        "sha256": "de72692abc1404fed53d3a8f0b3d0a40aad6886b6d5f80d40ae3bb847b79d9e2",
+        "width": 600,
+        "height": 1190
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/mobile-stop-a-call-recording-using-call-banner.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 1536028,
+        "sha256": "ae785a4ed843836b79acc81cf027ad77d6bf9bf71c7b57c8b3c08d469bfb1f71",
+        "width": 600,
+        "height": 1174,
+        "frames": 119,
+        "duration_s": 3.96,
+        "fps": 30.051
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-stop-a-call-recording-using-call-banner.mp4",
+        "bytes": 295076,
+        "sha256": "40a4fa83b59da4580aed0d85d3f40875b14465c6e6b9b62aa37a8ae25ed19f4b",
+        "width": 600,
+        "height": 1174
+      },
+      "vf": null
+    },
+    "docs/site/static/images/mobile-stop-a-call-recording-using-slash-commands.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 2534930,
+        "sha256": "7a69ec70658ad9018d36b15ac6734428021ee93a9b2dcc9ffd03b6d5c67b0a94",
+        "width": 600,
+        "height": 1175,
+        "frames": 203,
+        "duration_s": 6.76,
+        "fps": 30.03
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-stop-a-call-recording-using-slash-commands.mp4",
+        "bytes": 355806,
+        "sha256": "4c282559db4dadaadff3d09f709fc5739dd8946eac6e3efc5bc57eb72b1179f7",
+        "width": 600,
+        "height": 1174
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/mobile-unfollow-a-message-thread-by-tapping-following.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 262994,
+        "sha256": "aa2771a7a23a29a3a66162ccee67333e31bf19dc952baafa7e9ccf58b71a47e1",
+        "width": 600,
+        "height": 1195,
+        "frames": 59,
+        "duration_s": 1.96,
+        "fps": 30.102
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-unfollow-a-message-thread-by-tapping-following.mp4",
+        "bytes": 158826,
+        "sha256": "7b26ebc90badc87e79aebb413947c7d6a90122f19ab0fafd3046991b8bfbf3ef",
+        "width": 600,
+        "height": 1194
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/mobile-unfollow-a-message-thread-with-unfollow-option.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 1843409,
+        "sha256": "30adf7023dbc24b015680110a5774cead985d201498c042386041b0cd9cc4d8c",
+        "width": 600,
+        "height": 1183,
+        "frames": 116,
+        "duration_s": 3.86,
+        "fps": 30.052
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-unfollow-a-message-thread-with-unfollow-option.mp4",
+        "bytes": 317038,
+        "sha256": "1642f67257da11d71035fe8f34b70c569528f05687def68ca1ba44101f5187a3",
+        "width": 600,
+        "height": 1182
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/mobile-unpin-a-message-from-pinned-messages.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 562508,
+        "sha256": "4bcd58bd50317f10130f5b0187d0e7745efab18510b9f8423cde9f3eef048add",
+        "width": 600,
+        "height": 1185,
+        "frames": 90,
+        "duration_s": 3.0,
+        "fps": 30.0
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-unpin-a-message-from-pinned-messages.mp4",
+        "bytes": 375789,
+        "sha256": "8a97004648498b1a9e5a29b6a78927ef1db7517fc38e2f77f8f753a77a1b3e3b",
+        "width": 600,
+        "height": 1184
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/mobile-unpin-a-message-from-the-channel.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 1402084,
+        "sha256": "bb88ca348337549740eca1f2b2a7d21a3fe0b55d5676eb3738a9b8b8a32c670b",
+        "width": 600,
+        "height": 1195,
+        "frames": 94,
+        "duration_s": 3.13,
+        "fps": 30.032
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-unpin-a-message-from-the-channel.mp4",
+        "bytes": 245764,
+        "sha256": "735711edad282ce2383ec17d9890008315038ecef340306f1ca683faf72c1d08",
+        "width": 600,
+        "height": 1194
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/mobile-unsave-a-message-from-saved-messages.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 713050,
+        "sha256": "050240783e16db654606775abc407a0191a94cf48c70e09bcbc83d2d8421323c",
+        "width": 600,
+        "height": 1185,
+        "frames": 92,
+        "duration_s": 3.06,
+        "fps": 30.065
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-unsave-a-message-from-saved-messages.mp4",
+        "bytes": 418702,
+        "sha256": "449580429de28eb2198dc64f5a36085f06dcc4e8f3e3f77a855fc36bb000f5f3",
+        "width": 600,
+        "height": 1184
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/mobile-unsave-a-message-from-the-channel.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 403800,
+        "sha256": "e2f1cab47ebc262886106f3215ec4c64eaf5ea0f0e528fae6dfdd12be3f211b7",
+        "width": 600,
+        "height": 1185,
+        "frames": 63,
+        "duration_s": 2.1,
+        "fps": 30.0
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-unsave-a-message-from-the-channel.mp4",
+        "bytes": 174923,
+        "sha256": "8b944595ba8b40dc324e1ee430e4c06336ee37eaf5763883d8a83a50ad7ef9ad",
+        "width": 600,
+        "height": 1184
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/mobile-view-saved-messages.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 629355,
+        "sha256": "2aa8223b625358e2a76322d57d235f83799e5f48216e926b86b8687dc47ab22e",
+        "width": 600,
+        "height": 1185,
+        "frames": 78,
+        "duration_s": 2.6,
+        "fps": 30.0
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile-view-saved-messages.mp4",
+        "bytes": 284494,
+        "sha256": "eb7e994407a5e77ea6ed874bde6ba8b8ddc2f299c3e436520f2cff58ee39c2db",
+        "width": 600,
+        "height": 1184
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/mobile_notification_settings.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 821638,
+        "sha256": "125d18e92b8eceb3d35f13fce84f0dd0dd2bf34b430f7e224fec298922b4bc53",
+        "width": 488,
+        "height": 1088,
+        "frames": 95,
+        "duration_s": 6.34,
+        "fps": 14.984
+      },
+      "output": {
+        "path": "docs/site/static/images/mobile_notification_settings.mp4",
+        "bytes": 101134,
+        "sha256": "4cd12bf2475102e0f872d26f6e6cd8ddb8786992d292e6cfe6055acdea6a9f12",
+        "width": 488,
+        "height": 1088
+      },
+      "vf": null
+    },
+    "docs/site/static/images/multi-select-drag.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 779649,
+        "sha256": "d5dc24963955b2658343cf3f22ef156dc2e72a310c51e65498ca237492c216c8",
+        "width": 266,
+        "height": 666,
+        "frames": 116,
+        "duration_s": 21.41,
+        "fps": 5.418
+      },
+      "output": {
+        "path": "docs/site/static/images/multi-select-drag.mp4",
+        "bytes": 138684,
+        "sha256": "36f1b049db6d0b67782e6460a1d194c165229278635f6fe25c4950f653ca8239",
+        "width": 266,
+        "height": 666
+      },
+      "vf": null
+    },
+    "docs/site/static/images/multi-select-move.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 176944,
+        "sha256": "a4b6746211fe60b8cfbe3007a3b47074f358303e869fcda45cbfdfc34a2b6c51",
+        "width": 538,
+        "height": 666,
+        "frames": 45,
+        "duration_s": 11.44,
+        "fps": 3.934
+      },
+      "output": {
+        "path": "docs/site/static/images/multi-select-move.mp4",
+        "bytes": 111477,
+        "sha256": "e8b07799522a464edbc29284000bab59446d2d4c3da48ef0728b9035ff00e0ae",
+        "width": 538,
+        "height": 666
+      },
+      "vf": null
+    },
+    "docs/site/static/images/mute-categories.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 303557,
+        "sha256": "d83ddc096ec3a5071e8c16dcd8a29d9f20ebcbcb2e14f37dea9df697ae0d1fee",
+        "width": 455,
+        "height": 666,
+        "frames": 70,
+        "duration_s": 16.97,
+        "fps": 4.125
+      },
+      "output": {
+        "path": "docs/site/static/images/mute-categories.mp4",
+        "bytes": 94617,
+        "sha256": "b10e29de3d97d277db4ec7c0d459c5d0defa35ad75e169aec3debda283786f68",
+        "width": 454,
+        "height": 666
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/navigation.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 1117825,
+        "sha256": "1ccbd2947654a23aca172e185bb46101250611cb34f9473225a62582edfdde98",
+        "width": 1280,
+        "height": 800,
+        "frames": 342,
+        "duration_s": 22.8,
+        "fps": 15.0
+      },
+      "output": {
+        "path": "docs/site/static/images/navigation.mp4",
+        "bytes": 348835,
+        "sha256": "86ae59b0611c26147696cc9f67e84d6d1de08352dc48602318574b103e9079e4",
+        "width": 1280,
+        "height": 800
+      },
+      "vf": null
+    },
+    "docs/site/static/images/restore-an-archived-playbook.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 494723,
+        "sha256": "8df6718115817187050173340513d638d2384e315e5803615cf0458dba286711",
+        "width": 640,
+        "height": 503,
+        "frames": 71,
+        "duration_s": 7.1,
+        "fps": 10.0
+      },
+      "output": {
+        "path": "docs/site/static/images/restore-an-archived-playbook.mp4",
+        "bytes": 70403,
+        "sha256": "d4ea6b7e4cdc0cb7bbacbcbf85d2ec7b16ab1016b565c968d4450377a011ad27",
+        "width": 640,
+        "height": 502
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/restore-previous-edited-message.gif": {
+      "crf": 32,
+      "note": "tier D: downscaled desktop capture, plan §6.2",
+      "source": {
+        "bytes": 1024154,
+        "sha256": "c980a74b36b7c55ed48a11dba7fcacf9a81fab9394d47d29e44f900e8f942f82",
+        "width": 1920,
+        "height": 1040,
+        "frames": 217,
+        "duration_s": 14.47,
+        "fps": 14.997
+      },
+      "output": {
+        "path": "docs/site/static/images/restore-previous-edited-message.mp4",
+        "bytes": 119537,
+        "sha256": "79305515c05b9d217840943a0a1516b042055e9e2e1715d85d133b77d6646ed1",
+        "width": 1280,
+        "height": 694
+      },
+      "vf": "scale=1280:-2:flags=lanczos"
+    },
+    "docs/site/static/images/sort-categories.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 178160,
+        "sha256": "7d7bd31c931192649749d1b9d3799f5952c76e71d44c1442df7d7cf33d3624b8",
+        "width": 658,
+        "height": 686,
+        "frames": 111,
+        "duration_s": 7.4,
+        "fps": 15.0
+      },
+      "output": {
+        "path": "docs/site/static/images/sort-categories.mp4",
+        "bytes": 80834,
+        "sha256": "87917b3a30800ca5a8530f992ccccd315521c3b4ffd6e7a012f057c672106b97",
+        "width": 658,
+        "height": 686
+      },
+      "vf": null
+    },
+    "docs/site/static/images/swipe-left-to-remove.gif": {
+      "crf": null,
+      "note": null,
+      "source": {
+        "bytes": 1510369,
+        "sha256": "91501e04d106861c100fa7845be0eda4520492d5e66bf8311da340a0fe283f70",
+        "width": 488,
+        "height": 1088,
+        "frames": 87,
+        "duration_s": 5.8,
+        "fps": 15.0
+      },
+      "output": {
+        "path": "docs/site/static/images/swipe-left-to-remove.mp4",
+        "bytes": 61841,
+        "sha256": "516f845d3b0acddf81b0be780f0e1697d86e0fddfde7bbc839ca0f73447635af",
+        "width": 488,
+        "height": 1088
+      },
+      "vf": null
+    },
+    "docs/site/static/images/teams.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 128764,
+        "sha256": "74e9e5cc56e86aa3be431edd240cca4cacd5aab74b5046706747ddad7ba97d0a",
+        "width": 330,
+        "height": 459,
+        "frames": 62,
+        "duration_s": 4.14,
+        "fps": 14.976
+      },
+      "output": {
+        "path": "docs/site/static/images/teams.mp4",
+        "bytes": 43483,
+        "sha256": "d2d451e55892d54f2ae6660f179eb157fba25886dfb7558c79a6ecebc6c6d8e7",
+        "width": 330,
+        "height": 458
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    },
+    "docs/site/static/images/unreads.gif": {
+      "crf": 32,
+      "note": "tier D: downscaled desktop capture, plan §6.2",
+      "source": {
+        "bytes": 1327944,
+        "sha256": "38ee0729c62aa4e285bc53c61669d04f70ec2ec1452fcffec54a2109572e55d3",
+        "width": 1920,
+        "height": 1040,
+        "frames": 271,
+        "duration_s": 18.07,
+        "fps": 14.997
+      },
+      "output": {
+        "path": "docs/site/static/images/unreads.mp4",
+        "bytes": 188746,
+        "sha256": "c9fdc0a5ab8843e2cc36cc37787c1255c347a0aa961357240ed73d949e5a2ac1",
+        "width": 1280,
+        "height": 694
+      },
+      "vf": "scale=1280:-2:flags=lanczos"
+    },
+    "docs/site/static/img/extend/bp-slash-command.gif": {
+      "crf": 26,
+      "note": "tier C: under 1 MB, plan §6.2",
+      "source": {
+        "bytes": 264528,
+        "sha256": "83f35ef29616fa53cda6f2b3063f13b018449b6dbef4edebc69bec33a0d556c5",
+        "width": 788,
+        "height": 169,
+        "frames": 55,
+        "duration_s": 5.5,
+        "fps": 10.0
+      },
+      "output": {
+        "path": "docs/site/static/img/extend/bp-slash-command.mp4",
+        "bytes": 24197,
+        "sha256": "d14a9980fbf3731cc3221d5b58799f47c56fa494d94b2dd8e466f41e9a2ecb94",
+        "width": 788,
+        "height": 168
+      },
+      "vf": "crop=trunc(iw/2)*2:trunc(ih/2)*2"
+    }
+  },
+  "delete_only": [
+    "docs/develop/integrate/faq/images/poll.gif",
+    "docs/develop/integrate/plugins/interactive-messages/poll.gif",
+    "docs/develop/integrate/plugins/interactive-dialogs/interactive_message.gif",
+    "docs/develop/integrate/faq/images/interactive_message.gif"
+  ]
+}
