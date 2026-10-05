@@ -4039,6 +4039,11 @@
     "translation": "Could not parse multipart form."
   },
   {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Unable to seek to file start.",
+    "description": "Internal API error when the server cannot rewind the uploaded team icon file to re-read it; technical file-handling failure."
+  },
+  {
     "id": "api.team.set_team_icon.storage.app_error",
     "translation": "Unable to upload team icon. Image storage is not configured."
   },
