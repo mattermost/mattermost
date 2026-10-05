@@ -1,0 +1,95 @@
+# Encoder ladder. Candidates are tried in order; the first one that clears
+# `threshold` wins, so the list must be ordered smallest-expected-output first.
+# Ordering is by output size, not by nominal quality -- see PLAN 0.5, quality is
+# not monotonic in -q.
+[defaults]
+threshold = 85.0
+ladder = ["q80s", "q90s", "q95s", "q98s", "nl40", "lossless"]
+common = ["-m", "6", "-metadata", "icc"]
+
+[candidates]
+q80s     = ["-q", "80", "-sharp_yuv"]
+q90s     = ["-q", "90", "-sharp_yuv"]
+q95s     = ["-q", "95", "-sharp_yuv"]
+q98s     = ["-q", "98", "-sharp_yuv"]
+nl40     = ["-near_lossless", "40", "-q", "100"]
+lossless = ["-lossless", "-z", "9", "-exact"]
+
+[[image]]
+path = "docs/site/static/images/ms-teams-meetings-add-permission.png"
+
+[[image]]
+path = "docs/site/static/images/mattermost-in-msteams.png"
+
+[[image]]
+path = "docs/site/static/images/oracle/job-monitor.png"
+
+[[image]]
+path = "docs/site/static/images/Playbooks_Hero.png"
+
+[[image]]
+path = "docs/site/static/images/Channels_Hero.png"
+
+[[image]]
+path = "docs/site/static/img/ime/logos/ask-sage.png"
+
+[[image]]
+path = "docs/site/static/images/desktop-multi.png"
+
+[[image]]
+path = "docs/site/static/images/Team_Channel_Membership_Sync.png"
+
+[[image]]
+path = "docs/site/static/images/notices_admin.png"
+
+[[image]]
+path = "docs/site/static/images/ime.png"
+skip = "orphaned"
+reason = "Zero references; superseded by the <IMEDiagram> component. Deleted, see PLAN 0.8."
+
+[[image]]
+path = "docs/site/static/images/cpa-properties.png"
+
+[[image]]
+path = "docs/site/static/images/desktop/msi_gpo/msi_gpo_installation_test_00009.png"
+
+[[image]]
+path = "docs/site/static/images/desktop/msi_gpo/msi_gpo_installation_test_00013.png"
+
+[[image]]
+path = "docs/site/static/images/DDIL-disconnected-secure-communication-collaboration.png"
+
+[[image]]
+path = "docs/site/static/images/Group_Group_Member_Sync.png"
+
+[[image]]
+path = "docs/site/static/images/architecture-ms-teams-ddil.png"
+
+[[image]]
+path = "docs/site/static/images/secure-out-of-band.png"
+
+[[image]]
+path = "docs/site/static/images/desktop/msi_gpo/msi_gpo_installation_test_00018.png"
+
+[[image]]
+path = "docs/site/static/img/docker/grafana.png"
+
+[[image]]
+path = "docs/site/static/img/ime/entadv.png"
+skip = "generated"
+reason = "Rendered and committed by .github/workflows/docs-ime-render.yml; Playwright writes PNG only."
+
+[[image]]
+path = "docs/site/static/images/mobile-select-more-options-for-a-channel.jpg"
+
+[[image]]
+path = "docs/site/static/images/architecture-mpe.png"
+
+[[image]]
+path = "docs/site/static/images/notices.png"
+
+[[image]]
+path = "docs/site/static/images/push_notification_chart.png"
+
+[[image]]
+path = "docs/site/static/images/architecture-ms-teams-collab.png"

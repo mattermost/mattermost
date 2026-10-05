@@ -73,7 +73,7 @@ From https://grafana.com/docs/
 Grafana is where all the metrics and logs collected by Prometheus, Loki and promtail come together. Panels visualize the data and are grouped into dashboards. The home dashboard links out to various performance dashboards, lists which Docker services are currently online, has quick links to various filtered log views, and panels showing the most recent Mattermost and Docker container logs.
 
 When running, access the web interface at [http://localhost:3000](http://localhost:3000).
-![grafana](/img/docker/grafana.png)
+![grafana](/img/docker/grafana.webp)
 
 ## prometheus
 

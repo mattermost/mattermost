@@ -1,0 +1,163 @@
+{
+  "docs/site/static/images/Channels_Hero.png": {
+    "bytes": 483004,
+    "candidate": "nl40",
+    "ceiling": 100.0,
+    "score": 86.70674749,
+    "sha256": "ca65f551227f077ad624ec3d5a6dd07112dc3b7b55b0b32320df174404b196fa"
+  },
+  "docs/site/static/images/DDIL-disconnected-secure-communication-collaboration.png": {
+    "bytes": 120432,
+    "candidate": "q90s",
+    "ceiling": 100.0,
+    "score": 87.51090263,
+    "sha256": "37bb9587f6de0f5c61ea41d76b883180fe8b97f4969a6a430a273d88a8721a54"
+  },
+  "docs/site/static/images/Group_Group_Member_Sync.png": {
+    "bytes": 145204,
+    "candidate": "q90s",
+    "ceiling": 100.0,
+    "score": 87.37272213,
+    "sha256": "413d9d94ae0334a298f4ba00d2a6df62b29b970789fa31bf798c8f84ba9c5f57"
+  },
+  "docs/site/static/images/Playbooks_Hero.png": {
+    "bytes": 530434,
+    "candidate": "nl40",
+    "ceiling": 100.0,
+    "score": 86.35771117,
+    "sha256": "5713e639917eecc85539ae87c2052ff259b51221af712d4ebb347dbbec23b06c"
+  },
+  "docs/site/static/images/Team_Channel_Membership_Sync.png": {
+    "bytes": 175500,
+    "candidate": "q90s",
+    "ceiling": 100.0,
+    "score": 87.28844505,
+    "sha256": "b375ea68d61f9b46643deea23190b5a41852fb025d30d48a6ded85b92b5f1256"
+  },
+  "docs/site/static/images/architecture-mpe.png": {
+    "bytes": 168920,
+    "candidate": "nl40",
+    "ceiling": 100.0,
+    "score": 88.22182665,
+    "sha256": "c2e8bbfccac01f6fd82943cf1f6d8e4f73efdd584251b25123044a0e11d231d7"
+  },
+  "docs/site/static/images/architecture-ms-teams-collab.png": {
+    "bytes": 145960,
+    "candidate": "nl40",
+    "ceiling": 100.0,
+    "score": 88.33629907,
+    "sha256": "fd74edf5348a3844c18a38bd708bdfc0a09aa716d1037ad91871bccc5f9257c1"
+  },
+  "docs/site/static/images/architecture-ms-teams-ddil.png": {
+    "bytes": 189540,
+    "candidate": "nl40",
+    "ceiling": 100.0,
+    "score": 87.97961206,
+    "sha256": "1920805573691b809a5004e3d18ff626bb0e92951cd020e2af5e80c695cb6835"
+  },
+  "docs/site/static/images/cpa-properties.png": {
+    "bytes": 183044,
+    "candidate": "q90s",
+    "ceiling": 100.0,
+    "score": 86.90630968,
+    "sha256": "b44684c6e931996ab75756c7da09e271ed1e4bd2ac537c64581307d7e0aab00a"
+  },
+  "docs/site/static/images/desktop-multi.png": {
+    "bytes": 121302,
+    "candidate": "q90s",
+    "ceiling": 100.0,
+    "score": 87.57998712,
+    "sha256": "ccab33248a7ea8b4df7e4f66d019e230253c0531220506537c0e92988f00c11d"
+  },
+  "docs/site/static/images/desktop/msi_gpo/msi_gpo_installation_test_00009.png": {
+    "bytes": 396614,
+    "candidate": "nl40",
+    "ceiling": 100.0,
+    "score": 92.46588352,
+    "sha256": "851d7a494d6abe344d32dc6ad056fccef199f038a1ab84e730a9e9b6e750b432"
+  },
+  "docs/site/static/images/desktop/msi_gpo/msi_gpo_installation_test_00013.png": {
+    "bytes": 395566,
+    "candidate": "nl40",
+    "ceiling": 100.0,
+    "score": 92.74669025,
+    "sha256": "8cd908f8b596d257e67e8dc2b9a6ce4e3e7310304df604e48b97f991ed5cfca4"
+  },
+  "docs/site/static/images/desktop/msi_gpo/msi_gpo_installation_test_00018.png": {
+    "bytes": 275688,
+    "candidate": "nl40",
+    "ceiling": 100.0,
+    "score": 89.84879807,
+    "sha256": "f28c38b7c2e5acf6b220d5961ad5ff013bbd327a64b44c1fa207857a1f84088f"
+  },
+  "docs/site/static/images/mattermost-in-msteams.png": {
+    "bytes": 879416,
+    "candidate": "nl40",
+    "ceiling": 100.0,
+    "score": 86.4479119,
+    "sha256": "36042b7be211dbbf658436f9e4328743ca306810ca1f7974cdfb4fcd17c6d207"
+  },
+  "docs/site/static/images/mobile-select-more-options-for-a-channel.jpg": {
+    "bytes": 122840,
+    "candidate": "q80s",
+    "ceiling": 100.0,
+    "score": 85.50816702,
+    "sha256": "7364f310af7571532fff69a94bcf3ff13c91b56fb9a35f58accfe877c00e5bc9"
+  },
+  "docs/site/static/images/ms-teams-meetings-add-permission.png": {
+    "bytes": 622402,
+    "candidate": "q98s",
+    "ceiling": 100.0,
+    "score": 85.52722289,
+    "sha256": "14c4ab030eb2e3c608faddca12fff4d218ddac41dbf435c4e376c3233f74a483"
+  },
+  "docs/site/static/images/notices.png": {
+    "bytes": 80702,
+    "candidate": "q90s",
+    "ceiling": 100.0,
+    "score": 87.04208805,
+    "sha256": "d55b0b0a49f718fb67c7ec516953f3ee724204ddc665c1ea945f26bd7b33a25d"
+  },
+  "docs/site/static/images/notices_admin.png": {
+    "bytes": 159538,
+    "candidate": "q95s",
+    "ceiling": 100.0,
+    "score": 87.01036785,
+    "sha256": "3b56c2bded187363b0bfa521032081c899920c464c7de06d73f71ff0f2009182"
+  },
+  "docs/site/static/images/oracle/job-monitor.png": {
+    "bytes": 215970,
+    "candidate": "q95s",
+    "ceiling": 100.0,
+    "score": 85.26117726,
+    "sha256": "5eea8ccfcddcfefc271e94fb6710d64954097535575c6ac42947b5805d9de254"
+  },
+  "docs/site/static/images/push_notification_chart.png": {
+    "bytes": 138614,
+    "candidate": "lossless",
+    "ceiling": 100.0,
+    "score": 100.0,
+    "sha256": "bd0448522b5f0652a6c84a02988e534bd5a0a5a0955494728999b6b7417cafef"
+  },
+  "docs/site/static/images/secure-out-of-band.png": {
+    "bytes": 197780,
+    "candidate": "q98s",
+    "ceiling": 100.0,
+    "score": 86.09751784,
+    "sha256": "add2107cf43c15b0a1c85d16f07e5c61f56fe6ce143b31457646a8defc4ee8bf"
+  },
+  "docs/site/static/img/docker/grafana.png": {
+    "bytes": 108600,
+    "candidate": "nl40",
+    "ceiling": 100.0,
+    "score": 90.9731428,
+    "sha256": "17d55e8d5734bafdd7f9311ad201082d4679146b47e4bf405dfbe50ae68f2a8f"
+  },
+  "docs/site/static/img/ime/logos/ask-sage.png": {
+    "bytes": 150450,
+    "candidate": "q90s",
+    "ceiling": 100.0,
+    "score": 88.30784751,
+    "sha256": "e27716745574d6557a2d94138d7d91399ed61bb9315a7c72ca40240101d034bf"
+  }
+}
