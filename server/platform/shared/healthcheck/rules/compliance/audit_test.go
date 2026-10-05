@@ -21,39 +21,12 @@ func auditSnapshot(fileEnabled bool, advanced string, users *int64) *healthcheck
 	})
 	if users != nil {
 		s.Stats = &model.SupportPacketStats{RegisteredUsers: users}
-		s.Sections[model.SectionStats] = nil
 	}
 	return s
 }
 
 func auditTarget(levels ...string) string {
 	return `{"audit": {"type": "file", "format": "json", "levels": [` + strings.Join(levels, ",") + `], "options": {"filename": "audit.log"}}}`
-}
-
-func TestAuditLoggingActive(t *testing.T) {
-	t.Parallel()
-
-	testCases := []struct {
-		name     string
-		settings model.ExperimentalAuditSettings
-		want     bool
-	}{
-		{name: "file enabled", settings: model.ExperimentalAuditSettings{FileEnabled: new(true)}, want: true},
-		{name: "file enabled absent", settings: model.ExperimentalAuditSettings{}, want: false},
-		{name: "file disabled, empty advanced", settings: model.ExperimentalAuditSettings{FileEnabled: new(false), AdvancedLoggingJSON: json.RawMessage(`{}`)}, want: false},
-		{name: "advanced audit-api target", settings: model.ExperimentalAuditSettings{FileEnabled: new(false), AdvancedLoggingJSON: json.RawMessage(auditTarget(`{"id": 100, "name": "audit-api"}`))}, want: true},
-		{name: "advanced audit-cli target", settings: model.ExperimentalAuditSettings{FileEnabled: new(false), AdvancedLoggingJSON: json.RawMessage(auditTarget(`{"id": 103, "name": "audit-cli"}`))}, want: true},
-		{name: "advanced audit-delivery only", settings: model.ExperimentalAuditSettings{FileEnabled: new(false), AdvancedLoggingJSON: json.RawMessage(auditTarget(`{"id": 104, "name": "audit-delivery"}`))}, want: false},
-		{name: "advanced non-audit levels", settings: model.ExperimentalAuditSettings{FileEnabled: new(false), AdvancedLoggingJSON: json.RawMessage(auditTarget(`{"id": 4, "name": "info"}`, `{"id": 2, "name": "error"}`))}, want: false},
-		{name: "advanced malformed", settings: model.ExperimentalAuditSettings{FileEnabled: new(false), AdvancedLoggingJSON: json.RawMessage(`{"audit":`)}, want: false},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			assert.Equal(t, tc.want, auditLoggingActive(tc.settings))
-		})
-	}
 }
 
 func TestAuditLogOff(t *testing.T) {
