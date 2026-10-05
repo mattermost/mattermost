@@ -97,8 +97,8 @@ func TestPushIDOnlyAndPushServerCodesFireTogether(t *testing.T) {
 		cfg.EmailSettings.PushNotificationContents = new(model.FullNotification)
 	})
 
-	require.Equal(t, healthcheck.StateFiring, evalPushIDOnly(snapshot)[0].State)
-	require.Equal(t, healthcheck.StateFiring, evalPushTestProxy(snapshot)[0].State)
+	assert.Equal(t, healthcheck.StateFiring, evalPushIDOnly(snapshot)[0].State)
+	assert.Equal(t, healthcheck.StateFiring, evalPushTestProxy(snapshot)[0].State)
 	assert.NotEqual(t, pushIDOnly.Subject, pushTestProxy.Subject)
 }
 
