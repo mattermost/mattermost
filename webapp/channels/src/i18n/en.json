@@ -3357,11 +3357,11 @@
   },
   "admin.classification_markings.conflict.channel_field": {
     "defaultMessage": "A channel attribute named \"{name}\" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management, then reload this page.",
-    "description": ""
+    "description": "System Console > Classification Markings. Body of the blocking notice shown to admins when a channel attribute with the same name as the classification attribute already exists but is not the classification set. {name} is that attribute's display name as the admin typed it (not localized). \"Attribute Management\" is the name of another System Console page."
   },
   "admin.classification_markings.conflict.clearance": {
     "defaultMessage": "A user attribute named \"{name}\" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management to enable the clearance attribute.",
-    "description": ""
+    "description": "System Console > Classification Markings. Body of the notice shown to admins when the clearance attribute cannot be created because a user attribute with the same name already exists. {name} is that attribute's display name (not localized). \"Attribute Management\" is the name of another System Console page."
   },
   "admin.classification_markings.conflict.clearance_template": {
     "defaultMessage": "Rename \"{name}\" in Attribute Management so it isn't mistaken for this clearance attribute.",
@@ -3373,19 +3373,19 @@
   },
   "admin.classification_markings.conflict.clearance_title": {
     "defaultMessage": "Clearance attribute cannot be created",
-    "description": ""
+    "description": "System Console > Classification Markings. Title of the notice shown when the clearance user attribute cannot be created because of a naming conflict; the body is admin.classification_markings.conflict.clearance."
   },
   "admin.classification_markings.conflict.system_field": {
     "defaultMessage": "A system attribute named \"{name}\" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management, then reload this page.",
-    "description": ""
+    "description": "System Console > Classification Markings. Body of the blocking notice shown to admins when a system (built-in) attribute with the same name already exists but is not linked to the classification levels. {name} is that attribute's display name (not localized). \"Attribute Management\" is the name of another System Console page."
   },
   "admin.classification_markings.conflict.template": {
     "defaultMessage": "An attribute named \"{name}\" already exists with a different type, so it is not a set of classification levels. Rename or remove it in Attribute Management, then reload this page.",
-    "description": ""
+    "description": "System Console > Classification Markings. Body of the blocking notice shown to admins when an attribute with the same name exists but has a different type, so it cannot hold classification levels. {name} is that attribute's display name (not localized). \"Attribute Management\" is the name of another System Console page."
   },
   "admin.classification_markings.conflict.title": {
     "defaultMessage": "Classification markings cannot be configured",
-    "description": ""
+    "description": "System Console > Classification Markings. Title of the blocking notice shown when the page cannot be used because an existing attribute conflicts with the classification attribute; one of the admin.classification_markings.conflict.* bodies follows."
   },
   "admin.classification_markings.enable.description": {
     "defaultMessage": "Use this to enable classification markings as banners at the system and channel level. You can pre-select text and colors for your banner, as well as set a default option for consistency.",
@@ -3417,7 +3417,7 @@
   },
   "admin.classification_markings.error.create_name_conflict": {
     "defaultMessage": "Could not save because an attribute with a conflicting name already exists: {error} Rename or remove it in Attribute Management, then reload this page.",
-    "description": ""
+    "description": "System Console > Classification Markings. Error shown after a failed save when the server reports that an attribute with a conflicting name already exists. {error} is the server's error message, inserted as a full sentence. \"Attribute Management\" is the name of another System Console page."
   },
   "admin.classification_markings.error.delete_has_dependents": {
     "defaultMessage": "Cannot disable classification markings while channel classifications exist. Remove all channel classification markings first.",
@@ -6749,7 +6749,7 @@
   },
   "admin.global_attributes.classification.name_conflict": {
     "defaultMessage": "An attribute named \"{name}\" already exists but is not part of classification. Rename or remove it in Attribute Management, then reload this page.",
-    "description": ""
+    "description": "System Console > Attribute Management > Classification attribute. Notice shown to admins when a user attribute named like the classification attribute already exists but is not the classification attribute. {name} is that attribute's display name (not localized). \"Attribute Management\" is the name of the current System Console section."
   },
   "admin.global_attributes.classification.name_fallback": {
     "defaultMessage": "Classification",
@@ -18577,15 +18577,15 @@
   },
   "channel_attributes.banner.empty_notice": {
     "defaultMessage": "There's nothing to display until the attributes in the banner text have values.",
-    "description": ""
+    "description": "Channel Settings > Configuration > channel banner preview. Body of the warning shown under the preview when the banner text contains attribute tokens but none of those attributes has a value yet, so the banner would render empty."
   },
   "channel_attributes.banner.empty_notice.no_text": {
     "defaultMessage": "Add banner text to display a banner.",
-    "description": ""
+    "description": "Channel Settings > Configuration > channel banner preview. Body of the warning shown under the preview when the banner text is empty, telling the channel admin to enter some text."
   },
   "channel_attributes.banner.empty_notice.title": {
     "defaultMessage": "The banner will not be displayed",
-    "description": ""
+    "description": "Channel Settings > Configuration > channel banner preview. Title of the warning shown when the banner would render empty; the body is one of the channel_attributes.banner.empty_notice* strings."
   },
   "channel_attributes.banner.insert_attribute": {
     "defaultMessage": "Attributes",
@@ -18605,11 +18605,11 @@
   },
   "channel_attributes.banner.token_value_set": {
     "defaultMessage": "Value on this channel: {value}",
-    "description": ""
+    "description": "Channel Settings > Configuration > banner text editor. Secondary line of a menu item in the \"insert attribute\" picker, showing the attribute's current value on this channel. {value} is that value as entered by a user."
   },
   "channel_attributes.banner.token_value_unset": {
     "defaultMessage": "The attribute has no value set and won't render in the banner, but will appear automatically the moment a value is set.",
-    "description": ""
+    "description": "Channel Settings > Configuration > banner text editor. Tooltip / secondary text shown for an attribute that has no value on this channel yet, both in the insert-attribute picker and next to an inserted token."
   },
   "channel_attributes.chip.label_prefix": {
     "defaultMessage": "{label}: ",
@@ -18657,7 +18657,7 @@
   },
   "channel_attributes.info.remove_value": {
     "defaultMessage": "Remove {value}",
-    "description": ""
+    "description": "Channel Settings > Info > channel attributes. Screen-reader label of the small x button that removes one selected value from a multi-value attribute. {value} is the value being removed. \"Remove\" is a verb."
   },
   "channel_attributes.info.save_failed": {
     "defaultMessage": "Couldn't save {label}. Try again.",
@@ -18697,7 +18697,7 @@
   },
   "channel_banner.banner_text.help": {
     "defaultMessage": "Any single- or double-character symbols between attributes (such as · . / ?) will be removed if those attribute values are not set. Empty attributes will not appear in the banner or elsewhere in the channel. The banner is hidden if there is no text available.",
-    "description": ""
+    "description": "Channel Settings > Configuration > channel banner. Help text under the banner text field when attribute tokens can be inserted into the banner. The symbols in parentheses (· . / ?) are literal examples of separator characters and should be kept as they are."
   },
   "channel_banner.banner_text.label": {
     "defaultMessage": "Banner text",
@@ -19877,7 +19877,7 @@
   },
   "channel_settings.error_attributes_save_failed": {
     "defaultMessage": "Couldn't save one or more channel attributes. Try again.",
-    "description": ""
+    "description": "Channel Settings > Info tab. Error shown at the bottom of the modal when saving the channel's attribute values failed on the server."
   },
   "channel_settings.error_banner_color_required": {
     "defaultMessage": "Banner color is required",
@@ -20185,7 +20185,7 @@
   },
   "channel_settings.save_changes_panel.banner_text.empty_error": {
     "defaultMessage": "Add banner text, or turn off the channel banner.",
-    "description": ""
+    "description": "Channel Settings > Configuration. Error shown in the save-changes panel when the channel banner is turned on but the banner text is empty, and the user is allowed to turn the banner off instead."
   },
   "channel_settings.save_changes_panel.banner_text.required_error": {
     "defaultMessage": "Channel banner text cannot be empty when enabled",
