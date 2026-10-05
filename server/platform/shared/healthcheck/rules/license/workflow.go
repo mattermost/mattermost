@@ -66,7 +66,6 @@ func (u workflowUsage) firing(messageID string) healthcheck.Result {
 		WithDetail("bots", strconv.FormatInt(u.bots, 10))
 }
 
-// readWorkflowUsage returns a non-empty reasonID when plugins or stats are unknown.
 func readWorkflowUsage(s *healthcheck.Snapshot) (usage workflowUsage, reasonID string) {
 	if !s.Has(model.SectionPlugins) || s.Plugins == nil {
 		return workflowUsage{}, healthcheck.ReasonPluginsUnavailable
