@@ -115,7 +115,7 @@ func evalLicenseTrial(s *healthcheck.Snapshot) []healthcheck.Result {
 	switch {
 	case s.License == nil:
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)}
-	case s.License.IsTrialLicense():
+	case s.License.IsTrial:
 		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.license_trial.message"))}
 	default:
 		return []healthcheck.Result{healthcheck.Resolved()}

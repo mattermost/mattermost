@@ -34,10 +34,13 @@ func newSnapshot() *healthcheck.Snapshot {
 			IncomingWebhooks:    new(int64(20)),
 			BotAccounts:         new(int64(10)),
 		},
+		Config: &model.SupportPacketConfig{Config: &model.Config{
+			GuestAccountsSettings: model.GuestAccountsSettings{Enable: new(true)},
+		}},
 		Plugins: &model.SupportPacketPluginList{
 			Enabled: []model.Manifest{{Id: "com.mattermost.calls"}, {Id: "playbooks"}, {Id: "mattermost-ai"}},
 		},
-		Sections: map[model.WorkspaceSection]error{model.SectionPlugins: nil, model.SectionStats: nil},
+		Sections: map[model.WorkspaceSection]error{model.SectionConfig: nil, model.SectionPlugins: nil, model.SectionStats: nil},
 	}
 }
 
@@ -276,6 +279,29 @@ func TestSeatUtilizationRules(t *testing.T) {
 				"SEATS_LOW_UTILIZATION": resolvedAt(104),
 				"SEATS_LIMIT_REACHED":   resolved,
 			},
+		},
+		{
+			name: "single-channel guests take seats with guest accounts disabled",
+			snapshot: func() *healthcheck.Snapshot {
+				s := seated(520, 30)
+				s.Config.GuestAccountsSettings.Enable = new(false)
+				return s
+			},
+			want: map[string]want{
+				"SEATS_OVER_DEPLOYED":   firing(104),
+				"SEATS_NEAR_CAPACITY":   resolvedAt(104),
+				"SEATS_LOW_UTILIZATION": resolvedAt(104),
+				"SEATS_LIMIT_REACHED":   resolved,
+			},
+		},
+		{
+			name: "guest accounts setting unknown",
+			snapshot: func() *healthcheck.Snapshot {
+				s := newSnapshot()
+				s.Config = nil
+				return s
+			},
+			want: all(unknown(healthcheck.ReasonConfigUnavailable)),
 		},
 		{
 			name:     "one seat over",
