@@ -445,6 +445,7 @@ def encode_one(payload: dict) -> dict:
             "sha256": sha256_file(dst),
             "width": dims["width"],
             "height": dims["height"],
+            "crf": crf,
         },
     }
 
@@ -474,7 +475,9 @@ def assert_tree_consistent(manifest: dict) -> None:
         sys.exit(1)
 
 
-def wants_reencode(entry: dict, src: Path, dst: Path, force: bool) -> bool:
+def wants_reencode(
+    entry: dict, src: Path, dst: Path, force: bool, baseline: int = BASELINE_CRF
+) -> bool:
     if force:
         return True
     source = entry.get("source") or {}
@@ -488,6 +491,11 @@ def wants_reencode(entry: dict, src: Path, dst: Path, force: bool) -> bool:
     recorded_vf = entry.get("vf")
     derived = derive_vf(int(source["width"]), int(source["height"]))
     if recorded_vf != derived:
+        return True
+    recorded_crf = output.get("crf")
+    if recorded_crf is None:
+        return True
+    if int(recorded_crf) != effective_crf(entry, baseline):
         return True
     return False
 
@@ -506,6 +514,7 @@ def cmd_encode(manifest: dict, only: str | None, force: bool, jobs: int) -> int:
     keys = select_keys(manifest, only)
     work = []
     skipped = 0
+    baseline = int((manifest.get("encoder") or {}).get("baseline_crf", BASELINE_CRF))
     for key in keys:
         entry = manifest["files"][key]
         src = REPO_ROOT / key
@@ -516,7 +525,7 @@ def cmd_encode(manifest: dict, only: str | None, force: bool, jobs: int) -> int:
         if entry.get("vf") != vf:
             print("vf mismatch for %s: recorded %r derived %r" % (key, entry.get("vf"), vf), file=sys.stderr)
             return 1
-        if not wants_reencode(entry, src, dst, force):
+        if not wants_reencode(entry, src, dst, force, baseline):
             skipped += 1
             continue
         work.append(
@@ -525,7 +534,7 @@ def cmd_encode(manifest: dict, only: str | None, force: bool, jobs: int) -> int:
                 "src": str(src),
                 "dst": str(dst),
                 "out_rel": out_rel,
-                "crf": effective_crf(entry, manifest["encoder"]["baseline_crf"]),
+                "crf": effective_crf(entry, baseline),
                 "vf": vf,
             }
         )

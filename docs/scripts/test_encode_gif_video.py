@@ -220,6 +220,55 @@ class ReferenceIntegrityTests(unittest.TestCase):
         self.assertEqual(missing, [])
 
 
+class WantsReencodeCrfTests(unittest.TestCase):
+    def _matching_entry(self, src: Path, dst: Path, crf: int | None, recorded_crf: int) -> dict:
+        src.write_bytes(b"gif-bytes")
+        dst.write_bytes(b"mp4-bytes")
+        return {
+            "crf": crf,
+            "vf": None,
+            "source": {
+                "width": 100,
+                "height": 100,
+                "sha256": mod.sha256_file(src),
+            },
+            "output": {
+                "path": str(dst),
+                "sha256": mod.sha256_file(dst),
+                "crf": recorded_crf,
+            },
+        }
+
+    def test_crf_patch_without_force_reencodes(self):
+        with tempfile.TemporaryDirectory() as td:
+            td_path = Path(td)
+            src = td_path / "clip.gif"
+            dst = td_path / "clip.mp4"
+            entry = self._matching_entry(src, dst, crf=32, recorded_crf=32)
+            self.assertFalse(mod.wants_reencode(entry, src, dst, force=False))
+            entry["crf"] = 24
+            self.assertTrue(mod.wants_reencode(entry, src, dst, force=False))
+
+    def test_null_crf_patch_off_baseline_reencodes(self):
+        with tempfile.TemporaryDirectory() as td:
+            td_path = Path(td)
+            src = td_path / "clip.gif"
+            dst = td_path / "clip.mp4"
+            entry = self._matching_entry(src, dst, crf=None, recorded_crf=mod.BASELINE_CRF)
+            self.assertFalse(mod.wants_reencode(entry, src, dst, force=False))
+            entry["crf"] = 26
+            self.assertTrue(mod.wants_reencode(entry, src, dst, force=False))
+
+    def test_missing_output_crf_reencodes(self):
+        with tempfile.TemporaryDirectory() as td:
+            td_path = Path(td)
+            src = td_path / "clip.gif"
+            dst = td_path / "clip.mp4"
+            entry = self._matching_entry(src, dst, crf=26, recorded_crf=26)
+            del entry["output"]["crf"]
+            self.assertTrue(mod.wants_reencode(entry, src, dst, force=False))
+
+
 class EncodeIdempotencyTests(unittest.TestCase):
     def test_second_encode_encodes_zero_files(self):
         if not mod.MANIFEST_PATH.is_file():
