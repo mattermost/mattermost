@@ -953,3 +953,38 @@ func TestClusterBroadcastHooks(t *testing.T) {
 		assert.IsType(t, []any{}, received.GetBroadcast().BroadcastHookArgs[0]["array"])
 	})
 }
+
+func TestConnSet(t *testing.T) {
+	conns := make([]*WebConn, connSetSmallMax+2)
+	for i := range conns {
+		conns[i] = &WebConn{}
+	}
+
+	t.Run("stays a slice up to the limit, then becomes a map", func(t *testing.T) {
+		var s connSet
+		for _, wc := range conns[:connSetSmallMax] {
+			s.add(wc)
+		}
+		s.add(conns[0])
+		require.Nil(t, s.large)
+		require.Equal(t, connSetSmallMax, s.len(), "adding a member twice keeps one")
+		s.add(conns[connSetSmallMax])
+		require.Nil(t, s.small)
+		require.Equal(t, connSetSmallMax+1, s.len())
+		require.ElementsMatch(t, conns[:connSetSmallMax+1], slices.Collect(s.all()))
+	})
+
+	t.Run("removing the visited member while iterating visits every member once", func(t *testing.T) {
+		var s connSet
+		for _, wc := range conns[:10] {
+			s.add(wc)
+		}
+		var visited []*WebConn
+		for wc := range s.all() {
+			visited = append(visited, wc)
+			s.remove(wc)
+		}
+		require.ElementsMatch(t, conns[:10], visited)
+		require.Zero(t, s.len())
+	})
+}
