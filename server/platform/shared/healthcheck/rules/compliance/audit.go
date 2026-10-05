@@ -32,7 +32,7 @@ func evalAuditLogOff(s *healthcheck.Snapshot) []healthcheck.Result {
 	if _, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ExperimentalAuditSettings.FileEnabled }); !ok {
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
 	}
-	if config.IsAuditLoggingActive(s.Config.Config.ExperimentalAuditSettings, true) {
+	if config.IsAuditLoggingActive(s.Config.Config.ExperimentalAuditSettings, allowAdvancedLogging(s)) {
 		return []healthcheck.Result{healthcheck.Resolved()}
 	}
 
@@ -47,4 +47,13 @@ func evalAuditLogOff(s *healthcheck.Snapshot) []healthcheck.Result {
 	default:
 		return []healthcheck.Result{healthcheck.Resolved().WithValue(float64(users))}
 	}
+}
+
+// Offline packets carry no license, so a nil license cannot rule out advanced audit targets.
+func allowAdvancedLogging(s *healthcheck.Snapshot) bool {
+	if s.License == nil {
+		return true
+	}
+	allowed, _ := s.LicenseFeature(func(f *model.Features) *bool { return f.AdvancedLogging })
+	return allowed
 }
