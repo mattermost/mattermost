@@ -235,9 +235,10 @@ func TestSMTPUnreachable(t *testing.T) {
 
 	withNodes := func(enabled bool, nodes ...*healthcheck.NodeSnapshot) *healthcheck.Snapshot {
 		s := healthcheck.NewSnapshot(nodes)
-		s.Config = &model.SupportPacketConfig{Config: &model.Config{}}
-		s.Config.Config.EmailSettings.SendEmailNotifications = new(enabled)
-		s.Sections = map[model.WorkspaceSection]error{model.SectionConfig: nil}
+		cfg := configSnapshot(func(cfg *model.Config) {
+			cfg.EmailSettings.SendEmailNotifications = new(enabled)
+		})
+		s.Config, s.Sections = cfg.Config, cfg.Sections
 		return s
 	}
 	leaderWithEmail := func(status, smtpErr string) *healthcheck.NodeSnapshot {
