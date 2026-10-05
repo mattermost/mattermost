@@ -131,14 +131,15 @@ describe('check_icu', () => {
     });
 
     describe('key parity', () => {
-        test('an extra key is always an error, since nothing will read it', () => {
+        test('an extra key is only a warning, since nothing will read it', () => {
             const {code, stderr} = check(
                 {'a.b': 'Hello'},
                 {'fr.json': {'a.b': 'Bonjour', 'z.z': 'Orphelin'}},
             );
 
-            expect(code).toBe(1);
+            expect(code).toBe(0);
             expect(stderr).toContain('fr.json:z.z: extra key not in en.json');
+            expect(stderr).toContain('1 warning(s)');
         });
 
         test('a missing key is an error by default', () => {
