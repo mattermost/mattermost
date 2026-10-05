@@ -129,7 +129,7 @@ func TestConfigInt64(t *testing.T) {
 	t.Run("set", func(t *testing.T) {
 		value, ok := newSnapshot(new(int64(1000))).ConfigInt64(maxNotifications)
 		require.True(t, ok)
-		require.Equal(t, int64(1000), value)
+		assert.Equal(t, int64(1000), value)
 	})
 }
 

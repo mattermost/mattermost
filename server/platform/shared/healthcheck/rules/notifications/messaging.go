@@ -170,9 +170,13 @@ func evalSMTPUnreachable(s *healthcheck.Snapshot) []healthcheck.Result {
 	}
 
 	notCollected := []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
-	leader, _ := s.Leader()
+	leader, ok := s.Leader()
+	if !ok {
+		return notCollected
+	}
 	diag, ok := leader.Diag()
-	if _, err := leader.SectionErr(model.SectionSMTPProbe); !ok || err != nil {
+	_, probeErr := leader.SectionErr(model.SectionSMTPProbe)
+	if !ok || probeErr != nil {
 		return notCollected
 	}
 
