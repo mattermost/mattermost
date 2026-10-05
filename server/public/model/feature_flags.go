@@ -179,6 +179,9 @@ type FeatureFlags struct {
 	// HealthDashboard replaces the Workspace Optimization dashboard with the rules-driven
 	// Health Dashboard. Off by default.
 	HealthDashboard bool
+
+	// EnableExperienceAPI gates the DDIL experience surface area.
+	EnableExperienceAPI bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -251,6 +254,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PostDeliveryTracking = false
 
 	f.HealthDashboard = false
+
+	f.EnableExperienceAPI = false
 }
 
 // isValid rejects feature flag combinations that are no longer supported.
