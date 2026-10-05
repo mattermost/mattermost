@@ -308,6 +308,31 @@ func TestFixRetiredFeatureFlags(t *testing.T) {
 	})
 }
 
+func TestFixTLSMinVer(t *testing.T) {
+	for _, version := range []string{"1.0", "1.1", "1.2", "1.3"} {
+		t.Run("supported "+version, func(t *testing.T) {
+			cfg := &model.Config{}
+			cfg.SetDefaults()
+			*cfg.ServiceSettings.TLSMinVer = version
+
+			assert.False(t, fixTLSMinVer(cfg))
+			assert.Equal(t, version, *cfg.ServiceSettings.TLSMinVer)
+		})
+	}
+
+	for _, version := range []string{"", "1.4", "TLS1.2", "tls12"} {
+		t.Run("unsupported "+version, func(t *testing.T) {
+			cfg := &model.Config{}
+			cfg.SetDefaults()
+			*cfg.ServiceSettings.TLSMinVer = version
+
+			assert.True(t, fixTLSMinVer(cfg))
+			assert.Equal(t, "1.2", *cfg.ServiceSettings.TLSMinVer)
+			assert.Nil(t, cfg.IsValid())
+		})
+	}
+}
+
 func TestIsDatabaseDSN(t *testing.T) {
 	testCases := []struct {
 		Name     string

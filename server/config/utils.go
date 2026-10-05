@@ -145,6 +145,20 @@ func fixConfig(cfg *model.Config) {
 	fixInvalidLocales(cfg)
 	fixLegacyImageProxyType(cfg)
 	fixRetiredFeatureFlags(cfg)
+	fixTLSMinVer(cfg)
+}
+
+// fixTLSMinVer replaces an unrecognized TLS minimum version with 1.2, which servers
+// before v12 silently used for any value other than 1.0 or 1.1.
+func fixTLSMinVer(cfg *model.Config) bool {
+	switch *cfg.ServiceSettings.TLSMinVer {
+	case "1.0", "1.1", "1.2", "1.3":
+		return false
+	}
+
+	mlog.Warn("ServiceSettings.TLSMinVer is not a supported TLS version. Setting TLSMinVer to 1.2.", mlog.String("tls_min_ver", *cfg.ServiceSettings.TLSMinVer))
+	*cfg.ServiceSettings.TLSMinVer = "1.2"
+	return true
 }
 
 // fixRetiredFeatureFlags forces off feature flags whose features have been removed.
