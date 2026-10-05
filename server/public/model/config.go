@@ -1648,11 +1648,11 @@ func NewLogSettings() *LogSettings {
 }
 
 func (s *LogSettings) isValid() *AppError {
-	if !isValidLogLevelName(*s.ConsoleLevel) {
+	if *s.EnableConsole && !isValidLogLevelName(*s.ConsoleLevel) {
 		return NewAppError("LogSettings.isValid", "model.config.is_valid.log_level.app_error", map[string]any{"Setting": "LogSettings.ConsoleLevel", "Value": *s.ConsoleLevel}, "", http.StatusBadRequest)
 	}
 
-	if !isValidLogLevelName(*s.FileLevel) {
+	if *s.EnableFile && !isValidLogLevelName(*s.FileLevel) {
 		return NewAppError("LogSettings.isValid", "model.config.is_valid.log_level.app_error", map[string]any{"Setting": "LogSettings.FileLevel", "Value": *s.FileLevel}, "", http.StatusBadRequest)
 	}
 

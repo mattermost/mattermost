@@ -2792,6 +2792,20 @@ func TestLogSettingsIsValid(t *testing.T) {
 			},
 			ExpectError: true,
 		},
+		"invalid console level with console disabled": {
+			LogSettings: LogSettings{
+				EnableConsole: new(false),
+				ConsoleLevel:  new("verbose"),
+			},
+			ExpectError: false,
+		},
+		"invalid file level with file disabled": {
+			LogSettings: LogSettings{
+				EnableFile: new(false),
+				FileLevel:  new("verbose"),
+			},
+			ExpectError: false,
+		},
 		"negative max field size": {
 			LogSettings: LogSettings{
 				MaxFieldSize: new(-1),
