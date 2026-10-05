@@ -128,6 +128,7 @@ func TestESLocalhostURL(t *testing.T) {
 		{name: "uppercase localhost clustered", url: "http://LOCALHOST:9200", clustered: new(true), want: firing("LOCALHOST")},
 		{name: "loopback ipv4 clustered", url: "https://127.0.0.2:9200", clustered: new(true), want: firing("127.0.0.2")},
 		{name: "loopback ipv6 clustered", url: "http://[::1]:9200", clustered: new(true), want: firing("::1")},
+		{name: "unspecified address clustered", url: "http://0.0.0.0:9200", clustered: new(true), want: firing("0.0.0.0")},
 		{name: "credentials are not reported", url: "http://user:secret@localhost:9200", clustered: new(true), want: firing("localhost")},
 		{name: "lookalike host clustered", url: "http://notlocalhost.example.com", clustered: new(true), want: resolvedWant},
 		{name: "localhost only in path", url: "http://search.example.com/localhost", clustered: new(true), want: resolvedWant},
@@ -315,6 +316,7 @@ func TestESVersionUnsupported(t *testing.T) {
 	t.Parallel()
 
 	unrecognized := searchWant{state: healthcheck.StateUnknown, messageID: "health.rule.es_version_unsupported.message.unrecognized"}
+	unavailable := searchWant{state: healthcheck.StateUnknown, messageID: "health.rule.es_version_unsupported.message.unavailable"}
 	firing := func(backend, version, minMajor, maxMajor string) searchWant {
 		return searchWant{
 			state:     healthcheck.StateFiring,
@@ -336,7 +338,7 @@ func TestESVersionUnsupported(t *testing.T) {
 		{name: "elasticsearch 8", backend: model.ElasticsearchSettingsESBackend, version: "8.15.3", want: resolvedWant},
 		{name: "elasticsearch 9", backend: model.ElasticsearchSettingsESBackend, version: "9.0.0", want: resolvedWant},
 		{name: "elasticsearch 10", backend: model.ElasticsearchSettingsESBackend, version: "10.0.0", want: firing("elasticsearch", "10.0.0", "8", "9")},
-		{name: "empty version", backend: model.ElasticsearchSettingsESBackend, version: "", want: unrecognized},
+		{name: "empty version", backend: model.ElasticsearchSettingsESBackend, version: "", want: unavailable},
 		{name: "unparsable version", backend: model.ElasticsearchSettingsESBackend, version: "latest", want: unrecognized},
 		{name: "unknown backend", backend: "solr", version: "9.0.0", want: unrecognized},
 	}
@@ -422,6 +424,7 @@ func TestMaskURLCredentials(t *testing.T) {
 		"http://search.example.com:9200":             "http://search.example.com:9200",
 		"http://user:pass@search.example.com:9200":   "http://****@search.example.com:9200",
 		"https://token@search.example.com":           "https://****@search.example.com",
+		"https://user:p@ss@search.example.com/x@y":   "https://****@search.example.com/x@y",
 		"a http://u:p@one.example.com b ftp://x@two": "a http://****@one.example.com b ftp://****@two",
 		"no url here, user@example.com":              "no url here, user@example.com",
 	} {

@@ -14412,9 +14412,14 @@
     "description": "Health dashboard finding detail for an unsupported search engine version; {{.backend}} is elasticsearch or opensearch, {{.version}} the reported version, {{.min}} and {{.max}} the supported major versions."
   },
   {
+    "id": "health.rule.es_version_unsupported.message.unavailable",
+    "translation": "The search cluster version was not collected because the server has not connected to the search cluster.",
+    "description": "Health dashboard reason shown when the server diagnostics carry no search cluster version, for example because the server could not connect to the search cluster, so the check's status is unknown."
+  },
+  {
     "id": "health.rule.es_version_unsupported.message.unrecognized",
     "translation": "The search engine backend or version could not be recognized.",
-    "description": "Health dashboard reason shown when the search engine backend or version reported in the server diagnostics is empty or unrecognized, so the check's status is unknown."
+    "description": "Health dashboard reason shown when the search engine backend or version reported in the server diagnostics is unrecognized, so the check's status is unknown."
   },
   {
     "id": "health.rule.es_version_unsupported.remediation",
