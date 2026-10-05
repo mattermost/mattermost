@@ -229,10 +229,12 @@ func TestReadHALayout(t *testing.T) {
 }
 
 func TestReadLeader(t *testing.T) {
-	leaderOf := func(t *testing.T, files map[string][]byte) string {
+	const unknownLeaderWarning = "The packet does not record which node is the leader"
+	leaderOf := func(t *testing.T, files map[string][]byte) (string, []string) {
 		t.Helper()
 
-		s := readFiles(t, files).Snapshot
+		p := readFiles(t, files)
+		s := p.Snapshot
 		leader, ok := s.Leader()
 		require.True(t, ok)
 
@@ -244,11 +246,13 @@ func TestReadLeader(t *testing.T) {
 		}
 		assert.Equal(t, 1, leaders)
 
-		return leader.Hostname
+		return leader.Hostname, p.Warnings
 	}
 
 	t.Run("the node that reports is_leader leads", func(t *testing.T) {
-		assert.Equal(t, "app-2.example.com", leaderOf(t, fixtureFiles(t, "ha")))
+		leader, warnings := leaderOf(t, fixtureFiles(t, "ha"))
+		assert.Equal(t, "app-2.example.com", leader)
+		assert.NotContains(t, strings.Join(warnings, "\n"), unknownLeaderWarning)
 	})
 
 	t.Run("an older packet without is_leader falls back to the first hostname", func(t *testing.T) {
@@ -257,11 +261,15 @@ func TestReadLeader(t *testing.T) {
 		require.Contains(t, string(files[name]), "  is_leader: true\n")
 		files[name] = bytes.Replace(files[name], []byte("  is_leader: true\n"), nil, 1)
 
-		assert.Equal(t, "app-1.example.com", leaderOf(t, files))
+		leader, warnings := leaderOf(t, files)
+		assert.Equal(t, "app-1.example.com", leader)
+		assert.Contains(t, warnings, "The packet does not record which node is the leader, so the configuration was read from app-1.example.com. Configuration findings may not match the leader's configuration.")
 	})
 
 	t.Run("a standalone packet's only node leads", func(t *testing.T) {
-		assert.Equal(t, "mm.example.com", leaderOf(t, fixtureFiles(t, "standalone")))
+		leader, warnings := leaderOf(t, fixtureFiles(t, "standalone"))
+		assert.Equal(t, "mm.example.com", leader)
+		assert.NotContains(t, strings.Join(warnings, "\n"), unknownLeaderWarning)
 	})
 }
 
