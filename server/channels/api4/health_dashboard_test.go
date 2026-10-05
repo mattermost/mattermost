@@ -6,7 +6,6 @@ package api4
 import (
 	"context"
 	"os"
-	"slices"
 	"strings"
 	"testing"
 
@@ -450,7 +449,7 @@ func TestHealthCheckPushURLRoundTrip(t *testing.T) {
 
 		byCode := map[string]*model.HealthFinding{}
 		for _, f := range list.Findings {
-			if slices.Contains([]string{"PUSH_EMPTY_URL", "PUSH_BAD_SCHEME", "PUSH_TEST_PROXY"}, f.Code) {
+			if f.Subject == "EmailSettings.PushNotificationServer" {
 				byCode[f.Code] = f
 			}
 		}
