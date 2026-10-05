@@ -4,12 +4,10 @@
 package compliance
 
 import (
-	"encoding/json"
-	"slices"
 	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
@@ -30,36 +28,11 @@ var auditLogOff = healthcheck.Rule{
 	Eval:       evalAuditLogOff,
 }
 
-// The levels of the basic audit file target; audit-delivery is excluded, as in the server.
-var basicAuditLevels = []mlog.Level{mlog.LvlAuditAPI, mlog.LvlAuditContent, mlog.LvlAuditPerms, mlog.LvlAuditCLI}
-
-// auditLoggingActive mirrors config.IsAuditLoggingActive with allowAdvancedLogging=true.
-func auditLoggingActive(a model.ExperimentalAuditSettings) bool {
-	if a.FileEnabled != nil && *a.FileEnabled {
-		return true
-	}
-
-	cfg := make(mlog.LoggerConfiguration)
-	if err := json.Unmarshal(a.GetAdvancedLoggingConfig(), &cfg); err != nil {
-		return false
-	}
-
-	for _, target := range cfg {
-		for _, level := range target.Levels {
-			if slices.ContainsFunc(basicAuditLevels, func(b mlog.Level) bool { return b.ID == level.ID }) {
-				return true
-			}
-		}
-	}
-
-	return false
-}
-
 func evalAuditLogOff(s *healthcheck.Snapshot) []healthcheck.Result {
 	if _, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ExperimentalAuditSettings.FileEnabled }); !ok {
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
 	}
-	if auditLoggingActive(s.Config.Config.ExperimentalAuditSettings) {
+	if config.IsAuditLoggingActive(s.Config.Config.ExperimentalAuditSettings, true) {
 		return []healthcheck.Result{healthcheck.Resolved()}
 	}
 
