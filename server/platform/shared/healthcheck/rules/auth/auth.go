@@ -23,7 +23,7 @@ func gated(gate func(*healthcheck.Snapshot) (bool, bool), check func(*healthchec
 		open, ok := gate(s)
 		switch {
 		case !ok:
-			return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+			return []healthcheck.Result{unknownConfig()}
 		case !open:
 			return []healthcheck.Result{healthcheck.Resolved()}
 		default:
