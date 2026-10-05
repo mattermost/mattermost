@@ -25,6 +25,11 @@ func auditSnapshot(fileEnabled bool, advanced string, users *int64) *healthcheck
 	return s
 }
 
+func withAdvancedLogging(s *healthcheck.Snapshot, licensed bool) *healthcheck.Snapshot {
+	s.License = &model.License{Features: &model.Features{AdvancedLogging: new(licensed)}}
+	return s
+}
+
 func auditTarget(levels ...string) string {
 	return `{"audit": {"type": "file", "format": "json", "levels": [` + strings.Join(levels, ",") + `], "options": {"filename": "audit.log"}}}`
 }
@@ -51,6 +56,19 @@ func TestAuditLogOff(t *testing.T) {
 			name:     "advanced audit-api target with many users",
 			snapshot: auditSnapshot(false, auditTarget(`{"id": 100, "name": "audit-api"}`), new(int64(50000))),
 			state:    healthcheck.StateResolved,
+		},
+		{
+			name:     "advanced audit-api target with advanced logging licensed",
+			snapshot: withAdvancedLogging(auditSnapshot(false, auditTarget(`{"id": 100, "name": "audit-api"}`), new(int64(50000))), true),
+			state:    healthcheck.StateResolved,
+		},
+		{
+			name:      "advanced audit-api target without advanced logging license",
+			snapshot:  withAdvancedLogging(auditSnapshot(false, auditTarget(`{"id": 100, "name": "audit-api"}`), new(int64(5001))), false),
+			state:     healthcheck.StateFiring,
+			messageID: firing,
+			value:     new(5001.0),
+			users:     "5001",
 		},
 		{
 			name:      "advanced audit-delivery only counts as inactive",
