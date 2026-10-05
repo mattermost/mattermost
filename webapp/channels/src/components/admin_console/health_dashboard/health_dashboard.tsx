@@ -38,7 +38,13 @@ export type Props = {
     };
 };
 
-const FindingGroups = ({findings, groupBy, ...rowState}: RowState & {findings: HealthFinding[]; groupBy: GroupBy}) => {
+type FindingGroupsProps = RowState & {
+    findings: HealthFinding[];
+    groupBy: GroupBy;
+    tab: HealthFindingTab;
+};
+
+const FindingGroups = ({findings, groupBy, tab, ...rowState}: FindingGroupsProps) => {
     if (groupBy === 'category') {
         const byArea = groupHealthFindingsByArea(findings);
         return (
@@ -48,6 +54,7 @@ const FindingGroups = ({findings, groupBy, ...rowState}: RowState & {findings: H
                         key={area}
                         area={area}
                         findings={byArea[area]}
+                        expandAll={tab !== 'open'}
                         {...rowState}
                     />
                 ))}
@@ -86,6 +93,16 @@ const HealthDashboard = ({findings, lastEvaluatedAt, actions}: Props) => {
             setLoading(false);
         });
     }, [actions]);
+
+    const changeTab = useCallback((next: HealthFindingTab) => {
+        setTab(next);
+        setExpanded(null);
+    }, []);
+
+    const changeGroupBy = useCallback((next: GroupBy) => {
+        setGroupBy(next);
+        setExpanded(null);
+    }, []);
 
     const toggle = useCallback((fingerprint: string) => {
         setExpanded((current) => (current === fingerprint ? null : fingerprint));
@@ -146,13 +163,13 @@ const HealthDashboard = ({findings, lastEvaluatedAt, actions}: Props) => {
                         panelId={panelId}
                         active={tab}
                         counts={countHealthFindingsByTab(findings, now)}
-                        onChange={setTab}
+                        onChange={changeTab}
                     />
                 </div>
                 <div className='HealthDashboard__toolbar HealthDashboard__toolbar--secondary'>
                     <GroupByControl
                         value={groupBy}
-                        onChange={setGroupBy}
+                        onChange={changeGroupBy}
                     />
                 </div>
                 <div
@@ -164,8 +181,10 @@ const HealthDashboard = ({findings, lastEvaluatedAt, actions}: Props) => {
                         <TabEmptyState tab={tab}/>
                     ) : (
                         <FindingGroups
+                            key={tab}
                             findings={visible}
                             groupBy={groupBy}
+                            tab={tab}
                             now={now}
                             expanded={expanded}
                             onToggle={toggle}

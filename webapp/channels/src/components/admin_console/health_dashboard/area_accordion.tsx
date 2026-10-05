@@ -18,12 +18,15 @@ import {severityMessages, ToneIcon} from './severity';
 type Props = RowState & {
     area: string;
     findings: HealthFinding[];
+
+    // The Open tab mixes every severity, so only areas with a firing critical start open there.
+    expandAll: boolean;
 };
 
-const AreaAccordion = ({area, findings, now, expanded, onToggle}: Props) => {
+const AreaAccordion = ({area, findings, expandAll, now, expanded, onToggle}: Props) => {
     const panelId = useId();
     const counts = countHealthFindingsByTab(findings, now);
-    const [open, setOpen] = useState(counts.critical > 0);
+    const [open, setOpen] = useState(expandAll || counts.critical > 0);
 
     return (
         <section className={classNames('HealthDashboard__area', {'HealthDashboard__area--open': open})}>

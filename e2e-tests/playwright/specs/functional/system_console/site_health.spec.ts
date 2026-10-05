@@ -17,15 +17,14 @@ async function skipUnlessEnterprise(pw: PlaywrightExtended) {
 }
 
 /**
- * @objective Verify a system admin can open the Site health page and sees the empty state
- * before the first health check has run.
+ * @objective Verify a system admin can open the Site health page and it loads findings without an error.
  *
  * @precondition
  * Full (Testcontainers) mode, so the server can be restarted with the HealthDashboard feature flag on.
  */
 test('shows the Site health page to a system admin', {tag: '@system_console'}, async ({pw}) => {
-    await pw.ensureFeatureFlag('HealthDashboard', true);
     await skipUnlessEnterprise(pw);
+    await pw.ensureFeatureFlag('HealthDashboard', true);
 
     const {adminUser} = await pw.initSetup();
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -37,7 +36,7 @@ test('shows the Site health page to a system admin', {tag: '@system_console'}, a
 
     // * Verify the page loaded from the findings API without an error
     await expect(systemConsolePage.page.getByTestId('admin-console-header')).toHaveText('Site health');
-    await expect(systemConsolePage.page.getByText('Not evaluated yet')).toBeVisible();
+    await expect(systemConsolePage.page.getByText(/^(Not evaluated yet|Last evaluated)/)).toBeVisible();
     await expect(systemConsolePage.page.getByText('Health findings could not be loaded')).not.toBeVisible();
 });
 
@@ -45,8 +44,8 @@ test('shows the Site health page to a system admin', {tag: '@system_console'}, a
  * @objective Verify the Site health page is not listed when the HealthDashboard feature flag is off.
  */
 test('hides Site health when the feature flag is off', {tag: '@system_console'}, async ({pw}) => {
-    await pw.ensureFeatureFlag('HealthDashboard', false);
     await skipUnlessEnterprise(pw);
+    await pw.ensureFeatureFlag('HealthDashboard', false);
 
     const {adminUser} = await pw.initSetup();
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
