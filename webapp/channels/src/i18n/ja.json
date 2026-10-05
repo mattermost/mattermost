@@ -4655,7 +4655,6 @@
   "channel_attributes.description": "このチャンネルの属性と値を設定します。",
   "channel_attributes.enter_value": "値を入力",
   "channel_attributes.info.add": "属性を追加",
-  "channel_attributes.info.clear": "{label}をクリア",
   "channel_attributes.info.edit": "{label}を編集",
   "channel_attributes.info.heading": "チャンネル属性",
   "channel_attributes.info.locked": "この属性は設定後に変更できません",

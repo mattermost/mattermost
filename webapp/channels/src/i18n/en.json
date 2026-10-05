@@ -18599,10 +18599,6 @@
     "defaultMessage": "Add attribute",
     "description": "Button (with a + icon), and its menu's screen-reader label, at the bottom of the Channel Attributes section in the channel info right-hand panel. Opens a list of attributes that can still be set on the channel."
   },
-  "channel_attributes.info.clear": {
-    "defaultMessage": "Clear {label}",
-    "description": "Menu item or button in the value picker of a channel attribute in the channel info right-hand panel. It removes the attribute's value. {label} is the attribute's display name. 'Clear' is a verb."
-  },
   "channel_attributes.info.edit": {
     "defaultMessage": "Edit {label}",
     "description": "Screen-reader label for the button that edits a channel attribute's value in the channel info right-hand panel. {label} is the attribute's display name. 'Edit' is a verb."

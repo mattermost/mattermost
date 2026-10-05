@@ -519,10 +519,10 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
     });
 
     /**
-     * @objective Verify a single-select value offers no clear control beside its chip, and
-     * is cleared from the option menu instead.
+     * @objective Verify a single-select value clears from the chip remove control, not a
+     * Clear menu item.
      */
-    test('clears a single-select value from its menu rather than a control beside the chip', async ({pw}) => {
+    test('clears a single-select value from its chip remove control', async ({pw}) => {
         await pw.skipIfNoLicense();
         await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
@@ -556,12 +556,13 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             const info = await channelsPage.openChannelInfo();
             await expect(info.attributes.chip(marking.name)).toHaveText('SECRET');
 
-            // * Nothing but the value's own trigger sits in the row
-            await expect(info.attributes.row(marking.name).getByRole('button', {name: /^Clear /})).toHaveCount(0);
-
-            // # Clear it from the option menu
+            // * No Clear menu item — clear lives on the chip
             await info.attributes.startEditing(marking.name);
-            await channelsPage.page.getByRole('menuitem', {name: /^Clear /}).click();
+            await expect(channelsPage.page.getByRole('menuitem', {name: /^Clear /})).toHaveCount(0);
+            await channelsPage.page.keyboard.press('Escape');
+
+            // # Clear it from the chip remove control
+            await info.attributes.deselect(marking.name, 'SECRET');
 
             // * The value is gone from the store
             await expect
