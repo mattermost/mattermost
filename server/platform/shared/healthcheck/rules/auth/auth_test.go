@@ -153,8 +153,7 @@ func TestConfigAbsent(t *testing.T) {
 	})
 }
 
-// everyConditionHolds sets every LDAP and SAML setting to a value its rule fires on, with
-// both identity providers off.
+// everyConditionHolds sets every LDAP and SAML setting to a firing value, with both providers off.
 func everyConditionHolds(cfg *model.Config) {
 	cfg.LdapSettings.LdapPort = new(389)
 	cfg.LdapSettings.ConnectionSecurity = new(model.ConnSecurityTLS)
@@ -164,6 +163,7 @@ func everyConditionHolds(cfg *model.Config) {
 	cfg.LdapSettings.BaseDN = new("")
 	cfg.LdapSettings.IdAttribute = new("mail")
 
+	cfg.SamlSettings.SignRequest = new(true)
 	cfg.SamlSettings.SignatureAlgorithm = new(model.SamlSettingsSignatureAlgorithmSha1)
 	cfg.SamlSettings.Verify = new(false)
 	cfg.SamlSettings.Encrypt = new(false)
@@ -171,8 +171,7 @@ func everyConditionHolds(cfg *model.Config) {
 	cfg.SamlSettings.IdpMetadataURL = new("https://idp.example.com/metadata")
 }
 
-// gateSnapshot carries ldap_sync jobs that fill the whole interval and failing probes, so
-// every code fires once its gate opens.
+// gateSnapshot carries saturating ldap_sync jobs and failing probes, so every code fires once its gate opens.
 func gateSnapshot(edit func(cfg *model.Config)) *healthcheck.Snapshot {
 	diag := &model.SupportPacketDiagnostics{}
 	diag.LDAP.Status = model.StatusFail

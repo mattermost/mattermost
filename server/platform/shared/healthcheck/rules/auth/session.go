@@ -12,8 +12,7 @@ func init() {
 	healthcheck.Register(sessionExtendOff)
 }
 
-// New installs default ExtendSessionLengthWithActivity to true and upgraded configs to
-// false, so this mostly finds long-lived installs.
+// Only upgraded configs default this to false, so the rule mostly finds long-lived installs.
 var sessionExtendOff = healthcheck.Rule{
 	Code:     "SESSION_EXTEND_OFF",
 	Area:     model.AreaAuth,

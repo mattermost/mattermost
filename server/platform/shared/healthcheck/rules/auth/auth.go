@@ -16,8 +16,7 @@ const (
 	samlDocsURL     = "https://docs.mattermost.com/administration-guide/onboard/sso-saml.html"
 )
 
-// gated emits Unknown when the gate cannot be read and Resolved when it is closed, so a
-// condition that cannot bite never fires.
+// gated resolves a rule whose gate is closed, so a condition that cannot bite never fires.
 func gated(gate func(*healthcheck.Snapshot) (bool, bool), check func(*healthcheck.Snapshot) healthcheck.Result) func(*healthcheck.Snapshot) []healthcheck.Result {
 	return func(s *healthcheck.Snapshot) []healthcheck.Result {
 		open, ok := gate(s)
@@ -38,9 +37,11 @@ func ldapEnabled(s *healthcheck.Snapshot) (bool, bool) {
 	if !ok {
 		return false, false
 	}
+	if enable {
+		return true, true
+	}
 
-	sync, ok := ldapSyncEnabled(s)
-	return enable || sync, ok
+	return ldapSyncEnabled(s)
 }
 
 func ldapSyncEnabled(s *healthcheck.Snapshot) (bool, bool) {

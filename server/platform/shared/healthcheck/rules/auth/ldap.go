@@ -217,12 +217,18 @@ func evalLdapPortPlainMismatch(s *healthcheck.Snapshot) healthcheck.Result {
 	}
 }
 
+// SkipCertificateVerification is inert without TLS or STARTTLS.
 func evalLdapSkipCert(s *healthcheck.Snapshot) healthcheck.Result {
+	security, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.LdapSettings.ConnectionSecurity })
+	if !ok {
+		return unknownConfig()
+	}
+
 	skip, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.LdapSettings.SkipCertificateVerification })
 	switch {
 	case !ok:
 		return unknownConfig()
-	case skip:
+	case skip && security != model.ConnSecurityNone:
 		return healthcheck.Firing(healthcheck.TranslationId("health.rule.ldap_skip_cert.message"))
 	default:
 		return healthcheck.Resolved()
@@ -278,8 +284,7 @@ func evalLdapIDIsEmail(s *healthcheck.Snapshot) healthcheck.Result {
 	}
 }
 
-// The identity gates are checked before stats so a packet without stats still resolves
-// an install that has LDAP or SAML.
+// Identity gates come before stats so a packet without stats still resolves an LDAP or SAML install.
 func evalLdapRecommendedAtScale(s *healthcheck.Snapshot) []healthcheck.Result {
 	ldap, ok := ldapEnabled(s)
 	if !ok {

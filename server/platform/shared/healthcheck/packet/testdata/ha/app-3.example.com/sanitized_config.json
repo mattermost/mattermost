@@ -43,6 +43,7 @@
         "Enable": true,
         "Verify": true,
         "Encrypt": false,
+        "SignRequest": false,
         "IdpURL": "https://adfs.example.com/adfs/ls/",
         "IdpDescriptorURL": "https://adfs.example.com/adfs/services/trust",
         "IdpMetadataURL": "https://adfs.example.com/FederationMetadata/2007-06/FederationMetadata.xml",

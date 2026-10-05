@@ -103,8 +103,16 @@ var samlIDMutable = healthcheck.Rule{
 	Eval:       gated(samlEnabled, evalSamlIDMutable),
 }
 
-// Validation admits only the short-form algorithm names, so no URI form needs matching.
+// SignatureAlgorithm only signs requests, so it is inert while SignRequest is off.
 func evalSamlSignatureSHA1(s *healthcheck.Snapshot) healthcheck.Result {
+	sign, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.SamlSettings.SignRequest })
+	if !ok {
+		return unknownConfig()
+	}
+	if !sign {
+		return healthcheck.Resolved()
+	}
+
 	algorithm, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.SamlSettings.SignatureAlgorithm })
 	switch {
 	case !ok:
@@ -140,12 +148,17 @@ func evalSamlEncryptOff(s *healthcheck.Snapshot) healthcheck.Result {
 	}
 }
 
+// samlAttributeName reduces a claim URI such as .../identity/claims/emailaddress to its last segment.
+func samlAttributeName(attribute string) string {
+	return strings.ToLower(attribute[strings.LastIndex(attribute, "/")+1:])
+}
+
 func evalSamlIDIsEmail(s *healthcheck.Snapshot) healthcheck.Result {
 	attribute, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.SamlSettings.IdAttribute })
 	switch {
 	case !ok:
 		return unknownConfig()
-	case slices.Contains(samlIDEmailAttributes, strings.ToLower(attribute)):
+	case slices.Contains(samlIDEmailAttributes, samlAttributeName(attribute)):
 		return healthcheck.Firing(healthcheck.TranslationId("health.rule.saml_id_is_email.message")).WithDetail("attribute", attribute)
 	default:
 		return healthcheck.Resolved()
@@ -157,7 +170,7 @@ func evalSamlIDMutable(s *healthcheck.Snapshot) healthcheck.Result {
 	switch {
 	case !ok:
 		return unknownConfig()
-	case slices.Contains(samlIDMutableAttributes, strings.ToLower(attribute)):
+	case slices.Contains(samlIDMutableAttributes, samlAttributeName(attribute)):
 		return healthcheck.Firing(healthcheck.TranslationId("health.rule.saml_id_mutable.message")).WithDetail("attribute", attribute)
 	default:
 		return healthcheck.Resolved()
