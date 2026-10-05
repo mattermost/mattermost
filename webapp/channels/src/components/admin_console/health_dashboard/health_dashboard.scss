@@ -14,6 +14,11 @@
         max-width: 1000px;
     }
 
+    // Panels toggle with the hidden attribute, which any display rule below would override.
+    [hidden] {
+        display: none;
+    }
+
     &__lastEvaluated {
         margin: 0 0 16px;
         color: rgba(var(--sys-center-channel-color-rgb), 0.72);
