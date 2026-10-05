@@ -56,17 +56,15 @@ func samlMetadataConfigured(s *healthcheck.Snapshot) (bool, bool) {
 	return url != "", ok
 }
 
-func leaderDiagnostics(s *healthcheck.Snapshot) (*model.SupportPacketDiagnostics, bool) {
-	leader, ok := s.Leader()
+// leaderProbe reads a probe result the leader recorded; an empty status means it never ran.
+func leaderProbe(s *healthcheck.Snapshot, probe func(*model.SupportPacketDiagnostics) (status, probeErr string), firingID string) healthcheck.Result {
+	leader, _ := s.Leader()
+	diag, ok := leader.Diag()
 	if !ok {
-		return nil, false
+		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	}
 
-	return leader.Diag()
-}
-
-func probeResult(status, probeErr, firingID string) healthcheck.Result {
-	switch status {
+	switch status, probeErr := probe(diag); status {
 	case "":
 		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	case model.StatusFail:
@@ -77,19 +75,13 @@ func probeResult(status, probeErr, firingID string) healthcheck.Result {
 }
 
 func evalLdapProbeFailed(s *healthcheck.Snapshot) healthcheck.Result {
-	diag, ok := leaderDiagnostics(s)
-	if !ok {
-		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
-	}
-
-	return probeResult(diag.LDAP.Status, diag.LDAP.Error, healthcheck.TranslationId("health.rule.ldap_probe_failed.message"))
+	return leaderProbe(s, func(diag *model.SupportPacketDiagnostics) (string, string) {
+		return diag.LDAP.Status, diag.LDAP.Error
+	}, healthcheck.TranslationId("health.rule.ldap_probe_failed.message"))
 }
 
 func evalSamlMetadataUnreachable(s *healthcheck.Snapshot) healthcheck.Result {
-	diag, ok := leaderDiagnostics(s)
-	if !ok {
-		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
-	}
-
-	return probeResult(diag.SAML.Status, diag.SAML.Error, healthcheck.TranslationId("health.rule.saml_metadata_unreachable.message"))
+	return leaderProbe(s, func(diag *model.SupportPacketDiagnostics) (string, string) {
+		return diag.SAML.Status, diag.SAML.Error
+	}, healthcheck.TranslationId("health.rule.saml_metadata_unreachable.message"))
 }
