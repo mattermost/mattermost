@@ -43,8 +43,7 @@ const (
 	maxLiveBatchSize      = 100
 )
 
-// Mirror elasticsearchMin/MaxVersion and opensearchMin/MaxVersion in
-// enterprise/elasticsearch; the leaf cannot import them.
+// Mirrors the enterprise elasticsearch/opensearch Min/MaxVersion constants, which this package cannot import.
 var supportedMajors = map[string][2]int{
 	model.ElasticsearchSettingsESBackend: {8, 9},
 	model.ElasticsearchSettingsOSBackend: {2, 3},
@@ -52,7 +51,7 @@ var supportedMajors = map[string][2]int{
 
 var icuPlugins = []string{"analysis-icu", "opensearch-analysis-icu"}
 
-var urlCredentials = regexp.MustCompile(`([A-Za-z][A-Za-z0-9+.-]*://)[^\s/@]+@`)
+var urlCredentials = regexp.MustCompile(`([A-Za-z][A-Za-z0-9+.-]*://)[^\s/]+@`)
 
 var esLocalhostURL = healthcheck.Rule{
 	Code:     "ES_LOCALHOST_URL",
@@ -249,7 +248,7 @@ func isLoopbackHost(host string) bool {
 	}
 
 	ip := net.ParseIP(host)
-	return ip != nil && ip.IsLoopback()
+	return ip != nil && (ip.IsLoopback() || ip.IsUnspecified())
 }
 
 func maskURLCredentials(s string) string {
@@ -339,7 +338,7 @@ func evalESLiveBatchSync(s *healthcheck.Snapshot) []healthcheck.Result {
 	switch {
 	case !ok:
 		return unknownConfig()
-	case size == 1:
+	case size <= 1:
 		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.es_live_batch_sync.message"))}
 	default:
 		return resolved()
@@ -365,6 +364,10 @@ func evalESVersionUnsupported(s *healthcheck.Snapshot) []healthcheck.Result {
 	}
 
 	backend, version := diag.ElasticSearch.Backend, diag.ElasticSearch.ServerVersion
+	if version == "" {
+		return []healthcheck.Result{healthcheck.Unknown(healthcheck.TranslationId("health.rule.es_version_unsupported.message.unavailable"))}
+	}
+
 	supported, known := supportedMajors[backend]
 	major, parsed := majorVersion(version)
 	if !known || !parsed {
