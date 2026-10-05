@@ -892,9 +892,11 @@ func pluralCategories(locale string) map[language.Plural]bool {
 }
 
 // verifyLocale checks one non-English catalog, raw, against the en.json
-// items in en, returning the defects found and, separately, the ids the catalog
-// has yet to translate, whether by absence or by an empty value. Whether that is
-// a defect or merely a warning is the caller's choice, via warnMissingIDs.
+// items in en, returning the defects found and, separately, the warnings. Ids
+// the catalog has yet to translate, whether by absence or by an empty value, are
+// a defect or merely a warning at the caller's choice, via warnMissingIDs. Ids
+// en.json no longer has are always a warning: nothing reads them, so they are
+// left for a later sweep.
 func verifyLocale(name string, raw []byte, en map[string]Item, warnMissingIDs bool) (problems, warnings []string) {
 	locale := strings.TrimSuffix(name, ".json")
 
@@ -938,7 +940,7 @@ func verifyLocale(name string, raw []byte, en map[string]Item, warnMissingIDs bo
 	for id, item := range items {
 		source, ok := en[id]
 		if !ok {
-			problems = append(problems, fmt.Sprintf("%s: %s: extra id not in en.json", name, id))
+			warnings = append(warnings, fmt.Sprintf("%s: %s: extra id not in en.json", name, id))
 			continue
 		}
 

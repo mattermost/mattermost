@@ -128,6 +128,31 @@ jest.mock('./channel_settings_access_rules_tab', () => {
     };
 });
 
+jest.mock('./channel_settings_permissions_policy_tab', () => {
+    return function MockPermissionsPolicyTab({
+        setAreThereUnsavedChanges,
+        showTabSwitchError,
+    }: {
+        setAreThereUnsavedChanges: (value: boolean) => void;
+        showTabSwitchError?: boolean;
+    }): JSX.Element {
+        return (
+            <div data-testid='permissions-policy-tab'>
+                {'Permissions Policy Tab Content'}
+                <button
+                    data-testid='permissions-policy-open-editor'
+                    onClick={() => setAreThereUnsavedChanges(true)}
+                >
+                    {'Open Rule Editor'}
+                </button>
+                {showTabSwitchError && (
+                    <div data-testid='permissions-policy-tab-switch-error'>{'You have unsaved changes'}</div>
+                )}
+            </div>
+        );
+    };
+});
+
 // Define the tab type for the settings sidebar
 type TabType = {
     name: string;
@@ -1029,6 +1054,33 @@ describe('ChannelSettingsModal', () => {
 
             expect(screen.queryByTestId('channel-settings-pluggable')).not.toBeInTheDocument();
             expect(screen.getByTestId('info-tab')).toBeInTheDocument();
+        });
+    });
+
+    describe('permissions policy tab wiring', () => {
+        it('tells the permissions policy tab when it blocks a section switch', async () => {
+            mockManageChannelAccessRulesPermission = true;
+
+            const testState = makeTestState();
+            testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
+            testState.entities.general.config.FeatureFlagPermissionPolicies = 'true';
+            testState.entities.general.config.FeatureFlagChannelPermissionPolicies = 'true';
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+
+            await userEvent.click(await screen.findByRole('tab', {name: /permissions policy/i}));
+            expect(await screen.findByTestId('permissions-policy-tab')).toBeInTheDocument();
+
+            // Opening the rule editor reports unsaved changes, which is what makes
+            // the modal refuse the switch — but is not, on its own, an error to show.
+            await userEvent.click(screen.getByTestId('permissions-policy-open-editor'));
+            expect(screen.queryByTestId('permissions-policy-tab-switch-error')).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('tab', {name: /info/i}));
+
+            expect(await screen.findByTestId('permissions-policy-tab-switch-error')).toBeInTheDocument();
+            expect(screen.queryByTestId('info-tab')).not.toBeInTheDocument();
+            expect(screen.getByTestId('permissions-policy-tab')).toBeInTheDocument();
         });
     });
 
