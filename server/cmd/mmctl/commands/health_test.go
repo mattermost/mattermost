@@ -331,6 +331,7 @@ func healthTestPacketFiles() map[string]string {
 		model.SupportPacketDiagnosticsFileName: "version: 2\nlicense:\n  users: 500\n  sku_short_name: enterprise\n  expires_at: 1821866400000\nserver:\n  hostname: mm.example.com\n  version: 11.0.4\n",
 		model.SupportPacketConfigFileName: `{
     "ServiceSettings": {"SiteURL": "https://chat.example.com"},
+    "GuestAccountsSettings": {"Enable": true},
     "EmailSettings": {"SendPushNotifications": true, "PushNotificationServer": "http://push.example.com"}
 }`,
 		model.SupportPacketStatsFileName:   "active_users: 300\nmonthly_active_users: 250\nsingle_channel_guests: 0\nbot_accounts: 10\nincoming_webhooks: 20\n",

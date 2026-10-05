@@ -96,22 +96,30 @@ var seatsLowEngagement = healthcheck.Rule{
 
 func activeUsers(stats *model.SupportPacketStats) *int64 { return stats.ActiveUsers }
 
-// seatsUsed mirrors the server's seat count: single-channel guests are free except on Entry.
-func seatsUsed(s *healthcheck.Snapshot) (int64, bool) {
+// seatsUsed mirrors GetServerLimits: single-channel guests are free unless on Entry or with guest accounts disabled.
+func seatsUsed(s *healthcheck.Snapshot) (used int64, reasonID string) {
 	active, ok := s.Stat(activeUsers)
 	if !ok {
-		return 0, false
+		return 0, healthcheck.ReasonStatsUnavailable
 	}
 	if s.License.IsMattermostEntry() {
-		return active, true
+		return active, ""
+	}
+
+	guestsEnabled, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.GuestAccountsSettings.Enable })
+	if !ok {
+		return 0, healthcheck.ReasonConfigUnavailable
+	}
+	if !guestsEnabled {
+		return active, ""
 	}
 
 	guests, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 { return stats.SingleChannelGuests })
 	if !ok {
-		return 0, false
+		return 0, healthcheck.ReasonStatsUnavailable
 	}
 
-	return max(active-guests, 0), true
+	return max(active-guests, 0), ""
 }
 
 // An unknown input yields a reasonID rather than 0%, which would read as a real ratio.
@@ -121,9 +129,9 @@ func seatUtilization(s *healthcheck.Snapshot) (used int64, seats int, pct float6
 		return 0, 0, 0, healthcheck.ReasonLicenseUnavailable
 	}
 
-	used, ok = seatsUsed(s)
-	if !ok {
-		return 0, 0, 0, healthcheck.ReasonStatsUnavailable
+	used, reasonID = seatsUsed(s)
+	if reasonID != "" {
+		return 0, 0, 0, reasonID
 	}
 
 	return used, seats, 100 * float64(used) / float64(seats), ""
