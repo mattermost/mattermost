@@ -92,8 +92,10 @@ and the code, with `git log` on the spec and what it uses. Decide which it is:
   other specs do, so it runs where that behaviour exists.
 - **The test is racy.** Fix the race: wait for the state the test depends on, isolate shared
   server state, or remove an ordering dependency.
-- **The product is broken.** Fix it only if the fix is small and clearly correct. Otherwise do not
-  change product code; open the PR with the failing evidence and ask the suspect commit's author.
+- **The product is broken.** Fix it only if the fix is small and clearly correct, then verify it
+  as in step 4 and open the PR. Otherwise, open no PR and change no code: comment on the PR of the
+  suspect commit with the failing tests, the error, the master run and your reproduction, and ask
+  its author to look. Save the outcome as `blocked: product bug, reported on #<number>`.
 
 Never make a test pass by deleting it, skipping it without a flag reason, loosening its
 assertion, adding a fixed wait or sleep, raising a timeout, or adding retries.
