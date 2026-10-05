@@ -19,53 +19,36 @@ var collectedJobTypes = []string{
 }
 
 func (s *Snapshot) ConfigString(get func(*model.Config) *string) (string, bool) {
-	if get == nil || !s.Has(model.SectionConfig) || s.Config == nil || s.Config.Config == nil {
+	value, ok := configValue(s, get)
+	if !ok || value == model.FakeSetting {
 		return "", false
 	}
 
-	value := get(s.Config.Config)
-	if value == nil || *value == model.FakeSetting {
-		return "", false
-	}
-
-	return *value, true
+	return value, true
 }
 
 func (s *Snapshot) ConfigBool(get func(*model.Config) *bool) (bool, bool) {
-	if get == nil || !s.Has(model.SectionConfig) || s.Config == nil || s.Config.Config == nil {
-		return false, false
-	}
-
-	value := get(s.Config.Config)
-	if value == nil {
-		return false, false
-	}
-
-	return *value, true
+	return configValue(s, get)
 }
 
 func (s *Snapshot) ConfigInt(get func(*model.Config) *int) (int, bool) {
-	if get == nil || !s.Has(model.SectionConfig) || s.Config == nil || s.Config.Config == nil {
-		return 0, false
-	}
-
-	value := get(s.Config.Config)
-	if value == nil {
-		return 0, false
-	}
-
-	return *value, true
+	return configValue(s, get)
 }
 
-// ConfigInt64 is ConfigInt for *int64 settings. ok is false when the config section is absent or the field is nil.
 func (s *Snapshot) ConfigInt64(get func(*model.Config) *int64) (int64, bool) {
+	return configValue(s, get)
+}
+
+// configValue returns ok=false when the config section is absent or the field is nil.
+func configValue[T any](s *Snapshot, get func(*model.Config) *T) (T, bool) {
+	var zero T
 	if get == nil || !s.Has(model.SectionConfig) || s.Config == nil || s.Config.Config == nil {
-		return 0, false
+		return zero, false
 	}
 
 	value := get(s.Config.Config)
 	if value == nil {
-		return 0, false
+		return zero, false
 	}
 
 	return *value, true
