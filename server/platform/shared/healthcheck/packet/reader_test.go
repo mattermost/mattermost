@@ -287,7 +287,14 @@ func TestReadCloud(t *testing.T) {
 	files := fixtureFiles(t, "standalone")
 	files[model.SupportPacketDiagnosticsFileName] = bytes.Replace(files[model.SupportPacketDiagnosticsFileName], []byte("license:\n"), []byte("license:\n  is_cloud: true\n"), 1)
 
-	assert.True(t, readFiles(t, files).Snapshot.Deployment.IsCloud)
+	snapshot := readFiles(t, files).Snapshot
+	assert.True(t, snapshot.Deployment.IsCloud)
+
+	var codes []string
+	for _, f := range evaluate(t, snapshot) {
+		codes = append(codes, f.Code)
+	}
+	assert.ElementsMatch(t, []string{"PUSH_EMPTY_URL", "PUSH_BAD_SCHEME", "PUSH_TEST_PROXY"}, codes)
 }
 
 func TestReadMissingStats(t *testing.T) {
