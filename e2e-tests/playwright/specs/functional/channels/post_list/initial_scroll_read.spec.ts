@@ -144,8 +144,7 @@ test.describe('Post list initial scroll in read channel', () => {
             test(`${testCase.name} - should stay at the bottom during initial load`, async ({}, testInfo) => {
                 if (testCase.name === 'with multiple pages of post previews') {
                     // 120 permalink previews each resolve their own lookup, which can exceed
-                    // the default timeout under loaded CI; extend it to leave headroom on
-                    // top of the one-minute postPreview.waitFor below.
+                    // the default timeout under loaded CI.
                     testInfo.setTimeout(duration.two_min);
                 }
 
