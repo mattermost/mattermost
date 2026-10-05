@@ -2221,6 +2221,12 @@ func (a *App) SetTeamIconFromFile(rctx request.CTX, team *model.Team, file io.Re
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.decode.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
+	// Decode() reads the file to EOF; seek back to beginning so GetImageOrientation
+	// can read the EXIF data to determine the correct orientation.
+	if _, err = file.Seek(0, io.SeekStart); err != nil {
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.seek.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	orientation, err := imaging.GetImageOrientation(file, format)
 	if err != nil {
 		rctx.Logger().Warn("Failed to get image orientation", mlog.Err(err))
