@@ -1,0 +1,142 @@
+---
+title: "Attribute management"
+---
+
+<PlanAvailability slug="ent-plus" />
+
+From Mattermost v12.0, you define an attribute once in **Attribute Management**, then choose which resources can use it. An attribute such as *Department* or *Clearance* has a single definition (display name, name, type, options, and an optional AD/LDAP or SAML source) that's shared by every resource it applies to. Attribute Management replaces the **User Attributes** page used in earlier releases. For servers before v12.0, see [User attributes](/administration-guide/manage/admin/user-attributes).
+
+Attributes defined here are the attributes you reference in [attribute-based access control (ABAC)](/administration-guide/manage/admin/attribute-based-access-control) policies, for example `user.attributes.department`.
+
+To open Attribute Management, go to **System Console \> System Attributes \> Attribute Management**. Only system admins can create, edit, or delete attributes.
+
+## Upgrade to v12.0: existing user attributes
+
+<Important>
+
+The first time a Mattermost v12.0 server starts with an Enterprise or Enterprise Advanced license, it converts each existing user attribute into an attribute that applies to **Users** in Attribute Management. This conversion runs once and can't be reversed.
+
+</Important>
+
+After the conversion:
+
+- User attribute names, IDs, and user values don't change, so existing ABAC policies that reference `user.attributes.<name>` continue to work.
+- Options, visibility, who can set the value, and AD/LDAP or SAML mappings carry over.
+- If an existing name isn't a valid attribute name, or is already used by another attribute, the new definition gets an adjusted name. The user attribute keeps its original name, so policies aren't affected.
+- Attributes created by plugins and protected attributes aren't converted.
+
+If the server isn't licensed when it starts, the conversion is skipped and runs on a later restart once a license is applied.
+
+## Review attributes
+
+The Attribute Management page lists every attribute alphabetically by display name. Use **Search attributes** to filter by display name, name, or type. Select a row to edit an attribute.
+
+| Column | Shows |
+| --- | --- |
+| **Attribute** | The display name. |
+| **Type** | The attribute type, such as **Text** or **Select**. |
+| **Applies to** | The resources that use the attribute, such as **Users** or **Channels**. |
+| **Source** | Where values come from: **Managed here**, **AD/LDAP**, **SAML**, or the name of the plugin that owns the attribute. |
+| **Options** | The number of options, or **Free Text** for types without preset values. |
+
+The **Classification** attribute used by [classification markings](/administration-guide/configure/site-configuration-settings#classification-markings) is shown as **Definition is read-only**. Manage its levels from the Classification Markings page by selecting **Open Classification Markings** in its row.
+
+<Note>
+
+Attributes created and owned by a plugin are read-only in Attribute Management, and you can't delete them while the plugin is installed. After the plugin is uninstalled, you can delete its attributes.
+
+</Note>
+
+## Create an attribute
+
+1.  Select **New attribute**.
+2.  In the **Definition** section, enter the following details:
+    - **Display name**: The label admins and users see. Up to 40 characters.
+    - **Unique name**: Generated from the display name. Select **Edit** to change it. The name is the internal identifier used in access control policies and integrations, and must be unique. It must start with a letter or underscore and can contain only letters, numbers, and underscores. Reserved CEL words aren't allowed: `true`, `false`, `null`, `in`, `as`, `break`, `const`, `continue`, `else`, `for`, `function`, `if`, `import`, `let`, `loop`, `package`, `namespace`, `return`, `var`, `void`, and `while`.
+    - **Type**: Select one of the following:
+      - **Text**: A value typed in for each resource.
+      - **Phone**: A phone number.
+      - **URL**: A web address.
+      - **Select**: A single value chosen from a list of options.
+      - **Multiselect**: One or more values chosen from a list of options.
+      - **Ranked**: A single value chosen from an ordered list, where each option ranks higher or lower than the others, such as *Public*, *Secret*, and *Top Secret*. Because the options are ordered, [access control policies](/administration-guide/manage/admin/abac-system-wide-policies) can compare a ranked attribute against a threshold, for example clearance *is at least* Secret.
+      - **Hierarchical**: Values organized as parents and children, up to 100 parents per value and 100 levels deep. Available only when the `PropertyFieldGraph` feature flag is enabled, and only when you create an attribute. A hierarchical attribute can't be converted to another type.
+    - **Options**: For **Select**, **Multiselect**, and **Ranked** attributes, enter each option and press **Enter** or **Tab**. At least one option is required. Options can be up to 64 characters and must be unique. Select an option to rename it, move it to another position, or remove it. For **Ranked** attributes, options are shown from lowest to highest rank; select an option to change its rank.
+3.  Optionally, [link the attribute to an external source](#link-an-attribute-to-adldap-or-saml).
+4.  In the **Applies to** section, select **Add resource** and choose the [resources the attribute applies to](#choose-the-resources-an-attribute-applies-to).
+5.  Select **Save**.
+
+You can define up to 200 attributes in total, and up to 20 attributes can apply to **Users**.
+
+## Link an attribute to AD/LDAP or SAML
+
+Synchronize an attribute's user values from your identity provider instead of managing them in Mattermost. AD/LDAP or SAML synchronization must already be configured. See [AD/LDAP groups](/administration-guide/onboard/ad-ldap-groups-synchronization) or [SAML 2.0](/administration-guide/configure/authentication-configuration-settings#saml-20) for details.
+
+1.  In the **Definition** section, select **Link to external source**, then select **AD/LDAP** or **SAML**.
+2.  Enter the name of the attribute in your AD/LDAP directory or SAML response to sync the value from, then save.
+
+You can link both AD/LDAP and SAML to the same attribute. Linked sources are listed under **Synced with**.
+
+<Note>
+
+- Linking an external source changes the attribute type to **Text**.
+- Link external sources before you apply the attribute to a resource. You can't add a new external source while the attribute applies to a resource.
+- Values synced from an external source apply to **Users** only, and users can't edit them in Mattermost. In the **Users** resource settings, **Managed by** shows the source.
+
+</Note>
+
+## Choose the resources an attribute applies to
+
+Each resource you add has its own settings. Select a resource to expand its settings, or select **Remove resource** to remove it.
+
+### Users
+
+- **Profile display**: Controls whether the attribute appears on user profiles: **Always**, **When set** (default), or **Hidden**.
+- **Who can set the value**: **Member** lets users set their own value, and system admins can still change it. **System Administrator** restricts the value to system admins and identity provider synchronization.
+
+<Security>
+
+Attributes used in access control policies should be set by **System Administrator** or synchronized from an identity provider. Users can't change these values themselves, so they can't grant themselves access. By default, ABAC rules exclude attributes users can set themselves, unless `EnableUserManagedAttributes` is enabled. See [User attributes](/administration-guide/manage/admin/user-attributes#before-you-begin) for details.
+
+</Security>
+
+To view or update an individual user's values, see [Manage user attributes](/administration-guide/configure/user-management-configuration-settings#manage-user-attributes).
+
+### Channels
+
+<PlanAvailability slug="ent-adv" />
+
+**Channels** is available only when the `ChannelAttributes` feature flag is enabled. Only admins can set channel values.
+
+- **Changing the value**: Controls how a channel's value can change after it's set:
+  - **Can be changed at any time** (default)
+  - **Can only be raised, never lowered** (**Ranked** attributes only)
+  - **Can only be lowered, never raised** (**Ranked** attributes only)
+  - **Cannot be changed once set**
+- **Display location**: Where the value is shown in the channel: **Header**, **Channel Info**, or **Banner**. You can select more than one location. The value is always shown in **Channel Info**.
+- **Required**: When enabled, a channel must have a value for this attribute before it can be created. Available only when the `ChannelAttributesRequired` feature flag is also enabled.
+
+## Edit an attribute
+
+Select an attribute's row, or select **More actions** \> **Edit attribute**, make your changes, and select **Save**.
+
+- **Unique name** and **Type** can't be changed while the attribute applies to a resource. To change them, you must remove every resource and save, which permanently deletes all values stored for the attribute. Adding the resources back afterwards doesn't restore those values. Before you remove a resource, record any values you need to keep so you can set them again.
+- When you change the **Display name**, the new name also applies to each resource that uses the attribute, unless that resource's label was customized separately.
+- Changes to options apply to every resource that uses the attribute.
+
+<Warning>
+
+Removing a resource from **Applies to** permanently deletes every value stored for the attribute on that resource. Mattermost asks you to confirm with **Remove and save**. This action can't be undone.
+
+</Warning>
+
+## Delete an attribute
+
+1.  In the attribute's row, select **More actions** \> **Delete attribute**.
+2.  Select **Delete** to confirm.
+
+Deleting an attribute permanently removes its definition and can't be undone. You can't delete an attribute while it still applies to a resource. [Edit the attribute](#edit-an-attribute), remove every resource from **Applies to**, save, then delete it.
+
+## Attribute access modes
+
+Attributes created in Attribute Management use the `public` access mode, so their values are visible to every admin editing a policy that references them. Plugins can create attributes with restricted access modes. See [Attribute access modes](/administration-guide/manage/admin/user-attributes#attribute-access-modes) for details.

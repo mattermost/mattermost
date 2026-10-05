@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -530,5 +531,167 @@ func TestOwnerSyncBidirectionalTransitions(t *testing.T) {
 		require.True(t, model.HasPropertyFieldOwners(updated))
 
 		assertCombinedWrites(t, created.ID)
+	})
+}
+
+func TestOwnersWithAdminManaged(t *testing.T) {
+	th := Setup(t)
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{
+		Name:    model.AccessControlPropertyGroupName,
+		Version: model.PropertyGroupVersionV2,
+	})
+	require.NoError(t, err)
+	th.CPAGroupID = group.ID
+
+	adminID := model.NewId()
+	pluginChecker := func(pluginID string) bool {
+		return pluginID == "plugin-owner" || pluginID == "plugin-other"
+	}
+
+	// Register hooks in production order.
+	acHook := NewAccessControlHook(th.service, nil, th.CPAGroupID)
+	acHook.setPluginCheckerForTests(pluginChecker)
+	th.service.AddHook(acHook)
+
+	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{
+		PermissionChecker: func(_ request.CTX, userID string, permission *model.Permission) bool {
+			return userID == adminID && permission.Id == model.PermissionManageSystem.Id
+		},
+		PluginChecker: pluginChecker,
+	}, th.CPAGroupID))
+
+	rctxAdmin := RequestContextWithCallerID(th.Context, adminID)
+
+	createOwnedAdminManaged := func(t *testing.T, name string) *model.PropertyField {
+		t.Helper()
+		field := ownerField(th.CPAGroupID, name, "plugin-owner", []string{"entra"})
+		field.Attrs[model.PropertyFieldAttrManaged] = "admin"
+		created, err := th.service.CreatePropertyField(rctxAdmin, field)
+		require.NoError(t, err)
+		return created
+	}
+
+	newValue := func(fieldID string) *model.PropertyValue {
+		return &model.PropertyValue{
+			GroupID:    th.CPAGroupID,
+			FieldID:    fieldID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"v"`),
+		}
+	}
+
+	t.Run("admin adds owners to an admin-managed field", func(t *testing.T) {
+		created, err := th.service.CreatePropertyField(rctxAdmin, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "admin_managed_add_owners",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrManaged: "admin",
+			},
+		})
+		require.NoError(t, err)
+
+		created.Attrs[model.PropertyAttrsOwners] = []model.PropertyOwner{
+			{ID: "plugin-owner", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+		}
+		updated, _, upErr := th.service.UpdatePropertyField(rctxAdmin, th.CPAGroupID, created)
+		require.NoError(t, upErr)
+		require.True(t, model.HasPropertyFieldOwners(updated))
+		assert.Equal(t, "admin", updated.Attrs[model.PropertyFieldAttrManaged])
+		require.NotNil(t, updated.PermissionValues)
+		assert.Equal(t, model.PermissionLevelSysadmin, *updated.PermissionValues)
+	})
+
+	t.Run("denies a system admin writing a value", func(t *testing.T) {
+		created := createOwnedAdminManaged(t, "owned_admin_value_admin")
+		_, upErr := th.service.UpsertPropertyValue(rctxAdmin, newValue(created.ID))
+		require.Error(t, upErr)
+		assert.ErrorIs(t, upErr, ErrAccessDenied)
+	})
+
+	t.Run("allows the owner plugin writing a value with a matching scope", func(t *testing.T) {
+		created := createOwnedAdminManaged(t, "owned_admin_value_owner")
+		rctx := RequestContextWithCallerIDAndOptions(th.Context, "plugin-owner", model.PropertyRequestOptions{ActingAsScope: "entra"})
+		_, upErr := th.service.UpsertPropertyValue(rctx, newValue(created.ID))
+		require.NoError(t, upErr)
+	})
+
+	t.Run("admin removes owners from an admin-managed field", func(t *testing.T) {
+		created := createOwnedAdminManaged(t, "owned_admin_remove_owners")
+		delete(created.Attrs, model.PropertyAttrsOwners)
+		updated, _, upErr := th.service.UpdatePropertyField(rctxAdmin, th.CPAGroupID, created)
+		require.NoError(t, upErr)
+		assert.False(t, model.HasPropertyFieldOwners(updated))
+		assert.Equal(t, "admin", updated.Attrs[model.PropertyFieldAttrManaged])
+		require.NotNil(t, updated.PermissionValues)
+		assert.Equal(t, model.PermissionLevelSysadmin, *updated.PermissionValues)
+	})
+
+	t.Run("listed owner plugin edits an admin-managed field", func(t *testing.T) {
+		created := createOwnedAdminManaged(t, "owned_admin_owner_edits")
+		created.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility] = model.PropertyFieldVisibilityAlways
+		rctx := RequestContextWithCallerID(th.Context, "plugin-owner")
+		updated, _, upErr := th.service.UpdatePropertyField(rctx, th.CPAGroupID, created)
+		require.NoError(t, upErr)
+		assert.Equal(t, model.PropertyFieldVisibilityAlways, updated.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
+		assert.Equal(t, "admin", updated.Attrs[model.PropertyFieldAttrManaged])
+	})
+
+	t.Run("listed owner plugin removes itself as the last owner", func(t *testing.T) {
+		created := createOwnedAdminManaged(t, "owned_admin_owner_leaves")
+		delete(created.Attrs, model.PropertyAttrsOwners)
+		rctx := RequestContextWithCallerID(th.Context, "plugin-owner")
+		_, _, upErr := th.service.UpdatePropertyField(rctx, th.CPAGroupID, created)
+		require.NoError(t, upErr)
+
+		stored, getErr := th.service.GetPropertyField(rctxAdmin, th.CPAGroupID, created.ID)
+		require.NoError(t, getErr)
+		assert.False(t, model.HasPropertyFieldOwners(stored))
+		assert.Equal(t, "admin", stored.Attrs[model.PropertyFieldAttrManaged])
+		require.NotNil(t, stored.PermissionValues)
+		assert.Equal(t, model.PermissionLevelSysadmin, *stored.PermissionValues)
+	})
+
+	t.Run("non-owner plugin may not update an admin-managed field", func(t *testing.T) {
+		created := createOwnedAdminManaged(t, "owned_admin_non_owner")
+		created.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility] = model.PropertyFieldVisibilityHidden
+		_, _, upErr := th.service.UpdatePropertyField(RequestContextWithCallerID(th.Context, "plugin-other"), th.CPAGroupID, created)
+		require.Error(t, upErr)
+	})
+
+	t.Run("listed owner plugin may not turn on admin-managed", func(t *testing.T) {
+		created, err := th.service.CreatePropertyField(rctxAdmin, ownerField(th.CPAGroupID, "owned_not_admin_managed", "plugin-owner", []string{"entra"}))
+		require.NoError(t, err)
+		created.Attrs[model.PropertyFieldAttrManaged] = "admin"
+		_, _, upErr := th.service.UpdatePropertyField(RequestContextWithCallerID(th.Context, "plugin-owner"), th.CPAGroupID, created)
+		require.Error(t, upErr)
+		assert.ErrorIs(t, upErr, ErrAdminRequired)
+	})
+
+	t.Run("plugin may not create an admin-managed field", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "plugin_created_admin_managed",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrManaged: "admin",
+			},
+		}
+		_, err := th.service.CreatePropertyField(RequestContextWithCallerID(th.Context, "plugin-owner"), field)
+		require.Error(t, err)
+		assert.ErrorIs(t, err, ErrAdminRequired)
+	})
+
+	t.Run("non-admin human may not update an admin-managed field", func(t *testing.T) {
+		created := createOwnedAdminManaged(t, "owned_admin_human_edit")
+		created.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility] = model.PropertyFieldVisibilityHidden
+		_, _, upErr := th.service.UpdatePropertyField(RequestContextWithCallerID(th.Context, model.NewId()), th.CPAGroupID, created)
+		require.Error(t, upErr)
+		assert.ErrorIs(t, upErr, ErrAdminRequired)
 	})
 }
