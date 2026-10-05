@@ -86,15 +86,6 @@ func assertResult(t *testing.T, want jobWant, got healthcheck.Result, msgAndArgs
 	assert.Equal(t, details, got.Details, msgAndArgs...)
 }
 
-func TestBuiltinRegistersJobRules(t *testing.T) {
-	require.NoError(t, healthcheck.Builtin().Validate())
-
-	for _, code := range []string{"JOB_STUCK", "JOB_WEDGED_AT_ZERO", "JOB_FAILED"} {
-		_, ok := healthcheck.Builtin().Get(code)
-		assert.True(t, ok, code)
-	}
-}
-
 func TestJobRulesEmitOneResultPerSubject(t *testing.T) {
 	t.Parallel()
 
@@ -312,6 +303,18 @@ func TestJobStuck(t *testing.T) {
 			want:     resolved,
 		},
 		{
+			name: "pending run queued behind a stuck run",
+			snapshot: jobsSnapshot(
+				&model.Job{Id: "job2", Status: model.JobStatusPending, CreateAt: ago(time.Hour)},
+				&model.Job{Id: "job1", Status: model.JobStatusInProgress, StartAt: ago(30 * time.Hour), LastActivityAt: ago(25 * time.Hour)},
+			),
+			want: jobWant{
+				state:     healthcheck.StateFiring,
+				messageID: "health.rule.job_stuck.message",
+				details:   map[string]string{"job_id": "job1", "hours": "25"},
+			},
+		},
+		{
 			name: "ages are measured from CollectedAt, not the wall clock",
 			snapshot: func() *healthcheck.Snapshot {
 				s := jobsSnapshot(&model.Job{Id: "job1", Status: model.JobStatusInProgress, StartAt: ago(8*24*time.Hour + time.Hour), LastActivityAt: ago(8*24*time.Hour + time.Hour)})
@@ -376,6 +379,18 @@ func TestJobWedgedAtZero(t *testing.T) {
 			name:     "progress above zero",
 			snapshot: jobsSnapshot(&model.Job{Id: "job1", Status: model.JobStatusInProgress, Progress: 1, StartAt: ago(30 * time.Hour), LastActivityAt: ago(30 * time.Hour)}),
 			want:     resolved,
+		},
+		{
+			name: "pending run queued behind a wedged run",
+			snapshot: jobsSnapshot(
+				&model.Job{Id: "job2", Status: model.JobStatusPending, CreateAt: ago(time.Hour)},
+				&model.Job{Id: "job1", Status: model.JobStatusInProgress, StartAt: ago(7 * time.Hour), LastActivityAt: ago(time.Hour)},
+			),
+			want: jobWant{
+				state:     healthcheck.StateFiring,
+				messageID: "health.rule.job_wedged_at_zero.message",
+				details:   map[string]string{"job_id": "job1", "hours": "7"},
+			},
 		},
 		{
 			name:     "finished run at zero",

@@ -115,12 +115,15 @@ func evalJobTypes(s *healthcheck.Snapshot, jobTypes []string, check func(jobType
 	return results
 }
 
-func latestJob(jobs []*model.Job) *model.Job {
-	if len(jobs) == 0 {
-		return nil
+// latestStartedJob skips pending runs: schedulers keep queueing them behind a stuck in-progress run.
+func latestStartedJob(jobs []*model.Job) *model.Job {
+	for _, job := range jobs {
+		if job != nil && job.Status != model.JobStatusPending {
+			return job
+		}
 	}
 
-	return jobs[0]
+	return nil
 }
 
 func latestTerminalJob(jobs []*model.Job) *model.Job {
@@ -150,7 +153,7 @@ func evalJobStuck(s *healthcheck.Snapshot) []healthcheck.Result {
 			return healthcheck.UnknownSubject(jobType, healthcheck.ReasonCollectedAtUnknown)
 		}
 
-		job := latestJob(jobs)
+		job := latestStartedJob(jobs)
 		if job == nil || job.Status != model.JobStatusInProgress {
 			return healthcheck.ResolvedSubject(jobType)
 		}
@@ -173,7 +176,7 @@ func evalJobWedgedAtZero(s *healthcheck.Snapshot) []healthcheck.Result {
 			return healthcheck.UnknownSubject(jobType, healthcheck.ReasonCollectedAtUnknown)
 		}
 
-		job := latestJob(jobs)
+		job := latestStartedJob(jobs)
 		if job == nil || job.Status != model.JobStatusInProgress || job.Progress != 0 {
 			return healthcheck.ResolvedSubject(jobType)
 		}
