@@ -44,7 +44,7 @@ Platform and OS scope reflects reported and tested environments and may not repr
  - The Mattermost web and desktop apps are built on [React 19](https://react.dev/blog/2024/04/25/react-19-upgrade-guide). Only plugins that register web app (frontend) components are affected; server-only plugins are unaffected. Web app plugins use the React version provided by the web app, so their components render under React 19 whether or not they are rebuilt. Plugins calling APIs removed in React 19 (``ReactDOM.findDOMNode``, ``propTypes``/``defaultProps`` on function components, legacy Context, string refs), or depending on legacy synchronous rendering, may break. Run ``npx codemod@latest react/19/migration-recipe`` against affected plugins and correct any removed-API usage. See the [forum post](https://forum.mattermost.com/t/starting-with-mattermost-v12-0-october-2026-the-mattermost-web-and-desktop-apps-are-built-on-react-19/26038) for full details.
  - Removed the **System Console > System Attributes > User Attributes** page on Enterprise plans. Existing Custom Profile Attributes (User Attributes) fields are migrated automatically into **Attribute Management** on server startup and are managed there from v12.0. The old page's URL redirects to Attribute Management.
  - ``PATCH`` and ``DELETE`` requests to ``/api/v4/custom_profile_attributes/fields/{field_id}`` now return HTTP 400 when the field is linked to an Attribute Management template, with an error pointing to the Global Attributes API. On Enterprise plans, eligible existing User Attributes fields are linked to templates automatically on server startup, so scripts and integrations that edit or delete these fields through the User Attributes API must use the Global Attributes API instead.
- - The ``LocalizationSettings.EnableExperimentalLocales`` configuration setting has been removed, along with the work-in-progress translation catalogs it exposed. Only the 22 officially supported languages are selectable. The setting is ignored if left in an existing ``config.json``.
+ - The ``LocalizationSettings.EnableExperimentalLocales`` configuration setting has been removed, along with most of the work-in-progress translation catalogs it exposed. Danish is now a supported language, and Belarusian, Czech, Croatian, Finnish, Lithuanian, Norwegian Bokmål and Portuguese (Portugal) are available to all users as experimental languages without the setting. Users who had selected any other removed language see Mattermost in English. The setting is ignored if left in an existing ``config.json``.
  - ``ServiceSettings.ExperimentalEnableHardenedMode`` is deprecated and replaced by ``ServiceSettings.EnableHardenedMode``, which has moved from **System Console > Experimental > Features** to **System Console > Environment > Web Server**. An existing value is carried over to ``EnableHardenedMode`` automatically on upgrade. After that, the server reads only ``EnableHardenedMode``, so update any configuration management, environment variables, or scripts that still set the old setting.
 
 </Important>
@@ -81,7 +81,7 @@ New setting options were added to ``config.json``. Below is a list of the additi
    - Removed ``EmailSettings.LoginButtonBorderColor`` configuration setting.
    - Removed ``EmailSettings.LoginButtonColor`` configuration setting.
    - Removed ``EmailSettings.LoginButtonTextColor`` configuration setting.
-   - Removed ``LocalizationSettings.EnableExperimentalLocales`` configuration setting and the work-in-progress translation catalogs it exposed. Only the 22 officially supported languages are now selectable. The setting is ignored if left in an existing ``config.json``.
+   - Removed ``LocalizationSettings.EnableExperimentalLocales`` configuration setting and most of the work-in-progress translation catalogs it exposed. Danish and seven experimental languages remain selectable without the setting. The setting is ignored if left in an existing ``config.json``.
    - Removed the following configuration settings:
      - ``TeamSettings.ExperimentalViewArchivedChannels``
      - ``CloudSettings.CWSMock``
@@ -137,6 +137,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - Capped single image previews in posts at 700px wide to match the design spec.
  - Updated display settings to fall back to English when the configured locale was unavailable.
  - Added missing translations in the Bulgarian, Chinese (Simplified and Traditional), Dutch, English (Australian), French, German, Hungarian, Italian, Japanese, Korean, Persian, Polish, Portuguese (Brazil), Romanian, Russian, Spanish, Swedish, Turkish, Ukrainian, and Vietnamese catalogs.
+ - Added Danish as a supported language, and Belarusian, Czech, Croatian, Finnish, Lithuanian, Norwegian Bokmål and Portuguese (Portugal) as experimental languages in **Settings > Display > Language**.
  - Added an ``IMPORTED - INACTIVE`` tag to user profiles to identify accounts created by a scoped migration pending admin review.
  - Channel admins can now hide join/leave system messages per channel via Channel Settings > Configuration. Posts are stored and reappear if the setting is re-enabled.
  - Improved channel attribute chips in the channel header and thread right-hand sidebar, and polished the System Console attributes user interface.
@@ -241,6 +242,8 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - Fixed an issue where file attachments could stay hidden or visible after a session attribute changed until the client cache was cleared.
  - Fixed issues in **Attribute Management** where non-system admins saw edit and delete actions instead of read-only ones, the Classification attribute was shown without the Enterprise Advanced license that Classification Markings requires, Attribute-Based Access links did not lead to Attribute Management, and changing a template's LDAP or SAML sync source did not update the linked user attribute.
  - Fixed an issue where changing the AI service used for auto-translation did not take effect until the server was restarted.
+ - Fixed an issue where **Get SAML Metadata from IdP** in the System Console failed when the Identity Provider's metadata included a ``cacheDuration`` attribute (for example, PingFederate's default ``cacheDuration="PT1440M"``) or a ``validUntil`` value without a timezone.
+ - Fixed an issue where thread popout windows opened empty, showing only the thread header and message box.
 
 ### API Changes
  - Added ``POST /access_control/decisions/actions/search (searchAccessControlDecisionActions)`` API endpoint.
