@@ -187,12 +187,12 @@
 
         .hierarchical-value-menu__chip .AttributeChip__remove {
             position: absolute;
-            inset-block: 0;
-            inset-inline-end: 0;
             width: 22px;
             height: auto;
-            margin: 0;
             border-radius: 0 4px 4px 0;
+            margin: 0;
+            inset-block: 0;
+            inset-inline-end: 0;
 
             &:hover:not(:disabled) {
                 background-color: rgba(var(--center-channel-color-rgb), 0.16);
