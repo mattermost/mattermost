@@ -14408,7 +14408,7 @@
   },
   {
     "id": "health.rule.seats_limit_reached.message",
-    "translation": "{{.used}} active users have reached the license limit of {{.limit}} users. The server does not create or reactivate users until seats are freed or added.",
+    "translation": "{{.used}} users count toward the license limit of {{.limit}} users, which is now reached. The server does not create or reactivate users until seats are freed or added.",
     "description": "Health dashboard finding detail when the license's enforced user limit is reached; {{.used}} is the number of users taking a seat and {{.limit}} is the licensed seats plus any extra users the license allows."
   },
   {
