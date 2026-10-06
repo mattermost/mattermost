@@ -127,21 +127,11 @@
         display: flex;
         overflow: hidden;
         min-width: 0;
-        flex-direction: column;
+        flex-flow: row wrap;
+        align-content: flex-start;
         align-items: flex-start;
         justify-content: flex-start;
         gap: 8px;
-    }
-
-    &__row {
-        display: flex;
-        width: 100%;
-        min-width: 0;
-        flex-direction: row;
-        align-items: stretch;
-        justify-content: flex-start;
-        gap: 8px;
-        text-align: left;
     }
 }
 
@@ -149,6 +139,7 @@
     position: relative;
     display: flex;
     overflow: hidden;
+    max-width: 100%;
     box-sizing: border-box;
     align-items: center;
     justify-content: center;

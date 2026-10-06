@@ -158,9 +158,43 @@ describe('MediaGallery', () => {
                 baseState,
             );
 
-            const row = container.querySelector<HTMLElement>('.MediaGallery__row');
-            expect(row).not.toBeNull();
-            expect(row!.style.height).toBe('144px');
+            const tile = container.querySelector<HTMLElement>('.MediaGallery__tile');
+            expect(tile).not.toBeNull();
+            expect(tile!.style.height).toBe('144px');
+        } finally {
+            rectSpy.mockRestore();
+        }
+    });
+
+    it('renders its final layout on the first commit so the post list measures the right height', () => {
+        const rectSpy = jest.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({
+            width: 1000,
+            height: 0,
+        } as DOMRect);
+
+        let firstCommitHtml = '';
+        const MeasuringParent = ({children}: {children: React.ReactNode}) => {
+            const ref = React.useRef<HTMLDivElement>(null);
+            React.useLayoutEffect(() => {
+                firstCommitHtml = ref.current!.innerHTML;
+            }, []);
+            return <div ref={ref}>{children}</div>;
+        };
+
+        try {
+            const {container} = renderWithContext(
+                <MeasuringParent>
+                    <MediaGallery
+                        fileInfos={['a', 'b', 'c', 'd', 'e'].map((id) => fileInfo({id, name: `${id}.png`}))}
+                        postId='p1'
+                        onItemClick={jest.fn()}
+                    />
+                </MeasuringParent>,
+                baseState,
+            );
+
+            expect(screen.getAllByTestId('media-gallery-tile')).toHaveLength(5);
+            expect(container.firstElementChild!.innerHTML).toBe(firstCommitHtml);
         } finally {
             rectSpy.mockRestore();
         }
