@@ -133,6 +133,7 @@ func TestReadGoldenPackets(t *testing.T) {
 			name: "ha",
 			expected: []finding{
 				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject},
+				{Code: "DB_HA_FAILOVER_STORM_RISK", State: healthcheck.StateFiring, Subject: "SqlSettings.MaxOpenConns"},
 			},
 		},
 	}
