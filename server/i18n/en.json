@@ -14272,14 +14272,44 @@
     "description": "API error for LDAP group sync when the target type is neither team nor channel; {{.Value}} is the invalid type string and 'syncable' is the internal term for a team/channel that groups can sync to."
   },
   {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Collection time unknown.",
+    "description": "Health dashboard reason shown when a health check could not run because the time its data was collected is unknown, so ages and durations cannot be measured, so the check's status is unknown."
+  },
+  {
     "id": "health.reason.config_unavailable",
     "translation": "Config section unavailable.",
     "description": "Health dashboard reason shown when a health check could not run because the server configuration it inspects could not be read, so the check's status is unknown."
   },
   {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Server diagnostics unavailable.",
+    "description": "Health dashboard reason shown when a health check could not run because the server diagnostics it inspects (for example a connection test result) were not collected, so the check's status is unknown."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "Job history unavailable.",
+    "description": "Health dashboard reason shown when a health check could not run because the background job history it inspects was not collected, so the check's status is unknown."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "License details unavailable.",
+    "description": "Health dashboard reason shown when a health check could not run because the license details it inspects were not collected, so the check's status is unknown."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Plugin list unavailable.",
+    "description": "Health dashboard reason shown when a health check could not run because the plugin list it inspects was not collected, so the check's status is unknown."
+  },
+  {
     "id": "health.reason.rule_panicked",
     "translation": "The rule failed unexpectedly and could not be evaluated.",
     "description": "Health dashboard reason shown when a health check crashed while running, so its status is unknown."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Usage statistics unavailable.",
+    "description": "Health dashboard reason shown when a health check could not run because the usage statistics it inspects (for example user or post counts) were not collected, so the check's status is unknown."
   },
   {
     "id": "health.rule.push_bad_scheme.message.http",
