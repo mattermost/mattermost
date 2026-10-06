@@ -12,7 +12,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -119,6 +121,18 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 
 		assertGroupServableAtV2(t, th)
 		assertSetupFlagAtCurrentVersion(t, th)
+	})
+
+	t.Run("should not write the group version when the group is already at v2", func(t *testing.T) {
+		// Pinning v2 onto an already-v2 group leaves the same state behind, so a
+		// redundant write is only observable through the store. The mocked store
+		// starts the server in the steady state every startup after the first one
+		// sees: group at v2, flag at the current migration version.
+		th := SetupWithStoreMock(t)
+
+		propertyGroupStore, ok := th.Store.PropertyGroup().(*mocks.PropertyGroupStore)
+		require.True(t, ok)
+		propertyGroupStore.AssertNotCalled(t, "SetVersion", mock.Anything, mock.Anything)
 	})
 }
 
