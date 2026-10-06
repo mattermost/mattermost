@@ -1106,8 +1106,9 @@ func (s *connSet) all() iter.Seq[*WebConn] {
 	}
 	small := s.small
 	return func(yield func(*WebConn) bool) {
-		for _, wc := range slices.Backward(small) {
-			if wc != nil && !yield(wc) {
+		// slices.Backward would be a second closure on every channel event, 36 allocations more per event.
+		for i := len(small) - 1; i >= 0; i-- { //nolint:modernize
+			if wc := small[i]; wc != nil && !yield(wc) {
 				return
 			}
 		}
