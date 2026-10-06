@@ -50,6 +50,58 @@ func TestConfigStringAndDataSourceFakeSettingGuard(t *testing.T) {
 	})
 }
 
+func TestConfigStrings(t *testing.T) {
+	t.Parallel()
+
+	replicas := func(cfg *model.Config) []string { return cfg.SqlSettings.DataSourceReplicas }
+	snapshot := func(values []string) *Snapshot {
+		cfg := &model.Config{}
+		cfg.SqlSettings.DataSourceReplicas = values
+		return &Snapshot{
+			Config:   &model.SupportPacketConfig{Config: cfg},
+			Sections: map[model.WorkspaceSection]error{model.SectionConfig: nil},
+		}
+	}
+
+	t.Run("config absent", func(t *testing.T) {
+		_, ok := (&Snapshot{}).ConfigStrings(replicas)
+		require.False(t, ok)
+	})
+
+	t.Run("nil getter", func(t *testing.T) {
+		_, ok := snapshot(nil).ConfigStrings(nil)
+		require.False(t, ok)
+	})
+
+	t.Run("redacted element", func(t *testing.T) {
+		values, ok := snapshot([]string{"postgres://****:****@replica.example.com/mattermost", model.FakeSetting}).ConfigStrings(replicas)
+		require.False(t, ok)
+		assert.Nil(t, values)
+	})
+
+	t.Run("nil list", func(t *testing.T) {
+		values, ok := snapshot(nil).ConfigStrings(replicas)
+		require.True(t, ok)
+		assert.Empty(t, values)
+	})
+
+	t.Run("empty list", func(t *testing.T) {
+		values, ok := snapshot([]string{}).ConfigStrings(replicas)
+		require.True(t, ok)
+		assert.Empty(t, values)
+	})
+
+	t.Run("two dsns", func(t *testing.T) {
+		dsns := []string{
+			"postgres://****:****@replica-1.example.com:5432/mattermost",
+			"postgres://****:****@replica-2.example.com:5432/mattermost",
+		}
+		values, ok := snapshot(dsns).ConfigStrings(replicas)
+		require.True(t, ok)
+		assert.Equal(t, dsns, values)
+	})
+}
+
 func TestJobsForOutsideCollectedSetReturnsUnavailable(t *testing.T) {
 	t.Parallel()
 
@@ -84,6 +136,8 @@ func TestAccessorsReturnFalseWhenSectionAbsent(t *testing.T) {
 	_, ok = snapshot.ConfigInt(func(config *model.Config) *int { return config.SqlSettings.MaxOpenConns })
 	require.False(t, ok)
 	_, ok = snapshot.DataSource()
+	require.False(t, ok)
+	_, ok = snapshot.ConfigStrings(func(config *model.Config) []string { return config.SqlSettings.DataSourceReplicas })
 	require.False(t, ok)
 	_, ok = snapshot.JobsFor(model.JobTypeLdapSync)
 	require.False(t, ok)
