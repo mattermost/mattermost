@@ -410,15 +410,15 @@ Notifications
 		s.NotContains(s.printedHealthFindings(), "Evaluation appears to have stopped")
 	})
 
-	s.Run("--include-resolved adds resolved findings", func() {
+	s.Run("--include-resolved finds nothing resolved in a single evaluation", func() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
 		err := healthCheckPacketCmdF(healthPacketTestCommand(packetPath, true, false), []string{})
 		s.Require().NoError(err)
 		output := s.printedHealthFindings()
-		s.Contains(output, "\nResolved\n")
-		s.Contains(output, "  PushNotificationServer points at push-test.mattermost.com")
+		s.Contains(output, "PushNotificationServer does not use https://")
+		s.NotContains(output, "\nResolved\n")
 	})
 
 	s.Run("--include-muted is rejected", func() {
