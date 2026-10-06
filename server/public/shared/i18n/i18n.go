@@ -100,7 +100,6 @@ var supportedLocales = []string{
 	"nb-NO",
 	"pt",
 	"fi",
-	"be",
 }
 
 var (
