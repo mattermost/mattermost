@@ -308,12 +308,13 @@ func newShouldSendEventBenchConn(tb testing.TB, th *TestHelper, memberChannels i
 	}, th.Suite, &hookRunner{})
 
 	channelIDs := make([]string, 0, memberChannels)
-	wc.allChannelMembers = make(map[string]string, memberChannels)
+	members := make(map[string]string, memberChannels)
 	for range memberChannels {
 		id := model.NewId()
 		channelIDs = append(channelIDs, id)
-		wc.allChannelMembers[id] = model.ChannelUserRoleId
+		members[id] = model.ChannelUserRoleId
 	}
+	wc.allChannelMembers = newChannelSet(members)
 	wc.lastAllChannelMembersTime = model.GetMillis()
 
 	return wc, channelIDs
@@ -413,7 +414,7 @@ func TestWebConnShouldSendEventDecisions(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.view()
-			assert.Equal(t, tc.expected, wc.ShouldSendEvent(tc.event))
+			assert.Equal(t, tc.expected, wc.ShouldSendEvent(tc.event, decodeChannelID(tc.event.GetBroadcast().ChannelId)))
 		})
 	}
 }
@@ -437,11 +438,12 @@ func TestWebConnShouldSendEventAllocs(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			require.Equal(t, tc.expected, wc.ShouldSendEvent(tc.event))
+			channelKey := decodeChannelID(tc.event.GetBroadcast().ChannelId)
+			require.Equal(t, tc.expected, wc.ShouldSendEvent(tc.event, channelKey))
 			// Background goroutines started by Setup may allocate; AllocsPerRun averages
 			// (with integer division) over the runs, so a large run count absorbs that noise.
 			allocs := testing.AllocsPerRun(5000, func() {
-				wc.ShouldSendEvent(tc.event)
+				wc.ShouldSendEvent(tc.event, channelKey)
 			})
 			assert.Zero(t, allocs, "ShouldSendEvent should not allocate")
 		})
@@ -458,11 +460,12 @@ func BenchmarkShouldSendEvent(b *testing.B) {
 
 	for _, tc := range shouldSendEventBenchCases(channelIDs[len(channelIDs)/2]) {
 		b.Run(tc.name, func(b *testing.B) {
-			require.Equal(b, tc.expected, wc.ShouldSendEvent(tc.event))
+			channelKey := decodeChannelID(tc.event.GetBroadcast().ChannelId)
+			require.Equal(b, tc.expected, wc.ShouldSendEvent(tc.event, channelKey))
 			b.ReportAllocs()
 			b.ResetTimer()
 			for b.Loop() {
-				wc.ShouldSendEvent(tc.event)
+				wc.ShouldSendEvent(tc.event, channelKey)
 			}
 		})
 	}
