@@ -312,7 +312,7 @@ func TestReadCloud(t *testing.T) {
 	for _, f := range evaluate(t, snapshot) {
 		codes = append(codes, f.Code)
 	}
-	assert.ElementsMatch(t, []string{"PUSH_TEST_PROXY"}, codes)
+	assert.ElementsMatch(t, []string{"PUSH_TEST_PROXY", "WORKFLOW_USAGE_CHAT_ONLY"}, codes)
 }
 
 func TestReadLicense(t *testing.T) {
