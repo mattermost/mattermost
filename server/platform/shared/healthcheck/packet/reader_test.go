@@ -328,7 +328,10 @@ func TestReadCloud(t *testing.T) {
 	for _, f := range evaluate(t, snapshot) {
 		codes = append(codes, f.Code)
 	}
-	assert.ElementsMatch(t, []string{"PUSH_EMPTY_URL", "PUSH_BAD_SCHEME", "PUSH_TEST_PROXY"}, codes)
+	assert.ElementsMatch(t, []string{
+		"PUSH_EMPTY_URL", "PUSH_BAD_SCHEME", "PUSH_TEST_PROXY",
+		"LDAP_PORT_TLS_MISMATCH", "LDAP_PORT_PLAIN_MISMATCH", "LDAP_SKIP_CERT", "LDAP_QUERY_TIMEOUT_LOW", "LDAP_SYNC_INTERVAL_LOW", "LDAP_SYNC_NO_BASEDN", "LDAP_RECOMMENDED_AT_SCALE", "LDAP_ID_IS_EMAIL", "LDAP_SYNC_DUTY_CYCLE", "LDAP_PROBE_FAILED", "SAML_METADATA_UNREACHABLE", "SAML_SIGNATURE_SHA1", "SAML_VERIFY_OFF", "SAML_ENCRYPT_OFF", "SAML_ID_IS_EMAIL", "SAML_ID_MUTABLE",
+	}, codes)
 }
 
 func TestReadMissingStats(t *testing.T) {

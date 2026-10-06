@@ -33,10 +33,11 @@ var samlSignatureSHA1 = healthcheck.Rule{
 		DocsURL:       samlDocsURL,
 		ConsolePath:   samlConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "SamlSettings.SignatureAlgorithm",
-	Eval:       gated(samlEnabled, evalSamlSignatureSHA1),
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityStable,
+	AppliesToCloud: true,
+	Subject:        "SamlSettings.SignatureAlgorithm",
+	Eval:           gated(samlEnabled, evalSamlSignatureSHA1),
 }
 
 var samlVerifyOff = healthcheck.Rule{
@@ -49,10 +50,11 @@ var samlVerifyOff = healthcheck.Rule{
 		DocsURL:       samlDocsURL,
 		ConsolePath:   samlConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "SamlSettings.Verify",
-	Eval:       gated(samlEnabled, evalSamlVerifyOff),
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityStable,
+	AppliesToCloud: true,
+	Subject:        "SamlSettings.Verify",
+	Eval:           gated(samlEnabled, evalSamlVerifyOff),
 }
 
 var samlEncryptOff = healthcheck.Rule{
@@ -65,10 +67,11 @@ var samlEncryptOff = healthcheck.Rule{
 		DocsURL:       samlDocsURL,
 		ConsolePath:   samlConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "SamlSettings.Encrypt",
-	Eval:       gated(samlEnabled, evalSamlEncryptOff),
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityStable,
+	AppliesToCloud: true,
+	Subject:        "SamlSettings.Encrypt",
+	Eval:           gated(samlEnabled, evalSamlEncryptOff),
 }
 
 var samlIDIsEmail = healthcheck.Rule{
@@ -81,10 +84,11 @@ var samlIDIsEmail = healthcheck.Rule{
 		DocsURL:       samlDocsURL,
 		ConsolePath:   samlConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    samlIDSubject,
-	Eval:       gated(samlEnabled, evalSamlIDIsEmail),
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityStable,
+	AppliesToCloud: true,
+	Subject:        samlIDSubject,
+	Eval:           gated(samlEnabled, evalSamlIDIsEmail),
 }
 
 var samlIDMutable = healthcheck.Rule{
@@ -97,10 +101,11 @@ var samlIDMutable = healthcheck.Rule{
 		DocsURL:       samlDocsURL,
 		ConsolePath:   samlConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    samlIDSubject,
-	Eval:       gated(samlEnabled, evalSamlIDMutable),
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityStable,
+	AppliesToCloud: true,
+	Subject:        samlIDSubject,
+	Eval:           gated(samlEnabled, evalSamlIDMutable),
 }
 
 // SignatureAlgorithm only signs requests, so it is inert while SignRequest is off.

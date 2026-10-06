@@ -22,10 +22,11 @@ var ldapProbeFailed = healthcheck.Rule{
 		DocsURL:       ldapDocsURL,
 		ConsolePath:   ldapConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityProbe,
-	Subject:    "LdapSettings.LdapServer",
-	Eval:       gated(ldapEnabled, evalLdapProbeFailed),
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityProbe,
+	AppliesToCloud: true,
+	Subject:        "LdapSettings.LdapServer",
+	Eval:           gated(ldapEnabled, evalLdapProbeFailed),
 }
 
 var samlMetadataUnreachable = healthcheck.Rule{
@@ -38,10 +39,11 @@ var samlMetadataUnreachable = healthcheck.Rule{
 		DocsURL:       samlDocsURL,
 		ConsolePath:   samlConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityProbe,
-	Subject:    "SamlSettings.IdpMetadataURL",
-	Eval:       gated(samlMetadataConfigured, evalSamlMetadataUnreachable),
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityProbe,
+	AppliesToCloud: true,
+	Subject:        "SamlSettings.IdpMetadataURL",
+	Eval:           gated(samlMetadataConfigured, evalSamlMetadataUnreachable),
 }
 
 // The SAML probe fails on an empty IdpMetadataURL, which is valid when the IdP certificate is uploaded.
