@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"hash/maphash"
 	"math/rand/v2"
+	"os"
 	"runtime"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -77,7 +79,7 @@ func BenchmarkHubChannelBroadcast(b *testing.B) {
 
 func benchHubChannelBroadcast(b *testing.B, logger *mlog.Logger, channelIteration bool, members int, churn bool) {
 	r := rand.New(rand.NewPCG(1, 1))
-	pool := make([]string, broadcastBenchChannelPool)
+	pool := make([]string, broadcastBenchChannelPoolSize(b))
 	for i := range pool {
 		pool[i] = model.NewId()
 	}
@@ -208,6 +210,18 @@ func broadcastBenchHeap() (bytes, objects uint64) {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
 	return m.HeapAlloc, m.HeapObjects
+}
+
+// broadcastBenchChannelPoolSize returns how many channels the memberships are drawn from; MM_BENCH_CHANNEL_SHARING=h sizes it so each channel is held by about h connections (the default is 50).
+func broadcastBenchChannelPoolSize(tb testing.TB) int {
+	v := os.Getenv("MM_BENCH_CHANNEL_SHARING")
+	if v == "" {
+		return broadcastBenchChannelPool
+	}
+	h, err := strconv.Atoi(v)
+	require.NoError(tb, err)
+	require.True(tb, h >= 1 && h <= broadcastBenchConns, "MM_BENCH_CHANNEL_SHARING must be between 1 and %d", broadcastBenchConns)
+	return broadcastBenchConns * broadcastBenchChannelsPerUser / h
 }
 
 // broadcastBenchSample returns n distinct channel IDs from pool.
