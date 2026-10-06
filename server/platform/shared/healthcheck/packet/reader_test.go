@@ -130,28 +130,15 @@ func TestReadGoldenPackets(t *testing.T) {
 		{
 			name: "standalone",
 			expected: []finding{
-				{Code: "PUSH_EMPTY_URL", State: healthcheck.StateResolved, Subject: pushSubject},
-				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateResolved, Subject: pushSubject},
 				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateFiring, Subject: pushSubject},
-				{Code: "SITE_URL_EMPTY", State: healthcheck.StateResolved, Subject: siteURLSubject},
 				{Code: "SITE_URL_HTTP", State: healthcheck.StateFiring, Subject: siteURLSubject},
 				{Code: "COMPLIANCE_NO_DIR", State: healthcheck.StateFiring, Subject: complianceDirSubject},
-				{Code: "AUDIT_LOG_OFF", State: healthcheck.StateResolved, Subject: auditSubject},
-				{Code: "RETENTION_TIGHT_BATCHES", State: healthcheck.StateResolved, Subject: retentionSubject},
-				{Code: "EXPORT_GR_TIMEOUT_LOW", State: healthcheck.StateResolved, Subject: globalRelayTimeoutSubject},
 			},
 		},
 		{
 			name: "ha",
 			expected: []finding{
-				{Code: "PUSH_EMPTY_URL", State: healthcheck.StateResolved, Subject: pushSubject},
 				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject},
-				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateResolved, Subject: pushSubject},
-				{Code: "SITE_URL_EMPTY", State: healthcheck.StateResolved, Subject: siteURLSubject},
-				{Code: "SITE_URL_HTTP", State: healthcheck.StateResolved, Subject: siteURLSubject},
-				{Code: "COMPLIANCE_NO_DIR", State: healthcheck.StateResolved, Subject: complianceDirSubject},
-				{Code: "AUDIT_LOG_OFF", State: healthcheck.StateResolved, Subject: auditSubject},
-				{Code: "RETENTION_TIGHT_BATCHES", State: healthcheck.StateResolved, Subject: retentionSubject},
 				{Code: "EXPORT_GR_TIMEOUT_LOW", State: healthcheck.StateFiring, Subject: globalRelayTimeoutSubject},
 			},
 		},
@@ -307,7 +294,7 @@ func TestReadCloud(t *testing.T) {
 	for _, f := range evaluate(t, snapshot) {
 		codes = append(codes, f.Code)
 	}
-	assert.ElementsMatch(t, []string{"PUSH_EMPTY_URL", "PUSH_BAD_SCHEME", "PUSH_TEST_PROXY"}, codes)
+	assert.ElementsMatch(t, []string{"PUSH_TEST_PROXY"}, codes)
 }
 
 func TestReadMissingStats(t *testing.T) {

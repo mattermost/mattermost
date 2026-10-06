@@ -109,7 +109,8 @@ func (a *App) UnmuteHealthFinding(rctx request.CTX, fingerprint string) *model.A
 // GetHealthFindings returns product-surface findings only, whatever surfaces the filter asks for:
 // internal rules are for support engineers, not the customer admin who calls the API.
 // EvaluatedAt is taken across every stored finding so that muting or hiding findings never makes
-// an evaluated server look unevaluated.
+// an evaluated server look unevaluated. Checks that never fired store no finding, so it stays 0
+// until one fires; deriving it from the health check job's last run will remove that gap.
 func (a *App) GetHealthFindings(rctx request.CTX, filter model.HealthFindingFilter) (*model.HealthFindingList, *model.AppError) {
 	all, err := a.Srv().Store().HealthFinding().List(model.HealthFindingFilter{Muted: model.MutedIncluded})
 	if err != nil {
@@ -118,7 +119,7 @@ func (a *App) GetHealthFindings(rctx request.CTX, filter model.HealthFindingFilt
 
 	list := &model.HealthFindingList{Findings: []*model.HealthFinding{}}
 	for _, finding := range all {
-		// Every cycle upserts every evaluated subject, so the newest LastSeenAt is the last cycle.
+		// Every cycle refreshes every stored finding it evaluates, so the newest LastSeenAt is the last cycle.
 		list.EvaluatedAt = max(list.EvaluatedAt, finding.LastSeenAt)
 		if finding.Surface == string(healthcheck.SurfaceProduct) && filter.Muted.Matches(finding) {
 			list.Findings = append(list.Findings, finding)
