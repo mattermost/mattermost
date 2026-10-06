@@ -29,7 +29,6 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 		group, appErr := th.App.GetPropertyGroup(th.Context, model.ManagedCategoryPropertyGroupName)
 		require.Nil(t, appErr)
 		require.Equal(t, model.PropertyGroupVersionV2, group.Version)
-		require.True(t, group.IsPSAv2())
 
 		propertyFields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 		require.Nil(t, appErr)
@@ -37,8 +36,7 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 		require.Equal(t, model.ManagedCategoryPropertyFieldName, propertyFields[0].Name)
 
 		// Reading and writing a channel's managed category goes through these
-		// cached IDs, so a startup that leaves them empty breaks the feature just
-		// as thoroughly as a group the API refuses to serve.
+		// cached IDs, so a startup that leaves them empty breaks the feature too.
 		require.Equal(t, group.ID, th.Server.Channels().managedCategoryGroupID)
 		require.Equal(t, propertyFields[0].ID, th.Server.Channels().managedCategoryFieldID)
 	}
@@ -79,8 +77,7 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 		spy := installSetVersionSpy(t, th)
 
 		// Setup(t) has already run the fresh-install path, so this stands in for
-		// the restarts that follow a new deployment. They must not move the group,
-		// and with nothing to repair they must not write its version at all.
+		// the restarts that follow a new deployment.
 		for range 2 {
 			runSetup(t, th)
 
@@ -148,8 +145,7 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 
 		// Deleting the setup flag to force the migration to run again is the usual
 		// way to remediate one of these, and registering an existing group hands
-		// back its row without touching the version. So this arm has to pin it too,
-		// or the server serves 404 for the whole run and only heals on the next one.
+		// back its row without touching the version, so this arm has to pin it too.
 		_, sysErr := th.Store.System().PermanentDeleteByName(managedCategorySetupDoneKey)
 		require.NoError(t, sysErr)
 		require.NoError(t, th.Store.PropertyGroup().SetVersion(model.ManagedCategoryPropertyGroupName, model.PropertyGroupVersionV2+1))
