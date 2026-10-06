@@ -2,6 +2,7 @@
 
 Explicitly import subdirectory instruction files that must always be in context:
 @server/AGENTS.md
+@e2e-tests/playwright/AGENTS.md
 
 ## Pull Requests
 

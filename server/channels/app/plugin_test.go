@@ -1279,7 +1279,7 @@ func TestGetPluginStateOverride(t *testing.T) {
 		})
 
 		t.Run("with enabled flag set to true", func(t *testing.T) {
-			// AppsEnabled=true is now rejected by Config.IsValid (MM-69643), so this
+			// AppsEnabled is retired and forced off on config load (MM-69643), so this
 			// override path can no longer be reached at runtime. Kept skipped rather
 			// than deleted so it is removed alongside the rest of the Apps code.
 			t.Skip("AppsEnabled feature flag is retired (MM-69643)")
