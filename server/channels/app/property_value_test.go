@@ -193,6 +193,7 @@ func TestInvalidateUserPropertyValuesEpochs_GatedOnABAC(t *testing.T) {
 		thMock.App.invalidateUserPropertyValuesEpoch(model.PropertyFieldObjectTypeUser, userID)
 
 		mockAttributes.AssertNotCalled(t, "InvalidateUserPropertyValuesEpoch", mock.Anything)
+		mockAttributes.AssertNotCalled(t, "InvalidateUserAttributes", mock.Anything)
 	})
 
 	t.Run("no invalidation when ABAC is off", func(t *testing.T) {
@@ -201,11 +202,13 @@ func TestInvalidateUserPropertyValuesEpochs_GatedOnABAC(t *testing.T) {
 		thMock.App.invalidateUserPropertyValuesEpochs(values)
 
 		mockAttributes.AssertNotCalled(t, "InvalidateUserPropertyValuesEpoch", mock.Anything)
+		mockAttributes.AssertNotCalled(t, "InvalidateUserAttributes", mock.Anything)
 	})
 
 	t.Run("one invalidation per distinct user target when active", func(t *testing.T) {
 		thMock, mockAttributes := setup(t, true, true)
 		mockAttributes.On("InvalidateUserPropertyValuesEpoch", userID).Once()
+		mockAttributes.On("InvalidateUserAttributes", userID).Once()
 
 		thMock.App.invalidateUserPropertyValuesEpochs(values)
 
@@ -218,6 +221,7 @@ func TestInvalidateUserPropertyValuesEpochs_GatedOnABAC(t *testing.T) {
 		thMock.App.invalidateUserPropertyValuesEpoch(model.PropertyFieldObjectTypePost, model.NewId())
 
 		mockAttributes.AssertNotCalled(t, "InvalidateUserPropertyValuesEpoch", mock.Anything)
+		mockAttributes.AssertNotCalled(t, "InvalidateUserAttributes", mock.Anything)
 	})
 
 	// A write made while ABAC was off must not leave the view stale for a switch back on to read,

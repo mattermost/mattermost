@@ -33,17 +33,19 @@ import {getChannelURL} from 'selectors/urls';
 
 import usePriority from 'components/advanced_text_editor/use_priority';
 import useSubmit from 'components/advanced_text_editor/use_submit';
+import {useCreateBurnOnReadAccess} from 'components/common/hooks/useCreateBurnOnReadAccess';
 import ScheduledPostActions from 'components/drafts/draft_actions/schedule_post_actions/scheduled_post_actions';
 import PlaceholderScheduledPostsTitle
     from 'components/drafts/placeholder_scheduled_post_title/placeholder_scheduled_posts_title';
 import EditScheduledPost from 'components/edit_scheduled_post';
 
 import Constants, {StoragePrefixes} from 'utils/constants';
+import {getDraftRepeatDisabledReason} from 'utils/scheduled_post_repeat';
 import {copyToClipboard} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-import {draftHasAttachments, scheduledPostToPostDraft} from 'types/store/draft';
+import {scheduledPostToPostDraft} from 'types/store/draft';
 
 import DraftActions from './draft_actions';
 import DraftTitle from './draft_title';
@@ -81,6 +83,13 @@ function DraftRow({
 
     const rootId = ('rootId' in item) ? item.rootId : item.root_id;
     const channelId = ('channelId' in item) ? item.channelId : item.channel_id;
+
+    // A draft keeps its burn-on-read type after the policy stops allowing one, so the
+    // drafts list can offer Send and Schedule for a post the server will refuse. Ask only
+    // for burn-on-read drafts: an ordinary draft in the same channel is unaffected.
+    const isBurnOnReadItem = item.type === PostTypes.BURN_ON_READ;
+    const burnOnReadAllowed = useCreateBurnOnReadAccess(isBurnOnReadItem ? channelId : undefined);
+    const invalidBurnOnRead = isBurnOnReadItem && !burnOnReadAllowed;
 
     const [serverError, setServerError] = useState<(ServerError & {submittedMessage?: string}) | null>(null);
 
@@ -132,7 +141,10 @@ function DraftRow({
         postError = intl.formatMessage({id: 'drafts.error.read_only', defaultMessage: 'Channel is read only'});
     }
 
-    const canSend = !postError;
+    // Withdraws Schedule alongside Send, which DraftActions gates on the same flag.
+    // Both are creation paths the server enforces, so scheduling a draft that can no
+    // longer be sent would only move the rejection later.
+    const canSend = !postError && !invalidBurnOnRead;
     const canEdit = !(rootPostDeleted || readOnly);
 
     const channelUrl = useSelector((state: GlobalState) => {
@@ -238,7 +250,7 @@ function DraftRow({
                 canEdit={canEdit}
                 canSend={canSend}
                 onSchedule={onScheduleDraft}
-                allowRecurring={!draftHasAttachments(item)}
+                repeatDisabledReason={getDraftRepeatDisabledReason(item)}
             />
         );
     }, [

@@ -97,15 +97,13 @@ type Channels struct {
 	imgDecoder *imaging.Decoder
 	imgEncoder *imaging.Encoder
 
-	dndTaskMut sync.Mutex
-	dndTask    *model.ScheduledTask
+	dndTask           leaderTask
+	postReminderTask  leaderTask
+	scheduledPostTask leaderTask
 
-	postReminderMut  sync.Mutex
-	postReminderTask *model.ScheduledTask
+	healthCheckTask leaderTask
 
 	interruptQuitChan chan struct{}
-	scheduledPostMut  sync.Mutex
-	scheduledPostTask *model.ScheduledTask
 }
 
 func NewChannels(s *Server) (*Channels, error) {
@@ -328,11 +326,10 @@ func (ch *Channels) Start() error {
 func (ch *Channels) Stop() error {
 	ch.ShutDownPlugins()
 
-	ch.dndTaskMut.Lock()
-	if ch.dndTask != nil {
-		ch.dndTask.Cancel()
-	}
-	ch.dndTaskMut.Unlock()
+	ch.dndTask.stop()
+	ch.postReminderTask.stop()
+	ch.scheduledPostTask.stop()
+	ch.healthCheckTask.stop()
 
 	close(ch.interruptQuitChan)
 

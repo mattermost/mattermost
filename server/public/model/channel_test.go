@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -33,6 +34,25 @@ func TestChannelPatch(t *testing.T) {
 	require.Equal(t, *p.Header, o.Header)
 	require.Equal(t, *p.Purpose, o.Purpose)
 	require.Equal(t, *p.GroupConstrained, *o.GroupConstrained)
+}
+
+func TestChannelPatchAttributeBannerOptOut(t *testing.T) {
+	channel := Channel{BannerInfo: &ChannelBannerInfo{Text: new(string)}}
+	channel.Patch(&ChannelPatch{BannerInfo: &ChannelBannerInfo{AttributeBannerDisabled: new(bool)}})
+	require.False(t, *channel.BannerInfo.AttributeBannerDisabled)
+	require.NotNil(t, channel.BannerInfo.Text)
+
+	disabled := true
+	channel.Patch(&ChannelPatch{BannerInfo: &ChannelBannerInfo{AttributeBannerDisabled: &disabled}})
+	require.True(t, *channel.BannerInfo.AttributeBannerDisabled)
+
+	serialized, err := json.Marshal(channel.BannerInfo)
+	require.NoError(t, err)
+	require.Contains(t, string(serialized), `"attribute_banner_disabled":true`)
+
+	var restored ChannelBannerInfo
+	require.NoError(t, json.Unmarshal(serialized, &restored))
+	require.True(t, *restored.AttributeBannerDisabled)
 }
 
 func TestChannelPatchDiscoverable(t *testing.T) {
