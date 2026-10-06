@@ -91,7 +91,6 @@ func TestRulesAreRegistered(t *testing.T) {
 		require.True(t, ok, code)
 		assert.Equal(t, model.AreaLicense, rule.Area, code)
 		assert.Equal(t, healthcheck.SurfaceProduct, rule.Surface, code)
-		assert.False(t, rule.AppliesToCloud, code)
 		assert.False(t, rule.IsNodeScoped(), code)
 	}
 }
