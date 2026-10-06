@@ -31,6 +31,21 @@ func (s *Snapshot) ConfigString(get func(*model.Config) *string) (string, bool) 
 	return *value, true
 }
 
+// ConfigStrings is ConfigString for list settings. ok is false when the config section is
+// absent or any element is model.FakeSetting, so one redacted entry cannot read as a value.
+func (s *Snapshot) ConfigStrings(get func(*model.Config) []string) ([]string, bool) {
+	if get == nil || !s.Has(model.SectionConfig) || s.Config == nil || s.Config.Config == nil {
+		return nil, false
+	}
+
+	values := get(s.Config.Config)
+	if slices.Contains(values, model.FakeSetting) {
+		return nil, false
+	}
+
+	return values, true
+}
+
 func (s *Snapshot) ConfigBool(get func(*model.Config) *bool) (bool, bool) {
 	if get == nil || !s.Has(model.SectionConfig) || s.Config == nil || s.Config.Config == nil {
 		return false, false
