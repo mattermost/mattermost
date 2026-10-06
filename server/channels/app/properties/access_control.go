@@ -820,7 +820,7 @@ func isMachineCaller(pluginChecker PluginChecker, callerID string) bool {
 // type is "service" and it carries no scope; for a plugin the manifest ID is
 // the owner ID and the scope is whatever the plugin declared on the request
 // context.
-func (h *AccessControlHook) callerOwnerIdentity(callerID, scope string) (ownerID, ownerType, effectiveScope string) {
+func callerOwnerIdentity(callerID, scope string) (ownerID, ownerType, effectiveScope string) {
 	if source := model.PropertySyncSourceForCallerID(callerID); source != "" {
 		return model.PropertySyncSourceAttr(source), model.PropertyOwnerTypeService, ""
 	}
@@ -864,7 +864,7 @@ func (h *AccessControlHook) checkOwnerValueWriteAccess(field *model.PropertyFiel
 		return fmt.Errorf("field %s is owner-managed and cannot be modified by human caller %q: %w", field.ID, callerID, ErrAccessDenied)
 	}
 
-	ownerID, ownerType, effectiveScope := h.callerOwnerIdentity(callerID, scope)
+	ownerID, ownerType, effectiveScope := callerOwnerIdentity(callerID, scope)
 	for _, owner := range h.effectiveOwners(field) {
 		if owner.Type == ownerType && owner.ID == ownerID &&
 			(len(owner.Scopes) == 0 || slices.Contains(owner.Scopes, effectiveScope)) {
@@ -878,8 +878,8 @@ func (h *AccessControlHook) checkOwnerValueWriteAccess(field *model.PropertyFiel
 // isListedOwner reports whether the machine caller matches an explicit owner
 // entry on the field (by id and type). Scope is not consulted: being a listed
 // owner is what authorizes managing the field; scope only gates value writes.
-func (h *AccessControlHook) isListedOwner(field *model.PropertyField, callerID string) bool {
-	ownerID, ownerType, _ := h.callerOwnerIdentity(callerID, "")
+func isListedOwner(field *model.PropertyField, callerID string) bool {
+	ownerID, ownerType, _ := callerOwnerIdentity(callerID, "")
 	for _, owner := range model.GetPropertyFieldOwners(field) {
 		if owner.Type == ownerType && owner.ID == ownerID {
 			return true
@@ -899,7 +899,7 @@ func (h *AccessControlHook) isListedOwner(field *model.PropertyField, callerID s
 // protected / source_plugin_id rules continue to apply.
 func (h *AccessControlHook) enforceFieldUpdateAccess(existing, updated *model.PropertyField, callerID string) error {
 	if model.HasPropertyFieldOwners(existing) {
-		if isMachineCaller(h.pluginChecker, callerID) && !h.isListedOwner(existing, callerID) {
+		if isMachineCaller(h.pluginChecker, callerID) && !isListedOwner(existing, callerID) {
 			return fmt.Errorf("field %s is owner-managed and can only be modified by an administrator or a listed owner: %w", existing.ID, ErrAccessDenied)
 		}
 		return nil
@@ -1012,7 +1012,7 @@ func (h *AccessControlHook) checkLegacyFieldWriteAccess(field *model.PropertyFie
 // IMPORTANT: Always pass the existing field fetched from the database, not a field provided by the caller.
 func (h *AccessControlHook) checkFieldDeleteAccess(field *model.PropertyField, callerID string) error {
 	if model.HasPropertyFieldOwners(field) {
-		if isMachineCaller(h.pluginChecker, callerID) && !h.isListedOwner(field, callerID) {
+		if isMachineCaller(h.pluginChecker, callerID) && !isListedOwner(field, callerID) {
 			return fmt.Errorf("field %s is owner-managed and can only be deleted by an administrator or a listed owner: %w", field.ID, ErrAccessDenied)
 		}
 		return nil

@@ -1,6 +1,8 @@
 ---
 title: "RTCD Setup and Configuration"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <PlanAvailability slug="ent-plus" />
 
 This guide provides detailed instructions for setting up, configuring, and validating a Mattermost Calls deployment using the dedicated RTCD service.
@@ -94,7 +96,7 @@ The following network connectivity is required:
 <td>UDP (outgoing)</td>
 <td>Mattermost Instance(s) (Calls plugin) or <code>rtcd</code> service</td>
 <td>Configured STUN servers</td>
-<td>(Optional) To allow for either Calls plugin or <code>rtcd</code> service to discover their instance public IP. Only needed if configuring STUN/TURN servers. This requirement does not apply when manually setting an IP or hostname through the <a href="/administration-guide/configure/plugins-configuration-settings#ice-host-override">ICE Host Override</a> config option.</td>
+<td>(Optional) To allow for either Calls plugin or <code>rtcd</code> service to discover their instance public IP. Only needed if configuring STUN/TURN servers. This requirement does not apply when manually setting an IP or hostname through the <a href={useBaseUrl('/administration-guide/configure/plugins-configuration-settings#ice-host-override')}>ICE Host Override</a> config option.</td>
 </tr>
 </tbody>
 </table>

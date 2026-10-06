@@ -72,7 +72,7 @@ function buildPatchOptionsAttr(fieldType: AttributeFieldType, options: PropertyF
     }
 }
 
-async function listPropertyFields(objectType: string): Promise<PropertyField[]> {
+export async function listPropertyFields(objectType: string): Promise<PropertyField[]> {
     const fields: PropertyField[] = [];
     let cursorId: string | undefined;
     let cursorCreateAt: number | undefined;
@@ -125,7 +125,7 @@ export async function fetchAttributeField(fieldId: string, allowedTypes: readonl
     ));
 }
 
-function isResourceObjectType(value: string): value is ResourceObjectType {
+export function isResourceObjectType(value: string): value is ResourceObjectType {
     return (ALL_RESOURCE_TYPES as string[]).includes(value);
 }
 
@@ -178,6 +178,25 @@ export function linkedFieldsByResourceType(fields: PropertyField[]): Partial<Rec
     return byType;
 }
 
+// Live fields in `fields` that an admin would read as the same attribute as
+// `name`, ignoring `templateId` itself and anything linked to it.
+//
+// Name, not display name: a CEL rule refers to a field by its name
+// (user.attributes.clearance), so two fields sharing one are indistinguishable
+// to whoever writes the rule. The comparison ignores case even though the
+// server's uniqueness check does not (buildConflictSubquery in
+// sqlstore/property_field_store.go compares Name exactly) -- a template named
+// `Clearance` never collides on the server with a user field named
+// `clearance`, yet an admin sees the two as one attribute.
+export function findNameConflicts(name: string, fields: PropertyField[], templateId?: string): PropertyField[] {
+    const target = name.toLowerCase();
+    return fields.filter((field) => (
+        field.delete_at === 0 &&
+        field.name.toLowerCase() === target &&
+        (!templateId || (field.id !== templateId && field.linked_field_id !== templateId))
+    ));
+}
+
 // Creates a template field in the access_control group. target_type/target_id
 // are set explicitly because CanonicalizeSystemObjectField only auto-corrects
 // ObjectType=system fields, not ObjectType=template ones.
@@ -220,6 +239,8 @@ export type UpdateAttributeFieldPatch = {
     // have added some since this editor loaded them.
     options?: PropertyFieldOption[];
     externalLinks: ExternalSourceLinks;
+    resourceAttrs?: Record<string, unknown>;
+    permissionValues?: PropertyPermissionLevel;
 };
 
 // Attrs are merge-patched (mergeAttrs=true on the server): each sync source
@@ -243,7 +264,9 @@ export function updateAttributeField(
             ...(patch.options === undefined ? {} : {options: buildPatchOptionsAttr(fieldType, patch.options)}),
             ...Object.fromEntries(ALL_EXTERNAL_SOURCES.map((source) => [source, patch.externalLinks[source] || null])),
             value_type: valueType || null,
+            ...patch.resourceAttrs,
         },
+        ...(patch.permissionValues ? {permission_values: patch.permissionValues} : {}),
     });
 }
 

@@ -10,11 +10,12 @@ import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
-import {DotsHorizontalIcon, EyeOutlineIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {AlertOutlineIcon, DotsHorizontalIcon, EyeOutlineIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldType, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {valueRefersToOptions} from '@mattermost/types/properties';
+import type {PropertyFieldOwner} from '@mattermost/types/properties_user';
 
 import PropertyTypes from 'mattermost-redux/action_types/properties';
 import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
@@ -33,13 +34,14 @@ import {
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
 } from 'components/admin_console/classification_markings/utils';
 import AlertBanner from 'components/alert_banner';
-import {useIsFieldOrphaned, usePluginInventoryLoaded} from 'components/common/hooks/use_field_orphaned';
+import {useInstalledPluginIds, useIsFieldOrphaned, usePluginInventoryLoaded} from 'components/common/hooks/use_field_orphaned';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {getHistory} from 'utils/browser_history';
 import {LicenseSkus} from 'utils/constants';
+import {allOwnersAreUninstalledPlugins} from 'utils/properties';
 
 import type {GlobalState} from 'types/store';
 
@@ -51,7 +53,10 @@ import {ATTRIBUTE_TYPE_DESCRIPTOR, ATTRIBUTE_TYPE_FALLBACK_LABEL, getAttributeTy
 import {CLASSIFICATION_ATTRIBUTE_ROUTE} from './classification_attribute';
 import {attributeDetailsRoute, GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
 import {useGlobalAttributeFieldDelete} from './global_attribute_delete_modal';
+import type {NameConflict} from './name_conflict';
+import {findNameConflict, nameConflictText} from './name_conflict';
 import useAllowedResourceTypes from './use_allowed_resource_types';
+import {getFieldOwners, NO_OWNERS, useOwnersLabel} from './use_owners_label';
 import {appliedResourceTypesByTemplateId, deleteAttributeField} from './utils';
 
 import {it} from '../admin_definition_helpers';
@@ -157,39 +162,60 @@ type ClassificationAwareCellProps = {
     isClassificationRow: boolean;
 };
 
-function SourceCell({field, isClassificationRow}: ClassificationAwareCellProps) {
+function SourceCell({field, isClassificationRow, owners}: ClassificationAwareCellProps & {owners: PropertyFieldOwner[]}) {
     const {formatMessage} = useIntl();
+    const ownersLabel = useOwnersLabel(owners);
     const pluginId = field.attrs?.source_plugin_id as string | undefined;
     const pluginDisplayName = useSelector((state: GlobalState) => getPluginDisplayName(state, pluginId));
 
     const kind = getSourceKind(field);
+    const syncSources = getPropertyFieldSyncSources(field);
+    const SyncKindIcon = getSourceIcon('external');
 
     let content: React.ReactNode;
     if (isClassificationRow) {
+        // Not a plugin or an identity source sync, so it gets no source icon.
         content = <FormattedMessage {...sourceLabels.classificationMarkings}/>;
     } else if (kind === 'plugin') {
-        content = pluginDisplayName;
-    } else if (kind === 'external') {
         content = (
-            <FormattedList
-                type='unit'
-                value={getPropertyFieldSyncSources(field).map((source) => formatMessage(externalSourceMessages[source].title))}
-            />
+            <>
+                <PowerPlugOutlineIcon size={16}/>
+                {pluginDisplayName}
+            </>
+        );
+    } else if (owners.length > 0 || syncSources.length > 0) {
+        // An owned field can also be synced from an identity source, so both are shown.
+        content = (
+            <>
+                {owners.length > 0 && (
+                    <span className='GlobalAttributesTable__source'>
+                        <PowerPlugOutlineIcon size={16}/>
+                        <FormattedMessage
+                            {...sourceLabels.ownedBy}
+                            values={{owners: ownersLabel}}
+                        />
+                    </span>
+                )}
+                {syncSources.length > 0 && (
+                    <span className='GlobalAttributesTable__source'>
+                        {SyncKindIcon && <SyncKindIcon size={16}/>}
+                        <FormattedList
+                            type='unit'
+                            value={syncSources.map((source) => formatMessage(externalSourceMessages[source].title))}
+                        />
+                    </span>
+                )}
+            </>
         );
     } else {
         content = <FormattedMessage {...sourceLabels.managed}/>;
     }
-
-    // The classification row identifies its source via text alone ("Classification
-    // Markings"), not a plugin/external/managed kind, so it doesn't get one of those icons.
-    const Icon = isClassificationRow ? undefined : getSourceIcon(kind);
 
     return (
         <span
             className='GlobalAttributesTable__source'
             data-testid='global-attribute-source'
         >
-            {Icon && <Icon size={16}/>}
             {content}
         </span>
     );
@@ -247,14 +273,44 @@ function classificationSubtitleId(fieldId: string): string {
     return `global-attribute-classification-subtitle-${fieldId}`;
 }
 
-function AttributeCell({field, isClassificationRow}: ClassificationAwareCellProps) {
+type AttributeCellProps = ClassificationAwareCellProps & {
+    nameConflict?: NameConflict;
+};
+
+function AttributeCell({field, isClassificationRow, nameConflict}: AttributeCellProps) {
+    const {formatMessage} = useIntl();
+    const conflictText = nameConflict ? nameConflictText(nameConflict, formatMessage) : '';
+
     return (
         <span className='GlobalAttributesTable__attribute'>
-            <span
-                className='GlobalAttributesTable__name'
-                data-testid='global-attribute-name'
-            >
-                {getDisplayName(field)}
+            <span className='GlobalAttributesTable__nameRow'>
+                <span
+                    className='GlobalAttributesTable__name'
+                    data-testid='global-attribute-name'
+                >
+                    {getDisplayName(field)}
+                </span>
+                {nameConflict && (
+                    <WithTooltip title={conflictText}>
+                        <span
+                            className='GlobalAttributesTable__nameConflict'
+
+                            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child, so without this the warning is mouse-only
+                            tabIndex={0}
+
+                            // The icon is the whole content, so the element needs a
+                            // role that admits a name for aria-label to be announced.
+                            role='img'
+                            aria-label={conflictText}
+                            data-testid={`global-attribute-name-conflict-${field.id}`}
+                        >
+                            <AlertOutlineIcon
+                                size={16}
+                                aria-hidden={true}
+                            />
+                        </span>
+                    </WithTooltip>
+                )}
             </span>
             {isClassificationRow && (
                 <span
@@ -271,13 +327,15 @@ function AttributeCell({field, isClassificationRow}: ClassificationAwareCellProp
 
 type ActionsCellProps = ClassificationAwareCellProps & {
     isMobileView: boolean;
+    owners: PropertyFieldOwner[];
+    resourcesLoaded: boolean;
     pluginInventoryLoaded: boolean;
     disabled: boolean;
     onDeleteError: (message: string | null) => void;
     onDeleteModalExited: () => void;
 };
 
-function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryLoaded, disabled, onDeleteError, onDeleteModalExited}: ActionsCellProps) {
+function ActionsCell({field, isClassificationRow, isMobileView, owners, resourcesLoaded, pluginInventoryLoaded, disabled, onDeleteError, onDeleteModalExited}: ActionsCellProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const promptDelete = useGlobalAttributeFieldDelete();
@@ -294,11 +352,28 @@ function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryL
     const isOrphaned = pluginInventoryLoaded && fieldLooksOrphaned;
     const isPluginManaged = isPluginOwned && !isOrphaned;
 
+    // Deleting an attribute deletes its owned Users field, so an owned attribute
+    // is deletable only once every owner is an uninstalled plugin. Until the
+    // Users fields and plugin inventory settle, ownership is not known yet.
+    const installedPluginIds = useInstalledPluginIds();
+    const ownersLabel = useOwnersLabel(owners);
+    const isOwned = owners.length > 0;
+    const ownersGone = pluginInventoryLoaded && allOwnersAreUninstalledPlugins(owners, installedPluginIds);
+    const isResolving = !resourcesLoaded && field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE;
+    const isOwnerManaged = isOwned && !ownersGone;
+
     // Page-level read-only (non-sysadmin via schema isDisabled) and plugin-owned
     // fields both open the details page as view-only; Delete stays off for those
-    // plus still-installed plugin-managed rows.
+    // plus still-installed plugin-managed or owner-managed rows.
     const isViewOnly = disabled || isPluginOwned;
-    const isDeleteDisabled = disabled || isPluginManaged;
+    const isDeleteDisabled = disabled || isPluginManaged || isResolving || isOwnerManaged;
+
+    let orphanInfo: {ownerPluginIds: string[]} | {sourcePluginId?: string} | undefined;
+    if (isOwned) {
+        orphanInfo = {ownerPluginIds: owners.map((owner) => owner.id)};
+    } else if (isOrphaned) {
+        orphanInfo = {sourcePluginId: field.attrs?.source_plugin_id as string | undefined};
+    }
 
     const handleConfirmed = useCallback(async () => {
         onDeleteError(null);
@@ -370,13 +445,21 @@ function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryL
                 onClick={isDeleteDisabled ? undefined : () => promptDelete(
                     getDisplayName(field),
                     handleConfirmed,
-                    isOrphaned ? {sourcePluginId: field.attrs?.source_plugin_id as string | undefined} : undefined,
+                    orphanInfo,
                     onDeleteModalExited,
                 )}
                 labels={(
                     <>
                         <span><FormattedMessage {...actionsLabels.delete}/></span>
                         {isPluginManaged && <span><FormattedMessage {...actionsLabels.pluginManaged}/></span>}
+                        {!isPluginManaged && isOwnerManaged && (
+                            <span>
+                                <FormattedMessage
+                                    {...actionsLabels.ownerManaged}
+                                    values={{owners: ownersLabel}}
+                                />
+                            </span>
+                        )}
                     </>
                 )}
             />
@@ -441,6 +524,18 @@ export default function GlobalAttributesTable({searchQuery = '', disabled = fals
         ]),
         [channelLinkedFields, suppressedScopes, postLinkedFields, userLinkedFields],
     );
+    const ownersByTemplateId = useMemo(() => {
+        const byTemplate: Record<string, PropertyFieldOwner[]> = {};
+        if (suppressedScopes.has('user')) {
+            return byTemplate;
+        }
+        for (const field of userLinkedFields) {
+            if (field.linked_field_id && field.delete_at === 0) {
+                byTemplate[field.linked_field_id] = getFieldOwners(field);
+            }
+        }
+        return byTemplate;
+    }, [suppressedScopes, userLinkedFields]);
     const unlinkedFields = useSelector((state: GlobalState) =>
         getUnlinkedSystemFieldsForGroup(state, groupId),
     );
@@ -531,11 +626,49 @@ export default function GlobalAttributesTable({searchQuery = '', disabled = fals
         [classificationMarkingsReachable, fields, groupId, unlinkedFields, suppressedScopes, resourcesLoaded],
     );
 
-    // The Source column resolves plugin-owned rows to a plugin display name, but
-    // server-only plugins are absent from the webapp manifest registry — their names
-    // live in the admin plugin statuses, which nothing else on this page loads.
-    // Fetched once, and only when a plugin-owned row is actually present.
-    const hasPluginOwnedFields = useMemo(() => allRows.some((field) => Boolean(field.attrs?.source_plugin_id)), [allRows]);
+    const ownersFor = useCallback((field: PropertyField): PropertyFieldOwner[] => {
+        if (field.object_type === 'user') {
+            return getFieldOwners(field);
+        }
+        return ownersByTemplateId[field.id] ?? NO_OWNERS;
+    }, [ownersByTemplateId]);
+
+    // Attribute Management hides a template's linked children, so the only trace
+    // of one is the template's own row -- which says nothing about the name that
+    // child carries. Two attributes an admin reads as one (a `clearance` user
+    // field owned by Classification and an unrelated `Clearance` template) are
+    // therefore invisible to each other here. Resolved against the live user
+    // fields, since a CEL rule names one of those.
+    //
+    // Waits on resourcesLoaded like the unlinked rows do: suppressedScopes is
+    // only populated once the scope fetches settle, so warning before that
+    // would read a cache this page has not confirmed it can still fetch.
+    const nameConflictsByFieldId = useMemo(() => {
+        const liveUserFields = resourcesLoaded && !suppressedScopes.has('user') ? userLinkedFields : [];
+        const byFieldId: Record<string, NameConflict> = {};
+        for (const field of allRows) {
+            // Only rows that share the user namespace. A channel or post field
+            // is `resource.attributes.<name>` in CEL, which never resolves to a
+            // user field however alike the two names look; a template counts
+            // because applying it to Users would put it in that namespace.
+            if (field.object_type !== GLOBAL_ATTRIBUTES_OBJECT_TYPE && field.object_type !== 'user') {
+                continue;
+            }
+            const conflict = findNameConflict(field.name, liveUserFields, fields, field.id);
+            if (conflict) {
+                byFieldId[field.id] = conflict;
+            }
+        }
+        return byFieldId;
+    }, [allRows, fields, resourcesLoaded, suppressedScopes, userLinkedFields]);
+
+    // The Source column resolves plugin-created and plugin-owned rows to a plugin
+    // display name, but server-only plugins are absent from the webapp manifest
+    // registry — their names live in the admin plugin statuses, which nothing else
+    // on this page loads. Fetched once, and only when such a row is actually present.
+    const hasPluginOwnedFields = useMemo(() => allRows.some((field) => (
+        Boolean(field.attrs?.source_plugin_id) || ownersFor(field).some((owner) => owner.type === 'plugin')
+    )), [allRows, ownersFor]);
 
     // Whether the plugin inventory is known yet. This gates the orphan check
     // rather than the Source column, which degrades harmlessly to the plugin ID:
@@ -620,6 +753,7 @@ export default function GlobalAttributesTable({searchQuery = '', disabled = fals
                     <AttributeCell
                         field={row.original}
                         isClassificationRow={isClassificationRow(row.original)}
+                        nameConflict={nameConflictsByFieldId[row.original.id]}
                     />
                 ),
                 enableSorting: false,
@@ -664,6 +798,7 @@ export default function GlobalAttributesTable({searchQuery = '', disabled = fals
                     <SourceCell
                         field={row.original}
                         isClassificationRow={isClassificationRow(row.original)}
+                        owners={ownersFor(row.original)}
                     />
                 ),
                 enableHiding: false,
@@ -689,6 +824,8 @@ export default function GlobalAttributesTable({searchQuery = '', disabled = fals
                             field={row.original}
                             isClassificationRow={isClassificationRow(row.original)}
                             isMobileView={isMobileView}
+                            owners={ownersFor(row.original)}
+                            resourcesLoaded={resourcesLoaded}
                             pluginInventoryLoaded={pluginInventoryLoadedRef.current}
                             disabled={disabled}
                             onDeleteError={setDeleteError}
@@ -699,7 +836,7 @@ export default function GlobalAttributesTable({searchQuery = '', disabled = fals
                 enableHiding: false,
             }),
         ];
-    }, [appliesToByTemplateId, groupId, classificationMarkingsReachable, isMobileView, handleDeleteModalExited, resourcesLoaded, disabled]);
+    }, [appliesToByTemplateId, groupId, classificationMarkingsReachable, isMobileView, handleDeleteModalExited, nameConflictsByFieldId, resourcesLoaded, ownersFor, disabled]);
 
     const table = useReactTable<PropertyField>({
         data: rows,
@@ -816,6 +953,7 @@ export const typeLabels = {
 
 const sourceLabels = defineMessages({
     managed: {id: 'admin.global_attributes.table.source.managed', defaultMessage: 'Managed here'},
+    ownedBy: {id: 'admin.global_attributes.table.source.owned_by', defaultMessage: 'Managed by {owners}'},
     classificationMarkings: {
         id: 'admin.global_attributes.table.source.classification_markings',
         defaultMessage: 'Classification Markings',
@@ -834,6 +972,7 @@ export const actionsLabels = defineMessages({
     view: {id: 'admin.global_attributes.table.actions.view', defaultMessage: 'View attribute'},
     delete: {id: 'admin.global_attributes.table.actions.delete', defaultMessage: 'Delete attribute'},
     pluginManaged: {id: 'admin.global_attributes.table.actions.plugin_managed', defaultMessage: 'Plugin-managed'},
+    ownerManaged: {id: 'admin.global_attributes.table.actions.owner_managed', defaultMessage: 'Managed by {owners}'},
     deleteErrorHasDependents: {
         id: 'admin.global_attributes.confirm.delete.error.has_dependents',
         defaultMessage: "This attribute can't be deleted because other attributes are still linked to it. Remove those links first, then try again.",
