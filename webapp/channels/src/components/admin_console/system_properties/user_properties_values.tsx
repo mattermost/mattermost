@@ -11,7 +11,7 @@ import type {CreatableProps} from 'react-select/creatable';
 import CreatableSelect from 'react-select/creatable';
 
 import {SyncIcon, PowerPlugOutlineIcon} from '@mattermost/compass-icons/components';
-import {supportsOptions, type PropertyFieldOption} from '@mattermost/types/properties';
+import {supportsOptions, valueRefersToOptions, type PropertyFieldOption} from '@mattermost/types/properties';
 import {type UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getPluginDisplayName} from 'selectors/plugins';
@@ -230,7 +230,16 @@ const UserPropertyValues = ({
         );
     }
 
-    if (!supportsOptions(field)) {
+    // A graph field's options form a hierarchy, and this cell can only send back
+    // a flat list: saving one would keep the option names and drop every parent
+    // edge between them. So the options are shown and never editable, keyed on
+    // the type rather than on attrs.protected, which marks a plugin-owned field
+    // and means something else. supportsOptions deliberately still says no for
+    // graph: it also gates this page's "at least one option" save requirement,
+    // which a graph field whose options the server withheld could not meet.
+    const isGraph = field.type === 'graph';
+
+    if (!valueRefersToOptions(field)) {
         return (
             <span className='user-property-field-values'>
                 {'-'}
@@ -238,9 +247,35 @@ const UserPropertyValues = ({
         );
     }
 
+    if (isGraph && field.attrs?.options_omitted) {
+        const omittedCount = (
+            <span
+                className='user-property-field-values'
+                data-testid='user-property-field-values__options-omitted'
+            >
+                <FormattedMessage
+                    id='admin.system_properties.user_properties.table.values.options_count'
+                    defaultMessage='{count, plural, one {# option} other {# options}}'
+                    values={{count: field.attrs.options_count ?? 0}}
+                />
+            </span>
+        );
+        if (syncedBadge) {
+            return (
+                <div className='user-property-field-values user-property-field-values--with-owners'>
+                    {syncedBadge}
+                    <div className='user-property-field-values__options'>
+                        {omittedCount}
+                    </div>
+                </div>
+            );
+        }
+        return omittedCount;
+    }
+
     // Linked fields inherit their options from the template they link to; the
     // server rejects an options change on them.
-    const isDisabled = field.delete_at !== 0 || isProtected || isLinkedField(field);
+    const isDisabled = field.delete_at !== 0 || isProtected || isLinkedField(field) || isGraph;
 
     // Ranked fields render numbered chips with a per-chip rank/label/remove
     // popover instead of the plain creatable value list.

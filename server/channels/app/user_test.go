@@ -2505,6 +2505,46 @@ func TestPatchUser(t *testing.T) {
 		require.Nil(t, err)
 		require.Empty(t, u.Password)
 	})
+
+	t.Run("Patch bot username to a reserved system-owned bot username", func(t *testing.T) {
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    model.NewUsername(),
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		_, err = th.App.PatchUser(th.Context, bot.UserId, &model.UserPatch{
+			Username: new(model.BotSystemBotUsername),
+		}, true)
+		require.NotNil(t, err)
+		require.Equal(t, "app.user.update.reserved_username.app_error", err.Id)
+	})
+
+	t.Run("UpdateUser directly (bypassing PatchUser) cannot rename a bot into a reserved username", func(t *testing.T) {
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    model.NewUsername(),
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		botUser, err := th.App.GetUser(th.Context, bot.UserId)
+		require.Nil(t, err)
+
+		botUser.Username = model.BotSystemBotUsername
+		_, err = th.App.UpdateUser(th.Context, botUser, false)
+		require.NotNil(t, err)
+		require.Equal(t, "app.user.update.reserved_username.app_error", err.Id)
+	})
 }
 
 func TestUpdateThreadReadForUser(t *testing.T) {

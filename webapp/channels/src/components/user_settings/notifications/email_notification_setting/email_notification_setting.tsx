@@ -51,7 +51,7 @@ type State = {
 };
 
 export default class EmailNotificationSetting extends React.PureComponent<Props, State> {
-    editButtonRef: RefObject<SettingItemMinComponent>;
+    editButtonRef: RefObject<SettingItemMinComponent | null>;
 
     constructor(props: Props) {
         super(props);

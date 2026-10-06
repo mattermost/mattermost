@@ -2,14 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {act} from 'react-dom/test-utils';
 import {defineMessage} from 'react-intl';
 
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
 
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import {it} from './admin_definition_helpers';
 import SchemaAdminSettings, {SchemaAdminSettings as SchemaAdminSettingsClass, getConfigFromState} from './schema_admin_settings';

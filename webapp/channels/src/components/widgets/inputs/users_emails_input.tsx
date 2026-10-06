@@ -122,7 +122,7 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
         loadingMessage: messages.loadingDefault,
         showError: false,
     };
-    private selectRef: RefObject<SelectInstance<UserProfile | EmailInvite, true>>;
+    private selectRef: RefObject<SelectInstance<UserProfile | EmailInvite, true> | null>;
 
     constructor(props: Props) {
         super(props);

@@ -133,7 +133,9 @@ export type ClientConfig = {
     FeatureFlagPostDeliveryTracking: string;
     FeatureFlagClassificationMarkings: string;
     FeatureFlagChannelAttributes: string;
+    FeatureFlagChannelAttributesRequired: string;
     FeatureFlagPropertyFieldRank: string;
+    FeatureFlagPropertyFieldGraph: string;
     FeatureFlagManagedChannelCategories: string;
     FeatureFlagSessionAttributes: string;
     FeatureFlagPostAttributes: string;
@@ -976,6 +978,7 @@ export type MessageExportSettings = {
         CustomSMTPPort: string;
         CustomHeaderName: string;
         CustomHeaderValue: string;
+        SenderAddress: string;
     };
 };
 

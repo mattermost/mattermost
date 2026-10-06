@@ -104,6 +104,26 @@ export default class ConfigurationSettings {
         expect((await colorInput.inputValue()).replace('#', '')).toBe(color);
     }
 
+    get joinLeaveMessagesToggle() {
+        return this.container.getByTestId('channelJoinLeaveMessagesToggle-button');
+    }
+
+    async enableJoinLeaveMessages() {
+        const toggleButton = this.container.getByTestId('channelJoinLeaveMessagesToggle-button');
+        const classes = await toggleButton.getAttribute('class');
+        if (!classes?.includes('active')) {
+            await toggleButton.click();
+        }
+    }
+
+    async disableJoinLeaveMessages() {
+        const toggleButton = this.container.getByTestId('channelJoinLeaveMessagesToggle-button');
+        const classes = await toggleButton.getAttribute('class');
+        if (classes?.includes('active')) {
+            await toggleButton.click();
+        }
+    }
+
     get bannerTextbox() {
         return this.container.getByTestId('channel_banner_banner_text_textbox');
     }

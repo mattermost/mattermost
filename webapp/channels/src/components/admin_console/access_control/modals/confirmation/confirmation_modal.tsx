@@ -9,7 +9,7 @@ import {GenericModal} from '@mattermost/components';
 import './confirmation_modal.scss';
 
 type Props = {
-    active: boolean;
+    autoAdd: boolean;
     onExited: () => void;
     onConfirm: (apply: boolean) => void;
     channelsAffected: number;
@@ -17,7 +17,7 @@ type Props = {
     privateChannelsAffected?: number;
 };
 
-export default function PolicyConfirmationModal({active, onExited, onConfirm, channelsAffected, publicChannelsAffected = 0, privateChannelsAffected = 0}: Props) {
+export default function PolicyConfirmationModal({autoAdd, onExited, onConfirm, channelsAffected, publicChannelsAffected = 0, privateChannelsAffected = 0}: Props) {
     const {formatMessage} = useIntl();
     const [enforceImmediately, setEnforceImmediately] = useState(true);
 
@@ -26,7 +26,7 @@ export default function PolicyConfirmationModal({active, onExited, onConfirm, ch
 
     let bodyText: string;
     if (hasMix) {
-        bodyText = active ? formatMessage({
+        bodyText = autoAdd ? formatMessage({
             id: 'admin.access_control.policy.save_policy_confirmation_body.mixed',
             defaultMessage: 'This policy is applied to channels of mixed types. For private channels, matching users will be granted access and non-matching members will be removed. For public channels, matching users will see these channels as recommendations and will be auto-added when auto-add is enabled; no existing members will be removed.',
         }) : formatMessage({
@@ -34,15 +34,15 @@ export default function PolicyConfirmationModal({active, onExited, onConfirm, ch
             defaultMessage: 'This policy is applied to channels of mixed types. For private channels, only matching users can be added and non-matching existing members will be removed. For public channels, the policy acts as a recommendation only; no existing members will be removed.',
         });
     } else if (hasOnlyPublic) {
-        bodyText = active ? formatMessage({
+        bodyText = autoAdd ? formatMessage({
             id: 'admin.access_control.policy.save_policy_confirmation_body.public',
             defaultMessage: 'Matching users will see these public channels as recommendations and, when auto-add is enabled, will be added automatically. Anyone can still join these channels; no existing members will be removed.',
         }) : formatMessage({
             id: 'admin.access_control.policy.save_policy_confirmation_body.public_inactive',
-            defaultMessage: 'Matching users will see these public channels as recommendations only; no existing members will be removed. Turn on Active (auto-add) to add matching users automatically.',
+            defaultMessage: 'Matching users will see these public channels as recommendations only; no existing members will be removed. Turn on auto-add to add matching users automatically.',
         });
     } else {
-        bodyText = active ? formatMessage({
+        bodyText = autoAdd ? formatMessage({
             id: 'admin.access_control.policy.save_policy_confirmation_body',
             defaultMessage: 'Applying this policy will allow users with the appropriate attribute values to be added to the selected channels. Existing channel members will be removed from these channels if they are not assigned the values defined in this membership policy.',
         }) : formatMessage({

@@ -684,6 +684,26 @@ func (_m *Store) Group() store.GroupStore {
 	return r0
 }
 
+// HealthFinding provides a mock function with no fields
+func (_m *Store) HealthFinding() store.HealthFindingStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for HealthFinding")
+	}
+
+	var r0 store.HealthFindingStore
+	if rf, ok := ret.Get(0).(func() store.HealthFindingStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.HealthFindingStore)
+		}
+	}
+
+	return r0
+}
+
 // Job provides a mock function with no fields
 func (_m *Store) Job() store.JobStore {
 	ret := _m.Called()

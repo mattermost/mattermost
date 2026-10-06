@@ -42,6 +42,7 @@ const (
 	DialogElementBoolMaxLength        = 150
 	DialogElementFileMaxLength        = 300
 	DefaultTimeIntervalMinutes        = 60 // Default time interval for DateTime fields
+	DialogCollapsibleMaxDepth         = 3  // Maximum levels of nested collapsible sections (top-level collapsible is depth 1)
 	MaxDialogCheckboxGroupOptions     = 50
 	MaxDialogMatrixRows               = 30
 	MaxDialogMatrixColumns            = 10
@@ -503,6 +504,10 @@ type DialogElement struct {
 	AllowMultiple bool                 `json:"allow_multiple,omitempty"`
 	Refresh       bool                 `json:"refresh,omitempty"`
 
+	// CollapsibleConfig holds child elements and display options for a
+	// "collapsible" element. Nil for all other element types.
+	CollapsibleConfig *DialogElementCollapsibleConfig `json:"collapsible_config,omitempty"`
+
 	// Date/datetime field configuration
 	DateTimeConfig *DialogDateTimeConfig `json:"datetime_config,omitempty"`
 
@@ -538,10 +543,23 @@ type DialogActionButton struct {
 	Context map[string]string `json:"context,omitempty"`
 }
 
+type DialogElementCollapsibleConfig struct {
+	// Elements are the child elements rendered inside the collapsible section.
+	Elements []DialogElement `json:"elements,omitempty"`
+	// Collapsed controls the initial open/closed state. False means expanded.
+	Collapsed bool `json:"collapsed,omitempty"`
+	// Borderless controls whether the section renders without a box outline.
+	Borderless bool `json:"borderless,omitempty"`
+}
+
 type OpenDialogRequest struct {
 	TriggerId string `json:"trigger_id"`
 	URL       string `json:"url"`
 	Dialog    Dialog `json:"dialog"`
+
+	// ChannelId is populated by the server from the trigger and sent to the client,
+	// which echoes it back on submit so the submission targets the correct channel.
+	ChannelId string `json:"channel_id,omitempty"`
 }
 
 type SubmitDialogRequest struct {
@@ -632,9 +650,10 @@ func signForGenerateTriggerId(s crypto.Signer, digest []byte, opts crypto.Signer
 	return s.Sign(rand.Reader, digest, opts)
 }
 
-func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppError) {
+// GenerateTriggerId signs the context an interactive dialog needs on submit.
+func GenerateTriggerId(userId, channelId string, s crypto.Signer) (string, string, *AppError) {
 	clientTriggerId := NewId()
-	triggerData := strings.Join([]string{clientTriggerId, userId, strconv.FormatInt(GetMillis(), 10)}, ":") + ":"
+	triggerData := strings.Join([]string{clientTriggerId, userId, strconv.FormatInt(GetMillis(), 10), channelId}, ":") + ":"
 
 	h := crypto.SHA256
 	sum := h.New()
@@ -651,7 +670,7 @@ func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppErro
 }
 
 func (r *PostActionIntegrationRequest) GenerateTriggerId(s crypto.Signer) (string, string, *AppError) {
-	clientTriggerId, triggerId, appErr := GenerateTriggerId(r.UserId, s)
+	clientTriggerId, triggerId, appErr := GenerateTriggerId(r.UserId, r.ChannelId, s)
 	if appErr != nil {
 		return "", "", appErr
 	}
@@ -660,29 +679,33 @@ func (r *PostActionIntegrationRequest) GenerateTriggerId(s crypto.Signer) (strin
 	return clientTriggerId, triggerId, nil
 }
 
-func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey, timeout time.Duration) (string, string, *AppError) {
+// DecodeAndVerifyTriggerId returns the client trigger ID, the user the trigger was
+// minted for, and the channel it originated in.
+func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey, timeout time.Duration) (string, string, string, *AppError) {
 	triggerIdBytes, err := base64.StdEncoding.DecodeString(triggerId)
 	if err != nil {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.base64_decode_failed", nil, "", http.StatusBadRequest).Wrap(err)
+		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.base64_decode_failed", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	split := strings.Split(string(triggerIdBytes), ":")
-	if len(split) != 4 {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.missing_data", nil, "", http.StatusBadRequest)
+	if len(split) < 5 {
+		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.missing_data", nil, "", http.StatusBadRequest)
 	}
 
 	clientTriggerId := split[0]
 	userId := split[1]
 	timestampStr := split[2]
 	timestamp, _ := strconv.ParseInt(timestampStr, 10, 64)
+	channelId := split[3]
+	signatureStr := split[len(split)-1]
 
 	if time.Since(time.UnixMilli(timestamp)) > timeout {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.expired", map[string]any{"Duration": timeout.String()}, "", http.StatusBadRequest)
+		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.expired", map[string]any{"Duration": timeout.String()}, "", http.StatusBadRequest)
 	}
 
-	signature, err := base64.StdEncoding.DecodeString(split[3])
+	signature, err := base64.StdEncoding.DecodeString(signatureStr)
 	if err != nil {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.base64_decode_failed_signature", nil, "", http.StatusBadRequest).Wrap(err)
+		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.base64_decode_failed_signature", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	var esig struct {
@@ -690,23 +713,23 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey, timeout tim
 	}
 
 	if _, err := asn1.Unmarshal(signature, &esig); err != nil {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.signature_decode_failed", nil, "", http.StatusBadRequest).Wrap(err)
+		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.signature_decode_failed", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	triggerData := strings.Join([]string{clientTriggerId, userId, timestampStr}, ":") + ":"
+	triggerData := strings.Join(split[:len(split)-1], ":") + ":"
 
 	h := crypto.SHA256
 	sum := h.New()
 	sum.Write([]byte(triggerData))
 
 	if !ecdsa.Verify(&s.PublicKey, sum.Sum(nil), esig.R, esig.S) {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.verify_signature_failed", nil, "", http.StatusBadRequest)
+		return "", "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.verify_signature_failed", nil, "", http.StatusBadRequest)
 	}
 
-	return clientTriggerId, userId, nil
+	return clientTriggerId, userId, channelId, nil
 }
 
-func (r *OpenDialogRequest) DecodeAndVerifyTriggerId(s *ecdsa.PrivateKey, timeout time.Duration) (string, string, *AppError) {
+func (r *OpenDialogRequest) DecodeAndVerifyTriggerId(s *ecdsa.PrivateKey, timeout time.Duration) (string, string, string, *AppError) {
 	return DecodeAndVerifyTriggerId(r.TriggerId, s, timeout)
 }
 
@@ -748,7 +771,7 @@ func (d *Dialog) IsValid() error {
 			}
 			elementMap[element.Name] = true
 
-			err := element.IsValid()
+			err := element.isValid(elementMap)
 			if err != nil {
 				multiErr = multierror.Append(multiErr, errors.Wrapf(err, "%q field is not valid", element.Name))
 			}
@@ -758,6 +781,17 @@ func (d *Dialog) IsValid() error {
 }
 
 func (e *DialogElement) IsValid() error {
+	seen := make(map[string]bool)
+	if e.Name != "" {
+		seen[e.Name] = true
+	}
+	return e.isValid(seen)
+}
+
+// isValid validates the element, threading a shared seen-name set through
+// recursive validation of collapsible children so duplicate names are detected
+// across the whole element tree, not just at the top level.
+func (e *DialogElement) isValid(seen map[string]bool) error {
 	var multiErr *multierror.Error
 	textSubTypes := map[string]bool{
 		"":         true,
@@ -769,20 +803,7 @@ func (e *DialogElement) IsValid() error {
 		"password": true,
 	}
 
-	if e.MinLength < 0 {
-		multiErr = multierror.Append(multiErr, errors.Errorf("min length cannot be a negative number, got %d", e.MinLength))
-	}
-	if e.MinLength > e.MaxLength {
-		multiErr = multierror.Append(multiErr, errors.Errorf("min length should be less then max length, got %d > %d", e.MinLength, e.MaxLength))
-	}
-
-	multiErr = multierror.Append(multiErr, checkMaxLength("DisplayName", e.DisplayName, DialogElementDisplayNameMaxLength))
-	multiErr = multierror.Append(multiErr, checkMaxLength("Name", e.Name, DialogElementNameMaxLength))
-	multiErr = multierror.Append(multiErr, checkMaxLength("HelpText", e.HelpText, DialogElementHelpTextMaxLength))
-
-	if e.MultiSelect && e.Type != "select" {
-		multiErr = multierror.Append(multiErr, errors.Errorf("multiselect can only be used with select elements, got type %q", e.Type))
-	}
+	multiErr = multierror.Append(multiErr, e.validateCommon())
 
 	multiErr = multierror.Append(multiErr, validateDialogElementLabelPosition(e))
 	multiErr = multierror.Append(multiErr, validateDialogElementMatrixConfigPlacement(e))
@@ -905,6 +926,9 @@ func (e *DialogElement) IsValid() error {
 			}
 		}
 
+	case "collapsible":
+		multiErr = multierror.Append(multiErr, e.validateCollapsible(1, seen))
+
 	case "file":
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementFileMaxLength))
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementFileMaxLength))
@@ -947,6 +971,77 @@ func (e *DialogElement) IsValid() error {
 
 	default:
 		multiErr = multierror.Append(multiErr, errors.Errorf("invalid element type: %q", e.Type))
+	}
+
+	return multiErr.ErrorOrNil()
+}
+
+// validateCommon runs the field-level checks that apply to every element type,
+// independent of any type-specific rules. It is shared by both leaf elements
+// (via isValid) and nested collapsible sections (via validateCollapsible) so
+// that DisplayName/Name/HelpText, MinLength/MaxLength, and MultiSelect are
+// validated for every element in the tree.
+func (e *DialogElement) validateCommon() error {
+	var multiErr *multierror.Error
+
+	if e.MinLength < 0 {
+		multiErr = multierror.Append(multiErr, errors.Errorf("min length cannot be a negative number, got %d", e.MinLength))
+	}
+	if e.MinLength > e.MaxLength {
+		multiErr = multierror.Append(multiErr, errors.Errorf("min length should be less than max length, got %d > %d", e.MinLength, e.MaxLength))
+	}
+
+	multiErr = multierror.Append(multiErr, checkMaxLength("DisplayName", e.DisplayName, DialogElementDisplayNameMaxLength))
+	multiErr = multierror.Append(multiErr, checkMaxLength("Name", e.Name, DialogElementNameMaxLength))
+	multiErr = multierror.Append(multiErr, checkMaxLength("HelpText", e.HelpText, DialogElementHelpTextMaxLength))
+
+	if e.MultiSelect && e.Type != "select" {
+		multiErr = multierror.Append(multiErr, errors.Errorf("multiselect can only be used with select elements, got type %q", e.Type))
+	}
+
+	return multiErr.ErrorOrNil()
+}
+
+// validateCollapsible validates a collapsible element and its children, enforcing
+// the maximum nesting depth. depth is the level of this collapsible, where a
+// top-level collapsible is depth 1.
+func (e *DialogElement) validateCollapsible(depth int, seen map[string]bool) error {
+	var multiErr *multierror.Error
+
+	cfg := e.CollapsibleConfig
+	if cfg == nil || len(cfg.Elements) == 0 {
+		multiErr = multierror.Append(multiErr, errors.New("collapsible element must have at least one child element"))
+	}
+
+	var children []DialogElement
+	if cfg != nil {
+		children = cfg.Elements
+	}
+	for i, child := range children {
+		if seen[child.Name] {
+			multiErr = multierror.Append(multiErr, errors.Errorf("duplicate dialog element %q", child.Name))
+		}
+		seen[child.Name] = true
+
+		if child.Type == "collapsible" {
+			// Nested collapsibles are validated directly (rather than via
+			// isValid) to preserve depth tracking, so run the common
+			// field-level checks here that isValid would otherwise apply.
+			if err := child.validateCommon(); err != nil {
+				multiErr = multierror.Append(multiErr, errors.Wrapf(err, "%q child element is not valid", child.Name))
+			}
+			if depth >= DialogCollapsibleMaxDepth {
+				multiErr = multierror.Append(multiErr, errors.Errorf("collapsible nesting exceeds maximum depth of %d (child %q at index %d)", DialogCollapsibleMaxDepth, child.Name, i))
+				continue
+			}
+			if err := child.validateCollapsible(depth+1, seen); err != nil {
+				multiErr = multierror.Append(multiErr, errors.Wrapf(err, "%q child element is not valid", child.Name))
+			}
+			continue
+		}
+		if err := child.isValid(seen); err != nil {
+			multiErr = multierror.Append(multiErr, errors.Wrapf(err, "%q child element is not valid", child.Name))
+		}
 	}
 
 	return multiErr.ErrorOrNil()

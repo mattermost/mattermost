@@ -516,6 +516,7 @@ func TestCreateChannelWithUserIgnoresRequiredAttributesWithNoValues(t *testing.T
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.ChannelAttributes = true
+		cfg.FeatureFlags.ChannelAttributesRequired = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 

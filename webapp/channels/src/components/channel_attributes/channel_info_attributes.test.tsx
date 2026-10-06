@@ -11,11 +11,15 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import {Client4} from 'mattermost-redux/client';
 import {PROPERTY_TEXT_VALUE_MAX_LENGTH} from 'mattermost-redux/constants/properties';
 
+import {clearPropertyFieldOptionWalks} from 'components/property_fields/graph/page_all_access_control_field_options';
+import {clearGraphOptionNameCache} from 'components/property_fields/graph/use_graph_option_names';
+
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
 import ChannelInfoAttributes from './channel_info_attributes';
+import type {ChannelInfoAttributesHandle} from './channel_info_attributes';
 
 jest.mock('mattermost-redux/actions/properties', () => ({
     fetchPropertyFields: jest.fn(() => () => Promise.resolve({data: []})),
@@ -41,9 +45,12 @@ type FieldOptions = {
     actions?: string[];
     permissionValues?: PropertyField['permission_values'];
     type?: PropertyField['type'];
+
+    // Merged last, so a test can add attrs the named options do not cover.
+    attrs?: Record<string, unknown>;
 };
 
-function field(id: string, {required, editable, changePolicy, options, actions = ['display_label_info'], permissionValues = 'member', type = 'select'}: FieldOptions = {}): PropertyField {
+function field(id: string, {required, editable, changePolicy, options, actions = ['display_label_info'], permissionValues = 'member', type = 'select', attrs = {}}: FieldOptions = {}): PropertyField {
     return {
         id,
         group_id: GROUP_ID,
@@ -63,6 +70,7 @@ function field(id: string, {required, editable, changePolicy, options, actions =
             ...(required === undefined ? {} : {required}),
             ...(editable === undefined ? {} : {editable}),
             ...(changePolicy === undefined ? {} : {change_policy: changePolicy}),
+            ...attrs,
         },
         create_at: 1,
         update_at: 1,
@@ -147,6 +155,20 @@ describe('ChannelInfoAttributes', () => {
         expect(screen.getByTestId('channelInfoAttributeRow-program')).toBeInTheDocument();
         expect(screen.getByText('Not set')).toBeInTheDocument();
         expect(screen.queryByTestId('attributeChip')).not.toBeInTheDocument();
+    });
+
+    test('shows Classification rather than the stored unique name', () => {
+        const classification = field('classification', {required: true, type: 'rank'});
+        delete classification.attrs!.display_name;
+
+        renderWithContext(
+            <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+            makeState([classification], []),
+        );
+
+        expect(screen.getByTestId('channelInfoAttributeRow-classification')).toBeInTheDocument();
+        expect(screen.getByText('Classification')).toBeInTheDocument();
+        expect(screen.queryByText('classification')).not.toBeInTheDocument();
     });
 
     test('omits an optional attribute with no value rather than showing an empty row', () => {
@@ -317,9 +339,6 @@ describe('ChannelInfoAttributes', () => {
 
             // A required-but-unset row is the one reachable without a value.
             await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
-
-            const control = await screen.findByTestId('channelAttributeEdit-program');
-            await userEvent.click(control.querySelector('input')!);
             await userEvent.click(await screen.findByText('VALUE_PROGRAM'));
 
             await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
@@ -327,6 +346,90 @@ describe('ChannelInfoAttributes', () => {
                 'channel',
                 CHANNEL_ID,
                 [{field_id: 'program', value: 'opt_program'}],
+            ));
+        });
+
+        test('clears a single-select value from the chip remove control with the keyboard', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program')], [value('program', 'opt_program')]),
+            );
+
+            await userEvent.tab();
+            expect(screen.getByRole('button', {name: 'Edit Program'})).toHaveFocus();
+
+            await userEvent.tab();
+            expect(screen.getByRole('button', {name: 'Remove VALUE_PROGRAM'})).toHaveFocus();
+            await userEvent.keyboard('{Enter}');
+
+            await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
+                'access_control',
+                'channel',
+                CHANNEL_ID,
+                [{field_id: 'program', value: null}],
+            ));
+            expect(patchSpy).toHaveBeenCalledTimes(1);
+        });
+
+        test('opens the menu via keyboard and selects an option', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program', {required: true})], [value('program', null)]),
+            );
+
+            await userEvent.tab();
+            const trigger = screen.getByRole('button', {name: 'Edit Program'});
+            expect(trigger).toHaveFocus();
+
+            await userEvent.keyboard('{Enter}');
+
+            expect(await screen.findByRole('menu', {name: 'Program'})).toBeInTheDocument();
+            await userEvent.click(screen.getByText('VALUE_PROGRAM'));
+
+            await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
+                'access_control',
+                'channel',
+                CHANNEL_ID,
+                [{field_id: 'program', value: 'opt_program'}],
+            ));
+        });
+
+        test('renders a remove control inside a single-select chip and no Clear menu item', async () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program')], [value('program', 'opt_program')]),
+            );
+
+            expect(screen.getByTestId('channelInfoAttributeEdit-program')).toHaveAccessibleName('Edit Program');
+            expect(screen.getByTestId('channelInfoAttributeEdit-program')).toHaveTextContent('VALUE_PROGRAM');
+            expect(screen.getByRole('button', {name: 'Remove VALUE_PROGRAM'})).toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
+            expect(await screen.findByRole('menu', {name: 'Program'})).toBeInTheDocument();
+            expect(screen.queryByRole('menuitem', {name: 'Clear Program'})).not.toBeInTheDocument();
+            expect(screen.queryByTestId('channelAttributeClear-program')).not.toBeInTheDocument();
+        });
+
+        test('clears a single-select value from the chip remove control', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program')], [value('program', 'opt_program')]),
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Remove VALUE_PROGRAM'}));
+
+            expect(screen.queryByRole('menu', {name: 'Program'})).not.toBeInTheDocument();
+            await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
+                'access_control',
+                'channel',
+                CHANNEL_ID,
+                [{field_id: 'program', value: null}],
             ));
         });
 
@@ -338,7 +441,7 @@ describe('ChannelInfoAttributes', () => {
 
             await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
 
-            expect(await screen.findByRole('combobox', {name: 'Program'})).toBeInTheDocument();
+            expect(await screen.findByRole('menu', {name: 'Program'})).toBeInTheDocument();
         });
 
         test('names a text editor with the attribute label, not the shared placeholder', async () => {
@@ -385,8 +488,6 @@ describe('ChannelInfoAttributes', () => {
             );
 
             await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
-            const control = await screen.findByTestId('channelAttributeEdit-program');
-            await userEvent.click(control.querySelector('input')!);
             await userEvent.click(await screen.findByText('VALUE_PROGRAM'));
 
             expect(await screen.findByTestId('channelInfoAttributeError-program')).toHaveTextContent("Couldn't save Program");
@@ -413,28 +514,24 @@ describe('ChannelInfoAttributes', () => {
             );
 
             await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
-            let control = await screen.findByTestId('channelAttributeEdit-program');
-            await userEvent.click(control.querySelector('input')!);
             await userEvent.click(await screen.findByText('VALUE_PROGRAM'));
             await waitFor(() => expect(patchSpy).toHaveBeenCalledTimes(1));
 
-            // Program's save is still in flight -- open and submit team's editor
-            // before it resolves, so both requests overlap within one visit.
+            // Program's save is still in flight -- submit team before it
+            // resolves, so both requests overlap within one visit.
             await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-team'));
-            control = await screen.findByTestId('channelAttributeEdit-team');
-            await userEvent.click(control.querySelector('input')!);
             await userEvent.click(await screen.findByText('VALUE_TEAM'));
             await waitFor(() => expect(patchSpy).toHaveBeenCalledTimes(2));
 
-            // The earlier (program) request resolving must not close team's
-            // still-pending editor -- only team's own request should do that.
+            // The earlier (program) request resolving must not mark team as
+            // failed -- only team's own request owns that row.
             await act(async () => {
                 resolveFirst([]);
             });
-            expect(screen.getByTestId('channelAttributeEdit-team')).toBeInTheDocument();
+            expect(screen.queryByTestId('channelInfoAttributeError-team')).not.toBeInTheDocument();
 
             resolveSecond([]);
-            await waitFor(() => expect(screen.queryByTestId('channelAttributeEdit-team')).not.toBeInTheDocument());
+            await waitFor(() => expect(screen.queryByTestId('channelInfoAttributeError-program')).not.toBeInTheDocument());
         });
     });
 
@@ -445,11 +542,11 @@ describe('ChannelInfoAttributes', () => {
         const {rerender} = renderWithContext(<ChannelInfoAttributes channelId={CHANNEL_ID}/>, state);
 
         await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
-        expect(screen.getByTestId('channelAttributeEdit-program')).toBeInTheDocument();
+        expect(await screen.findByRole('menu', {name: 'Program'})).toBeInTheDocument();
 
         rerender(<ChannelInfoAttributes channelId='channel2'/>);
 
-        expect(screen.queryByTestId('channelAttributeEdit-program')).not.toBeInTheDocument();
+        expect(screen.queryByRole('menu', {name: 'Program'})).not.toBeInTheDocument();
     });
 
     describe('add attribute', () => {
@@ -509,9 +606,6 @@ describe('ChannelInfoAttributes', () => {
 
             await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-level'));
 
-            const control = await screen.findByTestId('channelAttributeEdit-level');
-            await userEvent.click(control.querySelector('input')!);
-
             expect(await screen.findByText('HIGH')).toBeInTheDocument();
             expect(screen.queryByText('LOW')).not.toBeInTheDocument();
         });
@@ -523,9 +617,6 @@ describe('ChannelInfoAttributes', () => {
             );
 
             await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-level'));
-
-            const control = await screen.findByTestId('channelAttributeEdit-level');
-            await userEvent.click(control.querySelector('input')!);
 
             expect(await screen.findByText('LOW')).toBeInTheDocument();
             expect(screen.queryByText('HIGH')).not.toBeInTheDocument();
@@ -562,6 +653,392 @@ describe('ChannelInfoAttributes', () => {
             expect(screen.queryByTestId('channelInfoAttributeEdit-program')).not.toBeInTheDocument();
             expect(screen.getByLabelText('This attribute cannot be changed after it is set')).toBeInTheDocument();
             expect(screen.queryByTestId('channelInfoAddAttributeButton')).not.toBeInTheDocument();
+        });
+    });
+
+    // The server refuses every session write to these, so an editor here can only
+    // ever end in "Couldn't save".
+    describe('an attribute whose values an integration owns', () => {
+        const SOURCE_MANAGED_LOCK = 'This attribute is managed by an integration and cannot be changed here';
+
+        const ownership: Array<[string, Record<string, unknown>]> = [
+            ['a protected plugin attribute', {protected: true, source_plugin_id: 'com.example.markings'}],
+            ['an owner-managed attribute', {owners: [{id: 'com.example.scim', type: 'plugin', scopes: []}]}],
+            ['an ldap-synced attribute', {ldap: 'department'}],
+            ['a saml-synced attribute', {saml: 'Department'}],
+        ];
+
+        test.each(ownership)('%s shows its value as a read-only chip behind a lock', (_name, attrs) => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program', {attrs})], [value('program', 'opt_program')]),
+            );
+
+            expect(screen.getByTestId('attributeChip')).toHaveTextContent('VALUE_PROGRAM');
+            expect(screen.getByLabelText(SOURCE_MANAGED_LOCK)).toBeInTheDocument();
+            expect(screen.queryByTestId('channelInfoAttributeEdit-program')).not.toBeInTheDocument();
+        });
+
+        // The lock must not be type-partial: every option-valued shape a marking
+        // takes has to reach it, not just the plain select the other cases use.
+        test.each(['select', 'multiselect', 'rank'] as const)('a %s attribute an integration owns has no editor', (type) => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState(
+                    [field('program', {type, attrs: {protected: true, source_plugin_id: 'com.example.markings'}})],
+                    [value('program', type === 'multiselect' ? ['opt_program'] : 'opt_program')],
+                ),
+            );
+
+            expect(screen.getByTestId('attributeChip')).toHaveTextContent('VALUE_PROGRAM');
+            expect(screen.getByLabelText(SOURCE_MANAGED_LOCK)).toBeInTheDocument();
+            expect(screen.queryByTestId('channelInfoAttributeEdit-program')).not.toBeInTheDocument();
+        });
+
+        // Unlike the change policy, the integration owns the value before there
+        // is one, so the lock has to survive an empty row.
+        test.each(ownership)('%s is locked and unfillable while still unset', (_name, attrs) => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program', {required: true, attrs})], []),
+            );
+
+            expect(screen.getByTestId('channelInfoAttributeUnset-program')).toBeInTheDocument();
+            expect(screen.getByLabelText(SOURCE_MANAGED_LOCK)).toBeInTheDocument();
+            expect(screen.queryByTestId('channelInfoAttributeEdit-program')).not.toBeInTheDocument();
+        });
+
+        // A second, ordinary attribute keeps the menu itself on screen, so the
+        // assertion is that this one entry is missing rather than the whole menu.
+        test.each(ownership)('%s is not offered in the Add attribute menu', async (_name, attrs) => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program', {attrs}), field('region')], []),
+            );
+
+            // Optional and unset, so it must not have leaked in as a locked empty
+            // row either.
+            expect(screen.queryByTestId('channelInfoAttributeRow-program')).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId('channelInfoAddAttributeButton'));
+
+            expect(await screen.findByTestId('channelInfoAddAttribute-region')).toBeInTheDocument();
+            expect(screen.queryByTestId('channelInfoAddAttribute-program')).not.toBeInTheDocument();
+        });
+
+        // Both reasons apply; the one the user cannot work around is the useful one.
+        test('names the integration rather than the change policy when both would lock it', () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState(
+                    [field('program', {changePolicy: 'never', attrs: {protected: true, source_plugin_id: 'com.example.markings'}})],
+                    [value('program', 'opt_program')],
+                ),
+            );
+
+            expect(screen.getByLabelText(SOURCE_MANAGED_LOCK)).toBeInTheDocument();
+            expect(screen.queryByLabelText('This attribute cannot be changed after it is set')).not.toBeInTheDocument();
+        });
+
+        test('a text attribute an integration owns renders as text with no editor to open', () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState(
+                    [field('program', {type: 'text', attrs: {protected: true, source_plugin_id: 'com.example.markings'}})],
+                    [value('program', 'REL TO USA')],
+                ),
+            );
+
+            expect(screen.getByTestId('channelInfoAttributeRow-program')).toHaveTextContent('REL TO USA');
+            expect(screen.getByLabelText(SOURCE_MANAGED_LOCK)).toBeInTheDocument();
+            expect(screen.queryByTestId('channelInfoAttributeEdit-program')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('channelAttributeEdit-program')).not.toBeInTheDocument();
+        });
+
+        // Ownership is the only thing that locks: a field the same plugin created
+        // but left unreserved must keep its editor.
+        test('leaves a plugin-created attribute that is not reserved editable', () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program', {attrs: {source_plugin_id: 'com.example.markings'}})], [value('program', 'opt_program')]),
+            );
+
+            expect(screen.getByTestId('channelInfoAttributeEdit-program')).toBeInTheDocument();
+            expect(screen.queryByLabelText(SOURCE_MANAGED_LOCK)).not.toBeInTheDocument();
+        });
+    });
+
+    describe('graph attributes', () => {
+        const graphProgram = (overrides: FieldOptions = {}) => field('program', {type: 'graph', ...overrides});
+
+        beforeEach(() => {
+            // The picker pages the options endpoint and caches the walk and the
+            // option names at module level, so both outlive a single test.
+            clearPropertyFieldOptionWalks();
+            clearGraphOptionNameCache();
+            jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValue({
+                options: [{id: 'opt_program', name: 'VALUE_PROGRAM', create_at: 1}],
+                has_more: false,
+            });
+        });
+
+        test('saves a picked option as an array of ids', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([graphProgram({required: true})], [value('program', null)]),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
+            await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'VALUE_PROGRAM'}));
+
+            await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
+                'access_control',
+                'channel',
+                CHANNEL_ID,
+                [{field_id: 'program', value: ['opt_program']}],
+            ));
+        });
+
+        test('deselecting the only selected value saves null', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([graphProgram()], [value('program', ['opt_program'])]),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
+            const option = await screen.findByRole('menuitemcheckbox', {name: 'VALUE_PROGRAM'});
+            expect(option).toHaveAttribute('aria-checked', 'true');
+
+            await userEvent.click(option);
+
+            await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
+                'access_control',
+                'channel',
+                CHANNEL_ID,
+                [{field_id: 'program', value: null}],
+            ));
+        });
+
+        test('offers an unset graph attribute in the Add attribute menu', async () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('shown', {required: true}), graphProgram()], [value('shown', 'opt_shown')]),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAddAttributeButton'));
+
+            expect(await screen.findByTestId('channelInfoAddAttribute-program')).toBeInTheDocument();
+        });
+
+        test('a locked graph attribute renders the read-only chip and no picker', () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([graphProgram({changePolicy: 'never'})], [value('program', ['opt_program'])]),
+            );
+
+            expect(screen.getByTestId('attributeChip')).toHaveTextContent('VALUE_PROGRAM');
+            expect(screen.getByTestId('channelInfoAttributeLock-program')).toBeInTheDocument();
+            expect(screen.queryByTestId('channelInfoAttributeEdit-program')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('multiselect', () => {
+        const multiOptions = [
+            {id: 'opt_a', name: 'VALUE_A'},
+            {id: 'opt_b', name: 'VALUE_B'},
+        ];
+        const multiField = (overrides: FieldOptions = {}) => field('tags', {type: 'multiselect', options: multiOptions, ...overrides});
+
+        test('a read-only multiselect renders one chip per value, not a joined list', () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([multiField({changePolicy: 'never'})], [value('tags', ['opt_a', 'opt_b'])]),
+            );
+
+            const chips = screen.getAllByTestId('attributeChip');
+            expect(chips).toHaveLength(2);
+            expect(chips[0]).toHaveTextContent('VALUE_A');
+            expect(chips[1]).toHaveTextContent('VALUE_B');
+
+            // The joined displayValue reads as one marking rather than two.
+            expect(screen.queryByText('VALUE_A, VALUE_B')).not.toBeInTheDocument();
+        });
+
+        test('picking a second option adds a chip alongside the first', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([multiField()], [value('tags', ['opt_a'])]),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-tags'));
+            await userEvent.click(await screen.findByText('VALUE_B'));
+
+            await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
+                'access_control',
+                'channel',
+                CHANNEL_ID,
+                [{field_id: 'tags', value: ['opt_a', 'opt_b']}],
+            ));
+        });
+
+        test('removing one chip keeps the other, without opening the menu', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([multiField()], [value('tags', ['opt_a', 'opt_b'])]),
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Remove VALUE_A'}));
+
+            expect(screen.queryByRole('menu', {name: 'Tags'})).not.toBeInTheDocument();
+            await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
+                'access_control',
+                'channel',
+                CHANNEL_ID,
+                [{field_id: 'tags', value: ['opt_b']}],
+            ));
+            expect(patchSpy).toHaveBeenCalledTimes(1);
+        });
+
+        test('removing the last chip saves null', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([multiField()], [value('tags', ['opt_a'])]),
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Remove VALUE_A'}));
+
+            await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
+                'access_control',
+                'channel',
+                CHANNEL_ID,
+                [{field_id: 'tags', value: null}],
+            ));
+        });
+    });
+
+    describe('deferred mode', () => {
+        test('stages an edit locally, without writing through the property API', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+
+            renderWithContext(
+                <ChannelInfoAttributes
+                    channelId={CHANNEL_ID}
+                    deferred={true}
+                />,
+                makeState([field('program', {required: true})], [value('program', null)]),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
+            expect(await screen.findByRole('menu', {name: 'Program'})).toBeInTheDocument();
+            await userEvent.click(screen.getByRole('menuitem', {name: 'VALUE_PROGRAM'}));
+
+            // The menu closes on pick, so this chip can only be the trigger's.
+            await waitFor(() => expect(screen.queryByRole('menu', {name: 'Program'})).not.toBeInTheDocument());
+            expect(await screen.findByTestId('attributeChip')).toHaveTextContent('VALUE_PROGRAM');
+            expect(patchSpy).not.toHaveBeenCalled();
+        });
+
+        test('reports pending state through onPendingChange as edits are staged and flushed', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+            const onPendingChange = jest.fn();
+            const ref = React.createRef<ChannelInfoAttributesHandle>();
+
+            renderWithContext(
+                <ChannelInfoAttributes
+                    ref={ref}
+                    channelId={CHANNEL_ID}
+                    deferred={true}
+                    onPendingChange={onPendingChange}
+                />,
+                makeState([field('program', {required: true})], [value('program', null)]),
+            );
+
+            expect(onPendingChange).toHaveBeenLastCalledWith(false);
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
+            expect(await screen.findByRole('menu', {name: 'Program'})).toBeInTheDocument();
+            await userEvent.click(screen.getByRole('menuitem', {name: 'VALUE_PROGRAM'}));
+
+            await waitFor(() => expect(onPendingChange).toHaveBeenLastCalledWith(true));
+            expect(ref.current?.hasPendingChanges()).toBe(true);
+
+            await act(async () => {
+                await ref.current?.flush();
+            });
+
+            expect(patchSpy).toHaveBeenCalledWith(
+                'access_control',
+                'channel',
+                CHANNEL_ID,
+                [{field_id: 'program', value: 'opt_program'}],
+            );
+            expect(ref.current?.hasPendingChanges()).toBe(false);
+            expect(onPendingChange).toHaveBeenLastCalledWith(false);
+        });
+
+        test('discard reverts a staged edit without ever saving it', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+            const ref = React.createRef<ChannelInfoAttributesHandle>();
+
+            renderWithContext(
+                <ChannelInfoAttributes
+                    ref={ref}
+                    channelId={CHANNEL_ID}
+                    deferred={true}
+                />,
+                makeState([field('program', {required: true})], [value('program', null)]),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
+            expect(await screen.findByRole('menu', {name: 'Program'})).toBeInTheDocument();
+            await userEvent.click(screen.getByRole('menuitem', {name: 'VALUE_PROGRAM'}));
+            await waitFor(() => expect(ref.current?.hasPendingChanges()).toBe(true));
+
+            act(() => {
+                ref.current?.discard();
+            });
+
+            expect(screen.queryByTestId('attributeChip')).not.toBeInTheDocument();
+            expect(ref.current?.hasPendingChanges()).toBe(false);
+            expect(patchSpy).not.toHaveBeenCalled();
+        });
+
+        test('flush reports failure and keeps the edit staged for a retry', async () => {
+            jest.spyOn(Client4, 'patchPropertyValues').mockRejectedValue(new Error('403'));
+            const ref = React.createRef<ChannelInfoAttributesHandle>();
+
+            renderWithContext(
+                <ChannelInfoAttributes
+                    ref={ref}
+                    channelId={CHANNEL_ID}
+                    deferred={true}
+                />,
+                makeState([field('program', {required: true})], [value('program', null)]),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
+            expect(await screen.findByRole('menu', {name: 'Program'})).toBeInTheDocument();
+            await userEvent.click(screen.getByRole('menuitem', {name: 'VALUE_PROGRAM'}));
+            await waitFor(() => expect(ref.current?.hasPendingChanges()).toBe(true));
+
+            let flushed: boolean | undefined;
+            await act(async () => {
+                flushed = await ref.current?.flush();
+            });
+
+            expect(flushed).toBe(false);
+            expect(ref.current?.hasPendingChanges()).toBe(true);
+            expect(await screen.findByTestId('channelInfoAttributeError-program')).toBeInTheDocument();
         });
     });
 });

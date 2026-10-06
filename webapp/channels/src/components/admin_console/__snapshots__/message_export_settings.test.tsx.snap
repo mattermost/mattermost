@@ -574,6 +574,38 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
                   </div>
                 </div>
               </div>
+              <div
+                class="form-group"
+                data-testid="globalRelaySenderAddress"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  data-testid="globalRelaySenderAddresslabel"
+                  for="globalRelaySenderAddress"
+                >
+                  Sender Address:
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <input
+                    class="form-control"
+                    data-testid="globalRelaySenderAddressinput"
+                    disabled=""
+                    id="globalRelaySenderAddress"
+                    maxlength="-1"
+                    placeholder="E.g.: \\"compliance-export@mattermost.com\\""
+                    type="text"
+                    value=""
+                  />
+                  <div
+                    class="help-text"
+                    data-testid="globalRelaySenderAddresshelp-text"
+                  >
+                    Optional fixed From address used for every exported EML and as the SMTP envelope sender. Leave blank to use the first channel participant by username. Participant emails remain in the To header.
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           <div
@@ -1217,6 +1249,37 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                   </div>
                 </div>
               </div>
+              <div
+                class="form-group"
+                data-testid="globalRelaySenderAddress"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  data-testid="globalRelaySenderAddresslabel"
+                  for="globalRelaySenderAddress"
+                >
+                  Sender Address:
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <input
+                    class="form-control"
+                    data-testid="globalRelaySenderAddressinput"
+                    id="globalRelaySenderAddress"
+                    maxlength="-1"
+                    placeholder="E.g.: \\"compliance-export@mattermost.com\\""
+                    type="text"
+                    value=""
+                  />
+                  <div
+                    class="help-text"
+                    data-testid="globalRelaySenderAddresshelp-text"
+                  >
+                    Optional fixed From address used for every exported EML and as the SMTP envelope sender. Leave blank to use the first channel participant by username. Participant emails remain in the To header.
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           <div
@@ -1619,6 +1682,37 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                     data-testid="globalRelayEmailAddresshelp-text"
                   >
                     The email address that your GlobalRelay server monitors for incoming Compliance Exports.
+                  </div>
+                </div>
+              </div>
+              <div
+                class="form-group"
+                data-testid="globalRelaySenderAddress"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  data-testid="globalRelaySenderAddresslabel"
+                  for="globalRelaySenderAddress"
+                >
+                  Sender Address:
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <input
+                    class="form-control"
+                    data-testid="globalRelaySenderAddressinput"
+                    id="globalRelaySenderAddress"
+                    maxlength="-1"
+                    placeholder="E.g.: \\"compliance-export@mattermost.com\\""
+                    type="text"
+                    value="compliance-export@mattermost.com"
+                  />
+                  <div
+                    class="help-text"
+                    data-testid="globalRelaySenderAddresshelp-text"
+                  >
+                    Optional fixed From address used for every exported EML and as the SMTP envelope sender. Leave blank to use the first channel participant by username. Participant emails remain in the To header.
                   </div>
                 </div>
               </div>

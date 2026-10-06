@@ -36,7 +36,7 @@ type State = {
 };
 
 class AdminSidebar extends React.PureComponent<Props, State> {
-    searchRef: React.RefObject<HTMLInputElement>;
+    searchRef: React.RefObject<HTMLInputElement | null>;
     idx: Index | null;
 
     static defaultProps = {
@@ -214,7 +214,6 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                         definitionKey={key}
                         parentLink='/admin_console'
                         icon={section.icon}
-                        sectionClass=''
                         title={typeof section.sectionTitle === 'string' ? section.sectionTitle : (
                             <FormattedMessage
                                 {...section.sectionTitle}

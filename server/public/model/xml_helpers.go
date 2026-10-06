@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"sort"
+	"slices"
 )
 
 // xmlStringMapEntry is the XML representation of a single StringMap entry.
@@ -31,7 +31,7 @@ func (m StringMap) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	for k := range m {
 		keys = append(keys, k)
 	}
-	sort.Strings(keys)
+	slices.Sort(keys)
 
 	for _, k := range keys {
 		entry := xmlStringMapEntry{Key: k, Value: m[k]}
@@ -96,7 +96,7 @@ func (m StringInterface) MarshalXML(e *xml.Encoder, start xml.StartElement) erro
 	for k := range m {
 		keys = append(keys, k)
 	}
-	sort.Strings(keys)
+	slices.Sort(keys)
 
 	for _, k := range keys {
 		v := m[k]

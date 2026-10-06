@@ -6,7 +6,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"sort"
+	"slices"
 	"strings"
 )
 
@@ -32,7 +32,7 @@ func main() {
 	var msgs []string
 	msgs = append(msgs, res.Errors...)
 	msgs = append(msgs, res.Warnings...)
-	sort.Strings(msgs)
+	slices.Sort(msgs)
 
 	if len(msgs) > 0 {
 		fmt.Fprintln(os.Stderr, "#", pluginPackagePath)

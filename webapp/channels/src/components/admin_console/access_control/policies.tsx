@@ -7,6 +7,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {GenericModal} from '@mattermost/components';
 import {Button} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
+import {getAutoAddFromRules} from '@mattermost/types/access_control';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -27,7 +28,7 @@ function policyHasMaskedValues(policy: AccessControlPolicy): boolean {
 
 type Props = {
 
-    // The second argument reports the policy's own active flag so the team
+    // The second argument reports the policy's own auto-add setting so the team
     // assignment flow can seed the team child's auto-add from the parent policy.
     // Callers that don't need it can ignore the argument.
     onPolicySelected?: (policy: AccessControlPolicy, autoAdd?: boolean) => void;
@@ -274,7 +275,7 @@ export default function PolicyList(props: Props): JSX.Element {
                                         id={`policy-menu-edit-${policy.id}`}
                                         onClick={() => {
                                             if (props.onPolicySelected) {
-                                                props.onPolicySelected(policy, Boolean(policy.active));
+                                                props.onPolicySelected(policy, getAutoAddFromRules(policy.rules));
                                             } else {
                                                 history.push(`/admin_console/system_attributes/membership_policies/edit_policy/${policy.id}`);
                                             }
@@ -314,7 +315,7 @@ export default function PolicyList(props: Props): JSX.Element {
                 },
                 onClick: () => {
                     if (props.onPolicySelected) {
-                        props.onPolicySelected(policy, Boolean(policy.active));
+                        props.onPolicySelected(policy, getAutoAddFromRules(policy.rules));
                     } else {
                         history.push(`/admin_console/system_attributes/membership_policies/edit_policy/${policy.id}`);
                     }

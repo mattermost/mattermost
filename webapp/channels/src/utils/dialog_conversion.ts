@@ -17,6 +17,7 @@ export const DialogElementTypes = {
     RADIO: 'radio',
     DATE: 'date',
     DATETIME: 'datetime',
+    COLLAPSIBLE: 'collapsible',
     CHECKBOX_GROUP: 'checkbox_group',
     CHECKBOX_MATRIX: 'checkbox_matrix',
     FILE: 'file',
@@ -235,6 +236,8 @@ export function getFieldType(element: DialogElement): string | null {
         return AppFieldTypes.DATE;
     case DialogElementTypes.DATETIME:
         return AppFieldTypes.DATETIME;
+    case DialogElementTypes.COLLAPSIBLE:
+        return AppFieldTypes.COLLAPSIBLE;
     case DialogElementTypes.CHECKBOX_GROUP:
         return AppFieldTypes.CHECKBOX_GROUP;
     case DialogElementTypes.CHECKBOX_MATRIX:
@@ -446,6 +449,30 @@ export function convertElement(element: DialogElement, options: ConversionOption
         return {field: fallbackField, errors};
     }
 
+    // Collapsible: convert children recursively; the section itself has no value.
+    if (element.type === DialogElementTypes.COLLAPSIBLE) {
+        const childFields: AppField[] = [];
+        (element.collapsible_config?.elements || []).forEach((child) => {
+            const {field: childField, errors: childErrors} = convertElement(child, options);
+            errors.push(...childErrors);
+            if (childField) {
+                childFields.push(childField);
+            }
+        });
+
+        const collapsibleField: AppField = {
+            name: String(element.name),
+            type: AppFieldTypes.COLLAPSIBLE,
+            label: String(element.display_name),
+            collapsible_config: {
+                fields: childFields,
+                expanded: !element.collapsible_config?.collapsed,
+                bordered: !element.collapsible_config?.borderless,
+            },
+        };
+        return {field: collapsibleField, errors};
+    }
+
     const appField: AppField = {
         name: String(element.name),
         type: fieldType,
@@ -655,7 +682,7 @@ export function convertDialogToAppForm(
     };
 
     // Set source if sourceUrl is provided or if any fields have refresh enabled
-    const hasRefreshFields = convertedFields.some((field) => field.refresh === true);
+    const hasRefreshFields = flattenAppFields(convertedFields).some((field) => field.refresh === true);
     if ((sourceUrl && sourceUrl.trim()) || hasRefreshFields) {
         form.source = {
             path: sourceUrl || '/refresh',
@@ -726,6 +753,41 @@ export function convertServerDialogResponseToAppForm(
 }
 
 /**
+ * Flatten a tree of items, expanding collapsible containers into their children.
+ * Shared by flattenDialogElements (DialogElement) and flattenFields (AppField)
+ * so the two stay in sync.
+ */
+export function flattenCollapsible<T>(
+    items: T[],
+    isCollapsible: (item: T) => boolean,
+    getChildren: (item: T) => T[] | undefined,
+): T[] {
+    return items.flatMap((item) => (isCollapsible(item) ? flattenCollapsible(getChildren(item) || [], isCollapsible, getChildren) : [item]));
+}
+
+/**
+ * Flatten elements, expanding collapsible sections into their children.
+ */
+export function flattenDialogElements(elements: DialogElement[]): DialogElement[] {
+    return flattenCollapsible(
+        elements,
+        (element) => element.type === DialogElementTypes.COLLAPSIBLE,
+        (element) => element.collapsible_config?.elements,
+    );
+}
+
+/**
+ * Flatten AppFields, expanding collapsible sections into their leaf fields.
+ */
+export function flattenAppFields(fields: AppField[]): AppField[] {
+    return flattenCollapsible(
+        fields,
+        (field) => field.type === AppFieldTypes.COLLAPSIBLE,
+        (field) => field.collapsible_config?.fields,
+    );
+}
+
+/**
  * Convert Apps Form values back to Interactive Dialog submission format
  */
 export function convertAppFormValuesToDialogSubmission(
@@ -740,7 +802,8 @@ export function convertAppFormValuesToDialogSubmission(
         return {submission, errors};
     }
 
-    elements.forEach((element) => {
+    // Flatten collapsibles so child values are collected and the containers are excluded.
+    flattenDialogElements(elements).forEach((element) => {
         // Action buttons are non-input elements — they never contribute a
         // submission value, so skip them before the required/null validation
         // (otherwise an unset action_button could raise a false required error).

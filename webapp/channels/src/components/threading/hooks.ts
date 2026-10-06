@@ -26,7 +26,15 @@ export function useThreadRouting() {
         return history.push(`/${params.team}/threads${threadId ? '/' + threadId : ''}`);
     }, [params.team]);
 
-    const clear = useCallback(() => history.replace(`/${params.team}/threads`), [params.team]);
+    const clear = useCallback(() => {
+        const threadsRoute = `/${params.team}/threads`;
+
+        // Callers run this from effects, which can flush after the user has already navigated
+        // away, so only drop the selected thread while that route is still the current one.
+        if (history.location.pathname.startsWith(threadsRoute)) {
+            history.replace(threadsRoute);
+        }
+    }, [history, params.team]);
 
     const goToInChannel = useCallback((threadId?: UserThread['id'], teamName: Team['name'] = params.team) => {
         return history.push(`/${teamName}/pl/${threadId ?? params.threadIdentifier}`);

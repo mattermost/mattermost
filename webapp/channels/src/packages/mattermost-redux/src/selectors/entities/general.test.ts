@@ -506,6 +506,45 @@ describe('Selectors.General', () => {
         });
     });
 
+    describe('isChannelAttributesRequiredEnabled', () => {
+        const buildState = (config: Record<string, string>) => ({
+            entities: {
+                general: {
+                    config,
+                },
+            },
+        } as unknown as GlobalState);
+
+        test('not enforced when ChannelAttributes is on but ChannelAttributesRequired is unset', () => {
+            const state = buildState({FeatureFlagChannelAttributes: 'true'});
+            expect(Selectors.isChannelAttributesRequiredEnabled(state)).toBe(false);
+        });
+
+        test('not enforced when ChannelAttributesRequired is explicitly false', () => {
+            const state = buildState({
+                FeatureFlagChannelAttributes: 'true',
+                FeatureFlagChannelAttributesRequired: 'false',
+            });
+            expect(Selectors.isChannelAttributesRequiredEnabled(state)).toBe(false);
+        });
+
+        test('enforced when both ChannelAttributes and ChannelAttributesRequired are on', () => {
+            const state = buildState({
+                FeatureFlagChannelAttributes: 'true',
+                FeatureFlagChannelAttributesRequired: 'true',
+            });
+            expect(Selectors.isChannelAttributesRequiredEnabled(state)).toBe(true);
+        });
+
+        test('not enforced when ChannelAttributes itself is off, regardless of ChannelAttributesRequired', () => {
+            const state = buildState({
+                FeatureFlagChannelAttributes: 'false',
+                FeatureFlagChannelAttributesRequired: 'true',
+            });
+            expect(Selectors.isChannelAttributesRequiredEnabled(state)).toBe(false);
+        });
+    });
+
     describe('firstAdminVisitMarketplaceStatus', () => {
         test('should return empty when status does not exist', () => {
             const state = {

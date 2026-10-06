@@ -204,6 +204,40 @@ func TestCheckForExistingJobs(t *testing.T) {
 		require.Nil(t, appErr)
 	})
 
+	t.Run("should not return error if existing job has different search_term", func(t *testing.T) {
+		app := th.App
+		options := map[string]string{
+			"date_range":         "last_30_days",
+			"requesting_user_id": th.BasicUser.Id,
+			"role":               "",
+			"team":               "",
+			"hide_active":        "false",
+			"hide_inactive":      "false",
+			"guest_filter":       "",
+			"search_term":        "alice",
+		}
+
+		jobType := model.JobTypeExportUsersToCSV
+
+		existingJobOptions := map[string]string{
+			"date_range":         "last_30_days",
+			"requesting_user_id": th.BasicUser.Id,
+			"role":               "",
+			"team":               "",
+			"hide_active":        "false",
+			"hide_inactive":      "false",
+			"guest_filter":       "",
+			"search_term":        "bob",
+		}
+
+		job, err := app.Srv().Jobs.CreateJob(th.Context, jobType, existingJobOptions)
+		require.Nil(t, err)
+		require.NotNil(t, job)
+
+		appErr := app.checkForExistingJobs(th.Context, options, jobType)
+		require.Nil(t, appErr)
+	})
+
 	t.Run("should not return error if existing job has different guest_filter", func(t *testing.T) {
 		app := th.App
 		options := map[string]string{
@@ -234,5 +268,56 @@ func TestCheckForExistingJobs(t *testing.T) {
 
 		appErr := app.checkForExistingJobs(th.Context, options, jobType)
 		require.Nil(t, appErr)
+	})
+}
+
+func TestStartUsersBatchExport(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	rctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+
+	startExport := func(searchTerm string) *model.AppError {
+		return th.App.StartUsersBatchExport(rctx, &model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{DateRange: model.ReportDurationAllTime},
+			SearchTerm:           searchTerm,
+		}, 0, model.GetMillis())
+	}
+
+	searchTermsOfPendingExports := func(t *testing.T) []string {
+		t.Helper()
+
+		jobs, appErr := th.App.Srv().Jobs.GetJobsByTypeAndStatus(rctx, model.JobTypeExportUsersToCSV, model.JobStatusPending)
+		require.Nil(t, appErr)
+
+		var searchTerms []string
+		for _, job := range jobs {
+			if job.Data["requesting_user_id"] == th.BasicUser.Id {
+				searchTerms = append(searchTerms, job.Data["search_term"])
+			}
+		}
+		return searchTerms
+	}
+
+	t.Run("should record the search term on the export job", func(t *testing.T) {
+		require.Nil(t, startExport("term-recorded"))
+
+		require.Contains(t, searchTermsOfPendingExports(t), "term-recorded")
+	})
+
+	t.Run("should queue a separate job when only the search term differs", func(t *testing.T) {
+		require.Nil(t, startExport("term-first"))
+		require.Nil(t, startExport("term-second"))
+
+		require.Subset(t, searchTermsOfPendingExports(t), []string{"term-first", "term-second"})
+	})
+
+	t.Run("should still reject a duplicate export of the same search term", func(t *testing.T) {
+		require.Nil(t, startExport("term-repeated"))
+
+		appErr := startExport("term-repeated")
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.report.start_users_batch_export.job_exists", appErr.Id)
 	})
 }

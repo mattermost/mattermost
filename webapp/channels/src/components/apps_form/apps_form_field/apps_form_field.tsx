@@ -36,6 +36,7 @@ const TEXTAREA_DEFAULT_MAX_LENGTH = 3000;
 export interface Props {
     field: AppField;
     name: string;
+    channelId?: string;
     errorText?: React.ReactNode;
     teammateNameDisplay?: string;
 
@@ -323,6 +324,7 @@ export default class AppsFormField extends React.PureComponent<Props> {
                     label={field.label || field.name}
                     url={field.action_button_url || ''}
                     context={field.action_button_context}
+                    channelId={this.props.channelId}
                 />
             );
         }

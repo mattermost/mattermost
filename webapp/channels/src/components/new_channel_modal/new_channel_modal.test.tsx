@@ -13,6 +13,8 @@ import Permissions from 'mattermost-redux/constants/permissions';
 
 import useChannelAttributes from 'components/common/hooks/useChannelAttributes';
 import useClassificationMarkings from 'components/common/hooks/useClassificationMarkings';
+import {clearPropertyFieldOptionWalks} from 'components/property_fields/graph/page_all_access_control_field_options';
+import {clearGraphOptionNameCache} from 'components/property_fields/graph/use_graph_option_names';
 
 import {
     act,
@@ -1338,7 +1340,7 @@ describe('components/new_channel_modal - channel attributes', () => {
 
     const state: DeepPartial<GlobalState> = {
         entities: {
-            general: {config: {UseAnonymousURLs: 'false'}},
+            general: {config: {UseAnonymousURLs: 'false', FeatureFlagChannelAttributes: 'true', FeatureFlagChannelAttributesRequired: 'true'}},
             channels: {currentChannelId: 'current_channel_id', channels: {}, roles: {}},
             teams: {
                 currentTeamId: 'current_team_id',
@@ -1363,6 +1365,15 @@ describe('components/new_channel_modal - channel attributes', () => {
         mockedUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [program]});
         (createChannel as jest.Mock).mockReturnValue(() => Promise.resolve({data: createdChannel, error: null}));
         jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+
+        // The picker pages the options endpoint and caches the walk and the
+        // option names at module level, so both outlive a single test.
+        clearPropertyFieldOptionWalks();
+        clearGraphOptionNameCache();
+        jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValue({
+            options: [{id: 'opt_program', name: 'VALUE_PROGRAM', create_at: 1}],
+            has_more: false,
+        });
     });
 
     async function fillAndSelect() {
@@ -1425,10 +1436,10 @@ describe('components/new_channel_modal - channel attributes', () => {
         expect((createChannel as jest.Mock).mock.calls[0][0]).not.toHaveProperty('property_values');
     });
 
-    test('asks for classification even when it is optional, without blocking Create', async () => {
-        // Classification has always been offered at channel creation, and its own
-        // control here is suppressed once the flag is on, so the generic section has
-        // to carry it whether or not it is required.
+    test('does not offer an optional classification field at channel creation', async () => {
+        // Classification is a channel attribute like any other now: the create
+        // dialog only asks for required attributes, so an optional classification
+        // is added later from Channel Info, same as any other optional attribute.
         const classification = {
             ...program,
             id: 'f_classification',
@@ -1445,11 +1456,7 @@ describe('components/new_channel_modal - channel attributes', () => {
 
         renderWithContext(<NewChannelModal/>, state);
 
-        const row = screen.getByTestId('channelAttributeRow-classification');
-        expect(row).toBeInTheDocument();
-
-        // Offered, but not marked required and not standing in the way of Create.
-        expect(row).not.toHaveTextContent('Classification*');
+        expect(screen.queryByTestId('channelAttributeRow-classification')).not.toBeInTheDocument();
 
         await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
         expect(screen.getByText('Create channel').closest('button')).toBeEnabled();
@@ -1470,5 +1477,176 @@ describe('components/new_channel_modal - channel attributes', () => {
         await userEvent.click(screen.getByText('Create channel'));
 
         await waitFor(() => expect(screen.getByText('This channel is missing required attributes.')).toBeInTheDocument());
+    });
+
+    test('hides required attributes and never blocks Create when ChannelAttributesRequired is off', async () => {
+        const stateWithRequiredEnforcementOff: DeepPartial<GlobalState> = {
+            ...state,
+            entities: {
+                ...state.entities,
+                general: {config: {...state.entities?.general?.config, FeatureFlagChannelAttributesRequired: 'false'}},
+            },
+        };
+
+        renderWithContext(<NewChannelModal/>, stateWithRequiredEnforcementOff);
+
+        expect(screen.queryByTestId('channelAttributeRow-program')).not.toBeInTheDocument();
+
+        await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
+        expect(screen.getByText('Create channel').closest('button')).toBeEnabled();
+
+        await userEvent.click(screen.getByText('Create channel'));
+        await waitFor(() => expect(createChannel).toHaveBeenCalled());
+        expect((createChannel as jest.Mock).mock.calls[0][0]).not.toHaveProperty('property_values');
+    });
+
+    test('still offers a required classification field, without the required marker, when ChannelAttributesRequired is off', async () => {
+        // Classification is the one courtesy exception: the System Console hides
+        // the Required toggle for channel fields when ChannelAttributesRequired is off,
+        // so there is no admin path to freshly require anything during that window.
+        // Classification keeps showing anyway (unconditionally), just without the
+        // required marker and without blocking Create, since nothing enforces it.
+        const classification = {
+            ...program,
+            id: 'f_classification',
+            name: 'classification',
+            attrs: {display_name: 'Classification', required: true, options: [{id: 'lvl1', name: 'SECRET'}]},
+        };
+        mockedUseClassificationMarkings.mockReturnValue({
+            available: true,
+            loading: false,
+            channelField: classification,
+            levels: [],
+        });
+        mockedUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [classification, program]});
+
+        const stateWithRequiredEnforcementOff: DeepPartial<GlobalState> = {
+            ...state,
+            entities: {
+                ...state.entities,
+                general: {config: {...state.entities?.general?.config, FeatureFlagChannelAttributesRequired: 'false'}},
+            },
+        };
+
+        renderWithContext(<NewChannelModal/>, stateWithRequiredEnforcementOff);
+
+        const row = screen.getByTestId('channelAttributeRow-classification');
+        expect(row).toBeInTheDocument();
+        expect(row).not.toHaveTextContent('Classification*');
+        expect(screen.queryByTestId('channelAttributeRow-program')).not.toBeInTheDocument();
+
+        await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
+        expect(screen.getByText('Create channel').closest('button')).toBeEnabled();
+
+        await userEvent.click(screen.getByText('Create channel'));
+        await waitFor(() => expect(createChannel).toHaveBeenCalled());
+    });
+
+    test('does not offer classification when ChannelAttributesRequired is off but classification markings are not enabled', async () => {
+        // classification.available false (the "Enable classification markings"
+        // radio in the Classification Markings page is off / not configured) means
+        // there is no classification field to special-case in the first place.
+        mockedUseClassificationMarkings.mockReturnValue({available: false, loading: false, channelField: null, levels: []});
+        mockedUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [program]});
+
+        const stateWithRequiredEnforcementOff: DeepPartial<GlobalState> = {
+            ...state,
+            entities: {
+                ...state.entities,
+                general: {config: {...state.entities?.general?.config, FeatureFlagChannelAttributesRequired: 'false'}},
+            },
+        };
+
+        renderWithContext(<NewChannelModal/>, stateWithRequiredEnforcementOff);
+
+        expect(screen.queryByTestId('channelAttributeRow-classification')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('channelAttributeRow-program')).not.toBeInTheDocument();
+    });
+
+    test('does not offer classification unconditionally when ChannelAttributes itself is off, even with ChannelAttributesRequired off', async () => {
+        // The exception is scoped to channelAttributes.enabled specifically —
+        // if the umbrella feature itself is off, useChannelAttributes never
+        // surfaces the classification field here at all, so nothing to special-case.
+        mockedUseClassificationMarkings.mockReturnValue({available: true, loading: false, channelField: null, levels: []});
+        mockedUseChannelAttributes.mockReturnValue({enabled: false, loading: false, failed: false, fields: []});
+
+        const stateWithRequiredEnforcementOff: DeepPartial<GlobalState> = {
+            ...state,
+            entities: {
+                ...state.entities,
+                general: {config: {...state.entities?.general?.config, FeatureFlagChannelAttributesRequired: 'false'}},
+            },
+        };
+
+        renderWithContext(<NewChannelModal/>, stateWithRequiredEnforcementOff);
+
+        expect(screen.queryByTestId('channelAttributeRow-classification')).not.toBeInTheDocument();
+    });
+
+    test('a required classification field behaves like any other required field when enforcement is on', async () => {
+        // With enforcement on (ChannelAttributesRequired = true), classification
+        // gets no special treatment: required + enforced blocks Create like any other field.
+        const classification = {
+            ...program,
+            id: 'f_classification',
+            name: 'classification',
+            attrs: {display_name: 'Classification', required: true, options: [{id: 'lvl1', name: 'SECRET'}]},
+        };
+        mockedUseClassificationMarkings.mockReturnValue({
+            available: true,
+            loading: false,
+            channelField: classification,
+            levels: [],
+        });
+        mockedUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [classification]});
+
+        renderWithContext(<NewChannelModal/>, state);
+
+        const row = screen.getByTestId('channelAttributeRow-classification');
+        expect(row).toHaveTextContent('Classification*');
+
+        await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
+        expect(screen.getByText('Create channel').closest('button')).toBeDisabled();
+    });
+
+    describe('graph attributes', () => {
+        const graphProgram: PropertyField = {
+            ...program,
+            type: 'graph',
+        };
+
+        beforeEach(() => {
+            mockedUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [graphProgram]});
+        });
+
+        test('offers a required graph attribute at creation', () => {
+            renderWithContext(<NewChannelModal/>, state);
+
+            expect(screen.getByTestId('channelAttributeRow-program')).toBeInTheDocument();
+        });
+
+        test('blocks creation while a required graph attribute has no value', async () => {
+            renderWithContext(<NewChannelModal/>, state);
+
+            await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
+            expect(screen.getByText('Create channel').closest('button')).toBeDisabled();
+
+            await userEvent.click(screen.getByText('Create channel'));
+            expect(createChannel).not.toHaveBeenCalled();
+        });
+
+        test('sends the picked graph option ids with the channel it creates', async () => {
+            renderWithContext(<NewChannelModal/>, state);
+
+            await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
+            await userEvent.click(screen.getByTestId('channelAttribute-program'));
+            await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'VALUE_PROGRAM'}));
+            await userEvent.click(screen.getByText('Create channel'));
+
+            await waitFor(() => expect(createChannel).toHaveBeenCalledTimes(1));
+            expect((createChannel as jest.Mock).mock.calls[0][0]).toMatchObject({
+                property_values: [{field_id: graphProgram.id, value: ['opt_program']}],
+            });
+        });
     });
 });

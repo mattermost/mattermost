@@ -15,10 +15,12 @@ import Card from 'components/card/card';
 import * as Menu from 'components/menu';
 
 import AttributeAppliesToChannelItem from './attribute_applies_to_channel_item';
-import {ALL_RESOURCE_TYPES, ATTRIBUTE_APPLIES_TO_ADD_HEADER_TRIGGER_ID, RESOURCE_TYPE_ICONS, resourceTypeLabels} from './attribute_applies_to_constants';
+import {ALL_RESOURCE_TYPES, ATTRIBUTE_APPLIES_TO_ADD_HEADER_TRIGGER_ID, resourceTypeLabels} from './attribute_applies_to_constants';
 import type {AttributeAppliesToItemProps, ResourceObjectType, UserManagedValue} from './attribute_applies_to_constants';
 import AttributeAppliesToPostItem from './attribute_applies_to_post_item';
 import AttributeAppliesToUserItem from './attribute_applies_to_user_item';
+import type {ExternalSource} from './external_source';
+import ResourceTypeIcon from './resource_type_icon';
 
 import type {ChannelResourceConfig} from '../applies_to/channels/types';
 
@@ -35,10 +37,20 @@ type Props = {
     // merely disabled).
     hideAddResource?: boolean;
 
+    // Resource types the picker still offers but cannot add right now, mapped
+    // to a short reason shown under the option. Offered-and-disabled rather
+    // than hidden: an option that silently vanishes is indistinguishable from
+    // one this server does not have.
+    blockedTypes?: Partial<Record<ResourceObjectType, string>>;
+
     // Explains WHY existing rows' toggle is disabled, when the reason isn't
     // the transient `saving` state -- threaded straight through to each row's
     // AttributeAppliesToItemProps.lockedTooltip. Undefined renders no tooltip.
     lockedTooltip?: ReactNode;
+
+    // Locks Remove on the rows of the given types and explains why; the rest of
+    // each row follows `disabled`.
+    removeLockedTooltips?: Partial<Record<ResourceObjectType, ReactNode>>;
     onAdd: (type: ResourceObjectType) => void;
     onRemove: (type: ResourceObjectType) => void;
 
@@ -49,6 +61,11 @@ type Props = {
     onUserVisibilityChange?: (visibility: FieldVisibility) => void;
     userManaged?: UserManagedValue;
     onUserManagedChange?: (managed: UserManagedValue) => void;
+    userWhoCanSetLockedTooltip?: ReactNode;
+
+    // Set when the attribute's values are synced from AD/LDAP or SAML, which
+    // the Users row surfaces as a read-only "Managed by" indicator.
+    externalSource?: ExternalSource;
 
     // Channels only: the settings its row edits, held by the page because the
     // linked channel field is built from them on Save.
@@ -80,18 +97,22 @@ const RESOURCE_TYPE_ITEM_COMPONENTS: Record<Exclude<ResourceObjectType, 'channel
 // PostItem -- rather than one generic item parameterized by resourceType).
 // Holds no selection state of its own -- "available" picker options are
 // derived purely from props on every render. Makes no data-mutating dispatch
-// calls, no Client4/API calls (see R6 -- the page owns all of that).
+// calls, no Client4/API calls (the page owns all of that).
 function AttributeAppliesTo({
     appliesTo,
     disabled = false,
     hideAddResource = false,
+    blockedTypes,
     lockedTooltip,
+    removeLockedTooltips,
     onAdd,
     onRemove,
     userVisibility,
     onUserVisibilityChange,
     userManaged,
     onUserManagedChange,
+    externalSource,
+    userWhoCanSetLockedTooltip,
     channelResource,
     onChannelResourceChange,
     ordered,
@@ -125,14 +146,20 @@ function AttributeAppliesTo({
             }}
         >
             {availableTypes.map((type) => {
-                const ItemIcon = RESOURCE_TYPE_ICONS[type];
+                const blockedReason = blockedTypes?.[type];
                 return (
                     <Menu.Item
                         id={`${triggerId}-${type}`}
                         key={type}
-                        leadingElement={<ItemIcon size={18}/>}
+                        disabled={Boolean(blockedReason)}
+                        leadingElement={<ResourceTypeIcon type={type}/>}
                         onClick={() => onAdd(type)}
-                        labels={<FormattedMessage {...resourceTypeLabels[type]}/>}
+                        labels={(
+                            <>
+                                <span><FormattedMessage {...resourceTypeLabels[type]}/></span>
+                                {blockedReason && <span>{blockedReason}</span>}
+                            </>
+                        )}
                     />
                 );
             })}
@@ -194,6 +221,8 @@ function AttributeAppliesTo({
                                                 onConfigChange={onChannelResourceChange}
                                                 ordered={ordered}
                                                 disabled={disabled}
+                                                lockedTooltip={lockedTooltip}
+                                                removeLockedTooltip={removeLockedTooltips?.[type]}
                                                 onRemove={() => onRemove(type)}
                                             />
                                         );
@@ -205,12 +234,15 @@ function AttributeAppliesTo({
                                         onVisibilityChange: onUserVisibilityChange,
                                         managed: userManaged,
                                         onManagedChange: onUserManagedChange,
+                                        externalSource,
+                                        whoCanSetLockedTooltip: userWhoCanSetLockedTooltip,
                                     } : {};
                                     return (
                                         <Item
                                             key={type}
                                             disabled={disabled}
                                             lockedTooltip={lockedTooltip}
+                                            removeLockedTooltip={removeLockedTooltips?.[type]}
                                             onRemove={() => onRemove(type)}
                                             {...userProps}
                                         />

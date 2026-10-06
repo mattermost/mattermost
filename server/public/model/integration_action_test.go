@@ -280,7 +280,7 @@ func TestGenerateTriggerId(t *testing.T) {
 		require.NoError(t, err)
 
 		userId := NewId()
-		clientTriggerId, triggerId, appErr := GenerateTriggerId(userId, key)
+		clientTriggerId, triggerId, appErr := GenerateTriggerId(userId, NewId(), key)
 		assert.Nil(t, appErr)
 		assert.NotEmpty(t, clientTriggerId)
 		assert.NotEmpty(t, triggerId)
@@ -291,7 +291,7 @@ func TestGenerateTriggerId(t *testing.T) {
 		badSigner := &failingSigner{err: assert.AnError}
 
 		userId := NewId()
-		_, _, appErr := GenerateTriggerId(userId, badSigner)
+		_, _, appErr := GenerateTriggerId(userId, NewId(), badSigner)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.generate_trigger_id.signing_failed", appErr.Id)
 		assert.NotEmpty(t, appErr.Error())
@@ -310,7 +310,7 @@ func TestGenerateTriggerId(t *testing.T) {
 		}
 
 		userId := NewId()
-		_, _, appErr := GenerateTriggerId(userId, invalidKey)
+		_, _, appErr := GenerateTriggerId(userId, NewId(), invalidKey)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.generate_trigger_id.signing_failed", appErr.Id)
 		assert.Contains(t, appErr.Error(), "invalid signing key")
@@ -326,7 +326,7 @@ func TestGenerateTriggerId(t *testing.T) {
 		}
 
 		userId := NewId()
-		_, _, appErr := GenerateTriggerId(userId, invalidKey)
+		_, _, appErr := GenerateTriggerId(userId, NewId(), invalidKey)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.generate_trigger_id.signing_failed", appErr.Id)
 	})
@@ -338,63 +338,83 @@ func TestTriggerIdDecodeAndVerification(t *testing.T) {
 
 	t.Run("should succeed decoding and validation", func(t *testing.T) {
 		userId := NewId()
-		clientTriggerId, triggerId, appErr := GenerateTriggerId(userId, key)
+		channelId := NewId()
+		clientTriggerId, triggerId, appErr := GenerateTriggerId(userId, channelId, key)
 		require.Nil(t, appErr)
-		decodedClientTriggerId, decodedUserId, appErr := DecodeAndVerifyTriggerId(triggerId, key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		decodedClientTriggerId, decodedUserId, decodedChannelId, appErr := DecodeAndVerifyTriggerId(triggerId, key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		assert.Nil(t, appErr)
 		assert.Equal(t, clientTriggerId, decodedClientTriggerId)
 		assert.Equal(t, userId, decodedUserId)
+		assert.Equal(t, channelId, decodedChannelId)
 	})
 
 	t.Run("should succeed decoding and validation through request structs", func(t *testing.T) {
 		actionReq := &PostActionIntegrationRequest{
-			UserId: NewId(),
+			UserId:    NewId(),
+			ChannelId: NewId(),
 		}
 		clientTriggerId, triggerId, appErr := actionReq.GenerateTriggerId(key)
 		require.Nil(t, appErr)
 		dialogReq := &OpenDialogRequest{TriggerId: triggerId}
-		decodedClientTriggerId, decodedUserId, appErr := dialogReq.DecodeAndVerifyTriggerId(key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		decodedClientTriggerId, decodedUserId, decodedChannelId, appErr := dialogReq.DecodeAndVerifyTriggerId(key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		assert.Nil(t, appErr)
 		assert.Equal(t, clientTriggerId, decodedClientTriggerId)
 		assert.Equal(t, actionReq.UserId, decodedUserId)
+		assert.Equal(t, actionReq.ChannelId, decodedChannelId)
+	})
+
+	t.Run("should reject a trigger whose channel was tampered with", func(t *testing.T) {
+		_, triggerId, appErr := GenerateTriggerId(NewId(), NewId(), key)
+		require.Nil(t, appErr)
+
+		raw, decErr := base64.StdEncoding.DecodeString(triggerId)
+		require.NoError(t, decErr)
+		parts := strings.Split(string(raw), ":")
+		require.Len(t, parts, 5)
+		parts[3] = NewId() // swap the channel, leave the signature alone
+
+		tampered := base64.StdEncoding.EncodeToString([]byte(strings.Join(parts, ":")))
+		_, _, _, appErr = DecodeAndVerifyTriggerId(tampered, key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "interactive_message.decode_trigger_id.verify_signature_failed", appErr.Id)
 	})
 
 	t.Run("should fail on base64 decode", func(t *testing.T) {
-		_, _, appErr := DecodeAndVerifyTriggerId("junk!", key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr := DecodeAndVerifyTriggerId("junk!", key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.base64_decode_failed", appErr.Id)
 	})
 
 	t.Run("should fail on trigger parsing", func(t *testing.T) {
-		_, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("junk!")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("junk!")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.missing_data", appErr.Id)
 	})
 
 	t.Run("should fail on expired timestamp", func(t *testing.T) {
-		_, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:1234567890:junksignature")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:1234567890:some-channel-id:junksignature")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.expired", appErr.Id)
 	})
 
 	t.Run("should fail on base64 decoding signature", func(t *testing.T) {
-		_, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:12345678900000:junk!")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:12345678900000:some-channel-id:junk!")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.base64_decode_failed_signature", appErr.Id)
 	})
 
 	t.Run("should fail on bad signature", func(t *testing.T) {
-		_, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:12345678900000:junk")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:12345678900000:some-channel-id:junk")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.signature_decode_failed", appErr.Id)
 	})
 
 	t.Run("should fail on bad key", func(t *testing.T) {
-		_, triggerId, appErr := GenerateTriggerId(NewId(), key)
+		_, triggerId, appErr := GenerateTriggerId(NewId(), NewId(), key)
 		require.Nil(t, appErr)
 		newKey, keyErr := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 		require.NoError(t, keyErr)
-		_, _, appErr = DecodeAndVerifyTriggerId(triggerId, newKey, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr = DecodeAndVerifyTriggerId(triggerId, newKey, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.verify_signature_failed", appErr.Id)
 	})
@@ -619,7 +639,7 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 		request.Dialog.Elements[0].MaxLength = 9
 		err := request.IsValid()
 		assert.ErrorContains(t, err, "field is not valid")
-		assert.ErrorContains(t, err, "min length should be less then max length")
+		assert.ErrorContains(t, err, "min length should be less than max length")
 	})
 
 	t.Run("should fail on wrong element type", func(t *testing.T) {
@@ -2513,6 +2533,75 @@ func TestMmBlocksContextMap(t *testing.T) {
 		got := MmBlocksContextMap(`{"unclosed":`)
 		require.NotNil(t, got)
 		assert.Equal(t, `{"unclosed":`, got["context"])
+	})
+}
+
+// TestDialogElement_Collapsible_IsValid covers the "collapsible" element type and
+// the recursive depth/child validation added in validateCollapsible.
+func TestDialogElement_Collapsible_IsValid(t *testing.T) {
+	// validText returns a minimal valid leaf element usable as a collapsible child.
+	validText := func(name string) DialogElement {
+		return DialogElement{
+			DisplayName: "Text " + name,
+			Name:        name,
+			Type:        "text",
+		}
+	}
+
+	// collapsible builds a collapsible element wrapping the given children.
+	collapsible := func(name string, children ...DialogElement) DialogElement {
+		return DialogElement{
+			DisplayName: "Section " + name,
+			Name:        name,
+			Type:        "collapsible",
+			CollapsibleConfig: &DialogElementCollapsibleConfig{
+				Elements: children,
+			},
+		}
+	}
+
+	t.Run("valid collapsible with one child passes", func(t *testing.T) {
+		oneChildEx := collapsible("s1", validText("a"))
+		assert.NoError(t, oneChildEx.IsValid(), "collapsible with one child should be valid")
+	})
+
+	t.Run("collapsible with no children fails", func(t *testing.T) {
+		noElementsEx := collapsible("s1")
+		err := noElementsEx.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "at least one child element")
+	})
+
+	t.Run("nesting at max depth (3) passes", func(t *testing.T) {
+		threeLevels := collapsible("d1", collapsible("d2", collapsible("d3", validText("a"))))
+		assert.NoError(t, threeLevels.IsValid(), "collapsible at max depth should be valid")
+	})
+
+	t.Run("nesting beyond max depth (4) fails", func(t *testing.T) {
+		exceedDepth := collapsible("d1", collapsible("d2", collapsible("d3", collapsible("d4", validText("a")))))
+		err := exceedDepth.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "d4")
+	})
+
+	t.Run("invalid child propagates wrapped error", func(t *testing.T) {
+		invalidChild := collapsible("s1", collapsible("s2", DialogElement{DisplayName: "Bogus", Name: "b1", Type: "bogus"}))
+		err := invalidChild.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "child element is not valid")
+	})
+
+	t.Run("collapsed/borderless default and explicit values validate", func(t *testing.T) {
+		defaults := collapsible("s1", validText("a"))
+		assert.NoError(t, defaults.IsValid(), "collapsible with default Collapsed/Borderless should be valid")
+
+		collapsed := collapsible("s2", validText("b"))
+		collapsed.CollapsibleConfig.Collapsed = true
+		assert.NoError(t, collapsed.IsValid(), "collapsible with Collapsed=true should be valid")
+
+		borderless := collapsible("s3", validText("c"))
+		borderless.CollapsibleConfig.Borderless = true
+		assert.NoError(t, borderless.IsValid(), "collapsible with Borderless=true should be valid")
 	})
 }
 

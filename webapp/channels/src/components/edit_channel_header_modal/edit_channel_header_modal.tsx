@@ -49,7 +49,7 @@ type State = {
 };
 
 export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
-    private editChannelHeaderTextboxRef: React.RefObject<TextboxClass>;
+    private editChannelHeaderTextboxRef: React.RefObject<TextboxClass | null>;
 
     constructor(props: Props) {
         super(props);

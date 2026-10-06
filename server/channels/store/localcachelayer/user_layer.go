@@ -5,7 +5,7 @@ package localcachelayer
 
 import (
 	"bytes"
-	"sort"
+	"slices"
 	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -327,7 +327,7 @@ func dedup(elements []string) []string {
 		return elements
 	}
 
-	sort.Strings(elements)
+	slices.Sort(elements)
 
 	j := 0
 	for i := 1; i < len(elements); i++ {

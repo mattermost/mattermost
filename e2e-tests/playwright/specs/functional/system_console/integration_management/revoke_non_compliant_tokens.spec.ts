@@ -13,7 +13,9 @@ import {expect, test, testConfig} from '@mattermost/playwright-lib';
  * and the token never expires, or expires beyond that cap. The policy only applies at
  * creation time, so every test clears the cap before seeding its tokens and patches it in
  * afterwards. The cap is server-wide, so a test that already ran leaves it set.
- * Bot account tokens are exempt regardless of the policy.
+ * User-owned bot account tokens are included; plugin-owned bot account tokens are exempt.
+ * A bot created via the REST API is always owned by the creating user, so the plugin-owned
+ * case is covered by the server-side tests rather than here.
  *
  * The non-compliant count and revoke operation are global (every user's tokens, not just
  * the test's own), and this server is shared across concurrently running tests/workers.
@@ -118,7 +120,7 @@ test.describe('System Console > Integrations > Revoke non-compliant tokens @syst
         expect(await tokenIsUsable(token.token)).toBe(true);
     });
 
-    test('revokes non-compliant tokens on confirm, invalidating them while compliant and bot tokens survive', async ({
+    test('revokes non-compliant tokens on confirm, invalidating human and user-owned bot tokens while compliant tokens survive', async ({
         pw,
     }) => {
         const {adminUser, adminClient, user} = await pw.initSetup();
@@ -131,8 +133,8 @@ test.describe('System Console > Integrations > Revoke non-compliant tokens @syst
         });
         await adminClient.updateUserRoles(user.id, TOKEN_ROLES);
 
-        // # Seed one non-compliant token, one compliant token, and one exempt bot token, all
-        // # before the cap is enabled so the server allows their creation.
+        // # Seed one non-compliant token, one compliant token, and one user-owned bot token,
+        // # all before the cap is enabled so the server allows their creation.
         const nonCompliantToken = await adminClient.createUserAccessToken(user.id, 'never expires token');
         const compliantToken = await adminClient.createUserAccessToken(
             user.id,
@@ -175,9 +177,11 @@ test.describe('System Console > Integrations > Revoke non-compliant tokens @syst
             expect(await tokenIsUsable(nonCompliantToken.token)).toBe(false);
         }).toPass();
 
-        // * The compliant token and the exempt bot token still authenticate
+        // * The compliant token still authenticates, while the user-owned bot token is revoked.
         expect(await tokenIsUsable(compliantToken.token)).toBe(true);
-        expect(await tokenIsUsable(botToken.token)).toBe(true);
+        await expect(async () => {
+            expect(await tokenIsUsable(botToken.token)).toBe(false);
+        }).toPass();
     });
 
     test('refreshes the violation banner after saving a new maximum lifetime policy from the same page', async ({

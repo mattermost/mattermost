@@ -42,6 +42,7 @@ export const AppFieldTypes: {[name: string]: AppFieldType} = {
     RADIO: 'radio',
     DATE: 'date',
     DATETIME: 'datetime',
+    COLLAPSIBLE: 'collapsible',
     CHECKBOX_GROUP: 'checkbox_group',
     CHECKBOX_MATRIX: 'checkbox_matrix',
     FILE: 'file',

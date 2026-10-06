@@ -3,13 +3,17 @@
 
 import React, {useCallback} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
+
+import {CheckIcon} from '@mattermost/compass-icons/components';
+
+import {isChannelAttributesRequiredEnabled} from 'mattermost-redux/selectors/entities/general';
 
 import * as Menu from 'components/menu';
-import Toggle from 'components/toggle';
 
 import {changePolicyLabelFor, displayLocationLabel} from './summary';
 import type {ChannelChangePolicy, ChannelDisplayLocation, ChannelResourceConfig} from './types';
-import {CHANNEL_CHANGE_POLICIES, CHANNEL_DISPLAY_LOCATIONS, isOrderedChangePolicy} from './types';
+import {CHANNEL_CHANGE_POLICIES, CHANNEL_DISPLAY_LOCATIONS, CHANNEL_DISPLAY_LOCATION_OPTIONS, isOrderedChangePolicy} from './types';
 
 import './channels_resource_settings.scss';
 
@@ -39,8 +43,14 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled}: Props) =
     const intl = useIntl();
     const {formatMessage} = intl;
 
-    const handleRequiredToggle = useCallback(() => {
-        onChange({...value, required: !value.required});
+    // ChannelAttributesRequired gates this toggle entirely rather than disabling
+    // it: while enforcement is off there is no way to act on setting it, and
+    // leaving it interactive would let an admin configure a state that quietly
+    // does nothing until the flag is enabled.
+    const requiredEnforcementEnabled = useSelector(isChannelAttributesRequiredEnabled);
+
+    const handleRequiredToggle = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+        onChange({...value, required: event.target.checked});
     }, [onChange, value]);
 
     const handleChangePolicySelect = useCallback((changePolicy: ChannelChangePolicy) => {
@@ -50,8 +60,14 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled}: Props) =
     const handleLocationChange = useCallback((location: ChannelDisplayLocation, checked: boolean) => {
         // Rebuilt in canonical order rather than appended, so two identically
         // configured attributes serialize the same way whatever the tick order.
+        // Locations not offered in the UI (e.g. display_label_info) are preserved
+        // as-is so hiding the checkbox does not strip them on save.
+        const optionSet = new Set<string>(CHANNEL_DISPLAY_LOCATION_OPTIONS);
         const next = CHANNEL_DISPLAY_LOCATIONS.filter((candidate) => {
-            return candidate === location ? checked : value.displayLocations.includes(candidate);
+            if (optionSet.has(candidate)) {
+                return candidate === location ? checked : value.displayLocations.includes(candidate);
+            }
+            return value.displayLocations.includes(candidate);
         });
         onChange({...value, displayLocations: [...next]});
     }, [onChange, value]);
@@ -69,33 +85,43 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled}: Props) =
             className='ChannelsResourceSettings'
             data-testid='channelsResourceSettings'
         >
-            <div className='ChannelsResourceSettings__field'>
-                <span className='ChannelsResourceSettings__label'>
-                    <FormattedMessage {...messages.requiredLabel}/>
-                </span>
-                <div className='ChannelsResourceSettings__control'>
-                    <div className='ChannelsResourceSettings__switch'>
-                        <span
-                            className='ChannelsResourceSettings__switchState'
-                            aria-hidden='true'
+            {requiredEnforcementEnabled && (
+                <div className='ChannelsResourceSettings__field'>
+                    <span className='ChannelsResourceSettings__label'>
+                        <FormattedMessage {...messages.requiredLabel}/>
+                    </span>
+                    <div className='ChannelsResourceSettings__control'>
+                        <label
+                            className='ChannelsResourceSettings__switch'
+                            htmlFor='channelsResourceRequired'
                         >
-                            <FormattedMessage {...(value.required ? messages.on : messages.off)}/>
-                        </span>
-                        <Toggle
-                            id='channelsResourceRequired'
-                            size='btn-md'
-                            toggleClassName='btn-toggle-primary'
-                            toggled={value.required}
-                            disabled={disabled}
-                            onToggle={handleRequiredToggle}
-                            ariaLabel={formatMessage(messages.requiredLabel)}
-                        />
+                            <span className='ChannelsResourceSettings__switchLabel'>
+                                <FormattedMessage {...(value.required ? messages.on : messages.off)}/>
+                            </span>
+                            <span className='ChannelsResourceSettings__switchTrack'>
+                                <input
+                                    id='channelsResourceRequired'
+                                    type='checkbox'
+                                    role='switch'
+                                    className='ChannelsResourceSettings__switchInput'
+                                    checked={value.required}
+                                    disabled={disabled}
+                                    onChange={handleRequiredToggle}
+                                    aria-label={formatMessage(messages.requiredLabel)}
+                                    data-testid='channelsResourceRequired-button'
+                                />
+                                <span
+                                    className='ChannelsResourceSettings__switchKnob'
+                                    aria-hidden={true}
+                                />
+                            </span>
+                        </label>
+                        <p className='ChannelsResourceSettings__help'>
+                            <FormattedMessage {...(value.required ? messages.requiredOnHelp : messages.requiredOffHelp)}/>
+                        </p>
                     </div>
-                    <p className='ChannelsResourceSettings__help'>
-                        <FormattedMessage {...(value.required ? messages.requiredOnHelp : messages.requiredOffHelp)}/>
-                    </p>
                 </div>
-            </div>
+            )}
 
             <div className='ChannelsResourceSettings__field'>
                 <span
@@ -110,21 +136,33 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled}: Props) =
                         role='group'
                         aria-labelledby={LOCATIONS_LABEL_ID}
                     >
-                        {CHANNEL_DISPLAY_LOCATIONS.map((location) => (
-                            <label
-                                key={location}
-                                className='ChannelsResourceSettings__checkbox'
-                            >
-                                <input
-                                    type='checkbox'
-                                    checked={value.displayLocations.includes(location)}
-                                    disabled={disabled}
-                                    onChange={(e) => handleLocationChange(location, e.target.checked)}
-                                    data-testid={`channelsResourceLocation-${location}`}
-                                />
-                                <span>{displayLocationLabel(location, intl)}</span>
-                            </label>
-                        ))}
+                        {CHANNEL_DISPLAY_LOCATION_OPTIONS.map((location) => {
+                            const checked = value.displayLocations.includes(location);
+                            return (
+                                <label
+                                    key={location}
+                                    className='ChannelsResourceSettings__checkbox'
+                                >
+                                    <input
+                                        type='checkbox'
+                                        className='ChannelsResourceSettings__checkboxInput'
+                                        checked={checked}
+                                        disabled={disabled}
+                                        onChange={(e) => handleLocationChange(location, e.target.checked)}
+                                        data-testid={`channelsResourceLocation-${location}`}
+                                    />
+                                    <span
+                                        className='ChannelsResourceSettings__checkboxBox'
+                                        aria-hidden={true}
+                                    >
+                                        {checked && <CheckIcon size={12}/>}
+                                    </span>
+                                    <span className='ChannelsResourceSettings__checkboxLabel'>
+                                        {displayLocationLabel(location, intl)}
+                                    </span>
+                                </label>
+                            );
+                        })}
                     </div>
                     <p className='ChannelsResourceSettings__help'>
                         <FormattedMessage {...messages.displayHelp}/>
@@ -189,7 +227,7 @@ const messages = defineMessages({
     changePolicyAriaLabel: {id: 'admin.global_attributes.applies_to.channels.change_policy.aria_label', defaultMessage: 'Changing the value, currently {value}'},
     changePolicyUnorderedHelp: {id: 'admin.global_attributes.applies_to.channels.change_policy.unordered_help', defaultMessage: 'Raising and lowering need ranked values, so they are only offered on a Rank attribute.'},
     displayLabel: {id: 'admin.global_attributes.applies_to.channels.display.label', defaultMessage: 'Display location'},
-    displayHelp: {id: 'admin.global_attributes.applies_to.channels.display.help', defaultMessage: 'Multiple locations can be selected. Uncheck all to keep it off the header and banner — Channel Info always shows the value.'},
+    displayHelp: {id: 'admin.global_attributes.applies_to.channels.display.help', defaultMessage: 'Multiple display locations can be selected. You can always view and set the attribute value in the Channel Info sidebar. Unset values do not appear in the channel.'},
 });
 
 export default ChannelsResourceSettings;

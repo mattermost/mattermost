@@ -1160,6 +1160,61 @@ func TestPatchCPAValues(t *testing.T) {
 			require.Error(t, err)
 		})
 	})
+
+	t.Run("a non-public field's value is withheld from the websocket event", func(t *testing.T) {
+		nonPublicField := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+		}
+		createdNonPublicField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), nonPublicField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, createdNonPublicField)
+
+		// The write gate keys off Protected, not access_mode
+		// (checkLegacyFieldWriteAccess), so leaving Protected unset keeps this
+		// field writable by its owner despite being non-public. Only a store
+		// write can produce that combination: ValidatePropertyFieldAccessMode
+		// rejects it over the API.
+		store := th.App.Srv().Store().PropertyField()
+		storedField, err := store.Get(request.TestContext(t), createdNonPublicField.GroupID, createdNonPublicField.ID)
+		require.NoError(t, err)
+		if storedField.Attrs == nil {
+			storedField.Attrs = model.StringInterface{}
+		}
+		storedField.Attrs[model.PropertyAttrsAccessMode] = model.PropertyAccessModeSourceOnly
+		_, err = store.Update(storedField.GroupID, []*model.PropertyField{storedField}, nil)
+		require.NoError(t, err)
+
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		values := map[string]json.RawMessage{createdNonPublicField.ID: json.RawMessage(`"Non-Public Value"`)}
+		patchedValues, resp, err := th.Client.PatchCPAValues(context.Background(), values)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		var actualValue string
+		require.NoError(t, json.Unmarshal(patchedValues[createdNonPublicField.ID], &actualValue))
+		require.Equal(t, "Non-Public Value", actualValue)
+
+		var wsValues map[string]json.RawMessage
+		require.Eventually(t, func() bool {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() == model.WebsocketEventCPAValuesUpdated {
+					valuesData, err := json.Marshal(event.GetData()["values"])
+					require.NoError(t, err)
+					require.NoError(t, json.Unmarshal(valuesData, &wsValues))
+					return true
+				}
+			default:
+				return false
+			}
+			return false
+		}, 5*time.Second, 100*time.Millisecond)
+
+		require.Contains(t, wsValues, createdNonPublicField.ID)
+		require.JSONEq(t, model.PropertyValueWithheldJSON, string(wsValues[createdNonPublicField.ID]))
+	})
 }
 
 func TestPatchCPAValuesForUser(t *testing.T) {
@@ -2073,5 +2128,52 @@ func TestSysadminManagesCPAFieldOwners(t *testing.T) {
 		})
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
+	})
+}
+
+func TestCPALinkedFieldBlocked(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	rctx := request.TestContext(t)
+	group, appErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	// Create a template + linked user field via the app layer, simulating a
+	// field that was migrated to Global Attributes.
+	tmpl, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, appErr)
+
+	linkedField, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:       group.ID,
+		Name:          celSafeName(),
+		Type:          model.PropertyFieldTypeText,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &tmpl.ID,
+	}, false, "")
+	require.Nil(t, appErr)
+
+	t.Run("patch of a linked field is rejected", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.PatchCPAField(context.Background(), linkedField.ID, &model.PropertyFieldPatch{
+			Name: model.NewPointer(celSafeName()),
+		})
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.custom_profile_attributes.linked_field.app_error")
+	})
+
+	t.Run("delete of a linked field is rejected", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DeleteCPAField(context.Background(), linkedField.ID)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.custom_profile_attributes.linked_field.app_error")
 	})
 }
