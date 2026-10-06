@@ -14484,7 +14484,7 @@
   {
     "id": "health.rule.scale_es_recommended.message",
     "translation": "The workspace has {{.posts}} posts and search runs against the database. Elasticsearch is recommended above 2,500,000 posts and required above 5,000,000.",
-    "description": "Health dashboard finding detail when database search is used at 2,500,000 to 4,999,999 posts; {{.posts}} is the post count."
+    "description": "Health dashboard finding detail when database search is used at more than 2,500,000 and at most 5,000,000 posts; {{.posts}} is the post count."
   },
   {
     "id": "health.rule.scale_es_recommended.remediation",
@@ -14494,12 +14494,12 @@
   {
     "id": "health.rule.scale_es_recommended.title",
     "translation": "Post count is approaching the Elasticsearch threshold",
-    "description": "Health dashboard finding title when a workspace with 2,500,000 to 4,999,999 posts searches the database instead of Elasticsearch or OpenSearch."
+    "description": "Health dashboard finding title when a workspace with more than 2,500,000 and at most 5,000,000 posts searches the database instead of Elasticsearch or OpenSearch."
   },
   {
     "id": "health.rule.scale_es_required.message",
     "translation": "The workspace has {{.posts}} posts and search runs against the database. At this scale, expect slow searches, timeouts, and database CPU spikes.",
-    "description": "Health dashboard finding detail when database search is used at 5,000,000 posts or more; {{.posts}} is the post count."
+    "description": "Health dashboard finding detail when database search is used at more than 5,000,000 posts; {{.posts}} is the post count."
   },
   {
     "id": "health.rule.scale_es_required.remediation",
@@ -14509,7 +14509,7 @@
   {
     "id": "health.rule.scale_es_required.title",
     "translation": "Elasticsearch is required above 5,000,000 posts",
-    "description": "Health dashboard finding title when a workspace with at least 5,000,000 posts searches the database instead of Elasticsearch or OpenSearch."
+    "description": "Health dashboard finding title when a workspace with more than 5,000,000 posts searches the database instead of Elasticsearch or OpenSearch."
   },
   {
     "id": "health.rule.site_url_empty.message",

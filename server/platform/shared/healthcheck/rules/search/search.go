@@ -299,7 +299,7 @@ func evalESServerError(s *healthcheck.Snapshot) []healthcheck.Result {
 	}
 }
 
-// evalScale fires when the post count is in [lower, upper) while search runs against the database.
+// evalScale fires when the post count is in (lower, upper] while search runs against the database.
 func evalScale(s *healthcheck.Snapshot, lower, upper int64, messageID string) []healthcheck.Result {
 	searching, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ElasticsearchSettings.EnableSearching })
 	if !ok {
@@ -314,7 +314,7 @@ func evalScale(s *healthcheck.Snapshot, lower, upper int64, messageID string) []
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonStatsUnavailable)}
 	}
 
-	if posts >= lower && posts < upper {
+	if posts > lower && posts <= upper {
 		return []healthcheck.Result{healthcheck.Firing(messageID).WithDetail("posts", strconv.FormatInt(posts, 10)).WithValue(float64(posts))}
 	}
 
