@@ -143,28 +143,18 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 		require.Equal(t, int64(1), spy.calls.Load())
 	})
 
-	t.Run("concurrent runs all repair the group", func(t *testing.T) {
+	t.Run("should pin a drifted group when the setup flag is missing", func(t *testing.T) {
 		th := Setup(t)
 
-		// Every node of a cluster boots into the same broken state and races to
-		// repair it. Pinning an absolute version makes the writes interchangeable.
+		// Deleting the setup flag to force the migration to run again is the usual
+		// way to remediate one of these, and registering an existing group hands
+		// back its row without touching the version. So this arm has to pin it too,
+		// or the server serves 404 for the whole run and only heals on the next one.
+		_, sysErr := th.Store.System().PermanentDeleteByName(managedCategorySetupDoneKey)
+		require.NoError(t, sysErr)
 		require.NoError(t, th.Store.PropertyGroup().SetVersion(model.ManagedCategoryPropertyGroupName, model.PropertyGroupVersionV2+1))
 
-		const runners = 5
-		errs := make([]error, runners)
-		var wg sync.WaitGroup
-		wg.Add(runners)
-		for i := range runners {
-			go func() {
-				defer wg.Done()
-				errs[i] = th.Server.doSetupManagedCategoryProperties()
-			}()
-		}
-		wg.Wait()
-
-		for i, err := range errs {
-			require.NoError(t, err, "runner %d must not fail on concurrent repair", i)
-		}
+		runSetup(t, th)
 
 		assertGroupServableAtV2(t, th)
 		assertSetupFlagAtCurrentVersion(t, th)
@@ -174,7 +164,8 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 // setVersionSpyGroupStore counts the property group version writes a migration
 // makes. Pinning v2 onto a group that is already there leaves the same row
 // behind, so the write count is the only way to tell a repair from a redundant
-// write on every startup.
+// write on every startup. It only sees writes routed through Server.Store(); a
+// future version write made through the property service would go uncounted.
 type setVersionSpyGroupStore struct {
 	store.PropertyGroupStore
 

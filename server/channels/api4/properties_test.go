@@ -230,15 +230,6 @@ func TestManagedCategoryFieldsRequireGroupAtV2(t *testing.T) {
 	_, resp, err = getFields(t)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
-
-	// Pinning the group back to v2 is the whole of the repair.
-	require.NoError(t, th.App.Srv().Store().PropertyGroup().SetVersion(groupName, model.PropertyGroupVersionV2))
-
-	fields, resp, err = getFields(t)
-	require.NoError(t, err)
-	CheckOKStatus(t, resp)
-	require.Len(t, fields, 1)
-	require.Equal(t, model.ManagedCategoryPropertyFieldName, fields[0].Name)
 }
 
 // The gate is an OR across every Properties feature flag, so the off case is

@@ -1092,6 +1092,14 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 	if err != nil {
 		return fmt.Errorf("failed to register managed category group: %w", err)
 	}
+
+	// Registering an existing group returns its row without touching the version,
+	// so a run that finds no setup flag over a group that has already drifted
+	// still has to pin it.
+	if versionErr := s.ensureManagedCategoryGroupVersion(); versionErr != nil {
+		return versionErr
+	}
+
 	rctx := properties.SystemCallerContext(request.EmptyContext(s.Log()))
 
 	_, err = s.propertyService.GetPropertyFieldByNameForObjectType(rctx, group.ID, "", model.PropertyValueTargetTypeChannel, model.ManagedCategoryPropertyFieldName)
