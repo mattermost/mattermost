@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -19,6 +20,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	emocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/packet"
 )
 
 // Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
@@ -174,6 +177,57 @@ func TestBuildHealthSnapshotLatestVersionTimeout(t *testing.T) {
 	ok, sectionErr := snapshot.SectionErr(model.SectionVersion)
 	require.True(t, ok)
 	require.Error(t, sectionErr)
+}
+
+// Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
+func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
+	th := Setup(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.SiteURL = model.NewPointer("http://chat.example.com")
+		cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+		cfg.EmailSettings.PushNotificationServer = model.NewPointer("http://push.example.com")
+	})
+
+	// Without it the permissions collector fails and the packet carries a warning.txt.
+	err := th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_, deleteErr := th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
+		require.NoError(t, deleteErr)
+	})
+
+	err = th.App.clearLatestVersionCache()
+	require.NoError(t, err)
+
+	live, err := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context, latestVersionServer(t).URL)
+	require.NoError(t, err)
+
+	var zipped bytes.Buffer
+	var noCPUProfile time.Duration
+	files := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{CPUProfileDuration: &noCPUProfile})
+	require.NoError(t, th.App.WriteZipFile(&zipped, files))
+	offline, err := packet.Read(bytes.NewReader(zipped.Bytes()), int64(zipped.Len()))
+	require.NoError(t, err)
+	assert.Empty(t, offline.Warnings)
+
+	evaluatedAt := time.Now()
+	engine := healthcheck.NewEngine(healthcheck.EngineOpts{
+		Registry: healthcheck.Builtin(),
+		Now:      func() time.Time { return evaluatedAt },
+	})
+	liveEvaluations := engine.Evaluate(live)
+	offlineEvaluations := engine.Evaluate(offline.Snapshot)
+
+	require.NotEmpty(t, liveEvaluations)
+	assert.Equal(t, liveEvaluations, offlineEvaluations)
+
+	firing := map[string]bool{}
+	for _, evaluation := range liveEvaluations {
+		if evaluation.Result.State == healthcheck.StateFiring {
+			firing[evaluation.Code] = true
+		}
+	}
+	assert.Equal(t, map[string]bool{"PUSH_BAD_SCHEME": true, "SITE_URL_HTTP": true}, firing)
 }
 
 func TestClusterNodes(t *testing.T) {

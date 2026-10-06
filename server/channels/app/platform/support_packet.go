@@ -142,11 +142,11 @@ func (ps *PlatformService) GenerateSupportPacket(rctx request.CTX, options *mode
 }
 
 func supportPacketDiagnosticsFile(d *model.SupportPacketDiagnostics, err error) (*model.FileData, error) {
-	return YAMLFile("diagnostics.yaml", d, err, yaml.WithComment(diagnosticsYAMLComments))
+	return YAMLFile(model.SupportPacketDiagnosticsFileName, d, err, yaml.WithComment(diagnosticsYAMLComments))
 }
 
 func supportPacketConfigFile(c *model.SupportPacketConfig, err error) (*model.FileData, error) {
-	return JSONFile("sanitized_config.json", c, err)
+	return JSONFile(model.SupportPacketConfigFileName, c, err)
 }
 
 // GetSupportPacketDiagnostics collects this node's diagnostics. Every node section is
@@ -178,6 +178,7 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.License.IsTrial = license.IsTrial
 		d.License.IsGovSKU = license.IsGovSku
 		d.License.IsNonProduction = license.IsNonProduction
+		d.License.IsCloud = license.IsCloud()
 	}
 
 	/* Server */
@@ -290,6 +291,7 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	/* Cluster */
 	if cluster := ps.Cluster(); cluster != nil {
 		d.Cluster.ID = cluster.GetClusterId()
+		d.Cluster.IsLeader = cluster.IsLeader()
 		clusterInfo, e := cluster.GetClusterInfos()
 		if e != nil {
 			fail(model.SectionCluster, errors.Wrap(e, "error while getting cluster infos"))

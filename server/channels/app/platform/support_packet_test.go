@@ -280,6 +280,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, model.LicenseShortSkuEnterprise, d.License.SkuShortName)
 		assert.Equal(t, false, d.License.IsTrial)
 		assert.Equal(t, false, d.License.IsGovSKU)
+		assert.False(t, d.License.IsCloud)
 
 		/* Server information */
 		assert.NotEmpty(t, d.Server.OS)
@@ -367,6 +368,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Empty(t, d.Cluster.ID)
 		require.NotNil(t, d.Cluster.NumberOfNodes)
 		assert.Equal(t, 1, *d.Cluster.NumberOfNodes)
+		assert.False(t, d.Cluster.IsLeader)
 
 		/* LDAP */
 		assert.Equal(t, model.StatusDisabled, d.LDAP.Status)
@@ -387,6 +389,45 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, model.StatusDisabled, d.OAuthProviders.Google.Status)
 		assert.Equal(t, model.StatusDisabled, d.OAuthProviders.Office365.Status)
 		assert.Equal(t, model.StatusDisabled, d.OAuthProviders.OpenID.Status)
+	})
+
+	t.Run("only the cluster leader writes is_leader", func(t *testing.T) {
+		originalCluster := th.Service.clusterIFace
+		t.Cleanup(func() {
+			th.Service.clusterIFace = originalCluster
+		})
+
+		leaders := 0
+		for _, isLeader := range []bool{true, false, false} {
+			cluster := emocks.NewClusterInterface(t)
+			cluster.On("SendClusterMessage", mock.Anything).Return().Maybe()
+			cluster.On("GetClusterId").Return("cluster-id")
+			cluster.On("IsLeader").Return(isLeader)
+			cluster.On("GetClusterInfos").Return([]*model.ClusterInfo{{Id: "a"}, {Id: "b"}, {Id: "c"}}, nil)
+			th.Service.clusterIFace = cluster
+
+			fileData, err := supportPacketDiagnosticsFile(getDiagnostics(t), nil)
+			require.NoError(t, err)
+			if strings.Contains(string(fileData.Body), "is_leader: true") {
+				leaders++
+			}
+		}
+		assert.Equal(t, 1, leaders)
+	})
+
+	t.Run("cloud license writes is_cloud", func(t *testing.T) {
+		cloudLicense := model.NewTestLicense("cloud")
+		require.True(t, th.Service.SetLicense(cloudLicense))
+		t.Cleanup(func() {
+			require.True(t, th.Service.SetLicense(license))
+		})
+
+		d := getDiagnostics(t)
+		assert.True(t, d.License.IsCloud)
+
+		fileData, err := supportPacketDiagnosticsFile(d, nil)
+		require.NoError(t, err)
+		assert.Contains(t, string(fileData.Body), "is_cloud: true")
 	})
 
 	t.Run("filestore fails", func(t *testing.T) {
@@ -1276,6 +1317,7 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 		// Setup's background config publishes reach whichever cluster is installed.
 		cluster.On("SendClusterMessage", mock.Anything).Return().Maybe()
 		cluster.On("GetClusterId").Return("cluster-id")
+		cluster.On("IsLeader").Return(false)
 		cluster.On("GetClusterInfos").Return(nil, errors.New("gossip down"))
 		originalCluster := th.Service.clusterIFace
 		t.Cleanup(func() {
