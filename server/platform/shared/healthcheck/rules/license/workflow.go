@@ -24,10 +24,11 @@ var workflowChatOnly = healthcheck.Rule{
 		RemediationID: healthcheck.TranslationId("health.rule.workflow_usage_chat_only.remediation"),
 		ConsolePath:   workflowConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    workflowSubject,
-	Eval:       evalWorkflowChatOnly,
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityStable,
+	AppliesToCloud: true,
+	Subject:        workflowSubject,
+	Eval:           evalWorkflowChatOnly,
 }
 
 var workflowLight = healthcheck.Rule{
@@ -39,10 +40,11 @@ var workflowLight = healthcheck.Rule{
 		RemediationID: healthcheck.TranslationId("health.rule.workflow_usage_light.remediation"),
 		ConsolePath:   workflowConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    workflowSubject,
-	Eval:       evalWorkflowLight,
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityStable,
+	AppliesToCloud: true,
+	Subject:        workflowSubject,
+	Eval:           evalWorkflowLight,
 }
 
 type workflowUsage struct {

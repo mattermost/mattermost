@@ -88,10 +88,11 @@ var seatsLowEngagement = healthcheck.Rule{
 		RemediationID: healthcheck.TranslationId("health.rule.seats_low_engagement.remediation"),
 		ConsolePath:   engagementConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    "stats.monthly_active_users",
-	Eval:       evalSeatsLowEngagement,
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityThreshold,
+	AppliesToCloud: true,
+	Subject:        "stats.monthly_active_users",
+	Eval:           evalSeatsLowEngagement,
 }
 
 func activeUsers(stats *model.SupportPacketStats) *int64 { return stats.ActiveUsers }
