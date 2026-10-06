@@ -30,10 +30,11 @@ var pushIDOnly = healthcheck.Rule{
 		RemediationID: healthcheck.TranslationId("health.rule.push_id_only.remediation"),
 		ConsolePath:   notificationsConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "EmailSettings.PushNotificationContents",
-	Eval:       evalPushIDOnly,
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityStable,
+	AppliesToCloud: true,
+	Subject:        "EmailSettings.PushNotificationContents",
+	Eval:           evalPushIDOnly,
 }
 
 var linkPreviewsDisabled = healthcheck.Rule{
@@ -45,10 +46,11 @@ var linkPreviewsDisabled = healthcheck.Rule{
 		RemediationID: healthcheck.TranslationId("health.rule.link_previews_disabled.remediation"),
 		ConsolePath:   postsConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "ServiceSettings.EnableLinkPreviews",
-	Eval:       evalLinkPreviewsDisabled,
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityStable,
+	AppliesToCloud: true,
+	Subject:        "ServiceSettings.EnableLinkPreviews",
+	Eval:           evalLinkPreviewsDisabled,
 }
 
 var maxNotificationsPerChannel = healthcheck.Rule{

@@ -304,7 +304,10 @@ func TestReadCloud(t *testing.T) {
 	for _, f := range evaluate(t, snapshot) {
 		codes = append(codes, f.Code)
 	}
-	assert.ElementsMatch(t, []string{"PUSH_EMPTY_URL", "PUSH_BAD_SCHEME", "PUSH_TEST_PROXY"}, codes)
+	assert.ElementsMatch(t, []string{
+		"PUSH_EMPTY_URL", "PUSH_BAD_SCHEME", "PUSH_TEST_PROXY",
+		"PUSH_ID_ONLY", "LINK_PREVIEWS_DISABLED",
+	}, codes)
 }
 
 func TestReadMissingStats(t *testing.T) {
