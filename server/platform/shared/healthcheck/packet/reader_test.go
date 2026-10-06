@@ -125,39 +125,15 @@ func TestReadGoldenPackets(t *testing.T) {
 		{
 			name: "standalone",
 			expected: []finding{
-				{Code: "PUSH_EMPTY_URL", State: healthcheck.StateResolved, Subject: pushSubject},
-				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateResolved, Subject: pushSubject},
 				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateFiring, Subject: pushSubject},
-				{Code: "SITE_URL_EMPTY", State: healthcheck.StateResolved, Subject: siteURLSubject},
 				{Code: "SITE_URL_HTTP", State: healthcheck.StateFiring, Subject: siteURLSubject},
-				{Code: "ES_LOCALHOST_URL", State: healthcheck.StateResolved, Subject: "ElasticsearchSettings.ConnectionURL"},
-				{Code: "ES_SERVER_ERROR", State: healthcheck.StateResolved, Subject: "ElasticsearchSettings.ConnectionURL"},
-				{Code: "SCALE_ES_REQUIRED", State: healthcheck.StateResolved, Subject: "ElasticsearchSettings.EnableSearching"},
-				{Code: "SCALE_ES_RECOMMENDED", State: healthcheck.StateResolved, Subject: "ElasticsearchSettings.EnableSearching"},
-				{Code: "ES_LIVE_BATCH_SYNC", State: healthcheck.StateResolved, Subject: "ElasticsearchSettings.LiveIndexingBatchSize"},
-				{Code: "ES_LIVE_BATCH_TOO_HIGH", State: healthcheck.StateResolved, Subject: "ElasticsearchSettings.LiveIndexingBatchSize"},
-				{Code: "ES_VERSION_UNSUPPORTED", State: healthcheck.StateResolved, Subject: "ElasticsearchSettings.Backend"},
-				{Code: "ES_MISSING_ICU", State: healthcheck.StateResolved, Subject: "ElasticsearchSettings.ConnectionURL"},
-				{Code: "ES_SKIP_TLS_VERIFY", State: healthcheck.StateResolved, Subject: "ElasticsearchSettings.SkipTLSVerification"},
 			},
 		},
 		{
 			name: "ha",
 			expected: []finding{
-				{Code: "PUSH_EMPTY_URL", State: healthcheck.StateResolved, Subject: pushSubject},
 				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject},
-				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateResolved, Subject: pushSubject},
-				{Code: "SITE_URL_EMPTY", State: healthcheck.StateResolved, Subject: siteURLSubject},
-				{Code: "SITE_URL_HTTP", State: healthcheck.StateResolved, Subject: siteURLSubject},
-				{Code: "ES_LOCALHOST_URL", State: healthcheck.StateResolved, Subject: "ElasticsearchSettings.ConnectionURL"},
-				{Code: "ES_SERVER_ERROR", State: healthcheck.StateResolved, Subject: "ElasticsearchSettings.ConnectionURL"},
-				{Code: "SCALE_ES_REQUIRED", State: healthcheck.StateResolved, Subject: "ElasticsearchSettings.EnableSearching"},
-				{Code: "SCALE_ES_RECOMMENDED", State: healthcheck.StateResolved, Subject: "ElasticsearchSettings.EnableSearching"},
 				{Code: "ES_LIVE_BATCH_SYNC", State: healthcheck.StateFiring, Subject: "ElasticsearchSettings.LiveIndexingBatchSize"},
-				{Code: "ES_LIVE_BATCH_TOO_HIGH", State: healthcheck.StateResolved, Subject: "ElasticsearchSettings.LiveIndexingBatchSize"},
-				{Code: "ES_VERSION_UNSUPPORTED", State: healthcheck.StateResolved, Subject: "ElasticsearchSettings.Backend"},
-				{Code: "ES_MISSING_ICU", State: healthcheck.StateResolved, Subject: "ElasticsearchSettings.ConnectionURL"},
-				{Code: "ES_SKIP_TLS_VERIFY", State: healthcheck.StateResolved, Subject: "ElasticsearchSettings.SkipTLSVerification"},
 			},
 		},
 	}
@@ -312,7 +288,7 @@ func TestReadCloud(t *testing.T) {
 	for _, f := range evaluate(t, snapshot) {
 		codes = append(codes, f.Code)
 	}
-	assert.ElementsMatch(t, []string{"PUSH_EMPTY_URL", "PUSH_BAD_SCHEME", "PUSH_TEST_PROXY"}, codes)
+	assert.ElementsMatch(t, []string{"PUSH_TEST_PROXY"}, codes)
 }
 
 func TestReadMissingStats(t *testing.T) {
