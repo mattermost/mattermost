@@ -2200,6 +2200,15 @@ func TestUpsertPropertyValue_SyncLock(t *testing.T) {
 		Attrs:      model.StringInterface{model.PropertyFieldAttrSAML: "displayName"},
 	})
 
+	openIDField := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "openid_field_" + model.NewId(),
+		Type:       model.PropertyFieldTypeText,
+		TargetType: "system",
+		ObjectType: "user",
+		Attrs:      model.StringInterface{model.PropertyFieldAttrOpenID: "department"},
+	})
+
 	nonSyncedField := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 		GroupID:    group.ID,
 		Name:       "normal_field_" + model.NewId(),
@@ -2209,6 +2218,41 @@ func TestUpsertPropertyValue_SyncLock(t *testing.T) {
 	})
 
 	targetID := model.NewId()
+
+	t.Run("only the OpenID Connect sync service may write an OpenID-synced field", func(t *testing.T) {
+		newValue := func() *model.PropertyValue {
+			return &model.PropertyValue{
+				GroupID:    group.ID,
+				FieldID:    openIDField.ID,
+				TargetID:   targetID,
+				TargetType: "user",
+				Value:      json.RawMessage(`"Engineering"`),
+			}
+		}
+
+		for _, callerID := range []string{"", model.NewId(), model.CallerIDLDAPSync, model.CallerIDSAMLSync, model.CallerIDLocalAdmin} {
+			_, upsertErr := th.service.UpsertPropertyValue(RequestContextWithCallerID(th.Context, callerID), newValue())
+			require.Error(t, upsertErr, "caller %q", callerID)
+			assert.ErrorIs(t, upsertErr, ErrSyncLocked, "caller %q", callerID)
+			assert.Contains(t, upsertErr.Error(), "openid sync", "caller %q", callerID)
+		}
+
+		result, upsertErr := th.service.UpsertPropertyValue(RequestContextWithCallerID(th.Context, model.CallerIDOpenIDSync), newValue())
+		require.NoError(t, upsertErr)
+		assert.NotEmpty(t, result.ID)
+	})
+
+	t.Run("the OpenID Connect sync service cannot write an LDAP-synced field", func(t *testing.T) {
+		rctx := RequestContextWithCallerID(th.Context, model.CallerIDOpenIDSync)
+		_, upsertErr := th.service.UpsertPropertyValue(rctx, &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    ldapField.ID,
+			TargetID:   targetID,
+			TargetType: "user",
+			Value:      json.RawMessage(`"wrong caller"`),
+		})
+		require.ErrorIs(t, upsertErr, ErrSyncLocked)
+	})
 
 	t.Run("blocks upsert on LDAP-synced field without caller ID", func(t *testing.T) {
 		value := &model.PropertyValue{

@@ -2258,6 +2258,21 @@ The **Discovery Endpoint** setting can be used to determine the connectivity and
 </tbody>
 </table>
 
+##### OpenID Connect (other) Additional scopes
+
+<table>
+<colgroup>
+<col style={{width: '68%'}} />
+<col style={{width: '31%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>From Mattermost v12.1, scopes requested at sign-in in addition to <code>profile openid email</code>, separated by spaces. Use it when your provider releases a claim that a <a href="/administration-guide/onboard/sso-openidconnect#sync-user-attributes-from-openid-connect-claims">synced user attribute</a> is linked to only for a specific scope, for example <code>groups</code>.</p><p>String input, at most 1024 characters. Default is empty.</p></td>
+<td><ul><li>System Config path: <strong>Authentication &gt; OpenID Connect</strong></li><li><code>config.json</code> setting: <code>OpenIdSettings</code> &gt; <code>AdditionalScopes</code></li><li>Environment variable: <code>MM_OPENIDSETTINGS_ADDITIONALSCOPES</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
 ------------------------------------------------------------------------------------------------------------------------
 
 ## Guest access

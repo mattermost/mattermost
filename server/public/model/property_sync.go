@@ -3,15 +3,33 @@
 
 package model
 
+import "slices"
+
 // Sync sources for property fields. An attribute is synced from a source when
 // its definition -- the template a field links to, or the field itself when it
 // links to none -- names an external attribute under the matching attr
-// (PropertyFieldAttrLDAP / PropertyFieldAttrSAML). These are also the values
-// GetPropertyFieldSyncSource returns and the sync lock keys on.
+// (PropertyFieldAttrLDAP / PropertyFieldAttrSAML / PropertyFieldAttrOpenID).
+// These are also the values GetPropertyFieldSyncSource returns and the sync
+// lock keys on.
 const (
-	PropertySyncSourceLDAP = "ldap"
-	PropertySyncSourceSAML = "saml"
+	PropertySyncSourceLDAP   = "ldap"
+	PropertySyncSourceSAML   = "saml"
+	PropertySyncSourceOpenID = "openid"
 )
+
+// propertySyncSources lists every sync source in precedence order: a
+// definition naming more than one is synced from the first it names. Only
+// AD/LDAP and SAML may be combined; an OpenID Connect link is exclusive.
+var propertySyncSources = []string{
+	PropertySyncSourceLDAP,
+	PropertySyncSourceSAML,
+	PropertySyncSourceOpenID,
+}
+
+// PropertySyncSources returns every sync source in precedence order.
+func PropertySyncSources() []string {
+	return slices.Clone(propertySyncSources)
+}
 
 // PropertySyncMaxOptionsPerField caps the number of options a sync may
 // provision on one attribute's option list. Source values beyond the cap are
@@ -22,7 +40,7 @@ const PropertySyncMaxOptionsPerField = 500
 
 // IsValidPropertySyncSource reports whether source names a known sync source.
 func IsValidPropertySyncSource(source string) bool {
-	return source == PropertySyncSourceLDAP || source == PropertySyncSourceSAML
+	return slices.Contains(propertySyncSources, source)
 }
 
 // PropertySyncCallerID returns the caller ID under which the given source
@@ -33,6 +51,19 @@ func PropertySyncCallerID(source string) string {
 		return CallerIDLDAPSync
 	case PropertySyncSourceSAML:
 		return CallerIDSAMLSync
+	case PropertySyncSourceOpenID:
+		return CallerIDOpenIDSync
+	}
+	return ""
+}
+
+// PropertySyncSourceForCallerID returns the sync source that writes under
+// callerID, or "" when callerID is not a sync service.
+func PropertySyncSourceForCallerID(callerID string) string {
+	for _, source := range propertySyncSources {
+		if PropertySyncCallerID(source) == callerID {
+			return source
+		}
 	}
 	return ""
 }
@@ -45,6 +76,8 @@ func PropertySyncSourceAttr(source string) string {
 		return PropertyFieldAttrLDAP
 	case PropertySyncSourceSAML:
 		return PropertyFieldAttrSAML
+	case PropertySyncSourceOpenID:
+		return PropertyFieldAttrOpenID
 	}
 	return ""
 }

@@ -336,7 +336,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	uri := c.GetSiteURLHeader() + "/signup/" + service + "/complete"
 
-	body, props, tokenUser, err := c.App.AuthorizeOAuthUser(c.AppContext, w, r, service, code, state, uri)
+	auth, props, err := c.App.AuthorizeOAuthUser(c.AppContext, w, r, service, code, state, uri)
 
 	action := ""
 	hasRedirectURL := false
@@ -367,7 +367,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.CompleteOAuth(c.AppContext, service, body, props, tokenUser)
+	user, err := c.App.CompleteOAuth(c.AppContext, service, auth, props)
 	if err != nil {
 		err.Translate(c.AppContext.T)
 		c.LogErrorByCode(err)

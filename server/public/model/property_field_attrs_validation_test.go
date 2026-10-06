@@ -349,14 +349,30 @@ func TestIsPropertyFieldSynced(t *testing.T) {
 	assert.True(t, IsPropertyFieldSynced(&PropertyField{Attrs: StringInterface{PropertyFieldAttrLDAP: "attr"}}))
 	assert.True(t, IsPropertyFieldSynced(&PropertyField{Attrs: StringInterface{PropertyFieldAttrSAML: "attr"}}))
 	assert.True(t, IsPropertyFieldSynced(&PropertyField{Attrs: StringInterface{PropertyFieldAttrLDAP: "a", PropertyFieldAttrSAML: "b"}}))
+	assert.True(t, IsPropertyFieldSynced(&PropertyField{Attrs: StringInterface{PropertyFieldAttrOpenID: "department"}}))
+	assert.False(t, IsPropertyFieldSynced(&PropertyField{Attrs: StringInterface{PropertyFieldAttrOpenID: ""}}))
 }
 
 func TestGetPropertyFieldSyncSource(t *testing.T) {
 	assert.Equal(t, "", GetPropertyFieldSyncSource(&PropertyField{}))
 	assert.Equal(t, "ldap", GetPropertyFieldSyncSource(&PropertyField{Attrs: StringInterface{PropertyFieldAttrLDAP: "attr"}}))
 	assert.Equal(t, "saml", GetPropertyFieldSyncSource(&PropertyField{Attrs: StringInterface{PropertyFieldAttrSAML: "attr"}}))
-	// ldap takes priority
+	assert.Equal(t, "openid", GetPropertyFieldSyncSource(&PropertyField{Attrs: StringInterface{PropertyFieldAttrOpenID: "attr"}}))
+	// ldap takes priority, then saml
 	assert.Equal(t, "ldap", GetPropertyFieldSyncSource(&PropertyField{Attrs: StringInterface{PropertyFieldAttrLDAP: "a", PropertyFieldAttrSAML: "b"}}))
+	assert.Equal(t, "saml", GetPropertyFieldSyncSource(&PropertyField{Attrs: StringInterface{PropertyFieldAttrSAML: "a", PropertyFieldAttrOpenID: "b"}}))
+}
+
+func TestGetPropertyFieldSyncSources(t *testing.T) {
+	assert.Empty(t, GetPropertyFieldSyncSources(&PropertyField{}))
+	assert.Empty(t, GetPropertyFieldSyncSources(&PropertyField{Attrs: StringInterface{PropertyFieldAttrLDAP: "", PropertyFieldAttrOpenID: ""}}))
+	assert.Equal(t, []string{"openid"}, GetPropertyFieldSyncSources(&PropertyField{Attrs: StringInterface{PropertyFieldAttrOpenID: "dept"}}))
+	assert.Equal(t, []string{"ldap", "saml", "openid"}, GetPropertyFieldSyncSources(&PropertyField{Attrs: StringInterface{
+		PropertyFieldAttrOpenID: "c",
+		PropertyFieldAttrSAML:   "b",
+		PropertyFieldAttrLDAP:   "a",
+	}}), "listed in precedence order, whatever the attrs order")
+	assert.Empty(t, GetPropertyFieldSyncSources(&PropertyField{Attrs: StringInterface{PropertyFieldAttrOpenID: 42}}), "a non-string link is no link")
 }
 
 func TestIsValidPropertyFieldVisibility(t *testing.T) {

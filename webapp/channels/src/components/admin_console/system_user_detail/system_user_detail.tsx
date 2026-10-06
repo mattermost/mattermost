@@ -6,8 +6,8 @@
 import classNames from 'classnames';
 import React, {PureComponent} from 'react';
 import type {ChangeEvent, KeyboardEvent, MouseEvent} from 'react';
-import type {IntlShape, WrappedComponentProps} from 'react-intl';
-import {FormattedList, FormattedMessage, defineMessage, injectIntl, useIntl} from 'react-intl';
+import type {IntlShape, MessageDescriptor, WrappedComponentProps} from 'react-intl';
+import {FormattedList, FormattedMessage, defineMessage, defineMessages, injectIntl, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import type {RouteComponentProps} from 'react-router-dom';
 import ReactSelect from 'react-select';
@@ -23,6 +23,8 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail, getInputTypeFromValueType} from 'mattermost-redux/utils/helpers';
+import {getPropertyFieldSyncSources, isPropertyFieldSynced} from 'mattermost-redux/utils/property_utils';
+import type {PropertySyncSource} from 'mattermost-redux/utils/property_utils';
 
 import {getPluginDisplayName} from 'selectors/plugins';
 
@@ -100,6 +102,10 @@ const CPAMultiSelect: React.FC<CPAMultiSelectProps> = ({
             }}
             isDisabled={disabled}
             isClearable={false}
+
+            // A disabled select keeps its values; a remove button on each would
+            // suggest otherwise.
+            components={disabled ? {MultiValueRemove: () => null} : undefined}
             placeholder={placeholder}
             noOptionsMessage={() => noOptionsMessage}
             styles={{
@@ -210,6 +216,12 @@ function GraphConfirmLabels({field, ids}: {field: UserPropertyField; ids: string
     }));
 }
 
+const syncSourceChipMessages: Record<PropertySyncSource, MessageDescriptor> = defineMessages({
+    ldap: {id: 'admin.userManagement.userDetail.ldap', defaultMessage: 'AD/LDAP: {propertyName}'},
+    saml: {id: 'admin.userManagement.userDetail.saml', defaultMessage: 'SAML: {propertyName}'},
+    openid: {id: 'admin.userManagement.userDetail.openid', defaultMessage: 'OpenID Connect: {propertyName}'},
+});
+
 type CpaFieldManagementIndicatorProps = {
     field: UserPropertyField;
 
@@ -219,7 +231,8 @@ type CpaFieldManagementIndicatorProps = {
 const CpaFieldManagementIndicator: React.FC<CpaFieldManagementIndicatorProps> = ({field, omitLocksField}) => {
     const pluginsById = useSelector((state: GlobalState) => state.plugins?.plugins ?? {});
     const owners = field.attrs?.owners ?? [];
-    const hasSyncedSources = Boolean(field.attrs?.ldap || field.attrs?.saml || owners.length > 0);
+    const syncSources = getPropertyFieldSyncSources(field);
+    const hasSyncedSources = syncSources.length > 0 || owners.length > 0;
     const isProtected = Boolean(field.attrs?.protected);
 
     if (hasSyncedSources) {
@@ -252,34 +265,20 @@ const CpaFieldManagementIndicator: React.FC<CpaFieldManagementIndicatorProps> = 
         });
 
         const syncedProperties = [
-            field.attrs?.ldap && (
+            ...syncSources.map((source) => (
                 <span
                     className='user-detail-cpa-field__chip'
-                    key={`${field.name}-ldap`}
-                    data-testid={`user-detail-cpa-field__ldap-${field.name}`}
+                    key={`${field.name}-${source}`}
+                    data-testid={`user-detail-cpa-field__${source}-${field.name}`}
                 >
                     <FormattedMessage
-                        id='admin.userManagement.userDetail.ldap'
-                        defaultMessage='AD/LDAP: {propertyName}'
-                        values={{propertyName: field.attrs.ldap}}
+                        {...syncSourceChipMessages[source]}
+                        values={{propertyName: field.attrs?.[source]}}
                     />
                 </span>
-            ),
-            field.attrs?.saml && (
-                <span
-                    className='user-detail-cpa-field__chip'
-                    key={`${field.name}-saml`}
-                    data-testid={`user-detail-cpa-field__saml-${field.name}`}
-                >
-                    <FormattedMessage
-                        id='admin.userManagement.userDetail.saml'
-                        defaultMessage='SAML: {propertyName}'
-                        values={{propertyName: field.attrs.saml}}
-                    />
-                </span>
-            ),
+            )),
             ...ownerPills,
-        ].filter(Boolean);
+        ];
 
         return (
             <div className='user-property-field-values__sync-indicator'>
@@ -862,7 +861,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
     renderCpaField = (field: UserPropertyField, error: string | undefined) => {
         const value = this.state.customProfileAttributeValues[field.id] || '';
-        const isSynced = Boolean(field.attrs?.ldap || field.attrs?.saml);
+        const isSynced = isPropertyFieldSynced(field);
         const isOwnerManaged = Boolean(field.attrs?.owners?.length);
         const isProtected = Boolean(field.attrs?.protected);
         const optionsOmitted = Boolean(field.attrs?.options_omitted);
@@ -2194,6 +2193,13 @@ export function getUserAuthenticationTextField(intl: IntlShape, mfaEnabled: Prop
                 id: 'admin.oauth.office365',
                 defaultMessage: 'Entra ID',
             });
+        } else if (user.auth_service === Constants.OPENID_SERVICE) {
+            service = intl.formatMessage({
+                id: 'admin.userManagement.userDetail.openId',
+                defaultMessage: 'OpenID Connect',
+            });
+        } else if (user.auth_service === Constants.GITLAB_SERVICE) {
+            service = 'GitLab';
         } else if (user.auth_service === Constants.MAGIC_LINK_SERVICE) {
             service = intl.formatMessage({
                 id: 'admin.userManagement.userDetail.magicLink',

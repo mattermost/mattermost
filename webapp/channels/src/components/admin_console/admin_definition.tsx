@@ -5764,6 +5764,15 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
                         },
                         {
+                            type: 'text',
+                            key: 'OpenIdSettings.AdditionalScopes',
+                            label: defineMessage({id: 'admin.openid.additionalScopesTitle', defaultMessage: 'Additional Scopes:'}),
+                            help_text: defineMessage({id: 'admin.openid.additionalScopesDescription', defaultMessage: 'Space-separated scopes to request in addition to profile, openid and email, for claims your provider releases only under another scope, such as groups.'}),
+                            placeholder: defineMessage({id: 'admin.openid.additionalScopesExample', defaultMessage: 'E.g.: "groups"'}),
+                            isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)), it.licensedForCloudStarter),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
+                        },
+                        {
                             type: 'bool',
                             key: 'GitLabSettings.UsePreferredUsername',
                             label: defineMessage({id: 'admin.openid.usePreferredUsernameTitle', defaultMessage: 'Use Preferred Username:'}),
@@ -5788,6 +5797,18 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.openid.usePreferredUsernameDescription', defaultMessage: 'When true, use the `preferred_username` claim as the Mattermost username for the user. The scope must include `profile` and `openid` to use this feature.'}),
                             help_text_markdown: true,
                             isHidden: it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
+                        },
+                        {
+                            type: 'custom',
+                            key: 'OpenIdSettings.CustomProfileAttributes',
+                            component: CustomProfileAttributes,
+                            isHidden: it.any(
+                                it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)),
+                                it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+                                it.not(it.licensedForFeature('OpenId')),
+                                it.not(it.configIsTrue('FeatureFlags', 'OpenIdAttributeSync')),
+                            ),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
                         },
                         {

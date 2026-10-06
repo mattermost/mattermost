@@ -30,6 +30,7 @@ const PROFILE_DISPLAY_VALUES: FieldVisibility[] = ['always', 'when_set', 'hidden
 const MANAGED_BY_OPTIONS: Record<ExternalSource, AttributeSelectOption<ExternalSource>> = {
     ldap: {id: 'ldap', icon: SyncIcon, label: externalSourceMessages.ldap.title},
     saml: {id: 'saml', icon: SyncIcon, label: externalSourceMessages.saml.title},
+    openid: {id: 'openid', icon: SyncIcon, label: externalSourceMessages.openid.title},
 };
 
 // The Users row of the Applies-to list -- owns its own expand/collapse state

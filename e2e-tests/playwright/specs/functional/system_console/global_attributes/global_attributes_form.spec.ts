@@ -634,7 +634,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 // already on the page -- so scope to the AttributeModal dialog once
                 // it's open, rather than the whole page.
                 await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
-                await systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/}).click();
+                await systemConsolePage.page.getByRole('menuitem', {name: /^AD\/LDAP/}).click();
                 const ldapDialog = systemConsolePage.page.getByRole('dialog');
                 await expect(ldapDialog).toBeVisible();
                 await ldapDialog.getByRole('textbox').fill('employeeID');
@@ -662,9 +662,9 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
 
         /**
          * @objective Ensure both AD/LDAP and SAML can be linked on the same attribute, that an
-         * already-linked source is excluded from the "add" menu (and the trigger disappears
-         * once both are linked), and that each chip shows the actual linked value, not just the
-         * source name.
+         * already-linked source is excluded from the "add" menu (once both are linked, only
+         * OpenID Connect is left, disabled because it can't be combined with them), and that
+         * each chip shows the actual linked value, not just the source name.
          */
         test('links both AD/LDAP and SAML, excludes an already-linked source from the menu, and shows the linked value in each chip', async ({
             pw,
@@ -686,11 +686,11 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
 
                 // # Before anything is linked, the menu offers both sources
                 await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
-                await expect(systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/})).toBeVisible();
+                await expect(systemConsolePage.page.getByRole('menuitem', {name: /^AD\/LDAP/})).toBeVisible();
                 await expect(systemConsolePage.page.getByRole('menuitem', {name: /^SAML/})).toBeVisible();
 
                 // # Link AD/LDAP
-                await systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/}).click();
+                await systemConsolePage.page.getByRole('menuitem', {name: /^AD\/LDAP/}).click();
                 await systemConsolePage.page.getByPlaceholder('department').fill('employeeID');
                 await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
 
@@ -702,22 +702,28 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 // # Reopen the trigger -- AD/LDAP is no longer offered, only SAML
                 await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
                 await expect(systemConsolePage.page.getByRole('menuitem', {name: /^SAML/})).toBeVisible();
-                await expect(systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/})).not.toBeVisible();
+                await expect(systemConsolePage.page.getByRole('menuitem', {name: /^AD\/LDAP/})).not.toBeVisible();
 
                 // # Link SAML too
                 await systemConsolePage.page.getByRole('menuitem', {name: /^SAML/}).click();
                 await systemConsolePage.page.getByPlaceholder('department').fill('position');
                 await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
 
-                // * Both chips are shown with their own values, and the trigger disappears
-                // entirely -- there is nothing left to add
+                // * Both chips are shown with their own values
                 await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText(
                     'AD/LDAP: employeeID',
                 );
                 await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-saml')).toHaveText(
                     'SAML: position',
                 );
-                await expect(systemConsolePage.page.getByTestId('attributeExternalSourceTrigger')).not.toBeVisible();
+
+                // * Only OpenID Connect is left, disabled because it can't be combined with them
+                await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
+                await expect(systemConsolePage.page.getByRole('menuitem')).toHaveCount(1);
+                const openIdItem = systemConsolePage.page.getByRole('menuitem', {name: /^OpenID Connect/});
+                await expect(openIdItem).toBeDisabled();
+                await expect(openIdItem).toContainText("Can't be combined with AD/LDAP and SAML");
+                await systemConsolePage.page.keyboard.press('Escape');
 
                 await systemConsolePage.page.getByTestId('saveSetting').click();
 
@@ -840,7 +846,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
 
             // # Link AD/LDAP
             await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
-            await systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/}).click();
+            await systemConsolePage.page.getByRole('menuitem', {name: /^AD\/LDAP/}).click();
             await systemConsolePage.page.getByPlaceholder('department').fill('employeeID');
             await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
             await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText(
@@ -891,7 +897,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
             await typeButton.click();
             await page.getByRole('menuitemradio', {name: 'Select', exact: true}).click();
             await page.getByTestId('attributeExternalSourceTrigger').click();
-            await page.getByRole('menuitem', {name: /AD\/LDAP/}).click();
+            await page.getByRole('menuitem', {name: /^AD\/LDAP/}).click();
 
             // * The source can populate a Select, so the modal warns of no conversion
             await expect(page.getByPlaceholder('department')).toBeVisible();
@@ -926,7 +932,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
             await typeButton.click();
             await page.getByRole('menuitemradio', {name: 'Ranked', exact: true}).click();
             await page.getByTestId('attributeExternalSourceTrigger').click();
-            await page.getByRole('menuitem', {name: /AD\/LDAP/}).click();
+            await page.getByRole('menuitem', {name: /^AD\/LDAP/}).click();
 
             // * The modal warns the field will convert to Text
             await expect(page.getByText(/converted to a TEXT attribute/i)).toBeVisible();

@@ -72,6 +72,11 @@ type DirectChannelChecker func(rctx request.CTX, channelID string) (bool, error)
 // flag flip takes effect without restarting the hook.
 type RequiredAttributeEnforcementProvider func() bool
 
+// OpenIDAttributeSyncProvider reports whether linking attributes to OpenID
+// Connect claims is currently enabled. Backed by a closure over live config,
+// like RequiredAttributeEnforcementProvider.
+type OpenIDAttributeSyncProvider func() bool
+
 type AccessControlAttributeValidationHook struct {
 	BasePropertyHook
 	propertyService              *PropertyService
@@ -80,6 +85,7 @@ type AccessControlAttributeValidationHook struct {
 	pluginChecker                PluginChecker
 	directChannelChecker         DirectChannelChecker
 	requiredAttributeEnforcement RequiredAttributeEnforcementProvider
+	openIDAttributeSync          OpenIDAttributeSyncProvider
 }
 
 var _ PropertyHook = (*AccessControlAttributeValidationHook)(nil)
@@ -107,6 +113,11 @@ type AccessControlAttributeValidationHookConfig struct {
 	// field, classification included; a required field on any other object
 	// type (post, user) is always enforced regardless of this provider.
 	RequiredAttributeEnforcement RequiredAttributeEnforcementProvider
+	// OpenIDAttributeSync reports whether attributes may be linked to OpenID
+	// Connect claims. A nil provider defaults to enabled. When it reports
+	// false, a new or changed openid link is refused; an existing one rides
+	// along untouched.
+	OpenIDAttributeSync OpenIDAttributeSyncProvider
 }
 
 // NewAccessControlAttributeValidationHook creates a hook that validates field attributes and
@@ -123,6 +134,7 @@ func NewAccessControlAttributeValidationHook(ps *PropertyService, cfg AccessCont
 		pluginChecker:                cfg.PluginChecker,
 		directChannelChecker:         cfg.DirectChannelChecker,
 		requiredAttributeEnforcement: cfg.RequiredAttributeEnforcement,
+		openIDAttributeSync:          cfg.OpenIDAttributeSync,
 	}
 }
 
@@ -138,15 +150,31 @@ func (h *AccessControlAttributeValidationHook) requiredEnforced() bool {
 	return h.requiredAttributeEnforcement == nil || h.requiredAttributeEnforcement()
 }
 
+// openIDAttributeSyncEnabled reports whether attributes may be linked to
+// OpenID Connect claims. A nil provider defaults to enabled.
+func (h *AccessControlAttributeValidationHook) openIDAttributeSyncEnabled() bool {
+	return h.openIDAttributeSync == nil || h.openIDAttributeSync()
+}
+
 // sanitizeAndValidateFieldAttrs trims string attrs, applies the visibility
 // default, clears attrs that don't apply to the field type, validates each
 // attr, and auto-IDs+validates options for select-shaped fields. Mutates
-// field.Attrs in place. prevType is the field's type before this operation.
-// prevType is empty on creation of a new field. prevActions is the field's
-// attrs["actions"] before this operation, nil on creation.
-func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(field *model.PropertyField, prevType model.PropertyFieldType, prevActions any, prevRequired bool) error {
+// field.Attrs in place. existing is the field before this operation, nil on
+// creation of a new field (or when an update targets a field that does not
+// exist, which the store reports later): every rule then treats the field as
+// brand new, with nothing to grandfather.
+func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(field, existing *model.PropertyField) error {
 	if field.Attrs == nil {
 		field.Attrs = model.StringInterface{}
+	}
+
+	var prevType model.PropertyFieldType
+	var prevActions any
+	var prevRequired bool
+	if existing != nil {
+		prevType = existing.Type
+		prevActions = existing.Attrs[model.PropertyFieldAttrActions]
+		prevRequired = model.IsPropertyFieldRequired(existing)
 	}
 
 	for _, key := range trimmedFieldAttrKeys {
@@ -161,7 +189,7 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 
 	// Type-based attr clearing: select-shaped fields keep options, and only
 	// the types that can be populated from an identity source keep their
-	// ldap/saml link (see PropertyFieldType.SupportsExternalSync).
+	// ldap/saml/openid link (see PropertyFieldType.SupportsExternalSync).
 	isSelect := field.Type.SupportsOptions()
 	isText := field.Type == model.PropertyFieldTypeText
 	managed, _ := field.Attrs[model.PropertyFieldAttrManaged].(string)
@@ -177,8 +205,12 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 		delete(field.Attrs, model.PropertyFieldAttributeOptionsOmitted)
 	}
 	if !field.Type.SupportsExternalSync() {
-		delete(field.Attrs, model.PropertyFieldAttrLDAP)
-		delete(field.Attrs, model.PropertyFieldAttrSAML)
+		for _, source := range model.PropertySyncSources() {
+			delete(field.Attrs, model.PropertySyncSourceAttr(source))
+		}
+	}
+	if err := h.validateSyncSources(field, existing); err != nil {
+		return err
 	}
 
 	if err := model.ValidatePropertyFieldVisibility(field); err != nil {
@@ -275,6 +307,7 @@ var trimmedFieldAttrKeys = []string{
 	model.PropertyFieldAttrManaged,
 	model.PropertyFieldAttrLDAP,
 	model.PropertyFieldAttrSAML,
+	model.PropertyFieldAttrOpenID,
 	model.PropertyFieldAttrDisplayName,
 }
 
@@ -622,7 +655,7 @@ func (h *AccessControlAttributeValidationHook) PreCreatePropertyField(rctx reque
 	// repaired, actions get the strict check with nothing to grandfather, and a
 	// required=true channel field is rejected outright if the kill switch is on
 	// (there is nothing to grandfather on a brand new field).
-	if err := h.sanitizeAndValidateFieldAttrs(field, "", nil, false); err != nil {
+	if err := h.sanitizeAndValidateFieldAttrs(field, nil); err != nil {
 		return nil, err
 	}
 
@@ -647,7 +680,7 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyField(rctx reque
 		}
 	}
 
-	if err := h.sanitizeAndValidateFieldAttrs(field, existing.Type, existing.Attrs[model.PropertyFieldAttrActions], model.IsPropertyFieldRequired(existing)); err != nil {
+	if err := h.sanitizeAndValidateFieldAttrs(field, existing); err != nil {
 		return nil, err
 	}
 	if err := h.validateSyncedOptionsOwnership(rctx, existing, field); err != nil {
@@ -685,19 +718,11 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx requ
 			}
 		}
 
-		// prevType stays empty when the field isn't found (the store surfaces
-		// the not-found error later); strict rank validation is the safe
-		// default for that path, and prevRequired stays false so a required
-		// channel field is rejected outright rather than grandfathered.
-		var prevType model.PropertyFieldType
-		var prevActions any
-		var prevRequired bool
-		if existing != nil {
-			prevType = existing.Type
-			prevActions = existing.Attrs[model.PropertyFieldAttrActions]
-			prevRequired = model.IsPropertyFieldRequired(existing)
-		}
-		if err := h.sanitizeAndValidateFieldAttrs(field, prevType, prevActions, prevRequired); err != nil {
+		// existing is nil when the field isn't found (the store surfaces the
+		// not-found error later): strict rank validation is the safe default
+		// for that path, and a required channel field is rejected outright
+		// rather than grandfathered.
+		if err := h.sanitizeAndValidateFieldAttrs(field, existing); err != nil {
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 		if existing != nil {
@@ -1242,6 +1267,34 @@ func newRequiredValueError(field *model.PropertyField) error {
 // field required while required-attribute enforcement is disabled: nothing
 // would enforce it, and an admin authoring it now would reasonably expect the
 // opposite.
+// validateSyncSources applies the rules on which identity sources may sync a
+// field. An OpenID Connect link is exclusive: OpenID Connect users never pass
+// through the AD/LDAP or SAML sync, so under the AD/LDAP-first precedence a
+// field also linked to one of those would be locked against the OpenID Connect
+// sync and never written for its users. AD/LDAP plus SAML stays allowed.
+//
+// While the OpenIdAttributeSync kill switch is engaged, an openid link may not
+// be added or changed. One that predates the switch rides along untouched, so
+// the field stays editable on every other attr, and removing it is allowed.
+func (h *AccessControlAttributeValidationHook) validateSyncSources(field, existing *model.PropertyField) error {
+	sources := model.GetPropertyFieldSyncSources(field)
+	if slices.Contains(sources, model.PropertySyncSourceOpenID) && len(sources) > 1 {
+		details := fmt.Sprintf("field %s: an openid link cannot be combined with an ldap or saml link", field.ID)
+		return model.NewAppError("UpsertPropertyField", "app.property_field.sync_source_exclusive.app_error", nil, details, http.StatusBadRequest)
+	}
+
+	claim, _ := field.Attrs[model.PropertyFieldAttrOpenID].(string)
+	var prevClaim string
+	if existing != nil {
+		prevClaim, _ = existing.Attrs[model.PropertyFieldAttrOpenID].(string)
+	}
+	if claim != "" && claim != prevClaim && !h.openIDAttributeSyncEnabled() {
+		details := fmt.Sprintf("field %s: cannot link to an OpenID Connect claim while OpenID Connect attribute sync is disabled", field.ID)
+		return model.NewAppError("UpsertPropertyField", "app.property_field.openid_sync_disabled.app_error", nil, details, http.StatusBadRequest)
+	}
+	return nil
+}
+
 func newRequiredAttrDisabledError(field *model.PropertyField) error {
 	details := fmt.Sprintf("field %s: cannot mark required while required-attribute enforcement is disabled", field.ID)
 	return model.NewAppError("UpsertPropertyField", "app.property_field.required_disabled.app_error", nil, details, http.StatusBadRequest)

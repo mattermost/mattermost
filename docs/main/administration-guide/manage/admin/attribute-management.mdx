@@ -4,7 +4,7 @@ title: "Attribute management"
 
 <PlanAvailability slug="ent-plus" />
 
-From Mattermost v12.0, you define an attribute once in **Attribute Management**, then choose which resources can use it. An attribute such as *Department* or *Clearance* has a single definition (display name, name, type, options, and an optional AD/LDAP or SAML source) that's shared by every resource it applies to. Attribute Management replaces the **User Attributes** page used in earlier releases. For servers before v12.0, see [User attributes](/administration-guide/manage/admin/user-attributes).
+From Mattermost v12.0, you define an attribute once in **Attribute Management**, then choose which resources can use it. An attribute such as *Department* or *Clearance* has a single definition (display name, name, type, options, and an optional AD/LDAP, SAML, or OpenID Connect source) that's shared by every resource it applies to. Attribute Management replaces the **User Attributes** page used in earlier releases. For servers before v12.0, see [User attributes](/administration-guide/manage/admin/user-attributes).
 
 Attributes defined here are the attributes you reference in [attribute-based access control (ABAC)](/administration-guide/manage/admin/attribute-based-access-control) policies, for example `user.attributes.department`.
 
@@ -36,7 +36,7 @@ The Attribute Management page lists every attribute alphabetically by display na
 | **Attribute** | The display name. |
 | **Type** | The attribute type, such as **Text** or **Select**. |
 | **Applies to** | The resources that use the attribute, such as **Users** or **Channels**. |
-| **Source** | Where values come from: **Managed here**, **AD/LDAP**, **SAML**, or the name of the plugin that owns the attribute. |
+| **Source** | Where values come from: **Managed here**, **AD/LDAP**, **SAML**, **OpenID Connect**, or the name of the plugin that owns the attribute. |
 | **Options** | The number of options, or **Free Text** for types without preset values. |
 
 The **Classification** attribute used by [classification markings](/administration-guide/configure/site-configuration-settings#classification-markings) is shown as **Definition is read-only**. Manage its levels from the Classification Markings page by selecting **Open Classification Markings** in its row.
@@ -61,21 +61,23 @@ Attributes created and owned by a plugin are read-only in Attribute Management, 
       - **Multiselect**: One or more values chosen from a list of options.
       - **Ranked**: A single value chosen from an ordered list, where each option ranks higher or lower than the others, such as *Public*, *Secret*, and *Top Secret*. Because the options are ordered, [access control policies](/administration-guide/manage/admin/abac-system-wide-policies) can compare a ranked attribute against a threshold, for example clearance *is at least* Secret.
       - **Hierarchical**: Values organized as parents and children, up to 100 parents per value and 100 levels deep. Available only when the `PropertyFieldGraph` feature flag is enabled, and only when you create an attribute. A hierarchical attribute can't be converted to another type.
-    - **Options**: For **Select**, **Multiselect**, and **Ranked** attributes, enter each option and press **Enter** or **Tab**. At least one option is required, unless the attribute is [linked to an external source](#link-an-attribute-to-adldap-or-saml) that provides its options. Options can be up to 64 characters and must be unique. Select an option to rename it, move it to another position, or remove it. For **Ranked** attributes, options are shown from lowest to highest rank; select an option to change its rank.
-3.  Optionally, [link the attribute to an external source](#link-an-attribute-to-adldap-or-saml).
+    - **Options**: For **Select**, **Multiselect**, and **Ranked** attributes, enter each option and press **Enter** or **Tab**. At least one option is required, unless the attribute is [linked to an external source](#link-an-attribute-to-an-external-source) that provides its options. Options can be up to 64 characters and must be unique. Select an option to rename it, move it to another position, or remove it. For **Ranked** attributes, options are shown from lowest to highest rank; select an option to change its rank.
+3.  Optionally, [link the attribute to an external source](#link-an-attribute-to-an-external-source).
 4.  In the **Applies to** section, select **Add resource** and choose the [resources the attribute applies to](#choose-the-resources-an-attribute-applies-to).
 5.  Select **Save**.
 
 You can define up to 200 attributes in total, and up to 20 attributes can apply to **Users**.
 
-## Link an attribute to AD/LDAP or SAML
+## Link an attribute to an external source
 
-Synchronize an attribute's user values from your identity provider instead of managing them in Mattermost. AD/LDAP or SAML synchronization must already be configured. See [AD/LDAP groups](/administration-guide/onboard/ad-ldap-groups-synchronization) or [SAML 2.0](/administration-guide/configure/authentication-configuration-settings#saml-20) for details.
+Synchronize an attribute's user values from your identity provider instead of managing them in Mattermost. AD/LDAP, SAML, or OpenID Connect sign-in must already be configured. See [AD/LDAP groups](/administration-guide/onboard/ad-ldap-groups-synchronization), [SAML 2.0](/administration-guide/configure/authentication-configuration-settings#saml-20), or [OpenID Connect](/administration-guide/onboard/sso-openidconnect) for details.
 
-1.  In the **Definition** section, select **Link to external source**, then select **AD/LDAP** or **SAML**.
-2.  Enter the name of the attribute in your AD/LDAP directory or SAML response to sync the value from, then save.
+1.  In the **Definition** section, select **Link to external source**, then select **AD/LDAP**, **SAML**, or **OpenID Connect**.
+2.  Enter the name of the attribute in your AD/LDAP directory or SAML response, or the claim in the OpenID Connect ID token or userinfo response, to sync the value from, then save.
 
 You can link both AD/LDAP and SAML to the same attribute. Linked sources are listed under **Synced with**.
+
+From Mattermost v12.1, you can link an attribute to an OpenID Connect claim, which is synced every time a user signs in through OpenID Connect. An attribute linked to OpenID Connect can't also be linked to AD/LDAP or SAML. See [Sync user attributes from OpenID Connect claims](/administration-guide/onboard/sso-openidconnect#sync-user-attributes-from-openid-connect-claims) for details.
 
 From Mattermost v12.1, **Select** and **Multiselect** attributes keep their type when you link them:
 
