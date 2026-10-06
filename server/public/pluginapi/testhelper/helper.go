@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -103,7 +104,7 @@ const maxConcurrentTests = 1
 
 var (
 	instanceSem = make(chan struct{}, maxConcurrentTests)
-	leasedTests sync.Map // *testing.T -> struct{}: tests currently holding a lease
+	leasedTests sync.Map // *testing.T -> t.Name(): tests currently holding a lease
 )
 
 // acquireInstance leases the shared Mattermost instance for the lifetime of t,
@@ -112,20 +113,44 @@ var (
 // exactly once via t.Cleanup. Keying the lease on t (rather than on each Setup call)
 // is what lets a test call Setup twice — e.g. to assert database-reset isolation —
 // without deadlocking against itself when maxConcurrentTests is 1.
-//
-// A parallel test must call t.Parallel() before Setup. t.Parallel() suspends the test
-// until serial tests finish; a test that leased the instance first would hold the only
-// slot while suspended, so a serial test blocks here forever and the binary hangs.
 func acquireInstance(t *testing.T) {
 	t.Helper()
-	if _, held := leasedTests.LoadOrStore(t, struct{}{}); held {
+	if _, held := leasedTests.Load(t); held {
 		return
 	}
-	instanceSem <- struct{}{}
+	// The parent's lease is only released after its subtests finish, so waiting would hang.
+	var parent string
+	leasedTests.Range(func(_, name any) bool {
+		if strings.HasPrefix(t.Name(), name.(string)+"/") {
+			parent = name.(string)
+			return false
+		}
+		return true
+	})
+	if parent != "" {
+		t.Fatalf("Setup called in subtest %s after its parent %s already called it; call it in only one of them", t.Name(), parent)
+	}
+	leasedTests.Store(t, t.Name())
+	select {
+	case instanceSem <- struct{}{}:
+	case <-leaseTimeout(t):
+		leasedTests.Delete(t)
+		t.Fatal("timed out waiting for the shared Mattermost instance; check for a test calling Setup before t.Parallel()")
+	}
 	t.Cleanup(func() {
 		<-instanceSem
 		leasedTests.Delete(t)
 	})
+}
+
+// leaseTimeout fires 10s before the test binary's deadline, so a deadlocked test fails
+// with a hint instead of the binary panicking. Without a deadline it blocks forever.
+func leaseTimeout(t *testing.T) <-chan time.Time {
+	deadline, ok := t.Deadline()
+	if !ok {
+		return nil
+	}
+	return time.After(time.Until(deadline) - 10*time.Second)
 }
 
 // Setup starts containers (once per test binary), resets the database, deploys the plugin,
@@ -134,8 +159,8 @@ func acquireInstance(t *testing.T) {
 //
 // Because tests share one Mattermost instance and mutate global server state, Setup
 // serializes them: a test holds the instance from Setup until it finishes. A parallel
-// test must call t.Parallel() before Setup, otherwise it holds the instance while
-// suspended and deadlocks serial tests. See acquireInstance and maxConcurrentTests.
+// test must call t.Parallel() before Setup; otherwise it holds the instance while
+// suspended and deadlocks serial tests. A subtest must not call Setup if its parent did.
 //
 // If Docker is not available the test fails. Set SKIP_DOCKER_TESTS to skip instead.
 func Setup(t *testing.T) *TestHelper {
@@ -276,7 +301,7 @@ func (th *TestHelper) createTeam(ctx context.Context) *model.Team {
 	th.t.Helper()
 
 	team, _, err := th.AdminClient.CreateTeam(ctx, &model.Team{
-		Name:        model.NewId(),
+		Name:        model.NewRandomTeamName(),
 		DisplayName: "Test Team",
 		Type:        model.TeamOpen,
 	})
