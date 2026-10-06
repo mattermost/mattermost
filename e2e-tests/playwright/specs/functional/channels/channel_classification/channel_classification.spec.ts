@@ -85,6 +85,7 @@ test.afterEach(async () => {
 
 test.describe('Channel Classification - New channel creation', () => {
     test('Enabling classification toggle without selecting values prevents channel creation', async ({pw}) => {
+        await pw.ensureFeatureFlag('ChannelAttributes', false);
         const {adminUser, team} = await initSetupTracked(pw);
         const {channelsPage} = await pw.testBrowser.login(adminUser);
         await channelsPage.goto(team.name);
@@ -106,6 +107,7 @@ test.describe('Channel Classification - New channel creation', () => {
     });
 
     test('Classification dropdown displays the correct levels from the template', async ({pw}) => {
+        await pw.ensureFeatureFlag('ChannelAttributes', false);
         const {adminUser, team} = await initSetupTracked(pw);
         const {channelsPage} = await pw.testBrowser.login(adminUser);
         await channelsPage.goto(team.name);
@@ -131,6 +133,7 @@ test.describe('Channel Classification - New channel creation', () => {
     });
 
     test('User can append text to the Banner Text field after selecting a classification', async ({pw}) => {
+        await pw.ensureFeatureFlag('ChannelAttributes', false);
         const {adminUser, team} = await initSetupTracked(pw);
         const {channelsPage} = await pw.testBrowser.login(adminUser);
         await channelsPage.goto(team.name);
@@ -168,6 +171,7 @@ test.describe('Channel Classification - New channel creation', () => {
     });
 
     test('Creating channel with classification shows banner with correct color', async ({pw}) => {
+        await pw.ensureFeatureFlag('ChannelAttributes', false);
         const {adminUser, team} = await initSetupTracked(pw);
         const {channelsPage} = await pw.testBrowser.login(adminUser);
         await channelsPage.goto(team.name);
@@ -219,6 +223,7 @@ test.describe('Channel Classification - New channel creation', () => {
 
 test.describe('Channel Classification - Existing channel settings', () => {
     test('Classification toggle can be enabled from channel settings', async ({pw}) => {
+        await pw.ensureFeatureFlag('ChannelAttributes', false);
         const {adminUser, team, adminClient} = await initSetupTracked(pw);
 
         const channel = await adminClient.createChannel(
@@ -248,6 +253,7 @@ test.describe('Channel Classification - Existing channel settings', () => {
     });
 
     test('Classification level can be set once toggle is enabled', async ({pw}) => {
+        await pw.ensureFeatureFlag('ChannelAttributes', false);
         const {adminUser, team, adminClient} = await initSetupTracked(pw);
 
         const channel = await adminClient.createChannel(
@@ -284,6 +290,7 @@ test.describe('Channel Classification - Existing channel settings', () => {
     });
 
     test('Selecting classification locks banner toggle active and disabled, with matching color', async ({pw}) => {
+        await pw.ensureFeatureFlag('ChannelAttributes', false);
         const {adminUser, team, adminClient} = await initSetupTracked(pw);
 
         const channel = await adminClient.createChannel(
@@ -326,6 +333,7 @@ test.describe('Channel Classification - Existing channel settings', () => {
     test('Disabling classification with a custom banner color preserves it server-side, and re-enabling restores the Save button', async ({
         pw,
     }) => {
+        await pw.ensureFeatureFlag('ChannelAttributes', false);
         const {adminUser, team, adminClient} = await initSetupTracked(pw);
 
         const channel = await adminClient.createChannel(
@@ -377,6 +385,7 @@ test.describe('Channel Classification - Existing channel settings', () => {
     });
 
     test('Editing banner text and saving updates the banner in real time', async ({pw}) => {
+        await pw.ensureFeatureFlag('ChannelAttributes', false);
         const {adminUser, team, adminClient} = await initSetupTracked(pw);
 
         const channel = await adminClient.createChannel(

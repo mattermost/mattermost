@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {PropertyField} from '@mattermost/types/properties';
-import type {UserPropertyField} from '@mattermost/types/properties_user';
+import type {PropertyFieldOwner, UserPropertyField} from '@mattermost/types/properties_user';
 
 /**
  * Returns the user-facing label for a CPA field.
@@ -151,6 +151,14 @@ export function isFieldOrphaned(
     }
 
     return !installedPluginIds.has(sourcePluginId);
+}
+
+// True only when every owner is a plugin that is no longer installed, i.e. nothing is left to manage the field.
+export function allOwnersAreUninstalledPlugins(
+    owners: PropertyFieldOwner[],
+    installedPluginIds: ReadonlySet<string>,
+): boolean {
+    return owners.length > 0 && owners.every((owner) => owner.type === 'plugin' && !installedPluginIds.has(owner.id));
 }
 
 /**
