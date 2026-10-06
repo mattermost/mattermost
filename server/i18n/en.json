@@ -14418,7 +14418,7 @@
   },
   {
     "id": "health.rule.ldap_sync_duty_cycle.message",
-    "translation": "SyncIntervalMinutes is {{.interval_minutes}}, and recent LDAP sync runs averaged {{.avg_run_seconds}} seconds, {{.duty_pct}}% of the interval. With almost no quiet window, the continuous directory walk adds steady database load and replica lag.",
+    "translation": "SyncIntervalMinutes is {{.interval_minutes}}, and recent LDAP sync runs averaged {{.avg_run_seconds}} seconds, {{.duty_pct}}% of the interval. Long runs on a short interval keep database load elevated and can add replica lag.",
     "description": "Health dashboard finding detail when each AD/LDAP sync run takes at least a quarter of the sync interval. {{.interval_minutes}} is the sync interval in minutes, {{.avg_run_seconds}} the average run length in seconds and {{.duty_pct}} the percentage of the interval. 'SyncIntervalMinutes', 'LdapSettings.UserFilter' and 'BaseDN' are config or product names and should not be translated."
   },
   {
