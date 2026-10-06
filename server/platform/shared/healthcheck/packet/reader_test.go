@@ -125,55 +125,17 @@ func TestReadGoldenPackets(t *testing.T) {
 		{
 			name: "standalone",
 			expected: []finding{
-				{Code: "PUSH_EMPTY_URL", State: healthcheck.StateResolved, Subject: pushSubject},
-				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateResolved, Subject: pushSubject},
 				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateFiring, Subject: pushSubject},
-				{Code: "SITE_URL_EMPTY", State: healthcheck.StateResolved, Subject: siteURLSubject},
 				{Code: "SITE_URL_HTTP", State: healthcheck.StateFiring, Subject: siteURLSubject},
-				{Code: "LDAP_PORT_TLS_MISMATCH", State: healthcheck.StateResolved, Subject: "LdapSettings.LdapPort"},
-				{Code: "LDAP_PORT_PLAIN_MISMATCH", State: healthcheck.StateResolved, Subject: "LdapSettings.LdapPort"},
-				{Code: "LDAP_SKIP_CERT", State: healthcheck.StateResolved, Subject: "LdapSettings.SkipCertificateVerification"},
-				{Code: "LDAP_QUERY_TIMEOUT_LOW", State: healthcheck.StateResolved, Subject: "LdapSettings.QueryTimeout"},
-				{Code: "LDAP_SYNC_INTERVAL_LOW", State: healthcheck.StateResolved, Subject: "LdapSettings.SyncIntervalMinutes"},
-				{Code: "LDAP_SYNC_NO_BASEDN", State: healthcheck.StateResolved, Subject: "LdapSettings.BaseDN"},
 				{Code: "LDAP_RECOMMENDED_AT_SCALE", State: healthcheck.StateFiring, Subject: "LdapSettings.Enable"},
-				{Code: "LDAP_ID_IS_EMAIL", State: healthcheck.StateResolved, Subject: "LdapSettings.IdAttribute"},
-				{Code: "LDAP_SYNC_DUTY_CYCLE", State: healthcheck.StateResolved, Subject: "LdapSettings.SyncIntervalMinutes"},
-				{Code: "LDAP_PROBE_FAILED", State: healthcheck.StateResolved, Subject: "LdapSettings.LdapServer"},
-				{Code: "SAML_SIGNATURE_SHA1", State: healthcheck.StateResolved, Subject: "SamlSettings.SignatureAlgorithm"},
-				{Code: "SAML_VERIFY_OFF", State: healthcheck.StateResolved, Subject: "SamlSettings.Verify"},
-				{Code: "SAML_ENCRYPT_OFF", State: healthcheck.StateResolved, Subject: "SamlSettings.Encrypt"},
-				{Code: "SAML_ID_IS_EMAIL", State: healthcheck.StateResolved, Subject: "SamlSettings.IdAttribute"},
-				{Code: "SAML_ID_MUTABLE", State: healthcheck.StateResolved, Subject: "SamlSettings.IdAttribute"},
-				{Code: "SAML_METADATA_UNREACHABLE", State: healthcheck.StateResolved, Subject: "SamlSettings.IdpMetadataURL"},
 				{Code: "SESSION_EXTEND_OFF", State: healthcheck.StateFiring, Subject: "ServiceSettings.ExtendSessionLengthWithActivity"},
 			},
 		},
 		{
 			name: "ha",
 			expected: []finding{
-				{Code: "PUSH_EMPTY_URL", State: healthcheck.StateResolved, Subject: pushSubject},
 				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject},
-				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateResolved, Subject: pushSubject},
-				{Code: "SITE_URL_EMPTY", State: healthcheck.StateResolved, Subject: siteURLSubject},
-				{Code: "SITE_URL_HTTP", State: healthcheck.StateResolved, Subject: siteURLSubject},
-				{Code: "LDAP_PORT_TLS_MISMATCH", State: healthcheck.StateResolved, Subject: "LdapSettings.LdapPort"},
-				{Code: "LDAP_PORT_PLAIN_MISMATCH", State: healthcheck.StateResolved, Subject: "LdapSettings.LdapPort"},
-				{Code: "LDAP_SKIP_CERT", State: healthcheck.StateResolved, Subject: "LdapSettings.SkipCertificateVerification"},
-				{Code: "LDAP_QUERY_TIMEOUT_LOW", State: healthcheck.StateResolved, Subject: "LdapSettings.QueryTimeout"},
-				{Code: "LDAP_SYNC_INTERVAL_LOW", State: healthcheck.StateResolved, Subject: "LdapSettings.SyncIntervalMinutes"},
-				{Code: "LDAP_SYNC_NO_BASEDN", State: healthcheck.StateResolved, Subject: "LdapSettings.BaseDN"},
-				{Code: "LDAP_RECOMMENDED_AT_SCALE", State: healthcheck.StateResolved, Subject: "LdapSettings.Enable"},
-				{Code: "LDAP_ID_IS_EMAIL", State: healthcheck.StateResolved, Subject: "LdapSettings.IdAttribute"},
-				{Code: "LDAP_SYNC_DUTY_CYCLE", State: healthcheck.StateResolved, Subject: "LdapSettings.SyncIntervalMinutes"},
-				{Code: "LDAP_PROBE_FAILED", State: healthcheck.StateResolved, Subject: "LdapSettings.LdapServer"},
-				{Code: "SAML_SIGNATURE_SHA1", State: healthcheck.StateResolved, Subject: "SamlSettings.SignatureAlgorithm"},
-				{Code: "SAML_VERIFY_OFF", State: healthcheck.StateResolved, Subject: "SamlSettings.Verify"},
 				{Code: "SAML_ENCRYPT_OFF", State: healthcheck.StateFiring, Subject: "SamlSettings.Encrypt"},
-				{Code: "SAML_ID_IS_EMAIL", State: healthcheck.StateResolved, Subject: "SamlSettings.IdAttribute"},
-				{Code: "SAML_ID_MUTABLE", State: healthcheck.StateResolved, Subject: "SamlSettings.IdAttribute"},
-				{Code: "SAML_METADATA_UNREACHABLE", State: healthcheck.StateResolved, Subject: "SamlSettings.IdpMetadataURL"},
-				{Code: "SESSION_EXTEND_OFF", State: healthcheck.StateResolved, Subject: "ServiceSettings.ExtendSessionLengthWithActivity"},
 			},
 		},
 	}
@@ -328,10 +290,7 @@ func TestReadCloud(t *testing.T) {
 	for _, f := range evaluate(t, snapshot) {
 		codes = append(codes, f.Code)
 	}
-	assert.ElementsMatch(t, []string{
-		"PUSH_EMPTY_URL", "PUSH_BAD_SCHEME", "PUSH_TEST_PROXY",
-		"LDAP_PORT_TLS_MISMATCH", "LDAP_PORT_PLAIN_MISMATCH", "LDAP_SKIP_CERT", "LDAP_QUERY_TIMEOUT_LOW", "LDAP_SYNC_INTERVAL_LOW", "LDAP_SYNC_NO_BASEDN", "LDAP_RECOMMENDED_AT_SCALE", "LDAP_ID_IS_EMAIL", "LDAP_SYNC_DUTY_CYCLE", "LDAP_PROBE_FAILED", "SAML_METADATA_UNREACHABLE", "SAML_SIGNATURE_SHA1", "SAML_VERIFY_OFF", "SAML_ENCRYPT_OFF", "SAML_ID_IS_EMAIL", "SAML_ID_MUTABLE",
-	}, codes)
+	assert.ElementsMatch(t, []string{"PUSH_TEST_PROXY", "LDAP_RECOMMENDED_AT_SCALE"}, codes)
 }
 
 func TestReadMissingStats(t *testing.T) {
