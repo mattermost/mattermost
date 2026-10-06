@@ -18,6 +18,8 @@ func init() {
 const (
 	stuckAfter  = 24 * time.Hour
 	wedgedAfter = 6 * time.Hour
+	// collectedRunsPerType matches the per-type cap of the Support Packet job collector.
+	collectedRunsPerType = 5
 )
 
 var monitoredJobTypes = []string{
@@ -143,6 +145,13 @@ func latestTerminalJob(jobs []*model.Job) *model.Job {
 	return nil
 }
 
+var reasonRunsUnfinished = healthcheck.TranslationId("health.reason.job_runs_unfinished")
+
+// historyTruncated reports whether queued or running rows may have pushed the run a rule needs out of the collected window.
+func historyTruncated(jobs []*model.Job) bool {
+	return len(jobs) >= collectedRunsPerType
+}
+
 func hours(d time.Duration) string {
 	return strconv.Itoa(int(d.Hours()))
 }
@@ -154,6 +163,9 @@ func evalJobStuck(s *healthcheck.Snapshot) []healthcheck.Result {
 		}
 
 		job := latestStartedJob(jobs)
+		if job == nil && historyTruncated(jobs) {
+			return healthcheck.UnknownSubject(jobType, reasonRunsUnfinished)
+		}
 		if job == nil || job.Status != model.JobStatusInProgress {
 			return healthcheck.ResolvedSubject(jobType)
 		}
@@ -177,6 +189,9 @@ func evalJobWedgedAtZero(s *healthcheck.Snapshot) []healthcheck.Result {
 		}
 
 		job := latestStartedJob(jobs)
+		if job == nil && historyTruncated(jobs) {
+			return healthcheck.UnknownSubject(jobType, reasonRunsUnfinished)
+		}
 		if job == nil || job.Status != model.JobStatusInProgress || job.Progress != 0 {
 			return healthcheck.ResolvedSubject(jobType)
 		}
@@ -196,6 +211,9 @@ func evalJobWedgedAtZero(s *healthcheck.Snapshot) []healthcheck.Result {
 func evalJobFailed(s *healthcheck.Snapshot) []healthcheck.Result {
 	return evalJobTypes(s, monitoredJobTypes, func(jobType string, jobs []*model.Job) healthcheck.Result {
 		job := latestTerminalJob(jobs)
+		if job == nil && historyTruncated(jobs) {
+			return healthcheck.UnknownSubject(jobType, reasonRunsUnfinished)
+		}
 		if job == nil || job.Status != model.JobStatusError {
 			return healthcheck.ResolvedSubject(jobType)
 		}

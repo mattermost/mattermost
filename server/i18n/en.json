@@ -14287,6 +14287,11 @@
     "description": "Health dashboard reason shown when a health check could not run because the server diagnostics it inspects (for example a connection test result) were not collected, so the check's status is unknown."
   },
   {
+    "id": "health.reason.job_runs_unfinished",
+    "translation": "The most recent runs have not finished yet, so older runs could not be checked.",
+    "description": "Health dashboard reason shown when every collected run of a background job is still queued or running, so an older run that may matter was not collected and the check's status is unknown."
+  },
+  {
     "id": "health.reason.jobs_unavailable",
     "translation": "Job history unavailable.",
     "description": "Health dashboard reason shown when a health check could not run because the background job history it inspects was not collected, so the check's status is unknown."

@@ -24,6 +24,15 @@ func ago(d time.Duration) int64 {
 
 var stale = &model.Job{Id: "stale", Status: model.JobStatusInProgress, StartAt: ago(48 * time.Hour), LastActivityAt: ago(48 * time.Hour)}
 
+// unfinished returns n runs with the given status, as when the collected window holds only queued or running rows.
+func unfinished(n int, status string) []*model.Job {
+	jobs := make([]*model.Job, n)
+	for i := range jobs {
+		jobs[i] = &model.Job{Id: model.NewId(), Status: status, CreateAt: ago(time.Duration(i) * time.Minute)}
+	}
+	return jobs
+}
+
 func jobsConfig(enabled bool) *model.Config {
 	cfg := &model.Config{}
 	cfg.LdapSettings.EnableSync = new(enabled)
@@ -315,6 +324,16 @@ func TestJobStuck(t *testing.T) {
 			},
 		},
 		{
+			name:     "a full window of pending runs",
+			snapshot: jobsSnapshot(unfinished(collectedRunsPerType, model.JobStatusPending)...),
+			want:     jobWant{state: healthcheck.StateUnknown, messageID: "health.reason.job_runs_unfinished"},
+		},
+		{
+			name:     "pending runs short of a full window",
+			snapshot: jobsSnapshot(unfinished(collectedRunsPerType-1, model.JobStatusPending)...),
+			want:     resolved,
+		},
+		{
 			name: "ages are measured from CollectedAt, not the wall clock",
 			snapshot: func() *healthcheck.Snapshot {
 				s := jobsSnapshot(&model.Job{Id: "job1", Status: model.JobStatusInProgress, StartAt: ago(8*24*time.Hour + time.Hour), LastActivityAt: ago(8*24*time.Hour + time.Hour)})
@@ -391,6 +410,11 @@ func TestJobWedgedAtZero(t *testing.T) {
 				messageID: "health.rule.job_wedged_at_zero.message",
 				details:   map[string]string{"job_id": "job1", "hours": "7"},
 			},
+		},
+		{
+			name:     "a full window of pending runs",
+			snapshot: jobsSnapshot(unfinished(collectedRunsPerType, model.JobStatusPending)...),
+			want:     jobWant{state: healthcheck.StateUnknown, messageID: "health.reason.job_runs_unfinished"},
 		},
 		{
 			name:     "finished run at zero",
@@ -490,6 +514,16 @@ func TestJobFailed(t *testing.T) {
 				failed,
 			),
 			want: firing,
+		},
+		{
+			name:     "a full window of unfinished runs",
+			snapshot: jobsSnapshot(append(unfinished(collectedRunsPerType-1, model.JobStatusPending), &model.Job{Id: "running", Status: model.JobStatusInProgress})...),
+			want:     jobWant{state: healthcheck.StateUnknown, messageID: "health.reason.job_runs_unfinished"},
+		},
+		{
+			name:     "unfinished runs short of a full window",
+			snapshot: jobsSnapshot(unfinished(collectedRunsPerType-1, model.JobStatusInProgress)...),
+			want:     resolved,
 		},
 		{
 			name:     "older error behind a success",
