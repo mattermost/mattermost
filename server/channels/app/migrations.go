@@ -1075,16 +1075,14 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 	}
 
 	if data != nil {
-		if data.Value == managedCategoryMigrationVersion {
-			return s.cacheManagedCategoryIDs()
+		if versionErr := s.ensureManagedCategoryGroupVersion(); versionErr != nil {
+			return versionErr
 		}
 
-		if incrementErr := s.Store().PropertyGroup().IncrementVersion(model.ManagedCategoryPropertyGroupName); incrementErr != nil {
-			return fmt.Errorf("failed to increment managed category group version: %w", incrementErr)
-		}
-
-		if saveErr := s.Store().System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: managedCategoryMigrationVersion}); saveErr != nil {
-			return fmt.Errorf("failed to save managed category setup done flag: %w", saveErr)
+		if data.Value != managedCategoryMigrationVersion {
+			if saveErr := s.Store().System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: managedCategoryMigrationVersion}); saveErr != nil {
+				return fmt.Errorf("failed to save managed category setup done flag: %w", saveErr)
+			}
 		}
 
 		return s.cacheManagedCategoryIDs()
@@ -1118,11 +1116,32 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 		}
 	}
 
-	if err := s.Store().System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: "true"}); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: managedCategoryMigrationVersion}); err != nil {
 		return fmt.Errorf("failed to save managed category setup done flag: %w", err)
 	}
 
 	return s.cacheManagedCategoryIDs()
+}
+
+// ensureManagedCategoryGroupVersion brings the managed category property group to
+// PropertyGroupVersionV2, which is the only version the properties API serves it
+// at. Installs that ran the original v1 setup need the upgrade; installs that were
+// bumped past v2 by an earlier unconditional increment need to come back down.
+func (s *Server) ensureManagedCategoryGroupVersion() error {
+	group, err := s.Store().PropertyGroup().Get(model.ManagedCategoryPropertyGroupName)
+	if err != nil {
+		return fmt.Errorf("failed to get managed category group: %w", err)
+	}
+
+	if group.IsPSAv2() {
+		return nil
+	}
+
+	if err := s.Store().PropertyGroup().SetVersion(model.ManagedCategoryPropertyGroupName, model.PropertyGroupVersionV2); err != nil {
+		return fmt.Errorf("failed to set managed category group version: %w", err)
+	}
+
+	return nil
 }
 
 func (s *Server) doSetupCPADisplayNameBackfill(rctx request.CTX) error {

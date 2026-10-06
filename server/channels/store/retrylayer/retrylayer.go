@@ -11483,27 +11483,6 @@ func (s *RetryLayerPropertyGroupStore) GetByID(id string) (*model.PropertyGroup,
 
 }
 
-func (s *RetryLayerPropertyGroupStore) IncrementVersion(name string) error {
-
-	tries := 0
-	for {
-		err := s.PropertyGroupStore.IncrementVersion(name)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerPropertyGroupStore) Register(group *model.PropertyGroup) (*model.PropertyGroup, error) {
 
 	tries := 0
@@ -11519,6 +11498,27 @@ func (s *RetryLayerPropertyGroupStore) Register(group *model.PropertyGroup) (*mo
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPropertyGroupStore) SetVersion(name string, version int) error {
+
+	tries := 0
+	for {
+		err := s.PropertyGroupStore.SetVersion(name, version)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}

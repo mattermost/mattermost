@@ -17,6 +17,33 @@ import (
 )
 
 func TestDoSetupManagedCategoryProperties(t *testing.T) {
+	// The properties API only serves a group that is exactly at
+	// PropertyGroupVersionV2 (see PropertyGroup.IsPSAv2 and getV2Group in api4),
+	// and the webapp loads the managed category field before it asks for the
+	// channel mappings. So every case below asserts the absolute version rather
+	// than a delta: any other version takes the sidebar's managed categories down.
+	assertGroupServableAtV2 := func(t *testing.T, th *TestHelper) {
+		t.Helper()
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.ManagedCategoryPropertyGroupName)
+		require.Nil(t, appErr)
+		require.Equal(t, model.PropertyGroupVersionV2, group.Version)
+		require.True(t, group.IsPSAv2())
+
+		propertyFields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, propertyFields, 1)
+		require.Equal(t, model.ManagedCategoryPropertyFieldName, propertyFields[0].Name)
+	}
+
+	assertSetupFlagAtCurrentVersion := func(t *testing.T, th *TestHelper) {
+		t.Helper()
+
+		data, sysErr := th.Store.System().GetByName(managedCategorySetupDoneKey)
+		require.NoError(t, sysErr)
+		require.Equal(t, managedCategoryMigrationVersion, data.Value)
+	}
+
 	t.Run("should register the property group and field on fresh install", func(t *testing.T) {
 		th := Setup(t)
 
@@ -25,37 +52,60 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 		require.NotNil(t, group)
 		require.Equal(t, model.ManagedCategoryPropertyGroupName, group.Name)
 
-		propertyFields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
-		require.Nil(t, appErr)
-		require.Len(t, propertyFields, 1)
-		require.Equal(t, model.ManagedCategoryPropertyFieldName, propertyFields[0].Name)
-
-		data, sysErr := th.Store.System().GetByName(managedCategorySetupDoneKey)
-		require.NoError(t, sysErr)
-		require.NotEmpty(t, data.Value)
+		assertGroupServableAtV2(t, th)
+		assertSetupFlagAtCurrentVersion(t, th)
 	})
 
-	t.Run("should upgrade from a pre-v2 setup by incrementing the group version and updating the system key", func(t *testing.T) {
+	t.Run("should leave a fresh install at v2 across later startups", func(t *testing.T) {
 		th := Setup(t)
 
-		group, appErr := th.App.GetPropertyGroup(th.Context, model.ManagedCategoryPropertyGroupName)
-		require.Nil(t, appErr)
+		// Setup(t) has already run the fresh-install path, so this stands in for
+		// the restarts that follow a new deployment. They must not move the group.
+		for range 2 {
+			err := th.Server.doSetupManagedCategoryProperties()
+			require.NoError(t, err)
 
-		// Simulate the pre-v2 state where the migration has run with the legacy "true" marker.
+			assertGroupServableAtV2(t, th)
+			assertSetupFlagAtCurrentVersion(t, th)
+		}
+	})
+
+	t.Run("should upgrade a pre-v2 install to v2 and update the system key", func(t *testing.T) {
+		th := Setup(t)
+
+		// Simulate the original v1 setup: the legacy "true" marker over a v1 group.
 		sysErr := th.Store.System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: "true"})
 		require.NoError(t, sysErr)
-		initialVersion := group.Version
+		require.NoError(t, th.Store.PropertyGroup().SetVersion(model.ManagedCategoryPropertyGroupName, model.PropertyGroupVersionV1))
 
 		err := th.Server.doSetupManagedCategoryProperties()
 		require.NoError(t, err)
 
-		group, appErr = th.App.GetPropertyGroup(th.Context, model.ManagedCategoryPropertyGroupName)
-		require.Nil(t, appErr)
-		require.Equal(t, initialVersion+1, group.Version)
+		assertGroupServableAtV2(t, th)
+		assertSetupFlagAtCurrentVersion(t, th)
+	})
 
-		data, sysErr := th.Store.System().GetByName(managedCategorySetupDoneKey)
+	t.Run("should repair an install whose group was pushed past v2", func(t *testing.T) {
+		th := Setup(t)
+
+		// Simulate the state a new deployment ends up in after one restart: the
+		// legacy "true" marker sent an already-v2 group through an unconditional
+		// increment, leaving version 3 behind the "v2" marker.
+		sysErr := th.Store.System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: managedCategoryMigrationVersion})
 		require.NoError(t, sysErr)
-		require.Equal(t, managedCategoryMigrationVersion, data.Value)
+		require.NoError(t, th.Store.PropertyGroup().SetVersion(model.ManagedCategoryPropertyGroupName, model.PropertyGroupVersionV2+1))
+
+		err := th.Server.doSetupManagedCategoryProperties()
+		require.NoError(t, err)
+
+		assertGroupServableAtV2(t, th)
+		assertSetupFlagAtCurrentVersion(t, th)
+
+		// The repair must also hold on the startup after it.
+		err = th.Server.doSetupManagedCategoryProperties()
+		require.NoError(t, err)
+
+		assertGroupServableAtV2(t, th)
 	})
 
 	t.Run("should be idempotent when the system key is already at v2", func(t *testing.T) {
@@ -64,20 +114,11 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 		sysErr := th.Store.System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: managedCategoryMigrationVersion})
 		require.NoError(t, sysErr)
 
-		group, appErr := th.App.GetPropertyGroup(th.Context, model.ManagedCategoryPropertyGroupName)
-		require.Nil(t, appErr)
-		versionBefore := group.Version
-
 		err := th.Server.doSetupManagedCategoryProperties()
 		require.NoError(t, err)
 
-		group, appErr = th.App.GetPropertyGroup(th.Context, model.ManagedCategoryPropertyGroupName)
-		require.Nil(t, appErr)
-		require.Equal(t, versionBefore, group.Version)
-
-		data, sysErr := th.Store.System().GetByName(managedCategorySetupDoneKey)
-		require.NoError(t, sysErr)
-		require.Equal(t, managedCategoryMigrationVersion, data.Value)
+		assertGroupServableAtV2(t, th)
+		assertSetupFlagAtCurrentVersion(t, th)
 	})
 }
 

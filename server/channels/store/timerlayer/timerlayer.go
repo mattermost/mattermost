@@ -9200,22 +9200,6 @@ func (s *TimerLayerPropertyGroupStore) GetByID(id string) (*model.PropertyGroup,
 	return result, err
 }
 
-func (s *TimerLayerPropertyGroupStore) IncrementVersion(name string) error {
-	start := time.Now()
-
-	err := s.PropertyGroupStore.IncrementVersion(name)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PropertyGroupStore.IncrementVersion", success, elapsed)
-	}
-	return err
-}
-
 func (s *TimerLayerPropertyGroupStore) Register(group *model.PropertyGroup) (*model.PropertyGroup, error) {
 	start := time.Now()
 
@@ -9230,6 +9214,22 @@ func (s *TimerLayerPropertyGroupStore) Register(group *model.PropertyGroup) (*mo
 		s.Root.Metrics.ObserveStoreMethodDuration("PropertyGroupStore.Register", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerPropertyGroupStore) SetVersion(name string, version int) error {
+	start := time.Now()
+
+	err := s.PropertyGroupStore.SetVersion(name, version)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyGroupStore.SetVersion", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerPropertyValueStore) Create(value *model.PropertyValue) (*model.PropertyValue, error) {

@@ -14,7 +14,7 @@ import (
 
 func TestPropertyGroupStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("RegisterAndGetPropertyGroup", func(t *testing.T) { testRegisterAndGetPropertyGroup(t, rctx, ss) })
-	t.Run("IncrementVersion", func(t *testing.T) { testIncrementVersion(t, rctx, ss) })
+	t.Run("SetVersion", func(t *testing.T) { testSetVersion(t, rctx, ss) })
 	t.Run("SchemaVersionPersistence", func(t *testing.T) { testSchemaVersionPersistence(t, rctx, ss) })
 }
 
@@ -173,65 +173,88 @@ func testSchemaVersionPersistence(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 }
 
-func testIncrementVersion(t *testing.T, _ request.CTX, ss store.Store) {
-	t.Run("should increment version of an existing group", func(t *testing.T) {
+func testSetVersion(t *testing.T, _ request.CTX, ss store.Store) {
+	t.Run("should raise the version of an existing group", func(t *testing.T) {
 		registered, err := ss.PropertyGroup().Register(&model.PropertyGroup{
-			Name:    "increment_version_test",
+			Name:    "set_version_test",
 			Version: model.PropertyGroupVersionV1,
 		})
 		require.NoError(t, err)
 		require.Equal(t, model.PropertyGroupVersionV1, registered.Version)
 
-		err = ss.PropertyGroup().IncrementVersion("increment_version_test")
+		err = ss.PropertyGroup().SetVersion("set_version_test", model.PropertyGroupVersionV2)
 		require.NoError(t, err)
 
-		fetched, err := ss.PropertyGroup().Get("increment_version_test")
+		fetched, err := ss.PropertyGroup().Get("set_version_test")
 		require.NoError(t, err)
 		require.Equal(t, model.PropertyGroupVersionV2, fetched.Version)
 	})
 
-	t.Run("should be able to increment multiple times", func(t *testing.T) {
+	t.Run("should lower the version of a group that sits above the target", func(t *testing.T) {
 		_, err := ss.PropertyGroup().Register(&model.PropertyGroup{
-			Name:    "increment_version_multi_test",
+			Name:    "set_version_lower_test",
+			Version: model.PropertyGroupVersionV2,
+		})
+		require.NoError(t, err)
+
+		// 3 is not a version any group should be at, but a group can be left
+		// there by a migration that increments without checking (see MM-71093).
+		err = ss.PropertyGroup().SetVersion("set_version_lower_test", 3)
+		require.NoError(t, err)
+		fetched, err := ss.PropertyGroup().Get("set_version_lower_test")
+		require.NoError(t, err)
+		require.Equal(t, 3, fetched.Version)
+
+		err = ss.PropertyGroup().SetVersion("set_version_lower_test", model.PropertyGroupVersionV2)
+		require.NoError(t, err)
+
+		fetched, err = ss.PropertyGroup().Get("set_version_lower_test")
+		require.NoError(t, err)
+		require.Equal(t, model.PropertyGroupVersionV2, fetched.Version)
+	})
+
+	t.Run("should be idempotent", func(t *testing.T) {
+		_, err := ss.PropertyGroup().Register(&model.PropertyGroup{
+			Name:    "set_version_idempotent_test",
 			Version: model.PropertyGroupVersionV1,
 		})
 		require.NoError(t, err)
 
-		err = ss.PropertyGroup().IncrementVersion("increment_version_multi_test")
+		err = ss.PropertyGroup().SetVersion("set_version_idempotent_test", model.PropertyGroupVersionV2)
 		require.NoError(t, err)
-		err = ss.PropertyGroup().IncrementVersion("increment_version_multi_test")
+		err = ss.PropertyGroup().SetVersion("set_version_idempotent_test", model.PropertyGroupVersionV2)
 		require.NoError(t, err)
 
-		fetched, err := ss.PropertyGroup().Get("increment_version_multi_test")
+		fetched, err := ss.PropertyGroup().Get("set_version_idempotent_test")
 		require.NoError(t, err)
-		require.Equal(t, 3, fetched.Version)
+		require.Equal(t, model.PropertyGroupVersionV2, fetched.Version)
 	})
 
-	t.Run("should not error when incrementing a non-existent group", func(t *testing.T) {
-		err := ss.PropertyGroup().IncrementVersion("non_existent_group_for_increment")
+	t.Run("should not error when setting the version of a non-existent group", func(t *testing.T) {
+		err := ss.PropertyGroup().SetVersion("non_existent_group_for_set_version", model.PropertyGroupVersionV2)
 		require.NoError(t, err)
 	})
 
 	t.Run("should not affect groups with different names", func(t *testing.T) {
 		_, err := ss.PropertyGroup().Register(&model.PropertyGroup{
-			Name:    "increment_isolated_a",
+			Name:    "set_version_isolated_a",
 			Version: model.PropertyGroupVersionV1,
 		})
 		require.NoError(t, err)
 		_, err = ss.PropertyGroup().Register(&model.PropertyGroup{
-			Name:    "increment_isolated_b",
+			Name:    "set_version_isolated_b",
 			Version: model.PropertyGroupVersionV1,
 		})
 		require.NoError(t, err)
 
-		err = ss.PropertyGroup().IncrementVersion("increment_isolated_a")
+		err = ss.PropertyGroup().SetVersion("set_version_isolated_a", model.PropertyGroupVersionV2)
 		require.NoError(t, err)
 
-		a, err := ss.PropertyGroup().Get("increment_isolated_a")
+		a, err := ss.PropertyGroup().Get("set_version_isolated_a")
 		require.NoError(t, err)
 		require.Equal(t, model.PropertyGroupVersionV2, a.Version)
 
-		b, err := ss.PropertyGroup().Get("increment_isolated_b")
+		b, err := ss.PropertyGroup().Get("set_version_isolated_b")
 		require.NoError(t, err)
 		require.Equal(t, model.PropertyGroupVersionV1, b.Version)
 	})
