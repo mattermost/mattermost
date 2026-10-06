@@ -44,7 +44,7 @@ describe('components/user_settings/display/index', () => {
     });
 
     test('falls back to DefaultClientLocale when the user locale is not supported', () => {
-        expect(userLocaleFor(baseState, 'cs')).toBe('en');
+        expect(userLocaleFor(baseState, 'xx')).toBe('en');
     });
 
     test('falls back to English when DefaultClientLocale is not supported either', () => {
@@ -52,17 +52,17 @@ describe('components/user_settings/display/index', () => {
         // reads .name off the result without a guard, so the fallback has to
         // resolve on its own.
         const state = mergeObjects(baseState, {
-            entities: {general: {config: {DefaultClientLocale: 'cs'}}},
+            entities: {general: {config: {DefaultClientLocale: 'xx'}}},
         });
 
-        const userLocale = userLocaleFor(state, 'cs');
+        const userLocale = userLocaleFor(state, 'xx');
         expect(userLocale).toBe('en');
         expect(getLanguageInfo(userLocale)).toBeDefined();
     });
 
     test('falls back to English when AvailableLocales excludes DefaultClientLocale', () => {
         const state = mergeObjects(baseState, {
-            entities: {general: {config: {AvailableLocales: 'fr', DefaultClientLocale: 'cs'}}},
+            entities: {general: {config: {AvailableLocales: 'fr', DefaultClientLocale: 'xx'}}},
         });
 
         const userLocale = userLocaleFor(state, 'de');
