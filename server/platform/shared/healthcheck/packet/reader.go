@@ -180,7 +180,7 @@ func readNodes(z *budgetedZip, root []string, byNode map[string][]string) ([]*he
 	if len(byNode) == 0 && slices.Contains(root, model.SupportPacketDiagnosticsFileName) {
 		node := read("", model.SupportPacketDiagnosticsFileName)
 		if diag, ok := node.Diag(); ok {
-			node.Hostname = diag.Server.Hostname
+			node.Hostname = model.SafeDereference(diag.Server.Hostname)
 		}
 		nodes = append(nodes, node)
 	}

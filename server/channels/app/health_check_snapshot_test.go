@@ -80,7 +80,8 @@ func TestBuildHealthSnapshotOnlyLeaderHasDiagnostics(t *testing.T) {
 		if node.IsLeader {
 			assert.Equal(t, "id-2", node.ClusterInfo.Id)
 			require.NotNil(t, node.Diagnostics)
-			assert.Equal(t, 3, node.Diagnostics.Diagnostics.Cluster.NumberOfNodes)
+			require.NotNil(t, node.Diagnostics.Diagnostics.Cluster.NumberOfNodes)
+			assert.Equal(t, 3, *node.Diagnostics.Diagnostics.Cluster.NumberOfNodes)
 		} else {
 			assert.Nil(t, node.Diagnostics, "follower %q", node.ClusterInfo.Id)
 		}
