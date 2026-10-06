@@ -62,6 +62,11 @@ func SetFormat(t string) {
 	printer.Format = t
 }
 
+// GetFormat returns the format for the final output of the printer
+func GetFormat() string {
+	return printer.Format
+}
+
 func SetCommand(cmd *cobra.Command) {
 	printer.cmd = cmd
 }

@@ -7,6 +7,12 @@ import TabItem from '@theme/TabItem';
 
 <PlanAvailability slug="ent-plus" />
 
+<Important>
+
+From Mattermost v12.0, user attributes are managed in **System Console \> System Attributes \> Attribute Management**, and existing user attributes are converted automatically on upgrade. See [Attribute management](/administration-guide/manage/admin/attribute-management). This page describes the **User Attributes** page in releases before v12.0.
+
+</Important>
+
 From Mattermost v10.8, ensure your teams always have the critical information they need to collaborate effectively by defining and managing organization-specific user profile attributes as system attributes that you can synchronize with your AD/LDAP or SAML identity provider.
 
 System attributes enable you to customize user profile attributes to match your organization's unique needs and streamline collaboration while keeping user data centralized and consistent.
@@ -51,7 +57,7 @@ From Mattermost Enterprise v10.9, the ability to create and manage system proper
 </TabItem>
 <TabItem value="mattermost-v10-8" label="Mattermost v10.8">
 
-You'll need Mattermost Enterprise v10.8 or later, and be a Mattermost system admin to enable the system properties feature flag, `MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES` to create and manage system properties. See the Mattermost developer documentation for details on [enabling feature flags in a self-hosted deployment](https://developers.mattermost.com/contribute/more-info/server/feature-flags/#self-hosted-and-local-development). Mattermost Cloud customers can request this feature flag be enabled by contacting their Mattermost Account Manager or by [creating a support ticket](https://support.mattermost.com/hc/en-us/requests/new?ticket_form_id=11184911962004) request.
+You'll need Mattermost Enterprise v10.8 or later, and be a Mattermost system admin to enable the system properties feature flag, `MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES` to create and manage system properties. See the Mattermost developer documentation for details on [enabling feature flags in a self-hosted deployment](https://docs.mattermost.com/developers/contribute/more-info/server/feature-flags/#self-hosted-and-local-development). Mattermost Cloud customers can request this feature flag be enabled by contacting their Mattermost Account Manager or by [creating a support ticket](https://support.mattermost.com/hc/en-us/requests/new?ticket_form_id=11184911962004) request.
 
 </TabItem>
 </Tabs>
