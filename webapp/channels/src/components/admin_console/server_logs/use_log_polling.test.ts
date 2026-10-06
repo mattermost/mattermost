@@ -56,6 +56,8 @@ describe('components/admin_console/server_logs/useLogPolling', () => {
     });
 
     afterEach(() => {
+        // Timer spies must go before the fake clock uninstalls, or it removes the real timers too
+        jest.restoreAllMocks();
         jest.useRealTimers();
 
         // Remove the own property shadowing Document.prototype.hidden
@@ -311,21 +313,26 @@ describe('components/admin_console/server_logs/useLogPolling', () => {
         });
 
         test('should not run two intervals after resuming', async () => {
+            // jest.getTimerCount() would also count the timers React 19's async act() leaves behind
+            const setIntervalSpy = jest.spyOn(global, 'setInterval');
+            const clearIntervalSpy = jest.spyOn(global, 'clearInterval');
+            const activeIntervals = () => setIntervalSpy.mock.calls.length - clearIntervalSpy.mock.calls.length;
+
             renderPolling({enabled: true, intervalMs: 5000});
 
-            expect(jest.getTimerCount()).toBe(1);
+            expect(activeIntervals()).toBe(1);
 
             setHidden(true);
             await dispatchVisibilityChange();
 
-            expect(jest.getTimerCount()).toBe(0);
+            expect(activeIntervals()).toBe(0);
 
             setHidden(false);
             await dispatchVisibilityChange();
 
             // Counting fetch calls cannot tell one interval from two here, because
             // the re-entrancy guard swallows the second of two simultaneous ticks
-            expect(jest.getTimerCount()).toBe(1);
+            expect(activeIntervals()).toBe(1);
         });
 
         test('should ignore visibility changes while disabled', async () => {
