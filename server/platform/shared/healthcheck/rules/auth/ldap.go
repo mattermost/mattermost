@@ -49,10 +49,11 @@ var ldapPortTLSMismatch = healthcheck.Rule{
 		DocsURL:       ldapDocsURL,
 		ConsolePath:   ldapConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    ldapPortSubject,
-	Eval:       gated(ldapEnabled, evalLdapPortTLSMismatch),
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityStable,
+	AppliesToCloud: true,
+	Subject:        ldapPortSubject,
+	Eval:           gated(ldapEnabled, evalLdapPortTLSMismatch),
 }
 
 var ldapPortPlainMismatch = healthcheck.Rule{
@@ -65,10 +66,11 @@ var ldapPortPlainMismatch = healthcheck.Rule{
 		DocsURL:       ldapDocsURL,
 		ConsolePath:   ldapConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    ldapPortSubject,
-	Eval:       gated(ldapEnabled, evalLdapPortPlainMismatch),
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityStable,
+	AppliesToCloud: true,
+	Subject:        ldapPortSubject,
+	Eval:           gated(ldapEnabled, evalLdapPortPlainMismatch),
 }
 
 var ldapSkipCert = healthcheck.Rule{
@@ -81,10 +83,11 @@ var ldapSkipCert = healthcheck.Rule{
 		DocsURL:       ldapDocsURL,
 		ConsolePath:   ldapConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "LdapSettings.SkipCertificateVerification",
-	Eval:       gated(ldapEnabled, evalLdapSkipCert),
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityStable,
+	AppliesToCloud: true,
+	Subject:        "LdapSettings.SkipCertificateVerification",
+	Eval:           gated(ldapEnabled, evalLdapSkipCert),
 }
 
 var ldapQueryTimeoutLow = healthcheck.Rule{
@@ -97,10 +100,11 @@ var ldapQueryTimeoutLow = healthcheck.Rule{
 		DocsURL:       "https://mattermost.com/pl/configure-ad-ldap-query-timeout",
 		ConsolePath:   ldapConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "LdapSettings.QueryTimeout",
-	Eval:       gated(ldapEnabled, evalLdapQueryTimeoutLow),
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityStable,
+	AppliesToCloud: true,
+	Subject:        "LdapSettings.QueryTimeout",
+	Eval:           gated(ldapEnabled, evalLdapQueryTimeoutLow),
 }
 
 var ldapSyncIntervalLow = healthcheck.Rule{
@@ -113,10 +117,11 @@ var ldapSyncIntervalLow = healthcheck.Rule{
 		DocsURL:       ldapDocsURL,
 		ConsolePath:   ldapConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    ldapSyncIntervalSubject,
-	Eval:       gated(ldapSyncEnabled, evalLdapSyncIntervalLow),
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityStable,
+	AppliesToCloud: true,
+	Subject:        ldapSyncIntervalSubject,
+	Eval:           gated(ldapSyncEnabled, evalLdapSyncIntervalLow),
 }
 
 var ldapSyncNoBaseDN = healthcheck.Rule{
@@ -129,10 +134,11 @@ var ldapSyncNoBaseDN = healthcheck.Rule{
 		DocsURL:       ldapDocsURL,
 		ConsolePath:   ldapConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "LdapSettings.BaseDN",
-	Eval:       gated(ldapSyncEnabled, evalLdapSyncNoBaseDN),
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityStable,
+	AppliesToCloud: true,
+	Subject:        "LdapSettings.BaseDN",
+	Eval:           gated(ldapSyncEnabled, evalLdapSyncNoBaseDN),
 }
 
 var ldapRecommendedAtScale = healthcheck.Rule{
@@ -145,10 +151,11 @@ var ldapRecommendedAtScale = healthcheck.Rule{
 		DocsURL:       ldapDocsURL,
 		ConsolePath:   ldapConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    "LdapSettings.Enable",
-	Eval:       evalLdapRecommendedAtScale,
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityThreshold,
+	AppliesToCloud: true,
+	Subject:        "LdapSettings.Enable",
+	Eval:           evalLdapRecommendedAtScale,
 }
 
 var ldapIDIsEmail = healthcheck.Rule{
@@ -161,10 +168,11 @@ var ldapIDIsEmail = healthcheck.Rule{
 		DocsURL:       ldapDocsURL,
 		ConsolePath:   ldapConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityStable,
-	Subject:    "LdapSettings.IdAttribute",
-	Eval:       gated(ldapEnabled, evalLdapIDIsEmail),
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityStable,
+	AppliesToCloud: true,
+	Subject:        "LdapSettings.IdAttribute",
+	Eval:           gated(ldapEnabled, evalLdapIDIsEmail),
 }
 
 var ldapSyncDutyCycle = healthcheck.Rule{
@@ -177,10 +185,11 @@ var ldapSyncDutyCycle = healthcheck.Rule{
 		DocsURL:       ldapDocsURL,
 		ConsolePath:   ldapConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityThreshold,
-	Subject:    ldapSyncIntervalSubject,
-	Eval:       gated(ldapSyncEnabled, evalLdapSyncDutyCycle),
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityThreshold,
+	AppliesToCloud: true,
+	Subject:        ldapSyncIntervalSubject,
+	Eval:           gated(ldapSyncEnabled, evalLdapSyncDutyCycle),
 }
 
 func ldapPortSecurity(s *healthcheck.Snapshot) (port int, security string, ok bool) {

@@ -313,6 +313,7 @@ func TestReadCloud(t *testing.T) {
 		codes = append(codes, f.Code)
 	}
 	assert.ElementsMatch(t, []string{
+		"LDAP_RECOMMENDED_AT_SCALE",
 		"PLUGIN_NOT_RUNNING",
 		"PUSH_ID_ONLY",
 		"PUSH_TEST_PROXY",

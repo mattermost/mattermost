@@ -124,7 +124,6 @@ func TestRegistered(t *testing.T) {
 		assert.Equal(t, severities[rule.Code], registered.Severity, rule.Code)
 		assert.Equal(t, model.AreaAuth, registered.Area, rule.Code)
 		assert.Equal(t, healthcheck.SurfaceProduct, registered.Surface, rule.Code)
-		assert.False(t, registered.AppliesToCloud, rule.Code)
 		assert.NotNil(t, registered.Eval, rule.Code)
 		assert.False(t, registered.IsNodeScoped(), rule.Code)
 	}
