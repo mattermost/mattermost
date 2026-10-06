@@ -7,14 +7,13 @@ import (
 	"encoding/json"
 	"maps"
 	"sync"
+	"sync/atomic"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -36,6 +35,12 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Len(t, propertyFields, 1)
 		require.Equal(t, model.ManagedCategoryPropertyFieldName, propertyFields[0].Name)
+
+		// Reading and writing a channel's managed category goes through these
+		// cached IDs, so a startup that leaves them empty breaks the feature just
+		// as thoroughly as a group the API refuses to serve.
+		require.Equal(t, group.ID, th.Server.Channels().managedCategoryGroupID)
+		require.Equal(t, propertyFields[0].ID, th.Server.Channels().managedCategoryFieldID)
 	}
 
 	assertSetupFlagAtCurrentVersion := func(t *testing.T, th *TestHelper) {
@@ -44,6 +49,17 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 		data, sysErr := th.Store.System().GetByName(managedCategorySetupDoneKey)
 		require.NoError(t, sysErr)
 		require.Equal(t, managedCategoryMigrationVersion, data.Value)
+	}
+
+	// Setup(t) has already cached the IDs, so clear them to make the assertion
+	// above answer whether the run under test repopulated them.
+	runSetup := func(t *testing.T, th *TestHelper) {
+		t.Helper()
+
+		th.Server.Channels().managedCategoryGroupID = ""
+		th.Server.Channels().managedCategoryFieldID = ""
+
+		require.NoError(t, th.Server.doSetupManagedCategoryProperties())
 	}
 
 	t.Run("should register the property group and field on fresh install", func(t *testing.T) {
@@ -58,17 +74,19 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 		assertSetupFlagAtCurrentVersion(t, th)
 	})
 
-	t.Run("should leave a fresh install at v2 across later startups", func(t *testing.T) {
+	t.Run("should leave a fresh install at v2 across later startups without rewriting the version", func(t *testing.T) {
 		th := Setup(t)
+		spy := installSetVersionSpy(t, th)
 
 		// Setup(t) has already run the fresh-install path, so this stands in for
-		// the restarts that follow a new deployment. They must not move the group.
+		// the restarts that follow a new deployment. They must not move the group,
+		// and with nothing to repair they must not write its version at all.
 		for range 2 {
-			err := th.Server.doSetupManagedCategoryProperties()
-			require.NoError(t, err)
+			runSetup(t, th)
 
 			assertGroupServableAtV2(t, th)
 			assertSetupFlagAtCurrentVersion(t, th)
+			require.Zero(t, spy.calls.Load())
 		}
 	})
 
@@ -80,8 +98,22 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 		require.NoError(t, sysErr)
 		require.NoError(t, th.Store.PropertyGroup().SetVersion(model.ManagedCategoryPropertyGroupName, model.PropertyGroupVersionV1))
 
-		err := th.Server.doSetupManagedCategoryProperties()
-		require.NoError(t, err)
+		runSetup(t, th)
+
+		assertGroupServableAtV2(t, th)
+		assertSetupFlagAtCurrentVersion(t, th)
+	})
+
+	t.Run("should upgrade a pre-v2 group even when the system key already reads v2", func(t *testing.T) {
+		th := Setup(t)
+
+		// The group's own version decides whether it needs work; the marker only
+		// says the migration has run before.
+		sysErr := th.Store.System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: managedCategoryMigrationVersion})
+		require.NoError(t, sysErr)
+		require.NoError(t, th.Store.PropertyGroup().SetVersion(model.ManagedCategoryPropertyGroupName, model.PropertyGroupVersionV1))
+
+		runSetup(t, th)
 
 		assertGroupServableAtV2(t, th)
 		assertSetupFlagAtCurrentVersion(t, th)
@@ -97,43 +129,82 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 		require.NoError(t, sysErr)
 		require.NoError(t, th.Store.PropertyGroup().SetVersion(model.ManagedCategoryPropertyGroupName, model.PropertyGroupVersionV2+1))
 
-		err := th.Server.doSetupManagedCategoryProperties()
-		require.NoError(t, err)
+		spy := installSetVersionSpy(t, th)
+		runSetup(t, th)
 
 		assertGroupServableAtV2(t, th)
 		assertSetupFlagAtCurrentVersion(t, th)
+		require.Equal(t, int64(1), spy.calls.Load())
 
-		// The repair must also hold on the startup after it.
-		err = th.Server.doSetupManagedCategoryProperties()
-		require.NoError(t, err)
+		// The repair must hold on the startup after it, and must not repeat.
+		runSetup(t, th)
 
 		assertGroupServableAtV2(t, th)
+		require.Equal(t, int64(1), spy.calls.Load())
 	})
 
-	t.Run("should be idempotent when the system key is already at v2", func(t *testing.T) {
+	t.Run("concurrent runs all repair the group", func(t *testing.T) {
 		th := Setup(t)
 
-		sysErr := th.Store.System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: managedCategoryMigrationVersion})
-		require.NoError(t, sysErr)
+		// Every node of a cluster boots into the same broken state and races to
+		// repair it. Pinning an absolute version makes the writes interchangeable.
+		require.NoError(t, th.Store.PropertyGroup().SetVersion(model.ManagedCategoryPropertyGroupName, model.PropertyGroupVersionV2+1))
 
-		err := th.Server.doSetupManagedCategoryProperties()
-		require.NoError(t, err)
+		const runners = 5
+		errs := make([]error, runners)
+		var wg sync.WaitGroup
+		wg.Add(runners)
+		for i := range runners {
+			go func() {
+				defer wg.Done()
+				errs[i] = th.Server.doSetupManagedCategoryProperties()
+			}()
+		}
+		wg.Wait()
+
+		for i, err := range errs {
+			require.NoError(t, err, "runner %d must not fail on concurrent repair", i)
+		}
 
 		assertGroupServableAtV2(t, th)
 		assertSetupFlagAtCurrentVersion(t, th)
 	})
+}
 
-	t.Run("should not write the group version when the group is already at v2", func(t *testing.T) {
-		// Pinning v2 onto an already-v2 group leaves the same state behind, so a
-		// redundant write is only observable through the store. The mocked store
-		// starts the server in the steady state every startup after the first one
-		// sees: group at v2, flag at the current migration version.
-		th := SetupWithStoreMock(t)
+// setVersionSpyGroupStore counts the property group version writes a migration
+// makes. Pinning v2 onto a group that is already there leaves the same row
+// behind, so the write count is the only way to tell a repair from a redundant
+// write on every startup.
+type setVersionSpyGroupStore struct {
+	store.PropertyGroupStore
 
-		propertyGroupStore, ok := th.Store.PropertyGroup().(*mocks.PropertyGroupStore)
-		require.True(t, ok)
-		propertyGroupStore.AssertNotCalled(t, "SetVersion", mock.Anything, mock.Anything)
-	})
+	calls atomic.Int64
+}
+
+func (s *setVersionSpyGroupStore) SetVersion(name string, version int) error {
+	s.calls.Add(1)
+	return s.PropertyGroupStore.SetVersion(name, version)
+}
+
+type setVersionSpyStore struct {
+	store.Store
+
+	groups *setVersionSpyGroupStore
+}
+
+func (s *setVersionSpyStore) PropertyGroup() store.PropertyGroupStore {
+	return s.groups
+}
+
+func installSetVersionSpy(t *testing.T, th *TestHelper) *setVersionSpyGroupStore {
+	t.Helper()
+
+	original := th.Server.Store()
+	spy := &setVersionSpyGroupStore{PropertyGroupStore: original.PropertyGroup()}
+	th.Server.SetStore(&setVersionSpyStore{Store: original, groups: spy})
+	t.Cleanup(func() { th.Server.SetStore(original) })
+
+	return spy
 }
 
 func TestDoSetupContentFlaggingProperties(t *testing.T) {

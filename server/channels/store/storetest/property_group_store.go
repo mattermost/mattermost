@@ -174,10 +174,11 @@ func testSchemaVersionPersistence(t *testing.T, _ request.CTX, ss store.Store) {
 }
 
 func testSetVersion(t *testing.T, _ request.CTX, ss store.Store) {
-	t.Run("should raise the version of an existing group", func(t *testing.T) {
+	t.Run("should raise the version of an existing group and leave the rest of the row alone", func(t *testing.T) {
 		registered, err := ss.PropertyGroup().Register(&model.PropertyGroup{
-			Name:    "set_version_test",
-			Version: model.PropertyGroupVersionV1,
+			Name:          "set_version_test",
+			Version:       model.PropertyGroupVersionV1,
+			SchemaVersion: 5,
 		})
 		require.NoError(t, err)
 		require.Equal(t, model.PropertyGroupVersionV1, registered.Version)
@@ -188,6 +189,11 @@ func testSetVersion(t *testing.T, _ request.CTX, ss store.Store) {
 		fetched, err := ss.PropertyGroup().Get("set_version_test")
 		require.NoError(t, err)
 		require.Equal(t, model.PropertyGroupVersionV2, fetched.Version)
+
+		// Property fields and values hang off the group ID, so the write has to
+		// touch nothing but the version.
+		require.Equal(t, registered.ID, fetched.ID)
+		require.Equal(t, 5, fetched.SchemaVersion)
 	})
 
 	t.Run("should lower the version of a group that sits above the target", func(t *testing.T) {
