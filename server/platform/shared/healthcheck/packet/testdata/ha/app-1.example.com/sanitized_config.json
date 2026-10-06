@@ -15,7 +15,10 @@
         "DataSourceReplicas": [],
         "DataSourceSearchReplicas": [],
         "MaxIdleConns": 10,
-        "MaxOpenConns": 100
+        "MaxOpenConns": 200,
+        "Trace": false,
+        "QueryTimeout": 30,
+        "ReplicaLagSettings": []
     },
     "EmailSettings": {
         "SendEmailNotifications": true,
@@ -53,6 +56,10 @@
         "VaryByRemoteAddr": true,
         "VaryByUser": false,
         "VaryByHeader": ""
+    },
+    "ElasticsearchSettings": {
+        "EnableIndexing": false,
+        "EnableSearching": false
     },
     "FeatureFlags": {
         "TestFeature": "off",
