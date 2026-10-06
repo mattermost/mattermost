@@ -29,8 +29,12 @@ import (
 )
 
 const (
-	pushSubject    = "EmailSettings.PushNotificationServer"
-	siteURLSubject = "ServiceSettings.SiteURL"
+	pushSubject            = "EmailSettings.PushNotificationServer"
+	siteURLSubject         = "ServiceSettings.SiteURL"
+	metricsSubject         = "MetricsSettings.Enable"
+	pluginStatesSubject    = "PluginSettings.PluginStates"
+	filestoreDirSubject    = "FileSettings.Directory"
+	fileDescriptorsSubject = "Server.FileDescriptors"
 )
 
 type finding struct {
@@ -127,12 +131,15 @@ func TestReadGoldenPackets(t *testing.T) {
 			expected: []finding{
 				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateFiring, Subject: pushSubject},
 				{Code: "SITE_URL_HTTP", State: healthcheck.StateFiring, Subject: siteURLSubject},
+				{Code: "METRICS_OFF", State: healthcheck.StateFiring, Subject: metricsSubject},
+				{Code: "PLUGIN_NOT_RUNNING", State: healthcheck.StateFiring, Subject: pluginStatesSubject},
 			},
 		},
 		{
 			name: "ha",
 			expected: []finding{
 				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject},
+				{Code: "FILESTORE_LOCAL_IN_CLUSTER_VERIFY", State: healthcheck.StateFiring, Subject: filestoreDirSubject},
 			},
 		},
 	}
@@ -287,7 +294,22 @@ func TestReadCloud(t *testing.T) {
 	for _, f := range evaluate(t, snapshot) {
 		codes = append(codes, f.Code)
 	}
-	assert.ElementsMatch(t, []string{"PUSH_TEST_PROXY"}, codes)
+	assert.ElementsMatch(t, []string{"PUSH_TEST_PROXY", "PLUGIN_NOT_RUNNING"}, codes)
+}
+
+func TestReadNodeFileDescriptors(t *testing.T) {
+	files := fixtureFiles(t, "ha")
+	name := "app-2.example.com/" + model.SupportPacketDiagnosticsFileName
+	require.Contains(t, string(files[name]), "open_file_descriptors: 120 ")
+	files[name] = bytes.Replace(files[name], []byte("open_file_descriptors: 120 "), []byte("open_file_descriptors: 62260 "), 1)
+
+	var fdFindings []finding
+	for _, f := range evaluate(t, readFiles(t, files).Snapshot) {
+		if f.Code == "NODE_FD_EXHAUSTION" {
+			fdFindings = append(fdFindings, f)
+		}
+	}
+	assert.Equal(t, []finding{{Code: "NODE_FD_EXHAUSTION", State: healthcheck.StateFiring, Subject: fileDescriptorsSubject, Scope: "app-2.example.com"}}, fdFindings)
 }
 
 func TestReadMissingStats(t *testing.T) {
