@@ -192,6 +192,33 @@ func TestReconcileStateSinceUnchangedOnSameState(t *testing.T) {
 	require.Equal(t, baseTime.UnixMilli(), updated[0].LastSeenAt)
 }
 
+func TestReconcileSkipsNeverFiredResolved(t *testing.T) {
+	t.Parallel()
+
+	baseTime := time.UnixMilli(3_500_000)
+	store := NewMemoryStore()
+	reconciler := NewReconciler(ReconcilerOpts{
+		Store:    store,
+		Registry: testRegistry(testRule("CHECK_PASSING", VolatilityStable), testRule("CHECK_FIRING", VolatilityStable)),
+		Now:      func() time.Time { return baseTime },
+	})
+
+	firing := testEvaluation("CHECK_FIRING", "cluster", "", StateFiring, baseTime)
+	transitions, err := reconciler.Reconcile([]Evaluation{
+		testEvaluation("CHECK_PASSING", "cluster", "", StateResolved, baseTime),
+		firing,
+	})
+	require.NoError(t, err)
+	require.Len(t, transitions, 1)
+	assert.Equal(t, firing.Fingerprint, transitions[0].Finding.Fingerprint)
+
+	stored, err := store.List(model.HealthFindingFilter{Muted: model.MutedIncluded})
+	require.NoError(t, err)
+	require.Len(t, stored, 1)
+	assert.Equal(t, firing.Fingerprint, stored[0].Fingerprint)
+	assert.Equal(t, string(StateFiring), stored[0].State)
+}
+
 func TestReconcileAgesAbsentFindingsToUnknown(t *testing.T) {
 	t.Parallel()
 

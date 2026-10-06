@@ -125,31 +125,16 @@ func TestReadGoldenPackets(t *testing.T) {
 		{
 			name: "standalone",
 			expected: []finding{
-				{Code: "PUSH_EMPTY_URL", State: healthcheck.StateResolved, Subject: pushSubject},
-				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateResolved, Subject: pushSubject},
 				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateFiring, Subject: pushSubject},
-				{Code: "SITE_URL_EMPTY", State: healthcheck.StateResolved, Subject: siteURLSubject},
 				{Code: "SITE_URL_HTTP", State: healthcheck.StateFiring, Subject: siteURLSubject},
 				{Code: "PUSH_ID_ONLY", State: healthcheck.StateFiring, Subject: "EmailSettings.PushNotificationContents"},
-				{Code: "LINK_PREVIEWS_DISABLED", State: healthcheck.StateResolved, Subject: "ServiceSettings.EnableLinkPreviews"},
-				{Code: "MAX_NOTIFICATIONS_PER_CHANNEL", State: healthcheck.StateResolved, Subject: "TeamSettings.MaxNotificationsPerChannel"},
-				{Code: "TYPING_MESSAGES_AT_SCALE", State: healthcheck.StateResolved, Subject: "ServiceSettings.EnableUserTypingMessages"},
-				{Code: "SMTP_UNREACHABLE", State: healthcheck.StateResolved, Subject: "EmailSettings.SMTPServer"},
 			},
 		},
 		{
 			name: "ha",
 			expected: []finding{
-				{Code: "PUSH_EMPTY_URL", State: healthcheck.StateResolved, Subject: pushSubject},
 				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject},
-				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateResolved, Subject: pushSubject},
-				{Code: "SITE_URL_EMPTY", State: healthcheck.StateResolved, Subject: siteURLSubject},
-				{Code: "SITE_URL_HTTP", State: healthcheck.StateResolved, Subject: siteURLSubject},
 				{Code: "PUSH_ID_ONLY", State: healthcheck.StateFiring, Subject: "EmailSettings.PushNotificationContents"},
-				{Code: "LINK_PREVIEWS_DISABLED", State: healthcheck.StateResolved, Subject: "ServiceSettings.EnableLinkPreviews"},
-				{Code: "MAX_NOTIFICATIONS_PER_CHANNEL", State: healthcheck.StateResolved, Subject: "TeamSettings.MaxNotificationsPerChannel"},
-				{Code: "TYPING_MESSAGES_AT_SCALE", State: healthcheck.StateResolved, Subject: "ServiceSettings.EnableUserTypingMessages"},
-				{Code: "SMTP_UNREACHABLE", State: healthcheck.StateResolved, Subject: "EmailSettings.SMTPServer"},
 			},
 		},
 	}
@@ -304,10 +289,7 @@ func TestReadCloud(t *testing.T) {
 	for _, f := range evaluate(t, snapshot) {
 		codes = append(codes, f.Code)
 	}
-	assert.ElementsMatch(t, []string{
-		"PUSH_EMPTY_URL", "PUSH_BAD_SCHEME", "PUSH_TEST_PROXY",
-		"PUSH_ID_ONLY", "LINK_PREVIEWS_DISABLED",
-	}, codes)
+	assert.ElementsMatch(t, []string{"PUSH_TEST_PROXY", "PUSH_ID_ONLY"}, codes)
 }
 
 func TestReadMissingStats(t *testing.T) {
