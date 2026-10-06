@@ -1095,7 +1095,8 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 
 	// Registering an existing group returns its row without touching the version,
 	// so a run that finds no setup flag over a group that has already drifted
-	// still has to pin it.
+	// still has to pin it. This has to happen before the field below, which is
+	// validated against the group's version.
 	if versionErr := s.ensureManagedCategoryGroupVersion(); versionErr != nil {
 		return versionErr
 	}
