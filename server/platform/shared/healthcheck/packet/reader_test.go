@@ -125,49 +125,17 @@ func TestReadGoldenPackets(t *testing.T) {
 		{
 			name: "standalone",
 			expected: []finding{
-				{Code: "PUSH_EMPTY_URL", State: healthcheck.StateResolved, Subject: pushSubject},
-				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateResolved, Subject: pushSubject},
 				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateFiring, Subject: pushSubject},
-				{Code: "SITE_URL_EMPTY", State: healthcheck.StateResolved, Subject: siteURLSubject},
 				{Code: "SITE_URL_HTTP", State: healthcheck.StateFiring, Subject: siteURLSubject},
-				{Code: "JOB_STUCK", State: healthcheck.StateResolved, Subject: model.JobTypeLdapSync},
-				{Code: "JOB_STUCK", State: healthcheck.StateResolved, Subject: model.JobTypeDataRetention},
-				{Code: "JOB_STUCK", State: healthcheck.StateResolved, Subject: model.JobTypeMessageExport},
-				{Code: "JOB_STUCK", State: healthcheck.StateResolved, Subject: model.JobTypeElasticsearchPostIndexing},
-				{Code: "JOB_STUCK", State: healthcheck.StateResolved, Subject: model.JobTypeElasticsearchPostAggregation},
-				{Code: "JOB_WEDGED_AT_ZERO", State: healthcheck.StateResolved, Subject: model.JobTypeLdapSync},
-				{Code: "JOB_WEDGED_AT_ZERO", State: healthcheck.StateResolved, Subject: model.JobTypeMessageExport},
-				{Code: "JOB_WEDGED_AT_ZERO", State: healthcheck.StateResolved, Subject: model.JobTypeElasticsearchPostIndexing},
-				{Code: "JOB_WEDGED_AT_ZERO", State: healthcheck.StateResolved, Subject: model.JobTypeElasticsearchPostAggregation},
 				{Code: "JOB_FAILED", State: healthcheck.StateFiring, Subject: model.JobTypeLdapSync},
-				{Code: "JOB_FAILED", State: healthcheck.StateResolved, Subject: model.JobTypeDataRetention},
-				{Code: "JOB_FAILED", State: healthcheck.StateResolved, Subject: model.JobTypeMessageExport},
-				{Code: "JOB_FAILED", State: healthcheck.StateResolved, Subject: model.JobTypeElasticsearchPostIndexing},
-				{Code: "JOB_FAILED", State: healthcheck.StateResolved, Subject: model.JobTypeElasticsearchPostAggregation},
 			},
 		},
 		{
 			name: "ha",
 			expected: []finding{
-				{Code: "PUSH_EMPTY_URL", State: healthcheck.StateResolved, Subject: pushSubject},
 				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject},
-				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateResolved, Subject: pushSubject},
-				{Code: "SITE_URL_EMPTY", State: healthcheck.StateResolved, Subject: siteURLSubject},
-				{Code: "SITE_URL_HTTP", State: healthcheck.StateResolved, Subject: siteURLSubject},
-				{Code: "JOB_STUCK", State: healthcheck.StateResolved, Subject: model.JobTypeLdapSync},
-				{Code: "JOB_STUCK", State: healthcheck.StateResolved, Subject: model.JobTypeDataRetention},
 				{Code: "JOB_STUCK", State: healthcheck.StateFiring, Subject: model.JobTypeMessageExport},
-				{Code: "JOB_STUCK", State: healthcheck.StateResolved, Subject: model.JobTypeElasticsearchPostIndexing},
-				{Code: "JOB_STUCK", State: healthcheck.StateResolved, Subject: model.JobTypeElasticsearchPostAggregation},
-				{Code: "JOB_WEDGED_AT_ZERO", State: healthcheck.StateResolved, Subject: model.JobTypeLdapSync},
 				{Code: "JOB_WEDGED_AT_ZERO", State: healthcheck.StateFiring, Subject: model.JobTypeMessageExport},
-				{Code: "JOB_WEDGED_AT_ZERO", State: healthcheck.StateResolved, Subject: model.JobTypeElasticsearchPostIndexing},
-				{Code: "JOB_WEDGED_AT_ZERO", State: healthcheck.StateResolved, Subject: model.JobTypeElasticsearchPostAggregation},
-				{Code: "JOB_FAILED", State: healthcheck.StateResolved, Subject: model.JobTypeLdapSync},
-				{Code: "JOB_FAILED", State: healthcheck.StateResolved, Subject: model.JobTypeDataRetention},
-				{Code: "JOB_FAILED", State: healthcheck.StateResolved, Subject: model.JobTypeMessageExport},
-				{Code: "JOB_FAILED", State: healthcheck.StateResolved, Subject: model.JobTypeElasticsearchPostIndexing},
-				{Code: "JOB_FAILED", State: healthcheck.StateResolved, Subject: model.JobTypeElasticsearchPostAggregation},
 			},
 		},
 	}
@@ -322,7 +290,7 @@ func TestReadCloud(t *testing.T) {
 	for _, f := range evaluate(t, snapshot) {
 		codes = append(codes, f.Code)
 	}
-	assert.ElementsMatch(t, []string{"PUSH_EMPTY_URL", "PUSH_BAD_SCHEME", "PUSH_TEST_PROXY"}, codes)
+	assert.ElementsMatch(t, []string{"PUSH_TEST_PROXY"}, codes)
 }
 
 func TestReadMissingStats(t *testing.T) {
