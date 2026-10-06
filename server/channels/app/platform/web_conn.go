@@ -98,7 +98,7 @@ type WebConn struct {
 	PostedAck         bool
 	DisconnectErrCode string
 
-	allChannelMembers         map[string]string
+	allChannelMembers         channelSet
 	lastAllChannelMembersTime int64
 	lastUserActivityAt        int64
 	send                      chan model.WebSocketMessage
@@ -817,7 +817,7 @@ func (wc *WebConn) drainDeadQueue(index int) error {
 
 // InvalidateCache resets all internal data of the WebConn.
 func (wc *WebConn) InvalidateCache() {
-	wc.allChannelMembers = nil
+	wc.allChannelMembers = channelSet{}
 	wc.lastAllChannelMembersTime = 0
 	wc.SetSession(nil)
 	wc.SetSessionExpiresAt(0)
@@ -933,8 +933,9 @@ func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 	return canSee
 }
 
-// ShouldSendEvent returns whether the message should be sent or not.
-func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
+// ShouldSendEvent returns whether the message should be sent or not. channelKey is the event's channel ID
+// decoded by model.DecodeId (zero when it does not decode); the hub decodes it once per broadcast.
+func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent, channelKey [16]byte) bool {
 	// IMPORTANT: Do not send event if WebConn does not have a session and completed MFA
 	if !wc.IsAuthenticated() {
 		return false
@@ -1049,11 +1050,11 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		}
 
 		if model.GetMillis()-wc.lastAllChannelMembersTime > webConnMemberCacheTime {
-			wc.allChannelMembers = nil
+			wc.allChannelMembers = channelSet{}
 			wc.lastAllChannelMembersTime = 0
 		}
 
-		if wc.allChannelMembers == nil {
+		if wc.allChannelMembers.keys == nil {
 			result, err := wc.Platform.Store.Channel().GetAllChannelMembersForUser(
 				sqlstore.RequestContextWithMaster(request.EmptyContext(wc.Platform.logger)),
 				wc.UserId,
@@ -1064,14 +1065,11 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 				mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
 				return false
 			}
-			wc.allChannelMembers = result
+			wc.allChannelMembers = newChannelSet(result)
 			wc.lastAllChannelMembersTime = model.GetMillis()
 		}
 
-		if _, ok := wc.allChannelMembers[chID]; ok {
-			return true
-		}
-		return false
+		return wc.allChannelMembers.has(chID, channelKey)
 	}
 
 	// Only report events to users who are in the team for the event

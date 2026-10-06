@@ -395,13 +395,13 @@ func TestHubConnIndex(t *testing.T) {
 		require.NoError(t, err)
 
 		t.Run("ForChannel", func(t *testing.T) {
-			require.Len(t, connIndex.byChannelID, 1)
+			require.Len(t, connIndex.byChannelKey, 1)
 			ids := make([]string, 0)
-			for c := range connIndex.ForChannel(th.BasicChannel.Id) {
+			for c := range forChannel(connIndex, th.BasicChannel.Id) {
 				ids = append(ids, c.GetConnectionID())
 			}
 			require.ElementsMatch(t, []string{wc1ID, wc2ID, wc3ID}, ids)
-			require.Len(t, slices.Collect(connIndex.ForChannel("notexist")), 0)
+			require.Len(t, slices.Collect(forChannel(connIndex, "notexist")), 0)
 		})
 
 		ch := th.CreateChannel(t, th.BasicTeam)
@@ -416,15 +416,15 @@ func TestHubConnIndex(t *testing.T) {
 
 		t.Run("InvalidateCMCacheForUser", func(t *testing.T) {
 			require.NoError(t, connIndex.InvalidateCMCacheForUser(th.BasicUser2.Id))
-			require.Len(t, connIndex.byChannelID, 2)
-			require.Len(t, slices.Collect(connIndex.ForChannel(th.BasicChannel.Id)), 3)
-			require.Len(t, slices.Collect(connIndex.ForChannel(ch.Id)), 2)
+			require.Len(t, connIndex.byChannelKey, 2)
+			require.Len(t, slices.Collect(forChannel(connIndex, th.BasicChannel.Id)), 3)
+			require.Len(t, slices.Collect(forChannel(connIndex, ch.Id)), 2)
 		})
 
 		t.Run("Remove", func(t *testing.T) {
 			connIndex.Remove(wc3)
-			require.Len(t, connIndex.byChannelID, 2)
-			require.Len(t, slices.Collect(connIndex.ForChannel(th.BasicChannel.Id)), 2)
+			require.Len(t, connIndex.byChannelKey, 2)
+			require.Len(t, slices.Collect(forChannel(connIndex, th.BasicChannel.Id)), 2)
 		})
 	})
 }
@@ -772,7 +772,7 @@ func BenchmarkHubConnIndexIteratorForChannel(b *testing.B) {
 	require.NoError(b, connIndex.Add(wc3))
 
 	for b.Loop() {
-		globalIter = connIndex.ForChannel(th.BasicChannel.Id)
+		globalIter = forChannel(connIndex, th.BasicChannel.Id)
 	}
 }
 
@@ -987,4 +987,9 @@ func TestConnSet(t *testing.T) {
 		require.ElementsMatch(t, conns[:10], visited)
 		require.Zero(t, s.len())
 	})
+}
+
+// forChannel returns the connections for channelID, decoding it as the hub does.
+func forChannel(connIndex *hubConnectionIndex, channelID string) iter.Seq[*WebConn] {
+	return connIndex.ForChannel(channelID, decodeChannelID(channelID))
 }
