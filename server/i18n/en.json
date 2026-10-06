@@ -14312,6 +14312,216 @@
     "description": "Health dashboard reason shown when a health check could not run because the usage statistics it inspects (for example user or post counts) were not collected, so the check's status is unknown."
   },
   {
+    "id": "health.rule.bind_privileged_port.message",
+    "translation": "ServiceSettings.ListenAddress binds port {{.port}}, which is below 1024. On Linux, a Mattermost server that does not run as root can bind this port only through the CAP_NET_BIND_SERVICE file capability on its binary. A package upgrade replaces the binary and clears that capability, so the server can fail to start after the next upgrade with \"bind: permission denied\".",
+    "description": "Health dashboard finding detail when the server listens on a privileged port (below 1024); {{.port}} is the port number. 'ServiceSettings.ListenAddress' is a config setting path, 'CAP_NET_BIND_SERVICE' is a Linux capability name and 'bind: permission denied' is a literal error message; do not translate them."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.remediation",
+    "translation": "Add AmbientCapabilities=CAP_NET_BIND_SERVICE to the Mattermost systemd unit so the capability survives upgrades, or re-run setcap CAP_NET_BIND_SERVICE=+eip /opt/mattermost/bin/mattermost after every upgrade. Alternatively, put a reverse proxy in front of Mattermost and bind Mattermost to a high port such as 8065.",
+    "description": "Health dashboard fix-it step for a server that listens on a privileged port; 'AmbientCapabilities=CAP_NET_BIND_SERVICE' is a systemd setting and the setcap command is a literal shell command; do not translate them."
+  },
+  {
+    "id": "health.rule.bind_privileged_port.title",
+    "translation": "Server binds a privileged port directly",
+    "description": "Health dashboard finding title when the server listens on a port below 1024 itself instead of behind a reverse proxy."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.message",
+    "translation": "The server runs on {{.os}}. Mattermost supports Linux for production; other operating systems are suitable for development only.",
+    "description": "Health dashboard finding detail when the server does not run on Linux; {{.os}} is the operating system name reported by Go, such as windows or darwin."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.remediation",
+    "translation": "Move the server to a supported Linux distribution.",
+    "description": "Health dashboard fix-it step for a server running on an operating system other than Linux."
+  },
+  {
+    "id": "health.rule.env_unsupported_os.title",
+    "translation": "Server is not running on Linux",
+    "description": "Health dashboard finding title when the Mattermost server runs on an operating system other than Linux."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.message",
+    "translation": "FileSettings.DriverName is local with ClusterSettings.Enable on, and FileSettings.Directory ({{.directory}}) is a relative path. It resolves under each node's working directory, so it cannot be a shared mount: files uploaded to one node are not readable from the others.",
+    "description": "Health dashboard finding detail when a high availability cluster stores files in a relative local directory; {{.directory}} is the configured directory. 'FileSettings.DriverName', 'ClusterSettings.Enable' and 'FileSettings.Directory' are config setting paths and 'local' is a setting value; do not translate them."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.remediation",
+    "translation": "Move file storage to Amazon S3 (amazons3), or set FileSettings.Directory to an absolute path on a shared mount (NFS, EFS, GlusterFS, CephFS) mounted identically on every node.",
+    "description": "Health dashboard fix-it step for a cluster that stores files in a relative local directory; 'amazons3' is a setting value, NFS, EFS, GlusterFS and CephFS are shared file system names; do not translate them."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster.title",
+    "translation": "Local file storage in a high availability cluster",
+    "description": "Health dashboard finding title when a high availability cluster stores files on each node's local disk, so nodes cannot read each other's files."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster_verify.message",
+    "translation": "FileSettings.DriverName is local with ClusterSettings.Enable on, and FileSettings.Directory is {{.directory}}. In a cluster this directory must be a shared mount (NFS, EFS, GlusterFS, CephFS) mounted identically on every node, or files uploaded to one node are not visible on the others. The configuration cannot show whether the directory is shared, and the file storage connection test runs on one node only.",
+    "description": "Health dashboard finding detail when a high availability cluster stores files in an absolute local directory that may or may not be a shared mount; {{.directory}} is the configured directory. Config setting paths and file system names should not be translated."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster_verify.remediation",
+    "translation": "On every app node, run findmnt with the FileSettings.Directory path. Every node must show the same remote source, and the Mattermost user must be able to read and write there. If the directory is not a shared mount, move it to one or switch FileSettings.DriverName to amazons3.",
+    "description": "Health dashboard fix-it step asking the admin to confirm that the file storage directory is a shared mount on every node; 'findmnt' is a Linux command and 'amazons3' is a setting value; do not translate them."
+  },
+  {
+    "id": "health.rule.filestore_local_in_cluster_verify.title",
+    "translation": "Local file storage in a high availability cluster: confirm the shared mount",
+    "description": "Health dashboard finding title asking the admin to confirm that a cluster's local file storage directory is shared by every node."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.message",
+    "translation": "FileSettings.AmazonS3Bucket is empty, so file uploads fail.",
+    "description": "Health dashboard finding detail when Amazon S3 file storage is selected without a bucket name; 'FileSettings.AmazonS3Bucket' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.remediation",
+    "translation": "Set FileSettings.AmazonS3Bucket, along with the region and endpoint.",
+    "description": "Health dashboard fix-it step for Amazon S3 file storage without a bucket name; 'FileSettings.AmazonS3Bucket' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.filestore_s3_no_bucket.title",
+    "translation": "Amazon S3 file storage selected but the bucket is blank",
+    "description": "Health dashboard finding title when file storage uses Amazon S3 but no bucket name is set."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.message",
+    "translation": "FileSettings.AmazonS3SSL is false, so files travel between the server and the S3 endpoint unencrypted.",
+    "description": "Health dashboard finding detail when Amazon S3 file storage has SSL turned off; 'FileSettings.AmazonS3SSL' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.remediation",
+    "translation": "Set FileSettings.AmazonS3SSL to true, unless the endpoint only supports plain HTTP.",
+    "description": "Health dashboard fix-it step for Amazon S3 file storage with SSL turned off; 'FileSettings.AmazonS3SSL' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.filestore_s3_ssl_off.title",
+    "translation": "Amazon S3 SSL disabled",
+    "description": "Health dashboard finding title when file storage connects to Amazon S3 without SSL."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message",
+    "translation": "The server could not connect to its file storage: {{.error}}. File uploads and downloads may fail.",
+    "description": "Health dashboard finding detail when the file storage connection test failed; {{.error}} is the error returned by the test, in English."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.remediation",
+    "translation": "Check the file storage settings, then use Test Connection in System Console > Environment > File Storage. For local storage, check that FileSettings.Directory exists and the Mattermost user can write to it. For Amazon S3, check the bucket, endpoint and credentials.",
+    "description": "Health dashboard fix-it step for a failed file storage connection test; 'Test Connection' and 'System Console > Environment > File Storage' name System Console elements; 'FileSettings.Directory' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.title",
+    "translation": "File storage connection test failed",
+    "description": "Health dashboard finding title when the server could not connect to its file storage (local directory or cloud bucket)."
+  },
+  {
+    "id": "health.rule.log_debug_prod.message",
+    "translation": "LogSettings.FileLevel is {{.level}}. Debug-level file logging grows log files quickly, and the extra detail can include request payloads. This is fine while troubleshooting, but not ideal as a steady-state production setting.",
+    "description": "Health dashboard finding detail when the file log level is debug or trace; {{.level}} is the configured level. 'LogSettings.FileLevel' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.log_debug_prod.remediation",
+    "translation": "If you are not actively troubleshooting, set LogSettings.FileLevel to INFO to reduce log volume.",
+    "description": "Health dashboard fix-it step for a debug or trace file log level; 'LogSettings.FileLevel' is a config setting path and 'INFO' is a setting value; do not translate them."
+  },
+  {
+    "id": "health.rule.log_debug_prod.title",
+    "translation": "File logging at debug or trace level",
+    "description": "Health dashboard finding title when the server writes its log file at the very verbose debug or trace level."
+  },
+  {
+    "id": "health.rule.log_file_off.message",
+    "translation": "LogSettings.EnableFile is false. This is fine if an external collector captures the server logs from stdout, journald or a sidecar. Otherwise, no server logs are kept for troubleshooting.",
+    "description": "Health dashboard finding detail when file logging is turned off; 'LogSettings.EnableFile' is a config setting path, 'stdout' and 'journald' are log destinations, and a 'sidecar' is a helper container; do not translate them."
+  },
+  {
+    "id": "health.rule.log_file_off.remediation",
+    "translation": "Verify that an external collector captures the server logs. If none does, set LogSettings.EnableFile to true.",
+    "description": "Health dashboard fix-it step for disabled file logging; 'LogSettings.EnableFile' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.log_file_off.title",
+    "translation": "File logging disabled",
+    "description": "Health dashboard finding title when the server does not write a log file."
+  },
+  {
+    "id": "health.rule.metrics_off.message",
+    "translation": "MetricsSettings.Enable is false. Metrics are optional, and many deployments do not run Prometheus. If you want runtime visibility into database connections, HTTP latency and goroutine counts, enabling metrics provides it.",
+    "description": "Health dashboard finding detail when Prometheus metrics are turned off, which is a valid choice; 'MetricsSettings.Enable' is a config setting path and 'Prometheus' is a product name; do not translate them."
+  },
+  {
+    "id": "health.rule.metrics_off.remediation",
+    "translation": "If you use Prometheus, set MetricsSettings.Enable to true and scrape the metrics listener (port 8067 by default).",
+    "description": "Health dashboard fix-it step for disabled Prometheus metrics; 'MetricsSettings.Enable' is a config setting path and 'scrape' is the Prometheus term for collecting metrics."
+  },
+  {
+    "id": "health.rule.metrics_off.title",
+    "translation": "Prometheus metrics disabled (optional)",
+    "description": "Health dashboard finding title when Prometheus performance metrics are turned off; the finding is informational because metrics are optional."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.message",
+    "translation": "The server process has {{.open}} of {{.max}} file descriptors open. Once it reaches the limit, new connections and file operations fail.",
+    "description": "Health dashboard finding detail when a node is close to its open file limit; {{.open}} is the number of open file descriptors and {{.max}} is the limit."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.remediation",
+    "translation": "Raise the open file limit: set LimitNOFILE in the Mattermost systemd unit, or raise the nofile ulimit of the container, then restart the server.",
+    "description": "Health dashboard fix-it step for a node close to its open file limit; 'LimitNOFILE' is a systemd setting and 'nofile' is a ulimit name; do not translate them."
+  },
+  {
+    "id": "health.rule.node_fd_exhaustion.title",
+    "translation": "File descriptors nearly exhausted",
+    "description": "Health dashboard finding title when a server node uses 90% or more of its open file descriptor limit."
+  },
+  {
+    "id": "health.rule.plugin_health_off.message",
+    "translation": "PluginSettings.EnableHealthCheck is false, so a plugin that crashes is not restarted automatically.",
+    "description": "Health dashboard finding detail when the plugin health check is turned off; 'PluginSettings.EnableHealthCheck' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.plugin_health_off.remediation",
+    "translation": "Set PluginSettings.EnableHealthCheck to true.",
+    "description": "Health dashboard fix-it step for a disabled plugin health check; 'PluginSettings.EnableHealthCheck' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.plugin_health_off.title",
+    "translation": "Plugin health check disabled",
+    "description": "Health dashboard finding title when the server does not monitor and restart crashed plugins."
+  },
+  {
+    "id": "health.rule.plugin_not_running.message",
+    "translation": "These plugins are enabled but not running: {{.plugins}}.",
+    "description": "Health dashboard finding detail listing plugins that are enabled but failed to start or stopped; {{.plugins}} is a comma-separated list of plugin IDs."
+  },
+  {
+    "id": "health.rule.plugin_not_running.remediation",
+    "translation": "In System Console > Plugins > Plugin Management, check the status of each listed plugin, and try disabling and enabling it again. The server log records why a plugin failed to start or was stopped by the plugin health check.",
+    "description": "Health dashboard fix-it step for enabled plugins that are not running; 'System Console > Plugins > Plugin Management' names a System Console page."
+  },
+  {
+    "id": "health.rule.plugin_not_running.title",
+    "translation": "Enabled plugins are not running",
+    "description": "Health dashboard finding title when one or more plugins are enabled but failed to start or to stay running."
+  },
+  {
+    "id": "health.rule.plugins_off.message",
+    "translation": "PluginSettings.Enable is false, so no plugins run. This suits some locked-down deployments, but is often unintentional.",
+    "description": "Health dashboard finding detail when the plugin framework is turned off; 'PluginSettings.Enable' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.plugins_off.remediation",
+    "translation": "If this is unexpected, set PluginSettings.Enable to true.",
+    "description": "Health dashboard fix-it step for a disabled plugin framework; 'PluginSettings.Enable' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.plugins_off.title",
+    "translation": "Plugins disabled",
+    "description": "Health dashboard finding title when the plugin framework is turned off, so no plugins run."
+  },
+  {
     "id": "health.rule.push_bad_scheme.message.http",
     "translation": "PushNotificationServer {{.url}} uses http://, so push notifications are sent in cleartext.",
     "description": "Health dashboard finding detail when the push notification server URL starts with http:// instead of https://; {{.url}} is the configured URL. 'PushNotificationServer' is a config setting name and should not be translated."
