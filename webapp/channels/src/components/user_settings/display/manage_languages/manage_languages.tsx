@@ -4,8 +4,9 @@
 import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
-import ReactSelect from 'react-select';
-import type {StylesConfig, OnChangeValue, AriaOnFocus, AriaOnChange} from 'react-select';
+
+import {Combobox} from '@mattermost/compass-ui/components/combobox';
+import type {ComboboxOption} from '@mattermost/compass-ui/components/combobox';
 
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -15,8 +16,6 @@ import ExternalLink from 'components/external_link';
 import SettingItemMax from 'components/setting_item_max';
 
 import type {Language} from 'i18n/i18n';
-import Constants from 'utils/constants';
-import {isKeyPressed} from 'utils/keyboard';
 
 type Actions = {
     updateMe: (user: UserProfile) => Promise<ActionResult>;
@@ -33,79 +32,25 @@ type Props = {
     adminMode?: boolean;
 };
 
-type SelectedOption = {
-    value: string;
-    label: string;
-};
-
 type State = {
     isSaving: boolean;
-    openMenu: boolean;
     locale: string;
     serverError?: string;
-    selectedOption: SelectedOption;
 };
 
 export class ManageLanguage extends React.PureComponent<Props, State> {
-    reactSelectContainer: React.RefObject<HTMLDivElement | null>;
     constructor(props: Props) {
         super(props);
-        const userLocale = props.locale;
-        const selectedOption = {
-            value: props.locales[userLocale].value,
-            label: props.locales[userLocale].name,
-        };
-        this.reactSelectContainer = React.createRef();
-
         this.state = {
             locale: props.locale,
-            selectedOption,
             isSaving: false,
-            openMenu: false,
         };
     }
 
-    componentDidMount() {
-        const reactSelectContainer = this.reactSelectContainer.current;
-        if (reactSelectContainer) {
-            reactSelectContainer.addEventListener(
-                'keydown',
-                this.handleContainerKeyDown,
-            );
-        }
-    }
-
-    componentWillUnmount() {
-        if (this.reactSelectContainer.current) {
-            this.reactSelectContainer.current.removeEventListener(
-                'keydown',
-                this.handleContainerKeyDown,
-            );
-        }
-    }
-
-    handleContainerKeyDown = (e: KeyboardEvent) => {
-        const modalBody = document.querySelector('.modal-body');
-        if (isKeyPressed(e, Constants.KeyCodes.ESCAPE) && this.state.openMenu) {
-            modalBody?.classList.remove('no-scroll');
-            this.setState({openMenu: false});
-            e.stopPropagation();
-        }
-    };
-
-    handleKeyDown = (e: React.KeyboardEvent) => {
-        const modalBody = document.querySelector('.modal-body');
-        if (isKeyPressed(e, Constants.KeyCodes.ENTER)) {
-            modalBody?.classList.add('no-scroll');
-            this.setState({openMenu: true});
-        }
-    };
-
-    setLanguage = (selectedOption: OnChangeValue<SelectedOption, boolean>) => {
-        if (selectedOption && 'value' in selectedOption) {
+    setLanguage = (selectedLocale: string | string[] | null) => {
+        if (typeof selectedLocale === 'string') {
             this.setState({
-                locale: selectedOption.value,
-                selectedOption,
+                locale: selectedLocale,
             });
         }
     };
@@ -141,22 +86,6 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
         });
     };
 
-    handleMenuClose = () => {
-        const modalBody = document.querySelector('.modal-body');
-        if (modalBody) {
-            modalBody.classList.remove('no-scroll');
-        }
-        this.setState({openMenu: false});
-    };
-
-    handleMenuOpen = () => {
-        const modalBody = document.querySelector('.modal-body');
-        if (modalBody) {
-            modalBody.classList.add('no-scroll');
-        }
-        this.setState({openMenu: true});
-    };
-
     render() {
         const {intl, locales} = this.props;
 
@@ -167,36 +96,14 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
             );
         }
 
-        const options: SelectedOption[] = [];
-
-        const languages = Object.keys(locales).
-            map((l) => {
-                return {
-                    value: locales[l].value as string,
-                    name: locales[l].name,
-                    order: locales[l].order,
-                };
-            }).
-            sort((a, b) => a.order - b.order);
-
-        languages.forEach((lang) => {
-            options.push({value: lang.value, label: lang.name});
-        });
-
-        const reactStyles = {
-            menuPortal: (provided) => ({
-                ...provided,
-                zIndex: 9999,
-            }),
-        } satisfies StylesConfig<SelectedOption, boolean>;
-
-        const onFocusMessage: AriaOnFocus<SelectedOption> = ({focused}) => {
-            return `option ${focused.label} focused`;
-        };
-
-        const onChangeMessage: AriaOnChange<SelectedOption, boolean> = (option) => {
-            return `option ${option.label} selected`;
-        };
+        const options: ComboboxOption[] = Object.keys(locales).
+            map((l) => ({
+                value: locales[l].value as string,
+                label: locales[l].name,
+                order: locales[l].order,
+            })).
+            sort((a, b) => a.order - b.order).
+            map(({value, label}) => ({value, label}));
 
         const interfaceLanguageLabelAria = intl.formatMessage({id: 'user.settings.languages.dropdown.arialabel', defaultMessage: 'Dropdown selector to change the interface language'});
 
@@ -214,30 +121,16 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
                         defaultMessage='Change interface language'
                     />
                 </label>
-                <div
-                    ref={this.reactSelectContainer}
-                    className='pt-2'
-                >
-                    <ReactSelect
+                <div className='pt-2'>
+                    <Combobox
                         className='react-select react-select-top'
-                        classNamePrefix='react-select'
-                        ariaLiveMessages={{
-                            onFocus: onFocusMessage,
-                            onChange: onChangeMessage,
-                        }}
                         id='displayLanguage'
-                        menuIsOpen={this.state.openMenu}
-                        menuPortalTarget={document.body}
-                        styles={reactStyles}
                         options={options}
-                        isClearable={false}
+                        value={this.state.locale}
                         onChange={this.setLanguage}
-                        onKeyDown={this.handleKeyDown}
-                        value={this.state.selectedOption}
-                        onMenuClose={this.handleMenuClose}
-                        onMenuOpen={this.handleMenuOpen}
-                        aria-labelledby='changeInterfaceLanguageLabel'
-                        aria-live='assertive'
+                        aria-label={interfaceLanguageLabelAria}
+                        portalContainer={document.body}
+                        zIndex={9999}
                     />
                     {serverError}
                 </div>
