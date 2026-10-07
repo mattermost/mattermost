@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {AdminPanel as CompassAdminPanel} from '@mattermost/compass-ui/components/admin-panel';
+import classNames from 'classnames';
 import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
-
-import AccordionToggleIcon from 'components/widgets/icons/accordion_toggle_icon';
-
-import AdminPanel from './admin_panel';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 type Props = {
     children?: React.ReactNode;
@@ -27,23 +26,38 @@ const AdminPanelTogglable = ({
     id,
     onToggle,
 }: Props) => {
-    // The content is rendered in two divs: an outer one that uses CSS grid to trick the browser into animating height
-    // and an inner one to prevent the content from overflowing the grid.
+    const intl = useIntl();
+
+    const handleExpandedStateChange = () => {
+        onToggle?.({} as React.MouseEvent);
+    };
+
     return (
-        <AdminPanel
-            className={'AdminPanelTogglable ' + className + (open ? '' : ' closed')}
+        <CompassAdminPanel
             id={id}
-            title={title}
-            subtitle={subtitle}
-            onHeaderClick={onToggle}
-            button={<AccordionToggleIcon/>}
+            className={classNames(
+                'AdminPanel',
+                'clearfix',
+                'AdminPanelTogglable',
+                className,
+                {closed: !open},
+            )}
+            title={<FormattedMessage {...title}/>}
+            subtitle={<FormattedMessage {...subtitle}/>}
+            expandable={true}
+            expandedState={open ? 'expanded' : 'collapsed'}
+            onExpandedStateChange={handleExpandedStateChange}
+            expandLabel={intl.formatMessage({
+                id: 'admin.panel.expand',
+                defaultMessage: 'Expand section',
+            })}
+            collapseLabel={intl.formatMessage({
+                id: 'admin.panel.collapse',
+                defaultMessage: 'Collapse section',
+            })}
         >
-            <div className='AdminPanelTogglableContent'>
-                <div className='AdminPanelTogglableContentInner'>
-                    {children}
-                </div>
-            </div>
-        </AdminPanel>
+            {children}
+        </CompassAdminPanel>
     );
 };
 
