@@ -16163,6 +16163,14 @@
     "defaultMessage": "Remove policy",
     "description": "Accessibility label for the trash icon button on a policy row; opens a confirmation to unlink the policy from the team."
   },
+  "admin.team_settings.team_detail.rules.error.resource_attributes": {
+    "defaultMessage": "Team membership rules can't reference resource attributes.",
+    "description": "Inline error under the Team-specific membership rules editor on the System Console per-team page, shown when the rule references resource.attributes.*, which team membership rules can't use."
+  },
+  "admin.team_settings.team_detail.rules.error.session_attributes": {
+    "defaultMessage": "Team membership rules can't reference session attributes.",
+    "description": "Inline error under the Team-specific membership rules editor on the System Console per-team page, shown when the rule references user.session.* attributes, which team membership rules can't use."
+  },
   "admin.team_settings.team_detail.rules.subtitle": {
     "defaultMessage": "User attributes and values as additional rules to restrict team membership",
     "description": "Subtitle of the Custom access rules panel on the admin console team configuration page (attribute-based membership)."
