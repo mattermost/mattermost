@@ -14,13 +14,13 @@ import (
 	"net/http/httptest"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -28,6 +28,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/config"
@@ -59,6 +60,34 @@ func (s *fixedDBStatsStore) GetDiagnostics(_ request.CTX) (*store.DatabaseDiagno
 	}
 
 	return diagnostics, nil
+}
+
+type failingDiagnosticsStore struct {
+	store.Store
+	schemaVersionErr error
+	dbVersionErr     error
+	diagnosticsErr   error
+}
+
+func (s *failingDiagnosticsStore) GetDBSchemaVersion() (int, error) {
+	if s.schemaVersionErr != nil {
+		return 0, s.schemaVersionErr
+	}
+	return s.Store.GetDBSchemaVersion()
+}
+
+func (s *failingDiagnosticsStore) GetDbVersion(numerical bool) (string, error) {
+	if s.dbVersionErr != nil {
+		return "", s.dbVersionErr
+	}
+	return s.Store.GetDbVersion(numerical)
+}
+
+func (s *failingDiagnosticsStore) GetDiagnostics(rctx request.CTX) (*store.DatabaseDiagnostics, error) {
+	if s.diagnosticsErr != nil {
+		return nil, s.diagnosticsErr
+	}
+	return s.Store.GetDiagnostics(rctx)
 }
 
 // shortCPUProfileDuration keeps GenerateSupportPacket calls fast in tests
@@ -234,15 +263,10 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	getDiagnostics := func(t *testing.T) *model.SupportPacketDiagnostics {
 		t.Helper()
 
-		fileData, err := th.Service.getSupportPacketDiagnostics(th.Context)
-		require.NotNil(t, fileData)
-		assert.Equal(t, "diagnostics.yaml", fileData.Filename)
-		assert.Positive(t, len(fileData.Body))
+		d, err := th.Service.GetSupportPacketDiagnostics(th.Context)
+		require.NotNil(t, d)
 		assert.NoError(t, err)
-
-		var d model.SupportPacketDiagnostics
-		require.NoError(t, yaml.Unmarshal(fileData.Body, &d))
-		return &d
+		return d.Diagnostics
 	}
 
 	t.Run("Happy path", func(t *testing.T) {
@@ -256,19 +280,28 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, model.LicenseShortSkuEnterprise, d.License.SkuShortName)
 		assert.Equal(t, false, d.License.IsTrial)
 		assert.Equal(t, false, d.License.IsGovSKU)
+		assert.False(t, d.License.IsCloud)
 
 		/* Server information */
 		assert.NotEmpty(t, d.Server.OS)
 		assert.NotEmpty(t, d.Server.Architecture)
-		assert.NotEmpty(t, d.Server.Hostname)
+		require.NotNil(t, d.Server.Hostname)
+		assert.NotEmpty(t, *d.Server.Hostname)
 		assert.Equal(t, model.CurrentVersion, d.Server.Version)
 		// BuildHash is not present in tests
 		assert.NotEmpty(t, d.Server.GoVersion)
 		assert.Equal(t, "docker", d.Server.InstallationType)
 		assert.Positive(t, d.Server.CPUCores)
-		assert.Positive(t, d.Server.TotalMemoryMB)
-		assert.True(t, d.Server.OpenFileDescriptors == -1 || d.Server.OpenFileDescriptors > 0, "OpenFileDescriptors should be -1 (unsupported) or positive, got %d", d.Server.OpenFileDescriptors)
-		assert.True(t, d.Server.MaxFileDescriptors == -1 || d.Server.MaxFileDescriptors > 0, "MaxFileDescriptors should be -1 (unsupported) or positive, got %d", d.Server.MaxFileDescriptors)
+		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
+			require.NotNil(t, d.Server.TotalMemoryMB)
+			assert.Positive(t, *d.Server.TotalMemoryMB)
+		} else {
+			assert.Nil(t, d.Server.TotalMemoryMB)
+		}
+		require.NotNil(t, d.Server.OpenFileDescriptors)
+		require.NotNil(t, d.Server.MaxFileDescriptors)
+		assert.True(t, *d.Server.OpenFileDescriptors == -1 || *d.Server.OpenFileDescriptors > 0, "OpenFileDescriptors should be -1 (unsupported) or positive, got %d", *d.Server.OpenFileDescriptors)
+		assert.True(t, *d.Server.MaxFileDescriptors == -1 || *d.Server.MaxFileDescriptors > 0, "MaxFileDescriptors should be -1 (unsupported) or positive, got %d", *d.Server.MaxFileDescriptors)
 		assert.Positive(t, d.Server.ProcessID)
 		assert.False(t, d.Server.StartedAt.IsZero())
 		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
@@ -282,37 +315,50 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, "memory://", d.Config.Source)
 
 		/* DB */
-		assert.NotEmpty(t, d.Database.Type)
-		assert.NotEmpty(t, d.Database.Version)
-		assert.NotEmpty(t, d.Database.SchemaVersion)
+		require.NotNil(t, d.Database.Type)
+		assert.NotEmpty(t, *d.Database.Type)
+		require.NotNil(t, d.Database.Version)
+		assert.NotEmpty(t, *d.Database.Version)
+		require.NotNil(t, d.Database.SchemaVersion)
+		assert.NotEmpty(t, *d.Database.SchemaVersion)
 		assert.NotZero(t, d.Database.MasterConnections)
 		assert.Zero(t, d.Database.ReplicaConnections)
 		assert.Zero(t, d.Database.SearchConnections)
-		assert.GreaterOrEqual(t, d.Database.MasterConnectionsInUse, 0)
-		assert.GreaterOrEqual(t, d.Database.MasterConnectionsIdle, 0)
-		assert.GreaterOrEqual(t, d.Database.MasterPoolWaitCount, int64(0))
-		assert.GreaterOrEqual(t, d.Database.MasterPoolWaitDurationMs, int64(0))
-		assert.GreaterOrEqual(t, d.Database.MasterConnectionsClosedMaxIdle, int64(0))
-		assert.GreaterOrEqual(t, d.Database.MasterConnectionsClosedMaxLifetime, int64(0))
-		assert.GreaterOrEqual(t, d.Database.ReplicaConnectionsInUse, 0)
-		assert.GreaterOrEqual(t, d.Database.ReplicaConnectionsIdle, 0)
-		assert.GreaterOrEqual(t, d.Database.ReplicaPoolWaitCount, int64(0))
-		assert.GreaterOrEqual(t, d.Database.ReplicaPoolWaitDurationMs, int64(0))
-		assert.GreaterOrEqual(t, d.Database.ReplicaConnectionsClosedMaxIdle, int64(0))
-		assert.GreaterOrEqual(t, d.Database.ReplicaConnectionsClosedMaxLifetime, int64(0))
+		require.NotNil(t, d.Database.MasterConnectionsInUse)
+		assert.GreaterOrEqual(t, *d.Database.MasterConnectionsInUse, 0)
+		for _, v := range []*int{d.Database.MasterConnectionsIdle, d.Database.ReplicaConnectionsInUse, d.Database.ReplicaConnectionsIdle} {
+			require.NotNil(t, v)
+			assert.GreaterOrEqual(t, *v, 0)
+		}
+		for _, v := range []*int64{
+			d.Database.MasterPoolWaitCount,
+			d.Database.MasterPoolWaitDurationMs,
+			d.Database.MasterConnectionsClosedMaxIdle,
+			d.Database.MasterConnectionsClosedMaxLifetime,
+			d.Database.ReplicaPoolWaitCount,
+			d.Database.ReplicaPoolWaitDurationMs,
+			d.Database.ReplicaConnectionsClosedMaxIdle,
+			d.Database.ReplicaConnectionsClosedMaxLifetime,
+		} {
+			require.NotNil(t, v)
+			assert.GreaterOrEqual(t, *v, int64(0))
+		}
 
 		/* File store */
 		assert.Equal(t, "OK", d.FileStore.Status)
 		assert.Empty(t, d.FileStore.Error)
 		assert.Equal(t, "local", d.FileStore.Driver)
 		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
-			assert.NotEmpty(t, d.FileStore.FilesystemType, "FilesystemType should not be empty on supported platforms")
-			assert.Positive(t, d.FileStore.TotalMB, "TotalMB should be positive on supported platforms")
-			assert.Positive(t, d.FileStore.AvailableMB, "AvailableMB should be positive on supported platforms")
+			require.NotNil(t, d.FileStore.FilesystemType)
+			require.NotNil(t, d.FileStore.TotalMB)
+			require.NotNil(t, d.FileStore.AvailableMB)
+			assert.NotEmpty(t, *d.FileStore.FilesystemType, "FilesystemType should not be empty on supported platforms")
+			assert.Positive(t, *d.FileStore.TotalMB, "TotalMB should be positive on supported platforms")
+			assert.Positive(t, *d.FileStore.AvailableMB, "AvailableMB should be positive on supported platforms")
 		} else {
-			assert.Empty(t, d.FileStore.FilesystemType)
-			assert.Zero(t, d.FileStore.TotalMB)
-			assert.Zero(t, d.FileStore.AvailableMB)
+			assert.Nil(t, d.FileStore.FilesystemType)
+			assert.Nil(t, d.FileStore.TotalMB)
+			assert.Nil(t, d.FileStore.AvailableMB)
 		}
 
 		/* Websockets */
@@ -320,7 +366,9 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		/* Cluster */
 		assert.Empty(t, d.Cluster.ID)
-		assert.Zero(t, d.Cluster.NumberOfNodes)
+		require.NotNil(t, d.Cluster.NumberOfNodes)
+		assert.Equal(t, 1, *d.Cluster.NumberOfNodes)
+		assert.False(t, d.Cluster.IsLeader)
 
 		/* LDAP */
 		assert.Equal(t, model.StatusDisabled, d.LDAP.Status)
@@ -341,6 +389,45 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, model.StatusDisabled, d.OAuthProviders.Google.Status)
 		assert.Equal(t, model.StatusDisabled, d.OAuthProviders.Office365.Status)
 		assert.Equal(t, model.StatusDisabled, d.OAuthProviders.OpenID.Status)
+	})
+
+	t.Run("only the cluster leader writes is_leader", func(t *testing.T) {
+		originalCluster := th.Service.clusterIFace
+		t.Cleanup(func() {
+			th.Service.clusterIFace = originalCluster
+		})
+
+		leaders := 0
+		for _, isLeader := range []bool{true, false, false} {
+			cluster := emocks.NewClusterInterface(t)
+			cluster.On("SendClusterMessage", mock.Anything).Return().Maybe()
+			cluster.On("GetClusterId").Return("cluster-id")
+			cluster.On("IsLeader").Return(isLeader)
+			cluster.On("GetClusterInfos").Return([]*model.ClusterInfo{{Id: "a"}, {Id: "b"}, {Id: "c"}}, nil)
+			th.Service.clusterIFace = cluster
+
+			fileData, err := supportPacketDiagnosticsFile(getDiagnostics(t), nil)
+			require.NoError(t, err)
+			if strings.Contains(string(fileData.Body), "is_leader: true") {
+				leaders++
+			}
+		}
+		assert.Equal(t, 1, leaders)
+	})
+
+	t.Run("cloud license writes is_cloud", func(t *testing.T) {
+		cloudLicense := model.NewTestLicense("cloud")
+		require.True(t, th.Service.SetLicense(cloudLicense))
+		t.Cleanup(func() {
+			require.True(t, th.Service.SetLicense(license))
+		})
+
+		d := getDiagnostics(t)
+		assert.True(t, d.License.IsCloud)
+
+		fileData, err := supportPacketDiagnosticsFile(d, nil)
+		require.NoError(t, err)
+		assert.Contains(t, string(fileData.Body), "is_cloud: true")
 	})
 
 	t.Run("filestore fails", func(t *testing.T) {
@@ -374,9 +461,9 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		assert.Equal(t, "OK", packet.FileStore.Status)
 		assert.Equal(t, "amazons3", packet.FileStore.Driver)
-		assert.Empty(t, packet.FileStore.FilesystemType)
-		assert.Zero(t, packet.FileStore.TotalMB)
-		assert.Zero(t, packet.FileStore.AvailableMB)
+		assert.Nil(t, packet.FileStore.FilesystemType)
+		assert.Nil(t, packet.FileStore.TotalMB)
+		assert.Nil(t, packet.FileStore.AvailableMB)
 	})
 
 	t.Run("no LDAP info if LDAP sync is disabled", func(t *testing.T) {
@@ -919,18 +1006,19 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		})
 
 		packet := getDiagnostics(t)
-		assert.Equal(t, 3, packet.Database.MasterConnectionsInUse)
-		assert.Equal(t, 7, packet.Database.MasterConnectionsIdle)
-		assert.Equal(t, int64(11), packet.Database.MasterPoolWaitCount)
-		assert.Equal(t, int64(2025), packet.Database.MasterPoolWaitDurationMs)
-		assert.Equal(t, int64(13), packet.Database.MasterConnectionsClosedMaxIdle)
-		assert.Equal(t, int64(17), packet.Database.MasterConnectionsClosedMaxLifetime)
-		assert.Equal(t, 5, packet.Database.ReplicaConnectionsInUse)
-		assert.Equal(t, 9, packet.Database.ReplicaConnectionsIdle)
-		assert.Equal(t, int64(19), packet.Database.ReplicaPoolWaitCount)
-		assert.Equal(t, int64(4090), packet.Database.ReplicaPoolWaitDurationMs)
-		assert.Equal(t, int64(23), packet.Database.ReplicaConnectionsClosedMaxIdle)
-		assert.Equal(t, int64(29), packet.Database.ReplicaConnectionsClosedMaxLifetime)
+		require.NotNil(t, packet.Database.MasterConnectionsInUse)
+		assert.Equal(t, 3, *packet.Database.MasterConnectionsInUse)
+		assert.Equal(t, new(7), packet.Database.MasterConnectionsIdle)
+		assert.Equal(t, new(int64(11)), packet.Database.MasterPoolWaitCount)
+		assert.Equal(t, new(int64(2025)), packet.Database.MasterPoolWaitDurationMs)
+		assert.Equal(t, new(int64(13)), packet.Database.MasterConnectionsClosedMaxIdle)
+		assert.Equal(t, new(int64(17)), packet.Database.MasterConnectionsClosedMaxLifetime)
+		assert.Equal(t, new(5), packet.Database.ReplicaConnectionsInUse)
+		assert.Equal(t, new(9), packet.Database.ReplicaConnectionsIdle)
+		assert.Equal(t, new(int64(19)), packet.Database.ReplicaPoolWaitCount)
+		assert.Equal(t, new(int64(4090)), packet.Database.ReplicaPoolWaitDurationMs)
+		assert.Equal(t, new(int64(23)), packet.Database.ReplicaConnectionsClosedMaxIdle)
+		assert.Equal(t, new(int64(29)), packet.Database.ReplicaConnectionsClosedMaxLifetime)
 	})
 
 	t.Run("OpenID disabled", func(t *testing.T) {
@@ -1099,7 +1187,191 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	})
 }
 
-func TestGetSanitizedConfigFile(t *testing.T) {
+func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
+	th := Setup(t)
+
+	setStore := func(t *testing.T, s *failingDiagnosticsStore) {
+		originalStore := th.Service.Store
+		s.Store = originalStore
+		th.Service.Store = s
+		t.Cleanup(func() {
+			th.Service.Store = originalStore
+		})
+	}
+
+	requireSectionErrors := func(t *testing.T, failed map[model.NodeSection][]string) *model.SupportPacketDiagnostics {
+		t.Helper()
+
+		nodeDiagnostics, err := th.Service.GetSupportPacketDiagnostics(th.Context)
+		require.NotNil(t, nodeDiagnostics)
+		require.NotNil(t, nodeDiagnostics.Diagnostics)
+		if len(failed) == 0 {
+			require.NoError(t, err)
+		} else {
+			require.Error(t, err)
+		}
+
+		require.Len(t, nodeDiagnostics.Errors, len(model.AllNodeSections()))
+		for _, section := range model.AllNodeSections() {
+			sectionErr, ok := nodeDiagnostics.Errors[section]
+			require.True(t, ok, "section %q should be present", section)
+
+			messages, isFailed := failed[section]
+			if !isFailed {
+				assert.NoError(t, sectionErr, "section %q", section)
+				continue
+			}
+			require.Error(t, sectionErr, "section %q", section)
+			for _, msg := range messages {
+				assert.ErrorContains(t, sectionErr, msg)
+				assert.ErrorContains(t, err, msg)
+			}
+		}
+		return nodeDiagnostics.Diagnostics
+	}
+
+	t.Run("all sections present and clean", func(t *testing.T) {
+		requireSectionErrors(t, nil)
+	})
+
+	t.Run("DB schema version fails", func(t *testing.T) {
+		setStore(t, &failingDiagnosticsStore{schemaVersionErr: errors.New("schema down")})
+
+		d := requireSectionErrors(t, map[model.NodeSection][]string{
+			model.SectionDatabaseIdentity: {"error while getting DB type and schema version"},
+		})
+		assert.Nil(t, d.Database.Type)
+		assert.Nil(t, d.Database.SchemaVersion)
+	})
+
+	t.Run("DB version fails", func(t *testing.T) {
+		setStore(t, &failingDiagnosticsStore{dbVersionErr: errors.New("version down")})
+
+		d := requireSectionErrors(t, map[model.NodeSection][]string{
+			model.SectionDatabaseIdentity: {"error while getting DB version"},
+		})
+		assert.Nil(t, d.Database.Version)
+	})
+
+	t.Run("both DB identity sites fail", func(t *testing.T) {
+		setStore(t, &failingDiagnosticsStore{
+			schemaVersionErr: errors.New("schema down"),
+			dbVersionErr:     errors.New("version down"),
+		})
+
+		requireSectionErrors(t, map[model.NodeSection][]string{
+			model.SectionDatabaseIdentity: {"schema down", "version down"},
+		})
+	})
+
+	t.Run("store diagnostics fail", func(t *testing.T) {
+		setStore(t, &failingDiagnosticsStore{diagnosticsErr: errors.New("stats down")})
+
+		d := requireSectionErrors(t, map[model.NodeSection][]string{
+			model.SectionDatabaseStats: {"error while collecting support packet database diagnostics"},
+		})
+		assert.Nil(t, d.Database.MasterConnectionsInUse)
+		assert.Nil(t, d.Database.MasterConnectionsIdle)
+		assert.Nil(t, d.Database.MasterPoolWaitCount)
+		assert.Nil(t, d.Database.MasterPoolWaitDurationMs)
+		assert.Nil(t, d.Database.MasterConnectionsClosedMaxIdle)
+		assert.Nil(t, d.Database.MasterConnectionsClosedMaxLifetime)
+		assert.Nil(t, d.Database.ReplicaConnectionsInUse)
+		assert.Nil(t, d.Database.ReplicaConnectionsIdle)
+		assert.Nil(t, d.Database.ReplicaPoolWaitCount)
+		assert.Nil(t, d.Database.ReplicaPoolWaitDurationMs)
+		assert.Nil(t, d.Database.ReplicaConnectionsClosedMaxIdle)
+		assert.Nil(t, d.Database.ReplicaConnectionsClosedMaxLifetime)
+	})
+
+	t.Run("disk space fails", func(t *testing.T) {
+		originalFileStore := th.Service.filestore
+		originalDir := *th.Service.Config().FileSettings.Directory
+		t.Cleanup(func() {
+			err := SetFileStore(originalFileStore)(th.Service)
+			require.NoError(t, err)
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.FileSettings.Directory = model.NewPointer(originalDir)
+			})
+		})
+
+		fb := &fmocks.FileBackend{}
+		fb.On("DriverName").Return(model.ImageDriverLocal)
+		fb.On("TestConnection").Return(nil)
+		err := SetFileStore(fb)(th.Service)
+		require.NoError(t, err)
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.FileSettings.Directory = model.NewPointer(filepath.Join(t.TempDir(), "missing"))
+		})
+
+		d := requireSectionErrors(t, map[model.NodeSection][]string{
+			model.SectionFilestoreDisk: {"error while getting disk space info"},
+		})
+		assert.Nil(t, d.FileStore.FilesystemType)
+		assert.Nil(t, d.FileStore.TotalMB)
+		assert.Nil(t, d.FileStore.AvailableMB)
+	})
+
+	t.Run("cluster infos fail", func(t *testing.T) {
+		cluster := emocks.NewClusterInterface(t)
+		// Setup's background config publishes reach whichever cluster is installed.
+		cluster.On("SendClusterMessage", mock.Anything).Return().Maybe()
+		cluster.On("GetClusterId").Return("cluster-id")
+		cluster.On("IsLeader").Return(false)
+		cluster.On("GetClusterInfos").Return(nil, errors.New("gossip down"))
+		originalCluster := th.Service.clusterIFace
+		t.Cleanup(func() {
+			th.Service.clusterIFace = originalCluster
+		})
+		th.Service.clusterIFace = cluster
+
+		d := requireSectionErrors(t, map[model.NodeSection][]string{
+			model.SectionCluster: {"error while getting cluster infos"},
+		})
+		assert.Nil(t, d.Cluster.NumberOfNodes)
+	})
+
+	t.Run("LDAP vendor info fails", func(t *testing.T) {
+		ldapMock := &emocks.LdapDiagnosticInterface{}
+		ldapMock.On("RunTest", mock.AnythingOfType("*request.Context")).Return(nil)
+		ldapMock.On("GetVendorNameAndVendorVersion", mock.AnythingOfType("*request.Context")).Return("", "", errors.New("vendor down"))
+		originalLDAP := th.Service.ldapDiagnostic
+		t.Cleanup(func() {
+			th.Service.ldapDiagnostic = originalLDAP
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.LdapSettings.EnableSync = model.NewPointer(false)
+			})
+		})
+		th.Service.ldapDiagnostic = ldapMock
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.LdapSettings.EnableSync = model.NewPointer(true)
+		})
+
+		requireSectionErrors(t, map[model.NodeSection][]string{
+			model.SectionLDAPProbe: {"error while getting LDAP vendor info"},
+		})
+	})
+
+	t.Run("failed probe stays present and clean", func(t *testing.T) {
+		ldapMock := &emocks.LdapDiagnosticInterface{}
+		ldapMock.On("RunTest", mock.AnythingOfType("*request.Context")).Return(model.NewAppError("", "bind failed", nil, "", 0))
+		originalLDAP := th.Service.ldapDiagnostic
+		t.Cleanup(func() {
+			th.Service.ldapDiagnostic = originalLDAP
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.LdapSettings.EnableSync = model.NewPointer(false)
+			})
+		})
+		th.Service.ldapDiagnostic = ldapMock
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.LdapSettings.EnableSync = model.NewPointer(true)
+		})
+
+		requireSectionErrors(t, nil)
+	})
+}
+
+func TestGetSupportPacketConfig(t *testing.T) {
 	// t.Setenv is correct here: this test verifies that feature flags set via
 	// environment variables (the production mechanism) appear in the sanitized
 	// config output. UpdateConfig won't work because SetDefaults() resets
@@ -1113,29 +1385,23 @@ func TestGetSanitizedConfigFile(t *testing.T) {
 	})
 
 	// Happy path where we have a sanitized config file with no err
-	fileData, err := th.Service.getSanitizedConfigFile(th.Context)
-	require.NotNil(t, fileData)
-	assert.Equal(t, "sanitized_config.json", fileData.Filename)
-	assert.Positive(t, len(fileData.Body))
+	config, err := th.Service.GetSupportPacketConfig(th.Context)
+	require.NotNil(t, config)
 	assert.NoError(t, err)
 
-	var config model.Config
-	err = json.Unmarshal(fileData.Body, &config)
-	require.NoError(t, err)
-
 	// Ensure sensitive fields are redacted
-	assert.Equal(t, model.FakeSetting, *config.FileSettings.PublicLinkSalt)
+	assert.Equal(t, model.FakeSetting, *config.Config.FileSettings.PublicLinkSalt)
 
 	// Ensure non-sensitive fields are present
-	assert.Equal(t, "example.com", *config.ServiceSettings.AllowedUntrustedInternalConnections)
+	assert.Equal(t, "example.com", *config.Config.ServiceSettings.AllowedUntrustedInternalConnections)
 
 	// Ensure feature flags are present
 	assert.Equal(t, "true", config.FeatureFlags.TestFeature)
 
 	// Ensure DataSource is partially sanitized (not completely replaced with FakeSetting)
 	// The default test database connection string should have username/password redacted
-	assert.Contains(t, *config.SqlSettings.DataSource, "****:****")
-	assert.NotEqual(t, model.FakeSetting, *config.SqlSettings.DataSource)
+	assert.Contains(t, *config.Config.SqlSettings.DataSource, "****:****")
+	assert.NotEqual(t, model.FakeSetting, *config.Config.SqlSettings.DataSource)
 }
 
 func TestGetCPUProfile(t *testing.T) {
@@ -1274,4 +1540,206 @@ func TestDetectSAMLProviderType(t *testing.T) {
 			assert.Equal(t, tt.expectedProvider, result)
 		})
 	}
+}
+
+func TestSupportPacketMarshalGolden(t *testing.T) {
+	t.Parallel()
+
+	cacheHitRatio := 0.99
+	deadlocks := int64(3)
+	tempFiles := int64(4)
+	tempBytesMB := 12.5
+	rollbacks := int64(2)
+	idleInTxCount := int64(1)
+	longestQuerySeconds := 7.25
+	waitingForLock := int64(5)
+	postsDeadTuples := int64(9)
+	postsLastAutovacuum := time.Date(2026, 7, 10, 12, 13, 14, 0, time.UTC)
+
+	diagnostics := &model.SupportPacketDiagnostics{
+		Version: 2,
+	}
+	diagnostics.License.Company = "Example Co"
+	diagnostics.License.Users = 150
+	diagnostics.License.SkuShortName = "enterprise"
+	diagnostics.License.IsTrial = true
+	diagnostics.License.IsNonProduction = true
+	diagnostics.Server.OS = "linux"
+	diagnostics.Server.Architecture = "amd64"
+	diagnostics.Server.Hostname = new("mm-host")
+	diagnostics.Server.InstallationType = "docker"
+	diagnostics.Server.CPUCores = 8
+	diagnostics.Server.TotalMemoryMB = new(uint64(32768))
+	diagnostics.Server.ContainerCPULimit = 6.5
+	diagnostics.Server.ContainerMemoryLimitMB = 16384
+	diagnostics.Server.ProcessID = 90210
+	diagnostics.Server.StartedAt = time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)
+	diagnostics.Server.HostStartedAt = time.Date(2025, 12, 30, 0, 0, 0, 0, time.UTC)
+	diagnostics.Server.OpenFileDescriptors = new(int64(512))
+	diagnostics.Server.MaxFileDescriptors = new(int64(8192))
+	diagnostics.Server.Version = "11.0.0"
+	diagnostics.Server.BuildHash = "abc123"
+	diagnostics.Server.GoVersion = "go1.26"
+	diagnostics.Config.Source = "memory://"
+	diagnostics.Database.Type = new("postgres")
+	diagnostics.Database.Version = new("16.4")
+	diagnostics.Database.SchemaVersion = new("123")
+	diagnostics.Database.MasterConnections = 40
+	diagnostics.Database.ReplicaConnections = 20
+	diagnostics.Database.SearchConnections = 10
+	diagnostics.Database.MasterConnectionsInUse = new(5)
+	diagnostics.Database.MasterConnectionsIdle = new(35)
+	diagnostics.Database.MasterPoolWaitCount = new(int64(100))
+	diagnostics.Database.MasterPoolWaitDurationMs = new(int64(220))
+	diagnostics.Database.MasterConnectionsClosedMaxIdle = new(int64(2))
+	diagnostics.Database.MasterConnectionsClosedMaxLifetime = new(int64(1))
+	diagnostics.Database.ReplicaConnectionsInUse = new(3)
+	diagnostics.Database.ReplicaConnectionsIdle = new(17)
+	diagnostics.Database.ReplicaPoolWaitCount = new(int64(12))
+	diagnostics.Database.ReplicaPoolWaitDurationMs = new(int64(66))
+	diagnostics.Database.ReplicaConnectionsClosedMaxIdle = new(int64(4))
+	diagnostics.Database.ReplicaConnectionsClosedMaxLifetime = new(int64(3))
+	diagnostics.Database.CacheHitRatio = &cacheHitRatio
+	diagnostics.Database.Deadlocks = &deadlocks
+	diagnostics.Database.TempFiles = &tempFiles
+	diagnostics.Database.TempBytesMB = &tempBytesMB
+	diagnostics.Database.Rollbacks = &rollbacks
+	diagnostics.Database.IdleInTransactionCount = &idleInTxCount
+	diagnostics.Database.LongestQueryDurationSeconds = &longestQuerySeconds
+	diagnostics.Database.WaitingForLockCount = &waitingForLock
+	diagnostics.Database.PostsDeadTuples = &postsDeadTuples
+	diagnostics.Database.PostsLastAutovacuum = &postsLastAutovacuum
+	diagnostics.FileStore.Status = model.StatusOk
+	diagnostics.FileStore.Driver = model.ImageDriverLocal
+	diagnostics.FileStore.FilesystemType = new("ext4")
+	diagnostics.FileStore.TotalMB = new(uint64(204800))
+	diagnostics.FileStore.AvailableMB = new(uint64(102400))
+	diagnostics.Websocket.Connections = 77
+	diagnostics.Cluster.ID = "cluster-id"
+	diagnostics.Cluster.NumberOfNodes = new(3)
+	diagnostics.Notifications.Email.Status = model.StatusOk
+	diagnostics.Notifications.Push.Status = model.StatusFail
+	diagnostics.Notifications.Push.Error = "proxy timeout"
+	diagnostics.LDAP.Status = model.StatusOk
+	diagnostics.LDAP.ServerName = "OpenLDAP"
+	diagnostics.LDAP.ServerVersion = "2.6"
+	diagnostics.SAML.ProviderType = "Keycloak"
+	diagnostics.SAML.Status = model.StatusDisabled
+	diagnostics.ElasticSearch.Status = model.StatusOk
+	diagnostics.ElasticSearch.Backend = model.ElasticsearchSettingsESBackend
+	diagnostics.ElasticSearch.ServerVersion = "8.0.0"
+	diagnostics.ElasticSearch.ServerPlugins = []string{"analysis-icu", "ingest-attachment"}
+	diagnostics.OAuthProviders.GitLab = model.OAuthProviderStatus{Status: model.StatusOk}
+	diagnostics.OAuthProviders.Google = model.OAuthProviderStatus{Status: model.StatusFail, Error: "dial tcp timeout"}
+	diagnostics.OAuthProviders.Office365 = model.OAuthProviderStatus{Status: model.StatusDisabled}
+	diagnostics.OAuthProviders.OpenID = model.OAuthProviderStatus{Status: model.StatusOk}
+
+	cases := []struct {
+		name     string
+		filename string
+		marshal  func() (*model.FileData, error)
+	}{
+		{
+			name:     "diagnostics",
+			filename: "diagnostics.yaml",
+			marshal: func() (*model.FileData, error) {
+				return supportPacketDiagnosticsFile(diagnostics, nil)
+			},
+		},
+		{
+			name:     "config",
+			filename: "sanitized_config.json",
+			marshal: func() (*model.FileData, error) {
+				return supportPacketConfigFile(&model.SupportPacketConfig{
+					Config: &model.Config{
+						ServiceSettings: model.ServiceSettings{
+							SiteURL: model.NewPointer("https://example.test"),
+						},
+						FeatureFlags: &model.FeatureFlags{TestFeature: "true"},
+					},
+					FeatureFlags: model.FeatureFlags{TestFeature: "true"},
+				}, nil)
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			fileData, err := tc.marshal()
+			require.NoError(t, err)
+			require.NotNil(t, fileData)
+			require.Equal(t, tc.filename, fileData.Filename)
+
+			expected, err := os.ReadFile(filepath.Join(server.GetPackagePath(), "channels", "app", "platform", "testdata", "support_packet", tc.filename))
+			require.NoError(t, err)
+			require.Equal(t, string(expected), string(fileData.Body))
+		})
+	}
+}
+
+func TestSupportPacketYAMLFileAndJSONFile(t *testing.T) {
+	t.Parallel()
+
+	t.Run("YAMLFile returns file and accumulated error", func(t *testing.T) {
+		type payload struct {
+			Value string `yaml:"value"`
+		}
+
+		collectorErr := errors.New("collector failed")
+		fileData, err := YAMLFile("stats.yaml", &payload{Value: "ok"}, collectorErr)
+		require.NotNil(t, fileData)
+		require.Error(t, err)
+		require.ErrorContains(t, err, "collector failed")
+		require.Equal(t, "stats.yaml", fileData.Filename)
+		require.NotEmpty(t, fileData.Body)
+	})
+
+	t.Run("JSONFile returns file and accumulated error", func(t *testing.T) {
+		type payload struct {
+			Value string `json:"value"`
+		}
+
+		collectorErr := errors.New("collector failed")
+		fileData, err := JSONFile("plugins.json", &payload{Value: "ok"}, collectorErr)
+		require.NotNil(t, fileData)
+		require.Error(t, err)
+		require.ErrorContains(t, err, "collector failed")
+		require.Equal(t, "plugins.json", fileData.Filename)
+		require.NotEmpty(t, fileData.Body)
+	})
+
+	t.Run("nil value returns nil file and original error", func(t *testing.T) {
+		collectorErr := errors.New("collector failed")
+		type payload struct {
+			Value string `yaml:"value"`
+		}
+
+		fileData, err := YAMLFile[payload]("stats.yaml", nil, collectorErr)
+		require.Nil(t, fileData)
+		require.ErrorIs(t, err, collectorErr)
+	})
+
+	t.Run("marshal error is appended to collector error", func(t *testing.T) {
+		type badPayload struct {
+			Bad chan int `json:"bad" yaml:"bad"`
+		}
+
+		collectorErr := errors.New("collector failed")
+		fileData, err := JSONFile("bad.json", &badPayload{Bad: make(chan int)}, collectorErr)
+		require.Nil(t, fileData)
+		require.ErrorContains(t, err, "collector failed")
+		require.ErrorContains(t, err, "failed to marshal bad.json into json")
+	})
+
+	t.Run("yaml marshal error is appended to collector error", func(t *testing.T) {
+		type badPayload struct {
+			Bad chan int `json:"bad" yaml:"bad"`
+		}
+
+		collectorErr := errors.New("collector failed")
+		fileData, err := YAMLFile("bad.yaml", &badPayload{Bad: make(chan int)}, collectorErr)
+		require.Nil(t, fileData)
+		require.ErrorContains(t, err, "collector failed")
+		require.ErrorContains(t, err, "failed to marshal bad.yaml into yaml")
+	})
 }
