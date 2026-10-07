@@ -5,6 +5,17 @@ import React from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
+import {
+    AccountPlusOutlineIcon,
+    BellOffOutlineIcon,
+    BellOutlineIcon,
+    CheckIcon,
+    LinkVariantIcon,
+    StarIcon,
+    StarOutlineIcon,
+} from '@mattermost/compass-icons/components';
+import {ActionButton} from '@mattermost/compass-ui/components/action-button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import useCopyText from 'components/common/hooks/useCopyText';
@@ -13,73 +24,11 @@ import Constants from 'utils/constants';
 
 const ChannelInfoRhsTopButtons = styled.div`
     display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
     color: rgba(var(--center-channel-color-rgb), 0.75);
     margin-top: 24px;
     padding: 0 18px;
-`;
-
-const Button = styled.button`
-    flex: 1;
-    padding: 12px 0 10px 0;
-    border: 0;
-    margin: 0 6px;
-    background: rgba(var(--center-channel-color-rgb), 0.04);
-    border-radius: 4px;
-
-    &:hover {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.8);
-
-        & i {
-            color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
-        }
-    }
-
-    &:active,
-    &.active {
-        background: rgba(var(--button-bg-rgb), 0.08);
-        color: var(--button-bg);
-
-        & i {
-            color: var(--button-bg-rgb);
-        }
-    }
-
-    &:disabled {
-        opacity: 0.32;
-        cursor: default;
-    }
-
-    & i {
-        color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
-        font-size: 24px;
-    }
-
-    & span {
-        font-size: 10px;
-        font-weight: 600;
-        line-height: 16px;
-    }
-`;
-
-const CopyButton = styled(Button)`
-    transition: background-color 0.5s ease;
-
-    &:active,
-    &.active {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.75);
-        transition: none;
-    }
-
-    &.success {
-        background: var(--online-indicator);
-        color: var(--button-color);
-
-        & i {
-            color: var(--button-color);
-        }
-    }
 `;
 
 export interface Props {
@@ -124,15 +73,15 @@ export default function TopButtons({
     const canCopyLink = [Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(channelType);
 
     // Favorite Button State
-    const favoriteIcon = isFavorite ? 'icon-star' : 'icon-star-outline';
+    const favoriteIcon = isFavorite ? <StarIcon size={18}/> : <StarOutlineIcon size={18}/>;
     const favoriteText = isFavorite ? formatMessage({id: 'channel_info_rhs.top_buttons.favorited', defaultMessage: 'Favorited'}) : formatMessage({id: 'channel_info_rhs.top_buttons.favorite', defaultMessage: 'Favorite'});
 
     // Mute Button State
-    const mutedIcon = isMuted ? 'icon-bell-off-outline' : 'icon-bell-outline';
+    const mutedIcon = isMuted ? <BellOffOutlineIcon size={18}/> : <BellOutlineIcon size={18}/>;
     const mutedText = isMuted ? formatMessage({id: 'channel_info_rhs.top_buttons.muted', defaultMessage: 'Muted'}) : formatMessage({id: 'channel_info_rhs.top_buttons.mute', defaultMessage: 'Mute'});
 
     // Copy Button State
-    const copyIcon = copyLink.copiedRecently ? 'icon-check' : 'icon-link-variant';
+    const copyIcon = copyLink.copiedRecently ? <CheckIcon size={18}/> : <LinkVariantIcon size={18}/>;
     const copyText = copyLink.copiedRecently ? formatMessage({id: 'channel_info_rhs.top_buttons.copied', defaultMessage: 'Copied'}) : formatMessage({id: 'channel_info_rhs.top_buttons.copy', defaultMessage: 'Copy Link'});
 
     return (
@@ -152,18 +101,15 @@ export default function TopButtons({
                     )
                 }
             >
-                <Button
+                <ActionButton
                     onClick={actions.toggleFavorite}
-                    className={isFavorite ? 'active' : ''}
+                    active={isFavorite}
                     disabled={isInManagedCategory}
                     aria-label={favoriteText}
                     id='channelInfoRHSAddFavoriteButton'
-                >
-                    <div>
-                        <i className={'icon ' + favoriteIcon}/>
-                    </div>
-                    <span>{favoriteText}</span>
-                </Button>
+                    icon={<Icon glyph={favoriteIcon}/>}
+                    label={favoriteText}
+                />
             </WithTooltip>
             <WithTooltip
                 title={
@@ -173,17 +119,14 @@ export default function TopButtons({
                     />
                 }
             >
-                <Button
+                <ActionButton
                     onClick={actions.toggleMute}
-                    className={isMuted ? 'active' : ''}
+                    active={isMuted}
                     aria-label={mutedText}
                     id='channelInfoRHSMuteChannelButton'
-                >
-                    <div>
-                        <i className={'icon ' + mutedIcon}/>
-                    </div>
-                    <span>{mutedText}</span>
-                </Button>
+                    icon={<Icon glyph={mutedIcon}/>}
+                    label={mutedText}
+                />
             </WithTooltip>
             {canAddPeople && (
                 <WithTooltip
@@ -194,21 +137,19 @@ export default function TopButtons({
                         />
                     }
                 >
-                    <Button
+                    <ActionButton
                         onClick={actions.addPeople}
-                        className={isInvitingPeople ? 'active' : ''}
+                        active={isInvitingPeople}
                         id='channelInfoRHSAddPeopleButton'
-                    >
-                        <div>
-                            <i className='icon icon-account-plus-outline'/>
-                        </div>
-                        <span>
+                        aria-label={formatMessage({id: 'channel_info_rhs.top_buttons.add_people', defaultMessage: 'Add People'})}
+                        icon={<Icon glyph={<AccountPlusOutlineIcon size={18}/>}/>}
+                        label={
                             <FormattedMessage
                                 id='channel_info_rhs.top_buttons.add_people'
                                 defaultMessage='Add People'
                             />
-                        </span>
-                    </Button>
+                        }
+                    />
                 </WithTooltip>
             )}
             {canCopyLink && (
@@ -220,16 +161,12 @@ export default function TopButtons({
                         />
                     }
                 >
-                    <CopyButton
+                    <ActionButton
                         onClick={copyLink.onClick}
-                        className={copyLink.copiedRecently ? 'success' : ''}
                         aria-label={copyText}
-                    >
-                        <div>
-                            <i className={'icon ' + copyIcon}/>
-                        </div>
-                        <span>{copyText}</span>
-                    </CopyButton>
+                        icon={<Icon glyph={copyIcon}/>}
+                        label={copyText}
+                    />
                 </WithTooltip>
             )}
         </ChannelInfoRhsTopButtons>

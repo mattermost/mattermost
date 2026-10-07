@@ -5,6 +5,9 @@ import React from 'react';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 
+import {ActionButton} from '@mattermost/compass-ui/components/action-button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+
 import type {ChannelIntroButtonAction} from 'types/store/plugins';
 
 type Props = {
@@ -26,14 +29,12 @@ const PluggableIntroButtons = React.memo(({
 
     const buttons = pluginButtons.map((buttonProps) => {
         return (
-            <button
+            <ActionButton
                 key={buttonProps.id}
-                className={'action-button'}
                 onClick={() => buttonProps.action?.(channel, channelMember)}
-            >
-                {buttonProps.icon}
-                {buttonProps.text}
-            </button>
+                icon={<Icon glyph={buttonProps.icon}/>}
+                label={buttonProps.text}
+            />
         );
     });
 
