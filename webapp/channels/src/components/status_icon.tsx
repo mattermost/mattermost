@@ -1,12 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {StatusBadge} from '@mattermost/compass-ui/components/status-badge';
+import type {StatusBadgeStatus} from '@mattermost/compass-ui/components/status-badge';
 import React, {memo} from 'react';
-
-import StatusAwayIcon from 'components/widgets/icons/status_away_icon';
-import StatusDndIcon from 'components/widgets/icons/status_dnd_icon';
-import StatusOfflineIcon from 'components/widgets/icons/status_offline_icon';
-import StatusOnlineIcon from 'components/widgets/icons/status_online_icon';
+import {useIntl} from 'react-intl';
 
 type Props = {
     id?: string;
@@ -15,37 +13,59 @@ type Props = {
     className?: string;
 };
 
+function mapUserStatusToBadgeStatus(status: string): StatusBadgeStatus {
+    switch (status) {
+    case 'online':
+    case 'away':
+        return status;
+    case 'dnd':
+        return 'do-not-disturb';
+    default:
+        return 'offline';
+    }
+}
+
+function getStatusAriaLabel(status: string, formatMessage: ReturnType<typeof useIntl>['formatMessage']): string {
+    switch (status) {
+    case 'online':
+        return formatMessage({id: 'mobile.set_status.online.icon', defaultMessage: 'Online'});
+    case 'away':
+        return formatMessage({id: 'mobile.set_status.away.icon', defaultMessage: 'Away'});
+    case 'dnd':
+        return formatMessage({id: 'mobile.set_status.dnd.icon', defaultMessage: 'Do Not Disturb'});
+    default:
+        return formatMessage({id: 'mobile.set_status.offline.icon', defaultMessage: 'Offline'});
+    }
+}
+
 const StatusIcon = ({
     id,
     className = '',
     button = false,
     status,
 }: Props) => {
+    const {formatMessage} = useIntl();
+
     if (!status) {
         return null;
     }
 
-    let iconClassName = `status ${className}`;
+    const wrapperClassName = button ? (className || '') : `status ${className}`.trim();
+    const badgeStatus = mapUserStatusToBadgeStatus(status);
+    const ariaLabel = getStatusAriaLabel(status, formatMessage);
 
-    if (button) {
-        iconClassName = className || '';
-    }
-
-    const iconProps = {
-        id,
-        className: iconClassName,
-    };
-
-    switch (status) {
-    case 'online':
-        return <StatusOnlineIcon {...iconProps}/>;
-    case 'away':
-        return <StatusAwayIcon {...iconProps}/>;
-    case 'dnd':
-        return <StatusDndIcon {...iconProps}/>;
-    default:
-        return <StatusOfflineIcon {...iconProps}/>;
-    }
+    return (
+        <span
+            id={id}
+            className={wrapperClassName}
+            role='img'
+            aria-label={ariaLabel}
+        >
+            <span aria-hidden={true}>
+                <StatusBadge status={badgeStatus}/>
+            </span>
+        </span>
+    );
 };
 
 export default memo(StatusIcon);
