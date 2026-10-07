@@ -45,6 +45,8 @@
         display: flex;
         align-items: center;
         margin: 0;
+        gap: var(--spacing-s, 8px);
+        padding-left: var(--spacing-m, 12px);
         color: var(--center-channel-color);
         font-family: inherit;
         font-size: 14px;
@@ -52,12 +54,7 @@
         font-weight: 600;
         line-height: 20px;
 
-        span {
-            margin-left: 8px;
-        }
-
         svg {
-            margin-right: 10px;
             color: rgba(var(--center-channel-color-rgb), 0.56);
         }
 
