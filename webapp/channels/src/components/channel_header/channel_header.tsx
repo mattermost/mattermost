@@ -9,6 +9,8 @@ import type {WrappedComponentProps} from 'react-intl';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+
 import ChannelAttributeLabels from 'components/channel_attributes/channel_attribute_labels';
 import {ChannelLabelSurface} from 'components/common/hooks/useChannelLabels';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
@@ -361,17 +363,14 @@ class ChannelHeader extends React.PureComponent<Props> {
                         />
                     }
                 >
-                    <button
+                    <IconButton
                         id='toggleMute'
+                        size='x-small'
+                        className='channel-header__mute channel-header__icon'
+                        icon={<i className='icon icon-bell-off-outline' aria-hidden='true'/>}
                         onClick={this.unmute}
-                        className={'channel-header__mute inactive btn btn-icon btn-xs'}
                         aria-label={this.props.intl.formatMessage({id: 'channelHeader.unmute', defaultMessage: 'Unmute'})}
-                    >
-                        <i
-                            className={'icon icon-bell-off-outline'}
-                            aria-hidden={true}
-                        />
-                    </button>
+                    />
                 </WithTooltip>
             );
         }

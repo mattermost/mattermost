@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import type {ShortcutDefinition} from '@mattermost/shared/components/tooltip';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
@@ -28,6 +29,8 @@ type Props = {
     pluginId?: string;
 };
 
+const LEGACY_BTN_CLASSES = /\b(btn|btn-icon|btn-xs|btn-sm|btn-md|btn-lg)\b/g;
+
 const HeaderIconWrapper = (props: Props) => {
     const {
         ariaLabelOverride,
@@ -45,20 +48,25 @@ const HeaderIconWrapper = (props: Props) => {
 
     const ariaLabelText = ariaLabelOverride ?? tooltipText;
 
+    const cleanedClassName = (buttonClass ?? 'channel-header__icon')
+        .replace(LEGACY_BTN_CLASSES, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+
     return (
         <>
             <WithTooltip
                 title={isRhsOpen ? '' : tooltipText}
                 shortcut={tooltipShortcut}
             >
-                <button
+                <IconButton
                     id={buttonId}
-                    aria-label={ariaLabelText}
-                    className={buttonClass || 'channel-header__icon'}
+                    size='x-small'
+                    className={cleanedClassName}
+                    icon={children}
                     onClick={onClick}
-                >
-                    {children}
-                </button>
+                    aria-label={ariaLabelText}
+                />
             </WithTooltip>
             {boardsEnabled &&
                 <NewChannelWithBoardTourTip

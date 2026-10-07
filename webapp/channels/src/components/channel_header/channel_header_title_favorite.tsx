@@ -6,6 +6,7 @@ import React, {memo, useCallback, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/channels';
@@ -89,16 +90,17 @@ const ChannelHeaderTitleFavorite = () => {
         <WithTooltip
             title={title}
         >
-            <button
+            <IconButton
                 id='toggleFavorite'
+                size='x-small'
+                className={classNames('channel-header__favorites channel-header__icon', {active: isFavorite, inactive: !isFavorite})}
+                icon={<i className={classNames('icon', {'icon-star': isFavorite, 'icon-star-outline': !isFavorite})} aria-hidden='true'/>}
+                toggled={isFavorite}
                 onClick={toggleFavoriteCallback}
-                className={classNames('channel-header__favorites btn btn-icon btn-xs', {active: isFavorite, inactive: !isFavorite})}
                 aria-label={ariaLabel}
                 ref={favIconRef}
                 disabled={isInManagedCategory}
-            >
-                <i className={classNames('icon', {'icon-star': isFavorite, 'icon-star-outline': !isFavorite})}/>
-            </button>
+            />
         </WithTooltip>
     );
 };
