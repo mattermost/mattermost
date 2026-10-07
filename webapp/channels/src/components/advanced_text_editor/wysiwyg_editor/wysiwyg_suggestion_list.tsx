@@ -82,9 +82,15 @@ function getTextBeforeCursor(editor: Editor): string {
 
 function getTriggerPos(editor: Editor, matchedPretext: string): number | null {
     const startOfLine = editor.state.selection.$from.start();
-    const matchIndex = getTextBeforeCursor(editor).lastIndexOf(matchedPretext);
+    const text = getTextBeforeCursor(editor);
 
-    return matchIndex === -1 ? null : startOfLine + matchIndex;
+    // Mention/channel/emoji providers lowercase matchedPretext. The trigger is
+    // always the suffix before the caret, matching SuggestionBox.
+    if (!text.toLowerCase().endsWith(matchedPretext.toLowerCase())) {
+        return null;
+    }
+
+    return startOfLine + text.length - matchedPretext.length;
 }
 
 type SuggestionBoxAlignment = {

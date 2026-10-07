@@ -63,7 +63,8 @@ jest.mock('components/suggestion/at_mention_provider', () => ({
                 return false;
             }
 
-            resultCallback(mockResultsFor(pretext.slice(triggerIndex)));
+            // Real AtMentionProvider lowercases matchedPretext from the captured input.
+            resultCallback(mockResultsFor(pretext.slice(triggerIndex).toLowerCase()));
             return true;
         }
     },
@@ -80,7 +81,8 @@ jest.mock('components/suggestion/channel_mention_provider', () => ({
                 return false;
             }
 
-            resultCallback(mockResultsFor(pretext.slice(triggerIndex)));
+            // Real ChannelMentionProvider lowercases matchedPretext from the captured input.
+            resultCallback(mockResultsFor(pretext.slice(triggerIndex).toLowerCase()));
             return true;
         }
     },
@@ -234,6 +236,38 @@ describe('WysiwygSuggestionList', () => {
         expect(inserted).toEqual(['~town-square ']);
     });
 
+    test('replaces the current mixed-case mention when an earlier lowercase one exists', async () => {
+        const {type, inserted, deletedRanges} = setup(['@john.doe']);
+
+        // 'see @john then @JOHN' — providers report matchedPretext as '@john'.
+        // lastIndexOf would delete from the first @john through the caret.
+        type('see @john then @JOHN');
+        await userEvent.click(screen.getByRole('option'));
+
+        expect(deletedRanges).toEqual([{from: 15, to: 20}]);
+        expect(inserted).toEqual(['@john.doe ']);
+    });
+
+    test('replaces the current mixed-case channel mention when an earlier lowercase one exists', async () => {
+        const {type, inserted, deletedRanges} = setup(['~town-square']);
+
+        type('see ~town then ~TOWN');
+        await userEvent.click(screen.getByRole('option'));
+
+        expect(deletedRanges).toEqual([{from: 15, to: 20}]);
+        expect(inserted).toEqual(['~town-square ']);
+    });
+
+    test('completes a mixed-case mention that does not appear in the typed case', async () => {
+        const {type, inserted, deletedRanges} = setup(['@john.doe']);
+
+        type('hello @JOHN');
+        await userEvent.click(screen.getByRole('option'));
+
+        expect(deletedRanges).toEqual([{from: 6, to: 11}]);
+        expect(inserted).toEqual(['@john.doe ']);
+    });
+
     test('does not insert the open-in-modal sentinel when no app provider can handle it', async () => {
         const {type, onSubmit, inserted, chainCalls} = setup([command + OPEN_COMMAND_IN_MODAL_ITEM_ID]);
 
@@ -340,6 +374,16 @@ describe('WysiwygSuggestionList', () => {
             type(`${lineWithTriggerAt(30, '~')}town-square ~`);
 
             expect(getList()).toHaveStyle({transform: 'translate(321px, 0px)'});
+        });
+
+        test('aligns to the current mixed-case mention instead of an earlier lowercase one', () => {
+            const {type} = setup(['@someone']);
+
+            // Second @ is at index 21. lastIndexOf('@john') would measure the first @ at 10.
+            type(`${'x'.repeat(10)}@john then @JOHN`);
+
+            const expectedX = Math.round((TEXT_LEFT + (21 * CHAR_WIDTH)) - WIDE_EDITOR.left - getPxToSubstract('@'));
+            expect(getList()).toHaveStyle({transform: `translate(${expectedX}px, 0px)`});
         });
 
         test('measures again after the list has been closed and reopened', () => {
