@@ -794,6 +794,15 @@ type API interface {
 	// Minimum server version: 5.2
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)
 
+	// UpdatePostAsUser updates a post as the given user, as if that user made the edit
+	// through the REST API, without core's permission checks: the plugin is responsible
+	// for authorizing the edit. The user is used where core needs the acting user: files
+	// newly added to FileIds must have been uploaded by that user, and hooks see that user.
+	//
+	// @tag Post
+	// Minimum server version: 12.0
+	UpdatePostAsUser(post *model.Post, userID string) (*model.Post, *model.AppError)
+
 	// GetProfileImage gets user's profile image.
 	//
 	// @tag User

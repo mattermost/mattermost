@@ -116,6 +116,44 @@ func TestUpdatePost(t *testing.T) {
 	})
 }
 
+func TestUpdatePostAsUser(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		now := model.GetMillis()
+		userID := "userID"
+		in := &model.Post{
+			Id: "postID",
+		}
+		out := in.Clone()
+		out.UpdateAt = now
+		api.On("UpdatePostAsUser", in, userID).Return(out, nil)
+
+		err := client.Post.UpdatePostAsUser(in, userID)
+		require.NoError(t, err)
+		require.Equal(t, out, in)
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		userID := "userID"
+		in := &model.Post{
+			Id: "postID",
+		}
+		out := in.Clone()
+		api.On("UpdatePostAsUser", in, userID).Return(nil, newAppError())
+
+		err := client.Post.UpdatePostAsUser(in, userID)
+		require.EqualError(t, err, "here: id, an error occurred")
+		assert.Equal(t, out, in)
+	})
+}
+
 func TestDeletePost(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}

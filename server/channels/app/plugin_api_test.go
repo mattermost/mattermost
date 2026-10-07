@@ -1927,6 +1927,245 @@ func TestPluginUpdatePostAlwaysStripsUsernameIconOverride(t *testing.T) {
 	assert.Nil(t, updated.GetProp(model.PostPropsOverrideIconURL))
 }
 
+func TestPluginUpdatePostAsUser(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	createPost := func(t *testing.T, userID, message string) *model.Post {
+		t.Helper()
+		post, appErr := api.CreatePost(&model.Post{
+			Message:   message,
+			ChannelId: th.BasicChannel.Id,
+			UserId:    userID,
+		})
+		require.Nil(t, appErr)
+		return post
+	}
+
+	requireUnchanged := func(t *testing.T, post *model.Post) {
+		t.Helper()
+		stored, appErr := api.GetPost(post.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, post.Message, stored.Message)
+		assert.Equal(t, post.UpdateAt, stored.UpdateAt)
+		assert.Equal(t, post.FileIds, stored.FileIds)
+	}
+
+	t.Run("attaches a file uploaded by the acting user", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "card")
+		file := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		edit := post.Clone()
+		edit.FileIds = model.StringArray{file.Id}
+		updated, appErr := api.UpdatePostAsUser(edit, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, model.StringArray{file.Id}, updated.FileIds)
+
+		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, updated, true, false)
+		require.Nil(t, appErr)
+		require.Len(t, infos, 1)
+		assert.Equal(t, file.Id, infos[0].Id)
+		assert.Equal(t, post.Id, infos[0].PostId)
+
+		stored, appErr := th.App.GetFileInfo(th.Context, file.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, post.Id, stored.PostId)
+	})
+
+	t.Run("attaches the acting user's file to another user's post", func(t *testing.T) {
+		post := createPost(t, th.BasicUser2.Id, "someone else's card")
+		file := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		edit := post.Clone()
+		edit.FileIds = model.StringArray{file.Id}
+		updated, appErr := api.UpdatePostAsUser(edit, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, model.StringArray{file.Id}, updated.FileIds)
+		assert.Equal(t, th.BasicUser2.Id, updated.UserId)
+
+		stored, appErr := th.App.GetFileInfo(th.Context, file.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, post.Id, stored.PostId)
+	})
+
+	t.Run("plugin UpdatePost drops a file uploaded by a user", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "card")
+		file := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		edit := post.Clone()
+		edit.Message = "edited without a session user"
+		edit.FileIds = model.StringArray{file.Id}
+		updated, appErr := api.UpdatePost(edit)
+		require.Nil(t, appErr)
+		assert.Equal(t, "edited without a session user", updated.Message)
+		assert.Empty(t, updated.FileIds)
+
+		stored, appErr := th.App.GetFileInfo(th.Context, file.Id)
+		require.Nil(t, appErr)
+		assert.Empty(t, stored.PostId)
+	})
+
+	t.Run("does not attach another user's file", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "card")
+		file := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		edit := post.Clone()
+		edit.Message = "edited"
+		edit.FileIds = model.StringArray{file.Id}
+		updated, appErr := api.UpdatePostAsUser(edit, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, "edited", updated.Message)
+		assert.Empty(t, updated.FileIds)
+
+		stored, appErr := th.App.GetFileInfo(th.Context, file.Id)
+		require.Nil(t, appErr)
+		assert.Empty(t, stored.PostId)
+	})
+
+	t.Run("removes files", func(t *testing.T) {
+		file := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+		post, appErr := api.CreatePost(&model.Post{
+			Message:   "with file",
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			FileIds:   model.StringArray{file.Id},
+		})
+		require.Nil(t, appErr)
+		require.Equal(t, model.StringArray{file.Id}, post.FileIds)
+
+		edit := post.Clone()
+		edit.FileIds = model.StringArray{}
+		updated, appErr := api.UpdatePostAsUser(edit, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		assert.Empty(t, updated.FileIds)
+
+		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, updated, true, false)
+		require.Nil(t, appErr)
+		assert.Empty(t, infos)
+	})
+
+	t.Run("rejects an invalid user id", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "stay")
+		edit := post.Clone()
+		edit.Message = "should not land"
+		updated, appErr := api.UpdatePostAsUser(edit, "not-a-valid-id")
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Equal(t, "plugin.api.update_post_as_user.invalid_user.app_error", appErr.Id)
+		requireUnchanged(t, post)
+	})
+
+	t.Run("rejects an unknown user", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "stay")
+		edit := post.Clone()
+		edit.Message = "should not land"
+		updated, appErr := api.UpdatePostAsUser(edit, model.NewId())
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+		requireUnchanged(t, post)
+	})
+
+	t.Run("rejects a deactivated user", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "stay")
+		user := th.CreateUser(t)
+		deactivated, appErr := th.App.UpdateActive(th.Context, user, false)
+		require.Nil(t, appErr)
+		require.NotZero(t, deactivated.DeleteAt)
+
+		edit := post.Clone()
+		edit.Message = "should not land"
+		updated, appErr := api.UpdatePostAsUser(edit, deactivated.Id)
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Equal(t, "plugin.api.update_post_as_user.inactive_user.app_error", appErr.Id)
+		requireUnchanged(t, post)
+	})
+
+	t.Run("updates message and props like UpdatePost", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "original")
+		edit := post.Clone()
+		edit.Message = "edited message"
+		edit.AddProp("card_id", "card-1")
+		edit.AddProp(model.PostPropsOverrideUsername, "spoofed")
+
+		updated, appErr := api.UpdatePostAsUser(edit, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, "edited message", updated.Message)
+		assert.Equal(t, "card-1", updated.GetProp("card_id"))
+		assert.Nil(t, updated.GetProp(model.PostPropsOverrideUsername))
+		assert.NotZero(t, updated.EditAt)
+
+		stored, appErr := api.GetPost(post.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, "edited message", stored.Message)
+		assert.Equal(t, "card-1", stored.GetProp("card_id"))
+		assert.Nil(t, stored.GetProp(model.PostPropsOverrideUsername))
+	})
+
+	t.Run("rejects invalid mm_blocks_actions", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "stay")
+		edit := post.Clone()
+		edit.Message = "should not land"
+		edit.AddProp(model.PostPropsMmBlocksActions, "nope")
+
+		updated, appErr := api.UpdatePostAsUser(edit, th.BasicUser.Id)
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Equal(t, "plugin.api.update_post.mm_blocks_actions.app_error", appErr.Id)
+		requireUnchanged(t, post)
+	})
+}
+
+func TestPluginUpdatePostAsUserRunsMessageWillBeUpdated(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	tearDown, _, activationErrs := SetAppEnvironmentWithPlugins(t, []string{
+		`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageWillBeUpdated(c *plugin.Context, newPost, oldPost *model.Post) (*model.Post, string) {
+			newPost.Message = newPost.Message + "|session=" + c.SessionId
+			return newPost, ""
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+	}, th.App, th.NewPluginAPI)
+	defer tearDown()
+	require.NoError(t, activationErrs[0])
+
+	api := th.SetupPluginAPI()
+	created, appErr := api.CreatePost(&model.Post{
+		Message:   "message_",
+		ChannelId: th.BasicChannel.Id,
+		UserId:    th.BasicUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	edit := created.Clone()
+	edit.Message = "edited_"
+	updated, appErr := api.UpdatePostAsUser(edit, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	assert.Equal(t, "edited_|session=", updated.Message)
+}
+
 func TestPluginCreatePostSilentNotification(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
