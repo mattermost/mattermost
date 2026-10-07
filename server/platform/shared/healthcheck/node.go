@@ -50,14 +50,6 @@ func (n *NodeSnapshot) sectionOK(section model.NodeSection) bool {
 	return err == nil
 }
 
-func (n *NodeSnapshot) ConfigHash() (string, bool) {
-	if n != nil && n.ClusterInfo != nil && n.ClusterInfo.ConfigHash != "" {
-		return n.ClusterInfo.ConfigHash, true
-	}
-
-	return "", false
-}
-
 func (n *NodeSnapshot) Has(section model.NodeSection) bool {
 	ok, err := n.SectionErr(section)
 	return ok && err == nil

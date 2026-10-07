@@ -172,20 +172,6 @@ func TestSchemaVersion(t *testing.T) {
 	})
 }
 
-func TestPacketNodeConfigHashUnavailable(t *testing.T) {
-	t.Parallel()
-
-	packetNode := &NodeSnapshot{
-		Diagnostics: &model.NodeDiagnostics{
-			Diagnostics: &model.SupportPacketDiagnostics{},
-			Errors:      model.SectionErrors{model.SectionServerSoftware: nil},
-		},
-	}
-
-	_, ok := packetNode.ConfigHash()
-	require.False(t, ok)
-}
-
 func TestNodeSectionAvailability(t *testing.T) {
 	t.Parallel()
 

@@ -14312,6 +14312,106 @@
     "description": "Health dashboard reason shown when a health check could not run because the usage statistics it inspects (for example user or post counts) were not collected, so the check's status is unknown."
   },
   {
+    "id": "health.rule.cluster_bad_advertise.message",
+    "translation": "The leader advertises {{.address}}. Other nodes cannot reach it at that address, so gossip forms a one-node cluster and split brains are hidden.",
+    "description": "Health dashboard finding detail when the cluster advertise address is a loopback, unspecified or localhost address; {{.address}} is the configured address, and 'gossip' is the protocol cluster nodes use to talk to each other."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.remediation",
+    "translation": "Set ClusterSettings.AdvertiseAddress to the node's reachable IP address or DNS name, or leave it empty to use the network interface address. This check reads the leader's configuration, so review the setting on every node.",
+    "description": "Health dashboard fix-it step for an unreachable cluster advertise address; 'ClusterSettings.AdvertiseAddress' is the config setting path and should not be translated, and 'leader' is the cluster node that runs the health check."
+  },
+  {
+    "id": "health.rule.cluster_bad_advertise.title",
+    "translation": "ClusterSettings.AdvertiseAddress is not reachable from other nodes",
+    "description": "Health dashboard finding title when the cluster advertise address is a loopback, unspecified or localhost address; 'ClusterSettings.AdvertiseAddress' is the config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.message",
+    "translation": "The configuration is stored in a file on each node and can be changed in the System Console. A change is saved on one node and pushed to the others on a best-effort basis; a node that misses the push keeps its own file, so the nodes' configurations can drift apart.",
+    "description": "Health dashboard finding detail when a high availability cluster uses file-based configuration that the System Console can change; 'System Console' is the Mattermost admin UI."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.remediation",
+    "translation": "Set ClusterSettings.ReadOnlyConfig to true and manage the configuration through the config file or environment variables on every node, or move the configuration into the database.",
+    "description": "Health dashboard fix-it step for a writable file-based configuration in a high availability cluster; 'ClusterSettings.ReadOnlyConfig' is the config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.cluster_config_writable.title",
+    "translation": "ClusterSettings.ReadOnlyConfig is off in a file-based HA cluster",
+    "description": "Health dashboard finding title when a high availability cluster with file-based configuration allows configuration changes from the System Console; 'ClusterSettings.ReadOnlyConfig' is the config setting path and should not be translated, and 'HA' means high availability."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.message",
+    "translation": "ClusterSettings.EnableGossipEncryption is false, so traffic between cluster nodes is not encrypted.",
+    "description": "Health dashboard finding detail when cluster gossip encryption is turned off; 'ClusterSettings.EnableGossipEncryption' is the config setting path and should not be translated, and 'gossip' is the protocol cluster nodes use to talk to each other."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.remediation",
+    "translation": "Enable gossip encryption, then restart every node so the change takes effect.",
+    "description": "Health dashboard fix-it step for unencrypted cluster gossip; 'gossip' is the protocol cluster nodes use to talk to each other."
+  },
+  {
+    "id": "health.rule.cluster_gossip_unencrypted.title",
+    "translation": "HA cluster gossip is not encrypted",
+    "description": "Health dashboard finding title when cluster gossip encryption is turned off; 'HA' means high availability, and 'gossip' is the protocol cluster nodes use to talk to each other."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.message",
+    "translation": "With {{.users}} registered users on HA, the default in-memory LRU cache means each node maintains its own copy and uses gossip for invalidation. Mattermost recommends Redis at 100,000 users and above to reduce cache-invalidation traffic at this scale.",
+    "description": "Health dashboard finding detail when a large high availability cluster uses the in-memory cache; {{.users}} is the registered user count, 'LRU' and 'Redis' are cache backend names and should not be translated, and 'gossip' is the protocol cluster nodes use to talk to each other."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.remediation",
+    "translation": "Evaluate setting CacheSettings.CacheType to redis with CacheSettings.RedisAddress configured. Redis requires a license with the Cluster feature.",
+    "description": "Health dashboard fix-it step for a large cluster on the in-memory cache; 'CacheSettings.CacheType', 'CacheSettings.RedisAddress' and 'redis' are config names and values and should not be translated."
+  },
+  {
+    "id": "health.rule.cluster_lru_cache.title",
+    "translation": "At scale, consider the Redis cache backend",
+    "description": "Health dashboard finding title suggesting the Redis cache for a large high availability cluster; 'Redis' is a product name and should not be translated."
+  },
+  {
+    "id": "health.rule.cluster_single_node.message",
+    "translation": "The intended HA topology is not actually running. A single node gives no failover and hides split-brain risk.",
+    "description": "Health dashboard finding detail when high availability is enabled but the cluster has only one node; 'HA' means high availability, and 'split-brain' is when cluster nodes lose contact and act independently."
+  },
+  {
+    "id": "health.rule.cluster_single_node.remediation",
+    "translation": "Check gossip connectivity (ClusterSettings.GossipPort), firewall rules, and that all app nodes share the same ClusterName. An empty ClusterName also keeps the node on its own: the server then logs that high availability has been disabled.",
+    "description": "Health dashboard fix-it step for a cluster with only one node; 'ClusterSettings.GossipPort' and 'ClusterName' are config setting names and should not be translated, and 'gossip' is the protocol cluster nodes use to talk to each other."
+  },
+  {
+    "id": "health.rule.cluster_single_node.title",
+    "translation": "High availability is enabled but only one node is in the cluster",
+    "description": "Health dashboard finding title when ClusterSettings.Enable is on but the cluster reports a single node."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message",
+    "translation": "Nodes in the cluster report these versions: {{.versions}}.",
+    "description": "Health dashboard finding detail when cluster nodes run different Mattermost versions; {{.versions}} is a comma-separated list of the versions."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.no_majority",
+    "translation": "No single version is reported by most nodes, so this node cannot be compared with the rest of the cluster.",
+    "description": "Health dashboard reason shown for one cluster node when the nodes are split evenly between versions, so the node's status is unknown."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.message.node",
+    "translation": "This node runs {{.version}}, while most nodes run {{.majority}}.",
+    "description": "Health dashboard finding detail for one cluster node that runs a different Mattermost version; {{.version}} is the node's version and {{.majority}} is the version most nodes run."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.remediation",
+    "translation": "Unless an upgrade is in progress, upgrade every node to the same version and make sure the nodes can communicate via gossip.",
+    "description": "Health dashboard fix-it step for cluster nodes on different versions; 'gossip' is the protocol cluster nodes use to talk to each other."
+  },
+  {
+    "id": "health.rule.cluster_version_skew.title",
+    "translation": "Multiple Mattermost versions detected in the cluster",
+    "description": "Health dashboard finding title when cluster nodes run different Mattermost versions."
+  },
+  {
     "id": "health.rule.push_bad_scheme.message.http",
     "translation": "PushNotificationServer {{.url}} uses http://, so push notifications are sent in cleartext.",
     "description": "Health dashboard finding detail when the push notification server URL starts with http:// instead of https://; {{.url}} is the configured URL. 'PushNotificationServer' is a config setting name and should not be translated."
@@ -14360,6 +14460,36 @@
     "id": "health.rule.push_test_proxy.title",
     "translation": "PushNotificationServer points at push-test.mattermost.com",
     "description": "Health dashboard finding title when the push notification server is Mattermost's test push proxy; 'PushNotificationServer' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.message",
+    "translation": "RateLimitSettings.Enable is false with {{.users}} registered users. Rate limiting protects the server against request floods and abusive or misbehaving clients; with this many users plus webhooks and bot integrations, a single misconfigured client can saturate the API. Mattermost documents its built-in rate limiter as intended for smaller deployments (up to a few hundred users), so at larger scale request throttling is often better handled at a load balancer or API gateway.",
+    "description": "Health dashboard finding detail when API rate limiting is off on a large instance; {{.users}} is the registered user count, and 'RateLimitSettings.Enable' is the config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.remediation",
+    "translation": "Make sure request throttling suited to this scale is in place, either Mattermost's built-in rate limiting (System Console > Environment > Rate Limiting) or at your load balancer or gateway.",
+    "description": "Health dashboard fix-it step for disabled rate limiting on a large instance; 'System Console > Environment > Rate Limiting' is the admin UI path."
+  },
+  {
+    "id": "health.rule.ratelimit_off_large.title",
+    "translation": "API rate limiting is disabled on a large instance",
+    "description": "Health dashboard finding title when API rate limiting is turned off on an instance with more than 500 registered users."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.message",
+    "translation": "RateLimitSettings.MemoryStoreSize is {{.size}}. The rate limiter tracks at most this many clients; when it is full it drops the least recently seen one, whose request quota then starts over, so a small store weakens rate limiting.",
+    "description": "Health dashboard finding detail when the rate limiter's memory store is smaller than the default; {{.size}} is the configured size, and 'RateLimitSettings.MemoryStoreSize' is the config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.remediation",
+    "translation": "Raise RateLimitSettings.MemoryStoreSize to 10000 (the default) or higher.",
+    "description": "Health dashboard fix-it step for a small rate limiter memory store; 'RateLimitSettings.MemoryStoreSize' is the config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.ratelimit_store_small.title",
+    "translation": "Rate limiting memory store is smaller than the default",
+    "description": "Health dashboard finding title when RateLimitSettings.MemoryStoreSize is below its default of 10000."
   },
   {
     "id": "health.rule.site_url_empty.message",
