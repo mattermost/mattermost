@@ -71,12 +71,6 @@ function getAllTerms(results: SuggestionResults): string[] {
     return [];
 }
 
-type SuggestionBoxAlignment = {
-    lineHeight: number;
-    pixelsToMoveX: number;
-    pixelsToMoveY: number;
-};
-
 function getTextBeforeCursor(editor: Editor): string {
     const {state} = editor;
     const {from} = state.selection;
@@ -92,6 +86,12 @@ function getTriggerPos(editor: Editor, matchedPretext: string): number | null {
 
     return matchIndex === -1 ? null : startOfLine + matchIndex;
 }
+
+type SuggestionBoxAlignment = {
+    lineHeight: number;
+    pixelsToMoveX: number;
+    pixelsToMoveY: number;
+};
 
 /**
  * The suggestion list is absolutely positioned against the top left corner of the editor, so SuggestionList needs

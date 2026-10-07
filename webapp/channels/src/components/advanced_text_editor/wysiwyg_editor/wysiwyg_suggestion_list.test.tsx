@@ -314,7 +314,7 @@ describe('WysiwygSuggestionList', () => {
 
             // A mention row reserves room for an avatar, so it is indented further than a channel row. The exact
             // gap is derived from the root font size, so ask for it rather than hard-coding it.
-            const expectedX = Math.round(TEXT_LEFT + (30 * CHAR_WIDTH) - WIDE_EDITOR.left - getPxToSubstract('@'));
+            const expectedX = Math.round((TEXT_LEFT + (30 * CHAR_WIDTH)) - WIDE_EDITOR.left - getPxToSubstract('@'));
             expect(getList()).toHaveStyle({transform: `translate(${expectedX}px, 0px)`});
         });
 
