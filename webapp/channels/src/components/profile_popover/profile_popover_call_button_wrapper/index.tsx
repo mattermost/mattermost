@@ -5,10 +5,6 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
-import PhoneIcon from '@mattermost/compass-icons/components/phone';
-import {Button} from '@mattermost/compass-ui/components/button';
-import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {getChannelByName} from 'mattermost-redux/selectors/entities/channels';
@@ -140,15 +136,20 @@ const CallButton = ({
 };
 
 const CallOptionsMenuButton = (props: MenuButtonComponentProps) => (
-    <Button
+    <button
         {...props}
-        emphasis='quaternary'
-        size='small'
-        leadingIcon={<Icon glyph={<PhoneIcon/>}/>}
-        trailingIcon={<Icon glyph={<ChevronDownIcon/>}/>}
+        type='button'
+        className='btn btn-icon btn-sm style--none user-popover__call-options-button'
     >
-        {null}
-    </Button>
+        <i
+            className='icon icon-phone'
+            aria-hidden='true'
+        />
+        <i
+            className='icon icon-chevron-down'
+            aria-hidden='true'
+        />
+    </button>
 );
 
 export default CallButton;
