@@ -20,12 +20,14 @@ func (n *NodeSnapshot) Diag() (*model.SupportPacketDiagnostics, bool) {
 	return n.Diagnostics.Diagnostics, true
 }
 
+// NodeVersion prefers cluster info so a live snapshot, where only the leader carries
+// diagnostics, reads every node's version from the same source.
 func (n *NodeSnapshot) NodeVersion() (string, bool) {
-	if diag, ok := n.Diag(); ok && diag.Server.Version != "" && n.sectionOK(model.SectionServerSoftware) {
-		return diag.Server.Version, true
-	}
 	if n != nil && n.ClusterInfo != nil && n.ClusterInfo.Version != "" {
 		return n.ClusterInfo.Version, true
+	}
+	if diag, ok := n.Diag(); ok && diag.Server.Version != "" && n.sectionOK(model.SectionServerSoftware) {
+		return diag.Server.Version, true
 	}
 
 	return "", false
