@@ -9,19 +9,25 @@ exports[`components/widgets/inputs/Input should match snapshot 1`] = `
       class="Input_fieldset"
       data-testid="input-wrapper"
     >
-      <label
-        class="Input_legend"
-        for="input_"
-      >
-                                
-      </label>
       <div
         class="Input_wrapper"
       >
-        <input
-          class="Input form-control medium"
-          id="input_"
-        />
+        <div
+          class="_text-input_16ayx_2 _text-input--size-medium_16ayx_123 Input form-control"
+        >
+          <div
+            class="_text-input__wrapper_16ayx_7"
+          >
+            <label
+              class="_text-input__inner_16ayx_56"
+            >
+              <input
+                class="_text-input__input_16ayx_18"
+                id="input_"
+              />
+            </label>
+          </div>
+        </div>
       </div>
     </div>
   </div>
