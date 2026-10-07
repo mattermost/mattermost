@@ -4,6 +4,7 @@
 import React, {useState, useRef, useEffect, type JSX} from 'react';
 import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
+import {SearchInput} from '@mattermost/compass-ui/components/search-input';
 import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
@@ -12,7 +13,6 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 import {ChannelIcon} from 'components/channel_type_icon';
 import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
 import LoadingScreen from 'components/loading_screen';
-import QuickInput from 'components/quick_input';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
@@ -151,11 +151,9 @@ const SearchableSyncJobChannelList = (props: Props) => {
         channelListScroll.current?.scrollTo({top: 0});
     };
 
-    const handleChange = (e?: React.FormEvent<HTMLInputElement>) => {
-        if (e?.currentTarget) {
-            setChannelSearchValue(e.currentTarget.value);
-            props.search(e.currentTarget.value);
-        }
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setChannelSearchValue(e.currentTarget.value);
+        props.search(e.currentTarget.value);
     };
 
     const handleClear = () => {
@@ -248,21 +246,16 @@ const SearchableSyncJobChannelList = (props: Props) => {
 
     const input = (
         <div className='filter-row'>
-            <span
-                id='searchIcon'
-                aria-hidden='true'
-            >
-                <i className='icon icon-magnify'/>
-            </span>
-            <QuickInput
+            <SearchInput
                 id='searchChannelsTextbox'
-                className='form-control filter-textbox'
+                className='filter-textbox'
+                size='large'
                 placeholder={props.intl.formatMessage({id: 'filtered_channels_list.search', defaultMessage: 'Search channels'})}
-                onInput={handleChange}
-                clearable={true}
+                onChange={handleChange}
                 onClear={handleClear}
                 value={channelSearchValue}
                 aria-label={props.intl.formatMessage({id: 'filtered_channels_list.search', defaultMessage: 'Search channels'})}
+                clearButtonProps={{'data-testid': 'input-clear'}}
             />
         </div>
     );

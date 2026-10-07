@@ -21,34 +21,8 @@
         position: relative;
         padding: 0 32px;
 
-        .input-clear {
-            top: 16px;
-            right: 14px;
-        }
-
-        #searchIcon {
-            position: absolute;
-            z-index: 2;
-            top: 16px;
-            left: 42px;
-            color: rgba(var(--center-channel-color-rgb), 0.64);
-            pointer-events: none;
-        }
-
-        #searchChannelsTextbox {
-            height: 48px;
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-            box-shadow: none;
-            font-size: 16px;
-            padding-inline: 40px;
-
-            &::placeholder {
-                color: var(--center-channel-color);
-            }
-
-            &:focus {
-                border: 2px solid var(--button-bg);
-            }
+        .filter-textbox {
+            width: 100%;
         }
     }
 
