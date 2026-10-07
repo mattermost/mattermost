@@ -27,7 +27,7 @@ import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
 import {useGlobalState} from 'stores/hooks';
 import LocalStorageStore from 'stores/local_storage_store';
 
-import ChatIllustration from 'components/common/svg_images_components/chat_illustration_svg';
+import {ThreadsEmptyIllustration} from 'components/no_results_indicator/no_results_variant_illustration';
 import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 
@@ -164,7 +164,7 @@ const GlobalThreads = () => {
                     ) : (
                         <NoResultsIndicator
                             expanded={true}
-                            iconGraphic={ChatIllustration}
+                            iconGraphic={<ThreadsEmptyIllustration/>}
                             title={formatMessage({
                                 id: 'globalThreads.noThreads.title',
                                 defaultMessage: 'No followed threads yet',
@@ -199,7 +199,7 @@ const GlobalThreads = () => {
                     ) : (
                         <NoResultsIndicator
                             expanded={true}
-                            iconGraphic={ChatIllustration}
+                            iconGraphic={<ThreadsEmptyIllustration/>}
                             title={formatMessage({
                                 id: 'globalThreads.threadPane.unselectedTitle',
                                 defaultMessage: '{numUnread, plural, =0 {Looks like you’re all caught up} other {Catch up on your threads}}',

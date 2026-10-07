@@ -5,8 +5,7 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 
 import NoResultsIndicator from 'components/no_results_indicator';
-
-import NoScheduledPostsIllustration from './empty_scheduled_post_list_illustration';
+import {ScheduledEmptyIllustration} from 'components/no_results_indicator/no_results_variant_illustration';
 
 export default function EmptyScheduledPostList() {
     const {formatMessage} = useIntl();
@@ -14,7 +13,7 @@ export default function EmptyScheduledPostList() {
     return (
         <NoResultsIndicator
             expanded={true}
-            iconGraphic={NoScheduledPostsIllustration}
+            iconGraphic={<ScheduledEmptyIllustration/>}
             title={formatMessage({
                 id: 'Schedule_post.empty_state.title',
                 defaultMessage: 'No scheduled drafts at the moment',
