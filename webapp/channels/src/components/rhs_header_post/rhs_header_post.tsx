@@ -4,6 +4,7 @@
 import React from 'react';
 import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
@@ -167,15 +168,13 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                 <WithTooltip
                     title={backToResultsTooltip}
                 >
-                    <button
-                        className='sidebar--right__back btn btn-icon btn-sm'
+                    <IconButton
+                        size='small'
+                        className='sidebar--right__back'
+                        icon={<i className='icon icon-arrow-back-ios' aria-hidden='true'/>}
                         onClick={this.handleBack}
                         aria-label={formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Back Icon'})}
-                    >
-                        <i
-                            className='icon icon-arrow-back-ios'
-                        />
-                    </button>
+                    />
                 </WithTooltip>
             );
         }
@@ -223,36 +222,26 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                     <WithTooltip
                         title={rhsHeaderTooltipContent}
                     >
-                        <button
-                            type='button'
-                            className='sidebar--right__expand btn btn-icon btn-sm'
+                        <IconButton
+                            size='small'
+                            className='sidebar--right__expand'
+                            icon={<i className={this.props.isExpanded ? 'icon icon-arrow-collapse' : 'icon icon-arrow-expand'} aria-hidden='true'/>}
                             aria-label={this.props.isExpanded ? collapseIconLabel : expandIconLabel}
                             onClick={this.props.toggleRhsExpanded}
-                        >
-                            <i
-                                className='icon icon-arrow-expand'
-                            />
-                            <i
-                                className='icon icon-arrow-collapse'
-                            />
-                        </button>
+                        />
                     </WithTooltip>
 
                     <WithTooltip
                         title={closeSidebarTooltip}
                     >
-                        <button
+                        <IconButton
                             id='rhsCloseButton'
-                            type='button'
-                            className='sidebar--right__close btn btn-icon btn-sm'
-                            aria-label='Close'
+                            size='small'
+                            className='sidebar--right__close'
+                            icon={<i className='icon icon-close' aria-hidden='true'/>}
+                            aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
                             onClick={this.props.closeRightHandSide}
-                        >
-                            <i
-                                className='icon icon-close'
-                                aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
-                            />
-                        </button>
+                        />
                     </WithTooltip>
                 </div>
             </div>
