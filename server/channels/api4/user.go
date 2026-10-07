@@ -3962,6 +3962,7 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Cache-Control", "no-store")
 	if err := json.NewEncoder(w).Encode(thread); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	} else {
@@ -4049,6 +4050,8 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Unread state changes constantly, so intermediaries must not replay these responses.
+	w.Header().Set("Cache-Control", "no-store")
 	if err := json.NewEncoder(w).Encode(threads); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 		return

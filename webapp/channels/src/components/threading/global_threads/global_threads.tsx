@@ -122,7 +122,7 @@ const GlobalThreads = () => {
         Promise.all(promises).then(() => {
             setLoading(false);
         });
-    }, [filter, threadIds, unreadThreadIds]);
+    }, [filter, threadIds, unreadThreadIds, numUnread]);
 
     useEffect(() => {
         if (!isLoading) {
@@ -212,7 +212,7 @@ const GlobalThreads = () => {
                                 link: (chunks) => (
                                     <Link
                                         key='single'
-                                        to={`${url}/${unreadThreadIds[0]}`}
+                                        to={unreadThreadIds.length ? `${url}/${unreadThreadIds[0]}` : url}
                                         onClick={handleSelectUnread}
                                     >
                                         {chunks}
