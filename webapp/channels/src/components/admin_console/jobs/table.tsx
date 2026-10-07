@@ -5,9 +5,9 @@ import classNames from 'classnames';
 import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Job, JobType} from '@mattermost/types/jobs';
 
-import {Button} from '@mattermost/compass-ui/components/button';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import NextIcon from 'components/widgets/icons/fa_next_icon';

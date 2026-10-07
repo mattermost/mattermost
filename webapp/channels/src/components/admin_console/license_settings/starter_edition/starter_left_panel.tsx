@@ -4,6 +4,7 @@
 import React from 'react';
 import type {JSX, RefObject} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
+
 import {Button} from '@mattermost/compass-ui/components/button';
 
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';

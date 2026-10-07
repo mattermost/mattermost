@@ -5,6 +5,7 @@ import React, {type JSX} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
 import {
     SyncableType,
@@ -18,7 +19,6 @@ import type {
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {Button} from '@mattermost/compass-ui/components/button';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';

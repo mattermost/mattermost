@@ -3,6 +3,7 @@
 
 import React, {memo, useCallback, useState} from 'react';
 import type {FC, MouseEvent} from 'react';
+
 import {Button} from '@mattermost/compass-ui/components/button';
 
 import Setting from './setting';

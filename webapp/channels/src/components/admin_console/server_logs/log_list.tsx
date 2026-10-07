@@ -5,10 +5,10 @@ import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {ArrowDownIcon, ArrowUpIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {LogFilter, LogLevelEnum, LogObject} from '@mattermost/types/admin';
 import type {ChannelSearchOpts} from '@mattermost/types/channels';
 
-import {Button} from '@mattermost/compass-ui/components/button';
 import DataGrid from 'components/admin_console/data_grid/data_grid';
 import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
 import type {FilterOptions} from 'components/admin_console/filter/filter';

@@ -5,6 +5,7 @@ import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/compass-ui/components/button';
+
 import * as Utils from 'utils/utils';
 
 import Setting from './setting';

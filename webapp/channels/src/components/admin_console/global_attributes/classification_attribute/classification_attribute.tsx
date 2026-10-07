@@ -8,9 +8,9 @@ import {Link} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
 import {ChevronLeftIcon, OpenInNewIcon, SortAscendingIcon} from '@mattermost/compass-icons/components';
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import {Client4} from 'mattermost-redux/client';
 import {ACCESS_CONTROL_PROPERTY_GROUP, CHANNEL_OBJECT_TYPE} from 'mattermost-redux/constants/properties';
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';

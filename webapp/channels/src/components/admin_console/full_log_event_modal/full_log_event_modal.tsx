@@ -5,9 +5,9 @@ import React, {useCallback, useState, memo} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {LogObject} from '@mattermost/types/admin';
 
-import {Button} from '@mattermost/compass-ui/components/button';
 type Props = {
     log: LogObject | null;
     onModalDismissed: (e?: React.MouseEvent<HTMLButtonElement>) => void;

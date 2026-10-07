@@ -5,6 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/compass-ui/components/button';
+
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 export interface RevokeTokenButtonProps {

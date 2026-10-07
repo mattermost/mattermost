@@ -13,6 +13,7 @@ import type {RouteComponentProps} from 'react-router-dom';
 import ReactSelect from 'react-select';
 
 import {SyncIcon, PowerPlugOutlineIcon, CheckIcon, ChevronDownIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ServerError} from '@mattermost/types/errors';
 import {valueRefersToOptions, type PropertyFieldOption} from '@mattermost/types/properties';
@@ -20,7 +21,6 @@ import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {Button} from '@mattermost/compass-ui/components/button';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail, getInputTypeFromValueType} from 'mattermost-redux/utils/helpers';
 

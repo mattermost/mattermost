@@ -6,6 +6,7 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {Button} from '@mattermost/compass-ui/components/button';
+
 import {revokeSessionsForAllUsers} from 'mattermost-redux/actions/users';
 import {Permissions} from 'mattermost-redux/constants';
 

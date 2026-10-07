@@ -5,12 +5,12 @@ import React, {type JSX} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {AnalyticsState} from '@mattermost/types/admin';
 import type {CloudCustomer} from '@mattermost/types/cloud';
 import type {ClientLicense} from '@mattermost/types/config';
 
-import {Button} from '@mattermost/compass-ui/components/button';
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import {EmbargoedEntityTrialError} from 'components/admin_console/license_settings/trial_banner/trial_banner';
 import AlertBanner from 'components/alert_banner';
 import ExternalLink from 'components/external_link';

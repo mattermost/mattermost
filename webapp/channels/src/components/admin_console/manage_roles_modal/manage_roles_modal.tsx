@@ -6,10 +6,10 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Role} from '@mattermost/types/roles';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {Button} from '@mattermost/compass-ui/components/button';
 import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';

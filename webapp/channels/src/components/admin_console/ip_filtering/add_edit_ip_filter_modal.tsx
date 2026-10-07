@@ -6,9 +6,9 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {AllowedIPRange} from '@mattermost/types/config';
 
-import {Button} from '@mattermost/compass-ui/components/button';
 import ExternalLink from 'components/external_link';
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 import Input from 'components/widgets/inputs/input/input';

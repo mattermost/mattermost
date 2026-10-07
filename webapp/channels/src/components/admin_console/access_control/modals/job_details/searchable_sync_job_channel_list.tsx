@@ -4,11 +4,11 @@
 import React, {useState, useRef, useEffect, type JSX} from 'react';
 import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
-import {Button} from '@mattermost/compass-ui/components/button';
 import {ChannelIcon} from 'components/channel_type_icon';
 import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
 import LoadingScreen from 'components/loading_screen';

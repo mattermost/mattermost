@@ -4,6 +4,7 @@
 import classNames from 'classnames';
 import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
+
 import {Button} from '@mattermost/compass-ui/components/button';
 
 import FilterList from './filter_list';

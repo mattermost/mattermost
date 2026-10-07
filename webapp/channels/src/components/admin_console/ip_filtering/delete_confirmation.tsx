@@ -5,9 +5,9 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {AllowedIPRange} from '@mattermost/types/config';
 
-import {Button} from '@mattermost/compass-ui/components/button';
 import './delete_confirmation.scss';
 
 type Props = {

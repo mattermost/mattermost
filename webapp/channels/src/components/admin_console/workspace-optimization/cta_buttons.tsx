@@ -3,6 +3,7 @@
 
 import React, {type JSX} from 'react';
 import {useHistory} from 'react-router-dom';
+
 import {Button} from '@mattermost/compass-ui/components/button';
 
 import './dashboard.scss';

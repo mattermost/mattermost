@@ -6,6 +6,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {Button} from '@mattermost/compass-ui/components/button';
+
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getBool as getBoolPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
@@ -299,6 +300,30 @@ const TrialBanner = ({
         );
     } else {
         gettingTrialErrorMsg = null;
+
+        let trialButtonLabel = (
+            <FormattedMessage
+                id='admin.license.trialUpgradeAndRequest.submit'
+                defaultMessage='Upgrade Server And Start trial'
+            />
+        );
+        if (upgradingPercentage === 100 && restarting) {
+            trialButtonLabel = (
+                <FormattedMessage
+                    id='admin.license.enterprise.restarting'
+                    defaultMessage='Restarting'
+                />
+            );
+        } else if (upgradingPercentage > 0) {
+            trialButtonLabel = (
+                <FormattedMessage
+                    id='admin.license.enterprise.upgrading'
+                    defaultMessage='Upgrading {percentage}%'
+                    values={{percentage: upgradingPercentage}}
+                />
+            );
+        }
+
         trialButton = (
             <Button
                 type='button'
@@ -306,25 +331,7 @@ const TrialBanner = ({
                 emphasis='primary'
                 loading={upgradingPercentage > 0}
             >
-                {upgradingPercentage > 0 ? (
-                    upgradingPercentage === 100 && restarting ? (
-                        <FormattedMessage
-                            id='admin.license.enterprise.restarting'
-                            defaultMessage='Restarting'
-                        />
-                    ) : (
-                        <FormattedMessage
-                            id='admin.license.enterprise.upgrading'
-                            defaultMessage='Upgrading {percentage}%'
-                            values={{percentage: upgradingPercentage}}
-                        />
-                    )
-                ) : (
-                    <FormattedMessage
-                        id='admin.license.trialUpgradeAndRequest.submit'
-                        defaultMessage='Upgrade Server And Start trial'
-                    />
-                )}
+                {trialButtonLabel}
             </Button>
         );
 

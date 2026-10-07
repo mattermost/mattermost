@@ -3,9 +3,8 @@
 
 import React from 'react';
 
-import {getHistory} from 'utils/browser_history';
-
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {getHistory} from 'utils/browser_history';
 
 import EmojiPage from './emoji_page';
 

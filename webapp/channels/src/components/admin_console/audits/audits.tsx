@@ -5,9 +5,9 @@ import React, {useEffect, useState, memo, useCallback} from 'react';
 import type {CSSProperties} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Audit} from '@mattermost/types/audits';
 
-import {Button} from '@mattermost/compass-ui/components/button';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ComplianceReports from 'components/admin_console/compliance_reports';

@@ -5,10 +5,10 @@ import React from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
 
-import {Button} from '@mattermost/compass-ui/components/button';
 import GeneralConstants from 'mattermost-redux/constants/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 

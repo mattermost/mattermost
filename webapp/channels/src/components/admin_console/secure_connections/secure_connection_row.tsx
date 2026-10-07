@@ -7,9 +7,9 @@ import {Link, useHistory} from 'react-router-dom';
 import styled from 'styled-components';
 
 import {DotsHorizontalIcon, CodeTagsIcon, PencilOutlineIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import * as Menu from 'components/menu';
 
 import {ConnectionStatusLabel} from './controls';

@@ -4,9 +4,9 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
-import {Button} from '@mattermost/compass-ui/components/button';
 import {Client4} from 'mattermost-redux/client';
 
 import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions';

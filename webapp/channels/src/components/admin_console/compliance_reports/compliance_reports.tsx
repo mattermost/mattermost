@@ -4,10 +4,10 @@
 import React, {type JSX} from 'react';
 import {FormattedDate, FormattedMessage, FormattedTime, defineMessage} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Compliance} from '@mattermost/types/compliance';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {Button} from '@mattermost/compass-ui/components/button';
 import {Client4} from 'mattermost-redux/client';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
