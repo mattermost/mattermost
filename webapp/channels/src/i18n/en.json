@@ -18511,6 +18511,30 @@
     "defaultMessage": "Call type selector",
     "description": "Accessibility label for the dropdown in the channel header used to pick which call plugin/type to start."
   },
+  "call_button.start_call": {
+    "defaultMessage": "Start call",
+    "description": ""
+  },
+  "call_options.aria_label": {
+    "defaultMessage": "Call options",
+    "description": ""
+  },
+  "call_options.audio": {
+    "defaultMessage": "Start an Audio Call",
+    "description": ""
+  },
+  "call_options.audio_sub": {
+    "defaultMessage": "Mattermost Call",
+    "description": ""
+  },
+  "call_options.phone": {
+    "defaultMessage": "Call {label}",
+    "description": ""
+  },
+  "call_options.phone_sub": {
+    "defaultMessage": "{number} • Phone call",
+    "description": ""
+  },
   "carousel.nextButton": {
     "defaultMessage": "Next",
     "description": "Label of the button that moves to the next slide in a carousel (e.g. trial benefits carousel)."
