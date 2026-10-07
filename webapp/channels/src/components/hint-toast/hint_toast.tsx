@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Toast} from '@mattermost/compass-ui/components/toast';
 import React from 'react';
-
-import CloseIcon from 'components/widgets/icons/close_icon';
+import {useIntl} from 'react-intl';
 
 import './hint_toast.scss';
 
@@ -15,32 +15,31 @@ type Props = {
 };
 
 export const HintToast: React.FC<Props> = ({children, onDismiss}: Props) => {
+    const {formatMessage} = useIntl();
+
     const handleDismiss = () => {
         if (typeof onDismiss === 'function') {
             onDismiss();
         }
     };
 
+    const dismissLabel = formatMessage({id: 'general_button.close', defaultMessage: 'Close'});
+
     return (
-        <div
+        <Toast
             data-testid={HINT_TOAST_TESTID}
             className='hint-toast'
-        >
-            <div
-                className='hint-toast__message'
-            >
-                {children}
-            </div>
-            <div
-                className='hint-toast__dismiss'
-                onClick={handleDismiss}
-                data-testid='dismissHintToast'
-            >
-                <CloseIcon
-                    className='close-btn'
-                    id='dismissHintToast'
-                />
-            </div>
-        </div>
+            type='general'
+            message={
+                <span className='hint-toast__message'>
+                    {children}
+                </span>
+            }
+            onDismiss={handleDismiss}
+            dismissLabel={dismissLabel}
+            dismissButtonProps={{
+                'data-testid': 'dismissHintToast',
+            }}
+        />
     );
 };

@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Toast} from '@mattermost/compass-ui/components/toast';
 import classNames from 'classnames';
 import React, {useEffect, useCallback, useRef, type JSX} from 'react';
 import {useIntl} from 'react-intl';
@@ -49,6 +50,13 @@ function InfoToast({content, onExited, className, position = DEFAULT_POSITION}: 
         return () => clearTimeout(timer);
     }, [onExited]);
 
+    const undoLabel = formatMessage({
+        id: 'post_info.edit.undo',
+        defaultMessage: 'Undo',
+    });
+
+    const dismissLabel = formatMessage({id: 'general_button.close', defaultMessage: 'Close'});
+
     return (
         <CSSTransition
             in={Boolean(content)}
@@ -63,26 +71,16 @@ function InfoToast({content, onExited, className, position = DEFAULT_POSITION}: 
                 ref={nodeRef}
                 className={toastContainerClassname}
             >
-                {content.icon}
-                <span>{content.message}</span>
-                {content.undo && (
-                    <button
-                        onClick={undoTodo}
-                        className='info-toast__undo'
-                    >
-                        {formatMessage({
-                            id: 'post_info.edit.undo',
-                            defaultMessage: 'Undo',
-                        })}
-                    </button>
-                )}
-                <button
-                    className='info-toast__icon_button'
-                    onClick={closeToast}
-                    aria-label={formatMessage({id: 'general_button.close', defaultMessage: 'Close'})}
-                >
-                    <i className='icon icon-close'/>
-                </button>
+                <Toast
+                    className='info-toast__compass'
+                    message={content.message}
+                    icon={content.icon}
+                    type='general'
+                    actionLabel={content.undo ? undoLabel : undefined}
+                    onAction={content.undo ? undoTodo : undefined}
+                    onDismiss={closeToast}
+                    dismissLabel={dismissLabel}
+                />
             </div>
         </CSSTransition>
     );
