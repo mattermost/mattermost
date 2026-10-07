@@ -5821,6 +5821,36 @@ func (s *apiRPCServer) UpdatePost(args *Z_UpdatePostArgs, returns *Z_UpdatePostR
 	return nil
 }
 
+type Z_UpdatePostAsUserArgs struct {
+	A *model.Post
+	B string
+}
+
+type Z_UpdatePostAsUserReturns struct {
+	A *model.Post
+	B *model.AppError
+}
+
+func (g *apiRPCClient) UpdatePostAsUser(post *model.Post, userID string) (*model.Post, *model.AppError) {
+	_args := &Z_UpdatePostAsUserArgs{post, userID}
+	_returns := &Z_UpdatePostAsUserReturns{}
+	if err := g.client.Call("Plugin.UpdatePostAsUser", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdatePostAsUser API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UpdatePostAsUser(args *Z_UpdatePostAsUserArgs, returns *Z_UpdatePostAsUserReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdatePostAsUser(post *model.Post, userID string) (*model.Post, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.UpdatePostAsUser(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API UpdatePostAsUser called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetProfileImageArgs struct {
 	A string
 }

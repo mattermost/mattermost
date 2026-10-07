@@ -1012,6 +1012,35 @@ func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*
 }
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
+	return api.updatePostForPlugin(api.ctx, "UpdatePost", post)
+}
+
+// UpdatePostAsUser updates a post as the given user.
+func (api *PluginAPI) UpdatePostAsUser(post *model.Post, userID string) (*model.Post, *model.AppError) {
+	if !model.IsValidId(userID) {
+		return nil, model.NewAppError("UpdatePostAsUser", "plugin.api.update_post_as_user.invalid_user.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	user, appErr := api.app.GetUser(api.ctx, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if user.DeleteAt != 0 {
+		return nil, model.NewAppError("UpdatePostAsUser", "plugin.api.update_post_as_user.inactive_user.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Identify the acting user without creating a login. Id stays empty so
+	// hooks and session-attribute lookups do not treat this as a REST session,
+	// and integration flags stay unset so mm_blocks_actions still depends on
+	// the explicit plugin grant.
+	rctx := api.ctx.WithSession(&model.Session{
+		UserId: user.Id,
+		Roles:  user.GetRawRoles(),
+	})
+	return api.updatePostForPlugin(rctx, "UpdatePostAsUser", post)
+}
+
+func (api *PluginAPI) updatePostForPlugin(rctx request.CTX, where string, post *model.Post) (*model.Post, *model.AppError) {
 	// Grant mm_blocks_actions write access only when the plugin's update
 	// actually includes the prop, AND the value passes validation.
 	// Otherwise the freeze in UpdatePost preserves whatever the original
@@ -1020,7 +1049,7 @@ func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError
 	allowMmBlocksActionsUpdate := false
 	if post.GetProp(model.PostPropsMmBlocksActions) != nil {
 		if err := model.ValidateMmBlocksActions(post); err != nil {
-			return nil, model.NewAppError("UpdatePost", "plugin.api.update_post.mm_blocks_actions.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			return nil, model.NewAppError(where, "plugin.api.update_post.mm_blocks_actions.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 		allowMmBlocksActionsUpdate = true
 	}
@@ -1029,7 +1058,7 @@ func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError
 	// render path honors a plugin-authored override (see CreatePost above), so
 	// SanitizeProps' default strip-and-preserve-from-old behavior applies to
 	// plugin edits like any other non-federated caller.
-	post, _, appErr := api.app.UpdatePost(api.ctx, post, &model.UpdatePostOptions{
+	post, _, appErr := api.app.UpdatePost(rctx, post, &model.UpdatePostOptions{
 		SafeUpdate:                 false,
 		AllowMmBlocksActionsUpdate: allowMmBlocksActionsUpdate,
 	})

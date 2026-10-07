@@ -17977,6 +17977,16 @@
     "description": "Error returned to plugins when a post update contains invalid 'mm_blocks_actions' data (interactive blocks); developer-facing, keep the property name untranslated."
   },
   {
+    "id": "plugin.api.update_post_as_user.inactive_user.app_error",
+    "translation": "The user is deleted or deactivated.",
+    "description": "Error returned to plugins when UpdatePostAsUser is called for a user account that has been deleted or deactivated; developer-facing."
+  },
+  {
+    "id": "plugin.api.update_post_as_user.invalid_user.app_error",
+    "translation": "Invalid user.",
+    "description": "Error returned to plugins when UpdatePostAsUser is called with a user id that is not a valid Mattermost id; developer-facing."
+  },
+  {
     "id": "plugin.api.update_user_status.bad_status",
     "translation": "Unable to set the user status. Unknown user status.",
     "description": "Error returned to plugins when setting a user's status to an unrecognized value (valid ones are online/away/dnd/offline); developer-facing."

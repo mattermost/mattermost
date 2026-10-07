@@ -70,6 +70,23 @@ func (p *PostService) UpdatePost(post *model.Post) error {
 	return nil
 }
 
+// UpdatePostAsUser updates a post as the given user.
+//
+// Minimum server version: 12.0
+func (p *PostService) UpdatePostAsUser(post *model.Post, userID string) error {
+	updatedPost, appErr := p.api.UpdatePostAsUser(post, userID)
+	if appErr != nil {
+		return normalizeAppErr(appErr)
+	}
+
+	err := updatedPost.ShallowCopy(post)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // DeletePost deletes a post.
 //
 // Minimum server version: 5.2
