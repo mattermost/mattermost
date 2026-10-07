@@ -6,6 +6,19 @@ import {expect, setWysiwygUserPreference, test, WysiwygEditor} from '@mattermost
 const TAGS = {tag: ['@channels', '@wysiwyg_editor']};
 const AUTOCOMPLETE_ROUTE = /\/api\/v4\/teams\/[^/]+\/channels\/autocomplete/;
 
+// The on-screen box of the character immediately before the caret, which is the trigger that opened the list.
+function triggerRect(editor: WysiwygEditor) {
+    return editor.input.evaluate((element) => {
+        const selection = element.ownerDocument.getSelection()!;
+        const range = element.ownerDocument.createRange();
+        range.setStart(selection.focusNode!, selection.focusOffset - 1);
+        range.setEnd(selection.focusNode!, selection.focusOffset);
+
+        const {left, top} = range.getBoundingClientRect();
+        return {left, top};
+    });
+}
+
 test.describe('WYSIWYG editor - autocomplete suggestions', TAGS, () => {
     test.beforeEach(async ({pw}) => {
         await pw.ensureFeatureFlag('WysiwygEditor', true);
@@ -124,10 +137,8 @@ test.describe('WYSIWYG editor - autocomplete suggestions', TAGS, () => {
      * @reference MM-70333
      */
     test('~channel autocomplete opens under the trigger character', async ({pw}) => {
-        const {adminClient, user, userClient, team} = await pw.initSetup();
+        const {user, userClient, team} = await pw.initSetup();
         await setWysiwygUserPreference(userClient, user.id, true);
-        const linked = await adminClient.createPublicChannel(team.id, 'Wysiwyg Target');
-        await adminClient.addToChannel(user.id, linked.id);
 
         const {channelsPage, page} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, 'off-topic');
@@ -141,23 +152,49 @@ test.describe('WYSIWYG editor - autocomplete suggestions', TAGS, () => {
 
         const inputBox = (await editor.input.boundingBox())!;
         const listBox = (await editor.suggestionList().boundingBox())!;
-        const triggerLeft = await editor.input.evaluate((element) => {
-            const selection = element.ownerDocument.getSelection()!;
-            const range = element.ownerDocument.createRange();
-            range.setStart(selection.focusNode!, selection.focusOffset - 1);
-            range.setEnd(selection.focusNode!, selection.focusOffset);
-            return range.getBoundingClientRect().left;
-        });
+        const trigger = await triggerRect(editor);
 
         // * Verify the trigger character really is far from the left edge, so the assertions below mean something
-        expect(triggerLeft - inputBox.x).toBeGreaterThan(100);
+        expect(trigger.left - inputBox.x).toBeGreaterThan(100);
 
-        // * Verify the list opens just left of the trigger character, where the channel names line up under it
-        expect(listBox.x).toBeLessThanOrEqual(triggerLeft);
-        expect(listBox.x).toBeGreaterThan(triggerLeft - 60);
+        // * Verify the list opens one channel-name indent to the left of the trigger, so the names line up under it
+        expect(trigger.left - listBox.x).toBeGreaterThan(35);
+        expect(trigger.left - listBox.x).toBeLessThan(44);
 
         // * Verify the list is still fully inside the composer
         expect(listBox.x + listBox.width).toBeLessThanOrEqual(inputBox.x + inputBox.width + 1);
+    });
+
+    /**
+     * @objective Verify that the WYSIWYG autocomplete sits above the line holding the trigger character rather
+     * than above the whole composer once the message has wrapped.
+     *
+     * @reference MM-70333
+     */
+    test('~channel autocomplete follows the trigger onto a wrapped line', async ({pw}) => {
+        const {user, userClient, team} = await pw.initSetup();
+        await setWysiwygUserPreference(userClient, user.id, true);
+
+        const {channelsPage, page} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, 'off-topic');
+
+        const editor = new WysiwygEditor(page.getByTestId('post-create'));
+        await editor.toBeVisible();
+        const singleLineHeight = (await editor.input.boundingBox())!.height;
+
+        // # Fill the composer so that it has wrapped by the time the trigger character is typed
+        await editor.type(`${'lorem ipsum '.repeat(25)}~`);
+        await expect(editor.suggestionList()).toBeVisible();
+
+        const inputBox = (await editor.input.boundingBox())!;
+        const listBox = (await editor.suggestionList().boundingBox())!;
+        const trigger = await triggerRect(editor);
+
+        // * Verify the composer really did wrap, so the assertion below means something
+        expect(inputBox.height).toBeGreaterThan(singleLineHeight + 10);
+
+        // * Verify the bottom of the list rests on the line the trigger is on, not on the top of the composer
+        expect(Math.abs(listBox.y + listBox.height - trigger.top)).toBeLessThanOrEqual(4);
     });
 
     test('emoji shortcode autocomplete opens and closes on Escape', async ({pw}) => {

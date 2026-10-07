@@ -10,6 +10,7 @@ import type {SuggestionProps} from 'components/suggestion/suggestion';
 import {SuggestionContainer} from 'components/suggestion/suggestion';
 
 import {renderWithContext} from 'tests/react_testing_utils';
+import {getPxToSubstract} from 'utils/utils';
 
 import WysiwygSuggestionList from './wysiwyg_suggestion_list';
 
@@ -28,6 +29,13 @@ const mockSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<string>>(
 ));
 mockSuggestion.displayName = 'MockSuggestion';
 
+const mockResultsFor = (matchedPretext: string) => ({
+    matchedPretext,
+    terms: [...mockTerms],
+    items: mockTerms.map((term) => ({suggestion: term})),
+    component: mockSuggestion,
+});
+
 jest.mock('components/suggestion/command_provider/command_provider', () => ({
     __esModule: true,
     default: class {
@@ -38,12 +46,7 @@ jest.mock('components/suggestion/command_provider/command_provider', () => ({
                 return false;
             }
 
-            resultCallback({
-                matchedPretext: pretext,
-                terms: [...mockTerms],
-                items: mockTerms.map((term) => ({suggestion: term})),
-                component: mockSuggestion,
-            });
+            resultCallback(mockResultsFor(pretext));
             return true;
         }
     },
@@ -52,8 +55,16 @@ jest.mock('components/suggestion/command_provider/command_provider', () => ({
 jest.mock('components/suggestion/at_mention_provider', () => ({
     __esModule: true,
     default: class {
-        handlePretextChanged() {
-            return false;
+        triggerCharacter = '@';
+
+        handlePretextChanged(pretext: string, resultCallback: (results: any) => void) {
+            const triggerIndex = pretext.lastIndexOf('@');
+            if (triggerIndex === -1) {
+                return false;
+            }
+
+            resultCallback(mockResultsFor(pretext.slice(triggerIndex)));
+            return true;
         }
     },
 }));
@@ -69,12 +80,7 @@ jest.mock('components/suggestion/channel_mention_provider', () => ({
                 return false;
             }
 
-            resultCallback({
-                matchedPretext: pretext.slice(triggerIndex),
-                terms: [...mockTerms],
-                items: mockTerms.map((term) => ({suggestion: term})),
-                component: mockSuggestion,
-            });
+            resultCallback(mockResultsFor(pretext.slice(triggerIndex)));
             return true;
         }
     },
@@ -89,31 +95,46 @@ jest.mock('components/suggestion/emoticon_provider', () => ({
     },
 }));
 
-const EDITOR_RECT = {left: 100, top: 200, right: 1100, bottom: 246, width: 1000, height: 46};
+const WIDE_EDITOR = {left: 100, top: 200, right: 1100, bottom: 246, width: 1000, height: 46};
 
-// Enough of a ProseMirror editor for the suggestion list: a single line of text whose caret sits at the end of it,
-// and a caret geometry that the test controls.
-const setup = (terms: string[]) => {
+// A monospaced stand-in for the editor's text layout: the character at document position `pos` starts at
+// TEXT_LEFT + pos * CHAR_WIDTH, which is what makes "measured the trigger, not the caret" observable.
+const TEXT_LEFT = 116;
+const CHAR_WIDTH = 8;
+const LINE_HEIGHT = 20;
+const FIRST_LINE_TOP = 213;
+
+const lineWithTriggerAt = (index: number, trigger: string) => 'x'.repeat(index) + trigger;
+
+type SetupOptions = {
+    editorRect?: typeof WIDE_EDITOR;
+    startOfLine?: number;
+};
+
+const setup = (terms: string[], {editorRect = WIDE_EDITOR, startOfLine = 0}: SetupOptions = {}) => {
     mockTerms.length = 0;
     mockTerms.push(...terms);
 
     const dom = document.createElement('div');
-    dom.style.lineHeight = '20px';
-    dom.getBoundingClientRect = () => EDITOR_RECT as DOMRect;
+    dom.style.lineHeight = `${LINE_HEIGHT}px`;
+    dom.getBoundingClientRect = () => editorRect as DOMRect;
 
     const handlers: Record<string, () => void> = {};
     const chainCalls: string[] = [];
     const inserted: string[] = [];
     const deletedRanges: Array<{from: number; to: number}> = [];
     let text = '';
-    let caretCoords = {left: 400, top: 213, right: 400, bottom: 233};
-    let caretMeasurementFails = false;
+    let caretLine = 0;
+    let caretMeasurable = true;
 
     const coordsAtPos = jest.fn((pos: number) => {
-        if (caretMeasurementFails) {
+        if (!caretMeasurable) {
             throw new RangeError(`no position ${pos}`);
         }
-        return caretCoords;
+
+        const left = TEXT_LEFT + (pos * CHAR_WIDTH);
+        const top = FIRST_LINE_TOP + (caretLine * LINE_HEIGHT);
+        return {left, right: left + CHAR_WIDTH, top, bottom: top + LINE_HEIGHT};
     });
 
     const chain: any = {
@@ -140,7 +161,7 @@ const setup = (terms: string[]) => {
         chain: () => chain,
         get state() {
             return {
-                selection: {from: text.length, $from: {start: () => 0}},
+                selection: {from: startOfLine + text.length, $from: {start: () => startOfLine}},
                 doc: {textBetween: () => text},
             };
         },
@@ -170,11 +191,11 @@ const setup = (terms: string[]) => {
             text = next;
             handlers.update?.();
         }),
-        moveCaretTo: (left: number, top: number) => {
-            caretCoords = {left, top, right: left, bottom: top + 20};
+        setCaretLine: (line: number) => {
+            caretLine = line;
         },
         setCaretMeasurable: (measurable: boolean) => {
-            caretMeasurementFails = !measurable;
+            caretMeasurable = measurable;
         },
     };
 };
@@ -204,13 +225,13 @@ describe('WysiwygSuggestionList', () => {
         expect(onSubmit).not.toHaveBeenCalled();
     });
 
-    test('replaces the matched pretext rather than the whole line', async () => {
-        const {type, inserted, deletedRanges} = setup(['~town-square']);
+    test('replaces the matched pretext in the block the caret is in', async () => {
+        const {type, inserted, deletedRanges} = setup(['~town-square'], {startOfLine: 25});
 
         type('hello ~tow');
         await userEvent.click(screen.getByRole('option'));
 
-        expect(deletedRanges).toEqual([{from: 6, to: 10}]);
+        expect(deletedRanges).toEqual([{from: 31, to: 35}]);
         expect(inserted).toEqual(['~town-square ']);
     });
 
@@ -225,90 +246,130 @@ describe('WysiwygSuggestionList', () => {
         expect(onSubmit).not.toHaveBeenCalled();
     });
 
+    test('stays closed when a provider answers with no suggestions', () => {
+        const {type} = setup([]);
+
+        type('/jira');
+
+        expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    });
+
     describe('alignment with the caret', () => {
+        // Position 30 starts at 116 + 240, which is 356 - 100 (editor left) - 39 (the gap in front of a channel
+        // name in the list) = 217px into the editor, and 13px down from its top, so still on the first line.
         test('offsets the list to the trigger character instead of the corner of the editor', () => {
-            const {type, moveCaretTo} = setup(['~town-square']);
+            const {type} = setup(['~town-square']);
 
-            moveCaretTo(400, 213);
-            type('hello ~');
+            type(lineWithTriggerAt(30, '~'));
 
-            // 400 - 100 (editor left) - 39 (the padding in front of a channel name) and still on the first line.
-            expect(getList()).toHaveStyle({transform: 'translate(261px, 0px)'});
+            expect(getList()).toHaveStyle({transform: 'translate(217px, 0px)'});
+        });
+
+        test('leaves the list in the corner when the trigger is typed at the start of the line', () => {
+            const {type} = setup(['~town-square']);
+
+            type(lineWithTriggerAt(0, '~'));
+
+            expect(getList()).toHaveStyle({transform: 'translate(0px, 0px)'});
         });
 
         test('keeps the list inside the editor when the trigger is near the right edge', () => {
-            const {type, moveCaretTo} = setup(['~town-square']);
+            const {type} = setup(['~town-square']);
 
-            moveCaretTo(1000, 213);
-            type('hello ~');
+            type(lineWithTriggerAt(110, '~'));
 
-            // The list is 496px wide, so it can only be moved 1000 - 496 px to the right before it overflows.
+            // The list is 496px wide, so it can only be moved 1000 - 496 px before it overflows the editor.
             expect(getList()).toHaveStyle({transform: 'translate(504px, 0px)'});
         });
 
-        test('drops the list down to the line the trigger was typed on', () => {
-            const {type, moveCaretTo} = setup(['~town-square']);
+        test('leaves the list in the corner of an editor too narrow to move it in', () => {
+            const {type} = setup(['~town-square'], {editorRect: {...WIDE_EDITOR, right: 400, width: 300}});
 
-            moveCaretTo(150, 233);
-            type('hello ~');
+            type(lineWithTriggerAt(20, '~'));
 
-            expect(getList()).toHaveStyle({transform: 'translate(11px, 33px)'});
+            expect(getList()).toHaveStyle({transform: 'translate(0px, 0px)'});
         });
 
-        test('holds its place while the search term is typed', () => {
-            const {type, moveCaretTo, coordsAtPos} = setup(['~town-square']);
+        test('drops the list down to the line the trigger was typed on', () => {
+            const {type, setCaretLine} = setup(['~town-square']);
 
-            moveCaretTo(400, 213);
-            type('hello ~');
+            setCaretLine(1);
+            type(lineWithTriggerAt(30, '~'));
 
-            moveCaretTo(460, 213);
-            type('hello ~tow');
+            expect(getList()).toHaveStyle({transform: 'translate(217px, 33px)'});
+        });
 
+        test('measures the trigger from the start of the block the caret is in', () => {
+            const {type} = setup(['~town-square'], {startOfLine: 25});
+
+            // The trigger is the 10th character of the block, which is document position 35.
+            type(lineWithTriggerAt(10, '~'));
+
+            expect(getList()).toHaveStyle({transform: 'translate(257px, 0px)'});
+        });
+
+        test('uses the padding that belongs to the trigger character', () => {
+            const {type} = setup(['@someone']);
+
+            type(lineWithTriggerAt(30, '@'));
+
+            // A mention row reserves room for an avatar, so it is indented further than a channel row. The exact
+            // gap is derived from the root font size, so ask for it rather than hard-coding it.
+            const expectedX = Math.round(TEXT_LEFT + (30 * CHAR_WIDTH) - WIDE_EDITOR.left - getPxToSubstract('@'));
+            expect(getList()).toHaveStyle({transform: `translate(${expectedX}px, 0px)`});
+        });
+
+        test('measures the trigger only once while the search term is typed', () => {
+            const {type, coordsAtPos} = setup(['~town-square']);
+
+            type(lineWithTriggerAt(30, '~'));
+            type(`${lineWithTriggerAt(30, '~')}tow`);
+
+            // Re-measuring on every keystroke would force a layout for an answer that cannot have changed.
             expect(coordsAtPos).toHaveBeenCalledTimes(1);
-            expect(getList()).toHaveStyle({transform: 'translate(261px, 0px)'});
+            expect(getList()).toHaveStyle({transform: 'translate(217px, 0px)'});
         });
 
         test('follows a second trigger typed further along the line', () => {
-            const {type, moveCaretTo} = setup(['~town-square']);
+            const {type} = setup(['~town-square']);
 
-            moveCaretTo(400, 213);
-            type('hello ~');
+            type(lineWithTriggerAt(30, '~'));
 
-            moveCaretTo(500, 213);
-            type('hello ~town-square ~');
+            // The second tilde lands on position 43, which is 321px into the editor.
+            type(`${lineWithTriggerAt(30, '~')}town-square ~`);
 
-            expect(getList()).toHaveStyle({transform: 'translate(361px, 0px)'});
+            expect(getList()).toHaveStyle({transform: 'translate(321px, 0px)'});
         });
 
         test('measures again after the list has been closed and reopened', () => {
-            const {type, moveCaretTo} = setup(['~town-square']);
+            const {type, setCaretLine} = setup(['~town-square']);
 
-            moveCaretTo(400, 213);
-            type('hello ~');
+            type(lineWithTriggerAt(30, '~'));
+            expect(getList()).toHaveStyle({transform: 'translate(217px, 0px)'});
 
-            type('hello ');
+            type('x'.repeat(30));
             expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
 
-            moveCaretTo(250, 213);
-            type('hello ~');
+            // The composer grew a line while the list was closed, so the same trigger is now lower down.
+            setCaretLine(1);
+            type(lineWithTriggerAt(30, '~'));
 
-            expect(getList()).toHaveStyle({transform: 'translate(111px, 0px)'});
+            expect(getList()).toHaveStyle({transform: 'translate(217px, 33px)'});
         });
 
         test('falls back to the corner of the editor when the caret cannot be measured, then recovers', () => {
-            const {type, moveCaretTo, setCaretMeasurable} = setup(['~town-square']);
+            const {type, setCaretMeasurable} = setup(['~town-square']);
 
             setCaretMeasurable(false);
-            type('hello ~');
+            type(lineWithTriggerAt(30, '~'));
 
             expect(getList()).toBeVisible();
             expect(getList().style.transform).toBe('');
 
             setCaretMeasurable(true);
-            moveCaretTo(400, 213);
-            type('hello ~town-square ~');
+            type(`${lineWithTriggerAt(30, '~')}town-square ~`);
 
-            expect(getList()).toHaveStyle({transform: 'translate(261px, 0px)'});
+            expect(getList()).toHaveStyle({transform: 'translate(321px, 0px)'});
         });
     });
 });

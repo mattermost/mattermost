@@ -108,12 +108,12 @@ function getTriggerAlignment(editor: Editor, triggerPos: number, triggerCharacte
     }
 
     const editorRect = view.dom.getBoundingClientRect();
-    const listWidth = Math.min(editorRect.width, Constants.SUGGESTION_LIST_MAXWIDTH);
+    const maxOffsetX = Math.max(editorRect.width - Constants.SUGGESTION_LIST_MAXWIDTH, 0);
     const offsetX = coords.left - editorRect.left - getPxToSubstract(triggerCharacter);
 
     return {
         lineHeight: parseInt(getComputedStyle(view.dom).lineHeight, 10) || 0,
-        pixelsToMoveX: Math.round(Math.min(Math.max(offsetX, 0), Math.max(editorRect.width - listWidth, 0))),
+        pixelsToMoveX: Math.round(Math.min(Math.max(offsetX, 0), maxOffsetX)),
         pixelsToMoveY: Math.round(coords.top - editorRect.top),
     };
 }
