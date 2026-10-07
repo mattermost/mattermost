@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Spinner} from '@mattermost/compass-ui/components/spinner';
 import classNames from 'classnames';
 import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
@@ -14,6 +15,7 @@ type Props = {
 };
 const LoadingSpinner = ({text, style}: Props) => {
     const {formatMessage} = useIntl();
+    const ariaLabel = formatMessage({id: 'generic_icons.loading', defaultMessage: 'Loading Icon'});
 
     return (
         <span
@@ -22,9 +24,10 @@ const LoadingSpinner = ({text, style}: Props) => {
             style={style}
             data-testid='loadingSpinner'
         >
-            <span
-                className='fa fa-spinner fa-fw fa-pulse spinner'
-                title={formatMessage({id: 'generic_icons.loading', defaultMessage: 'Loading Icon'})}
+            <Spinner
+                size='16'
+                className='spinner'
+                aria-label={ariaLabel}
             />
             {formatAsComponent(text)}
         </span>
