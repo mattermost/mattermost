@@ -16163,13 +16163,17 @@
     "defaultMessage": "Remove policy",
     "description": "Accessibility label for the trash icon button on a policy row; opens a confirmation to unlink the policy from the team."
   },
+  "admin.team_settings.team_detail.rules.error.invalid_expression": {
+    "defaultMessage": "Fix the errors in the team-specific membership rules before saving.",
+    "description": "Error shown in the save bar of the System Console per-team page when Save is clicked while the Team-specific membership rules expression is invalid or can't be saved; nothing is saved."
+  },
   "admin.team_settings.team_detail.rules.error.resource_attributes": {
     "defaultMessage": "Team membership rules can't reference resource attributes.",
-    "description": "Inline error under the Team-specific membership rules editor on the System Console per-team page, shown when the rule references resource.attributes.*, which team membership rules can't use."
+    "description": "Error on the System Console per-team page, shown inline under the Team-specific membership rules editor and in the save bar when the server rejects the save, because the rule references resource.attributes.*, which team membership rules can't use."
   },
   "admin.team_settings.team_detail.rules.error.session_attributes": {
     "defaultMessage": "Team membership rules can't reference session attributes.",
-    "description": "Inline error under the Team-specific membership rules editor on the System Console per-team page, shown when the rule references user.session.* attributes, which team membership rules can't use."
+    "description": "Error on the System Console per-team page, shown inline under the Team-specific membership rules editor and in the save bar when the server rejects the save, because the rule references user.session.* attributes, which team membership rules can't use."
   },
   "admin.team_settings.team_detail.rules.subtitle": {
     "defaultMessage": "User attributes and values as additional rules to restrict team membership",
