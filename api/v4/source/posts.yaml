@@ -501,7 +501,10 @@
             default: false
         - name: updatesOnly
           in: query
-          description: This flag is used to make the API work with the updateAt value. If you set this flag, you must set a value for fromUpdateAt.
+          description: >
+            This flag is used to make the API work with the updateAt value. If you set this flag, you must set a value for fromUpdateAt.
+            With direction=down, replies deleted since fromUpdateAt are included, with `delete_at` set and without their message or metadata.
+            A deleted root post still returns 404. Minimum server version for deleted replies is 12.1.
           schema:
             type: boolean
             default: false
