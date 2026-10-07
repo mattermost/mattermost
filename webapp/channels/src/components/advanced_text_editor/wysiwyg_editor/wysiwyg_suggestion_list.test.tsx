@@ -280,6 +280,17 @@ describe('WysiwygSuggestionList', () => {
         expect(inserted).toEqual(['~istanbul ']);
     });
 
+    test('replaces a Greek capital-sigma mention whose lowercase uses final ς', async () => {
+        const {type, inserted, deletedRanges} = setup(['@someone']);
+
+        // '@ΟΣ'.toLowerCase() is '@ος', but 'Σ'.toLowerCase() on its own is 'σ'.
+        type('hello @ΟΣ');
+        await userEvent.click(screen.getByRole('option'));
+
+        expect(deletedRanges).toEqual([{from: 6, to: 9}]);
+        expect(inserted).toEqual(['@someone ']);
+    });
+
     test('does not insert the open-in-modal sentinel when no app provider can handle it', async () => {
         const {type, onSubmit, inserted, chainCalls} = setup([command + OPEN_COMMAND_IN_MODAL_ITEM_ID]);
 

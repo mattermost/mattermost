@@ -80,25 +80,22 @@ function getTextBeforeCursor(editor: Editor): string {
     return state.doc.textBetween(startOfLine, from, '\n');
 }
 
-/** Length of the original suffix that lowercases to matchedPretext (İ → i\u0307 can make the capture longer). */
+/** Length of the original suffix that lowercases to matchedPretext. */
 function getOriginalSuffixLength(text: string, matchedPretext: string): number | null {
     const lowerMatched = matchedPretext.toLowerCase();
     if (!text.toLowerCase().endsWith(lowerMatched)) {
         return null;
     }
 
-    let from = text.length;
-    let loweredSuffix = '';
-    while (from > 0 && loweredSuffix.length < lowerMatched.length) {
-        from -= 1;
-        loweredSuffix = text[from].toLowerCase() + loweredSuffix;
+    // Lowercase the candidate as a whole so context-sensitive mappings (Greek
+    // Σ → ς) and expansions (İ → i\u0307) match the provider capture.
+    for (let from = text.length; from >= 0; from--) {
+        if (text.slice(from).toLowerCase() === lowerMatched) {
+            return text.length - from;
+        }
     }
 
-    if (loweredSuffix !== lowerMatched) {
-        return null;
-    }
-
-    return text.length - from;
+    return null;
 }
 
 function getTriggerPos(editor: Editor, matchedPretext: string): number | null {
