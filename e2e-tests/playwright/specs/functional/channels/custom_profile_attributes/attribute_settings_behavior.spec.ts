@@ -1,13 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Client4} from '@mattermost/client';
+
 import {expect, test} from '@mattermost/playwright-lib';
 
+import type {CpaFieldsMap, CustomProfileAttribute} from './helpers';
 import {
-    type CustomProfileAttribute,
+    deleteCustomProfileAttributes,
     setupCustomProfileAttributeFields,
     setupCustomProfileAttributeValues,
 } from './helpers';
+
+// Custom profile attribute fields are server-wide: a field created by one test here (e.g. the
+// "Cancel Test" field below) stays visible in every user's Profile modal for the rest of the CI
+// job, breaking unrelated specs whose locators assume a generic set of sections. Track whichever
+// fields the running test owns and delete them afterward.
+let ownedFields: {adminClient: Client4; fields: CpaFieldsMap} | undefined;
+
+test.afterEach(async () => {
+    if (!ownedFields) {
+        return;
+    }
+    await deleteCustomProfileAttributes(ownedFields.adminClient, ownedFields.fields);
+    ownedFields = undefined;
+});
 
 /**
  * @objective Verify maximum-length attribute names and values display with ellipsis styling in profile settings.
@@ -30,6 +47,7 @@ test(
             },
         ];
         const fields = await setupCustomProfileAttributeFields(adminClient, attributes);
+        ownedFields = {adminClient, fields};
 
         await setupCustomProfileAttributeValues(userClient, attributes, fields);
         // # Open profile settings containing the maximum-length attribute
@@ -68,6 +86,7 @@ test(
             },
         ];
         const fields = await setupCustomProfileAttributeFields(adminClient, attributes);
+        ownedFields = {adminClient, fields};
         await setupCustomProfileAttributeValues(userClient, attributes, fields);
 
         const {channelsPage} = await pw.testBrowser.login(user);
@@ -106,6 +125,7 @@ test(
             },
         ];
         const fields = await setupCustomProfileAttributeFields(adminClient, attributes);
+        ownedFields = {adminClient, fields};
         const fieldId = Object.keys(fields)[0];
         await setupCustomProfileAttributeValues(userClient, attributes, fields);
 
