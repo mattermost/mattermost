@@ -3,10 +3,12 @@
 
 import classNames from 'classnames';
 import React, {useEffect} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
@@ -40,6 +42,7 @@ function SaveChangesPanel({
     cancelButtonText,
     saving = false,
 }: Props) {
+    const intl = useIntl();
     const panelClassName = classNames('SaveChangesPanel', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
     const messageClassName = classNames('SaveChangesPanel__message', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
 
@@ -92,16 +95,15 @@ function SaveChangesPanel({
         if (state === 'saved') {
             return (
                 <div className='SaveChangesPanel__btn-ctr'>
-                    <button
-                        id='panelCloseButton'
-                        type='button'
-                        className='btn btn-icon btn-sm'
-                        onClick={handleClose}
-                    >
-                        <i
-                            className='icon icon-close'
+                    <WithTooltip title={intl.formatMessage({id: 'saveChangesPanel.close', defaultMessage: 'Close'})}>
+                        <IconButton
+                            id='panelCloseButton'
+                            size='small'
+                            icon={<i className='icon icon-close' aria-hidden='true'/>}
+                            onClick={handleClose}
+                            aria-label={intl.formatMessage({id: 'saveChangesPanel.close', defaultMessage: 'Close'})}
                         />
-                    </button>
+                    </WithTooltip>
                 </div>
             );
         }

@@ -3,6 +3,10 @@
 
 import React from 'react';
 import {useIntl} from 'react-intl';
+
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import './modal_header.scss';
 
 type Props = {
@@ -24,13 +28,14 @@ function ModalHeader({id, title, subtitle, handleClose}: Props) {
                 <span className='mm-modal-header__vertical-divider'/>
                 <span className='mm-modal-header__subtitle'>{subtitle}</span>
                 {handleClose && <div className='mm-modal-header__ctr'>
-                    <button
-                        className='btn btn-icon'
-                        onClick={handleClose}
-                        aria-label={intl.formatMessage({id: 'modal.header_close', defaultMessage: 'Close'})}
-                    >
-                        <i className='icon icon-close'/>
-                    </button>
+                    <WithTooltip title={intl.formatMessage({id: 'modal.header_close', defaultMessage: 'Close'})}>
+                        <IconButton
+                            icon={<i className='icon icon-close' aria-hidden='true'/>}
+                            size='medium'
+                            onClick={handleClose}
+                            aria-label={intl.formatMessage({id: 'modal.header_close', defaultMessage: 'Close'})}
+                        />
+                    </WithTooltip>
                 </div>}
             </h2>
         </div>

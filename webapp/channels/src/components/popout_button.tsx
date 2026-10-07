@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {canPopout} from 'utils/popouts/popout_windows';
@@ -33,17 +34,13 @@ export default function PopoutButton({
                 />
             }
         >
-            <button
-                type='button'
-                className={classNames('btn btn-icon btn-sm', 'PopoutButton', className)}
+            <IconButton
+                size='small'
+                className={classNames('PopoutButton', className)}
+                icon={<i className='icon icon-dock-window' aria-hidden='true'/>}
                 aria-label={intl.formatMessage({id: 'new_window_button.tooltip', defaultMessage: 'Open in new window'})}
                 onClick={onClick}
-            >
-                <i
-                    className='icon icon-dock-window'
-                    aria-hidden='true'
-                />
-            </button>
+            />
         </WithTooltip>
     );
 }

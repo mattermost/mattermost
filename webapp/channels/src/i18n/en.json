@@ -28611,6 +28611,10 @@
     "defaultMessage": "Undo",
     "description": "Button in the unsaved-changes panel at the bottom of settings screens that reverts the pending changes; 'Undo' is a verb."
   },
+  "saveChangesPanel.close": {
+    "defaultMessage": "Close",
+    "description": "Close button shown in the saved-confirmation state of the unsaved-changes panel."
+  },
   "saveChangesPanel.error": {
     "defaultMessage": "There was an error saving your settings",
     "description": "Error text in the unsaved-changes panel when saving settings fails."

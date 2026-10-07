@@ -6,11 +6,11 @@ import type {ChangeEvent, JSX, ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import LoadingScreen from 'components/loading_screen';
-import NextIcon from 'components/widgets/icons/fa_next_icon';
-import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 import SearchIcon from 'components/widgets/icons/fa_search_icon';
 
 import './backstage_list.scss';
@@ -185,22 +185,26 @@ const BackstageList = (remainingProps: Props) => {
                             total,
                         }}
                     />
-                    <button
-                        type='button'
-                        className={'btn btn-quaternary btn-icon btn-sm ml-2 prev ' + (isFirstPage ? 'disabled' : '')}
-                        onClick={previousPageFn}
-                        aria-label={formatMessage({id: 'backstage_list.previousButton.ariaLabel', defaultMessage: 'Previous'})}
-                    >
-                        <PreviousIcon/>
-                    </button>
-                    <button
-                        type='button'
-                        className={'btn btn-quaternary btn-icon btn-sm next ' + (isLastPage ? 'disabled' : '')}
-                        onClick={nextPageFn}
-                        aria-label={formatMessage({id: 'backstage_list.nextButton.ariaLabel', defaultMessage: 'Next'})}
-                    >
-                        <NextIcon/>
-                    </button>
+                    <WithTooltip title={formatMessage({id: 'backstage_list.previousButton.ariaLabel', defaultMessage: 'Previous'})}>
+                        <IconButton
+                            size='small'
+                            className='ml-2 prev'
+                            icon={<i className='icon icon-chevron-left' aria-hidden='true'/>}
+                            onClick={previousPageFn}
+                            disabled={isFirstPage}
+                            aria-label={formatMessage({id: 'backstage_list.previousButton.ariaLabel', defaultMessage: 'Previous'})}
+                        />
+                    </WithTooltip>
+                    <WithTooltip title={formatMessage({id: 'backstage_list.nextButton.ariaLabel', defaultMessage: 'Next'})}>
+                        <IconButton
+                            size='small'
+                            className='next'
+                            icon={<i className='icon icon-chevron-right' aria-hidden='true'/>}
+                            onClick={nextPageFn}
+                            disabled={isLastPage}
+                            aria-label={formatMessage({id: 'backstage_list.nextButton.ariaLabel', defaultMessage: 'Next'})}
+                        />
+                    </WithTooltip>
                 </div>
             </div>
         </div>

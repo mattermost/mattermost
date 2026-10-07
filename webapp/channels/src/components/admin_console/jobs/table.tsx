@@ -6,12 +6,11 @@ import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Job, JobType} from '@mattermost/types/jobs';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
-
-import NextIcon from 'components/widgets/icons/fa_next_icon';
-import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 
 import {JobTypes} from 'utils/constants';
 
@@ -198,24 +197,26 @@ class JobTable extends React.PureComponent<Props, State> {
                                     total: this.props.jobs.length,
                                 }}
                             />
-                            <button
-                                type='button'
-                                className={'btn btn-quaternary btn-icon btn-sm ml-2 prev ' + (firstPage ? 'disabled' : '')}
-                                onClick={this.handlePrevPage}
-                                disabled={firstPage}
-                                aria-label={'Previous page'}
-                            >
-                                <PreviousIcon/>
-                            </button>
-                            <button
-                                type='button'
-                                className={'btn btn-quaternary btn-icon btn-sm next ' + (lastPage ? 'disabled' : '')}
-                                onClick={this.handleNextPage}
-                                disabled={lastPage}
-                                aria-label={'Next page'}
-                            >
-                                <NextIcon/>
-                            </button>
+                            <WithTooltip title='Previous page'>
+                                <IconButton
+                                    size='small'
+                                    className='ml-2 prev'
+                                    icon={<i className='icon icon-chevron-left' aria-hidden='true'/>}
+                                    onClick={this.handlePrevPage}
+                                    disabled={firstPage}
+                                    aria-label='Previous page'
+                                />
+                            </WithTooltip>
+                            <WithTooltip title='Next page'>
+                                <IconButton
+                                    size='small'
+                                    className='next'
+                                    icon={<i className='icon icon-chevron-right' aria-hidden='true'/>}
+                                    onClick={this.handleNextPage}
+                                    disabled={lastPage}
+                                    aria-label='Next page'
+                                />
+                            </WithTooltip>
                         </div>
                     </div>
                 );
