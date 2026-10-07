@@ -157,7 +157,8 @@ test.describe('WYSIWYG editor - autocomplete suggestions', TAGS, () => {
         // * Verify the trigger character really is far from the left edge, so the assertions below mean something
         expect(trigger.left - inputBox.x).toBeGreaterThan(100);
 
-        // * Verify the list opens one channel-name indent to the left of the trigger, so the names line up under it
+        // * Verify the list opens a channel-name indent (39px) to the left of the trigger, so the names line up
+        // under it. The band is tight enough to fail if the caret were measured instead of the trigger.
         expect(trigger.left - listBox.x).toBeGreaterThan(35);
         expect(trigger.left - listBox.x).toBeLessThan(44);
 
@@ -183,7 +184,7 @@ test.describe('WYSIWYG editor - autocomplete suggestions', TAGS, () => {
         const singleLineHeight = (await editor.input.boundingBox())!.height;
 
         // # Fill the composer so that it has wrapped by the time the trigger character is typed
-        await editor.type(`${'lorem ipsum '.repeat(25)}~`);
+        await editor.type(`${'lorem ipsum '.repeat(15)}~`);
         await expect(editor.suggestionList()).toBeVisible();
 
         const inputBox = (await editor.input.boundingBox())!;

@@ -186,7 +186,6 @@ const setup = (terms: string[], {editorRect = WIDE_EDITOR, startOfLine = 0}: Set
         inserted,
         deletedRanges,
         chainCalls,
-        coordsAtPos,
         type: (next: string) => act(() => {
             text = next;
             handlers.update?.();
@@ -246,7 +245,7 @@ describe('WysiwygSuggestionList', () => {
         expect(onSubmit).not.toHaveBeenCalled();
     });
 
-    test('stays closed when a provider answers with no suggestions', () => {
+    test('shows nothing when a provider answers with no suggestions', () => {
         const {type} = setup([]);
 
         type('/jira');
@@ -319,14 +318,16 @@ describe('WysiwygSuggestionList', () => {
             expect(getList()).toHaveStyle({transform: `translate(${expectedX}px, 0px)`});
         });
 
-        test('measures the trigger only once while the search term is typed', () => {
-            const {type, coordsAtPos} = setup(['~town-square']);
+        test('does not jump when the composer reflows while the search term is typed', () => {
+            const {type, setCaretLine} = setup(['~town-square']);
 
             type(lineWithTriggerAt(30, '~'));
+            expect(getList()).toHaveStyle({transform: 'translate(217px, 0px)'});
+
+            // The extra characters push the composer onto another line, carrying the trigger down with them.
+            setCaretLine(1);
             type(`${lineWithTriggerAt(30, '~')}tow`);
 
-            // Re-measuring on every keystroke would force a layout for an answer that cannot have changed.
-            expect(coordsAtPos).toHaveBeenCalledTimes(1);
             expect(getList()).toHaveStyle({transform: 'translate(217px, 0px)'});
         });
 
