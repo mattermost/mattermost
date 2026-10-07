@@ -5,12 +5,12 @@ import React, {type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {closeRightHandSide, showMentions} from 'actions/views/rhs';
 import {getRhsState} from 'selectors/rhs';
 
-import HeaderIconButton from 'components/global_header/header_icon_button';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 
 import {RHSStates} from 'utils/constants';
@@ -47,12 +47,14 @@ const AtMentionsButton = (): JSX.Element => {
                 </>
             }
         >
-            <HeaderIconButton
-                icon={'at'}
+            <IconButton
+                style='inverted'
+                size='medium'
+                icon={<i className='icon icon-at' aria-hidden='true'/>}
                 toggled={rhsState === RHSStates.MENTION}
                 onClick={mentionButtonClick}
                 aria-expanded={rhsState === RHSStates.MENTION}
-                aria-controls='searchContainer' // Must be changed if the ID of the container changes
+                aria-controls='searchContainer'
                 aria-label={formatMessage({id: 'channel_header.recentMentions', defaultMessage: 'Recent mentions'})}
             />
         </WithTooltip>
