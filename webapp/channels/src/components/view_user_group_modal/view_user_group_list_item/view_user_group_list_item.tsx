@@ -12,6 +12,9 @@ import {getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isSyncableSource} from 'mattermost-redux/utils/group_utils';
 
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import StatusIcon from 'components/status_icon';
 import Avatar from 'components/widgets/users/avatar';
 
@@ -75,20 +78,19 @@ const ViewUserGroupListItem = (props: Props) => {
             </div>
             {
                 (!isSyncableSource(group.source.toLowerCase()) && props.permissionToLeaveGroup) &&
-                <button
-                    type='button'
-                    className='remove-group-member btn btn-icon btn-xs'
-                    aria-label={formatMessage({
-                        id: 'view_user_group_list_item.removeUserFromGroup',
-                        defaultMessage: 'Remove {user} from group',
-                    }, {user: Utils.getFullName(user)})}
-                    onClick={removeUserFromGroup}
-                >
-                    <i
-                        aria-hidden='true'
-                        className='icon icon-trash-can-outline'
+                <WithTooltip title={formatMessage({id: 'view_user_group_list_item.removeUserFromGroup', defaultMessage: 'Remove {user} from group'}, {user: Utils.getFullName(user)})}>
+                    <IconButton
+                        size='x-small'
+                        destructive={true}
+                        className='remove-group-member'
+                        icon={<i className='icon icon-trash-can-outline' aria-hidden='true'/>}
+                        aria-label={formatMessage({
+                            id: 'view_user_group_list_item.removeUserFromGroup',
+                            defaultMessage: 'Remove {user} from group',
+                        }, {user: Utils.getFullName(user)})}
+                        onClick={removeUserFromGroup}
                     />
-                </button>
+                </WithTooltip>
             }
         </div>
     );

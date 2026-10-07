@@ -19,6 +19,8 @@ import {
     FormatListNumberedIcon,
 } from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import KeyboardShortcutSequence, {
@@ -29,6 +31,7 @@ import type {
 
 import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 
+/** @deprecated Use IconButton from '@mattermost/compass-ui/components/icon-button' directly. Kept for backward compatibility. */
 export const IconContainer = styled.button`
     display: flex;
     min-width: 32px;
@@ -70,6 +73,7 @@ export const IconContainer = styled.button`
         }
     }
 `;
+
 
 interface FormattingIconProps {
     id?: string;
@@ -117,41 +121,16 @@ const MAP_MARKDOWN_MODE_TO_KEYBOARD_SHORTCUTS: Record<FormattingIconProps['mode'
 };
 
 const FormattingIcon = forwardRef<HTMLButtonElement, FormattingIconProps>((props, ref) => {
-    /**
-     * by passing in the otherProps spread we guarantee that accessibility
-     * properties like aria-label, etc. get added to the DOM
-     */
     const {mode, onClick, isActive, className, ...otherProps} = props;
     const handleMouseDown = React.useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
     }, []);
 
-    /* get the correct Icon from the IconMap */
-    const Icon = MAP_MARKDOWN_MODE_TO_ICON[mode];
+    const CompassIcon = MAP_MARKDOWN_MODE_TO_ICON[mode];
     const {formatMessage} = useIntl();
     const ariaLabelDefinition = MAP_MARKDOWN_MODE_TO_ARIA_LABEL[mode];
     const buttonAriaLabel = formatMessage(ariaLabelDefinition);
 
-    const bodyAction = (
-        <IconContainer
-            ref={ref}
-            type='button'
-            id={props.id || `FormattingControl_${mode}`}
-            onClick={onClick}
-            onMouseDown={handleMouseDown}
-            aria-label={buttonAriaLabel}
-            aria-pressed={typeof isActive === 'boolean' ? isActive : undefined}
-            className={classNames(className, {active: isActive})}
-            {...otherProps}
-        >
-            <Icon
-                color={'currentColor'}
-                size={18}
-            />
-        </IconContainer>
-    );
-
-    /* get the correct tooltip from the ShortcutsMap */
     const shortcut = MAP_MARKDOWN_MODE_TO_KEYBOARD_SHORTCUTS[mode];
 
     return (
@@ -164,7 +143,19 @@ const FormattingIcon = forwardRef<HTMLButtonElement, FormattingIconProps>((props
                 />
             }
         >
-            {bodyAction}
+            <IconButton
+                ref={ref}
+                id={props.id || `FormattingControl_${mode}`}
+                size='small'
+                icon={<Icon glyph={<CompassIcon color='currentColor' size={18}/>}/>}
+                onClick={onClick}
+                onMouseDown={handleMouseDown}
+                aria-label={buttonAriaLabel}
+                aria-pressed={typeof isActive === 'boolean' ? isActive : undefined}
+                toggled={isActive === true}
+                className={classNames(className)}
+                {...otherProps}
+            />
         </WithTooltip>
     );
 });

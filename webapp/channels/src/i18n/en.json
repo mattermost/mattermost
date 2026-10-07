@@ -31391,6 +31391,10 @@
     "defaultMessage": "Use SSO (with OpenID, SAML, Google, O365)",
     "description": "Carousel slide title in the trial benefits modal; SSO means single sign-on."
   },
+  "tutorial_tip.close": {
+    "defaultMessage": "Close",
+    "description": "Accessible label for the close (×) button in an in-app tour tip."
+  },
   "tutorial_tip.done": {
     "defaultMessage": "Done",
     "description": "Button on the final step of an in-app tour tip; dismisses the tour."

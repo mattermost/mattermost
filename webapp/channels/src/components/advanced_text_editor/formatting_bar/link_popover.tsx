@@ -13,6 +13,8 @@ import {
     TrashCanOutlineIcon,
     TextBoxOutlineIcon,
 } from '@mattermost/compass-icons/components';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {RootHtmlPortalId} from 'utils/constants';
 import {isUrlSafe} from 'utils/url';
@@ -66,31 +68,6 @@ const HintText = styled.span`
     color: rgba(var(--center-channel-color-rgb), 0.56);
     font-size: 12px;
     white-space: nowrap;
-`;
-
-const IconButton = styled.button`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    flex-shrink: 0;
-    padding: 0;
-    border: none;
-    border-radius: 4px;
-    background: transparent;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
-    cursor: pointer;
-
-    &:hover {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.72);
-    }
-
-    &.danger:hover {
-        background: rgba(var(--error-text-rgb, 210, 75, 78), 0.08);
-        color: var(--error-text);
-    }
 `;
 
 const RowIcon = styled.span`
@@ -263,29 +240,25 @@ const LinkPopover = ({editor, onClose}: LinkPopoverProps) => {
                         </HintText>
                     )}
                     {isSaved && (
-                        <IconButton
-                            type='button'
-                            onClick={handleOpenExternal}
-                            title={formatMessage({id: 'wysiwyg.link.open', defaultMessage: 'Open link'})}
-                        >
-                            <OpenInNewIcon
-                                size={18}
-                                color='currentColor'
+                        <WithTooltip title={formatMessage({id: 'wysiwyg.link.open', defaultMessage: 'Open link'})}>
+                            <IconButton
+                                size='small'
+                                icon={<OpenInNewIcon size={18} color='currentColor'/>}
+                                onClick={handleOpenExternal}
+                                aria-label={formatMessage({id: 'wysiwyg.link.open', defaultMessage: 'Open link'})}
                             />
-                        </IconButton>
+                        </WithTooltip>
                     )}
                     {isSaved && (
-                        <IconButton
-                            type='button'
-                            className='danger'
-                            onClick={handleRemove}
-                            title={formatMessage({id: 'wysiwyg.link.remove', defaultMessage: 'Remove link'})}
-                        >
-                            <TrashCanOutlineIcon
-                                size={18}
-                                color='currentColor'
+                        <WithTooltip title={formatMessage({id: 'wysiwyg.link.remove', defaultMessage: 'Remove link'})}>
+                            <IconButton
+                                size='small'
+                                destructive={true}
+                                icon={<TrashCanOutlineIcon size={18} color='currentColor'/>}
+                                onClick={handleRemove}
+                                aria-label={formatMessage({id: 'wysiwyg.link.remove', defaultMessage: 'Remove link'})}
                             />
-                        </IconButton>
+                        </WithTooltip>
                     )}
                 </Row>
                 {!hasSelection && !isEditing && (

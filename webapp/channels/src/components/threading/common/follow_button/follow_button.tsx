@@ -6,6 +6,7 @@ import React, {memo} from 'react';
 import type {ComponentProps} from 'react';
 import {useIntl} from 'react-intl';
 
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import Button from '../button';
@@ -37,23 +38,16 @@ function FollowButton({
         const {className, disabled, onClick} = props;
         return (
             <WithTooltip title={label}>
-                <button
-                    type='button'
-                    className={classNames(
-                        'btn btn-icon btn-sm FollowButton FollowButton--icon',
-                        {'btn-force-active': following},
-                        className,
-                    )}
+                <IconButton
+                    size='small'
+                    className={classNames('FollowButton FollowButton--icon', className)}
+                    icon={<i className={classNames('icon', following ? 'icon-bell-outline' : 'icon-bell-off-outline')} aria-hidden='true'/>}
+                    toggled={following}
                     disabled={Boolean(disabled)}
                     aria-label={label}
                     aria-pressed={following}
                     onClick={onClick}
-                >
-                    <i
-                        className={classNames('icon', following ? 'icon-bell-outline' : 'icon-bell-off-outline')}
-                        aria-hidden={true}
-                    />
-                </button>
+                />
             </WithTooltip>
         );
     }
