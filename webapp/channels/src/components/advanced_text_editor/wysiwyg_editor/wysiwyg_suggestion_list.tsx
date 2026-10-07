@@ -33,6 +33,7 @@ import type {ProviderResults, SuggestionResults} from 'components/suggestion/sug
 import {normalizeResultsFromProvider, countResults} from 'components/suggestion/suggestion_results';
 
 import Constants from 'utils/constants';
+import {getPxToSubstract} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -70,6 +71,12 @@ function getAllTerms(results: SuggestionResults): string[] {
     return [];
 }
 
+type SuggestionBoxAlignment = {
+    lineHeight: number;
+    pixelsToMoveX: number;
+    pixelsToMoveY: number;
+};
+
 function getTextBeforeCursor(editor: Editor): string {
     const {state} = editor;
     const {from} = state.selection;
@@ -79,6 +86,38 @@ function getTextBeforeCursor(editor: Editor): string {
     return state.doc.textBetween(startOfLine, from, '\n');
 }
 
+function getTriggerPos(editor: Editor, matchedPretext: string): number | null {
+    const startOfLine = editor.state.selection.$from.start();
+    const matchIndex = getTextBeforeCursor(editor).lastIndexOf(matchedPretext);
+
+    return matchIndex === -1 ? null : startOfLine + matchIndex;
+}
+
+/**
+ * The suggestion list is absolutely positioned against the top left corner of the editor, so SuggestionList needs
+ * the offset of the trigger character within the editor to render it under the caret instead of in that corner.
+ */
+function getTriggerAlignment(editor: Editor, triggerPos: number, triggerCharacter: string): SuggestionBoxAlignment | undefined {
+    const {view} = editor;
+
+    let coords;
+    try {
+        coords = view.coordsAtPos(triggerPos);
+    } catch {
+        return undefined;
+    }
+
+    const editorRect = view.dom.getBoundingClientRect();
+    const listWidth = Math.min(editorRect.width, Constants.SUGGESTION_LIST_MAXWIDTH);
+    const offsetX = coords.left - editorRect.left - getPxToSubstract(triggerCharacter);
+
+    return {
+        lineHeight: parseInt(getComputedStyle(view.dom).lineHeight, 10) || 0,
+        pixelsToMoveX: Math.round(Math.min(Math.max(offsetX, 0), Math.max(editorRect.width - listWidth, 0))),
+        pixelsToMoveY: Math.round(coords.top - editorRect.top),
+    };
+}
+
 const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => {
     const dispatch = useDispatch();
 
@@ -86,9 +125,12 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
     const [pretext, setPretext] = useState('');
     const [selection, setSelection] = useState('');
     const [isOpen, setIsOpen] = useState(false);
+    const [suggestionBoxAlgn, setSuggestionBoxAlgn] = useState<SuggestionBoxAlignment>();
 
     const editorDomRef = useRef<HTMLDivElement | null>(null);
+    const editorRef = useRef<Editor | null>(null);
     useEffect(() => {
+        editorRef.current = editor;
         if (editor && !editor.isDestroyed) {
             editorDomRef.current = editor.view.dom as HTMLDivElement;
         }
@@ -113,6 +155,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
     const delayChannelAutocomplete = config.DelayChannelAutocomplete === 'true';
 
     const matchedPretextRef = useRef('');
+    const alignedTriggerPosRef = useRef<number | null>(null);
 
     const providers = useMemo(() => {
         return [
@@ -139,16 +182,30 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
         ];
     }, [dispatch, currentUserId, channelId, rootId, currentTeamId, autocompleteGroups, priorityProfiles, defaultAgent, delayChannelAutocomplete]);
 
-    const handleReceivedSuggestions = useCallback((suggestions: ProviderResults) => {
+    const handleReceivedSuggestions = useCallback((suggestions: ProviderResults, triggerCharacter = '') => {
         const normalized = normalizeResultsFromProvider(suggestions);
         const terms = getAllTerms(normalized);
+        const matchedPretext = suggestions.matchedPretext || '';
 
         setResults(normalized);
-        setPretext(suggestions.matchedPretext || '');
-        matchedPretextRef.current = suggestions.matchedPretext || '';
+        setPretext(matchedPretext);
+        matchedPretextRef.current = matchedPretext;
 
         if (countResults(normalized) > 0 && terms.length > 0) {
             setSelection(terms[0]);
+
+            const currentEditor = editorRef.current;
+            if (currentEditor && !currentEditor.isDestroyed) {
+                const triggerPos = getTriggerPos(currentEditor, matchedPretext);
+
+                // Measure once per trigger so the list stays put while the search term is typed, but follows
+                // the caret again as soon as another trigger character opens it somewhere else.
+                if (triggerPos !== null && triggerPos !== alignedTriggerPosRef.current) {
+                    alignedTriggerPosRef.current = triggerPos;
+                    setSuggestionBoxAlgn(getTriggerAlignment(currentEditor, triggerPos, triggerCharacter));
+                }
+            }
+
             setIsOpen(true);
         } else {
             setIsOpen(false);
@@ -165,7 +222,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
 
             let handled = false;
             for (const provider of providers) {
-                handled = provider.handlePretextChanged(text, handleReceivedSuggestions);
+                handled = provider.handlePretextChanged(text, (suggestions) => handleReceivedSuggestions(suggestions, provider.triggerCharacter));
                 if (handled) {
                     break;
                 }
@@ -217,24 +274,16 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
             return false;
         }
 
-        const {state} = editor;
-        const {from} = state.selection;
-        const cursorNode = state.selection.$from;
-        const startOfLine = cursorNode.start();
-        const textBeforeCursor = state.doc.textBetween(startOfLine, from, '\n');
-
-        const matchIndex = textBeforeCursor.lastIndexOf(matchedPretext);
-        if (matchIndex === -1) {
+        const {from} = editor.state.selection;
+        const triggerPos = getTriggerPos(editor, matchedPretext);
+        if (triggerPos === null) {
             setIsOpen(false);
             return false;
         }
 
-        const deleteFrom = startOfLine + matchIndex;
-        const deleteTo = from;
-
         const completedText = `${term} `;
 
-        editor.chain().focus().deleteRange({from: deleteFrom, to: deleteTo}).insertContent(completedText).run();
+        editor.chain().focus().deleteRange({from: triggerPos, to: from}).insertContent(completedText).run();
 
         closeSuggestions();
         return true;
@@ -250,6 +299,11 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
 
     useEffect(() => {
         isOpenRef.current = isOpen;
+
+        if (!isOpen) {
+            // Re-measure the next time the list opens since the composer may have moved in the meantime.
+            alignedTriggerPosRef.current = null;
+        }
     }, [isOpen]);
 
     useEffect(() => {
@@ -330,6 +384,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
             cleared={false}
             results={results}
             selection={selection}
+            suggestionBoxAlgn={suggestionBoxAlgn}
             onCompleteWord={handleCompleteWord}
             onItemHover={handleItemHover}
             position='top'
