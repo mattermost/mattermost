@@ -68,6 +68,13 @@
     &__text {
         line-height: 20px;
     }
+
+    // Compass Checkbox renders label text after the control; reverse flex order when
+    // apps forms request label_position "before".
+    &--label-before {
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+    }
 }
 
 .checkbox-matrix {

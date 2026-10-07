@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import type {ReactNode} from 'react';
 import React from 'react';
 
@@ -36,26 +37,23 @@ export default function CheckboxSettingItem({
     dataTestId,
     descriptionAboveContent = false,
 }: Props) {
+    const checkboxId = inputFieldData.name.replaceAll(' ', '-');
+
     const content = (
         <div
             key={inputFieldData.name}
             className='mm-modal-generic-section-item__fieldset-checkbox-ctr'
         >
-            <input
-                className='mm-modal-generic-section-item__input-checkbox'
+            <Checkbox
+                className='mm-modal-generic-section-item__fieldset-checkbox'
                 data-testid={inputFieldData.dataTestId}
-                type='checkbox'
                 name={inputFieldData.name}
-                id={inputFieldData.name.replaceAll(' ', '-')}
+                id={checkboxId}
                 checked={inputFieldValue}
                 onChange={(e) => handleChange(e.target.checked)}
-            />
-            <label
-                htmlFor={inputFieldData.name.replaceAll(' ', '-')}
-                className='mm-modal-generic-section-item__fieldset-checkbox'
             >
                 {inputFieldTitle}
-            </label>
+            </Checkbox>
         </div>
     );
 
