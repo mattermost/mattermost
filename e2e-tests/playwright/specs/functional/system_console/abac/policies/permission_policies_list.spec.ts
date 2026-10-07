@@ -72,7 +72,7 @@ test.describe('Permission Policies - List Page', () => {
 
         await expect(
             systemConsolePage.page.getByText(
-                'Create policies to control file upload and download permissions based on user attributes',
+                'Create policies to control channel action permissions based on user attributes',
                 {exact: false},
             ),
         ).toBeVisible();

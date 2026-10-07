@@ -107,6 +107,16 @@ type Store interface {
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
 	ChannelJoinRequest() ChannelJoinRequestStore
+	HealthFinding() HealthFindingStore
+}
+
+type HealthFindingStore interface {
+	GetByFingerprints(fingerprints []string) ([]*model.HealthFinding, error)
+	List(filter model.HealthFindingFilter) ([]*model.HealthFinding, error)
+	Upsert(findings []*model.HealthFinding) error
+	Mute(fingerprint, userID string, at int64) error
+	Unmute(fingerprint string) error
+	DeleteBefore(lastSeenBefore int64) (int64, error)
 }
 
 type RetentionPolicyStore interface {
@@ -1230,7 +1240,7 @@ type PropertyValueStore interface {
 	CreateMany(values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Get(groupID, id string) (*model.PropertyValue, error)
 	GetMany(groupID string, ids []string) ([]*model.PropertyValue, error)
-	SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
+	SearchPropertyValues(rctx request.CTX, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
 	Update(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Upsert(values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Delete(groupID string, id string) error
@@ -1293,11 +1303,21 @@ type AttributesStore interface {
 	// change that can affect many users at once (e.g. deleting a field). No-op outside the local
 	// cache layer.
 	ClearUserPropertyValuesEpochCache()
+
+	// InvalidateUserAttributes drops the cached user-attributes Subject for a single user. Call
+	// after that user's property values change. No-op outside the local cache layer.
+	InvalidateUserAttributes(userID string)
+
+	// ClearUserAttributesCache drops all cached user-attributes Subjects. Call after a change
+	// that can affect many users at once (e.g. deleting a field). No-op outside the local cache
+	// layer.
+	ClearUserAttributesCache()
 }
 
 type SessionAttributeStore interface {
 	Refresh(sessionID string, attrs map[string]any, updatedAt int64) error
 	Get(sessionID string) (map[string]any, map[string]int64, error)
+	GetEpoch(sessionID string) (string, error)
 	Invalidate(sessionID string) error
 	Clear() error
 }

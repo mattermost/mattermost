@@ -4,7 +4,7 @@
 import type {Page} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-import {ChannelsPost} from '@/ui/components';
+import {ChannelAttributeLabels, ChannelsPost} from '@/ui/components';
 
 export default class ThreadsPage {
     readonly page: Page;
@@ -12,6 +12,12 @@ export default class ThreadsPage {
     readonly threadsList;
 
     readonly noThreadSelected;
+
+    readonly threadPane;
+
+    readonly followButton;
+
+    readonly attributes: ChannelAttributeLabels;
 
     constructor(page: Page) {
         this.page = page;
@@ -21,6 +27,15 @@ export default class ThreadsPage {
         this.noThreadSelected = page.getByTestId('no-results-title').filter({
             hasText: /Looks like you’re all caught up|Catch up on your threads/,
         });
+
+        this.threadPane = page.locator('#thread-pane-container');
+        this.followButton = this.threadPane.locator('.FollowButton');
+
+        // The thread header merges the info and header chip slots into one row.
+        this.attributes = new ChannelAttributeLabels(
+            this.threadPane.getByTestId('channelAttributeLabels-info-header'),
+            'info-header',
+        );
     }
 
     async goto(teamName: string) {
@@ -33,6 +48,11 @@ export default class ThreadsPage {
 
     async toHaveThreadSelected() {
         await expect(this.noThreadSelected).not.toBeAttached();
+    }
+
+    async selectThread(rootMessage: string) {
+        await this.threadsList.getByText(rootMessage).click();
+        await this.toHaveThreadSelected();
     }
 
     async toNotHaveThreadSelected() {

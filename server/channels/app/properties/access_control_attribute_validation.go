@@ -360,10 +360,9 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOptions(field 
 // sanitizeAndValidateOwners normalizes and validates the owners attr on a
 // field. Each entry is trimmed and must be well-formed ({id, type, scopes}
 // with a recognized type); scopes are trimmed and deduped; duplicate owner
-// entries (same type+id) are merged. Owners may not be combined with
-// managed="admin". An empty or absent list is removed so HasPropertyFieldOwners
-// stays false. The normalized list is written back in canonical form
-// ([]any of maps) so downstream readers see a single shape.
+// entries (same type+id) are merged. An empty or absent list is removed so
+// HasPropertyFieldOwners stays false. The normalized list is written back in
+// canonical form ([]any of maps) so downstream readers see a single shape.
 //
 // Defensive bounds (see the Property Owner* constants) cap the id and scope
 // lengths and the number of owners/scopes so a buggy or hostile owner cannot
@@ -391,10 +390,6 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOwners(field *
 	if len(owners) == 0 {
 		delete(field.Attrs, model.PropertyAttrsOwners)
 		return nil
-	}
-
-	if managed, _ := field.Attrs[model.PropertyFieldAttrManaged].(string); managed == "admin" {
-		return fmt.Errorf("owners cannot be combined with managed=admin: %w", ErrInvalidFieldAttrs)
 	}
 
 	normalized := make([]model.PropertyOwner, 0, len(owners))
@@ -524,7 +519,9 @@ func rankSortKey(rank *int) int {
 //   - When managed="admin", PermissionValues is set to sysadmin. This is
 //     gated on PermissionManageSystem; callers without an identifiable
 //     caller ID (e.g. internal callers with no session on rctx) are
-//     treated as non-admin and rejected.
+//     treated as non-admin and rejected. A plugin listed as an owner of a
+//     field that is already admin-managed is exempt, so it can edit the
+//     field or remove itself as owner without being a system admin.
 //   - When the field is owner-managed, PermissionValues is pinned to sysadmin.
 //     Human value writes are already blocked authoritatively by
 //     checkOwnerValueWriteAccess in the property-service hook, but pinning
@@ -534,19 +531,31 @@ func rankSortKey(rank *int) int {
 //   - Otherwise, PermissionValues is left as-is when set, and default-filled
 //     by ObjectType when nil (member for user fields, sysadmin for system
 //     and template). Caller pins are never downgraded.
-func (h *AccessControlAttributeValidationHook) enforceGroupPermissions(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
+func (h *AccessControlAttributeValidationHook) enforceGroupPermissions(rctx request.CTX, field, existing *model.PropertyField) (*model.PropertyField, error) {
 	sysadmin := model.PermissionLevelSysadmin
 
 	if managed, _ := field.Attrs[model.PropertyFieldAttrManaged].(string); managed == "admin" {
-		// Verify the caller has admin privileges. Default-deny if the
-		// permission checker isn't wired up or if the caller is
-		// unidentifiable — we never silently promote to sysadmin.
-		if h.permissionChecker == nil {
-			return nil, fmt.Errorf("missing permission to set managed=admin: no permission checker configured: %w", ErrAdminRequired)
-		}
 		callerID := h.propertyService.extractCallerID(rctx)
-		if callerID == "" || !h.permissionChecker(rctx, callerID, model.PermissionManageSystem) {
-			return nil, fmt.Errorf("missing permission to set managed=admin: only system admins can set managed=admin: %w", ErrAdminRequired)
+
+		exempt := false
+		if existing != nil {
+			if exManaged, _ := existing.Attrs[model.PropertyFieldAttrManaged].(string); exManaged == "admin" {
+				if isMachineCaller(h.pluginChecker, callerID) && isListedOwner(existing, callerID) {
+					exempt = true
+				}
+			}
+		}
+
+		if !exempt {
+			// Verify the caller has admin privileges. Default-deny if the
+			// permission checker isn't wired up or if the caller is
+			// unidentifiable — we never silently promote to sysadmin.
+			if h.permissionChecker == nil {
+				return nil, fmt.Errorf("missing permission to set managed=admin: no permission checker configured: %w", ErrAdminRequired)
+			}
+			if callerID == "" || !h.permissionChecker(rctx, callerID, model.PermissionManageSystem) {
+				return nil, fmt.Errorf("missing permission to set managed=admin: only system admins can set managed=admin: %w", ErrAdminRequired)
+			}
 		}
 		field.PermissionValues = &sysadmin
 	} else if model.HasPropertyFieldOwners(field) {
@@ -605,7 +614,7 @@ func (h *AccessControlAttributeValidationHook) PreCreatePropertyField(rctx reque
 		return nil, err
 	}
 
-	return h.enforceGroupPermissions(rctx, field)
+	return h.enforceGroupPermissions(rctx, field, nil)
 }
 
 func (h *AccessControlAttributeValidationHook) PreUpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, error) {
@@ -630,7 +639,7 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyField(rctx reque
 		return nil, err
 	}
 
-	return h.enforceGroupPermissions(rctx, field)
+	return h.enforceGroupPermissions(rctx, field, existing)
 }
 
 func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
@@ -677,7 +686,7 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx requ
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 
-		updated, err := h.enforceGroupPermissions(rctx, field)
+		updated, err := h.enforceGroupPermissions(rctx, field, existing)
 		if err != nil {
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
@@ -969,7 +978,7 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 		}
 	}
 
-	return h.validateChangePolicy(groupID, values, fieldMap)
+	return h.validateChangePolicy(rctx, groupID, values, fieldMap)
 }
 
 // validateChangePolicy enforces attrs.change_policy: a value may be set once,
@@ -984,7 +993,7 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 // This is a read-then-write with no transaction around it, so two concurrent
 // first writes can both pass. That is the window the rest of the property system
 // already lives with, and the loser overwrites a value set milliseconds earlier.
-func (h *AccessControlAttributeValidationHook) validateChangePolicy(groupID string, values []*model.PropertyValue, fieldMap map[string]*model.PropertyField) error {
+func (h *AccessControlAttributeValidationHook) validateChangePolicy(rctx request.CTX, groupID string, values []*model.PropertyValue, fieldMap map[string]*model.PropertyField) error {
 	// Grouped by target so one search covers every governed field on a channel:
 	// PropertyValueSearchOpts carries a single FieldID, so a per-field lookup
 	// would cost a round trip each. "any" is the default and the common case,
@@ -1002,7 +1011,7 @@ func (h *AccessControlAttributeValidationHook) validateChangePolicy(groupID stri
 	}
 
 	for targetID, pending := range governed {
-		existing, err := h.getValuesForTarget(groupID, model.PropertyValueTargetTypeChannel, targetID)
+		existing, err := h.getValuesForTarget(rctx, groupID, model.PropertyValueTargetTypeChannel, targetID)
 		if err != nil {
 			return err
 		}
@@ -1131,7 +1140,7 @@ func newRequiredAttrDisabledError(field *model.PropertyField) error {
 
 // getValuesForTarget loads every value stored against one target, paging with
 // the same bounds as the access-control lookups.
-func (h *AccessControlAttributeValidationHook) getValuesForTarget(groupID, targetType, targetID string) ([]*model.PropertyValue, error) {
+func (h *AccessControlAttributeValidationHook) getValuesForTarget(rctx request.CTX, groupID, targetType, targetID string) ([]*model.PropertyValue, error) {
 	allValues := []*model.PropertyValue{}
 	var cursor model.PropertyValueSearchCursor
 
@@ -1149,7 +1158,7 @@ func (h *AccessControlAttributeValidationHook) getValuesForTarget(groupID, targe
 			opts.Cursor = cursor
 		}
 
-		values, err := h.propertyService.searchPropertyValues(groupID, opts)
+		values, err := h.propertyService.searchPropertyValues(rctx, groupID, opts)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load existing values for target %s: %w", targetID, err)
 		}
@@ -1250,7 +1259,7 @@ func (h *AccessControlAttributeValidationHook) PreDeletePropertyValuesForTarget(
 	}}); err != nil {
 		return err
 	}
-	values, err := h.getValuesForTarget(groupID, targetType, targetID)
+	values, err := h.getValuesForTarget(rctx, groupID, targetType, targetID)
 	if err != nil {
 		return err
 	}

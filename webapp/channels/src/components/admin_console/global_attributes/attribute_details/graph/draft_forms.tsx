@@ -127,7 +127,6 @@ export function ChildDraftRow({
                 aria-hidden={true}
             >
                 <span className='attribute-options-graph-values__collapse-spacer'/>
-                <span className='attribute-options-graph-values__draft-handle-spacer'/>
             </span>
             <Input
                 name='graph_child_option_name'
