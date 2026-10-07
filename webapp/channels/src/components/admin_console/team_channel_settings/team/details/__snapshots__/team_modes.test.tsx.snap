@@ -39,18 +39,28 @@ exports[`admin_console/team_channel_settings/team/TeamModes should match snapsho
               class="line-switch__toggle"
               data-testid="allowAllToggleSwitch"
             >
-              <button
-                aria-pressed="false"
-                class="btn btn-lg btn-toggle"
-                data-testid="allowAllToggleSwitch-button"
-                id="allowAllToggleSwitch"
-                tabindex="0"
-                type="button"
+              <label
+                class="_switch_1hx2q_2 _switch--size-large_1hx2q_126"
+                for="allowAllToggleSwitch"
               >
-                <div
-                  class="handle"
-                />
-              </button>
+                <span
+                  class="_switch__track_1hx2q_47"
+                >
+                  <input
+                    aria-checked="false"
+                    class="_switch__input_1hx2q_12"
+                    data-testid="allowAllToggleSwitch-button"
+                    id="allowAllToggleSwitch"
+                    role="switch"
+                    tabindex="0"
+                    type="checkbox"
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="_switch__knob_1hx2q_77"
+                  />
+                </span>
+              </label>
             </div>
           </div>
           <div
@@ -87,18 +97,29 @@ exports[`admin_console/team_channel_settings/team/TeamModes should match snapsho
               class="line-switch__toggle"
               data-testid="allowedDomainsToggleSwitch"
             >
-              <button
-                aria-pressed="true"
-                class="btn btn-lg btn-toggle active"
-                data-testid="allowedDomainsToggleSwitch-button"
-                id="allowedDomainsToggleSwitch"
-                tabindex="0"
-                type="button"
+              <label
+                class="_switch_1hx2q_2 _switch--size-large_1hx2q_126"
+                for="allowedDomainsToggleSwitch"
               >
-                <div
-                  class="handle"
-                />
-              </button>
+                <span
+                  class="_switch__track_1hx2q_47"
+                >
+                  <input
+                    aria-checked="true"
+                    checked=""
+                    class="_switch__input_1hx2q_12"
+                    data-testid="allowedDomainsToggleSwitch-button"
+                    id="allowedDomainsToggleSwitch"
+                    role="switch"
+                    tabindex="0"
+                    type="checkbox"
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="_switch__knob_1hx2q_77"
+                  />
+                </span>
+              </label>
             </div>
           </div>
           <div

@@ -1,0 +1,13 @@
+.Toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.Toggle__state-label {
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 16px;
+    white-space: nowrap;
+}

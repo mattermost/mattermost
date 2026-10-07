@@ -98,7 +98,7 @@ describe('custom plugin sections and settings', () => {
 
     const expectPluginActionsInMetadataPanel = () => {
         const wrapper = document.querySelector('.PluginMetadataPanel__actionsPanel');
-        const toggleButton = screen.queryByRole('button', {name: 'Enable plugin'}) || screen.getByRole('button', {name: 'Disable plugin'});
+        const toggleButton = screen.queryByRole('switch', {name: 'Enable plugin'}) || screen.getByRole('switch', {name: 'Disable plugin'});
         expect(wrapper).toContainElement(toggleButton);
         expect(wrapper).toContainElement(screen.getByRole('button', {name: 'Plugin actions'}));
     };
@@ -112,7 +112,7 @@ describe('custom plugin sections and settings', () => {
             {...baseState});
 
         expectPluginPageTitle('testplugin', 'testplugin');
-        expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('switch', {name: 'Disable plugin'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
         expectPluginActionsInMetadataPanel();
         const runningBadge = screen.getByTestId('plugin-metadata-status');
@@ -564,7 +564,7 @@ describe('custom plugin sections and settings', () => {
             {...state});
 
         expectPluginPageTitle('testplugin', 'testplugin');
-        expect(screen.getByRole('button', {name: 'Enable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('switch', {name: 'Enable plugin'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
@@ -653,7 +653,7 @@ describe('custom plugin sections and settings', () => {
             {...state});
 
         expectPluginPageTitle('testplugin', 'testplugin');
-        expect(screen.getByRole('button', {name: 'Enable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('switch', {name: 'Enable plugin'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
@@ -708,7 +708,7 @@ describe('custom plugin sections and settings', () => {
             state,
         );
 
-        expect(screen.getByRole('button', {name: 'Enable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('switch', {name: 'Enable plugin'})).toBeInTheDocument();
 
         updateStoreState({
             entities: {
@@ -742,8 +742,8 @@ describe('custom plugin sections and settings', () => {
             />,
         );
 
-        expect(screen.queryByRole('button', {name: 'Enable plugin'})).not.toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
+        expect(screen.queryByRole('switch', {name: 'Enable plugin'})).not.toBeInTheDocument();
+        expect(screen.getByRole('switch', {name: 'Disable plugin'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
     });
@@ -1001,11 +1001,11 @@ describe('custom plugin sections and settings', () => {
             {...state});
 
         expectPluginPageTitle('testplugin', 'testplugin');
-        expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('switch', {name: 'Disable plugin'})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
-        expect(screen.queryByRole('button', {name: 'Enable plugin'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('switch', {name: 'Enable plugin'})).not.toBeInTheDocument();
         expect(screen.queryByText('In order to view and configure plugin settings, enable the plugin.')).not.toBeInTheDocument();
         expect(screen.getByText('Custom Component Section 1')).toBeInTheDocument();
         expect(screen.getByText('Custom Component Section 2')).toBeInTheDocument();
