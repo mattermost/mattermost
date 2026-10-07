@@ -25559,9 +25559,21 @@
     "defaultMessage": "Download all",
     "description": "Button above a post's media gallery that downloads every attachment in it."
   },
+  "media_gallery.download_all_error": {
+    "defaultMessage": "Unable to download these files.",
+    "description": "Inline error next to the media gallery's Download all button when the archive could not be created and the server gave no reason."
+  },
   "media_gallery.download_all_label": {
     "defaultMessage": "Download all {count, plural, one {# item} other {# items}}",
     "description": "Accessibility label for the button that downloads all attachments in a post's media gallery; {count} is the number of items with plural forms."
+  },
+  "media_gallery.download_all_preparing": {
+    "defaultMessage": "Preparing {done} of {total}...",
+    "description": "Text and accessibility label of the media gallery's Download all button while the zip is being built; {done} is the number of files fetched so far, {total} the number of files."
+  },
+  "media_gallery.download_all_too_large": {
+    "defaultMessage": "These files are too large to download together. Download them one at a time.",
+    "description": "Inline error next to the media gallery's Download all button when the attachments exceed the size limit for a single zip."
   },
   "media_gallery.image_label": {
     "defaultMessage": "Image {current} of {total}: {name}",
