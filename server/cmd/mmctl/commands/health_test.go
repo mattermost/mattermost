@@ -331,7 +331,9 @@ func healthTestPacketFiles() map[string]string {
 		model.SupportPacketDiagnosticsFileName: "version: 2\nserver:\n  hostname: mm.example.com\n  version: 11.0.4\n",
 		model.SupportPacketConfigFileName: `{
     "ServiceSettings": {"SiteURL": "https://chat.example.com"},
-    "EmailSettings": {"SendPushNotifications": true, "PushNotificationServer": "http://push.example.com"}
+    "EmailSettings": {"SendPushNotifications": true, "PushNotificationServer": "http://push.example.com"},
+    "ClusterSettings": {"Enable": false},
+    "RateLimitSettings": {"Enable": true, "MemoryStoreSize": 10000}
 }`,
 	}
 }
