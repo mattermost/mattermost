@@ -80,6 +80,7 @@ const OVERVIEW_GROUPS = {
       'release-policy',
       {label: 'Server', landing: 'server', items: [
         'mattermost-server-releases',
+        'mattermost-v12-changelog',
         'mattermost-v11-changelog',
         'mattermost-v10-changelog',
         'unsupported-legacy-releases',
