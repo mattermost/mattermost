@@ -27,12 +27,7 @@
 
 button {
     .unread-badge {
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        border-radius: var(--radius-full);
         margin: 0 0 0 40px;
-        background: #f74343;
     }
 }
 

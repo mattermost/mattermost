@@ -30999,6 +30999,10 @@
     "defaultMessage": "{teamName} team unread",
     "description": "Accessible label of a team sidebar button with unread messages but no mentions; {teamName} is the team's display name."
   },
+  "unread_badge.aria_label": {
+    "defaultMessage": "Unread",
+    "description": "Accessible label for the small unread indicator dot on team icons and menu buttons."
+  },
   "terms_of_service.agreeButton": {
     "defaultMessage": "I Agree",
     "description": "Button on the custom Terms of Service acceptance screen to accept the terms."
