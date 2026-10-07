@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Tabs} from '@mattermost/compass-ui/components/tabs';
+import type {TabItem} from '@mattermost/compass-ui/components/tabs';
 import {Badge} from '@mui/base';
 import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -17,8 +19,6 @@ import {type Draft} from 'selectors/drafts';
 
 import DraftList from 'components/drafts/draft_list';
 import ScheduledPostList from 'components/drafts/scheduled_post_list';
-import Tab from 'components/tabs/tab';
-import Tabs from 'components/tabs/tabs';
 
 import {DRAFT_URL_SUFFIX, SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 
@@ -104,44 +104,68 @@ export default function DraftsAndSchedulePostsTabs(props: Props) {
         return '';
     }, [isDraftsTab, isScheduledPostsTab]);
 
-    return (
-        <Tabs
-            id='draft_tabs'
-            activeKey={activeTab}
-            mountOnEnter={true}
-            unmountOnExit={true}
+    const tabs = useMemo((): TabItem[] => [
+        {
+            key: TAB_KEYS.DRAFTS,
+            label: draftTabHeading,
+            id: 'draft_tab_drafts',
+            panelId: 'draft_tabpanel_drafts',
+            buttonProps: {
+                className: 'drafts_tab',
+                tabIndex: 0,
+            },
+        },
+        {
+            key: TAB_KEYS.SCHEDULED_POSTS,
+            label: scheduledPostsTabHeading,
+            id: 'draft_tab_scheduled_posts',
+            panelId: 'draft_tabpanel_scheduled_posts',
+            buttonProps: {
+                className: 'drafts_tab',
+            },
+        },
+    ], [draftTabHeading, scheduledPostsTabHeading]);
 
-            // @ts-expect-error The types that we have for React Bootstrap are for a newer version than we use
-            onSelect={handleSwitchTabs}
+    return (
+        <div
+            id='draft_tabs'
+            className='drafts-compass-tabs'
         >
-            <Tab
-                eventKey={TAB_KEYS.DRAFTS}
-                title={draftTabHeading}
-                unmountOnExit={true}
-                tabClassName='drafts_tab'
-                tabIndex={0}
-            >
-                <DraftList
-                    drafts={props.drafts}
-                    currentUser={props.currentUser}
-                    userDisplayName={props.userDisplayName}
-                    userStatus={props.userStatus}
-                />
-            </Tab>
-            <Tab
-                eventKey={TAB_KEYS.SCHEDULED_POSTS}
-                title={scheduledPostsTabHeading}
-                unmountOnExit={true}
-                tabClassName='drafts_tab'
-            >
-                <ScheduledPostList
-                    scheduledPosts={scheduledPosts || EMPTY_SCHEDULED_POSTS}
-                    currentUser={props.currentUser}
-                    userDisplayName={props.userDisplayName}
-                    userStatus={props.userStatus}
-                />
-            </Tab>
-        </Tabs>
+            <Tabs
+                tabs={tabs}
+                activeKey={activeTab}
+                onChange={handleSwitchTabs}
+            />
+            <div className='tab-content'>
+                {activeTab === TAB_KEYS.DRAFTS && (
+                    <div
+                        id='draft_tabpanel_drafts'
+                        role='tabpanel'
+                        aria-labelledby='draft_tab_drafts'
+                    >
+                        <DraftList
+                            drafts={props.drafts}
+                            currentUser={props.currentUser}
+                            userDisplayName={props.userDisplayName}
+                            userStatus={props.userStatus}
+                        />
+                    </div>
+                )}
+                {activeTab === TAB_KEYS.SCHEDULED_POSTS && (
+                    <div
+                        id='draft_tabpanel_scheduled_posts'
+                        role='tabpanel'
+                        aria-labelledby='draft_tab_scheduled_posts'
+                    >
+                        <ScheduledPostList
+                            scheduledPosts={scheduledPosts || EMPTY_SCHEDULED_POSTS}
+                            currentUser={props.currentUser}
+                            userDisplayName={props.userDisplayName}
+                            userStatus={props.userStatus}
+                        />
+                    </div>
+                )}
+            </div>
+        </div>
     );
 }
-
