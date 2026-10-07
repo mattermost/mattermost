@@ -271,6 +271,33 @@ func TestExpressionWithTeamContext(t *testing.T) {
 		require.Len(t, users, 2)
 		require.Equal(t, int64(2), count)
 	})
+
+	t.Run("complex expression reaches the PDP unchanged", func(t *testing.T) {
+		originalACS := th.App.Srv().ch.AccessControl
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().ch.AccessControl = originalACS
+			mockACS.AssertExpectations(t)
+		})
+
+		rctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id, Id: model.NewId()})
+		complexExpr := `(user.attributes.location == "US" || user.attributes.location == "EU") && user.attributes.department == "Eng"`
+
+		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), complexExpr, mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+			return opts.SubjectID == th.BasicUser.Id
+		})).Return([]*model.User{th.BasicUser}, int64(1), nil).Once()
+
+		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), complexExpr, mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+			return opts.SubjectID == "" && opts.TeamID == th.BasicTeam.Id
+		})).Return([]*model.User{th.BasicUser2}, int64(1), nil).Once()
+
+		users, count, appErr := th.App.TestExpressionWithTeamContext(rctx, complexExpr, model.SubjectSearchOptions{TeamID: th.BasicTeam.Id})
+		require.Nil(t, appErr)
+		require.Len(t, users, 1)
+		require.Equal(t, th.BasicUser2.Id, users[0].Id)
+		require.Equal(t, int64(1), count)
+	})
 }
 
 func TestSearchTeamAccessPolicies(t *testing.T) {
