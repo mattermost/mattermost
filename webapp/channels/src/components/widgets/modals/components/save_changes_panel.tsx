@@ -113,7 +113,6 @@ function SaveChangesPanel({
                 <Button
                     data-testid='SaveChangesPanel__cancel-btn'
                     emphasis='tertiary'
-                    size='small'
                     className={classNames('SaveChangesPanel__cancel-btn', {error: tabChangeError || state === 'error'})}
                     onClick={handleCancel}
                     disabled={saving}
@@ -128,7 +127,6 @@ function SaveChangesPanel({
                 <Button
                     data-testid='SaveChangesPanel__save-btn'
                     emphasis='primary'
-                    size='small'
                     className={classNames('SaveChangesPanel__save-btn', {error: tabChangeError || state === 'error', 'btn-force-disabled': saving})}
                     onClick={handleSubmit}
                     disabled={saveButtonDisabled}
