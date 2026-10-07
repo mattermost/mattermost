@@ -14,6 +14,7 @@ import {
     getSessionsInCalls,
 } from 'selectors/calls';
 
+import type {DialablePhone} from 'components/call_options_menu';
 import CallOptionsMenu, {useCanStartCall, usePhoneCallOptions, useStartDMCall} from 'components/call_options_menu';
 import type {MenuButtonComponentProps} from 'components/menu';
 import ProfilePopoverCallButton from 'components/profile_popover/profile_popover_calls_button';
@@ -68,6 +69,16 @@ const CallButton = ({
     const phones = usePhoneCallOptions(userId, Boolean(phoneAction) && shouldRenderButton && !hasDMCall);
     const startDMCall = useStartDMCall(userId, dmChannel);
 
+    function handleStartCall() {
+        hide?.();
+        startDMCall();
+    }
+
+    function handlePhoneCall(phone: DialablePhone) {
+        hide?.();
+        phoneAction?.({number: phone.number, userId, label: phone.label, fieldId: phone.fieldId});
+    }
+
     if (!shouldRenderButton) {
         return null;
     }
@@ -79,14 +90,8 @@ const CallButton = ({
                 buttonId='startCallButton'
                 button={CallOptionsMenuButton}
                 phones={phones}
-                onStartCall={() => {
-                    hide?.();
-                    startDMCall();
-                }}
-                onPhoneCall={(phone) => {
-                    hide?.();
-                    phoneAction({number: phone.number, userId, label: phone.label, fieldId: phone.fieldId});
-                }}
+                onStartCall={handleStartCall}
+                onPhoneCall={handlePhoneCall}
                 anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
                 transformOrigin={{vertical: 'top', horizontal: 'right'}}
             />

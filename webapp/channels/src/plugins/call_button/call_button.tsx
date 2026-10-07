@@ -18,6 +18,7 @@ import {getUserIdFromChannelName, isDirectChannel} from 'mattermost-redux/utils/
 
 import {getSessionsInCalls} from 'selectors/calls';
 
+import type {DialablePhone} from 'components/call_options_menu';
 import CallOptionsMenu, {useCanStartCall, usePhoneCallOptions} from 'components/call_options_menu';
 import type {MenuButtonComponentProps} from 'components/menu';
 import Menu from 'components/widgets/menu/menu';
@@ -75,9 +76,15 @@ export default function CallButton({pluginCallComponents, currentChannel, channe
         } as CSSProperties,
     };
 
-    if (singleCallButton?.phoneAction && dmUserId && phones.length > 0) {
-        const phoneAction = singleCallButton.phoneAction;
+    function handleStartCall() {
+        singleCallButton?.action?.(currentChannel, channelMember);
+    }
 
+    function handlePhoneCall(phone: DialablePhone) {
+        singleCallButton?.phoneAction?.({number: phone.number, userId: dmUserId ?? '', label: phone.label, fieldId: phone.fieldId});
+    }
+
+    if (singleCallButton?.phoneAction && dmUserId && phones.length > 0) {
         return (
             <div
                 style={style.container}
@@ -89,8 +96,8 @@ export default function CallButton({pluginCallComponents, currentChannel, channe
                     button={StartCallMenuButton}
                     disabled={!clickEnabled}
                     phones={phones}
-                    onStartCall={() => singleCallButton.action?.(currentChannel, channelMember)}
-                    onPhoneCall={(phone) => phoneAction({number: phone.number, userId: dmUserId, label: phone.label, fieldId: phone.fieldId})}
+                    onStartCall={handleStartCall}
+                    onPhoneCall={handlePhoneCall}
                     anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
                     transformOrigin={{vertical: 'top', horizontal: 'right'}}
                 />
