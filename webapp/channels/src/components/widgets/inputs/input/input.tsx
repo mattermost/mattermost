@@ -205,8 +205,9 @@ const Input = React.forwardRef((
     };
 
     const showLegend = Boolean(focused || value);
-    const error = customInputLabel?.type === ItemStatus.ERROR;
-    const warning = customInputLabel?.type === ItemStatus.WARNING;
+    const customMessageType = customInputLabel?.type || ItemStatus.ERROR;
+    const error = customMessageType === ItemStatus.ERROR;
+    const warning = customMessageType === ItemStatus.WARNING;
 
     const clearButton = value && clearable ? (
         <WithTooltip
@@ -309,19 +310,19 @@ const Input = React.forwardRef((
                     />
                 ) : (
                     <div
-                        className={`Input___customMessage Input___${customInputLabel.type}`}
+                        className={`Input___customMessage Input___${customMessageType}`}
                         id={errorId}
                         role={warning ? 'alert' : undefined}
                     >
                         <i
-                            className={classNames(`icon ${customInputLabel.type}`, {
-                                'icon-alert-outline': customInputLabel.type === ItemStatus.WARNING,
-                                'icon-alert-circle-outline': customInputLabel.type === ItemStatus.ERROR,
-                                'icon-information-outline': customInputLabel.type === ItemStatus.INFO,
-                                'icon-check': customInputLabel.type === ItemStatus.SUCCESS,
+                            className={classNames(`icon ${customMessageType}`, {
+                                'icon-alert-outline': customMessageType === ItemStatus.WARNING,
+                                'icon-alert-circle-outline': customMessageType === ItemStatus.ERROR,
+                                'icon-information-outline': customMessageType === ItemStatus.INFO,
+                                'icon-check': customMessageType === ItemStatus.SUCCESS,
                             })}
                             role='img'
-                            aria-label={customInputLabel.value ? '' : customInputLabel.type}
+                            aria-label={customInputLabel.value ? '' : customMessageType}
                             aria-hidden={Boolean(customInputLabel.value)}
                         />
                         <span>{customInputLabel.value}</span>
