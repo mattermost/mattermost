@@ -74,9 +74,14 @@ exports[`components/emoji/components/AddEmoji should match snapshot 1`] = `
                 class="add-emoji__upload"
               >
                 <button
-                  class="btn btn-primary"
+                  class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                  type="button"
                 >
-                  Select
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Select
+                  </span>
                 </button>
                 <input
                   accept=".jpeg,.jpg,.png,.gif"
@@ -197,9 +202,14 @@ exports[`components/emoji/components/AddEmoji should select a file and match sna
                 class="add-emoji__upload"
               >
                 <button
-                  class="btn btn-primary"
+                  class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                  type="button"
                 >
-                  Select
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Select
+                  </span>
                 </button>
                 <input
                   accept=".jpeg,.jpg,.png,.gif"
@@ -345,9 +355,14 @@ exports[`components/emoji/components/AddEmoji should update emoji name and match
                 class="add-emoji__upload"
               >
                 <button
-                  class="btn btn-primary"
+                  class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                  type="button"
                 >
-                  Select
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Select
+                  </span>
                 </button>
                 <input
                   accept=".jpeg,.jpg,.png,.gif"

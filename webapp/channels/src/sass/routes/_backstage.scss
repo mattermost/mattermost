@@ -138,8 +138,6 @@
 }
 
 .backstage-header {
-    @include mixins.clearfix;
-
     display: flex;
     width: 100%;
     justify-content: space-between;
@@ -311,7 +309,6 @@
 
 .backstage-form__footer {
     display: flex;
-    overflow: hidden;
     flex-wrap: wrap;
     align-items: center;
     justify-content: flex-end;

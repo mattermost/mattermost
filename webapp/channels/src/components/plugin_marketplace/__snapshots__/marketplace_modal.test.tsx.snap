@@ -281,15 +281,11 @@ exports[`components/marketplace/ hides search and shows web marketplace banner 1
                   <div
                     class="more-modal__actions"
                   >
-                    <a
-                      href="/admin_console/plugins/plugin_com.mattermost.test"
+                    <button
+                      class="plugin-configure"
                     >
-                      <button
-                        class="plugin-configure"
-                      >
-                        Configure
-                      </button>
-                    </a>
+                      Configure
+                    </button>
                   </div>
                 </div>
                 <div
@@ -1335,15 +1331,11 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
                   <div
                     class="more-modal__actions"
                   >
-                    <a
-                      href="/admin_console/plugins/plugin_com.mattermost.test"
+                    <button
+                      class="plugin-configure"
                     >
-                      <button
-                        class="plugin-configure"
-                      >
-                        Configure
-                      </button>
-                    </a>
+                      Configure
+                    </button>
                   </div>
                 </div>
                 <div

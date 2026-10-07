@@ -108,15 +108,11 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render installe
     <div
       class="more-modal__actions"
     >
-      <a
-        href="/admin_console/plugins/plugin_id"
+      <button
+        class="plugin-configure"
       >
-        <button
-          class="plugin-configure"
-        >
-          Configure
-        </button>
-      </a>
+        Configure
+      </button>
     </div>
   </div>
 </div>
@@ -739,15 +735,11 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with upd
     <div
       class="more-modal__actions"
     >
-      <a
-        href="/admin_console/plugins/plugin_id"
+      <button
+        class="plugin-configure"
       >
-        <button
-          class="plugin-configure"
-        >
-          Configure
-        </button>
-      </a>
+        Configure
+      </button>
     </div>
   </div>
 </div>
@@ -817,15 +809,11 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with upd
     <div
       class="more-modal__actions"
     >
-      <a
-        href="/admin_console/plugins/plugin_id"
+      <button
+        class="plugin-configure"
       >
-        <button
-          class="plugin-configure"
-        >
-          Configure
-        </button>
-      </a>
+        Configure
+      </button>
     </div>
   </div>
 </div>

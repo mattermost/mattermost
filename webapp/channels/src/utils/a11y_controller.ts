@@ -6,6 +6,9 @@ import {isDesktopApp, isMac} from '@mattermost/shared/utils/user_agent';
 import Constants, {EventTypes, A11yClassNames, A11yAttributeNames, A11yCustomEventTypes, isA11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed, cmdOrCtrlPressed} from 'utils/keyboard';
 
+// Compass buttons draw their own :focus-visible ring (class names are hashed, so match on the stable prefix)
+const SELF_FOCUS_RING_SELECTOR = 'button[class*="_button--emphasis-"]';
+
 const listenerOptions = {
     capture: true,
 };
@@ -560,6 +563,9 @@ export default class A11yController {
      */
     udpateCurrentFocus(forceUpdate = false) {
         if ((!this.focusedElement || !(this.a11yKeyIsPressed || this.manualFocus)) && !forceUpdate) {
+            return;
+        }
+        if (this.focusedElement?.matches(SELF_FOCUS_RING_SELECTOR)) {
             return;
         }
         this.focusedElement?.classList.add(A11yClassNames.FOCUSED);

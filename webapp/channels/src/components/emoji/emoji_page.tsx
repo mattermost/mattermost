@@ -3,13 +3,14 @@
 
 import React, {useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {Link} from 'react-router-dom';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import AnyTeamPermissionGate from 'components/permissions_gates/any_team_permission_gate';
+
+import {getHistory} from 'utils/browser_history';
 
 import EmojiList from './emoji_list';
 
@@ -58,20 +59,16 @@ export default function EmojiPage({
                     />
                 </h1>
                 <AnyTeamPermissionGate permissions={CREATE_EMOJIS_PERMISSIONS}>
-                    <Link
-                        className='add-link'
-                        to={'/' + teamName + '/emoji/add'}
+                    <Button
+                        type='button'
+                        emphasis='primary'
+                        onClick={() => getHistory().push('/' + teamName + '/emoji/add')}
                     >
-                        <Button
-                            type='button'
-                            emphasis='primary'
-                        >
-                            <FormattedMessage
-                                id='emoji_list.add'
-                                defaultMessage='Add Custom Emoji'
-                            />
-                        </Button>
-                    </Link>
+                        <FormattedMessage
+                            id='emoji_list.add'
+                            defaultMessage='Add Custom Emoji'
+                        />
+                    </Button>
                 </AnyTeamPermissionGate>
             </div>
             <EmojiList scrollToTop={scrollToTop}/>
