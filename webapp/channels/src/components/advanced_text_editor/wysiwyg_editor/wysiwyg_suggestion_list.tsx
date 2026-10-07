@@ -90,7 +90,7 @@ function getTriggerPos(editor: Editor, matchedPretext: string): number | null {
         return null;
     }
 
-    return startOfLine + text.length - matchedPretext.length;
+    return startOfLine + (text.length - matchedPretext.length);
 }
 
 type SuggestionBoxAlignment = {
