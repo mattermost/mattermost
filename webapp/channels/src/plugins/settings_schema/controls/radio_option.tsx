@@ -3,6 +3,8 @@
 
 import React, {useCallback} from 'react';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
+
 import Markdown from 'components/markdown';
 
 import type {RadioSettingOption} from '../types';
@@ -26,15 +28,14 @@ const RadioOption = ({
 
     return (
         <div className='radio'>
-            <label>
-                <input
-                    type='radio'
-                    name={name}
-                    checked={selectedValue === option.value}
-                    onChange={onChange}
-                />
+            <Radio
+                name={name}
+                value={option.value}
+                checked={selectedValue === option.value}
+                onChange={onChange}
+            >
                 {option.text}
-            </label>
+            </Radio>
             <br/>
             {option.helpText && (
                 <Markdown

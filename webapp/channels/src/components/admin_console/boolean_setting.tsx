@@ -5,6 +5,8 @@ import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
+
 import * as Utils from 'utils/utils';
 
 import SettingSet from './setting_set';
@@ -67,6 +69,18 @@ export const Label = styled.label<{isDisabled: boolean}>`
     }
 `;
 
+const BooleanRadioOption = styled(Radio)<{isDisabled: boolean}>`
+    display: inline-flex;
+    opacity: ${({isDisabled}) => (isDisabled ? 0.5 : 1)};
+    margin-top: 8px;
+    margin-right: 24px;
+    width: fit-content;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+`;
+
 type Props = {
     id: string;
     label: React.ReactNode;
@@ -120,6 +134,8 @@ const BooleanSetting = ({
         onChange(id, e.target.value === 'true');
     }, [id, onChange]);
 
+    const isDisabled = disabled || setByEnv;
+
     return (
         <SettingSet
             helpText={helptext}
@@ -127,32 +143,30 @@ const BooleanSetting = ({
             label={label}
             setByEnv={setByEnv}
         >
-            <Label isDisabled={disabled || setByEnv}>
-                <input
-                    data-testid={id + 'true'}
-                    type='radio'
-                    value='true'
-                    id={Utils.createSafeId(id) + 'true'}
-                    name={id}
-                    checked={value}
-                    onChange={handleChange}
-                    disabled={disabled || setByEnv}
-                />
+            <BooleanRadioOption
+                isDisabled={isDisabled}
+                data-testid={id + 'true'}
+                value='true'
+                id={Utils.createSafeId(id) + 'true'}
+                name={id}
+                checked={value}
+                onChange={handleChange}
+                disabled={isDisabled}
+            >
                 {trueText}
-            </Label>
-            <Label isDisabled={disabled || setByEnv}>
-                <input
-                    data-testid={id + 'false'}
-                    type='radio'
-                    value='false'
-                    id={Utils.createSafeId(id) + 'false'}
-                    name={id}
-                    checked={!value}
-                    onChange={handleChange}
-                    disabled={disabled || setByEnv}
-                />
+            </BooleanRadioOption>
+            <BooleanRadioOption
+                isDisabled={isDisabled}
+                data-testid={id + 'false'}
+                value='false'
+                id={Utils.createSafeId(id) + 'false'}
+                name={id}
+                checked={!value}
+                onChange={handleChange}
+                disabled={isDisabled}
+            >
                 {falseText}
-            </Label>
+            </BooleanRadioOption>
         </SettingSet>
     );
 };

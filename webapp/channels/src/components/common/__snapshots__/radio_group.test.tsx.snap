@@ -10,43 +10,88 @@ exports[`/components/common/RadioButtonGroup should match snapshot 1`] = `
       class="radio"
     >
       <label
-        class=""
+        class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+        for="_r_0_"
       >
         <input
+          class="_radio__input_11lrl_13"
+          id="_r_0_"
           name="test-string"
           type="radio"
           value="value1"
         />
-        key1
+        <span
+          class="_radio__circle_11lrl_33"
+        >
+          <span
+            aria-hidden="true"
+            class="_radio__dot_11lrl_59"
+          />
+        </span>
+        <span
+          class="_radio__label_11lrl_116"
+        >
+          key1
+        </span>
       </label>
     </div>
     <div
       class="radio"
     >
       <label
-        class="selected"
+        class="_radio_11lrl_2 _radio--size-medium_11lrl_138 selected"
+        for="_r_1_"
       >
         <input
           checked=""
+          class="_radio__input_11lrl_13"
+          id="_r_1_"
           name="test-string"
           type="radio"
           value="value2"
         />
-        key2
+        <span
+          class="_radio__circle_11lrl_33"
+        >
+          <span
+            aria-hidden="true"
+            class="_radio__dot_11lrl_59"
+          />
+        </span>
+        <span
+          class="_radio__label_11lrl_116"
+        >
+          key2
+        </span>
       </label>
     </div>
     <div
       class="radio"
     >
       <label
-        class=""
+        class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+        for="_r_2_"
       >
         <input
+          class="_radio__input_11lrl_13"
+          id="_r_2_"
           name="test-string"
           type="radio"
           value="value3"
         />
-        key3
+        <span
+          class="_radio__circle_11lrl_33"
+        >
+          <span
+            aria-hidden="true"
+            class="_radio__dot_11lrl_59"
+          />
+        </span>
+        <span
+          class="_radio__label_11lrl_116"
+        >
+          key3
+        </span>
       </label>
     </div>
   </div>

@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {memo, useCallback} from 'react';
 import type {ChangeEventHandler} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
 import {Button} from '@mattermost/shared/components/button';
 
 import Setting from './setting';
@@ -57,27 +59,25 @@ const RadioSetting = ({
         >
             {
                 options.map(({value: option, text}) => {
+                    const radioClassName = classNames({
+                        'inline-choice-setting__radio--label-before': labelPosition === 'before',
+                    });
+
                     return (
                         <div
                             className='radio'
                             key={option}
                         >
-                            <label>
-                                {labelPosition === 'before' && (
-                                    <span className='inline-choice-setting__text'>{text}</span>
-                                )}
-                                <input
-                                    type='radio'
-                                    value={option}
-                                    name={id}
-                                    checked={option === selectedValue}
-                                    onChange={handleChange}
-                                    disabled={disabled}
-                                />
-                                {labelPosition === 'after' && (
-                                    <span className='inline-choice-setting__text'>{text}</span>
-                                )}
-                            </label>
+                            <Radio
+                                className={radioClassName}
+                                value={option}
+                                name={id}
+                                checked={option === selectedValue}
+                                onChange={handleChange}
+                                disabled={disabled}
+                            >
+                                <span className='inline-choice-setting__text'>{text}</span>
+                            </Radio>
                         </div>
                     );
                 })

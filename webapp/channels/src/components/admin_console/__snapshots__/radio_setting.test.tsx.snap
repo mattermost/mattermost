@@ -16,49 +16,91 @@ exports[`components/admin_console/RadioSetting should match snapshot 1`] = `
       class="col-sm-8"
     >
       <label
-        class="RadioSetting__label"
+        class="_radio_11lrl_2 _radio--size-medium_11lrl_138 RadioSetting__radio"
+        for="_r_0_"
       >
         <input
-          class="RadioSetting__input"
+          class="_radio__input_11lrl_13"
+          id="_r_0_"
           name="string.id"
           type="radio"
           value="Engineering"
         />
         <span
-          class="RadioSetting__text"
+          class="_radio__circle_11lrl_33"
         >
-          this is engineering
+          <span
+            aria-hidden="true"
+            class="_radio__dot_11lrl_59"
+          />
+        </span>
+        <span
+          class="_radio__label_11lrl_116"
+        >
+          <span
+            class="RadioSetting__text"
+          >
+            this is engineering
+          </span>
         </span>
       </label>
       <label
-        class="RadioSetting__label"
+        class="_radio_11lrl_2 _radio--size-medium_11lrl_138 RadioSetting__radio"
+        for="_r_1_"
       >
         <input
           checked=""
-          class="RadioSetting__input"
+          class="_radio__input_11lrl_13"
+          id="_r_1_"
           name="string.id"
           type="radio"
           value="Sales"
         />
         <span
-          class="RadioSetting__text"
+          class="_radio__circle_11lrl_33"
         >
-          this is sales
+          <span
+            aria-hidden="true"
+            class="_radio__dot_11lrl_59"
+          />
+        </span>
+        <span
+          class="_radio__label_11lrl_116"
+        >
+          <span
+            class="RadioSetting__text"
+          >
+            this is sales
+          </span>
         </span>
       </label>
       <label
-        class="RadioSetting__label"
+        class="_radio_11lrl_2 _radio--size-medium_11lrl_138 RadioSetting__radio"
+        for="_r_2_"
       >
         <input
-          class="RadioSetting__input"
+          class="_radio__input_11lrl_13"
+          id="_r_2_"
           name="string.id"
           type="radio"
           value="Administration"
         />
         <span
-          class="RadioSetting__text"
+          class="_radio__circle_11lrl_33"
         >
-          this is administration
+          <span
+            aria-hidden="true"
+            class="_radio__dot_11lrl_59"
+          />
+        </span>
+        <span
+          class="_radio__label_11lrl_116"
+        >
+          <span
+            class="RadioSetting__text"
+          >
+            this is administration
+          </span>
         </span>
       </label>
       <div
