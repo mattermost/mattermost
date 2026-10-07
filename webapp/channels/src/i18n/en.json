@@ -1067,6 +1067,10 @@
     "defaultMessage": "Common Expression Language (CEL)",
     "description": "Title of the help modal explaining Common Expression Language; CEL is a technology name and should stay as-is."
   },
+  "admin.access_control.cel.editor_aria_label": {
+    "defaultMessage": "CEL expression editor",
+    "description": "Accessible name read by screen readers for the code editor where admins type a CEL access rule expression (advanced mode of the access policy editors in the System Console)."
+  },
   "admin.access_control.cel.help_text": {
     "defaultMessage": "Write rules like `user.attributes.{lessThan}attribute{greaterThan} == {lessSign}value{greaterSign}`. Use `&&` / `||` (and/or) for multiple conditions. Group conditions with `()`.",
     "description": "Help text (markdown) under the advanced CEL expression editor for access policies; the placeholders all resolve to literal angle-bracket characters, and backticked fragments are code."
