@@ -7,6 +7,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import ReactSelect, {type StylesConfig} from 'react-select';
 
 import {GenericModal} from '@mattermost/components';
+import {ErrorMessage} from '@mattermost/compass-ui/components/error-message';
 import type {ServerError} from '@mattermost/types/errors';
 import type {PostPreviewMetadata} from '@mattermost/types/posts';
 
@@ -217,10 +218,10 @@ export default function FlagPostModal({postId, onExited}: Props) {
                         placeholder={reasonSelectPlaceholder}
                     />
                     {reasonError &&
-                        <div className='FlagPostModal__reason__error-message'>
-                            <i className='icon icon-alert-circle-outline'/>
-                            <span>{reasonError}</span>
-                        </div>
+                        <ErrorMessage
+                            className='FlagPostModal__reason__error-message'
+                            message={reasonError}
+                        />
                     }
                 </div>
 

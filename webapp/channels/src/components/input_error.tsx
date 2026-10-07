@@ -4,6 +4,8 @@
 import classNames from 'classnames';
 import React from 'react';
 
+import {ErrorMessage} from '@mattermost/compass-ui/components/error-message';
+
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 
 import {ItemStatus} from 'utils/constants';
@@ -11,17 +13,30 @@ import {ItemStatus} from 'utils/constants';
 type Props = {
     message?: string;
     custom?: CustomMessageInputType;
+    className?: string;
+    id?: string;
 };
 
 const InputError = (props: Props) => {
     if (props.message) {
         return (
-            <div className='Input___error'>
-                <i className='icon icon-alert-outline'/>
-                <span>{props.message}</span>
-            </div>
+            <ErrorMessage
+                id={props.id}
+                className={classNames('Input___error', props.className)}
+                message={props.message}
+            />
         );
     } else if (props.custom) {
+        if (props.custom.type === ItemStatus.ERROR || !props.custom.type) {
+            return (
+                <ErrorMessage
+                    id={props.id}
+                    className={classNames('Input___error', props.className)}
+                    message={props.custom.value}
+                />
+            );
+        }
+
         return (
             <div className={`Input___customMessage Input___${props.custom.type}`}>
                 <i
