@@ -17647,9 +17647,25 @@
     "defaultMessage": "Upload failed",
     "description": "Generic error shown on a file in an apps form upload field when its upload fails."
   },
+  "apps_form.date_field.dialog_label": {
+    "defaultMessage": "Date picker",
+    "description": "Accessible name for the calendar dialog in an apps form date field."
+  },
+  "apps_form.date_field.next_month": {
+    "defaultMessage": "Next month",
+    "description": "Accessible name for the next-month control in an apps form date field calendar."
+  },
   "apps_form.date_field.placeholder": {
     "defaultMessage": "Select a date",
     "description": "Placeholder of a date picker field in an apps form / interactive dialog."
+  },
+  "apps_form.date_field.previous_month": {
+    "defaultMessage": "Previous month",
+    "description": "Accessible name for the previous-month control in an apps form date field calendar."
+  },
+  "apps_form.date_field.today": {
+    "defaultMessage": "Today",
+    "description": "Label for the Today shortcut in an apps form date field calendar."
   },
   "apps_form.datetime_field.timezone_hint": {
     "defaultMessage": "Times in {timezone}",
