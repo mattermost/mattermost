@@ -6,11 +6,19 @@ exports[`components/global/AtMentionsButton should match snapshot 1`] = `
     aria-controls="searchContainer"
     aria-expanded="false"
     aria-label="Recent mentions"
-    class="HeaderIconButton"
+    aria-pressed="false"
+    class="_icon-button_g2m23_2 _icon-button--size-medium_g2m23_83 _icon-button--style-inverted_g2m23_145"
+    type="button"
   >
-    <i
-      class="icon-at"
-    />
+    <span
+      aria-hidden="true"
+      class="_icon-button__icon-slot_g2m23_33"
+    >
+      <i
+        aria-hidden="true"
+        class="icon icon-at"
+      />
+    </span>
   </button>
 </div>
 `;
