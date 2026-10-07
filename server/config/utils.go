@@ -143,6 +143,42 @@ func fixConfig(cfg *model.Config) {
 	}
 
 	fixInvalidLocales(cfg)
+	fixLegacyImageProxyType(cfg)
+	fixRetiredFeatureFlags(cfg)
+}
+
+// fixRetiredFeatureFlags forces off feature flags whose features have been removed.
+func fixRetiredFeatureFlags(cfg *model.Config) bool {
+	if cfg.FeatureFlags == nil {
+		return false
+	}
+
+	var changed bool
+
+	if cfg.FeatureFlags.AppsEnabled {
+		mlog.Warn("The AppsEnabled feature flag is no longer supported. Setting AppsEnabled to false.")
+		cfg.FeatureFlags.AppsEnabled = false
+		changed = true
+	}
+
+	if cfg.FeatureFlags.MoveThreadsEnabled {
+		mlog.Warn("The MoveThreadsEnabled feature flag is no longer supported. Setting MoveThreadsEnabled to false.")
+		cfg.FeatureFlags.MoveThreadsEnabled = false
+		changed = true
+	}
+
+	return changed
+}
+
+// fixLegacyImageProxyType migrates the removed atmos/camo image proxy type to local.
+func fixLegacyImageProxyType(cfg *model.Config) bool {
+	if *cfg.ImageProxySettings.ImageProxyType != model.ImageProxyTypeLegacyAtmosCamo {
+		return false
+	}
+
+	mlog.Warn("The atmos/camo image proxy type is no longer supported. Setting ImageProxyType to local.")
+	*cfg.ImageProxySettings.ImageProxyType = model.ImageProxyTypeLocal
+	return true
 }
 
 // fixInvalidLocales checks and corrects the given config for invalid locale-related settings.

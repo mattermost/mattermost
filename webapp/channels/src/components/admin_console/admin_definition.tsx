@@ -673,44 +673,6 @@ const AdminDefinition: AdminDefinitionType = {
                     component: UserAttributesRedirect,
                 },
             },
-            session_attributes: {
-                url: 'system_attributes/session_attributes',
-                title: defineMessage({id: 'admin.sidebar.sessionAttributes', defaultMessage: 'Session Attributes'}),
-                searchableStrings: sessionAttributesSearchableStrings,
-                isHidden: it.any(
-                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                    it.configIsFalse('FeatureFlags', 'SessionAttributes'),
-                ),
-                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                schema: {
-                    id: 'SessionAttributes',
-                    component: SessionAttributesPage,
-                },
-                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
-            },
-            session_attributes_feature_discovery: {
-                url: 'system_attributes/session_attributes',
-                isDiscovery: true,
-                title: defineMessage({id: 'admin.sidebar.sessionAttributes', defaultMessage: 'Session Attributes'}),
-                isHidden: it.any(
-                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
-                    it.configIsFalse('FeatureFlags', 'SessionAttributes'),
-                ),
-                schema: {
-                    id: 'SessionAttributes',
-                    name: defineMessage({id: 'admin.session_attributes.title', defaultMessage: 'Session Attributes'}),
-                    settings: [
-                        {
-                            type: 'custom',
-                            component: SessionAttributesFeatureDiscovery,
-                            key: 'SessionAttributesFeatureDiscovery',
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
-                        },
-                    ],
-                },
-                restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
-            },
             board_attributes: {
                 url: 'system_attributes/board_attributes',
                 title: defineMessage({id: 'admin.sidebar.board_attributes', defaultMessage: 'Board Attributes'}),
@@ -769,6 +731,44 @@ const AdminDefinition: AdminDefinitionType = {
                     component: GlobalAttributes,
                 },
             },
+            session_attributes: {
+                url: 'system_attributes/session_attributes',
+                title: defineMessage({id: 'admin.sidebar.sessionAttributes', defaultMessage: 'Session Attributes'}),
+                searchableStrings: sessionAttributesSearchableStrings,
+                isHidden: it.any(
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'SessionAttributes'),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                schema: {
+                    id: 'SessionAttributes',
+                    component: SessionAttributesPage,
+                },
+                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
+            },
+            session_attributes_feature_discovery: {
+                url: 'system_attributes/session_attributes',
+                isDiscovery: true,
+                title: defineMessage({id: 'admin.sidebar.sessionAttributes', defaultMessage: 'Session Attributes'}),
+                isHidden: it.any(
+                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
+                    it.configIsFalse('FeatureFlags', 'SessionAttributes'),
+                ),
+                schema: {
+                    id: 'SessionAttributes',
+                    name: defineMessage({id: 'admin.session_attributes.title', defaultMessage: 'Session Attributes'}),
+                    settings: [
+                        {
+                            type: 'custom',
+                            component: SessionAttributesFeatureDiscovery,
+                            key: 'SessionAttributesFeatureDiscovery',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
+            },
             attribute_based_access_control: {
                 url: 'system_attributes/attribute_based_access_control',
                 title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
@@ -788,25 +788,24 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'bool',
                                     key: 'AccessControlSettings.EnableAttributeBasedAccessControl',
                                     label: defineMessage({id: 'admin.accesscontrol.enableTitle', defaultMessage: 'Allow attribute based access controls on this server'}),
-                                    help_text: defineMessage({id: 'admin.accesscontrol.enableDesc', defaultMessage: 'Allow access restrictions based on user attributes using custom access policies. To effectively use this feature, you must define user attributes in the {userAttributes} section.'}), // eslint-disable-line formatjs/enforce-placeholders -- userAttributes provided via help_text_values
+                                    help_text: defineMessage({id: 'admin.accesscontrol.enableDesc', defaultMessage: 'Allow access restrictions based on user attributes using custom access policies. To effectively use this feature, you must define attributes in the {userAttributes} section.'}), // eslint-disable-line formatjs/enforce-placeholders -- userAttributes provided via help_text_values
                                     help_text_values: {
                                         userAttributes: (
-                                            <a href='../system_attributes/user_attributes'>
+                                            <Link to='/admin_console/system_attributes/manage_attributes'>
                                                 <FormattedMessage
                                                     id='admin.accesscontrol.user_properties.link.label'
-                                                    defaultMessage='User Attributes'
+                                                    defaultMessage='Attribute Management'
                                                 />
-                                            </a>
+                                            </Link>
                                         ),
                                     },
                                 },
                                 {
                                     type: 'bool',
                                     key: 'AccessControlSettings.EnableAccessControlAuditLogging',
-                                    isHidden: true, // TODO: Remove when the PR#37771 is merged
-                                    label: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.title', defaultMessage: 'Enable audit logging for access control decisions'}),
-                                    help_text: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.desc', defaultMessage: 'When enabled, attribute-based access control policy decisions are written to the server audit log. Requires server audit logging to be active.'}),
-                                    disabled_help_text: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.disabled', defaultMessage: 'When enabled, attribute-based access control policy decisions are written to the server audit log. This setting requires attribute-based access control to be enabled and server audit logging to be active (enable file audit logging or configure an advanced audit logging target).'}),
+                                    label: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.title', defaultMessage: 'Enable audit logging for membership policy decisions'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.desc', defaultMessage: 'When enabled, membership policy decisions are written to the server audit log. Requires server audit logging to be active.'}),
+                                    disabled_help_text: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.disabled', defaultMessage: 'When enabled, membership policy decisions are written to the server audit log. This setting requires attribute-based access control to be enabled and server audit logging to be active (enable file audit logging or configure an advanced audit logging target).'}),
                                     isDisabled: it.any(
                                         it.stateIsFalse('AccessControlSettings.EnableAttributeBasedAccessControl'),
                                         it.clientConfigIsFalse('AuditLoggingActive'),

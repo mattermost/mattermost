@@ -62,12 +62,13 @@ import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_util
 import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
 import {isErrorInvalidSlashCommand} from 'utils/post_utils';
+import {getDraftRepeatDisabledReason} from 'utils/scheduled_post_repeat';
 import {allAtMentions} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-import {draftHasAttachments, isPostDraftEmpty} from 'types/store/draft';
+import {isPostDraftEmpty} from 'types/store/draft';
 
 import AIActionsMenu from './ai_actions_menu';
 import DoNotDisturbWarning from './do_not_disturb_warning';
@@ -433,6 +434,7 @@ const AdvancedTextEditor = ({
     const {
         labels: burnOnReadLabels,
         additionalControl: burnOnReadAdditionalControl,
+        isBurnOnReadSendable: burnOnReadSendable,
     } = useBurnOnRead(draft, handleDraftChange, focusTextbox, showPreview, false);
     const [handleSubmit, errorClass] = useSubmit(
         draft,
@@ -495,6 +497,8 @@ const AdvancedTextEditor = ({
         focusTextbox();
     }, [draft, handleDraftChange, focusTextbox]);
 
+    const isDraftSendable = isValidPersistentNotifications && burnOnReadSendable;
+
     const handleSubmitWrapper = useCallback(() => {
         const isEmptyPost = isPostDraftEmpty(draft);
 
@@ -512,14 +516,22 @@ const AdvancedTextEditor = ({
             return;
         }
 
+        // useKeyHandler prevents submits already when draft isn't sendable,
+        // but wysiwyg editor does not useKeyHandler, so check here too.
+        // Don't gate in edit mode because that could break the ability to remove mentions
+        // on an existing post with persistent notifications
+        if (!isInEditMode && !isDraftSendable) {
+            return;
+        }
+
         handleSubmitWithErrorHandling();
-    }, [dispatch, draft, handleSubmitWithErrorHandling, isInEditMode, isRHS]);
+    }, [dispatch, draft, handleSubmitWithErrorHandling, isInEditMode, isRHS, isDraftSendable]);
 
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
         channelId,
         rootId,
-        isValidPersistentNotifications,
+        isDraftSendable,
         location,
         textboxRef,
         showFormattingBar,
@@ -691,13 +703,13 @@ const AdvancedTextEditor = ({
         };
     }, [channelId, rootId]);
 
-    const disableSendButton = Boolean(isDisabled || (!draft.message.trim().length && !draft.fileInfos.length)) || !isValidPersistentNotifications;
+    const disableSendButton = Boolean(isDisabled || (!draft.message.trim().length && !draft.fileInfos.length)) || !isDraftSendable;
     const sendButton = readOnlyChannel || isInEditMode ? null : (
         <SendButton
             disabled={disableSendButton}
             handleSubmit={handleSubmitPostAndScheduledMessage}
             channelId={channelId}
-            allowRecurring={!draftHasAttachments(draft)}
+            repeatDisabledReason={getDraftRepeatDisabledReason(draft)}
         />
     );
 
