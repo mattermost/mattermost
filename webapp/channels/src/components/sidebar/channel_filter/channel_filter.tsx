@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import {defineMessages, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {ShortcutKeys} from '@mattermost/shared/components/shortcut_key';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
@@ -76,17 +76,16 @@ export class ChannelFilter extends React.PureComponent<Props> {
                     title={unreadFilterEnabled ? messages.disableTooltip : messages.enableTooltip}
                     shortcut={shortcut}
                 >
-                    <a
-                        href='#'
-                        className={classNames('SidebarFilters_filterButton', {
-                            active: unreadFilterEnabled,
-                        })}
+                    <IconButton
+                        style='inverted'
+                        size='small'
+                        className='SidebarFilters_filterButton'
+                        icon={<i className='icon icon-filter-variant' aria-hidden='true'/>}
+                        toggled={unreadFilterEnabled}
                         data-testid='sidebar-unread-filter-button'
-                        onClick={this.toggleUnreadFilter}
+                        onClick={this.handleUnreadFilterClick}
                         aria-label={unreadsAriaLabel}
-                    >
-                        <i className='icon icon-filter-variant'/>
-                    </a>
+                    />
                 </WithTooltip>
             </div>
         );

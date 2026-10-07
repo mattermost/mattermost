@@ -7,6 +7,7 @@ import React from 'react';
 import type {JSX, KeyboardEvent, MouseEvent} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import {CategorySorting} from '@mattermost/types/channel_categories';
@@ -305,14 +306,15 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                             </>
                         }
                     >
-                        <button
+                        <IconButton
                             id='newDirectMessageButton'
+                            style='inverted'
+                            size='x-small'
                             className='SidebarChannelGroupHeader_addButton'
+                            icon={<i className='icon icon-plus' aria-hidden='true'/>}
                             onClick={this.handleOpenDirectMessagesModal}
                             aria-label={addHelpLabel}
-                        >
-                            <i className='icon-plus'/>
-                        </button>
+                        />
                     </WithTooltip>
                 </>
             );

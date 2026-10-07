@@ -185,6 +185,9 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
                     id: 'sidebarLeft.browserOrCreateChannelMenuButton.label',
                     defaultMessage: 'Browse or create channels',
                 }),
+                // TODO(compass-migration): Menu.Container.menuButton accepts a plain-object descriptor
+                // (not a React node), so IconButton cannot be passed here directly.
+                // Handoff: migrate once Menu.Container exposes a renderButton/as prop.
                 class: 'btn btn-icon btn-sm btn-tertiary btn-inverted btn-round',
                 children: <PlusIcon size={18}/>,
             }}
