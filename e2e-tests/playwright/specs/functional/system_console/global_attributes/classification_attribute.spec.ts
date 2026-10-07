@@ -52,8 +52,8 @@ test.describe(
          * @objective Verify the definition is shown read-only, with the levels editor a link away.
          */
         test('shows the definition read-only and links to Classification Markings', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const {levels} = await setupClassificationWithChannelField(adminClient);
 
@@ -82,8 +82,8 @@ test.describe(
          * @objective Verify a display location chosen here reaches the channel field and the channel header.
          */
         test('applies a header chip to channels once Header is chosen', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const {levels} = await setupClassificationWithChannelField(adminClient);
             const {team, user} = await pw.initSetup();
@@ -126,8 +126,10 @@ test.describe(
          * only for required attributes, and an optional one is added later from Channel Info.
          */
         test('asks for classification at channel creation only once Required is on', async ({pw}) => {
+            // The Required toggle this test flips only renders in the System Console
+            // while this kill switch is on (model.IsChannelAttributesRequiredEnabled).
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const {levels} = await setupClassificationWithChannelField(adminClient);
             const {team} = await pw.initSetup();
@@ -172,8 +174,8 @@ test.describe(
          * field has to be obeyed instead, or the Banner checkbox would do nothing.
          */
         test('stops bannering when the display locations exclude the banner', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const {levels} = await setupClassificationWithChannelField(adminClient);
             const {team, user} = await pw.initSetup();
@@ -211,8 +213,8 @@ test.describe(
          * @objective Verify removing the resource asks first, and that a removal is not undone by an unrelated save.
          */
         test('removes the Channels resource only after confirming, and keeps it removed', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             await setupClassificationWithChannelField(adminClient);
 
