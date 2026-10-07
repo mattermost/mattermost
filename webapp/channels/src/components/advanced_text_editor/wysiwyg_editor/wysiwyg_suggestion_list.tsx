@@ -80,17 +80,36 @@ function getTextBeforeCursor(editor: Editor): string {
     return state.doc.textBetween(startOfLine, from, '\n');
 }
 
-function getTriggerPos(editor: Editor, matchedPretext: string): number | null {
-    const startOfLine = editor.state.selection.$from.start();
-    const text = getTextBeforeCursor(editor);
-
-    // Mention/channel/emoji providers lowercase matchedPretext. The trigger is
-    // always the suffix before the caret, matching SuggestionBox.
-    if (!text.toLowerCase().endsWith(matchedPretext.toLowerCase())) {
+/** Length of the original suffix that lowercases to matchedPretext (İ → i\u0307 can make the capture longer). */
+function getOriginalSuffixLength(text: string, matchedPretext: string): number | null {
+    const lowerMatched = matchedPretext.toLowerCase();
+    if (!text.toLowerCase().endsWith(lowerMatched)) {
         return null;
     }
 
-    return startOfLine + (text.length - matchedPretext.length);
+    let from = text.length;
+    let loweredSuffix = '';
+    while (from > 0 && loweredSuffix.length < lowerMatched.length) {
+        from -= 1;
+        loweredSuffix = text[from].toLowerCase() + loweredSuffix;
+    }
+
+    if (loweredSuffix !== lowerMatched) {
+        return null;
+    }
+
+    return text.length - from;
+}
+
+function getTriggerPos(editor: Editor, matchedPretext: string): number | null {
+    const startOfLine = editor.state.selection.$from.start();
+    const text = getTextBeforeCursor(editor);
+    const suffixLength = getOriginalSuffixLength(text, matchedPretext);
+    if (suffixLength === null) {
+        return null;
+    }
+
+    return startOfLine + (text.length - suffixLength);
 }
 
 type SuggestionBoxAlignment = {

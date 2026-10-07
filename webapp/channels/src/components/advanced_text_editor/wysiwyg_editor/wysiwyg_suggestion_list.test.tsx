@@ -268,6 +268,18 @@ describe('WysiwygSuggestionList', () => {
         expect(inserted).toEqual(['@john.doe ']);
     });
 
+    test('replaces a Turkish İ channel mention without eating the preceding space', async () => {
+        const {type, inserted, deletedRanges} = setup(['~istanbul']);
+
+        // ChannelMentionProvider captures from pretext.toLowerCase(), so '~İ'
+        // (2 UTF-16 code units) becomes matchedPretext '~i\u0307' (3 code units).
+        type('draft ~İ');
+        await userEvent.click(screen.getByRole('option'));
+
+        expect(deletedRanges).toEqual([{from: 6, to: 8}]);
+        expect(inserted).toEqual(['~istanbul ']);
+    });
+
     test('does not insert the open-in-modal sentinel when no app provider can handle it', async () => {
         const {type, onSubmit, inserted, chainCalls} = setup([command + OPEN_COMMAND_IN_MODAL_ITEM_ID]);
 
@@ -383,6 +395,17 @@ describe('WysiwygSuggestionList', () => {
             type(`${'x'.repeat(10)}@john then @JOHN`);
 
             const expectedX = Math.round((TEXT_LEFT + (21 * CHAR_WIDTH)) - WIDE_EDITOR.left - getPxToSubstract('@'));
+            expect(getList()).toHaveStyle({transform: `translate(${expectedX}px, 0px)`});
+        });
+
+        test('aligns to the tilde of a Turkish İ mention whose lowercased pretext is longer', () => {
+            const {type} = setup(['~istanbul']);
+
+            type('draft ~İ');
+
+            // Trigger is at index 6 (`~`), not 5 (the space that subtracting
+            // matchedPretext.length would pick when '~İ' lowercases to '~i\u0307').
+            const expectedX = Math.round((TEXT_LEFT + (6 * CHAR_WIDTH)) - WIDE_EDITOR.left - getPxToSubstract('~'));
             expect(getList()).toHaveStyle({transform: `translate(${expectedX}px, 0px)`});
         });
 
