@@ -443,6 +443,23 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                     return true;
                 }
 
+                if (
+                    event.key === 'Enter' &&
+                    event.shiftKey &&
+                    insideBlockquote &&
+                    !insideCodeBlock &&
+                    !event.metaKey &&
+                    !event.ctrlKey &&
+                    !event.altKey
+                ) {
+                    const ed = editorRef.current;
+                    if (ed && !ed.isDestroyed) {
+                        event.preventDefault();
+                        ed.commands.first(({commands}) => [() => commands.liftEmptyBlock(), () => commands.splitBlock()]);
+                        return true;
+                    }
+                }
+
                 // Enter or Shift+Enter inside a heading should exit to a new
                 // Normal paragraph below, not a hard break inside the heading.
                 if (
@@ -578,6 +595,24 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         },
         hasContentError: () => hasContentErrorRef.current,
     }), []);
+
+    const locationRef = useRef({channelId, rootId});
+    useEffect(() => {
+        if (!editor || editor.isDestroyed) {
+            return;
+        }
+        const location = locationRef.current;
+        if (location.channelId === channelId && location.rootId === rootId) {
+            return;
+        }
+        locationRef.current = {channelId, rootId};
+
+        if (jsonMode) {
+            editor.commands.setContent(parseJsonModeContent(value).content, {emitUpdate: false});
+        } else {
+            editor.commands.setContent(value, {contentType: 'markdown', emitUpdate: false});
+        }
+    }, [channelId, rootId, editor]);
 
     const lastValueRef = useRef(value);
     useEffect(() => {
