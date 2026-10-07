@@ -2,9 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React, {memo, useCallback, useMemo} from 'react';
-import type {ReactNode, ChangeEvent} from 'react';
+import type {ReactNode} from 'react';
 
 import type {EmailSettings} from '@mattermost/types/config';
+import {Select} from '@mattermost/compass-ui/components/select';
 
 import Setting from './setting';
 
@@ -29,19 +30,15 @@ const DropdownSetting = ({
     setByEnv,
     helpText,
 }: Props) => {
-    const handleChange = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
-        onChange(id, e.target.value);
+    const handleChange = useCallback((selectedValue: string) => {
+        onChange(id, selectedValue);
     }, [onChange, id]);
 
     const options = useMemo(() =>
-        values.map(({value: val, text}) => (
-            <option
-                value={val}
-                key={val}
-            >
-                {text}
-            </option>
-        )), [values]);
+        values.map(({value: val, text}) => ({
+            value: val,
+            label: text,
+        })), [values]);
 
     return (
         <Setting
@@ -50,16 +47,13 @@ const DropdownSetting = ({
             helpText={helpText}
             setByEnv={setByEnv}
         >
-            <select
-                data-testid={id + 'dropdown'}
-                className='form-control'
+            <Select
                 id={id}
+                options={options}
                 value={value}
                 onChange={handleChange}
                 disabled={disabled || setByEnv}
-            >
-                {options}
-            </select>
+            />
         </Setting>
     );
 };

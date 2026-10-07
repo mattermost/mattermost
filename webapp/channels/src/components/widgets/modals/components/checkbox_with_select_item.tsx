@@ -2,10 +2,11 @@
 // See LICENSE.txt for license information.
 
 import type {ReactNode} from 'react';
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
-import ReactSelect from 'react-select';
 import type {OnChangeValue} from 'react-select';
+
+import {Select} from '@mattermost/compass-ui/components/select';
 
 import type {BaseSettingItemProps} from './base_setting_item';
 import BaseSettingItem from './base_setting_item';
@@ -43,6 +44,20 @@ export default function CheckboxWithSelectSettingItem({
 }: Props) {
     const intl = useIntl();
 
+    const compassOptions = useMemo(() => {
+        return selectFieldData.options.map((option) => ({
+            value: option.value,
+            label: getOptionLabel(option, intl),
+        }));
+    }, [intl, selectFieldData.options]);
+
+    const onSelectChange = useCallback((value: string) => {
+        const selected = selectFieldData.options.find((option) => option.value === value);
+        if (selected) {
+            handleSelectChange(selected);
+        }
+    }, [handleSelectChange, selectFieldData.options]);
+
     const content = (
         <>
             <fieldset
@@ -62,21 +77,14 @@ export default function CheckboxWithSelectSettingItem({
                 </label>
             </fieldset>
             <fieldset className='mm-modal-generic-section-item__fieldset-react-select'>
-                <ReactSelect
+                <Select
                     id={selectFieldData.id}
-                    inputId={selectFieldData.inputId}
-                    aria-labelledby={selectFieldData.ariaLabelledby}
-                    className='react-select singleSelect react-select-top'
-                    classNamePrefix='react-select'
-                    options={selectFieldData.options}
-                    isClearable={selectFieldData.clearable}
-                    isDisabled={isSelectDisabled}
-                    isSearchable={false}
+                    options={compassOptions}
+                    disabled={isSelectDisabled}
                     placeholder={selectPlaceholder}
-                    onChange={(value) => handleSelectChange(value)}
-                    value={selectFieldValue}
-                    components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
-                    getOptionLabel={(option) => getOptionLabel(option, intl)}
+                    onChange={onSelectChange}
+                    value={selectFieldValue?.value}
+                    listboxLabel={selectFieldData.ariaLabelledby}
                 />
             </fieldset>
         </>
@@ -92,8 +100,4 @@ export default function CheckboxWithSelectSettingItem({
             descriptionAboveContent={descriptionAboveContent}
         />
     );
-}
-
-function NoIndicatorSeparatorComponent() {
-    return null;
 }

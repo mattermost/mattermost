@@ -34,32 +34,55 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
             <div
               class="col-sm-8"
             >
-              <select
-                class="form-control"
-                data-testid="pushNotificationServerTypedropdown"
-                id="pushNotificationServerType"
+              <div
+                class="_select_h9fbq_2 _select--size-medium_h9fbq_167"
               >
-                <option
-                  value="off"
+                <div
+                  class="_select__wrapper_h9fbq_8"
                 >
-                  Do not send push notifications
-                </option>
-                <option
-                  value="mhpns"
-                >
-                  Use HPNS connection with uptime SLA to send notifications to iOS and Android apps
-                </option>
-                <option
-                  value="mtpns"
-                >
-                  Use TPNS connection to send notifications to iOS and Android apps
-                </option>
-                <option
-                  value="custom"
-                >
-                  Manually enter Push Notification Service location
-                </option>
-              </select>
+                  <button
+                    aria-controls="pushNotificationServerType-listbox"
+                    aria-expanded="false"
+                    aria-haspopup="listbox"
+                    class="_select__control_h9fbq_56"
+                    id="pushNotificationServerType"
+                    role="combobox"
+                    type="button"
+                  >
+                    <span
+                      class="_select__value_h9fbq_82"
+                    >
+                      Use HPNS connection with uptime SLA to send notifications to iOS and Android apps
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      class="_select__trailing-icon_h9fbq_99"
+                    >
+                      <div
+                        aria-hidden="true"
+                        class="_icon_1i355_2 _icon--size-12_1i355_30"
+                      >
+                        <div
+                          class="_icon__glyph-area_1i355_9"
+                        >
+                          <svg
+                            fill="currentColor"
+                            height="14"
+                            version="1.1"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </span>
+                  </button>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="pushNotificationServerTypehelp-text"
@@ -79,32 +102,55 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
             <div
               class="col-sm-8"
             >
-              <select
-                class="form-control"
-                data-testid="pushNotificationServerLocationdropdown"
-                id="pushNotificationServerLocation"
+              <div
+                class="_select_h9fbq_2 _select--size-medium_h9fbq_167"
               >
-                <option
-                  value="global"
+                <div
+                  class="_select__wrapper_h9fbq_8"
                 >
-                  Global
-                </option>
-                <option
-                  value="us"
-                >
-                  US
-                </option>
-                <option
-                  value="de"
-                >
-                  Germany
-                </option>
-                <option
-                  value="jp"
-                >
-                  Japan
-                </option>
-              </select>
+                  <button
+                    aria-controls="pushNotificationServerLocation-listbox"
+                    aria-expanded="false"
+                    aria-haspopup="listbox"
+                    class="_select__control_h9fbq_56"
+                    id="pushNotificationServerLocation"
+                    role="combobox"
+                    type="button"
+                  >
+                    <span
+                      class="_select__value_h9fbq_82"
+                    >
+                      Global
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      class="_select__trailing-icon_h9fbq_99"
+                    >
+                      <div
+                        aria-hidden="true"
+                        class="_icon_1i355_2 _icon--size-12_1i355_30"
+                      >
+                        <div
+                          class="_icon__glyph-area_1i355_9"
+                        >
+                          <svg
+                            fill="currentColor"
+                            height="14"
+                            version="1.1"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </span>
+                  </button>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="pushNotificationServerLocationhelp-text"
@@ -296,27 +342,55 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
             <div
               class="col-sm-8"
             >
-              <select
-                class="form-control"
-                data-testid="pushNotificationServerTypedropdown"
-                id="pushNotificationServerType"
+              <div
+                class="_select_h9fbq_2 _select--size-medium_h9fbq_167"
               >
-                <option
-                  value="off"
+                <div
+                  class="_select__wrapper_h9fbq_8"
                 >
-                  Do not send push notifications
-                </option>
-                <option
-                  value="mtpns"
-                >
-                  Use TPNS connection to send notifications to iOS and Android apps
-                </option>
-                <option
-                  value="custom"
-                >
-                  Manually enter Push Notification Service location
-                </option>
-              </select>
+                  <button
+                    aria-controls="pushNotificationServerType-listbox"
+                    aria-expanded="false"
+                    aria-haspopup="listbox"
+                    class="_select__control_h9fbq_56"
+                    id="pushNotificationServerType"
+                    role="combobox"
+                    type="button"
+                  >
+                    <span
+                      class="_select__value_h9fbq_82"
+                    >
+                      Manually enter Push Notification Service location
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      class="_select__trailing-icon_h9fbq_99"
+                    >
+                      <div
+                        aria-hidden="true"
+                        class="_icon_1i355_2 _icon--size-12_1i355_30"
+                      >
+                        <div
+                          class="_icon__glyph-area_1i355_9"
+                        >
+                          <svg
+                            fill="currentColor"
+                            height="14"
+                            version="1.1"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </span>
+                  </button>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="pushNotificationServerTypehelp-text"

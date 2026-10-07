@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {ChangeEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+
+import {Select} from '@mattermost/compass-ui/components/select';
 
 import type {ExpiryPreset} from './token_expiry';
 import {isExpiryPresetAllowed, isoPlusDays, todayIso} from './token_expiry';
@@ -43,43 +45,60 @@ export default function TokenExpiryPicker({
     const maxCustomIso = maxLifetimeDays > 0 ? isoPlusDays(maxLifetimeDays) : undefined;
     const isAllowed = (preset: ExpiryPreset) => isExpiryPresetAllowed(preset, maxLifetimeDays);
 
+    const options = useMemo(() => {
+        const presetOptions: Array<{value: ExpiryPreset; label: string}> = [];
+
+        if (!enforceExpiry) {
+            presetOptions.push({
+                value: 'none',
+                label: intl.formatMessage({id: 'user.settings.tokens.expiry.none', defaultMessage: 'No expiry'}),
+            });
+        }
+        if (isAllowed('7d')) {
+            presetOptions.push({
+                value: '7d',
+                label: intl.formatMessage({id: 'user.settings.tokens.expiry.7d', defaultMessage: '7 days'}),
+            });
+        }
+        if (isAllowed('30d')) {
+            presetOptions.push({
+                value: '30d',
+                label: intl.formatMessage({id: 'user.settings.tokens.expiry.30d', defaultMessage: '30 days'}),
+            });
+        }
+        if (isAllowed('90d')) {
+            presetOptions.push({
+                value: '90d',
+                label: intl.formatMessage({id: 'user.settings.tokens.expiry.90d', defaultMessage: '90 days'}),
+            });
+        }
+        if (isAllowed('1y')) {
+            presetOptions.push({
+                value: '1y',
+                label: intl.formatMessage({id: 'user.settings.tokens.expiry.1y', defaultMessage: '1 year'}),
+            });
+        }
+        presetOptions.push({
+            value: 'custom',
+            label: intl.formatMessage({id: 'user.settings.tokens.expiry.custom', defaultMessage: 'Custom date…'}),
+        });
+
+        return presetOptions;
+    }, [enforceExpiry, intl, maxLifetimeDays]);
+
+    const handlePresetChange = useCallback((value: string) => {
+        onPresetChange({target: {value}} as ChangeEvent<HTMLSelectElement>);
+    }, [onPresetChange]);
+
     return (
         <>
-            <select
+            <Select
                 id={`${idPrefix}Expiry`}
                 className={selectClassName}
                 value={expiryPreset}
-                onChange={onPresetChange}
-            >
-                {!enforceExpiry && (
-                    <option value='none'>
-                        {intl.formatMessage({id: 'user.settings.tokens.expiry.none', defaultMessage: 'No expiry'})}
-                    </option>
-                )}
-                {isAllowed('7d') && (
-                    <option value='7d'>
-                        {intl.formatMessage({id: 'user.settings.tokens.expiry.7d', defaultMessage: '7 days'})}
-                    </option>
-                )}
-                {isAllowed('30d') && (
-                    <option value='30d'>
-                        {intl.formatMessage({id: 'user.settings.tokens.expiry.30d', defaultMessage: '30 days'})}
-                    </option>
-                )}
-                {isAllowed('90d') && (
-                    <option value='90d'>
-                        {intl.formatMessage({id: 'user.settings.tokens.expiry.90d', defaultMessage: '90 days'})}
-                    </option>
-                )}
-                {isAllowed('1y') && (
-                    <option value='1y'>
-                        {intl.formatMessage({id: 'user.settings.tokens.expiry.1y', defaultMessage: '1 year'})}
-                    </option>
-                )}
-                <option value='custom'>
-                    {intl.formatMessage({id: 'user.settings.tokens.expiry.custom', defaultMessage: 'Custom date…'})}
-                </option>
-            </select>
+                onChange={handlePresetChange}
+                options={options}
+            />
             {expiryPreset === 'custom' && (
                 <input
                     id={`${idPrefix}ExpiryCustom`}

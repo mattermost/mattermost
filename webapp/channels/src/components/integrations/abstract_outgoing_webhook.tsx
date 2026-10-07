@@ -7,6 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Select} from '@mattermost/compass-ui/components/select';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {OutgoingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
@@ -354,22 +355,14 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <select
-                                    className='form-control'
+                                <Select
                                     value={this.state.contentType}
-                                    onChange={this.updateContentType}
-                                >
-                                    <option
-                                        value={contentTypeOption1}
-                                    >
-                                        {contentTypeOption1}
-                                    </option>
-                                    <option
-                                        value={contentTypeOption2}
-                                    >
-                                        {contentTypeOption2}
-                                    </option>
-                                </select>
+                                    onChange={(value) => this.updateContentType({target: {value}} as React.ChangeEvent<HTMLSelectElement>)}
+                                    options={[
+                                        {value: contentTypeOption1, label: contentTypeOption1},
+                                        {value: contentTypeOption2, label: contentTypeOption2},
+                                    ]}
+                                />
                                 <div className='form__help'>
                                     <FormattedMessage
                                         id='add_outgoing_webhook.contentType.help1'
@@ -454,23 +447,23 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <select
+                                <Select
                                     id='triggerWhen'
-                                    className='form-control'
-                                    value={this.state.triggerWhen}
-                                    onChange={this.updateTriggerWhen}
-                                >
-                                    <option
-                                        value='0'
-                                    >
-                                        {localizeMessage({id: 'add_outgoing_webhook.triggerWordsTriggerWhenFullWord', defaultMessage: 'First word matches a trigger word exactly'})}
-                                    </option>
-                                    <option
-                                        value='1'
-                                    >
-                                        {localizeMessage({id: 'add_outgoing_webhook.triggerWordsTriggerWhenStartsWith', defaultMessage: 'First word starts with a trigger word'})}
-                                    </option>
-                                </select>
+                                    name='triggerWhen'
+                                    aria-label={localizeMessage({id: 'add_outgoing_webhook.triggerWordsTriggerWhen', defaultMessage: 'Trigger When'})}
+                                    value={String(this.state.triggerWhen)}
+                                    onChange={(value) => this.updateTriggerWhen({target: {value}} as React.ChangeEvent<HTMLSelectElement>)}
+                                    options={[
+                                        {
+                                            value: '0',
+                                            label: localizeMessage({id: 'add_outgoing_webhook.triggerWordsTriggerWhenFullWord', defaultMessage: 'First word matches a trigger word exactly'}),
+                                        },
+                                        {
+                                            value: '1',
+                                            label: localizeMessage({id: 'add_outgoing_webhook.triggerWordsTriggerWhenStartsWith', defaultMessage: 'First word starts with a trigger word'}),
+                                        },
+                                    ]}
+                                />
                                 <div className='form__help'>
                                     <FormattedMessage
                                         id='add_outgoing_webhook.triggerWordsTriggerWhen.help'

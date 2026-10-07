@@ -9,7 +9,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import AbstractOutgoingWebhook from 'components/integrations/abstract_outgoing_webhook';
 
-import {renderWithContext, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -163,10 +163,11 @@ describe('components/integrations/AbstractOutgoingWebhook', () => {
 
     test('should update state.triggerWhen on selection change', async () => {
         const {container} = renderWithContext(<AbstractOutgoingWebhook {...requiredProps}/>, initialState as GlobalState);
-        const triggerWhenSelect = container.querySelector('#triggerWhen') as HTMLSelectElement;
-        expect(triggerWhenSelect).toHaveValue('0');
-        await userEvent.selectOptions(triggerWhenSelect, '1');
-        expect(triggerWhenSelect).toHaveValue('1');
+        const triggerWhenButton = container.querySelector('#triggerWhen') as HTMLButtonElement;
+        expect(triggerWhenButton).toHaveTextContent(/First word matches a trigger word exactly/i);
+        await userEvent.click(triggerWhenButton);
+        await userEvent.click(screen.getByRole('option', {name: /First word starts with a trigger word/i}));
+        expect(triggerWhenButton).toHaveTextContent(/First word starts with a trigger word/i);
     });
 
     test('should call action function', async () => {

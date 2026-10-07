@@ -6,6 +6,7 @@ import type {ChangeEvent, JSX} from 'react';
 import {defineMessage, FormattedMessage, type MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Select} from '@mattermost/compass-ui/components/select';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {Command} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
@@ -563,19 +564,23 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <select
+                                <Select
                                     id='method'
-                                    className='form-control'
+                                    name='method'
+                                    aria-label={Utils.localizeMessage({id: 'add_command.method', defaultMessage: 'Request Method'})}
                                     value={this.state.method}
-                                    onChange={this.updateMethod}
-                                >
-                                    <option value={REQUEST_POST}>
-                                        {Utils.localizeMessage({id: 'add_command.method.post', defaultMessage: 'POST'})}
-                                    </option>
-                                    <option value={REQUEST_GET}>
-                                        {Utils.localizeMessage({id: 'add_command.method.get', defaultMessage: 'GET'})}
-                                    </option>
-                                </select>
+                                    onChange={(value) => this.updateMethod({target: {value}} as ChangeEvent<HTMLSelectElement>)}
+                                    options={[
+                                        {
+                                            value: REQUEST_POST,
+                                            label: Utils.localizeMessage({id: 'add_command.method.post', defaultMessage: 'POST'}),
+                                        },
+                                        {
+                                            value: REQUEST_GET,
+                                            label: Utils.localizeMessage({id: 'add_command.method.get', defaultMessage: 'GET'}),
+                                        },
+                                    ]}
+                                />
                                 <div className='form__help'>
                                     <FormattedMessage
                                         id='add_command.method.help'

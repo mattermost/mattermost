@@ -3,9 +3,8 @@
 
 import React, {useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
-import type {GroupBase} from 'react-select';
 
-import DropdownInput from 'components/dropdown_input';
+import {Select} from '@mattermost/compass-ui/components/select';
 
 import type {AdminConsoleUserManagementTableProperties} from 'types/store/views';
 
@@ -76,12 +75,6 @@ export function SystemUsersFilterRole(props: Props) {
 
     const flatOptions = useMemo(() => [anyOption, ...roleOptions, ...guestOptions], [anyOption, roleOptions, guestOptions]);
 
-    const groupedOptions: Array<GroupBase<OptionType>> = useMemo(() => [
-        {label: '', options: [anyOption]},
-        {label: '', options: roleOptions},
-        {label: '', options: guestOptions},
-    ], [anyOption, roleOptions, guestOptions]);
-
     const [value, setValue] = useState(() => getDefaultSelectedValueFromList(props.initialValue, flatOptions));
 
     function handleChange(value: OptionType) {
@@ -91,13 +84,18 @@ export function SystemUsersFilterRole(props: Props) {
     }
 
     return (
-        <DropdownInput<OptionType>
+        <Select
+            id='DropdownInput_filterRole'
             name='filterRole'
-            isSearchable={false}
-            legend={formatMessage({id: 'admin.system_users.filters.role.title', defaultMessage: 'Role'})}
-            options={groupedOptions}
-            value={value}
-            onChange={handleChange}
+            label={formatMessage({id: 'admin.system_users.filters.role.title', defaultMessage: 'Role'})}
+            options={flatOptions}
+            value={value.value}
+            onChange={(selectedValue) => {
+                const option = flatOptions.find((item) => item.value === selectedValue);
+                if (option) {
+                    handleChange(option);
+                }
+            }}
         />
     );
 }

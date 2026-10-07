@@ -164,88 +164,64 @@ Object {
               </div>
             </div>
             <div
-              class="DropdownInput Input_container"
-              data-testid=""
+              class="_select_h9fbq_2 _select--size-medium_h9fbq_167 company_size_dropdown"
             >
-              <fieldset
-                class="Input_fieldset company_size_dropdown"
+              <div
+                class="_select__wrapper_h9fbq_8"
               >
-                <legend
-                  class="Input_legend"
-                />
-                <div
-                  class="Input_wrapper"
+                <label
+                  class="_select__label_h9fbq_26"
+                  for="DropdownInput_company_size_dropdown"
                 >
-                  <div
-                    class="Input company_size_dropdown css-b62m3t-container"
-                    id="DropdownInput_company_size_dropdown"
+                  Company Size
+                </label>
+                <button
+                  aria-controls="DropdownInput_company_size_dropdown-listbox"
+                  aria-expanded="false"
+                  aria-haspopup="listbox"
+                  class="_select__control_h9fbq_56 _select__control--placeholder_h9fbq_82"
+                  id="DropdownInput_company_size_dropdown"
+                  role="combobox"
+                  type="button"
+                >
+                  <span
+                    class="_select__value_h9fbq_82"
                   >
-                    <span
-                      class="css-1f43avz-a11yText-A11yText"
-                      id="react-select-2-live-region"
-                    />
-                    <span
-                      aria-atomic="false"
-                      aria-live="polite"
-                      aria-relevant="additions text"
-                      class="css-1f43avz-a11yText-A11yText"
-                      role="log"
-                    />
+                    Company Size
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    class="_select__trailing-icon_h9fbq_99"
+                  >
                     <div
-                      class="DropdownInput__controlContainer"
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-12_1i355_30"
                     >
                       <div
-                        class="DropDown__control css-2vz60i-control"
+                        class="_icon__glyph-area_1i355_9"
                       >
-                        <div
-                          class="DropDown__value-container css-hlgwow"
+                        <svg
+                          fill="currentColor"
+                          height="14"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="14"
+                          xmlns="http://www.w3.org/2000/svg"
                         >
-                          <div
-                            class="DropDown__placeholder css-1jqq78o-placeholder"
-                            id="react-select-2-placeholder"
-                          >
-                            Company Size
-                          </div>
-                          <div
-                            class="DropDown__input-container css-19yuyn7"
-                            data-value=""
-                          >
-                            <input
-                              aria-activedescendant=""
-                              aria-autocomplete="list"
-                              aria-describedby="react-select-2-placeholder"
-                              aria-expanded="false"
-                              aria-haspopup="true"
-                              autocapitalize="none"
-                              autocomplete="off"
-                              autocorrect="off"
-                              class="DropDown__input"
-                              id="react-select-2-input"
-                              role="combobox"
-                              spellcheck="false"
-                              style="color: inherit; background: 0px; opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
-                              tabindex="0"
-                              type="text"
-                              value=""
-                            />
-                          </div>
-                        </div>
-                        <div
-                          class="DropdownInput__indicatorsContainer"
-                        >
-                          <div
-                            class="DropDown__indicators css-1wy0on6"
-                          >
-                            <i
-                              class="icon icon-chevron-down"
-                            />
-                          </div>
-                        </div>
+                          <path
+                            d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+                          />
+                        </svg>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </fieldset>
+                  </span>
+                </button>
+              </div>
+              <input
+                name="company_size_dropdown"
+                type="hidden"
+                value=""
+              />
             </div>
             <div
               class="countries-section"
@@ -269,7 +245,7 @@ Object {
                     >
                       <span
                         class="css-1f43avz-a11yText-A11yText"
-                        id="react-select-3-live-region"
+                        id="react-select-2-live-region"
                       />
                       <span
                         aria-atomic="false"
@@ -289,7 +265,7 @@ Object {
                           >
                             <div
                               class="DropDown__placeholder css-1jqq78o-placeholder"
-                              id="react-select-3-placeholder"
+                              id="react-select-2-placeholder"
                             >
                               Country/Region
                             </div>
@@ -300,14 +276,14 @@ Object {
                               <input
                                 aria-activedescendant=""
                                 aria-autocomplete="list"
-                                aria-describedby="react-select-3-placeholder"
+                                aria-describedby="react-select-2-placeholder"
                                 aria-expanded="false"
                                 aria-haspopup="true"
                                 autocapitalize="none"
                                 autocomplete="off"
                                 autocorrect="off"
                                 class="DropDown__input"
-                                id="react-select-3-input"
+                                id="react-select-2-input"
                                 role="combobox"
                                 spellcheck="false"
                                 style="color: inherit; background: 0px; opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"

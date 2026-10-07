@@ -24,12 +24,12 @@ describe('components/user_settings/display/CustomThemeChooser', () => {
     });
 
     it('should create a custom theme when the code theme changes', async () => {
-        renderWithContext(
+        const {container} = renderWithContext(
             <CustomThemeChooser {...baseProps}/>,
         );
 
-        const codeThemeSelect = screen.getByRole('combobox', {name: 'Code Theme'});
-        await userEvent.selectOptions(codeThemeSelect, 'monokai');
+        await userEvent.click(container.querySelector('#codeThemeSelect') as HTMLButtonElement);
+        await userEvent.click(screen.getByRole('option', {name: 'Monokai'}));
 
         expect(baseProps.updateTheme).toHaveBeenCalledTimes(1);
         expect(baseProps.updateTheme).toHaveBeenCalledWith({

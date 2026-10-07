@@ -4,15 +4,14 @@
 import type {ChangeEvent} from 'react';
 import React, {memo, useEffect, useRef, Fragment, useMemo, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import type {OnChangeValue} from 'react-select';
-import ReactSelect from 'react-select';
+import {Select} from '@mattermost/compass-ui/components/select';
 
 import type {UserNotifyProps} from '@mattermost/types/users';
 
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
-import {getOptionLabel, type SelectOption} from 'components/widgets/modals/components/react_select_item';
+import {getOptionLabel} from 'components/widgets/modals/components/react_select_item';
 
 import {UserSettingsNotificationSections} from 'utils/constants';
 import {
@@ -92,22 +91,18 @@ function DesktopNotificationSoundsSettings({
         }
     }, [setParentState]);
 
-    const handleChangeForMessageNotificationSoundSelect = useCallback((selectedOption: OnChangeValue<SelectOption, boolean>) => {
+    const handleChangeForMessageNotificationSoundSelect = useCallback((selectedValue: string) => {
         stopTryNotificationRing();
 
-        if (selectedOption && 'value' in selectedOption) {
-            setParentState('desktopNotificationSound', selectedOption.value);
-            tryNotificationSound(selectedOption.value);
-        }
+        setParentState('desktopNotificationSound', selectedValue);
+        tryNotificationSound(selectedValue);
     }, [setParentState]);
 
-    const handleChangeForIncomingCallSoundSelect = useCallback((selectedOption: OnChangeValue<SelectOption, boolean>) => {
+    const handleChangeForIncomingCallSoundSelect = useCallback((selectedValue: string) => {
         stopTryNotificationRing();
 
-        if (selectedOption && 'value' in selectedOption) {
-            setParentState('callsNotificationSound', selectedOption.value);
-            tryNotificationRing(selectedOption.value);
-        }
+        setParentState('callsNotificationSound', selectedValue);
+        tryNotificationRing(selectedValue);
     }, [setParentState]);
 
     const maximizedSettingInputs = useMemo(() => {
@@ -130,25 +125,23 @@ function DesktopNotificationSoundsSettings({
                             />
                         </span>
                     </label>
-                    <ReactSelect
-                        id='messageNotificationSoundSelect'
-                        inputId='messageNotificationSoundSelectInput'
-                        className='react-select inlineSelect'
-                        classNamePrefix='react-select'
-                        options={optionsOfMessageNotificationSoundsSelect}
-                        isClearable={false}
-                        isSearchable={false}
-                        isDisabled={!isMessageNotificationSoundChecked}
+                    <Select
+                        id='messageNotificationSoundSelectInput'
+                        options={optionsOfMessageNotificationSoundsSelect.map((option) => ({
+                            value: option.value,
+                            label: getOptionLabel(option, intl),
+                        }))}
+                        disabled={!isMessageNotificationSoundChecked}
                         placeholder={intl.formatMessage({
                             id: 'user.settings.notifications.desktopNotificationSound.soundSelectPlaceholder',
                             defaultMessage: 'Select a sound',
                         })}
-                        components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
-                        value={getValueOfNotificationSoundsSelect(desktopNotificationSound)}
+                        value={getValueOfNotificationSoundsSelect(desktopNotificationSound).value}
                         onChange={handleChangeForMessageNotificationSoundSelect}
-                        aria-labelledby='messageNotificationSoundLabel'
-                        getOptionLabel={(option) => getOptionLabel(option, intl)}
-
+                        aria-label={intl.formatMessage({
+                            id: 'user.settings.notifications.desktopNotificationSound.messageNotificationSound',
+                            defaultMessage: 'Message notification sound',
+                        })}
                     />
                 </div>
             </Fragment>
@@ -172,24 +165,23 @@ function DesktopNotificationSoundsSettings({
                                 defaultMessage='Incoming call sound'
                             />
                         </label>
-                        <ReactSelect
-                            id='incomingCallSoundNotificationSelect'
-                            inputId='incomingCallSoundNotificationSelectInput'
-                            className='react-select inlineSelect'
-                            classNamePrefix='react-select'
-                            options={optionsOfIncomingCallSoundsSelect}
-                            isClearable={false}
-                            isSearchable={false}
-                            isDisabled={!isIncomingCallSoundChecked}
-                            components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
+                        <Select
+                            id='incomingCallSoundNotificationSelectInput'
+                            options={optionsOfIncomingCallSoundsSelect.map((option) => ({
+                                value: option.value,
+                                label: getOptionLabel(option, intl),
+                            }))}
+                            disabled={!isIncomingCallSoundChecked}
                             placeholder={intl.formatMessage({
                                 id: 'user.settings.notifications.desktopNotificationSound.soundSelectPlaceholder',
                                 defaultMessage: 'Select a sound',
                             })}
-                            value={getValueOfIncomingCallSoundsSelect(callsNotificationSound)}
+                            value={getValueOfIncomingCallSoundsSelect(callsNotificationSound).value}
                             onChange={handleChangeForIncomingCallSoundSelect}
-                            getOptionLabel={(option) => getOptionLabel(option, intl)}
-
+                            aria-label={intl.formatMessage({
+                                id: 'user.settings.notifications.desktopNotificationSound.incomingCallSound',
+                                defaultMessage: 'Incoming call sound',
+                            })}
                         />
                     </div>
                 </Fragment>
@@ -258,10 +250,6 @@ function DesktopNotificationSoundsSettings({
             updateSection={handleChangeForMinSection}
         />
     );
-}
-
-function NoIndicatorSeparatorComponent() {
-    return null;
 }
 
 function getCollapsedText(

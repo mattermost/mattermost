@@ -120,7 +120,7 @@ describe('components/integrations/AbstractCommand', () => {
         expect((container.querySelector('#description') as HTMLInputElement).value).toBe('description');
         expect((container.querySelector('#trigger') as HTMLInputElement).value).toBe('trigger');
         expect((container.querySelector('#url') as HTMLInputElement).value).toBe('https://google.com/command');
-        expect((container.querySelector('#method') as HTMLSelectElement).value).toBe('G');
+        expect(container.querySelector('#method')).toHaveTextContent('GET');
         expect((container.querySelector('#username') as HTMLInputElement).value).toBe('username');
         expect((container.querySelector('#iconUrl') as HTMLInputElement).value).toBe('https://google.com/icon');
         expect((container.querySelector('#autocomplete') as HTMLInputElement).checked).toBe(true);
@@ -152,9 +152,10 @@ describe('components/integrations/AbstractCommand', () => {
         await userEvent.type(urlInput, 'new url');
         expect(urlInput.value).toBe('new url');
 
-        const methodSelect = container.querySelector('#method') as HTMLSelectElement;
-        await userEvent.selectOptions(methodSelect, 'P');
-        expect(methodSelect.value).toBe('P');
+        const methodButton = container.querySelector('#method') as HTMLButtonElement;
+        await userEvent.click(methodButton);
+        await userEvent.click(screen.getByRole('option', {name: 'POST'}));
+        expect(methodButton).toHaveTextContent('POST');
 
         const usernameInput = container.querySelector('#username') as HTMLInputElement;
         await userEvent.clear(usernameInput);

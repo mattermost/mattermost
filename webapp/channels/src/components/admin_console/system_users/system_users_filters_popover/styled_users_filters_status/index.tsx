@@ -4,7 +4,7 @@
 import React, {useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 
-import DropdownInput from 'components/dropdown_input';
+import {Select} from '@mattermost/compass-ui/components/select';
 
 import type {AdminConsoleUserManagementTableProperties} from 'types/store/views';
 
@@ -48,7 +48,7 @@ export function SystemUsersFiltersStatus(props: Props) {
                 }),
             },
         ];
-    }, []);
+    }, [formatMessage]);
 
     const [value, setValue] = useState(() => getDefaultSelectedValueFromList(props.initialValue, options));
 
@@ -59,13 +59,18 @@ export function SystemUsersFiltersStatus(props: Props) {
     }
 
     return (
-        <DropdownInput<OptionType>
+        <Select
+            id='DropdownInput_filterStatus'
             name='filterStatus'
-            isSearchable={false}
-            legend={formatMessage({id: 'admin.system_users.filters.status.title', defaultMessage: 'Status'})}
+            label={formatMessage({id: 'admin.system_users.filters.status.title', defaultMessage: 'Status'})}
             options={options}
-            value={value}
-            onChange={handleChange}
+            value={value.value}
+            onChange={(selectedValue) => {
+                const option = options.find((item) => item.value === selectedValue);
+                if (option) {
+                    handleChange(option);
+                }
+            }}
         />
     );
 }
