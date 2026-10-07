@@ -42,8 +42,8 @@ export const ELEMENT_ID_FOR_MENU_BACKDROP = 'backdropForMenuComponent';
 const MENU_OPEN_ANIMATION_DURATION = 150;
 export const MENU_CLOSE_ANIMATION_DURATION = 100;
 
-export type MenuButtonComponentProps = ButtonHTMLAttributes<HTMLElement> & {
-    ref: Ref<HTMLElement>;
+export type MenuButtonComponentProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+    ref: Ref<HTMLButtonElement>;
     'data-testid'?: string;
 };
 
