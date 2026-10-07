@@ -7,8 +7,6 @@ import {FormattedMessage} from 'react-intl';
 import {Button} from '@mattermost/compass-ui/components/button';
 import type {ButtonEmphasis, ButtonSize as CompassButtonSize} from '@mattermost/compass-ui/components/button';
 
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
-
 type SharedSize = 'xs' | 'sm' | 'md' | 'lg';
 type SharedVariant = '' | 'destructive' | 'inverted';
 
@@ -72,14 +70,10 @@ const SaveButton: React.FC<Props> = ({
             destructive={variant === 'destructive'}
             appearance={variant === 'inverted' ? 'inverted' : undefined}
             className={extraClasses}
+            loading={saving}
             {...props}
         >
-            <LoadingWrapper
-                loading={saving}
-                text={savingMessage}
-            >
-                <span>{defaultMessage}</span>
-            </LoadingWrapper>
+            {saving ? savingMessage : defaultMessage}
         </Button>
     );
 };

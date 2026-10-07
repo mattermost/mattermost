@@ -11,9 +11,7 @@ exports[`components/SaveButton should match snapshot, extraClasses 1`] = `
     <span
       class="_button__label_doayp_24"
     >
-      <span>
-        Save
-      </span>
+      Save
     </span>
   </button>
 </div>
@@ -30,9 +28,7 @@ exports[`components/SaveButton should match snapshot, on defaultMessage 1`] = `
     <span
       class="_button__label_doayp_24"
     >
-      <span>
-        Save
-      </span>
+      Save
     </span>
   </button>
 </div>
@@ -49,9 +45,7 @@ exports[`components/SaveButton should match snapshot, on defaultMessage 2`] = `
     <span
       class="_button__label_doayp_24"
     >
-      <span>
-        Go
-      </span>
+      Go
     </span>
   </button>
 </div>
@@ -67,19 +61,20 @@ exports[`components/SaveButton should match snapshot, on savingMessage 1`] = `
     type="submit"
   >
     <span
-      class="_button__label_doayp_24"
+      aria-hidden="true"
+      class="_button__icon-slot_doayp_27"
     >
       <span
-        class="LoadingSpinner with-text"
-        data-testid="loadingSpinner"
-        id="loadingSpinner"
-      >
-        <span
-          class="fa fa-spinner fa-fw fa-pulse spinner"
-          title="Loading Icon"
-        />
-        Saving
-      </span>
+        aria-label="Loading"
+        class="_spinner_3elm7_10"
+        role="status"
+        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+      />
+    </span>
+    <span
+      class="_button__label_doayp_24"
+    >
+      Saving
     </span>
   </button>
 </div>
@@ -95,19 +90,20 @@ exports[`components/SaveButton should match snapshot, on savingMessage 2`] = `
     type="submit"
   >
     <span
-      class="_button__label_doayp_24"
+      aria-hidden="true"
+      class="_button__icon-slot_doayp_27"
     >
       <span
-        class="LoadingSpinner with-text"
-        data-testid="loadingSpinner"
-        id="loadingSpinner"
-      >
-        <span
-          class="fa fa-spinner fa-fw fa-pulse spinner"
-          title="Loading Icon"
-        />
-        Saving Config...
-      </span>
+        aria-label="Loading"
+        class="_spinner_3elm7_10"
+        role="status"
+        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+      />
+    </span>
+    <span
+      class="_button__label_doayp_24"
+    >
+      Saving Config...
     </span>
   </button>
 </div>

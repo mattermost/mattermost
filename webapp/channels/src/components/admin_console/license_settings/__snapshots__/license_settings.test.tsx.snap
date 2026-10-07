@@ -945,22 +945,24 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
                   <p>
                     <button
                       class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                      disabled=""
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        aria-hidden="true"
+                        class="_button__icon-slot_doayp_27"
                       >
                         <span
-                          class="LoadingSpinner with-text"
-                          data-testid="loadingSpinner"
-                          id="loadingSpinner"
-                        >
-                          <span
-                            class="fa fa-spinner fa-fw fa-pulse spinner"
-                            title="Loading Icon"
-                          />
-                          Upgrading 42%
-                        </span>
+                          aria-label="Loading"
+                          class="_spinner_3elm7_10"
+                          role="status"
+                          style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+                        />
+                      </span>
+                      <span
+                        class="_button__label_doayp_24"
+                      >
+                        Upgrading 42%
                       </span>
                     </button>
                   </p>
@@ -1235,7 +1237,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       >
                         February 04, 2018
                          
-                        3:24 AM
+                        4:24 AM
                       </span>
                     </div>
                     <div
@@ -1638,15 +1640,16 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                 <div
                   class="purchase_buttons"
                 >
-                  <div
-                    class="purchase-card"
+                  <button
+                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    type="button"
                   >
-                    <button
-                      class="btn btn-primary contact-us"
+                    <span
+                      class="_button__label_doayp_24"
                     >
                       Contact Sales
-                    </button>
-                  </div>
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -1917,7 +1920,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       >
                         February 04, 2018
                          
-                        3:24 AM
+                        4:24 AM
                       </span>
                     </div>
                     <div
@@ -2320,15 +2323,16 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                 <div
                   class="purchase_buttons"
                 >
-                  <div
-                    class="purchase-card"
+                  <button
+                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    type="button"
                   >
-                    <button
-                      class="btn btn-primary contact-us"
+                    <span
+                      class="_button__label_doayp_24"
                     >
                       Contact Sales
-                    </button>
-                  </div>
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -2585,7 +2589,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       >
                         February 04, 2018
                          
-                        3:24 AM
+                        4:24 AM
                       </span>
                     </div>
                     <div
@@ -3004,15 +3008,16 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                 <div
                   class="purchase_buttons"
                 >
-                  <div
-                    class="purchase-card"
+                  <button
+                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    type="button"
                   >
-                    <button
-                      class="btn btn-primary contact-us"
+                    <span
+                      class="_button__label_doayp_24"
                     >
                       Contact Sales
-                    </button>
-                  </div>
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -3269,7 +3274,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       >
                         February 04, 2018
                          
-                        3:24 AM
+                        4:24 AM
                       </span>
                     </div>
                     <div
@@ -3672,15 +3677,16 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                 <div
                   class="purchase_buttons"
                 >
-                  <div
-                    class="purchase-card"
+                  <button
+                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    type="button"
                   >
-                    <button
-                      class="btn btn-primary contact-us"
+                    <span
+                      class="_button__label_doayp_24"
                     >
                       Contact Sales
-                    </button>
-                  </div>
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -3937,7 +3943,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       >
                         February 04, 2018
                          
-                        3:24 AM
+                        4:24 AM
                       </span>
                     </div>
                     <div
@@ -4341,15 +4347,16 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                 <div
                   class="purchase_buttons"
                 >
-                  <div
-                    class="purchase-card"
+                  <button
+                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    type="button"
                   >
-                    <button
-                      class="btn btn-primary contact-us"
+                    <span
+                      class="_button__label_doayp_24"
                     >
                       Contact Sales
-                    </button>
-                  </div>
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -4606,7 +4613,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       >
                         February 04, 2018
                          
-                        3:24 AM
+                        4:24 AM
                       </span>
                     </div>
                     <div
@@ -5015,15 +5022,16 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                 <div
                   class="purchase_buttons"
                 >
-                  <div
-                    class="purchase-card"
+                  <button
+                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    type="button"
                   >
-                    <button
-                      class="btn btn-primary contact-us"
+                    <span
+                      class="_button__label_doayp_24"
                     >
                       Contact Sales
-                    </button>
-                  </div>
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -5270,7 +5278,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       >
                         April 06, 2021
                          
-                        1:10 PM
+                        3:10 PM
                       </span>
                     </div>
                     <div
@@ -5602,15 +5610,16 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                 <div
                   class="purchase_buttons"
                 >
-                  <div
-                    class="purchase-card"
+                  <button
+                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    type="button"
                   >
-                    <button
-                      class="btn btn-primary contact-us"
+                    <span
+                      class="_button__label_doayp_24"
                     >
                       Contact Sales
-                    </button>
-                  </div>
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -8415,7 +8424,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       >
                         February 04, 2018
                          
-                        3:24 AM
+                        4:24 AM
                       </span>
                     </div>
                     <div
@@ -8818,15 +8827,16 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                 <div
                   class="purchase_buttons"
                 >
-                  <div
-                    class="purchase-card"
+                  <button
+                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    type="button"
                   >
-                    <button
-                      class="btn btn-primary contact-us"
+                    <span
+                      class="_button__label_doayp_24"
                     >
                       Contact Sales
-                    </button>
-                  </div>
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -9083,7 +9093,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       >
                         February 04, 2018
                          
-                        3:24 AM
+                        4:24 AM
                       </span>
                     </div>
                     <div
@@ -9486,15 +9496,16 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                 <div
                   class="purchase_buttons"
                 >
-                  <div
-                    class="purchase-card"
+                  <button
+                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    type="button"
                   >
-                    <button
-                      class="btn btn-primary contact-us"
+                    <span
+                      class="_button__label_doayp_24"
                     >
                       Contact Sales
-                    </button>
-                  </div>
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>

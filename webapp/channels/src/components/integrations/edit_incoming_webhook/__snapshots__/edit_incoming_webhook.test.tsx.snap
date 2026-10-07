@@ -189,19 +189,20 @@ exports[`components/integrations/EditIncomingWebhook should have called submitHo
             type="submit"
           >
             <span
-              class="_button__label_doayp_24"
+              aria-hidden="true"
+              class="_button__icon-slot_doayp_27"
             >
               <span
-                class="LoadingSpinner with-text"
-                data-testid="loadingSpinner"
-                id="loadingSpinner"
-              >
-                <span
-                  class="fa fa-spinner fa-fw fa-pulse spinner"
-                  title="Loading Icon"
-                />
-                Updating...
-              </span>
+                aria-label="Loading"
+                class="_spinner_3elm7_10"
+                role="status"
+                style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+              />
+            </span>
+            <span
+              class="_button__label_doayp_24"
+            >
+              Updating...
             </span>
           </button>
         </div>
@@ -400,19 +401,20 @@ exports[`components/integrations/EditIncomingWebhook should have called submitHo
             type="submit"
           >
             <span
-              class="_button__label_doayp_24"
+              aria-hidden="true"
+              class="_button__icon-slot_doayp_27"
             >
               <span
-                class="LoadingSpinner with-text"
-                data-testid="loadingSpinner"
-                id="loadingSpinner"
-              >
-                <span
-                  class="fa fa-spinner fa-fw fa-pulse spinner"
-                  title="Loading Icon"
-                />
-                Updating...
-              </span>
+                aria-label="Loading"
+                class="_spinner_3elm7_10"
+                role="status"
+                style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+              />
+            </span>
+            <span
+              class="_button__label_doayp_24"
+            >
+              Updating...
             </span>
           </button>
         </div>

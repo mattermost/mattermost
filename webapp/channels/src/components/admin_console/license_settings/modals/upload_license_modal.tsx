@@ -248,17 +248,20 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                         emphasis='primary'
                         onClick={handleConfirmUpload}
                         disabled={isLoading}
+                        loading={Boolean(isLoading)}
                         id='confirm-button'
                     >
-                        <LoadingWrapper
-                            loading={Boolean(isLoading)}
-                            text={defineMessage({id: 'admin.license.modal.applying', defaultMessage: 'Applying'})}
-                        >
+                        {isLoading ? (
+                            <FormattedMessage
+                                id='admin.license.modal.applying'
+                                defaultMessage='Applying'
+                            />
+                        ) : (
                             <FormattedMessage
                                 id='admin.license.modal.apply'
                                 defaultMessage='Apply License'
                             />
-                        </LoadingWrapper>
+                        )}
                     </Button>
                 </div>
             </>

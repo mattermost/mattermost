@@ -6,7 +6,8 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import type {JSX, ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Button, type ButtonVariant} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
+import type {ButtonVariant} from '@mattermost/shared/components/button';
 
 import SaveButton from 'components/save_button';
 
@@ -98,6 +99,7 @@ const SettingItemMax = ({
                 target.parentElement &&
                 target.parentElement.className !== 'react-select__input' &&
                 !target.classList.contains('btn-tertiary') &&
+                target.id !== 'cancelSetting' &&
                 settingList.current &&
                 settingList.current.contains(target)) {
                 handleSubmit(e);
@@ -257,15 +259,17 @@ const SettingItemMax = ({
                         >
                             {serverError}
                         </div>
-                        {submit}
-                        <Button
-                            id='cancelSetting'
-                            data-testid='cancelButton'
-                            emphasis='tertiary'
-                            onClick={handleUpdateSection}
-                        >
-                            {cancelButtonText}
-                        </Button>
+                        <div className='setting-list-item__buttons'>
+                            {submit}
+                            <Button
+                                id='cancelSetting'
+                                data-testid='cancelButton'
+                                emphasis='tertiary'
+                                onClick={handleUpdateSection}
+                            >
+                                {cancelButtonText}
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </div>

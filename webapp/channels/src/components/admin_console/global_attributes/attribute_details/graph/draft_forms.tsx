@@ -86,7 +86,7 @@ export const AddTopLevelForm = ({
             <Button
                 type='button'
                 emphasis={isEmptyCanvas ? 'primary' : 'secondary'}
-                size={isEmptyCanvas ? 'sm' : 'md'}
+                size={isEmptyCanvas ? 'small' : 'medium'}
                 onClick={onCommit}
                 disabled={!canAdd}
                 data-testid={`${testIdPrefix}__addButton`}

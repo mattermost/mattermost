@@ -3,13 +3,12 @@
 
 import React, {Component, createRef} from 'react';
 import type {ChangeEvent, CSSProperties, MouseEvent, ReactNode, RefObject} from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import FormError from 'components/form_error';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {Constants} from 'utils/constants';
 import * as FileUtils from 'utils/file_utils';
@@ -269,7 +268,7 @@ export default class SettingPicture extends Component<Props, State> {
         let buttonRender;
         if (this.props.onSubmit) {
             buttonRender = (
-                <span>
+                <>
                     <input
                         data-testid='uploadPicture'
                         ref={this.selectInput}
@@ -301,19 +300,22 @@ export default class SettingPicture extends Component<Props, State> {
                         ref={this.confirmButton}
                         emphasis='primary'
                         onClick={this.handleSave}
+                        loading={this.props.loadingPicture}
                         aria-label={this.props.loadingPicture ? localizeMessage({id: 'setting_picture.uploading', defaultMessage: 'Uploading...'}) : localizeMessage({id: 'setting_picture.save', defaultMessage: 'Save'})}
                     >
-                        <LoadingWrapper
-                            loading={this.props.loadingPicture}
-                            text={defineMessage({id: 'setting_picture.uploading', defaultMessage: 'Uploading...'})}
-                        >
+                        {this.props.loadingPicture ? (
+                            <FormattedMessage
+                                id='setting_picture.uploading'
+                                defaultMessage='Uploading...'
+                            />
+                        ) : (
                             <FormattedMessage
                                 id='setting_picture.save'
                                 defaultMessage='Save'
                             />
-                        </LoadingWrapper>
+                        )}
                     </Button>
-                </span>
+                </>
             );
         }
         return (
@@ -344,19 +346,20 @@ export default class SettingPicture extends Component<Props, State> {
                                 errors={[this.props.clientError, this.props.serverError]}
                                 type={'modal'}
                             />
-                            {buttonRender}
-                            <Button
-                                data-testid='cancelSettingPicture'
-                                emphasis='tertiary'
-                                className='ml-2'
-                                onClick={this.handleCancel}
-                                aria-label={localizeMessage({id: 'setting_picture.cancel', defaultMessage: 'Cancel'})}
-                            >
-                                <FormattedMessage
-                                    id='setting_picture.cancel'
-                                    defaultMessage='Cancel'
-                                />
-                            </Button>
+                            <div className='setting-list-item__buttons'>
+                                {buttonRender}
+                                <Button
+                                    data-testid='cancelSettingPicture'
+                                    emphasis='tertiary'
+                                    onClick={this.handleCancel}
+                                    aria-label={localizeMessage({id: 'setting_picture.cancel', defaultMessage: 'Cancel'})}
+                                >
+                                    <FormattedMessage
+                                        id='setting_picture.cancel'
+                                        defaultMessage='Cancel'
+                                    />
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>

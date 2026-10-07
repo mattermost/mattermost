@@ -13,7 +13,6 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import AlertBanner from 'components/alert_banner';
 import withOpenStartTrialFormModal from 'components/common/hocs/cloud/with_open_start_trial_form_modal';
 import ExternalLink from 'components/external_link';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {AboutLinks, LicenseLinks, Preferences, Unique} from 'utils/constants';
 import {format} from 'utils/markdown';
@@ -305,10 +304,10 @@ const TrialBanner = ({
                 type='button'
                 onClick={onHandleUpgrade}
                 emphasis='primary'
+                loading={upgradingPercentage > 0}
             >
-                <LoadingWrapper
-                    loading={upgradingPercentage > 0}
-                    text={upgradingPercentage === 100 && restarting ? (
+                {upgradingPercentage > 0 ? (
+                    upgradingPercentage === 100 && restarting ? (
                         <FormattedMessage
                             id='admin.license.enterprise.restarting'
                             defaultMessage='Restarting'
@@ -318,13 +317,14 @@ const TrialBanner = ({
                             id='admin.license.enterprise.upgrading'
                             defaultMessage='Upgrading {percentage}%'
                             values={{percentage: upgradingPercentage}}
-                        />)}
-                >
+                        />
+                    )
+                ) : (
                     <FormattedMessage
                         id='admin.license.trialUpgradeAndRequest.submit'
                         defaultMessage='Upgrade Server And Start trial'
                     />
-                </LoadingWrapper>
+                )}
             </Button>
         );
 
