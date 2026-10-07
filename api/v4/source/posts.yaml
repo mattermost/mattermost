@@ -471,7 +471,7 @@
             default: 0
         - name: fromUpdateAt
           in: query
-          description: The update_at timestamp to return the next page of posts from. You cannot set this flag with direction=down.
+          description: The update_at timestamp to return the next page of posts from. You cannot set this with fromCreateAt, and with updatesOnly you cannot use direction=up.
           schema:
             type: integer
             default: 0
