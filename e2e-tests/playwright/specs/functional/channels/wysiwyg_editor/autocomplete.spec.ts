@@ -117,6 +117,49 @@ test.describe('WYSIWYG editor - autocomplete suggestions', TAGS, () => {
         await searchResponse;
     });
 
+    /**
+     * @objective Verify that the WYSIWYG autocomplete opens under the character that triggered it rather than in
+     * the top left corner of the composer.
+     *
+     * @reference MM-70333
+     */
+    test('~channel autocomplete opens under the trigger character', async ({pw}) => {
+        const {adminClient, user, userClient, team} = await pw.initSetup();
+        await setWysiwygUserPreference(userClient, user.id, true);
+        const linked = await adminClient.createPublicChannel(team.id, 'Wysiwyg Target');
+        await adminClient.addToChannel(user.id, linked.id);
+
+        const {channelsPage, page} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, 'off-topic');
+
+        const editor = new WysiwygEditor(page.getByTestId('post-create'));
+        await editor.toBeVisible();
+
+        // # Type enough text that the trigger character is nowhere near the left edge of the composer
+        await editor.type('lorem ipsum dolor sit amet ~');
+        await expect(editor.suggestionList()).toBeVisible();
+
+        const inputBox = (await editor.input.boundingBox())!;
+        const listBox = (await editor.suggestionList().boundingBox())!;
+        const triggerLeft = await editor.input.evaluate((element) => {
+            const selection = element.ownerDocument.getSelection()!;
+            const range = element.ownerDocument.createRange();
+            range.setStart(selection.focusNode!, selection.focusOffset - 1);
+            range.setEnd(selection.focusNode!, selection.focusOffset);
+            return range.getBoundingClientRect().left;
+        });
+
+        // * Verify the trigger character really is far from the left edge, so the assertions below mean something
+        expect(triggerLeft - inputBox.x).toBeGreaterThan(100);
+
+        // * Verify the list opens just left of the trigger character, where the channel names line up under it
+        expect(listBox.x).toBeLessThanOrEqual(triggerLeft);
+        expect(listBox.x).toBeGreaterThan(triggerLeft - 60);
+
+        // * Verify the list is still fully inside the composer
+        expect(listBox.x + listBox.width).toBeLessThanOrEqual(inputBox.x + inputBox.width + 1);
+    });
+
     test('emoji shortcode autocomplete opens and closes on Escape', async ({pw}) => {
         const {user, userClient, team} = await pw.initSetup();
         await setWysiwygUserPreference(userClient, user.id, true);
