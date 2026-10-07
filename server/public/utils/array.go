@@ -3,6 +3,29 @@
 
 package utils
 
+// Dedup returns a new slice with duplicate elements removed, preserving the order in which
+// each element first appears. A nil input returns nil, so callers that distinguish "absent"
+// from "empty" keep that distinction.
+func Dedup[T comparable](arr []T) []T {
+	if arr == nil {
+		return nil
+	}
+
+	seen := make(map[T]struct{}, len(arr))
+	result := make([]T, 0, len(arr))
+
+	for _, elem := range arr {
+		if _, ok := seen[elem]; ok {
+			continue
+		}
+
+		seen[elem] = struct{}{}
+		result = append(result, elem)
+	}
+
+	return result
+}
+
 // FindExclusives returns three arrays:
 // 1. Items exclusive to arr1
 // 2. Items exclusive to arr2

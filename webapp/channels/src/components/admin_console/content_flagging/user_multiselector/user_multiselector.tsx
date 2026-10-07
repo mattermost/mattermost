@@ -36,7 +36,7 @@ import {LoadingIndicator} from '../../system_users/system_users_filters_popover/
 import './user_multiselect.scss';
 
 export type AutocompleteOptionType<T> = {
-    label: string | ReactElement;
+    label: string | ReactElement<any>;
     value: string;
     raw?: T;
 };

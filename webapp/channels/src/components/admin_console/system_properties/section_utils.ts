@@ -12,7 +12,7 @@ export class BatchProcessingError<T = Error> extends Error {
 }
 
 export type SectionHook = SectionIO & {
-    content: ReactElement;
+    content: ReactElement<any>;
 };
 
 export type SectionIO = {

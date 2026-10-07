@@ -38,16 +38,21 @@ describe('Notifications', () => {
             cy.apiAddUserToChannel(otherChannel.id, sender.id);
             return cy.apiAddUserToChannel(otherChannel.id, receiver.id);
         }).then(() => {
-            // # Login as receiver and visit off-topic channel
             cy.apiLogin(receiver);
-            cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
-
-            // # Wait for the page to fully load before continuing
-            cy.get('#channelHeaderDropdownButton').should('be.visible').and('have.text', testChannel.display_name);
-
-            cy.get(`#sidebarItem_${otherChannel.name}`).click();
-            cy.get('#sidebarItem_off-topic').click();
         });
+    });
+
+    beforeEach(() => {
+        // # Login as receiver and visit off-topic channel
+        cy.apiLogin(receiver);
+        markChannelRead(testChannel.id);
+        markChannelRead(otherChannel.id);
+        cy.visit(`/${testTeam.name}/channels/off-topic`);
+        cy.get('#channelHeaderDropdownButton').should('be.visible');
+
+        // * Verify unread mention badges are cleared
+        cy.get(`#sidebarItem_${otherChannel.name}`).find('#unreadMentions').should('not.exist');
+        cy.get(`#sidebarItem_${testChannel.name}`).find('#unreadMentions').should('not.exist');
     });
 
     it('MM-T547 still triggers notification if username is not listed in words that trigger mentions', () => {
@@ -244,8 +249,17 @@ describe('Notifications', () => {
     });
 });
 
+function markChannelRead(channelId) {
+    cy.request({
+        headers: {'X-Requested-With': 'XMLHttpRequest'},
+        url: '/api/v4/channels/members/me/view',
+        method: 'POST',
+        body: {channel_id: channelId, collapsed_threads_supported: true},
+    });
+}
+
 function setNotificationSettings(desiredSettings = {first: true, username: true, shouts: true, custom: true, customText: '@'}, channelName) {
-    // Navigate to settings modal
+    // # Navigate to settings modal
     cy.uiOpenSettingsModal();
 
     // # Click on notifications tab
@@ -253,10 +267,10 @@ function setNotificationSettings(desiredSettings = {first: true, username: true,
         should('be.visible').
         click();
 
-    // Notifications header should be visible
+    // * Notifications header should be visible
     cy.findAllByText('Notifications').should('be.visible');
 
-    // Open up 'Words that trigger mentions' sub-section
+    // # Open up 'Words that trigger mentions' sub-section
     cy.findByText('Keywords that trigger notifications').
         scrollIntoView().
         click();
@@ -268,26 +282,33 @@ function setNotificationSettings(desiredSettings = {first: true, username: true,
         {key: 'custom', selector: '#notificationTriggerCustom'},
     ];
 
-    // Set check boxes to desired state
+    // # Set check boxes to desired state
     settings.forEach((setting) => {
         const checkbox = desiredSettings[setting.key] ? {state: 'check', verify: 'be.checked'} : {state: 'uncheck', verify: 'not.be.checked'};
         cy.get(setting.selector)[checkbox.state]().should(checkbox.verify);
     });
 
-    // Set Custom field
+    // # Set Custom field
     if (desiredSettings.custom && desiredSettings.customText) {
         cy.get('#notificationTriggerCustomText').
             type(desiredSettings.customText, {force: true}).
             tab();
     }
 
-    // Click “Save” and close modal
+    // # Click “Save” and close modal
     cy.uiSaveAndClose();
 
-    // Setup notification spy
-    spyNotificationAs('notifySpy', 'granted');
+    cy.apiGetMe().then(({user}) => {
+        const props = user.notify_props || {};
+        expect(props.first_name).to.equal(desiredSettings.first ? 'true' : 'false');
+        expect(props.channel).to.equal(desiredSettings.shouts ? 'true' : 'false');
+    });
 
     // # Navigate to a channel we are NOT going to post to
     cy.get(`#sidebarItem_${channelName}`).scrollIntoView().click({force: true});
     cy.get('#loadingSpinner').should('not.exist');
+    cy.get('#channelHeaderDropdownButton').should('be.visible');
+
+    // # Setup notification spy
+    spyNotificationAs('notifySpy', 'granted');
 }

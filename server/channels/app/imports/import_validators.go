@@ -307,6 +307,11 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 		if data.NotifyProps.CommentsTrigger != nil && !isValidCommentsNotifyLevel(*data.NotifyProps.CommentsTrigger) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_comments_trigger_invalid.error", nil, "", http.StatusBadRequest)
 		}
+
+		if data.NotifyProps.MentionKeys != nil && model.MentionKeysExceedLimits(*data.NotifyProps.MentionKeys) {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_mention_keys_invalid.error",
+				map[string]any{"MaxCount": model.MentionKeysMaxCount, "MaxLength": model.MentionKeysMaxLength}, "", http.StatusBadRequest)
+		}
 	}
 
 	if data.UseMarkdownPreview != nil && !isValidTrueOrFalseString(*data.UseMarkdownPreview) {

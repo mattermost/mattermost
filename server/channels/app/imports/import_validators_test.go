@@ -641,6 +641,24 @@ func TestImportValidateUserImportData(t *testing.T) {
 	data.NotifyProps.MentionKeys = new("valid")
 	checkNoError(t, ValidateUserImportData(&data))
 
+	// mention_keys byte-length limit
+	data.NotifyProps.MentionKeys = model.NewPointer(strings.Repeat("a", model.MentionKeysMaxLength+1))
+	checkError(t, ValidateUserImportData(&data))
+
+	// mention_keys count limit
+	keys := make([]string, model.MentionKeysMaxCount+1)
+	for i := range keys {
+		keys[i] = "k"
+	}
+	data.NotifyProps.MentionKeys = model.NewPointer(strings.Join(keys, ","))
+	checkError(t, ValidateUserImportData(&data))
+
+	// exactly at limits is fine
+	data.NotifyProps.MentionKeys = model.NewPointer(strings.Join(keys[:model.MentionKeysMaxCount], ","))
+	checkNoError(t, ValidateUserImportData(&data))
+
+	data.NotifyProps.MentionKeys = new("valid")
+
 	// Test the email batching interval validators
 	// Happy paths
 	data.EmailInterval = new("immediately")

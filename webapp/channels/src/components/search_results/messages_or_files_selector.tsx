@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef} from 'react';
+import React, {useRef, type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -57,7 +57,7 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
             e.preventDefault();
             e.stopPropagation();
             let nextTab: SearchType;
-            let nextTabRef: React.RefObject<HTMLButtonElement>;
+            let nextTabRef: React.RefObject<HTMLButtonElement | null>;
 
             if (currentTab === DataSearchTypes.MESSAGES_SEARCH_TYPE && props.isFileAttachmentsEnabled) {
                 nextTab = DataSearchTypes.FILES_SEARCH_TYPE;

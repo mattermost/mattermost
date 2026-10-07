@@ -98,6 +98,25 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	field.CreatedBy = c.AppContext.Session().UserId
 	field.UpdatedBy = c.AppContext.Session().UserId
 
+	// Nil-fill permission levels the generic property API would otherwise pin
+	// (createPropertyField in properties.go): without these, PermissionValues
+	// stays nil and SessionHasPermissionToSetPropertyFieldValues denies
+	// everyone -- including sysadmin -- from ever setting this field's value.
+	// Values uses its own default (DefaultPropertyFieldValuesPermissionLevel):
+	// unlike Field/Options, a value is gated by its own target rather than the
+	// field's TargetType, so the system-TargetType sysadmin clause doesn't apply.
+	defaultLevel := app.DefaultPropertyFieldPermissionLevel(field)
+	defaultValuesLevel := app.DefaultPropertyFieldValuesPermissionLevel(field)
+	if field.PermissionField == nil {
+		field.PermissionField = &defaultLevel
+	}
+	if field.PermissionValues == nil {
+		field.PermissionValues = &defaultValuesLevel
+	}
+	if field.PermissionOptions == nil {
+		field.PermissionOptions = &defaultLevel
+	}
+
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 	connectionID := r.Header.Get(model.ConnectionId)
 
@@ -176,6 +195,11 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if existingField.ObjectType != model.PropertyFieldObjectTypeUser {
 		c.Err = model.NewAppError("patchCPAField", "api.property_field.object_type_mismatch.app_error", nil, "", http.StatusNotFound)
+		return
+	}
+
+	if existingField.LinkedFieldID != nil && *existingField.LinkedFieldID != "" {
+		c.Err = model.NewAppError("patchCPAField", "api.custom_profile_attributes.linked_field.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -265,6 +289,11 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if existingField.ObjectType != model.PropertyFieldObjectTypeUser {
 		c.Err = model.NewAppError("deleteCPAField", "api.property_field.object_type_mismatch.app_error", nil, "", http.StatusNotFound)
+		return
+	}
+
+	if existingField.LinkedFieldID != nil && *existingField.LinkedFieldID != "" {
+		c.Err = model.NewAppError("deleteCPAField", "api.custom_profile_attributes.linked_field.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -415,10 +444,16 @@ func cpaPatchValues(c *Context, w http.ResponseWriter, r *http.Request, userID s
 		results[value.FieldID] = value.Value
 	}
 
-	// CPA-specific websocket event (backward compat)
+	// CPA-specific websocket event (backward compat). Broadcast copies, never
+	// results: results is what the caller who just wrote these values gets
+	// back over HTTP, and that caller is allowed to see them.
+	broadcastResults := make(map[string]json.RawMessage, len(upserted))
+	for _, value := range upserted {
+		broadcastResults[value.FieldID] = model.BroadcastValue(fieldByID[value.FieldID], value.Value)
+	}
 	message := model.NewWebSocketEvent(model.WebsocketEventCPAValuesUpdated, "", "", "", nil, "")
 	message.Add("user_id", userID)
-	message.Add("values", results)
+	message.Add("values", broadcastResults)
 	c.App.Publish(message)
 
 	if err := json.NewEncoder(w).Encode(results); err != nil {

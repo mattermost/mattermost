@@ -375,7 +375,7 @@ func (a *App) CheckUserMfa(rctx request.CTX, user *model.User, token string) *mo
 	return nil
 }
 
-func (a *App) MFARequired(rctx request.CTX) *model.AppError {
+func (a *App) MFARequired(rctx request.CTX, method string) *model.AppError {
 	if license := a.Channels().License(); license == nil || !*license.Features.MFA || !*a.Config().ServiceSettings.EnableMultifactorAuthentication || !*a.Config().ServiceSettings.EnforceMultifactorAuthentication {
 		return nil
 	}
@@ -406,9 +406,9 @@ func (a *App) MFARequired(rctx request.CTX) *model.AppError {
 		return nil
 	}
 
-	// Special case to let user get themself
+	// Special case to let user get (but not modify or delete) themself
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
-	if rctx.Path() == path.Join(subpath, "/api/v4/users/me") {
+	if method == http.MethodGet && rctx.Path() == path.Join(subpath, "/api/v4/users/me") {
 		return nil
 	}
 

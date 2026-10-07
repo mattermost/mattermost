@@ -106,8 +106,8 @@ export function adjustTargetIndexForMove(state: GlobalState, categoryId: string,
     const category = getCategory(state, categoryId);
     const filteredChannelIds = makeGetChannelIdsForCategory()(state, category);
 
-    // When dragging multiple channels, we don't actually remove all of them from the list as react-beautiful-dnd doesn't support that
-    // Account for channels removed above the insert point, except the one currently being dragged which is already accounted for by react-beautiful-dnd
+    // When dragging multiple channels, we don't actually remove all of them from the list as @hello-pangea/dnd doesn't support that
+    // Account for channels removed above the insert point, except the one currently being dragged which is already accounted for by @hello-pangea/dnd
     const removedChannelsAboveInsert = filteredChannelIds.filter((channel, index) => channel !== draggableChannelId && channelIds.indexOf(channel) !== -1 && index <= targetIndex);
     const shiftedIndex = targetIndex - removedChannelsAboveInsert.length;
 

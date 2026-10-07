@@ -3,18 +3,18 @@
 exports[`components/sidebar/sidebar_category should match snapshot 1`] = `
 <div>
   <div
-    data-rbd-droppable-context-id="0"
-    data-rbd-droppable-id="sidebar-categories"
+    data-rfd-droppable-context-id="_r_0_"
+    data-rfd-droppable-id="sidebar-categories"
   >
     <div
       class="SidebarChannelGroup a11y__section"
-      data-rbd-draggable-context-id="0"
-      data-rbd-draggable-id="category1"
+      data-rfd-draggable-context-id="_r_0_"
+      data-rfd-draggable-id="category1"
     >
       <div
         class=""
-        data-rbd-droppable-context-id="0"
-        data-rbd-droppable-id="category1"
+        data-rfd-droppable-context-id="_r_0_"
+        data-rfd-droppable-id="category1"
       >
         <div
           class="SidebarChannelGroupHeader"
@@ -28,10 +28,10 @@ exports[`components/sidebar/sidebar_category should match snapshot 1`] = `
               class="icon icon-chevron-down"
             />
             <div
-              aria-describedby="rbd-hidden-text-0-hidden-text-0"
+              aria-describedby="rfd-hidden-text-_r_0_-hidden-text-_r_1_"
               class="SidebarChannelGroupHeader_text"
-              data-rbd-drag-handle-context-id="0"
-              data-rbd-drag-handle-draggable-id="category1"
+              data-rfd-drag-handle-context-id="_r_0_"
+              data-rfd-drag-handle-draggable-id="category1"
               draggable="false"
               tabindex="-1"
             >
@@ -62,18 +62,18 @@ exports[`components/sidebar/sidebar_category should match snapshot 1`] = `
 exports[`components/sidebar/sidebar_category should match snapshot when collapsed 1`] = `
 <div>
   <div
-    data-rbd-droppable-context-id="2"
-    data-rbd-droppable-id="sidebar-categories"
+    data-rfd-droppable-context-id="_r_b_"
+    data-rfd-droppable-id="sidebar-categories"
   >
     <div
       class="SidebarChannelGroup a11y__section isCollapsed"
-      data-rbd-draggable-context-id="2"
-      data-rbd-draggable-id="category1"
+      data-rfd-draggable-context-id="_r_b_"
+      data-rfd-draggable-id="category1"
     >
       <div
         class=""
-        data-rbd-droppable-context-id="2"
-        data-rbd-droppable-id="category1"
+        data-rfd-droppable-context-id="_r_b_"
+        data-rfd-droppable-id="category1"
       >
         <div
           class="SidebarChannelGroupHeader"
@@ -87,10 +87,10 @@ exports[`components/sidebar/sidebar_category should match snapshot when collapse
               class="icon icon-chevron-down icon-rotate-minus-90"
             />
             <div
-              aria-describedby="rbd-hidden-text-2-hidden-text-9"
+              aria-describedby="rfd-hidden-text-_r_b_-hidden-text-_r_c_"
               class="SidebarChannelGroupHeader_text"
-              data-rbd-drag-handle-context-id="2"
-              data-rbd-drag-handle-draggable-id="category1"
+              data-rfd-drag-handle-context-id="_r_b_"
+              data-rfd-drag-handle-draggable-id="category1"
               draggable="false"
               tabindex="-1"
             >
@@ -121,18 +121,18 @@ exports[`components/sidebar/sidebar_category should match snapshot when collapse
 exports[`components/sidebar/sidebar_category should match snapshot when isNewCategory 1`] = `
 <div>
   <div
-    data-rbd-droppable-context-id="1"
-    data-rbd-droppable-id="sidebar-categories"
+    data-rfd-droppable-context-id="_r_5_"
+    data-rfd-droppable-id="sidebar-categories"
   >
     <div
       class="SidebarChannelGroup a11y__section"
-      data-rbd-draggable-context-id="1"
-      data-rbd-draggable-id="category1"
+      data-rfd-draggable-context-id="_r_5_"
+      data-rfd-draggable-id="category1"
     >
       <div
         class=""
-        data-rbd-droppable-context-id="1"
-        data-rbd-droppable-id="category1"
+        data-rfd-droppable-context-id="_r_5_"
+        data-rfd-droppable-id="category1"
       >
         <div
           class="SidebarChannelGroupHeader"
@@ -146,10 +146,10 @@ exports[`components/sidebar/sidebar_category should match snapshot when isNewCat
               class="icon icon-chevron-down"
             />
             <div
-              aria-describedby="rbd-hidden-text-1-hidden-text-4"
+              aria-describedby="rfd-hidden-text-_r_5_-hidden-text-_r_6_"
               class="SidebarChannelGroupHeader_text"
-              data-rbd-drag-handle-context-id="1"
-              data-rbd-drag-handle-draggable-id="category1"
+              data-rfd-drag-handle-context-id="_r_5_"
+              data-rfd-drag-handle-draggable-id="category1"
               draggable="false"
               tabindex="-1"
             >
@@ -173,8 +173,8 @@ exports[`components/sidebar/sidebar_category should match snapshot when isNewCat
           >
             <li
               class="SidebarChannel noFloat newChannelSpacer"
-              data-rbd-draggable-context-id="1"
-              data-rbd-draggable-id="NEW_CHANNEL_SPACER__category1"
+              data-rfd-draggable-context-id="_r_5_"
+              data-rfd-draggable-id="NEW_CHANNEL_SPACER__category1"
               draggable="false"
               tabindex="-1"
             />
@@ -205,18 +205,18 @@ exports[`components/sidebar/sidebar_category should match snapshot when isNewCat
 exports[`components/sidebar/sidebar_category should match snapshot when sorting is set to by recency 1`] = `
 <div>
   <div
-    data-rbd-droppable-context-id="5"
-    data-rbd-droppable-id="sidebar-categories"
+    data-rfd-droppable-context-id="_r_q_"
+    data-rfd-droppable-id="sidebar-categories"
   >
     <div
       class="SidebarChannelGroup a11y__section"
-      data-rbd-draggable-context-id="5"
-      data-rbd-draggable-id="category1"
+      data-rfd-draggable-context-id="_r_q_"
+      data-rfd-draggable-id="category1"
     >
       <div
         class=""
-        data-rbd-droppable-context-id="5"
-        data-rbd-droppable-id="category1"
+        data-rfd-droppable-context-id="_r_q_"
+        data-rfd-droppable-id="category1"
       >
         <div
           class="SidebarChannelGroupHeader"
@@ -230,10 +230,10 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
               class="icon icon-chevron-down"
             />
             <div
-              aria-describedby="rbd-hidden-text-5-hidden-text-19"
+              aria-describedby="rfd-hidden-text-_r_q_-hidden-text-_r_r_"
               class="SidebarChannelGroupHeader_text"
-              data-rbd-drag-handle-context-id="5"
-              data-rbd-drag-handle-draggable-id="category1"
+              data-rfd-drag-handle-context-id="_r_q_"
+              data-rfd-drag-handle-draggable-id="category1"
               draggable="false"
               tabindex="-1"
             >
@@ -276,18 +276,18 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
 exports[`components/sidebar/sidebar_category should match snapshot when the category is DM and there are no DMs to display 1`] = `
 <div>
   <div
-    data-rbd-droppable-context-id="3"
-    data-rbd-droppable-id="sidebar-categories"
+    data-rfd-droppable-context-id="_r_g_"
+    data-rfd-droppable-id="sidebar-categories"
   >
     <div
       class="SidebarChannelGroup a11y__section"
-      data-rbd-draggable-context-id="3"
-      data-rbd-draggable-id="category1"
+      data-rfd-draggable-context-id="_r_g_"
+      data-rfd-draggable-id="category1"
     >
       <div
         class=""
-        data-rbd-droppable-context-id="3"
-        data-rbd-droppable-id="category1"
+        data-rfd-droppable-context-id="_r_g_"
+        data-rfd-droppable-id="category1"
       >
         <div
           class="SidebarChannelGroupHeader"
@@ -301,10 +301,10 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
               class="icon icon-chevron-down hide-arrow"
             />
             <div
-              aria-describedby="rbd-hidden-text-3-hidden-text-13"
+              aria-describedby="rfd-hidden-text-_r_g_-hidden-text-_r_h_"
               class="SidebarChannelGroupHeader_text"
-              data-rbd-drag-handle-context-id="3"
-              data-rbd-drag-handle-draggable-id="category1"
+              data-rfd-drag-handle-context-id="_r_g_"
+              data-rfd-drag-handle-draggable-id="category1"
               draggable="false"
               tabindex="-1"
             >
@@ -343,8 +343,8 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
 exports[`components/sidebar/sidebar_category should match snapshot when there are no channels to display 1`] = `
 <div>
   <div
-    data-rbd-droppable-context-id="4"
-    data-rbd-droppable-id="sidebar-categories"
+    data-rfd-droppable-context-id="_r_n_"
+    data-rfd-droppable-id="sidebar-categories"
   />
 </div>
 `;

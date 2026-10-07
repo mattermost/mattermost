@@ -47,7 +47,7 @@ type State = {
 };
 
 export default class AnnouncementBar extends React.PureComponent<Props, State> {
-    messageRef: React.RefObject<HTMLDivElement>;
+    messageRef: React.RefObject<HTMLDivElement | null>;
     constructor(props: Props) {
         super(props);
 

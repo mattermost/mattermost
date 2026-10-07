@@ -16,6 +16,8 @@ describe('Channel sidebar', () => {
     const SpaceKeyCode = 32;
     const DownArrowKeyCode = 40;
 
+    const categoryDragHandle = '.SidebarChannelGroupHeader_groupButton > .SidebarChannelGroupHeader_text';
+
     let teamName: string;
     let channelName: string;
 
@@ -65,8 +67,10 @@ describe('Channel sidebar', () => {
         // * Verify that we've switched to the new team
         cy.uiGetLHSHeader().findByText(teamName);
 
-        // # Get channel group button and wait for Channels to be visible since for some reason it shows up later...
-        cy.get('.SidebarChannelGroupHeader_groupButton > div[data-rbd-drag-handle-draggable-id]').should('be.visible').as('fromChannelGroup');
+        // # Wait for category headers, then grab the title drag handles
+        cy.get('.SidebarChannelGroupHeader:contains(CHANNELS)').should('be.visible');
+        cy.get('.SidebarChannelGroupHeader:contains(DIRECT MESSAGES)').should('be.visible');
+        cy.get(categoryDragHandle).should('be.visible').as('fromChannelGroup');
         cy.get('@fromChannelGroup').should('contain', 'CHANNELS');
 
         // * Verify the order is correct to begin with
@@ -80,7 +84,7 @@ describe('Channel sidebar', () => {
             trigger('keydown', {keyCode: SpaceKeyCode, force: true}).wait(TIMEOUTS.THREE_SEC);
 
         // * Verify that the elements have been re-ordered
-        cy.get('.SidebarChannelGroupHeader_groupButton > div[data-rbd-drag-handle-draggable-id]').as('toChannelGroup');
+        cy.get(categoryDragHandle).as('toChannelGroup');
         cy.get('@toChannelGroup').eq(1).should('contain', 'CHANNELS');
         cy.get('@toChannelGroup').eq(0).should('contain', 'DIRECT MESSAGES');
     });

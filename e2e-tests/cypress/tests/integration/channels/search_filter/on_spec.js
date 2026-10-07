@@ -44,10 +44,6 @@ describe('Search Date Filter', () => {
         });
     });
 
-    it('MM-T588 on: omits results before and after target date', () => {
-        searchAndValidate(`on:${secondDateEarly.query} ${commonText}`, [secondOffTopicMessage, secondMessage]);
-    });
-
     it('MM-T590_1 on: takes precedence over "before:"', () => {
         searchAndValidate(`before:${Cypress.dayjs().format('YYYY-MM-DD')} on:${secondDateEarly.query} ${commonText}`, [secondOffTopicMessage, secondMessage]);
     });

@@ -349,11 +349,11 @@ describe('components/admin_console/access_control/PolicyList', () => {
         expect(screen.getByText('None')).toBeInTheDocument();
     });
 
-    test('selecting a policy reports its active flag so callers can seed auto-add', async () => {
+    test('selecting a policy reports its auto-add setting so callers can seed their own', async () => {
         const onPolicySelected = jest.fn();
         const policies = [
-            {id: 'policy1', name: 'Policy 1', active: true} as AccessControlPolicy,
-            {id: 'policy2', name: 'Policy 2', active: false} as AccessControlPolicy,
+            {id: 'policy1', name: 'Policy 1', rules: [{actions: ['membership'], expression: 'expr', metadata: {auto_add: 'always'}}]} as AccessControlPolicy,
+            {id: 'policy2', name: 'Policy 2', rules: [{actions: ['membership'], expression: 'expr'}]} as AccessControlPolicy,
         ];
         mockSearchPolicies.mockResolvedValue({data: {policies, total: 2}} as ActionResult);
         renderWithContext(

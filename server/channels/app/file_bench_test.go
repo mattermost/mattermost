@@ -9,11 +9,11 @@ import (
 	"image"
 	"image/gif"
 	"image/jpeg"
-	"math/rand"
 	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/stretchr/testify/require"
 )
 
@@ -32,14 +32,11 @@ func prepareTestImages(tb testing.TB) {
 		image.Point{0, 0},
 		image.Point{2048, 2048},
 	})
-	_, err := rand.New(rand.NewSource(1)).Read(rgba.Pix)
-	if err != nil {
-		tb.Fatal(err)
-	}
+	rgba.Pix = testlib.PseudoRandomBytes(len(rgba.Pix))
 
 	// Encode it as JPEG and GIF
 	buf := &bytes.Buffer{}
-	err = jpeg.Encode(buf, rgba, &jpeg.Options{Quality: 50})
+	err := jpeg.Encode(buf, rgba, &jpeg.Options{Quality: 50})
 	if err != nil {
 		tb.Fatal(err)
 	}

@@ -15,6 +15,9 @@ export default class SettingsModal {
     readonly content;
     readonly closeButton;
 
+    /** Every tab, including the ones plugins register after the built-in four. */
+    readonly tabs;
+
     readonly notificationsTab;
     readonly displayTab;
     readonly sidebarTab;
@@ -31,6 +34,7 @@ export default class SettingsModal {
         this.content = container;
         this.closeButton = container.getByRole('button', {name: 'Close'});
 
+        this.tabs = container.getByRole('tab');
         this.notificationsTab = container.getByRole('tab', {name: 'notifications'});
         this.displayTab = container.getByRole('tab', {name: 'display'});
         this.sidebarTab = container.getByRole('tab', {name: 'sidebar'});

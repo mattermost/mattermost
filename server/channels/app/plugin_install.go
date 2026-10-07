@@ -530,7 +530,7 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 	// Activate the plugin if enabled.
 	pluginState := ch.cfgSvc.Config().PluginSettings.PluginStates[manifest.Id]
 	if pluginState != nil && pluginState.Enable {
-		if hasOverride, enabled := ch.getPluginStateOverride(manifest.Id); hasOverride && !enabled {
+		if hasOverride, enabled := ch.getPluginStateOverride(manifest); hasOverride && !enabled {
 			return manifest, nil
 		}
 

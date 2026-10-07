@@ -116,11 +116,13 @@ type SqlStoreStores struct {
 	sessionAttribute           store.SessionAttributeStore
 	autotranslation            store.AutoTranslationStore
 	ContentFlagging            store.ContentFlaggingStore
+	deliveryTracking           store.DeliveryTrackingStore
 	recap                      store.RecapStore
 	scheduledRecap             store.ScheduledRecapStore
 	readReceipt                store.ReadReceiptStore
 	temporaryPost              store.TemporaryPostStore
 	channelJoinRequest         store.ChannelJoinRequestStore
+	healthFinding              store.HealthFindingStore
 }
 
 type SqlStore struct {
@@ -310,11 +312,13 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.sessionAttribute = newSqlSessionAttributeStore(store)
 	store.stores.autotranslation = newSqlAutoTranslationStore(store)
 	store.stores.ContentFlagging = newContentFlaggingStore(store)
+	store.stores.deliveryTracking = newSqlDeliveryTrackingStore(store)
 	store.stores.recap = newSqlRecapStore(store)
 	store.stores.scheduledRecap = newSqlScheduledRecapStore(store)
 	store.stores.readReceipt = newSqlReadReceiptStore(store, metrics)
 	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
 	store.stores.channelJoinRequest = newSqlChannelJoinRequestStore(store)
+	store.stores.healthFinding = newSqlHealthFindingStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -459,8 +463,9 @@ func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
 		return ss.GetReplica()
 	}
 
-	for i := 0; i < len(ss.searchReplicaXs); i++ {
-		rrNum := atomic.AddInt64(&ss.srCounter, 1) % int64(len(ss.searchReplicaXs))
+	lenReplicas := len(ss.searchReplicaXs)
+	for range lenReplicas {
+		rrNum := atomic.AddInt64(&ss.srCounter, 1) % int64(lenReplicas)
 		if ss.searchReplicaXs[rrNum].Load().Online() {
 			return ss.searchReplicaXs[rrNum].Load()
 		}
@@ -475,8 +480,9 @@ func (ss *SqlStore) GetReplica() *sqlxDBWrapper {
 		return ss.GetMaster()
 	}
 
-	for i := 0; i < len(ss.ReplicaXs); i++ {
-		rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.ReplicaXs))
+	lenReplicas := len(ss.ReplicaXs)
+	for range lenReplicas {
+		rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(lenReplicas)
 		if ss.ReplicaXs[rrNum].Load().Online() {
 			return ss.ReplicaXs[rrNum].Load()
 		}
@@ -978,6 +984,10 @@ func (ss *SqlStore) ChannelJoinRequest() store.ChannelJoinRequestStore {
 	return ss.stores.channelJoinRequest
 }
 
+func (ss *SqlStore) HealthFinding() store.HealthFindingStore {
+	return ss.stores.healthFinding
+}
+
 func (ss *SqlStore) DropAllTables() {
 	ss.masterX.Exec(`DO
 		$func$
@@ -1157,6 +1167,10 @@ func (ss *SqlStore) ScheduledPost() store.ScheduledPostStore {
 
 func (ss *SqlStore) ContentFlagging() store.ContentFlaggingStore {
 	return ss.stores.ContentFlagging
+}
+
+func (ss *SqlStore) DeliveryTracking() store.DeliveryTrackingStore {
+	return ss.stores.deliveryTracking
 }
 
 // preMigration	runs before running the actual Morph migrations.

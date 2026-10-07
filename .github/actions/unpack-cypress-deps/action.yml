@@ -1,7 +1,12 @@
 name: "Unpack Cypress deps artifact"
 description: >
-  Download and extract the run-scoped artifact built by pack-cypress-deps,
-  restoring the Cypress node_modules and binary into place.
+  The consuming half of the artifact transport for the Cypress deps: downloads
+  this run's artifact from pack-cypress-deps and extracts the node_modules and
+  Cypress binary into place.
+
+  Runs on a worker only when restore-cypress-deps found the cache key cold, and
+  must leave the same paths populated that a cache restore would have, so the
+  steps that follow cannot tell which transport ran.
 
 inputs:
   fips:

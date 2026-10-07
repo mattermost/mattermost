@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
@@ -535,7 +536,7 @@ func getLatestVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, appErr := c.App.GetLatestVersion(c.AppContext, "https://api.github.com/repos/mattermost/mattermost-server/releases/latest")
+	resp, appErr := c.App.GetLatestVersion(c.AppContext, app.LatestVersionURL)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -768,8 +769,9 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		// Return post data only when PostId is passed.
 		if ack.PostId != "" && ack.NotificationType == model.PushTypeMessage {
 			var isMember bool
+			var post *model.Post
 			var appErr *model.AppError
-			if _, appErr, isMember = c.App.GetPostIfAuthorized(c.AppContext, ack.PostId, c.AppContext.Session(), false); appErr != nil {
+			if post, appErr, isMember = c.App.GetPostIfAuthorized(c.AppContext, ack.PostId, c.AppContext.Session(), false); appErr != nil {
 				c.Err = appErr
 				return
 			}
@@ -788,6 +790,8 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			if err2 := json.NewEncoder(w).Encode(msg); err2 != nil {
 				c.Logger.Warn("Error while writing response", mlog.Err(err2))
+			} else {
+				c.App.RecordPostDelivery(c.AppContext, c.AppContext.Session().UserId, post, model.DeliveryMechanismPush)
 			}
 
 			auditRec := c.MakeAuditRecord(model.AuditEventNotificationAck, model.AuditStatusSuccess)

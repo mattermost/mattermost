@@ -53,11 +53,11 @@ export default abstract class OLDAdminSettings <Props extends BaseProps, State e
 
     protected abstract getConfigFromState(config: DeepPartial<AdminConfig>): unknown;
 
-    protected abstract renderTitle(): React.ReactElement;
+    protected abstract renderTitle(): React.ReactElement<any>;
 
-    protected abstract renderSettings(): React.ReactElement;
+    protected abstract renderSettings(): React.ReactElement<any>;
 
-    protected handleSaved?: ((config: AdminConfig) => React.ReactElement | void);
+    protected handleSaved?: ((config: AdminConfig) => React.ReactElement<any> | void);
 
     protected canSave?: () => boolean;
 

@@ -45,7 +45,38 @@ func (a *App) TestLdap(rctx request.CTX) *model.AppError {
 		"ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
 }
 
+// A setting that was not submitted is considered unchanged.
+func ldapConnectionSettingChanged[T comparable](submitted *T, saved *T) bool {
+	return submitted != nil && *submitted != model.SafeDereference(saved)
+}
+
+func (a *App) checkLdapTestBindPassword(where string, settings model.LdapSettings) *model.AppError {
+	savedSettings := a.Config().LdapSettings
+
+	if model.SafeDereference(savedSettings.BindPassword) == "" {
+		return nil
+	}
+
+	submittedPassword := model.SafeDereference(settings.BindPassword)
+	if submittedPassword != "" && submittedPassword != model.FakeSetting {
+		return nil
+	}
+
+	if ldapConnectionSettingChanged(settings.LdapServer, savedSettings.LdapServer) ||
+		ldapConnectionSettingChanged(settings.LdapPort, savedSettings.LdapPort) ||
+		ldapConnectionSettingChanged(settings.ConnectionSecurity, savedSettings.ConnectionSecurity) ||
+		ldapConnectionSettingChanged(settings.BindUsername, savedSettings.BindUsername) {
+		return model.NewAppError(where, "api.ldap.test.reenter_password", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 func (a *App) TestLdapConnection(rctx request.CTX, settings model.LdapSettings) *model.AppError {
+	if appErr := a.checkLdapTestBindPassword("TestLdapConnection", settings); appErr != nil {
+		return appErr
+	}
+
 	license := a.Srv().License()
 	ldapI := a.LdapDiagnostic()
 
@@ -60,6 +91,10 @@ func (a *App) TestLdapConnection(rctx request.CTX, settings model.LdapSettings) 
 }
 
 func (a *App) TestLdapDiagnostics(rctx request.CTX, testType model.LdapDiagnosticTestType, settings model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError) {
+	if appErr := a.checkLdapTestBindPassword("TestLdapDiagnostics", settings); appErr != nil {
+		return nil, appErr
+	}
+
 	license := a.Srv().License()
 	ldapI := a.LdapDiagnostic()
 

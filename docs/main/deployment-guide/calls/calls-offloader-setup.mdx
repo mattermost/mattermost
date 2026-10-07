@@ -462,7 +462,7 @@ curl http://localhost:4545/version
 
 ### Connecting to Mattermost
 
-Configure the Mattermost Calls plugin to use the offloader service via **System Console > Plugins > Calls > Job service URL**, setting it to `http://&lt;offloader-host&gt;:4545`.
+Configure the Mattermost Calls plugin to use the offloader service via **System Console > Plugins > Calls > Job service URL**, setting it to `http://<offloader-host>:4545`.
 
 > [!NOTE]
 > The first time Mattermost connects to the offloader it will self-register and store its authentication key in the database, provided `API_SECURITY_ALLOWSELFREGISTRATION=true` is set (the default in the deployment script).

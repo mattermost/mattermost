@@ -15,7 +15,7 @@ import './header.scss';
 import {LicenseSkus} from 'utils/constants';
 
 export type HeaderProps = {
-    alternateLink?: React.ReactElement;
+    alternateLink?: React.ReactElement<any>;
     backButtonURL?: string;
     onBackButtonClick?: React.EventHandler<React.MouseEvent>;
 };

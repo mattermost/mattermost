@@ -44,12 +44,12 @@ const CustomMenu = React.forwardRef<HTMLUListElement, CustomMenuProps>(({
     open,
     rootCloseEvent,
 }, ref) => {
-    const menuRef = useRef(null);
+    const menuRef = useRef<HTMLUListElement>(null);
     const handleRootClose = useCallback(() => {
         onClose();
     }, [onClose]);
 
-    useRootClose(menuRef, handleRootClose, {disabled: !open, clickTrigger: rootCloseEvent});
+    useRootClose(menuRef as React.RefObject<Element>, handleRootClose, {disabled: !open, clickTrigger: rootCloseEvent});
 
     return (
         <ul
@@ -181,12 +181,14 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
 
             if (typeof stringOrElement === 'object' && 'type' in stringOrElement && stringOrElement.type === FormattedMessage) {
                 // This is a FormattedMessage, so extract the props to translate the text manually
+                const props = (stringOrElement as React.ReactElement<any>).props;
+
                 return intl.formatMessage(
                     {
-                        id: stringOrElement.props.id,
-                        defaultMessage: stringOrElement.props.defaultMessage,
+                        id: props.id,
+                        defaultMessage: props.defaultMessage,
                     },
-                    stringOrElement.props.value,
+                    props.value,
                 );
             }
 

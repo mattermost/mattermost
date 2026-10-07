@@ -197,7 +197,7 @@ exports[`components/AddGroupsToTeamModal should match when renderOption is calle
     alt="group picture"
     className="more-modal__image"
     height="32"
-    src=""
+    src="test-file-stub"
     width="32"
   />
   <div
@@ -244,12 +244,17 @@ exports[`components/AddGroupsToTeamModal should match when renderOption is calle
   className="more-modal__row clickable more-modal__row--selected"
   onClick={[Function]}
   onMouseMove={[Function]}
+  ref={
+    Object {
+      "current": null,
+    }
+  }
 >
   <img
     alt="group picture"
     className="more-modal__image"
     height="32"
-    src=""
+    src="test-file-stub"
     width="32"
   />
   <div

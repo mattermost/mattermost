@@ -164,6 +164,35 @@ describe('components/SingleImageView', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test('should size a dimensionless SVG from the browser default instead of a fixed sliver', async () => {
+        const fileInfo = TestHelper.getFileInfoMock({
+            id: 'svg_file_info_id',
+            name: 'name_svg',
+            extension: 'svg',
+            width: 0,
+            height: 0,
+        });
+        const props = {...baseProps, fileInfo};
+        const {container} = renderWithContext(
+            <SingleImageView {...props}/>,
+        );
+
+        await waitFor(() => {
+            expect(container.querySelector('img:not(.image-loading__placeholder)')).toBeInTheDocument();
+        });
+
+        // The container shrinks to the rendered SVG rather than reserving a fixed 350px box.
+        const imageContainer = container.querySelector('.image-container') as HTMLElement;
+        expect(imageContainer.style.height).toBe('auto');
+        expect(imageContainer.style.width).toBe('100%');
+
+        // The SVG is left unsized so the browser renders it at its default, avoiding the tall,
+        // empty sliver that a forced MIN_IMAGE_SIZE width previously produced.
+        const img = container.querySelector('img:not(.image-loading__placeholder)') as HTMLElement;
+        expect(img.style.width).toBe('');
+        expect(img.style.height).toBe('');
+    });
+
     test('should call openModal on handleImageClick', async () => {
         const {container} = renderWithContext(
             <SingleImageView {...baseProps}/>,

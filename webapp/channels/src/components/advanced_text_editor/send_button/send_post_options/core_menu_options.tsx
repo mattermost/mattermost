@@ -161,7 +161,7 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
         />
     );
 
-    let options: React.ReactElement[] = [];
+    let options: Array<React.ReactElement<any>> = [];
 
     switch (now.weekday) {
     // Sunday

@@ -34,9 +34,9 @@ const useKeyHandler = (
     draft: PostDraft,
     channelId: string,
     postId: string,
-    isValidPersistentNotifications: boolean,
+    isDraftSendable: boolean,
     location: string,
-    textboxRef: React.RefObject<TextboxClass>,
+    textboxRef: React.RefObject<TextboxClass | null>,
     showFormattingBar: boolean,
     focusTextbox: (forceFocus?: boolean) => void,
     applyFormatting: (mode: MarkdownMode) => void,
@@ -59,7 +59,7 @@ const useKeyHandler = (
     const messageHistory = useSelector((state: GlobalState) => state.entities.posts.messagesHistory.messages);
     const rhsExpanded = useSelector(getIsRhsExpanded);
 
-    const timeoutId = useRef<number>();
+    const timeoutId = useRef<number>(undefined);
     const messageHistoryIndex = useRef(messageHistory.length);
     const lastChannelSwitchAt = useRef(0);
     const isNonFormattedPaste = useRef(false);
@@ -127,14 +127,18 @@ const useKeyHandler = (
             return;
         }
 
-        if (allowSending && isValidPersistentNotifications) {
+        // Only check that the draft is sendable for a new post - when editing,
+        // the post already exists, so a failed check can block the user from a potentially
+        // valid edit when the rules are different for post vs edit (current example is
+        // removing mentions from an existing post with persistent notifications)
+        if (allowSending && (isInEditMode || isDraftSendable)) {
             e.preventDefault();
             const updatedDraft = (withClosedCodeBlock && message) ? {...draft, message} : undefined;
             handleSubmit(updatedDraft);
         }
 
         emitTypingEvent();
-    }, [draft, ctrlSend, codeBlockOnCtrlEnter, postId, emitTypingEvent, handleSubmit, isValidPersistentNotifications, textboxRef]);
+    }, [draft, ctrlSend, codeBlockOnCtrlEnter, postId, emitTypingEvent, handleSubmit, isDraftSendable, isInEditMode, textboxRef]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent<TextboxElement>) => {
         const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;

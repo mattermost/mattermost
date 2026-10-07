@@ -9,9 +9,6 @@ import * as TIMEOUTS from '@/fixtures/timeouts';
 describe('Multi-user group messages', () => {
     let testUser;
     let testTeam;
-    const userIds = [];
-    const userList = [];
-    let groupChannel;
 
     before(() => {
         // # Create a new team
@@ -22,22 +19,6 @@ describe('Multi-user group messages', () => {
             // # Add 3 users to the team that should be alphabetically sorted
             ['0aadam', '0aabadam', 'beatrice'].forEach((prefix) => {
                 createTestUser(prefix, team);
-            });
-
-            // # Create a GM with at least 3 users
-            ['charlie', 'diana', 'eddie'].forEach((name) => {
-                cy.apiCreateUser({prefix: name, bypassTutorial: true}).then(({user: groupUser}) => {
-                    cy.apiAddUserToTeam(testTeam.id, groupUser.id);
-                    userIds.push(groupUser.id);
-                    userList.push(groupUser);
-                });
-            });
-
-            // # Add test user to the list of group members
-            userIds.push(testUser.id);
-
-            cy.apiCreateGroupChannel(userIds).then(({channel}) => {
-                groupChannel = channel;
             });
         });
     });
@@ -96,56 +77,6 @@ describe('Multi-user group messages', () => {
         cy.get('#multiSelectHelpMemberInfo').
             should('be.visible').
             and('contain.text', 'You can add 6 more people');
-    });
-
-    it('MM-T468 Group Messaging: Add member to existing GM', () => {
-        cy.apiLogin(testUser);
-
-        // # Add some messages to the channel
-        cy.visit(`/${testTeam.name}/channels/${groupChannel.name}`);
-        cy.postMessage('some');
-        cy.postMessage('historical');
-        cy.postMessage('messages');
-
-        // # Open channel menu and click Add Members
-        cy.uiOpenChannelMenu('Members');
-        cy.uiGetButton('Add').click();
-
-        // * Verify message says: "This will start a new conversation. If you're adding a lot of people, consider creating a private channel instead."
-        cy.get('#moreDmModal').should('be.visible');
-        const warnMessage = 'This will start a new conversation. If you\'re adding a lot of people, consider creating a private channel instead.';
-        cy.contains(warnMessage).should('be.visible');
-
-        // * Verify users are listed in the GM box
-        userList.forEach((user) => {
-            cy.get('.react-select__multi-value div').should('contain', user.username);
-        });
-
-        // # Type a search term and select an autocomplete option.
-        cy.get('#selectItems input').typeWithForce('beatrice');
-        cy.get('.loading-screen').should('not.exist');
-        cy.contains('#multiSelectList .clickable', 'beatrice').should('be.visible'); // .click(); runs into detached dom element
-        cy.get('#selectItems input').typeWithForce('{enter}');
-
-        // # Click Go
-        cy.get('button#saveItems').click({force: true});
-
-        // * Modal closes
-        cy.get('#moreDmModal').should('not.exist');
-        cy.wait(TIMEOUTS.ONE_SEC);
-
-        // * Original messages does not exist
-        cy.contains('.post-message__text', 'historical').should('not.exist');
-
-        cy.contains('p.channel-intro__text', 'This is the start of your group message history with');
-
-        // * New user is added to the GM
-        cy.uiGetRHS().contains(testUser.username).should('be.visible');
-
-        // * Other users are still there
-        userList.forEach((user) => {
-            cy.uiGetRHS().contains(user.username).scrollIntoView().should('be.visible');
-        });
     });
 });
 

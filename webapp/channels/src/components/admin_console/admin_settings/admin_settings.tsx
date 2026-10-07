@@ -3,7 +3,7 @@
 
 /* eslint-disable react/require-optimization */
 
-import React, {useCallback} from 'react';
+import React, {useCallback, type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';

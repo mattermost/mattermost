@@ -78,7 +78,7 @@ test(
     'creates weekly recurring scheduled message from channel without showing the channel indicator',
     {tag: '@scheduled_messages'},
     async ({pw}) => {
-        await pw.skipIfFeatureFlagNotSet('RecurringScheduledPosts', true);
+        await pw.ensureFeatureFlag('RecurringScheduledPosts', true);
 
         const draftMessage = `Weekly Scheduled Draft ${pw.random.id()}`;
 
@@ -238,7 +238,7 @@ test(
     'reschedules weekly recurring scheduled message from scheduled posts page and keeps weekly recurrence',
     {tag: '@scheduled_messages'},
     async ({pw}) => {
-        await pw.skipIfFeatureFlagNotSet('RecurringScheduledPosts', true);
+        await pw.ensureFeatureFlag('RecurringScheduledPosts', true);
 
         const draftMessage = `Weekly Scheduled Draft ${pw.random.id()}`;
 

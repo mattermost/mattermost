@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -390,6 +391,10 @@ func testPostAcknowledgementsStoreBatchDelete(t *testing.T, rctx request.CTX, ss
 		currentPost, err := ss.Post().GetSingle(rctx, post.Id, false)
 		require.NoError(t, err)
 		oldUpdateAt := currentPost.UpdateAt
+
+		// updatePost uses model.GetMillis() (1ms resolution). Wait a millisecond
+		// so BatchDelete cannot write the same UpdateAt as SaveWithModel.
+		time.Sleep(time.Millisecond)
 
 		// Delete acknowledgements in batch
 		err = ss.PostAcknowledgement().BatchDelete([]*model.PostAcknowledgement{ack1, ack2})

@@ -179,7 +179,7 @@ func (r *notificationRenderer) renderString(w util.BufWriter, _ []byte, node ast
 }
 
 func (r *notificationRenderer) writeLines(w util.BufWriter, source []byte, n ast.Node) {
-	for i := 0; i < n.Lines().Len(); i++ {
+	for i := range n.Lines().Len() {
 		line := n.Lines().At(i)
 		value := line.Value(source)
 		_, _ = w.Write(value)

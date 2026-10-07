@@ -344,7 +344,10 @@
 
     .channel-header__title {
         display: flex;
+        width: 100%;
+        min-width: 0;
         height: 24px;
+        align-items: center;
 
         .channel-header__favorites {
             flex: 0 0 auto;
@@ -367,6 +370,14 @@
 
     .channel-header__icons {
         display: flex;
+        min-width: 0;
+
+        // Content-sized so every chip can show while there is room. Shrinks (and
+        // the chips collapse into +N) only after the description has been squeezed
+        // to its 100px floor. min-width:0 lets that shrink happen; the default
+        // min-width:auto would push the call and info controls instead.
+        flex: 0 1 auto;
+        align-items: center;
         margin-right: 8px;
         gap: 4px;
 
@@ -379,8 +390,12 @@
         position: relative;
         display: flex;
         overflow: hidden;
+        min-width: 100px;
         height: 24px;
-        flex: 1;
+
+        // Leftover space after the channel name and chips. Never below 100px, so
+        // the header text stays readable; chips collapse before this is eaten.
+        flex: 1 1 100px;
         align-items: center;
         margin: 0;
         font-size: 12px;

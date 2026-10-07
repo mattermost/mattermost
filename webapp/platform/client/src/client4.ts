@@ -67,6 +67,7 @@ import type {
     PatchDataRetentionCustomPolicy,
     GetDataRetentionCustomPoliciesRequest,
 } from '@mattermost/types/data_retention';
+import type {DeliveryTrackingConfig} from '@mattermost/types/delivery_tracking';
 import type {Draft} from '@mattermost/types/drafts';
 import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {ServerError} from '@mattermost/types/errors';
@@ -117,7 +118,7 @@ import type {
 import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
-import type {NameMappedPropertyFields, PropertyField, PropertyValue} from '@mattermost/types/properties';
+import type {NameMappedPropertyFields, PropertyField, PropertyFieldOptionPage, PropertyValue} from '@mattermost/types/properties';
 import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Recap, CreateRecapRequest, ScheduledRecap, ScheduledRecapInput, RecapLimitStatus} from '@mattermost/types/recaps';
@@ -179,6 +180,13 @@ export const HEADER_X_VERSION_ID = 'X-Version-Id';
 const LOGS_PER_PAGE_DEFAULT = 10000;
 const AUTOCOMPLETE_LIMIT_DEFAULT = 25;
 const PER_PAGE_DEFAULT = 60;
+
+// The largest page the options endpoint serves (server
+// `model.PropertyFieldOptionsMaxPerRequest`). Sent on every options request:
+// the endpoint's own default is PER_PAGE_DEFAULT, which would page a hierarchy
+// 60 options at a time.
+const PROPERTY_FIELD_OPTIONS_PER_PAGE_DEFAULT = 200;
+
 export const DEFAULT_LIMIT_BEFORE = 30;
 export const DEFAULT_LIMIT_AFTER = 30;
 
@@ -364,6 +372,10 @@ export default class Client4 {
 
     getPropertyFieldRoute(groupName: string, objectType: string, fieldId: string) {
         return `${this.getPropertyFieldsRoute(groupName, objectType)}/${fieldId}`;
+    }
+
+    getPropertyFieldOptionsRoute(groupName: string, objectType: string, fieldId: string) {
+        return `${this.getPropertyFieldRoute(groupName, objectType, fieldId)}/options`;
     }
 
     getCustomProfileAttributeFieldsRoute() {
@@ -576,6 +588,10 @@ export default class Client4 {
 
     getContentFlaggingRoute() {
         return `${this.getBaseRoute()}/content_flagging`;
+    }
+
+    getDeliveryTrackingRoute() {
+        return `${this.getBaseRoute()}/delivery_tracking`;
     }
 
     getCSRFFromCookie() {
@@ -2534,6 +2550,32 @@ export default class Client4 {
         );
     };
 
+    // One page of a property field's options, in creation order. has_more is
+    // the only signal that ends a listing — a short page does not, and an
+    // empty page does not either. Resume from next_cursor_create_at and
+    // next_cursor_id, which name the last candidate examined, not the last
+    // option returned. The two request cursor halves go together — the
+    // server refuses a request carrying only one of them.
+    getPropertyFieldOptions = async (
+        groupName: string,
+        objectType: string,
+        fieldId: string,
+        options?: {perPage?: number; cursorId?: string; cursorCreateAt?: number},
+    ) => {
+        const params = new URLSearchParams();
+        params.set('per_page', String(options?.perPage ?? PROPERTY_FIELD_OPTIONS_PER_PAGE_DEFAULT));
+        if (options?.cursorId) {
+            params.set('cursor_id', options.cursorId);
+        }
+        if (options?.cursorCreateAt) {
+            params.set('cursor_create_at', String(options.cursorCreateAt));
+        }
+        return this.doFetch<PropertyFieldOptionPage>(
+            `${this.getPropertyFieldOptionsRoute(groupName, objectType, fieldId)}?${params.toString()}`,
+            {method: 'GET'},
+        );
+    };
+
     createPropertyField = async (groupName: string, objectType: string, field: Partial<PropertyField> & Record<string, unknown>) => {
         return this.doFetch<PropertyField>(
             `${this.getPropertyFieldsRoute(groupName, objectType)}`,
@@ -2594,9 +2636,9 @@ export default class Client4 {
         );
     };
 
-    getPost = (postId: string, includeDeleted?: boolean, retainContent?: boolean) => {
+    getPost = (postId: string, includeDeleted?: boolean, retainContent?: boolean, propertyGroup?: string) => {
         return this.doFetch<Post>(
-            `${this.getPostRoute(postId)}${buildQueryString({include_deleted: includeDeleted, retain_content: retainContent})}`,
+            `${this.getPostRoute(postId)}${buildQueryString({include_deleted: includeDeleted, retain_content: retainContent, propertyGroup})}`,
             {method: 'get'},
         );
     };
@@ -2629,9 +2671,9 @@ export default class Client4 {
         );
     };
 
-    getPostThread = (postId: string, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false) => {
+    getPostThread = (postId: string, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false, propertyGroup?: string) => {
         // this is to ensure we have backwards compatibility for `getPostThread`
-        return this.getPaginatedPostThread(postId, {fetchThreads, collapsedThreads, collapsedThreadsExtended});
+        return this.getPaginatedPostThread(postId, {fetchThreads, collapsedThreads, collapsedThreadsExtended, propertyGroup});
     };
 
     getPaginatedPostThread = async (postId: string, options: FetchPaginatedThreadOptions): Promise<PaginatedPostList> => {
@@ -2652,37 +2694,37 @@ export default class Client4 {
         );
     };
 
-    getPosts = (channelId: string, page = 0, perPage = PER_PAGE_DEFAULT, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false) => {
+    getPosts = (channelId: string, page = 0, perPage = PER_PAGE_DEFAULT, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false, propertyGroup?: string) => {
         return this.doFetch<PostList>(
-            `${this.getChannelRoute(channelId)}/posts${buildQueryString({page, per_page: perPage, skipFetchThreads: !fetchThreads, collapsedThreads, collapsedThreadsExtended})}`,
+            `${this.getChannelRoute(channelId)}/posts${buildQueryString({page, per_page: perPage, skipFetchThreads: !fetchThreads, collapsedThreads, collapsedThreadsExtended, propertyGroup})}`,
             {method: 'get'},
         );
     };
 
-    getPostsUnread = (channelId: string, userId: string, limitAfter = DEFAULT_LIMIT_AFTER, limitBefore = DEFAULT_LIMIT_BEFORE, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false) => {
+    getPostsUnread = (channelId: string, userId: string, limitAfter = DEFAULT_LIMIT_AFTER, limitBefore = DEFAULT_LIMIT_BEFORE, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false, propertyGroup?: string) => {
         return this.doFetch<PostList>(
-            `${this.getUserRoute(userId)}/channels/${channelId}/posts/unread${buildQueryString({limit_after: limitAfter, limit_before: limitBefore, skipFetchThreads: !fetchThreads, collapsedThreads, collapsedThreadsExtended})}`,
+            `${this.getUserRoute(userId)}/channels/${channelId}/posts/unread${buildQueryString({limit_after: limitAfter, limit_before: limitBefore, skipFetchThreads: !fetchThreads, collapsedThreads, collapsedThreadsExtended, propertyGroup})}`,
             {method: 'get'},
         );
     };
 
-    getPostsSince = (channelId: string, since: number, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false) => {
+    getPostsSince = (channelId: string, since: number, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false, propertyGroup?: string) => {
         return this.doFetch<PostList>(
-            `${this.getChannelRoute(channelId)}/posts${buildQueryString({since, skipFetchThreads: !fetchThreads, collapsedThreads, collapsedThreadsExtended})}`,
+            `${this.getChannelRoute(channelId)}/posts${buildQueryString({since, skipFetchThreads: !fetchThreads, collapsedThreads, collapsedThreadsExtended, propertyGroup})}`,
             {method: 'get'},
         );
     };
 
-    getPostsBefore = (channelId: string, postId: string, page = 0, perPage = PER_PAGE_DEFAULT, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false) => {
+    getPostsBefore = (channelId: string, postId: string, page = 0, perPage = PER_PAGE_DEFAULT, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false, propertyGroup?: string) => {
         return this.doFetch<PostList>(
-            `${this.getChannelRoute(channelId)}/posts${buildQueryString({before: postId, page, per_page: perPage, skipFetchThreads: !fetchThreads, collapsedThreads, collapsedThreadsExtended})}`,
+            `${this.getChannelRoute(channelId)}/posts${buildQueryString({before: postId, page, per_page: perPage, skipFetchThreads: !fetchThreads, collapsedThreads, collapsedThreadsExtended, propertyGroup})}`,
             {method: 'get'},
         );
     };
 
-    getPostsAfter = (channelId: string, postId: string, page = 0, perPage = PER_PAGE_DEFAULT, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false) => {
+    getPostsAfter = (channelId: string, postId: string, page = 0, perPage = PER_PAGE_DEFAULT, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false, propertyGroup?: string) => {
         return this.doFetch<PostList>(
-            `${this.getChannelRoute(channelId)}/posts${buildQueryString({after: postId, page, per_page: perPage, skipFetchThreads: !fetchThreads, collapsedThreads, collapsedThreadsExtended})}`,
+            `${this.getChannelRoute(channelId)}/posts${buildQueryString({after: postId, page, per_page: perPage, skipFetchThreads: !fetchThreads, collapsedThreads, collapsedThreadsExtended, propertyGroup})}`,
             {method: 'get'},
         );
     };
@@ -5427,6 +5469,20 @@ export default class Client4 {
         return this.doFetch<ContentFlaggingSettings>(
             `${this.getContentFlaggingRoute()}/config`,
             {method: 'get'},
+        );
+    };
+
+    getDeliveryTrackingConfig = () => {
+        return this.doFetch<DeliveryTrackingConfig>(
+            `${this.getDeliveryTrackingRoute()}/config`,
+            {method: 'get'},
+        );
+    };
+
+    saveDeliveryTrackingConfig = (config: DeliveryTrackingConfig) => {
+        return this.doFetch<StatusOK>(
+            `${this.getDeliveryTrackingRoute()}/config`,
+            {method: 'put', body: JSON.stringify(config)},
         );
     };
 

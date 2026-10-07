@@ -17,6 +17,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {setNavigationBlocked} from 'actions/admin_actions';
 
 import BooleanSetting from 'components/admin_console/boolean_setting';
+import {findNameConflicts} from 'components/admin_console/global_attributes/utils';
 import Setting from 'components/admin_console/setting';
 import ConfirmModal from 'components/confirm_modal';
 import DropdownInput from 'components/dropdown_input';
@@ -38,15 +39,18 @@ import ClassificationLevelsTable from './components/classification_levels_table'
 import GlobalClassificationIndicators from './components/global_classification_indicators';
 import type {GlobalBannerConfig} from './utils';
 import {
+    CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
     CLEARANCE_FIELD_DISPLAY_NAME,
     CLEARANCE_FIELD_NAME,
     DEFAULT_GLOBAL_BANNER,
+    PROPERTY_FIELD_NAME_CONFLICT_ERROR_ID,
     actionsToGlobalBanner,
     fetchChannelClassificationField,
     fetchClassificationField,
     fetchLinkedClassificationField,
     fetchSystemClassificationValue,
     fetchUserLinkedFields,
+    listLiveFields,
     processClassificationField,
     saveCreateChannelLinkedField,
     saveCreateField,
@@ -65,7 +69,7 @@ import type {ClassificationLevel} from './utils/presets';
 import {PENDING_LEVEL_PREFIX, PRESET_CUSTOM, PRESET_EMPTY, presets} from './utils/presets';
 
 import SaveChangesPanel from '../save_changes_panel';
-import {AdminSection, AdminWrapper, SectionHeader, SectionHeading} from '../system_properties/controls';
+import {AdminSection, AdminWrapper, DangerText, SectionHeader, SectionHeading} from '../system_properties/controls';
 
 const MEMBERSHIP_POLICIES_URL = '/admin_console/system_attributes/membership_policies';
 
@@ -77,7 +81,7 @@ const msg = defineMessages({
     presetDescription: {id: 'admin.classification_markings.preset.description', defaultMessage: 'Select a classification preset from the dropdown menu based on your country affiliation. This will help tailor the options to your specific needs. You can also create custom classification levels.'},
     clearanceTitle: {id: 'admin.classification_markings.enforcement.clearance.title', defaultMessage: 'Clearance attribute'},
     clearanceCheckbox: {id: 'admin.classification_markings.enforcement.clearance.checkbox', defaultMessage: 'Enable clearance attribute'},
-    clearanceHelp: {id: 'admin.classification_markings.enforcement.clearance.help', defaultMessage: 'Creates a ranked "Clearance" user attribute linked to these classification levels. Channel membership can then be managed with a corresponding <link>membership policy</link>.'},
+    clearanceHelp: {id: 'admin.classification_markings.enforcement.clearance.help', defaultMessage: 'Creates a ranked "Classification clearance" user attribute linked to these classification levels. Channel membership can then be managed with a corresponding <link>membership policy</link>.'},
     levelsTitle: {id: 'admin.classification_markings.levels.title', defaultMessage: 'Classification levels'},
     levelsDescription: {id: 'admin.classification_markings.levels.description', defaultMessage: 'Text and colors for different classification levels that will be used in the system'},
     informationalNoticeTitle: {id: 'admin.classification_markings.notice.title', defaultMessage: 'Classification markings are informational only'},
@@ -94,7 +98,27 @@ const msg = defineMessages({
     errorGlobalBannerNoLevel: {id: 'admin.classification_markings.error.global_banner_no_level', defaultMessage: 'A global classification level must be selected when the global banner is enabled.'},
     errorGlobalBannerLevelMissing: {id: 'admin.classification_markings.error.global_banner_level_missing', defaultMessage: 'The global classification banner is configured with a level that no longer exists. Select a level that exists in the current classification levels.'},
     errorDeleteHasDependents: {id: 'admin.classification_markings.error.delete_has_dependents', defaultMessage: 'Cannot disable classification markings while channel classifications exist. Remove all channel classification markings first.'},
+    errorCreateNameConflict: {id: 'admin.classification_markings.error.create_name_conflict', defaultMessage: 'Could not save because an attribute with a conflicting name already exists: {error} Rename or remove it in Attribute Management, then reload this page.'},
+    conflictTitle: {id: 'admin.classification_markings.conflict.title', defaultMessage: 'Classification markings cannot be configured'},
+    conflictTemplate: {id: 'admin.classification_markings.conflict.template', defaultMessage: 'An attribute named "{name}" already exists with a different type, so it is not a set of classification levels. Rename or remove it in Attribute Management, then reload this page.'},
+    conflictSystemField: {id: 'admin.classification_markings.conflict.system_field', defaultMessage: 'A system attribute named "{name}" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management, then reload this page.'},
+    conflictChannelField: {id: 'admin.classification_markings.conflict.channel_field', defaultMessage: 'A channel attribute named "{name}" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management, then reload this page.'},
+    conflictClearanceTitle: {id: 'admin.classification_markings.conflict.clearance_title', defaultMessage: 'Clearance attribute cannot be created'},
+    conflictClearance: {id: 'admin.classification_markings.conflict.clearance', defaultMessage: 'A user attribute named "{name}" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management to enable the clearance attribute.'},
+    clearanceTemplateWarningTitle: {id: 'admin.classification_markings.conflict.clearance_template_title', defaultMessage: 'Another attribute already uses this name'},
+    clearanceTemplateWarning: {id: 'admin.classification_markings.conflict.clearance_template', defaultMessage: 'Rename "{name}" in Attribute Management so it isn\'t mistaken for this clearance attribute.'},
 });
+
+type FieldConflict = {
+    kind: 'template' | 'system' | 'channel';
+    field: PropertyField;
+};
+
+const conflictMessageByKind = {
+    template: msg.conflictTemplate,
+    system: msg.conflictSystemField,
+    channel: msg.conflictChannelField,
+};
 
 export const searchableStrings = Object.values(msg);
 
@@ -114,6 +138,18 @@ export default function ClassificationMarkings({disabled}: Props) {
     const [saveError, setSaveError] = useState<string>();
     const [existingField, setExistingField] = useState<PropertyField | null>(null);
     const [existingLinkedField, setExistingLinkedField] = useState<PropertyField | null>(null);
+
+    // A same-named field this feature does not own. Blocking, because every
+    // remaining action would either adopt it, collide with it, or delete it.
+    const [fieldConflict, setFieldConflict] = useState<FieldConflict | null>(null);
+
+    // Scoped to the clearance section: the rest of the page still works.
+    const [clearanceConflict, setClearanceConflict] = useState<PropertyField | null>(null);
+
+    // An unrelated attribute in Attribute Management already called `clearance`.
+    // Not blocking: the user field this page creates is a different object type,
+    // so the server accepts it. It is only indistinguishable to an admin.
+    const [clearanceTemplateConflict, setClearanceTemplateConflict] = useState<PropertyField | null>(null);
 
     const [enabled, setEnabled] = useState(false);
     const [clearanceEnabled, setClearanceEnabled] = useState(false);
@@ -168,17 +204,56 @@ export default function ClassificationMarkings({disabled}: Props) {
 
         (async () => {
             try {
-                const field = await fetchClassificationField();
+                const templateLookup = await fetchClassificationField();
                 if (cancelled) {
                     return;
                 }
-                if (field) {
-                    const result = processClassificationField(field);
+                if (templateLookup.conflict) {
+                    // Nothing of this feature exists to show alongside the error.
+                    setFieldConflict({kind: 'template', field: templateLookup.conflict});
+                    return;
+                }
 
-                    const linkedField = await fetchLinkedClassificationField();
+                const field = templateLookup.field;
+
+                // Empty while classification is not set up, which no instance
+                // field can legitimately be linked to. Checked either way: a
+                // stray same-named field is what the create path would hit.
+                const templateId = field?.id ?? '';
+
+                const linkedLookup = await fetchLinkedClassificationField(templateId);
+                if (cancelled) {
+                    return;
+                }
+                let conflict: FieldConflict | null = linkedLookup.conflict ? {kind: 'system', field: linkedLookup.conflict} : null;
+
+                if (!conflict) {
+                    const channelLookup = await fetchChannelClassificationField(templateId);
                     if (cancelled) {
                         return;
                     }
+                    if (channelLookup.conflict) {
+                        conflict = {kind: 'channel', field: channelLookup.conflict};
+                    }
+                }
+                setFieldConflict(conflict);
+
+                // Clearance is an ABAC-only concept; only probe for it when
+                // ABAC is on (keeps the load path untouched otherwise).
+                let hasClearance = false;
+                if (abacEnabled) {
+                    const clearance = await fetchUserLinkedFields(templateId);
+                    if (cancelled) {
+                        return;
+                    }
+                    hasClearance = clearance.fields.length > 0;
+                    setClearanceConflict(clearance.conflict ?? null);
+                }
+
+                if (field) {
+                    const result = processClassificationField(field);
+
+                    const linkedField = linkedLookup.field;
                     let banner: GlobalBannerConfig = {...DEFAULT_GLOBAL_BANNER};
                     if (linkedField) {
                         const actions = (linkedField.attrs?.actions as string[]) ?? [];
@@ -193,17 +268,6 @@ export default function ClassificationMarkings({disabled}: Props) {
                             }
                         }
                         banner = actionsToGlobalBanner(actions, levelId);
-                    }
-
-                    // Clearance is an ABAC-only concept; only probe for it when
-                    // ABAC is on (keeps the load path untouched otherwise).
-                    let hasClearance = false;
-                    if (abacEnabled) {
-                        const clearanceFields = await fetchUserLinkedFields(field.id);
-                        if (cancelled) {
-                            return;
-                        }
-                        hasClearance = clearanceFields.length > 0;
                     }
 
                     setExistingField(field);
@@ -231,6 +295,35 @@ export default function ClassificationMarkings({disabled}: Props) {
                 if (!cancelled) {
                     setLoading(false);
                 }
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [currentUserId, abacEnabled]);
+
+    // Kept out of the load above, which the whole page waits on and whose catch
+    // turns any failure into the load-error screen. This lookup only decides a
+    // warning, so it pages the templates on its own and a failure costs nothing
+    // but the warning. Nothing needs excluding from the match: these are
+    // template fields, none of which can carry a linked_field_id, and
+    // classification's own template is named `classification`, not `clearance`.
+    useEffect(() => {
+        if (!currentUserId || !abacEnabled) {
+            return undefined;
+        }
+
+        let cancelled = false;
+
+        (async () => {
+            try {
+                const templates = await listLiveFields(CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE);
+                if (!cancelled) {
+                    setClearanceTemplateConflict(findNameConflicts(CLEARANCE_FIELD_NAME, templates)[0] ?? null);
+                }
+            } catch (err: unknown) {
+                console.error('ClassificationMarkings-load-clearance-name-conflict: ', err); // eslint-disable-line no-console
             }
         })();
 
@@ -407,13 +500,13 @@ export default function ClassificationMarkings({disabled}: Props) {
         let templateField = existingField;
         let linkedField = existingLinkedField;
         if (!templateField) {
-            templateField = (await fetchClassificationField()) ?? null;
+            templateField = (await fetchClassificationField()).field ?? null;
             if (templateField) {
                 setExistingField(templateField);
             }
         }
         if (!linkedField) {
-            linkedField = (await fetchLinkedClassificationField()) ?? null;
+            linkedField = (await fetchLinkedClassificationField(templateField?.id ?? '')).field ?? null;
             if (linkedField) {
                 setExistingLinkedField(linkedField);
             }
@@ -459,16 +552,21 @@ export default function ClassificationMarkings({disabled}: Props) {
                 savedLinked = await savePatchLinkedField(savedLinked.id, resolvedBanner);
             }
 
-            // Ensure the channel-scoped classification linked field exists as part of the set.
-            // Push saved fields into Redux eagerly so the banner updates
-            // atomically rather than waiting for out-of-order WS events.
-            const existingChannelField = await fetchChannelClassificationField();
-            if (existingChannelField) {
-                dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedTemplate, savedLinked, existingChannelField]}});
-            } else {
-                const savedChannelField = await saveCreateChannelLinkedField(savedTemplate.id);
-                dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedTemplate, savedLinked, savedChannelField]}});
+            // Created on the transition into enabled, not on every save: an admin who
+            // removed the Channels resource from the attribute page must not have it
+            // reinstated by an unrelated save here.
+            //
+            // Push saved fields into Redux eagerly so the banner updates atomically
+            // rather than waiting for out-of-order WS events.
+            const existingChannelField = (await fetchChannelClassificationField(savedTemplate.id)).field;
+            let channelField = existingChannelField;
+            if (!channelField && !initialEnabled) {
+                channelField = await saveCreateChannelLinkedField(savedTemplate.id);
             }
+            dispatch({
+                type: PropertyTypes.RECEIVED_PROPERTY_FIELDS,
+                data: {fields: channelField ? [savedTemplate, savedLinked, channelField] : [savedTemplate, savedLinked]},
+            });
 
             // Clearance user field: create or delete to match the checkbox. The
             // template exists now (savedTemplate), which the linked field
@@ -479,7 +577,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                 // Delete every match, not just the first: this UI creates one, but a
                 // second linked field made another way would otherwise survive and
                 // reappear on reload while enforcement records itself as disabled.
-                const currentClearance = await fetchUserLinkedFields(savedTemplate.id);
+                const currentClearance = (await fetchUserLinkedFields(savedTemplate.id)).fields;
                 if (clearanceEnabled && currentClearance.length === 0) {
                     const savedClearance = await saveCreateUserLinkedField(savedTemplate.id, CLEARANCE_FIELD_NAME, CLEARANCE_FIELD_DISPLAY_NAME);
                     dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedClearance]}});
@@ -503,7 +601,7 @@ export default function ClassificationMarkings({disabled}: Props) {
         } else if (templateField) {
             // Linked fields must be deleted before the template (deletion protection).
             // Order: channel field -> clearance user field -> system field -> template.
-            const channelField = await fetchChannelClassificationField();
+            const channelField = (await fetchChannelClassificationField(templateField.id)).field;
             if (channelField) {
                 await saveDeleteChannelLinkedField(channelField.id);
                 dispatch({type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: channelField.id}});
@@ -512,7 +610,7 @@ export default function ClassificationMarkings({disabled}: Props) {
             // Not ABAC-gated, unlike the create path: a clearance field created
             // while ABAC was on outlives the setting, and leaving it behind makes
             // the template delete below fail on its dependents.
-            const clearanceFields = await fetchUserLinkedFields(templateField.id);
+            const clearanceFields = (await fetchUserLinkedFields(templateField.id)).fields;
             for (const cf of clearanceFields) {
                 await saveDeleteUserLinkedField(cf.id); // eslint-disable-line no-await-in-loop
                 dispatch({type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: cf.id}});
@@ -536,7 +634,7 @@ export default function ClassificationMarkings({disabled}: Props) {
             setGlobalBanner({...DEFAULT_GLOBAL_BANNER});
             setInitialGlobalBanner({...DEFAULT_GLOBAL_BANNER});
         }
-    }, [enabled, abacEnabled, clearanceEnabled, existingField, existingLinkedField, levels, globalBanner, dispatch]);
+    }, [enabled, initialEnabled, abacEnabled, clearanceEnabled, existingField, existingLinkedField, levels, globalBanner, dispatch]);
 
     const handleSave = useCallback(async () => {
         setSaveError(undefined);
@@ -553,7 +651,9 @@ export default function ClassificationMarkings({disabled}: Props) {
             dispatch(setNavigationBlocked(false));
         } catch (err: unknown) {
             const clientErr = err as ClientError;
-            if (clientErr.status_code === 409) {
+            if (clientErr.server_error_id === PROPERTY_FIELD_NAME_CONFLICT_ERROR_ID) {
+                setSaveError(formatMessage(msg.errorCreateNameConflict, {error: clientErr.message}));
+            } else if (clientErr.status_code === 409) {
                 setSaveError(formatMessage(msg.errorDeleteHasDependents));
             } else {
                 const message = err instanceof Error ? err.message : 'An error occurred while saving';
@@ -596,12 +696,25 @@ export default function ClassificationMarkings({disabled}: Props) {
         );
     }
 
+    // A conflicting field can be neither adopted nor replaced, and the teardown on
+    // disable would delete whatever owns it, so the whole page stops editing.
+    const readOnly = disabled || fieldConflict !== null;
+
     return (
         <div className='wrapper--fixed'>
             <AdminHeader>
                 <FormattedMessage {...msg.pageTitle}/>
             </AdminHeader>
             <AdminWrapper>
+                {fieldConflict && (
+                    <InformationNoticeWrapper>
+                        <SectionNotice
+                            type='danger'
+                            title={<FormattedMessage {...msg.conflictTitle}/>}
+                            text={formatMessage(conflictMessageByKind[fieldConflict.kind], {name: fieldConflict.field.name})}
+                        />
+                    </InformationNoticeWrapper>
+                )}
                 {/* Only true while nothing enforces the levels. The clearance attribute
                     feeds a membership policy, so once it is on the markings do decide
                     access and this notice would contradict the section below. */}
@@ -624,7 +737,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                         label={<FormattedMessage {...msg.enableTitle}/>}
                         value={enabled}
                         onChange={handleClassificationEnabledChange}
-                        disabled={disabled}
+                        disabled={readOnly}
                         setByEnv={false}
                         helpText={<FormattedMessage {...msg.enableDescription}/>}
                         trueText={(
@@ -655,7 +768,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                                     options={presetDropdownOptions}
                                     value={presetDropdownValue}
                                     onChange={handlePresetDropdownChange}
-                                    isDisabled={disabled}
+                                    isDisabled={readOnly}
                                     isClearable={false}
                                     menuPortalTarget={document.body}
                                     styles={classificationPresetDropdownStyles}
@@ -681,10 +794,31 @@ export default function ClassificationMarkings({disabled}: Props) {
                                     type='checkbox'
                                     checked={clearanceEnabled}
                                     onChange={handleClearanceChange}
-                                    disabled={disabled}
+                                    disabled={readOnly || clearanceConflict !== null}
                                 />
                                 <FormattedMessage {...msg.clearanceCheckbox}/>
                             </label>
+                            {clearanceConflict && (
+                                <InformationNoticeWrapper>
+                                    <SectionNotice
+                                        type='danger'
+                                        title={<FormattedMessage {...msg.conflictClearanceTitle}/>}
+                                        text={formatMessage(msg.conflictClearance, {name: clearanceConflict.name})}
+                                    />
+                                </InformationNoticeWrapper>
+                            )}
+                            {/* Suppressed while the blocking conflict above is showing: the
+                                checkbox is disabled then, so nothing would be created and
+                                this notice would describe an outcome that cannot happen. */}
+                            {!clearanceConflict && clearanceTemplateConflict && (
+                                <InformationNoticeWrapper>
+                                    <SectionNotice
+                                        type='warning'
+                                        title={<FormattedMessage {...msg.clearanceTemplateWarningTitle}/>}
+                                        text={formatMessage(msg.clearanceTemplateWarning, {name: clearanceTemplateConflict.name})}
+                                    />
+                                </InformationNoticeWrapper>
+                            )}
                         </Setting>
                     )}
                 </form>
@@ -706,9 +840,9 @@ export default function ClassificationMarkings({disabled}: Props) {
                                 updateLevel={updateLevel}
                                 deleteLevel={deleteLevel}
                                 onReorder={handleReorder}
-                                disabled={disabled}
+                                disabled={readOnly}
                             />
-                            {!disabled && (
+                            {!readOnly && (
                                 <AddLevelButtonRow>
                                     <AddLevelButton onClick={addLevel}>
                                         <PlusIcon size={14}/>
@@ -727,7 +861,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                     <GlobalClassificationIndicators
                         levels={levels}
                         globalBanner={globalBanner}
-                        disabled={disabled}
+                        disabled={readOnly}
                         onChange={handleGlobalBannerChange}
                     />
                 )}
@@ -737,8 +871,8 @@ export default function ClassificationMarkings({disabled}: Props) {
                 saving={saving}
                 saveNeeded={hasChanges}
                 onClick={handleSave}
-                serverError={saveError}
-                isDisabled={saving || disabled}
+                serverError={saveError ? <DangerText>{saveError}</DangerText> : undefined}
+                isDisabled={saving || readOnly}
                 savingMessage={formatMessage({id: 'admin.classification_markings.saving', defaultMessage: 'Saving...'})}
             />
 
