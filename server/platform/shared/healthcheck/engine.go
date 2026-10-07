@@ -11,8 +11,14 @@ import (
 )
 
 var (
-	ReasonRulePanicked      = TranslationId("health.reason.rule_panicked")
-	ReasonConfigUnavailable = TranslationId("health.reason.config_unavailable")
+	ReasonRulePanicked           = TranslationId("health.reason.rule_panicked")
+	ReasonConfigUnavailable      = TranslationId("health.reason.config_unavailable")
+	ReasonStatsUnavailable       = TranslationId("health.reason.stats_unavailable")
+	ReasonJobsUnavailable        = TranslationId("health.reason.jobs_unavailable")
+	ReasonPluginsUnavailable     = TranslationId("health.reason.plugins_unavailable")
+	ReasonLicenseUnavailable     = TranslationId("health.reason.license_unavailable")
+	ReasonDiagnosticsUnavailable = TranslationId("health.reason.diagnostics_unavailable")
+	ReasonCollectedAtUnknown     = TranslationId("health.reason.collected_at_unknown")
 )
 
 // Evaluation names its rule by Code rather than copying the rule's metadata, which would be a second, staleable source of severity/area/surface.

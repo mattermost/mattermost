@@ -20,3 +20,14 @@ func TestBuiltinRegistry(t *testing.T) {
 		assert.True(t, ok, code)
 	}
 }
+
+func TestBuiltinRulesOnCloud(t *testing.T) {
+	var cloud []string
+	for _, rule := range healthcheck.Builtin().Rules() {
+		if rule.AppliesTo(healthcheck.Deployment{IsCloud: true}) {
+			cloud = append(cloud, rule.Code)
+		}
+	}
+
+	assert.ElementsMatch(t, []string{"PUSH_EMPTY_URL", "PUSH_BAD_SCHEME", "PUSH_TEST_PROXY"}, cloud)
+}
