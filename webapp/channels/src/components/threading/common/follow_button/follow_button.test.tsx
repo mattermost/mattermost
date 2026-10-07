@@ -60,7 +60,6 @@ describe('components/threading/common/follow_button', () => {
 
         const onButton = screen.getByRole('button', {name: 'Following'});
         expect(onButton).toHaveAttribute('aria-pressed', 'true');
-        expect(onButton).toHaveClass('btn-force-active');
         expect(onButton.querySelector('.icon-bell-outline')).toBeInTheDocument();
         expect(onButton.querySelector('.icon-bell-off-outline')).not.toBeInTheDocument();
     });

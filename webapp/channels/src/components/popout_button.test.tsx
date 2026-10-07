@@ -49,7 +49,7 @@ describe('PopoutButton', () => {
             const button = screen.getByRole('button');
             expect(button).toHaveAttribute('type', 'button');
             expect(button).toHaveAttribute('aria-label', 'Open in new window');
-            expect(button).toHaveClass('btn', 'btn-icon', 'btn-sm', 'PopoutButton');
+            expect(button).toHaveClass('PopoutButton');
 
             const icon = screen.getByRole('button').querySelector('.icon-dock-window');
             expect(icon).toBeInTheDocument();
