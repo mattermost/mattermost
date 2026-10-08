@@ -5,14 +5,17 @@ import classNames from 'classnames';
 import React from 'react';
 import type {JSX, MouseEvent} from 'react';
 import type {MessageDescriptor} from 'react-intl';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {
+    ChevronLeftIcon,
+    ChevronRightIcon,
+} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Group} from '@mattermost/types/groups';
 import type {Team} from '@mattermost/types/teams';
-
-import NextIcon from 'components/widgets/icons/fa_next_icon';
-import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 
 import type {TeamWithMembership} from '../system_user_detail/team_list/types';
 
@@ -24,7 +27,7 @@ type Paging = {
     total: number;
 };
 
-type Props = {
+type Props = WrappedComponentProps & {
     data: Array<Group | TeamWithMembership>;
     onPageChangedCallback?: (page: Paging, data: Array<Group | Team>) => void;
     total: number;
@@ -42,7 +45,7 @@ type State = {
     page: number;
 };
 
-export default class AbstractList extends React.PureComponent<Props, State> {
+class AbstractList extends React.PureComponent<Props, State> {
     static defaultProps = {
         data: [],
         noPadding: false,
@@ -155,27 +158,29 @@ export default class AbstractList extends React.PureComponent<Props, State> {
                             }}
                         />
                     </div>
-                    <Button
-                        type='button'
-                        emphasis='tertiary'
-                        className={classNames({disabled: firstPage})}
-                        onClick={firstPage ? undefined : this.previousPage}
-                        disabled={firstPage}
-                    >
-                        <PreviousIcon/>
-                    </Button>
-                    <Button
-                        type='button'
-                        emphasis='tertiary'
-                        className={classNames({disabled: lastPage})}
-                        onClick={lastPage ? undefined : this.nextPage}
-                        disabled={lastPage}
-                        data-testid='page-link-next'
-                    >
-                        <NextIcon/>
-                    </Button>
+                    <WithTooltip title={this.props.intl.formatMessage({id: 'adminConsole.list.table.pagination.previous', defaultMessage: 'Go to previous page'})}>
+                        <IconButton
+                            size='small'
+                            icon={<Icon glyph={<ChevronLeftIcon/>}/>}
+                            onClick={this.previousPage}
+                            disabled={firstPage}
+                            aria-label={this.props.intl.formatMessage({id: 'adminConsole.list.table.pagination.previous', defaultMessage: 'Go to previous page'})}
+                        />
+                    </WithTooltip>
+                    <WithTooltip title={this.props.intl.formatMessage({id: 'adminConsole.list.table.pagination.next', defaultMessage: 'Go to next page'})}>
+                        <IconButton
+                            size='small'
+                            icon={<Icon glyph={<ChevronRightIcon/>}/>}
+                            onClick={this.nextPage}
+                            disabled={lastPage}
+                            data-testid='page-link-next'
+                            aria-label={this.props.intl.formatMessage({id: 'adminConsole.list.table.pagination.next', defaultMessage: 'Go to next page'})}
+                        />
+                    </WithTooltip>
                 </div>}
             </div>
         );
     };
 }
+
+export default injectIntl(AbstractList);

@@ -407,13 +407,13 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </span>
           <button
             aria-label="Previous page"
-            class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 ml-2 prev"
+            class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 ml-2 prev"
             disabled=""
             type="button"
           >
             <span
               aria-hidden="true"
-              class="_icon-button__icon-slot_g2m23_33"
+              class="_icon-button__icon-slot_mytxt_33"
             >
               <div
                 aria-hidden="true"
@@ -440,13 +440,13 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </button>
           <button
             aria-label="Next page"
-            class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 next"
+            class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 next"
             disabled=""
             type="button"
           >
             <span
               aria-hidden="true"
-              class="_icon-button__icon-slot_g2m23_33"
+              class="_icon-button__icon-slot_mytxt_33"
             >
               <div
                 aria-hidden="true"
@@ -1641,13 +1641,13 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </span>
           <button
             aria-label="Previous page"
-            class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 ml-2 prev"
+            class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 ml-2 prev"
             disabled=""
             type="button"
           >
             <span
               aria-hidden="true"
-              class="_icon-button__icon-slot_g2m23_33"
+              class="_icon-button__icon-slot_mytxt_33"
             >
               <div
                 aria-hidden="true"
@@ -1674,12 +1674,12 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </button>
           <button
             aria-label="Next page"
-            class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 next"
+            class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 next"
             type="button"
           >
             <span
               aria-hidden="true"
-              class="_icon-button__icon-slot_g2m23_33"
+              class="_icon-button__icon-slot_mytxt_33"
             >
               <div
                 aria-hidden="true"
@@ -2122,13 +2122,13 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </span>
           <button
             aria-label="Previous page"
-            class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 ml-2 prev"
+            class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 ml-2 prev"
             disabled=""
             type="button"
           >
             <span
               aria-hidden="true"
-              class="_icon-button__icon-slot_g2m23_33"
+              class="_icon-button__icon-slot_mytxt_33"
             >
               <div
                 aria-hidden="true"
@@ -2155,13 +2155,13 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
           </button>
           <button
             aria-label="Next page"
-            class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 next"
+            class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 next"
             disabled=""
             type="button"
           >
             <span
               aria-hidden="true"
-              class="_icon-button__icon-slot_g2m23_33"
+              class="_icon-button__icon-slot_mytxt_33"
             >
               <div
                 aria-hidden="true"
@@ -2592,13 +2592,13 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
           </span>
           <button
             aria-label="Previous page"
-            class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 ml-2 prev"
+            class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 ml-2 prev"
             disabled=""
             type="button"
           >
             <span
               aria-hidden="true"
-              class="_icon-button__icon-slot_g2m23_33"
+              class="_icon-button__icon-slot_mytxt_33"
             >
               <div
                 aria-hidden="true"
@@ -2625,13 +2625,13 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
           </button>
           <button
             aria-label="Next page"
-            class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 next"
+            class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 next"
             disabled=""
             type="button"
           >
             <span
               aria-hidden="true"
-              class="_icon-button__icon-slot_g2m23_33"
+              class="_icon-button__icon-slot_mytxt_33"
             >
               <div
                 aria-hidden="true"
@@ -3062,13 +3062,13 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
           </span>
           <button
             aria-label="Previous page"
-            class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 ml-2 prev"
+            class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 ml-2 prev"
             disabled=""
             type="button"
           >
             <span
               aria-hidden="true"
-              class="_icon-button__icon-slot_g2m23_33"
+              class="_icon-button__icon-slot_mytxt_33"
             >
               <div
                 aria-hidden="true"
@@ -3095,13 +3095,13 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
           </button>
           <button
             aria-label="Next page"
-            class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 next"
+            class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 next"
             disabled=""
             type="button"
           >
             <span
               aria-hidden="true"
-              class="_icon-button__icon-slot_g2m23_33"
+              class="_icon-button__icon-slot_mytxt_33"
             >
               <div
                 aria-hidden="true"
