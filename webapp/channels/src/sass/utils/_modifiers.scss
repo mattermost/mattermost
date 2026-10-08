@@ -54,13 +54,15 @@ $positions: 't'top,
     box-shadow: 0 0 1px 3px rgba(var(--link-color-rgb), 0.5), 0 0 0 1px var(--link-color);
 }
 
-// Compass controls draw their own focus ring; class names are hashed, so match stable prefixes.
-// Extra class specificity beats the runtime theme rule `.app__body .a11y--focused`.
-.app__body [class*="_text-input__input"].a11y--focused,
-.app__body [class*="_text-area__input"].a11y--focused,
-.app__body [class*="_search-input__input"].a11y--focused,
-.app__body [class*="_select__control"].a11y--focused,
-.app__body [class*="_combobox__control"].a11y--focused,
+// Compass controls draw their own focus ring on the outer wrapper; a11y--focused
+// lands on the inner control (e.g. TextInput's <input>). Class names are hashed,
+// so match stable prefixes. Extra class specificity beats the runtime theme rule
+// `.app__body .a11y--focused`.
+.app__body [class*="_text-input__wrapper"] .a11y--focused,
+.app__body [class*="_text-area__wrapper"] .a11y--focused,
+.app__body [class*="_search-input__wrapper"] .a11y--focused,
+.app__body [class*="_select__wrapper"] .a11y--focused,
+.app__body [class*="_combobox__wrapper"] .a11y--focused,
 .app__body [class*="_date-range-picker__trigger"].a11y--focused,
 .app__body button[class*="_button--emphasis-"].a11y--focused,
 .app__body button[class*="_icon-button"].a11y--focused,
