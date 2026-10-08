@@ -4,8 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {JSX, MouseEvent} from 'react';
-import type {MessageDescriptor} from 'react-intl';
-import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
+import {FormattedMessage, injectIntl, type MessageDescriptor, type WrappedComponentProps} from 'react-intl';
 
 import {
     ChevronLeftIcon,

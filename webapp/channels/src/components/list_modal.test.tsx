@@ -110,7 +110,7 @@ describe('components/ListModal', () => {
     test('should have called onHide when handleExit is called', async () => {
         const onHide = jest.fn();
         const props = {...baseProps, onHide};
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <ListModal {...props}/>,
         );
 
