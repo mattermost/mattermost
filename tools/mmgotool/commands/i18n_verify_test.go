@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -97,11 +98,11 @@ func TestVerifyLocale(t *testing.T) {
 			warning:        "a.b: missing id",
 		},
 		{
-			name:       "extra id not in en.json",
+			name:       "extra id not in en.json is a warning",
 			localeName: "fr.json",
 			en:         enPlain,
 			locale:     `[{"id":"a.b","translation":"{{.User}} est ici"},{"id":"z.z","translation":"orphelin"}]`,
-			problem:    "z.z: extra id not in en.json",
+			warning:    "z.z: extra id not in en.json",
 		},
 
 		// Template tokens. An unknown one renders "<no value>"; a dropped one
@@ -163,6 +164,32 @@ func TestVerifyLocale(t *testing.T) {
 			en:         enPlural,
 			locale:     `[{"id":"a.b","translation":{"one":"{{.User}}","other":"{{.User}}"}}]`,
 			problem:    `plural category "one" is not used by this locale`,
+		},
+
+		// An empty translation renders the raw translation id, exactly as a
+		// missing id does, so it is reported for the same reason and under the
+		// same flag.
+		{
+			name:       "empty translation is an error by default",
+			localeName: "fr.json",
+			en:         enPlain,
+			locale:     `[{"id":"a.b","translation":""}]`,
+			problem:    "a.b: empty translation",
+		},
+		{
+			name:           "empty translation is a warning under warn-missing-ids",
+			localeName:     "fr.json",
+			en:             enPlain,
+			locale:         `[{"id":"a.b","translation":""}]`,
+			warnMissingIDs: true,
+			warning:        "a.b: empty translation",
+		},
+		{
+			name:       "whitespace-only translation is an error by default",
+			localeName: "fr.json",
+			en:         enPlain,
+			locale:     `[{"id":"a.b","translation":" "}]`,
+			problem:    "a.b: empty translation",
 		},
 
 		// An empty form renders the raw translation id, so it is worse than no
@@ -341,4 +368,23 @@ func TestVerifyCmd(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to open translation directory")
 	})
+}
+
+func TestRemoveEmptyTranslations(t *testing.T) {
+	items := []Item{
+		{ID: "empty", Translation: json.RawMessage(`""`)},
+		{ID: "space", Translation: json.RawMessage(`" "`)},
+		{ID: "whitespace", Translation: json.RawMessage(`"\n\t "`)},
+		{ID: "text", Translation: json.RawMessage(`"Bonjour"`)},
+		{ID: "plural", Translation: json.RawMessage(`{"one":"","other":"x"}`)},
+	}
+
+	kept, count := removeEmptyTranslations(items)
+
+	assert.Equal(t, 3, count)
+	ids := make([]string, 0, len(kept))
+	for _, item := range kept {
+		ids = append(ids, item.ID)
+	}
+	assert.Equal(t, []string{"text", "plural"}, ids)
 }

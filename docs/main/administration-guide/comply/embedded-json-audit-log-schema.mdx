@@ -1,6 +1,8 @@
 ---
 title: "Audit log JSON schema"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <PlanAvailability slug="entry-ent" />
 
 The audit log JSON schema functions as a standardized blueprint or schematic that consistently defines how a single event should appear when being written to the audit log, including: field names, data types, objects, and structure.
@@ -723,6 +725,10 @@ From Mattermost v11.11.0, audit log entries for requests authenticated via a Per
 <td>Migrating configuration</td>
 </tr>
 <tr>
+<td><code>muteHealthFinding</code></td>
+<td>Muting a Health Dashboard finding</td>
+</tr>
+<tr>
 <td><code>patchConfig</code></td>
 <td>Updating configuration properties</td>
 </tr>
@@ -737,6 +743,10 @@ From Mattermost v11.11.0, audit log entries for requests authenticated via a Per
 <tr>
 <td><code>setServerBusy</code></td>
 <td>Setting server busy status</td>
+</tr>
+<tr>
+<td><code>unmuteHealthFinding</code></td>
+<td>Unmuting a Health Dashboard finding</td>
 </tr>
 <tr>
 <td><code>updateConfig</code></td>
@@ -1824,7 +1834,7 @@ This comprehensive list includes all audit events captured by Mattermost across 
 <tr>
 <td>timestamp</td>
 <td>int64</td>
-<td colspan="2"><dl><dt>Date/time when event or activity has taken place. |</dt><dd><div class="line-block"></div></dd></dl><p>Mattermost currently supports three log formats: plain, JSON, and | <a href="https://go2docs.graylog.org/current/getting_in_log_data/gelf.html">GELF</a>. | | - Plain log format uses <a href="https://www.rfc-editor.org/rfc/rfc3339">RFC3339</a> by default. | See the <a href="/administration-guide/manage/logging#plain-log-format-configuration-options">plain log format configuration</a> documentation for supported options. | - JSON log format uses <a href="https://www.rfc-editor.org/rfc/rfc3339">RFC3339</a> by default. | See the <a href="/administration-guide/manage/logging#json-log-format-configuration-options">JSON log format configuration</a> documentation for supported options. | | - GELF log format uses <a href="https://www.unixtimestamp.com/">unixtime</a>. | See the <a href="/administration-guide/manage/logging#gelf-log-format-configuration-options">GELF log format configuration</a> documentation for supported options. |</p></td>
+<td colspan="2"><dl><dt>Date/time when event or activity has taken place. |</dt><dd><div class="line-block"></div></dd></dl><p>Mattermost currently supports three log formats: plain, JSON, and | <a href="https://go2docs.graylog.org/current/getting_in_log_data/gelf.html">GELF</a>. | | - Plain log format uses <a href="https://www.rfc-editor.org/rfc/rfc3339">RFC3339</a> by default. | See the <a href={useBaseUrl('/administration-guide/manage/logging#plain-log-format-configuration-options')}>plain log format configuration</a> documentation for supported options. | - JSON log format uses <a href="https://www.rfc-editor.org/rfc/rfc3339">RFC3339</a> by default. | See the <a href={useBaseUrl('/administration-guide/manage/logging#json-log-format-configuration-options')}>JSON log format configuration</a> documentation for supported options. | | - GELF log format uses <a href="https://www.unixtimestamp.com/">unixtime</a>. | See the <a href={useBaseUrl('/administration-guide/manage/logging#gelf-log-format-configuration-options')}>GELF log format configuration</a> documentation for supported options. |</p></td>
 </tr>
 <tr>
 <td>event_name</td>
