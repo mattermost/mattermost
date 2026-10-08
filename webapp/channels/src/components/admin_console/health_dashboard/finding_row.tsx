@@ -148,7 +148,6 @@ const FindingRow = ({finding, now, expanded, onToggle, onMute, onUnmute, hideAre
                 <span className='HealthFinding__action'>
                     <MuteButton
                         finding={finding}
-                        muted={muted}
                         onMute={onMute}
                         onUnmute={onUnmute}
                     />

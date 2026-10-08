@@ -7,16 +7,16 @@ import {FormattedMessage} from 'react-intl';
 import {BellOffOutlineIcon, BellOutlineIcon} from '@mattermost/compass-icons/components';
 import type {HealthFinding} from '@mattermost/types/health';
 
-import {isHealthFindingOpen} from 'mattermost-redux/utils/health_utils';
+import {isHealthFindingMuted, isHealthFindingOpen} from 'mattermost-redux/utils/health_utils';
 
 type Props = {
     finding: HealthFinding;
-    muted: boolean;
     onMute: (finding: HealthFinding) => void;
     onUnmute: (fingerprint: string) => void;
 };
 
-const MuteButton = ({finding, muted, onMute, onUnmute}: Props) => {
+const MuteButton = ({finding, onMute, onUnmute}: Props) => {
+    const muted = isHealthFindingMuted(finding);
     if (!muted && !isHealthFindingOpen(finding)) {
         return null;
     }

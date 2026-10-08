@@ -20,8 +20,7 @@ export function getHealthFindings(filter: HealthFindingFilter = {muted: 'include
     });
 }
 
-// Applies the change before the request and restores the finding if the request fails, so a
-// mute that did not take effect never stays on screen.
+// Restores the finding if the request fails, so a mute that did not take effect never stays on screen.
 function updateMuteOptimistically(
     fingerprint: string,
     update: (finding: HealthFinding) => HealthFinding,

@@ -84,7 +84,7 @@ const FindingTabs = ({idPrefix, panelId, active, counts, onChange}: Props) => {
                         type='button'
                         role='tab'
                         aria-selected={selected}
-                        aria-controls={panelId}
+                        aria-controls={active ? panelId : undefined}
                         tabIndex={selected || (!active && tab === 'open') ? 0 : -1}
                         className={classNames('HealthDashboard__tab', `HealthDashboard__tab--${tab}`, {'HealthDashboard__tab--active': selected})}
                         onClick={() => onChange(tab)}
