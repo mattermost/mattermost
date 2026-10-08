@@ -35,26 +35,26 @@ exports[`component/view_user_group_modal should match snapshot 1`] = `
             >
               <button
                 aria-label="Back"
-                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 modal-header-back-button"
+                class="_icon-button_mytxt_2 _icon-button--size-medium_mytxt_83 modal-header-back-button"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_g2m23_33"
+                  class="_icon-button__icon-slot_mytxt_33"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    class="_icon_1i355_2 _icon--size-20_1i355_46"
                   >
                     <div
                       class="_icon__glyph-area_1i355_9"
                     >
                       <svg
                         fill="currentColor"
-                        height="18"
+                        height="24"
                         version="1.1"
                         viewBox="0 0 24 24"
-                        width="18"
+                        width="24"
                         xmlns="http://www.w3.org/2000/svg"
                       >
                         <path
@@ -77,18 +77,34 @@ exports[`component/view_user_group_modal should match snapshot 1`] = `
             />
             <button
               aria-label="Close"
-              class="close"
+              class="_icon-button_mytxt_2 _icon-button--size-medium_mytxt_83 view-user-groups-modal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
+                class="_icon-button__icon-slot_mytxt_33"
               >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
+                <div
+                  aria-hidden="true"
+                  class="_icon_1i355_2 _icon--size-20_1i355_46"
+                >
+                  <div
+                    class="_icon__glyph-area_1i355_9"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </span>
             </button>
           </div>

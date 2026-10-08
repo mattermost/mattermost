@@ -6,6 +6,8 @@ import {Modal} from 'react-bootstrap';
 
 import {closeModal} from 'actions/views/modals';
 
+import {screen} from '@testing-library/react';
+
 import {renderWithContext, act, userEvent} from 'tests/react_testing_utils';
 
 import ModalController from '.';
@@ -117,8 +119,7 @@ describe('components/ModalController', () => {
         expect(document.getElementsByClassName('modal-dialog').length).toBe(1);
 
         // Click the close button to trigger modal close flow (onHide -> setState show:false -> onExited)
-        const closeButton = document.querySelector('.close') as HTMLElement;
-        await userEvent.click(closeButton);
+        await userEvent.click(screen.getByRole('button', {name: 'Close'}));
 
         // Wait for the modal's exit transition to complete and fire onExited
         await act(async () => {
@@ -161,8 +162,7 @@ describe('components/ModalController', () => {
         expect(onExited).not.toHaveBeenCalled();
 
         // Click the close button to trigger modal close flow (onHide -> setState show:false -> onExited)
-        const closeButton = document.querySelector('.close') as HTMLElement;
-        await userEvent.click(closeButton);
+        await userEvent.click(screen.getByRole('button', {name: 'Close'}));
 
         // Wait for the modal's exit transition to complete and fire onExited
         await act(async () => {

@@ -301,10 +301,15 @@
             top: -2px;
         }
 
-        .close {
+        .close,
+        .GenericModal__close,
+        .view-user-groups-modal__close {
             position: absolute;
             top: 18px;
             right: 18px;
+        }
+
+        .close {
             width: 40px;
             height: 40px;
             border-radius: var(--radius-s);

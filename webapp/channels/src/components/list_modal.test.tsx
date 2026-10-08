@@ -120,8 +120,7 @@ describe('components/ListModal', () => {
         });
 
         // Click the modal close button
-        const closeButton = baseElement.querySelector('.close') as HTMLElement;
-        await userEvent.click(closeButton);
+        await userEvent.click(screen.getByRole('button', {name: 'Close'}));
 
         // Wait for onHide to be called (called after exit animation)
         await waitFor(() => {

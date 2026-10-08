@@ -6,7 +6,11 @@ import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {CloseIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {Button, type ButtonVariant} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {useFocusTrap} from '../hooks/useFocusTrap';
 import {useStackedModal} from '../hooks/useStackedModal';
@@ -335,17 +339,15 @@ export const GenericModal: React.FC<Props> = ({
                             )}
                         </div>
                         {showCloseButton && (
-                            <button
-                                type='button'
-                                className='close'
-                                onClick={onHideCallback}
-                                aria-label={intl.formatMessage({id: 'generic_modal.close', defaultMessage: 'Close'})}
-                            >
-                                <span aria-hidden='true'>{'×'}</span>
-                                <span className='sr-only'>
-                                    <FormattedMessage id='generic_modal.close' defaultMessage='Close' />
-                                </span>
-                            </button>
+                            <WithTooltip title={intl.formatMessage({id: 'generic_modal.close', defaultMessage: 'Close'})}>
+                                <IconButton
+                                    className='GenericModal__close'
+                                    size='medium'
+                                    icon={<Icon glyph={<CloseIcon/>}/>}
+                                    onClick={onHideCallback}
+                                    aria-label={intl.formatMessage({id: 'generic_modal.close', defaultMessage: 'Close'})}
+                                />
+                            </WithTooltip>
                         )}
                     </Modal.Header>
                 )}

@@ -8,6 +8,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {
     ArchiveOutlineIcon,
     ArrowLeftIcon,
+    CloseIcon,
 } from '@mattermost/compass-icons/components';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
@@ -175,7 +176,7 @@ const ViewUserGroupModalHeader = ({
             <div className='d-flex align-items-center'>
                 <WithTooltip title={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}>
                     <IconButton
-                        size='small'
+                        size='medium'
                         className='modal-header-back-button'
                         icon={<Icon glyph={<ArrowLeftIcon/>}/>}
                         aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
@@ -189,20 +190,15 @@ const ViewUserGroupModalHeader = ({
                 {restoreGroupButton()}
                 {subMenuButton()}
             </div>
-            <button
-                type='button'
-                className='close'
-                onClick={onExited}
-                aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
-            >
-                <span aria-hidden='true'>{'×'}</span>
-                <span className='sr-only'>
-                    <FormattedMessage
-                        id='generic.close'
-                        defaultMessage='Close'
-                    />
-                </span>
-            </button>
+            <WithTooltip title={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}>
+                <IconButton
+                    className='view-user-groups-modal__close'
+                    size='medium'
+                    icon={<Icon glyph={<CloseIcon/>}/>}
+                    onClick={onExited}
+                    aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
+                />
+            </WithTooltip>
         </Modal.Header>
     );
 };
