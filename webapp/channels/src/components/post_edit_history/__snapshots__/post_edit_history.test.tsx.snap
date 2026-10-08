@@ -60,28 +60,68 @@ exports[`components/post_edit_history should display error screen if errors are 
                   >
                     <button
                       aria-label="Expand Sidebar Icon"
-                      class="sidebar--right__expand btn btn-icon btn-sm"
+                      class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 sidebar--right__expand"
                       type="button"
                     >
-                      <i
+                      <span
                         aria-hidden="true"
-                        class="icon icon-arrow-expand"
-                      />
-                      <i
-                        aria-hidden="true"
-                        class="icon icon-arrow-collapse"
-                      />
+                        class="_icon-button__icon-slot_g2m23_33"
+                      >
+                        <div
+                          aria-hidden="true"
+                          class="_icon_1i355_2 _icon--size-16_1i355_38"
+                        >
+                          <div
+                            class="_icon__glyph-area_1i355_9"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="18"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="18"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M10,21V19H6.41L10.91,14.5L9.5,13.09L5,17.59V14H3V21H10M14.5,10.91L19,6.41V10H21V3H14V5H17.59L13.09,9.5L14.5,10.91Z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </span>
                     </button>
                     <button
-                      aria-label="Close"
-                      class="sidebar--right__close btn btn-icon btn-sm"
+                      aria-label="Close Sidebar Icon"
+                      class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 sidebar--right__close"
                       id="searchResultsCloseButton"
                       type="button"
                     >
-                      <i
-                        aria-label="Close Sidebar Icon"
-                        class="icon icon-close"
-                      />
+                      <span
+                        aria-hidden="true"
+                        class="_icon-button__icon-slot_g2m23_33"
+                      >
+                        <div
+                          aria-hidden="true"
+                          class="_icon_1i355_2 _icon--size-16_1i355_38"
+                        >
+                          <div
+                            class="_icon__glyph-area_1i355_9"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="18"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="18"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -262,28 +302,68 @@ exports[`components/post_edit_history should match snapshot 1`] = `
                   >
                     <button
                       aria-label="Expand Sidebar Icon"
-                      class="sidebar--right__expand btn btn-icon btn-sm"
+                      class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 sidebar--right__expand"
                       type="button"
                     >
-                      <i
+                      <span
                         aria-hidden="true"
-                        class="icon icon-arrow-expand"
-                      />
-                      <i
-                        aria-hidden="true"
-                        class="icon icon-arrow-collapse"
-                      />
+                        class="_icon-button__icon-slot_g2m23_33"
+                      >
+                        <div
+                          aria-hidden="true"
+                          class="_icon_1i355_2 _icon--size-16_1i355_38"
+                        >
+                          <div
+                            class="_icon__glyph-area_1i355_9"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="18"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="18"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M10,21V19H6.41L10.91,14.5L9.5,13.09L5,17.59V14H3V21H10M14.5,10.91L19,6.41V10H21V3H14V5H17.59L13.09,9.5L14.5,10.91Z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </span>
                     </button>
                     <button
-                      aria-label="Close"
-                      class="sidebar--right__close btn btn-icon btn-sm"
+                      aria-label="Close Sidebar Icon"
+                      class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 sidebar--right__close"
                       id="searchResultsCloseButton"
                       type="button"
                     >
-                      <i
-                        aria-label="Close Sidebar Icon"
-                        class="icon icon-close"
-                      />
+                      <span
+                        aria-hidden="true"
+                        class="_icon-button__icon-slot_g2m23_33"
+                      >
+                        <div
+                          aria-hidden="true"
+                          class="_icon_1i355_2 _icon--size-16_1i355_38"
+                        >
+                          <div
+                            class="_icon__glyph-area_1i355_9"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="18"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="18"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </span>
                     </button>
                   </div>
                 </div>
