@@ -188,11 +188,15 @@ describe('components/ChannelHeader', () => {
         const props = {
             ...populatedProps,
             rhsState: RHSStates.PIN,
+            pinnedPostsCount: 2,
         };
 
         const {container} = renderWithContext(
             <ChannelHeader {...props}/>,
         );
+        expect(container.querySelector('#channelHeaderPinButton')).toHaveAttribute('data-active', 'true');
+        expect(container.querySelector('#channelHeaderFilesButton')).not.toHaveAttribute('data-active');
+        expect(container.querySelector('#member_rhs')).not.toHaveAttribute('data-active');
         expect(container).toMatchSnapshot();
     });
 
@@ -206,6 +210,8 @@ describe('components/ChannelHeader', () => {
         const {container} = renderWithContext(
             <ChannelHeader {...props}/>,
         );
+        expect(container.querySelector('#channelHeaderFilesButton')).toHaveAttribute('data-active', 'true');
+        expect(container.querySelector('#member_rhs')).not.toHaveAttribute('data-active');
         expect(container).toMatchSnapshot();
     });
 
@@ -219,7 +225,21 @@ describe('components/ChannelHeader', () => {
         const {container} = renderWithContext(
             <ChannelHeader {...props}/>,
         );
+        expect(container.querySelector('#channelHeaderFilesButton')).not.toHaveAttribute('data-active');
         expect(container).toMatchSnapshot();
+    });
+
+    test('should render active channel members', () => {
+        const props = {
+            ...populatedProps,
+            rhsState: RHSStates.CHANNEL_MEMBERS,
+        };
+
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+        expect(container.querySelector('#member_rhs')).toHaveAttribute('data-active', 'true');
+        expect(container.querySelector('#channelHeaderFilesButton')).not.toHaveAttribute('data-active');
     });
 
     test('should render active flagged posts', () => {

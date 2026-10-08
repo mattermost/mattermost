@@ -19,6 +19,7 @@ type Props = {
      */
     ariaLabelOverride?: string;
 
+    active?: boolean;
     buttonClass?: string;
     buttonId: string;
     children: React.ReactNode;
@@ -34,6 +35,7 @@ const LEGACY_BTN_CLASSES = /\b(btn|btn-icon|btn-xs|btn-sm|btn-md|btn-lg)\b/g;
 
 const HeaderIconWrapper = (props: Props) => {
     const {
+        active,
         ariaLabelOverride,
         buttonClass,
         buttonId,
@@ -66,6 +68,7 @@ const HeaderIconWrapper = (props: Props) => {
                     size={size}
                     className={cleanedClassName}
                     icon={children}
+                    active={active}
                     onClick={onClick}
                     aria-label={ariaLabelText}
                 />

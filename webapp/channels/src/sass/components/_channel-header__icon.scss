@@ -40,7 +40,8 @@
         }
     }
 
-    &:active,
+    // Legacy active class for non-IconButton consumers (e.g. plugin dropdown toggle).
+    // Channel header IconButtons use Compass `active` instead.
     &--active,
     &--active.btn.btn-icon,
     &--active:hover {
@@ -55,13 +56,6 @@
         .icon {
             color: functions.v(button-bg);
         }
-    }
-
-    &--active-inverted,
-    &--active-inverted:hover {
-        background: functions.v(button-bg);
-        color: functions.v(button-color);
-        fill: functions.v(button-color);
     }
 
     .icon__text {
@@ -98,7 +92,9 @@
 
     &:active .channel-header__join-request-badge,
     &--active .channel-header__join-request-badge,
-    &--active:hover .channel-header__join-request-badge {
+    &[data-active='true'] .channel-header__join-request-badge,
+    &--active:hover .channel-header__join-request-badge,
+    &[data-active='true']:hover .channel-header__join-request-badge {
         box-shadow: 0 0 0 2px color-mix(in srgb, var(--button-bg) 8%, var(--center-channel-bg));
     }
 }

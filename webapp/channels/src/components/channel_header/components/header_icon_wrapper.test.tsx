@@ -41,6 +41,17 @@ describe('components/channel_header/components/HeaderIconWrapper', () => {
         });
     });
 
+    test('should forward active to IconButton', () => {
+        renderWithContext(
+            <HeaderIconWrapper
+                {...baseProps}
+                active={true}
+            />,
+        );
+
+        expect(screen.getByLabelText('Recent mentions')).toHaveAttribute('data-active', 'true');
+    });
+
     test('should show the shortcut in its tooltip', async () => {
         renderWithContext(
             <HeaderIconWrapper

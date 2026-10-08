@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import type {MouseEvent, ReactNode, RefObject} from 'react';
 import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
@@ -266,13 +265,7 @@ class ChannelHeader extends React.PureComponent<Props> {
             }
         }
 
-        const channelFilesIconClass = classNames('channel-header__icon', {
-            'channel-header__icon--active': rhsState === RHSStates.CHANNEL_FILES,
-        });
         const channelFilesIcon = <i className='icon icon-file-text-outline'/>;
-        const pinnedIconClass = classNames('channel-header__icon channel-header__icon--wide', {
-            'channel-header__icon--active': rhsState === RHSStates.PIN,
-        });
         const pinnedIcon = this.props.pinnedPostsCount ? (
             <>
                 <i
@@ -295,7 +288,8 @@ class ChannelHeader extends React.PureComponent<Props> {
 
         const pinnedButton = this.props.pinnedPostsCount ? (
             <HeaderIconWrapper
-                buttonClass={pinnedIconClass}
+                active={rhsState === RHSStates.PIN}
+                buttonClass='channel-header__icon channel-header__icon--wide'
                 buttonId={'channelHeaderPinButton'}
                 onClick={this.showPinnedPosts}
                 tooltip={this.props.intl.formatMessage({id: 'channel_header.pinnedPosts', defaultMessage: 'Pinned messages'})}
@@ -308,9 +302,6 @@ class ChannelHeader extends React.PureComponent<Props> {
 
         let memberListButton = null;
         if (!isDirect) {
-            const membersIconClass = classNames('member-rhs__trigger channel-header__icon channel-header__icon--wide', {
-                'channel-header__icon--active': rhsState === RHSStates.CHANNEL_MEMBERS,
-            });
             const membersIcon = (
                 <>
                     <span className='channel-header__members-icon-wrapper'>
@@ -337,10 +328,11 @@ class ChannelHeader extends React.PureComponent<Props> {
 
             memberListButton = (
                 <HeaderIconWrapper
+                    active={rhsState === RHSStates.CHANNEL_MEMBERS}
                     tooltip={this.props.intl.formatMessage(
                         this.props.hasPendingJoinRequests ? membersTooltipMessages.membersPendingRequests : membersTooltipMessages.members,
                     )}
-                    buttonClass={membersIconClass}
+                    buttonClass='member-rhs__trigger channel-header__icon channel-header__icon--wide'
                     buttonId={'member_rhs'}
                     onClick={this.toggleChannelMembersRHS}
                 >
@@ -410,7 +402,8 @@ class ChannelHeader extends React.PureComponent<Props> {
                                     {pinnedButton}
                                     {this.props.isFileAttachmentsEnabled &&
                                         <HeaderIconWrapper
-                                            buttonClass={channelFilesIconClass}
+                                            active={rhsState === RHSStates.CHANNEL_FILES}
+                                            buttonClass='channel-header__icon'
                                             buttonId={'channelHeaderFilesButton'}
                                             onClick={this.showChannelFiles}
                                             tooltip={this.props.intl.formatMessage({id: 'channel_header.channelFiles', defaultMessage: 'Channel files'})}

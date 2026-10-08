@@ -55,7 +55,7 @@ exports[`components/ChannelHeader should match snapshot with last active display
                 >
                   Last online 
                   <time
-                    datetime="2021-09-20T16:02:42.846"
+                    datetime="2021-09-20T14:02:42.846"
                   >
                     September 20, 2021
                   </time>
@@ -296,7 +296,8 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 channel-header__icon channel-header__icon--active"
+                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--active_g2m23_25 channel-header__icon"
+                data-active="true"
                 id="channelHeaderFilesButton"
                 type="button"
               >
@@ -703,6 +704,29 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
                   <span
                     class="icon__text"
                     id="channelMemberCountText"
+                  >
+                    2
+                  </span>
+                </span>
+              </button>
+              <button
+                aria-label="Pinned messages"
+                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--active_g2m23_25 channel-header__icon channel-header__icon--wide"
+                data-active="true"
+                id="channelHeaderPinButton"
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
+                >
+                  <i
+                    aria-hidden="true"
+                    class="icon icon-pin-outline channel-header__pin"
+                  />
+                  <span
+                    class="icon__text"
+                    id="channelPinnedPostCountText"
                   >
                     2
                   </span>
@@ -1278,7 +1302,7 @@ exports[`components/ChannelHeader should render properly when custom status is e
                 >
                   Last online 
                   <time
-                    datetime="2021-09-20T16:02:42.846"
+                    datetime="2021-09-20T14:02:42.846"
                   >
                     September 20, 2021
                   </time>
@@ -1404,7 +1428,7 @@ exports[`components/ChannelHeader should render properly when custom status is s
                 >
                   Last online 
                   <time
-                    datetime="2021-09-20T16:02:42.846"
+                    datetime="2021-09-20T14:02:42.846"
                   >
                     September 20, 2021
                   </time>
