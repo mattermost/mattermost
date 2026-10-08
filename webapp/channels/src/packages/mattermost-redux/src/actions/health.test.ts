@@ -143,6 +143,24 @@ describe('Actions.Health', () => {
             expect(stored(store).muted_at).toBeUndefined();
         });
 
+        test('a failed request does not undo a later mute or unmute of the same finding', async () => {
+            store = storeWith(muted);
+            nock(Client4.getBaseRoute()).
+                delete(`/health/findings/${finding.fingerprint}/mute`).
+                delay(50).
+                reply(500, {message: 'failed', status_code: 500});
+            nock(Client4.getBaseRoute()).
+                post(`/health/findings/${finding.fingerprint}/mute`).
+                reply(200, {status: 'OK'});
+
+            jest.spyOn(Date, 'now').mockReturnValue(7000);
+            const unmute = store.dispatch(Actions.unmuteHealthFinding(finding.fingerprint));
+            await store.dispatch(Actions.muteHealthFinding(finding.fingerprint));
+
+            expect((await unmute).error).toBeDefined();
+            expect(stored(store)).toEqual({...finding, muted_at: 7000, muted_by: 'admin1'});
+        });
+
         test('unmuteHealthFinding restores the mute and returns the error when the request fails', async () => {
             store = storeWith(muted);
             nock(Client4.getBaseRoute()).

@@ -28,8 +28,9 @@ function updateMuteOptimistically(
 ): ActionFuncAsync {
     return async (dispatch, getState) => {
         const original = getState().entities.health.findings[fingerprint];
-        if (original) {
-            dispatch({type: HealthTypes.RECEIVED_HEALTH_FINDING, data: update(original)});
+        const optimistic = original && update(original);
+        if (optimistic) {
+            dispatch({type: HealthTypes.RECEIVED_HEALTH_FINDING, data: optimistic});
         }
 
         try {
@@ -37,7 +38,9 @@ function updateMuteOptimistically(
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            if (original) {
+
+            // Skip the rollback if a later mute or unmute of this finding has replaced our update.
+            if (original && getState().entities.health.findings[fingerprint] === optimistic) {
                 dispatch({type: HealthTypes.RECEIVED_HEALTH_FINDING, data: original});
             }
             return {error};
