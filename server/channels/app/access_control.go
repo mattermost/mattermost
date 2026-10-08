@@ -1001,7 +1001,11 @@ func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (protectedCPAAtt
 			set[pf.Name] = struct{}{}
 			continue
 		}
-		if cpaFieldIsProtectedForChannelAdmin(f) {
+		// Resolved from pf, not f: NewCPAFieldFromPropertyField zeroes
+		// Permissions on the CPAField it builds, so the access mode has to be
+		// read off the raw field, before that happens.
+		accessMode := a.effectiveAccessMode(rctx, group.ID, pf)
+		if cpaFieldIsProtectedForChannelAdmin(f, accessMode) {
 			set[f.Name] = struct{}{}
 		}
 	}
@@ -1011,8 +1015,11 @@ func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (protectedCPAAtt
 // cpaFieldIsProtectedForChannelAdmin reports whether a CPA field's
 // value must be hidden from a non-system-admin caller. Pure helper
 // so the protected-set construction and the per-leaf tree walker can
-// share the same predicate.
-func cpaFieldIsProtectedForChannelAdmin(f *model.CPAField) bool {
+// share the same predicate. accessMode is the field's resolved
+// effective access mode (see effectiveAccessMode) rather than
+// f.Attrs.AccessMode directly, since a linked field's own Attrs never
+// carries its template's shared_only scheme.
+func cpaFieldIsProtectedForChannelAdmin(f *model.CPAField, accessMode string) bool {
 	if f == nil {
 		return false
 	}
@@ -1022,7 +1029,7 @@ func cpaFieldIsProtectedForChannelAdmin(f *model.CPAField) bool {
 	// access_mode "" defaults to public — only non-public values are
 	// protected. Channel/team admins are never the source plugin so
 	// both source_only and shared_only collapse to "inaccessible".
-	if f.Attrs.AccessMode != "" && f.Attrs.AccessMode != model.PropertyAccessModePublic {
+	if accessMode != "" && accessMode != model.PropertyAccessModePublic {
 		return true
 	}
 	return false
@@ -1954,8 +1961,21 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, resourceID stri
 				delete(attributes, fieldName)
 				continue
 			}
+
+			// A native attribute is a column on the user table, synthesized into a
+			// field shape for this lookup alone. It carries no permissions object
+			// and never will, so it has no access mode to judge -- and asking
+			// effectiveAccessModeUsing anyway would get the answer it gives an
+			// unconverted property field, which is to mask.
+			continue
 		}
-		switch field.GetAccessMode() {
+		// Same store bypass for a linked field's template: a linked field's own
+		// Masking is always nil, so its effective mode must follow the template
+		// to see a masked scheme (effectiveAccessModeUsing).
+		mode := effectiveAccessModeUsing(field, func(id string) (*model.PropertyField, error) {
+			return a.Srv().Store().PropertyField().Get(rctx, cpaGroup.ID, id)
+		})
+		switch mode {
 		case model.PropertyAccessModeSourceOnly, model.PropertyAccessModeSharedOnly:
 			delete(attributes, fieldName)
 		}

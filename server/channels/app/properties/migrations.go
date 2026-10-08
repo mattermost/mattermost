@@ -153,6 +153,10 @@ func deepCopyAttrs(attrs model.StringInterface) (model.StringInterface, error) {
 // mismatch). Callers use this to decide whether a "_copy" retry is worth it.
 var errUnrelatedTemplateName = errors.New("template name is used by an unrelated template")
 
+// errPermissionsAuthored marks a field whose permissions object no longer
+// matches its legacy settings, so linking cannot reconvert it without loss.
+var errPermissionsAuthored = errors.New("permissions were changed after conversion")
+
 // lookupReusableTemplate finds a template named templateName safe to reuse
 // for cpaField: marked PropertyAttrsMigratedToGlobal (unmarked means it
 // belongs to someone else, don't hijack it), unprotected, not
@@ -206,7 +210,7 @@ func (ps *PropertyService) lookupReusableTemplate(rctx request.CTX, groupID, tem
 // name). Anything else is a genuine store/DB error and transient.
 func isPermanentPropertyFieldFailure(err error) bool {
 	if errors.Is(err, ErrGroupFieldLimitReached) || errors.Is(err, ErrFieldLimitReached) ||
-		errors.Is(err, ErrInvalidFieldAttrs) || errors.Is(err, ErrAdminRequired) {
+		errors.Is(err, ErrInvalidFieldAttrs) || errors.Is(err, ErrAdminRequired) || errors.Is(err, errPermissionsAuthored) {
 		return true
 	}
 	var appErr *model.AppError
@@ -374,6 +378,22 @@ func (ps *PropertyService) MigrateLinkCPAFieldToGlobalAttributeTemplate(rctx req
 	expectedUpdateAt := field.UpdateAt
 	field.LinkedFieldID = &templateID
 
+	// An unlicensed first boot skips this migration but not the permissions
+	// backfill, which converts the field unlinked and never revisits it. Convert
+	// it again as the backfill would have once linked, but only while the object
+	// is still that conversion: anything authored since would be overwritten.
+	if field.Permissions != nil {
+		source := legacySourceOf(field)
+		if !permissionsEquivalent(field.Permissions, model.PermissionsFromLegacy(source, model.LegacyConversionOpts{ConvertAttrs: true})) {
+			return nil, fmt.Errorf("MigrateLinkCPAFieldToGlobalAttributeTemplate: field %q: %w", fieldID, errPermissionsAuthored)
+		}
+		template, templateErr := ps.fieldStore.Get(store.RequestContextWithMaster(rctx), groupID, templateID)
+		if templateErr != nil {
+			return nil, fmt.Errorf("MigrateLinkCPAFieldToGlobalAttributeTemplate: failed to get template %q: %w", templateID, templateErr)
+		}
+		field.Permissions = model.PermissionsFromLegacy(source, model.LegacyConversionOpts{ConvertAttrs: true, Template: templatePermissionsOrZero(template)})
+	}
+
 	updated, err := ps.fieldStore.Update(groupID, []*model.PropertyField{field}, map[string]int64{fieldID: expectedUpdateAt})
 	if err != nil {
 		return nil, fmt.Errorf("MigrateLinkCPAFieldToGlobalAttributeTemplate: failed to link field %q to template %q: %w", fieldID, templateID, err)
@@ -428,8 +448,7 @@ func (ps *PropertyService) MigrateCPAFieldsToGlobalAttributes(rctx request.CTX) 
 	// path. CallerIDLocalAdmin is required for AccessControlAttributeValidationHook
 	// to allow copying a managed=admin field's attrs — the same identity real
 	// local-mode admin sessions already use for that check, not a new bypass.
-	migCtx := SystemCallerContext(rctx)
-	migCtx = migCtx.WithContext(model.WithCallerID(migCtx.Context(), model.CallerIDLocalAdmin))
+	migCtx := rctx.WithContext(model.WithCallerID(rctx.Context(), model.CallerIDLocalAdmin))
 
 	for _, field := range fields {
 		if !isEligibleForGlobalAttributesMigration(field) {
@@ -493,4 +512,300 @@ func (ps *PropertyService) MigrateCPAFieldsToGlobalAttributes(rctx request.CTX) 
 	}
 
 	return migrated, skipped, retryable, nil
+}
+
+// ConvertSystemOwnedFields bootstraps builtin fields that a system subsystem
+// owns in groupID (per model.SystemOwnedFieldGrant) when they carry no Permissions
+// object at all, converting them from legacy columns and adding the subsystem's
+// {service, groupName} grant.
+//
+// Reads and writes through the unexported field accessors, bypassing the
+// access-control hook, for the same reason MigrateBackfillCPADisplayName
+// does: the hook refuses a field with no Permissions object outright before
+// any caller identity or grant is consulted.
+//
+// Only runs when field.Permissions == nil: if the field already carries permissions,
+// it is left untouched so that an administrator's revocation of the grant is not
+// undone on reboot.
+func (ps *PropertyService) ConvertSystemOwnedFields(rctx request.CTX, groupID, groupName string) error {
+	fields, err := ps.searchPropertyFields(rctx, groupID, model.PropertyFieldSearchOpts{PerPage: propertyPermissionsBackfillPageSize})
+	if err != nil {
+		return fmt.Errorf("ConvertSystemOwnedFields: failed to search fields: %w", err)
+	}
+
+	convertAttrs, err := ps.groupConvertsAttrs(groupID)
+	if err != nil {
+		return fmt.Errorf("ConvertSystemOwnedFields: %w", err)
+	}
+
+	var toUpdate []*model.PropertyField
+	for _, field := range fields {
+		grant := model.SystemOwnedFieldGrant(groupName, field.Name)
+		if grant == nil {
+			continue
+		}
+
+		if field.Permissions != nil {
+			continue
+		}
+
+		field.Permissions = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: convertAttrs})
+		field.Permissions.Grants = append(field.Permissions.Grants, *grant)
+		toUpdate = append(toUpdate, field)
+	}
+	if len(toUpdate) == 0 {
+		return nil
+	}
+
+	_, _, _, err = ps.updatePropertyFields(rctx, groupID, toUpdate)
+	if err != nil {
+		return fmt.Errorf("ConvertSystemOwnedFields: failed to persist converted fields: %w", err)
+	}
+	return nil
+}
+
+// permissionsBackfill holds the state one backfill run carries across pages:
+// which group is access_control (the only one whose Attrs ever gated
+// anything, so the only one whose Attrs convert), and every linked field's
+// template Permissions resolved so far, so a scheme with many linked fields
+// reads and converts its template once rather than once per field.
+type permissionsBackfill struct {
+	service              *PropertyService
+	accessControlGroupID string
+	templates            map[string]*model.Permissions
+}
+
+func newPermissionsBackfill(service *PropertyService, accessControlGroupID string) *permissionsBackfill {
+	return &permissionsBackfill{
+		service:              service,
+		accessControlGroupID: accessControlGroupID,
+		templates:            map[string]*model.Permissions{},
+	}
+}
+
+// convertBatch sets Permissions in place on every field in fields that does
+// not already have one, and returns the subset it changed. A field already
+// carrying Permissions is left alone and excluded from the result, so the
+// backfill is idempotent at the field level and never reverts a field a v3
+// caller wrote mid-run. A PSAv1 field (empty ObjectType, e.g. the content
+// flagging group's fields) is left alone too: PropertyField.IsValid refuses a
+// Permissions object on that schema, so there is nothing for this conversion
+// to give it.
+func (b *permissionsBackfill) convertBatch(rctx request.CTX, fields []*model.PropertyField) ([]*model.PropertyField, error) {
+	var converted []*model.PropertyField
+	for _, field := range fields {
+		if field.Permissions != nil || field.IsPSAv1() {
+			continue
+		}
+
+		opts := model.LegacyConversionOpts{
+			// Only the access_control group's Attrs (protected, access_mode,
+			// owners, source plugin, sync lock) were ever enforced; everywhere
+			// else there is nothing in Attrs to preserve.
+			ConvertAttrs: field.GroupID == b.accessControlGroupID,
+		}
+
+		if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
+			template, err := b.resolveTemplate(rctx, field.GroupID, *field.LinkedFieldID, opts.ConvertAttrs)
+			if err != nil {
+				return nil, err
+			}
+			opts.Template = template
+
+			if opts.ConvertAttrs && template.Masking == nil && model.LegacyAccessMode(field) == model.PropertyAccessModeSharedOnly {
+				// PermissionsFromLegacy narrows this field's own reads to none
+				// below rather than emitting a masking object it is not allowed
+				// to carry: a linked field may not declare masking of its own.
+				// That is a real access change an operator needs to know about;
+				// every other conversion here is like for like.
+				rctx.Logger().Warn("Converting a linked field's shared_only access mode to no read access because its template did not convert to masked",
+					mlog.String("field_id", field.ID),
+					mlog.String("template_id", *field.LinkedFieldID),
+				)
+			}
+		}
+
+		field.Permissions = model.PermissionsFromLegacy(field, opts)
+		converted = append(converted, field)
+	}
+	return converted, nil
+}
+
+// propertyPermissionsBackfillPageSize bounds how many fields one page of
+// MigrateBackfillPropertyPermissions reads and writes. Unlike the CPA display
+// name backfill, this one runs over every group, some of which (boards,
+// content_flagging) can hold far more fields than a single page should carry.
+// A var, not a const, so a test can shrink it to make paging happen over a
+// handful of fields instead of hundreds.
+var propertyPermissionsBackfillPageSize = 200
+
+// MigrateBackfillPropertyPermissions gives every PropertyField across every
+// group a Permissions object converted from its legacy settings, so the
+// decision engine can eventually read Permissions alone. Same bypass
+// rationale as MigrateBackfillCPADisplayName: it reads and writes through the
+// unexported field accessors so the access-control layer never filters or
+// refuses a protected or plugin-owned field mid-conversion, and it is
+// idempotent at the field level so a partial run resumes cleanly. The
+// System-key wrapper that stops the whole migration running twice belongs to
+// its caller (app/migrations.go), as with the CPA backfill.
+//
+// Fields are read with no group filter and paged by (CreateAt, Id), which
+// walks every group with one cursor. Writes go through the unexported
+// updatePropertyFields, one call per group per page, since that method takes
+// a single group ID.
+//
+// Returns the number of fields given a Permissions object and the number left
+// alone, either because they already carried one or because they are PSAv1
+// (the content flagging group's fields, which cannot carry Permissions at
+// all).
+func (ps *PropertyService) MigrateBackfillPropertyPermissions(rctx request.CTX) (converted int, skipped int, err error) {
+	accessControlGroup, err := ps.Group(model.AccessControlPropertyGroupName)
+	if err != nil {
+		return 0, 0, fmt.Errorf("MigrateBackfillPropertyPermissions: failed to get access control property group: %w", err)
+	}
+
+	backfill := newPermissionsBackfill(ps, accessControlGroup.ID)
+
+	var cursor model.PropertyFieldSearchCursor
+	for {
+		fields, searchErr := ps.searchPropertyFields(rctx, "", model.PropertyFieldSearchOpts{
+			PerPage: propertyPermissionsBackfillPageSize,
+			Cursor:  cursor,
+		})
+		if searchErr != nil {
+			return converted, skipped, fmt.Errorf("MigrateBackfillPropertyPermissions: failed to search property fields: %w", searchErr)
+		}
+		if len(fields) == 0 {
+			break
+		}
+
+		last := fields[len(fields)-1]
+		cursor = model.PropertyFieldSearchCursor{PropertyFieldID: last.ID, CreateAt: last.CreateAt}
+
+		convertedFields, convertErr := backfill.convertBatch(rctx, fields)
+		if convertErr != nil {
+			return converted, skipped, fmt.Errorf("MigrateBackfillPropertyPermissions: failed to convert fields: %w", convertErr)
+		}
+		skipped += len(fields) - len(convertedFields)
+
+		// updatePropertyFields takes one group ID, so a page spanning several
+		// groups needs one call per group.
+		byGroup := map[string][]*model.PropertyField{}
+		for _, field := range convertedFields {
+			byGroup[field.GroupID] = append(byGroup[field.GroupID], field)
+		}
+		for groupID, groupFields := range byGroup {
+			if _, _, _, updateErr := ps.updatePropertyFields(rctx, groupID, groupFields); updateErr != nil {
+				return converted, skipped, fmt.Errorf("MigrateBackfillPropertyPermissions: failed to update fields for group %q: %w", groupID, updateErr)
+			}
+		}
+		converted += len(convertedFields)
+
+		if len(fields) < propertyPermissionsBackfillPageSize {
+			break
+		}
+	}
+
+	return converted, skipped, nil
+}
+
+// resolveTemplate returns templateID's converted Permissions, memoized so a
+// template linked from many fields is read and converted only once per
+// backfill run. Reads through the unexported accessor, same as the fields
+// this backfill converts, so the access-control layer never filters or strips
+// the template out from under it.
+func (b *permissionsBackfill) resolveTemplate(rctx request.CTX, groupID, templateID string, convertAttrs bool) (*model.Permissions, error) {
+	if permissions, ok := b.templates[templateID]; ok {
+		return permissions, nil
+	}
+
+	template, err := b.service.getPropertyField(rctx, groupID, templateID)
+	if err != nil {
+		return nil, fmt.Errorf("permissionsBackfill: failed to resolve template %q: %w", templateID, err)
+	}
+
+	permissions := template.Permissions
+	if permissions == nil {
+		// A template cannot itself be linked, so this conversion is one hop
+		// deep and needs no cycle guard. A linked field is always in the same
+		// group as its template, so convertAttrs carries over unchanged.
+		permissions = model.PermissionsFromLegacy(template, model.LegacyConversionOpts{ConvertAttrs: convertAttrs})
+	}
+	b.templates[templateID] = permissions
+
+	if permissions.Masking != nil {
+		b.warnAboutMaskedTemplate(rctx, template, permissions, convertAttrs)
+	}
+
+	return permissions, nil
+}
+
+// warnAboutMaskedTemplate logs what an operator has to act on once template
+// converts to masked, across every field linked to it.
+//
+// A linked field that is not object_type: user shows nobody anything, before
+// this conversion and after it, until an operator sets the template's
+// mask_by_field_id -- the conversion cannot infer that field from the
+// template's linked fields, so this line is the only thing that tells an
+// operator the scheme is waiting on them.
+//
+// A holdings field the people it filters can write defeats the mask outright:
+// they set their own holdings to whatever they want the read to return. The
+// store's ValidateMaskByFieldID and the service's create and update gates
+// refuse that combination on a write, but neither reaches a row already
+// stored, so this line is the only signal for a scheme that is open today.
+func (b *permissionsBackfill) warnAboutMaskedTemplate(rctx request.CTX, template *model.PropertyField, permissions *model.Permissions, convertAttrs bool) {
+	linked, err := b.service.fieldStore.GetLinkedFields([]string{template.ID}, nil)
+	if err != nil {
+		rctx.Logger().Warn("Failed to check a masked template's linked fields for non-user object types",
+			mlog.String("template_id", template.ID),
+			mlog.Err(err),
+		)
+		return
+	}
+
+	var nonUserFieldIDs []string
+	var writableHoldingsIDs []string
+	for _, field := range linked {
+		if field.ObjectType != model.PropertyFieldObjectTypeUser {
+			nonUserFieldIDs = append(nonUserFieldIDs, field.ID)
+		}
+		// A field the masking resolves its own holdings to -- mask_by_field_id names
+		// it, or the template sets none so it falls back to itself -- is open to the
+		// members it filters when its effective value.write admits them.
+		if holdingsFieldIDFor(field, permissions.Masking) != field.ID {
+			continue
+		}
+		// Decide from the Permissions this field ends the backfill with, not from
+		// its stored column: the conversion drives value.write to none on a
+		// protected, owner-managed or synced field, so the raw column reports an
+		// open scheme the backfill is in the middle of closing.
+		converted := field.Permissions
+		if converted == nil {
+			converted = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{
+				ConvertAttrs: convertAttrs,
+				Template:     permissions,
+			})
+		}
+		switch converted.Restrictions.TierFor(model.PropertyActionValueWrite) {
+		case model.PermissionLevelMember, model.PermissionLevelEveryone:
+			writableHoldingsIDs = append(writableHoldingsIDs, field.ID)
+		}
+	}
+
+	if len(nonUserFieldIDs) > 0 {
+		rctx.Logger().Warn("A masked template has fields linked to it that are not object_type user; those fields show nobody anything until the template's mask_by_field_id is set",
+			mlog.String("template_id", template.ID),
+			mlog.String("template_name", template.Name),
+			mlog.Array("non_user_field_ids", nonUserFieldIDs),
+		)
+	}
+
+	if len(writableHoldingsIDs) > 0 {
+		rctx.Logger().Warn("A masked template's holdings field is writable by the members it filters, so they can widen their own masked view; tighten its value.write",
+			mlog.String("template_id", template.ID),
+			mlog.String("template_name", template.Name),
+			mlog.Array("writable_holdings_field_ids", writableHoldingsIDs),
+		)
+	}
 }
