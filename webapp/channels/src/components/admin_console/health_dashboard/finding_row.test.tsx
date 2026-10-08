@@ -243,6 +243,15 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
             expect(onUnmute).toHaveBeenCalledWith('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
         });
 
+        test('a finding muted moments ago says just now', () => {
+            renderRow(
+                makeFinding({muted_at: Date.now(), muted_by: 'user1'}),
+                {state: {entities: {users: {profiles: {user1: {id: 'user1', username: 'alice', first_name: '', last_name: '', nickname: ''}}}}}},
+            );
+
+            expect(screen.getByTestId('healthFindingMutedBy')).toHaveTextContent('Muted by alice just now');
+        });
+
         test('an unmuted finding shows no muted attribution', () => {
             renderRow(makeFinding());
 
