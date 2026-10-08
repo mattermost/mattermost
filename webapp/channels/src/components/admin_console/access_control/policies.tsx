@@ -4,6 +4,8 @@
 import React, {useState, useEffect, useMemo, useCallback, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {GenericModal} from '@mattermost/components';
 import {Button} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
@@ -21,6 +23,8 @@ import {getHistory} from 'utils/browser_history';
 import {MASKED_VALUE_TOKEN_LITERAL} from './editors/shared';
 
 import './policies.scss';
+
+const PolicyMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
 
 function policyHasMaskedValues(policy: AccessControlPolicy): boolean {
     return policy.rules?.some((rule) => rule.expression?.includes(MASKED_VALUE_TOKEN_LITERAL)) ?? false;
@@ -231,6 +235,11 @@ export default function PolicyList(props: Props): JSX.Element {
     }, [pendingDeletePolicy, search, intl]);
 
     const getRows = (): Row[] => {
+        const policyMenuLabel = intl.formatMessage({
+            id: 'admin.access_control.policies.menu.aria_label',
+            defaultMessage: 'Policy actions menu',
+        });
+
         return policies.map((policy: AccessControlPolicy) => {
             const descriptionId = `customDescription-${policy.id}`;
             const appliedToId = `customAppliedTo-${policy.id}`;
@@ -258,17 +267,16 @@ export default function PolicyList(props: Props): JSX.Element {
                                 <Menu.Container
                                     menuButton={{
                                         id: `policy-menu-${policy.id}`,
-                                        class: 'policy-menu-button',
-                                        children: (
-                                            <i className='icon icon-dots-vertical'/>
-                                        ),
+                                        as: PolicyMenuTrigger,
+                                        'aria-label': policyMenuLabel,
+                                        children: <Icon glyph={<DotsVerticalIcon/>}/>,
+                                    }}
+                                    menuButtonTooltip={{
+                                        text: policyMenuLabel,
                                     }}
                                     menu={{
                                         id: `policy-menu-dropdown-${policy.id}`,
-                                        'aria-label': intl.formatMessage({
-                                            id: 'admin.access_control.policies.menu.aria_label',
-                                            defaultMessage: 'Policy actions menu',
-                                        }),
+                                        'aria-label': policyMenuLabel,
                                     }}
                                 >
                                     <Menu.Item
