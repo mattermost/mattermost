@@ -4,6 +4,7 @@
 package app
 
 import (
+	"errors"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -50,7 +51,7 @@ func ldapConnectionSettingChanged[T comparable](submitted *T, saved *T) bool {
 	return submitted != nil && *submitted != model.SafeDereference(saved)
 }
 
-func (a *App) checkLdapTestBindPassword(where string, settings model.LdapSettings) *model.AppError {
+func (a *App) checkLdapTestBindPassword(where string, settings model.LdapSettings) error {
 	savedSettings := a.Config().LdapSettings
 
 	if model.SafeDereference(savedSettings.BindPassword) == "" {
@@ -73,8 +74,12 @@ func (a *App) checkLdapTestBindPassword(where string, settings model.LdapSetting
 }
 
 func (a *App) TestLdapConnection(rctx request.CTX, settings model.LdapSettings) *model.AppError {
-	if appErr := a.checkLdapTestBindPassword("TestLdapConnection", settings); appErr != nil {
-		return appErr
+	if err := a.checkLdapTestBindPassword("TestLdapConnection", settings); err != nil {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) {
+			return appErr
+		}
+		return model.NewAppError("TestLdapConnection", "ent.ldap.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	license := a.Srv().License()
@@ -91,8 +96,12 @@ func (a *App) TestLdapConnection(rctx request.CTX, settings model.LdapSettings) 
 }
 
 func (a *App) TestLdapDiagnostics(rctx request.CTX, testType model.LdapDiagnosticTestType, settings model.LdapSettings) ([]model.LdapDiagnosticResult, *model.AppError) {
-	if appErr := a.checkLdapTestBindPassword("TestLdapDiagnostics", settings); appErr != nil {
-		return nil, appErr
+	if err := a.checkLdapTestBindPassword("TestLdapDiagnostics", settings); err != nil {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) {
+			return nil, appErr
+		}
+		return nil, model.NewAppError("TestLdapDiagnostics", "ent.ldap.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	license := a.Srv().License()
