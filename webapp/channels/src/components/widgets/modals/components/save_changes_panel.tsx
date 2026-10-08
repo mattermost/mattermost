@@ -99,13 +99,13 @@ function SaveChangesPanel({
         if (state === 'saved') {
             return (
                 <div className='SaveChangesPanel__btn-ctr'>
-                    <WithTooltip title={intl.formatMessage({id: 'saveChangesPanel.close', defaultMessage: 'Close'})}>
+                    <WithTooltip title={intl.formatMessage({id: 'saveChangesPanel.dismiss', defaultMessage: 'Dismiss'})}>
                         <IconButton
                             id='panelCloseButton'
                             size='small'
                             icon={<Icon glyph={<CloseIcon/>}/>}
                             onClick={handleClose}
-                            aria-label={intl.formatMessage({id: 'saveChangesPanel.close', defaultMessage: 'Close'})}
+                            aria-label={intl.formatMessage({id: 'saveChangesPanel.dismiss', defaultMessage: 'Dismiss'})}
                         />
                     </WithTooltip>
                 </div>
