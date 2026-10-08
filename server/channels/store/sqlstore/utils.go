@@ -10,6 +10,7 @@ import (
 	"io"
 	"maps"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"unicode"
@@ -227,6 +228,24 @@ func neutralizeNonWordHyphens(s string) string {
 // attach to the preceding base letter rather than acting as a boundary.
 func isWordRune(r rune) bool {
 	return unicode.IsLetter(r) || unicode.IsDigit(r) || unicode.IsMark(r)
+}
+
+var numericTermRegex = regexp.MustCompile(`^[0-9]+(:\*)?$`)
+
+// expandNumericTerms rewrites each unquoted all-digit term N to "(N|-N)",
+// because Postgres indexes the digits of "flight-12345" as the lexeme "-12345".
+func expandNumericTerms(terms string) string {
+	fields := strings.Fields(terms)
+	inQuote := false
+	for i, f := range fields {
+		if !inQuote && numericTermRegex.MatchString(f) {
+			fields[i] = "(" + f + "|-" + f + ")"
+		}
+		if strings.Count(f, `"`)%2 == 1 {
+			inQuote = !inQuote
+		}
+	}
+	return strings.Join(fields, " ")
 }
 
 // scanRowsIntoMap scans SQL rows into a map, using a provided scanner function to extract key-value pairs
