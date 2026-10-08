@@ -22,7 +22,7 @@ type Props = {
     now: number;
     expanded: boolean;
     onToggle: (fingerprint: string) => void;
-    onMute: (finding: HealthFinding) => void;
+    onMute: (fingerprint: string) => void;
     onUnmute: (fingerprint: string) => void;
     hideArea?: boolean;
 };
