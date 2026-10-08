@@ -434,6 +434,41 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         expect(memberIds).not.toContain(sysAPAC.id);
     });
 
+    test('MM-71104-T10b a grouped rule is enforced as written by both the join gate and sync', async ({pw}) => {
+        test.setTimeout(240_000);
+        const {adminClient, team, users} = await setupFixture(pw, {members: ['engUS', 'salesEU', 'salesAPAC']});
+
+        // engUS passes the group but fails the AND; read as A || (B && C) it would be kept.
+        const groupedRule = `(${orRule()}) && ${simpleRule()}`;
+        await createTeamMembershipPolicy(adminClient, team.id, groupedRule, false);
+        expect(await getMembershipExpression(adminClient, team.id)).toBe(groupedRule);
+
+        // * Sync (SQL) keeps only the member matching both sides.
+        await triggerSyncJobAndPoll(adminClient, team.id);
+        await expect
+            .poll(
+                async () => {
+                    const ids = await getTeamMemberIds(adminClient, team.id);
+                    return {
+                        engUS: ids.includes(users.engUS.id),
+                        salesEU: ids.includes(users.salesEU.id),
+                        salesAPAC: ids.includes(users.salesAPAC.id),
+                    };
+                },
+                {timeout: 60_000},
+            )
+            .toEqual({engUS: false, salesEU: true, salesAPAC: false});
+
+        // * The join gate (CEL) agrees.
+        const salesUS = await createFixtureUser(adminClient, 'salesus', 'Sales', 'US');
+        await waitForAttributeViewToInclude(adminClient, groupedRule, [salesUS.id]);
+        const base = adminClient.getBaseRoute();
+        const token = adminClient.getToken();
+        expect((await addTeamMemberRaw(token, base, team.id, salesUS.id)).status).toBe(201);
+        expect((await addTeamMemberRaw(token, base, team.id, users.engUS.id)).status).toBe(403);
+        expect((await addTeamMemberRaw(token, base, team.id, users.salesAPAC.id)).status).toBe(403);
+    });
+
     test('MM-71104-T11 sync removes non-qualifiers, auto-adds qualifiers and cascades to channels', async ({pw}) => {
         test.setTimeout(240_000);
         const {adminClient, adminUser, team, users} = await setupFixture(pw);
@@ -511,7 +546,9 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
             .filter({hasText: parentName});
         await expect(parentRow).toBeVisible({timeout: 15_000});
 
-        const editedRule = `(${orRule()})`;
+        // The save re-emits the rule from its AST, dropping redundant parentheses,
+        // so the edit needs grouping that precedence requires to round-trip verbatim.
+        const editedRule = `(${orRule()}) && ${engineeringRule()}`;
         await typeTeamRulesCel(page, editedRule);
         await waitForTeamRulesValidation(page, 'validated');
         await page.getByTestId('saveSetting').click();
@@ -520,7 +557,10 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         await confirmModal.getByRole('button', {name: 'Apply'}).click();
 
         await expect.poll(() => getMembershipExpression(adminClient, team.id), {timeout: 15_000}).toBe(editedRule);
-        await expect(parentRow).toBeVisible();
+
+        // A successful save returns to the teams list; reopen to check the link survived.
+        await openTeamConfig(page, team.display_name);
+        await expect(parentRow).toBeVisible({timeout: 15_000});
         const saved: any = await getTeamAccessControlPolicy(adminClient, team.id);
         expect(saved.policy.imports).toContain(parent.id);
     });
@@ -634,6 +674,17 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
 
         await expect(page.getByTestId('team-rules-editor-mode-toggle')).toHaveCount(0);
         await expect(page.locator('.monaco-editor')).toHaveCount(0);
+
+        // The Simple-only tab can't show the rule, so it's read-only rather than an
+        // empty table a team admin could save over.
+        const locked = teamSettings.container.getByTestId('team-membership-locked-rules');
+        await expect(locked).toBeVisible();
+        await expect(locked.getByRole('status')).toContainText('can only be edited in the System Console');
+        await expect(locked).toContainText(orRule());
+        await expect(teamSettings.container.getByTestId('table-editor')).toHaveCount(0);
+        await expect(teamSettings.container.locator('#autoAddMembersCheckbox')).toBeDisabled();
+
+        expect(await getMembershipExpression(adminClient, team.id)).toBe(orRule());
     });
 
     test('MM-71104-T17 discarding Advanced edits leaves the saved rule', async ({pw}) => {
@@ -681,9 +732,12 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         await typeTeamRulesCel(page, orRule());
         await waitForTeamRulesValidation(page, 'validated');
 
+        // Monaco's suggest widget points aria-activedescendant at a row it hasn't
+        // rendered (an upstream Monaco issue), and it stays in the DOM once shown.
         const results = await axe
             .builder(page, {disableColorContrast: true})
             .include('#team_level_access_rules')
+            .exclude('#team_level_access_rules .suggest-widget')
             .analyze();
         expect(results.violations).toHaveLength(0);
     });

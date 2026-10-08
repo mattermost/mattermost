@@ -20,6 +20,7 @@ import {getTeamStats} from 'mattermost-redux/actions/teams';
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
+import {isSimpleExpression} from 'components/admin_console/access_control/editors/shared';
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import ConfirmModal from 'components/confirm_modal';
 import SystemPolicyIndicator from 'components/system_policy_indicator';
@@ -102,6 +103,7 @@ function TeamMembershipTab({
 
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
     const [formError, setFormError] = useState('');
+    const [savedRuleUnparsable, setSavedRuleUnparsable] = useState(false);
 
     const [showSelfExclusionModal, setShowSelfExclusionModal] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -255,11 +257,20 @@ function TeamMembershipTab({
         if (errorMessage?.includes('403') || errorMessage?.includes('Forbidden')) {
             return;
         }
+        if (originalExpression.trim() && expression === originalExpression) {
+            setSavedRuleUnparsable(true);
+            return;
+        }
         setFormError(formatMessage({
             id: 'team_settings.membership_tab.parse_error',
             defaultMessage: 'Invalid expression format',
         }));
-    }, [formatMessage]);
+    }, [formatMessage, expression, originalExpression]);
+
+    // A rule written in the System Console's Advanced editor can't be shown as a
+    // table: the table renders empty, and adding a row would silently replace the
+    // rule. Lock the tab instead of letting a team admin overwrite what they can't see.
+    const rulesLocked = savedRuleUnparsable || (originalExpression.trim() !== '' && !isSimpleExpression(originalExpression));
 
     const isEmptyRulesState = useMemo(() => {
         return !expression?.trim() && systemPolicies.length === 0;
@@ -655,7 +666,28 @@ function TeamMembershipTab({
                 </p>
             </div>
 
-            {attributesLoaded && (
+            {rulesLocked && (
+                <div
+                    className='TeamMembershipTab__lockedRules'
+                    data-testid='team-membership-locked-rules'
+                >
+                    <div
+                        className='TeamMembershipTab__lockedNotice'
+                        role='status'
+                    >
+                        <i className='icon icon-information-outline'/>
+                        <span>
+                            <FormattedMessage
+                                id='team_settings.membership_tab.advanced_rules_locked'
+                                defaultMessage='These rules use advanced logic and can only be edited in the System Console. Contact a System Admin to change them.'
+                            />
+                        </span>
+                    </div>
+                    <code className='TeamMembershipTab__lockedExpression'>{originalExpression}</code>
+                </div>
+            )}
+
+            {attributesLoaded && !rulesLocked && (
                 <div className='TeamMembershipTab__editor'>
                     <TableEditor
                         value={expression}
@@ -681,7 +713,7 @@ function TeamMembershipTab({
                         className='TeamMembershipTab__autoAddCheckbox'
                         checked={autoAddMembers}
                         onChange={handleAutoAddToggle}
-                        disabled={isEmptyRulesState}
+                        disabled={isEmptyRulesState || rulesLocked}
                         id='autoAddMembersCheckbox'
                         name='autoAddMembers'
                     />
@@ -689,7 +721,7 @@ function TeamMembershipTab({
                         htmlFor='autoAddMembersCheckbox'
                         className='TeamMembershipTab__autoAddLabel'
                     >
-                        <span className={`TeamMembershipTab__autoAddText${isEmptyRulesState ? ' disabled' : ''}`}>
+                        <span className={`TeamMembershipTab__autoAddText${isEmptyRulesState || rulesLocked ? ' disabled' : ''}`}>
                             {formatMessage({
                                 id: 'team_settings.membership_tab.auto_add',
                                 defaultMessage: 'Auto-add members based on access rules',
