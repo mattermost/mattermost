@@ -11,6 +11,8 @@ export {MenuItemLink as LinkItem} from './menu_item_link';
 export {MenuItemExternalLink as ItemExternalLink} from './menu_item_external_link';
 export {MenuTitle as Title} from './menu_title';
 export type {MenuButtonComponentProps} from './menu';
+export {createMenuIconButtonTrigger} from './menu_icon_button_trigger';
+export type {MenuIconButtonTriggerOptions} from './menu_icon_button_trigger';
 export type {FirstMenuItemProps} from './menu_item';
 export {MenuItemSeparator as Separator} from './menu_item_separator';
 export {openMenu, dismissMenu} from './menu_utils';
