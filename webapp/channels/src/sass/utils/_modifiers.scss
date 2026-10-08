@@ -54,10 +54,7 @@ $positions: 't'top,
     box-shadow: 0 0 1px 3px rgba(var(--link-color-rgb), 0.5), 0 0 0 1px var(--link-color);
 }
 
-// Compass controls draw their own focus ring on the outer wrapper; a11y--focused
-// lands on the inner control (e.g. TextInput's <input>). Class names are hashed,
-// so match stable prefixes. #root raises specificity above the runtime theme rule
-// `.app__body .a11y--focused` and covers admin console, channels, and backstage.
+// Compass draws its own focus ring; suppress the webapp a11y shadow.
 #root [class*="_text-input__wrapper"] .a11y--focused,
 #root [class*="_text-area__wrapper"] .a11y--focused,
 #root [class*="_search-input__wrapper"] .a11y--focused,
