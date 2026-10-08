@@ -40,7 +40,7 @@ describe('Environment', () => {
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
             // # Verify upload icon button is visible
-            cy.get('i[title="Edit Icon"]').should('be.visible');
+            cy.get('i.icon-pencil-outline[title="Edit Icon"]').should('be.visible');
 
             // # Upload a file on center view
             cy.findByTestId('uploadPicture').attachFile(mattermostIcon);
@@ -49,7 +49,7 @@ describe('Environment', () => {
             cy.uiSave().wait(TIMEOUTS.HALF_SEC);
 
             // # Close the modal
-            cy.get('button[aria-label="Close"]').should('be.visible').click();
+            cy.uiCloseTeamSettingsModal();
         });
 
         // Validate that the image is being displayed
@@ -73,7 +73,7 @@ describe('Environment', () => {
         cy.findByTestId('ServiceSettings.WebserverModedropdown').select('Uncompressed');
 
         // # Click Save button to save the settings
-        cy.get('#saveSetting').click().wait(TIMEOUTS.ONE_SEC);
+        cy.get('#saveSetting').should('be.enabled').click().wait(TIMEOUTS.ONE_SEC);
 
         // # Navigate to a channel
         cy.visit(townsquareLink);
@@ -84,7 +84,7 @@ describe('Environment', () => {
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
             // # Verify upload icon button is visible
-            cy.get('i[title="Edit Icon"]').should('be.visible');
+            cy.get('i.icon-pencil-outline[title="Edit Icon"]').should('be.visible');
 
             // # Upload a file on center view
             cy.findByTestId('uploadPicture').attachFile(mattermostIcon);
@@ -93,7 +93,7 @@ describe('Environment', () => {
             cy.uiSave().wait(TIMEOUTS.HALF_SEC);
 
             // # Close the modal
-            cy.get('button[aria-label="Close"]').should('be.visible').click();
+            cy.uiCloseTeamSettingsModal();
         });
 
         // Validate that the image is being displayed
@@ -117,7 +117,7 @@ describe('Environment', () => {
         cy.findByTestId('ServiceSettings.WebserverModedropdown').select('Disabled');
 
         // # Click Save button to save the settings
-        cy.get('#saveSetting').click().wait(TIMEOUTS.ONE_SEC);
+        cy.get('#saveSetting').should('be.enabled').click().wait(TIMEOUTS.ONE_SEC);
 
         // # Navigate to a channel
         cy.visit(townsquareLink);
@@ -128,7 +128,7 @@ describe('Environment', () => {
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
             // # Verify upload icon button is visible
-            cy.get('i[title="Edit Icon"]').should('be.visible');
+            cy.get('i.icon-pencil-outline[title="Edit Icon"]').should('be.visible');
 
             // # Upload a file on center view
             cy.findByTestId('uploadPicture').attachFile(mattermostIcon);
@@ -137,7 +137,7 @@ describe('Environment', () => {
             cy.uiSave().wait(TIMEOUTS.HALF_SEC);
 
             // # Close the modal
-            cy.get('button[aria-label="Close"]').should('be.visible').click();
+            cy.uiCloseTeamSettingsModal();
         });
 
         // Validate that the image is being displayed

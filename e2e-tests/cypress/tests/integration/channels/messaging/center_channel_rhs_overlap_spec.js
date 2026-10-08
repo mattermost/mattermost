@@ -680,8 +680,8 @@ describe('Messaging', () => {
             // * Update the post message and type ENTER
             cy.get('#edit_textbox', {timeout: TIMEOUTS.FIVE_SEC}).invoke('val', '').type(message2).wait(TIMEOUTS.HALF_SEC).type('{enter}').wait(TIMEOUTS.HALF_SEC);
 
-            // * Post appears in RHS search results, displays Pinned badge
-            cy.get(`#searchResult_${postId}`).findByText('Edited').should('exist');
+            // * Post appears in RHS search results, displays Edited badge
+            cy.get('#searchContainer').find(`#searchResult_${postId}`, {timeout: TIMEOUTS.TEN_SEC}).findByText('Edited').should('exist');
 
             // # Verify that the updated post contains 'Edited'
             cy.get(`#post_${postId}`).within((el) => {

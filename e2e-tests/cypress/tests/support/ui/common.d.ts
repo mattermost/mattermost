@@ -84,6 +84,14 @@ declare namespace Cypress {
         uiCloseButton(): Chainable;
 
         /**
+         * Close the team settings modal via its header close control
+         *
+         * @example
+         *   cy.uiCloseTeamSettingsModal();
+         */
+        uiCloseTeamSettingsModal(): Chainable;
+
+        /**
          * Get a radio button by its text using "cy.findByRole"
          *
          * @example

@@ -115,12 +115,12 @@ describe('Recent Emoji', () => {
             cy.get(`#post_${postId}`).trigger('mouseover');
         });
 
-        cy.get('#recent_reaction_0').should('exist').then((recentReaction) => {
+        cy.get('#recent_reaction_0 .emoticon--post-menu').should('exist').then((recentReaction) => {
             // * Assert that custom emoji is present as most recent in quick reaction menu
             expect(recentReaction[0].style.backgroundImage).to.include('api/v4/emoji');
         });
 
-        cy.get('#recent_reaction_1').should('exist').then((recentReaction) => {
+        cy.get('#recent_reaction_1 .emoticon--post-menu').should('exist').then((recentReaction) => {
             // * Assert that system emoji is present as second recent in quick reaction menu
             expect(recentReaction[0].style.backgroundImage).to.include('static/emoji/');
         });

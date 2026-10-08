@@ -162,8 +162,10 @@ describe('Channel sidebar', () => {
             cy.get('.SidebarFilters_filterButton').click();
 
             // * Verify that DIRECT MESSAGES is not collapsed but CHANNELS still is
-            cy.get('.SidebarChannelGroupHeader:contains(CHANNELS) i').should('be.visible').should('have.class', 'icon-rotate-minus-90');
-            cy.get('.SidebarChannelGroupHeader:contains(DIRECT MESSAGES) i').should('be.visible').should('not.have.class', 'icon-rotate-minus-90');
+            cy.get('.SidebarChannelGroupHeader:contains(CHANNELS) button.SidebarChannelGroupHeader_groupButton').
+                should('have.attr', 'aria-expanded', 'false');
+            cy.get('.SidebarChannelGroupHeader:contains(DIRECT MESSAGES) button.SidebarChannelGroupHeader_groupButton').
+                should('have.attr', 'aria-expanded', 'true');
         });
     });
 });

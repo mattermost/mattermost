@@ -57,7 +57,7 @@ describe('Search teams', () => {
         cy.findAllByTestId('team-display-name').should('have.length', PAGE_SIZE);
 
         // # Click the next pagination arrow.
-        cy.findByTitle('Next Icon').parent().should('be.enabled').click();
+        cy.findByRole('button', {name: 'Go to next page'}).should('be.enabled').click();
 
         // * Check that the 2nd page of results has the expected amount.
         cy.findAllByTestId('team-display-name').should('have.length', 2);
