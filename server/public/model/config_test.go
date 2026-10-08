@@ -4476,6 +4476,18 @@ func TestElasticsearchSettingsSetDefaults(t *testing.T) {
 		s.SetDefaults()
 		require.False(t, *s.EnableSearchPublicChannelsWithoutMembership)
 	})
+
+	t.Run("EnableFileIndexing defaults to true when nil", func(t *testing.T) {
+		s := ElasticsearchSettings{}
+		s.SetDefaults()
+		require.True(t, *s.EnableFileIndexing)
+	})
+
+	t.Run("EnableFileIndexing preserves explicit false", func(t *testing.T) {
+		s := ElasticsearchSettings{EnableFileIndexing: NewPointer(false)}
+		s.SetDefaults()
+		require.False(t, *s.EnableFileIndexing)
+	})
 }
 
 func TestElasticsearchSettingsIsValid(t *testing.T) {

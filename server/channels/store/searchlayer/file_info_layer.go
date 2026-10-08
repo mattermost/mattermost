@@ -18,7 +18,15 @@ type SearchFileInfoStore struct {
 	rootStore *SearchStore
 }
 
+func (s SearchFileInfoStore) isFileIndexingEnabled() bool {
+	return *s.rootStore.getConfig().ElasticsearchSettings.EnableFileIndexing
+}
+
 func (s SearchFileInfoStore) indexFile(rctx request.CTX, file *model.FileInfo) {
+	if !s.isFileIndexingEnabled() {
+		return
+	}
+
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
 			runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {

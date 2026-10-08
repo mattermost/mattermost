@@ -38,6 +38,7 @@ interface State extends BaseState {
     enableSearching: boolean;
     enableAutocomplete: boolean;
     enableSearchPublicChannelsWithoutMembership: boolean;
+    enableFileIndexing: boolean;
     configTested: boolean;
     canSave: boolean;
     canPurgeAndIndex: boolean;
@@ -119,6 +120,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
         config.ElasticsearchSettings.EnableAutocomplete = this.state.enableAutocomplete;
         config.ElasticsearchSettings.IgnoredPurgeIndexes = this.state.ignoredPurgeIndexes;
         config.ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership = this.state.enableSearchPublicChannelsWithoutMembership;
+        config.ElasticsearchSettings.EnableFileIndexing = this.state.enableFileIndexing;
 
         return config;
     };
@@ -138,6 +140,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
             enableSearching: config.ElasticsearchSettings.EnableSearching,
             enableAutocomplete: config.ElasticsearchSettings.EnableAutocomplete,
             enableSearchPublicChannelsWithoutMembership: config.ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership,
+            enableFileIndexing: config.ElasticsearchSettings.EnableFileIndexing,
             configTested: true,
             canSave: true,
             canPurgeAndIndex: config.ElasticsearchSettings.EnableIndexing,
@@ -563,6 +566,25 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                     disabled={this.props.isDisabled || !this.state.enableIndexing || !this.state.configTested}
                     onChange={this.handleSettingChanged}
                     setByEnv={this.isSetByEnv('ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership')}
+                />
+                <BooleanSetting
+                    id='enableFileIndexing'
+                    label={
+                        <FormattedMessage
+                            id='admin.elasticsearch.enableFileIndexingTitle'
+                            defaultMessage='Enable file indexing:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.elasticsearch.enableFileIndexingDescription'
+                            defaultMessage='When false, new or updated file attachments are not indexed. File search continues to return previously indexed files, but files uploaded while this setting is false are not searchable until a bulk index is run after re-enabling it.'
+                        />
+                    }
+                    value={this.state.enableFileIndexing}
+                    disabled={this.props.isDisabled || !this.state.enableIndexing || !this.state.configTested}
+                    onChange={this.handleSettingChanged}
+                    setByEnv={this.isSetByEnv('ElasticsearchSettings.EnableFileIndexing')}
                 />
             </SettingsGroup>
         );

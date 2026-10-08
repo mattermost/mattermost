@@ -693,6 +693,7 @@ const defaultServerConfig: AdminConfig = {
         Trace: '',
         IgnoredPurgeIndexes: '',
         EnableSearchPublicChannelsWithoutMembership: true,
+        EnableFileIndexing: true,
     },
     DataRetentionSettings: {
         EnableMessageDeletion: false,

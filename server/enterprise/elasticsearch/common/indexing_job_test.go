@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 )
 
 func TestBulkIndexChannelsWithDeletedChannels(t *testing.T) {
@@ -237,7 +238,7 @@ func TestSetEntityCount(t *testing.T) {
 		m.fileInfo.On("CountAll").Return(int64(300), nil)
 
 		job := &model.Job{Data: maps.Clone(allEntitiesEnabled)}
-		progress := setEntityCount(mlog.CreateConsoleTestLogger(t), &jobs.JobServer{Store: m.store}, IndexingProgress{}, job)
+		progress := setEntityCount(mlog.CreateConsoleTestLogger(t), &jobs.JobServer{Store: m.store, ConfigService: &testutils.StaticConfigService{Cfg: newTestConfig(true)}}, IndexingProgress{}, job)
 
 		assert.Equal(t, int64(500), progress.TotalPostsCount)
 		assert.Equal(t, int64(200), progress.TotalChannelsCount)
@@ -264,12 +265,26 @@ func TestSetEntityCount(t *testing.T) {
 		jobData["total_files_count"] = "75000"
 		job := &model.Job{Data: jobData}
 
-		progress := setEntityCount(mlog.CreateConsoleTestLogger(t), &jobs.JobServer{Store: m.store}, IndexingProgress{}, job)
+		progress := setEntityCount(mlog.CreateConsoleTestLogger(t), &jobs.JobServer{Store: m.store, ConfigService: &testutils.StaticConfigService{Cfg: newTestConfig(true)}}, IndexingProgress{}, job)
 
 		assert.Equal(t, int64(8000000), progress.TotalPostsCount)
 		assert.Equal(t, int64(50000), progress.TotalChannelsCount)
 		assert.Equal(t, int64(5000), progress.TotalUsersCount)
 		assert.Equal(t, int64(75000), progress.TotalFilesCount)
+	})
+
+	t.Run("skips the file count when file indexing is disabled", func(t *testing.T) {
+		m := setupEntityCountMocks()
+		m.post.On("AnalyticsPostCount", mock.Anything).Return(int64(500), nil)
+		m.channel.On("AnalyticsTypeCount", "", model.ChannelType("")).Return(int64(200), nil)
+		m.user.On("Count", mock.Anything).Return(int64(50), nil)
+
+		job := &model.Job{Data: maps.Clone(allEntitiesEnabled)}
+		jobServer := &jobs.JobServer{Store: m.store, ConfigService: &testutils.StaticConfigService{Cfg: newTestConfig(false)}}
+		progress := setEntityCount(mlog.CreateConsoleTestLogger(t), jobServer, IndexingProgress{}, job)
+
+		assert.Equal(t, int64(0), progress.TotalFilesCount)
+		m.fileInfo.AssertNotCalled(t, "CountAll")
 	})
 
 	t.Run("uses max of fallback and done count", func(t *testing.T) {
@@ -289,8 +304,59 @@ func TestSetEntityCount(t *testing.T) {
 			DonePostsCount: estimatedPostCount + 5000000,
 		}
 
-		progress := setEntityCount(mlog.CreateConsoleTestLogger(t), &jobs.JobServer{Store: m.store}, inputProgress, job)
+		progress := setEntityCount(mlog.CreateConsoleTestLogger(t), &jobs.JobServer{Store: m.store, ConfigService: &testutils.StaticConfigService{Cfg: newTestConfig(true)}}, inputProgress, job)
 
 		assert.Equal(t, int64(estimatedPostCount+5000000), progress.TotalPostsCount)
 	})
+}
+
+func newTestConfig(enableFileIndexing bool) *model.Config {
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.ElasticsearchSettings.EnableFileIndexing = model.NewPointer(enableFileIndexing)
+	return cfg
+}
+
+func TestInitEntitiesToIndex(t *testing.T) {
+	worker := &IndexerWorker{}
+
+	t.Run("indexes all entities by default", func(t *testing.T) {
+		job := &model.Job{}
+		worker.initEntitiesToIndex(job)
+
+		assert.Equal(t, "true", job.Data["index_posts"])
+		assert.Equal(t, "true", job.Data["index_channels"])
+		assert.Equal(t, "true", job.Data["index_users"])
+		assert.Equal(t, "true", job.Data["index_files"])
+	})
+
+	t.Run("respects index_files=false in job data", func(t *testing.T) {
+		job := &model.Job{Data: model.StringMap{"index_files": "false"}}
+		worker.initEntitiesToIndex(job)
+
+		assert.Equal(t, "true", job.Data["index_posts"])
+		assert.Equal(t, "false", job.Data["index_files"])
+	})
+}
+
+func TestShouldIndexFiles(t *testing.T) {
+	requested := &model.Job{Data: model.StringMap{"index_files": "true"}}
+	notRequested := &model.Job{Data: model.StringMap{"index_files": "false"}}
+
+	assert.True(t, shouldIndexFiles(newTestConfig(true), requested))
+	assert.False(t, shouldIndexFiles(newTestConfig(false), requested))
+	assert.False(t, shouldIndexFiles(newTestConfig(true), notRequested))
+}
+
+func TestIsDoneWithFileIndexingDisabled(t *testing.T) {
+	job := &model.Job{Data: model.StringMap{
+		"index_posts":    "true",
+		"index_channels": "true",
+		"index_users":    "true",
+		"index_files":    "true",
+	}}
+	progress := &IndexingProgress{DonePosts: true, DoneChannels: true, DoneUsers: true}
+
+	assert.False(t, progress.IsDone(newTestConfig(true), job))
+	assert.True(t, progress.IsDone(newTestConfig(false), job))
 }
