@@ -309,7 +309,8 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                         <IconButton
                             id='newDirectMessageButton'
                             style='inverted'
-                            size='x-small'
+                            size='small'
+                            padding='compact'
                             className='SidebarChannelGroupHeader_addButton'
                             icon={<i className='icon icon-plus' aria-hidden='true'/>}
                             onClick={this.handleOpenDirectMessagesModal}

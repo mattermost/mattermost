@@ -61,7 +61,7 @@ const HeaderIconWrapper = (props: Props) => {
             >
                 <IconButton
                     id={buttonId}
-                    size='x-small'
+                    size='small'
                     className={cleanedClassName}
                     icon={children}
                     onClick={onClick}

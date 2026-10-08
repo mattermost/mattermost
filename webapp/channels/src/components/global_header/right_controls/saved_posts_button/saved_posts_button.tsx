@@ -40,7 +40,8 @@ const SavedPostsButton = (): JSX.Element | null => {
         >
             <IconButton
                 style='inverted'
-                size='medium'
+                size='small'
+                padding='compact'
                 icon={<i className='icon icon-bookmark-outline' aria-hidden='true'/>}
                 toggled={rhsState === RHSStates.FLAG}
                 onClick={savedPostsButtonClick}

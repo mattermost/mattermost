@@ -29,12 +29,18 @@ exports[`components/ChannelHeader should match snapshot with last active display
             >
               <button
                 aria-label="Channel files"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon channel-header__icon--left -icon -xs"
                 id="channelHeaderFilesButton"
+                type="button"
               >
-                <i
-                  class="icon icon-file-text-outline"
-                />
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
+                >
+                  <i
+                    class="icon icon-file-text-outline"
+                  />
+                </span>
               </button>
             </div>
             <div
@@ -49,7 +55,7 @@ exports[`components/ChannelHeader should match snapshot with last active display
                 >
                   Last online 
                   <time
-                    datetime="2021-09-20T14:02:42.846"
+                    datetime="2021-09-20T16:02:42.846"
                   >
                     September 20, 2021
                   </time>
@@ -70,22 +76,33 @@ exports[`components/ChannelHeader should match snapshot with last active display
       </div>
       <button
         aria-label="Open in new window"
-        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
         type="button"
       >
-        <i
+        <span
           aria-hidden="true"
-          class="icon icon-dock-window"
-        />
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            aria-hidden="true"
+            class="icon icon-dock-window"
+          />
+        </span>
       </button>
       <button
         aria-label="View Info"
-        class="channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon"
         id="channel-info-btn"
+        type="button"
       >
-        <i
-          class="Icon-clPswv hCFmLO icon-information-outline"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            class="Icon-clPswv hCFmLO icon-information-outline"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -121,12 +138,18 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
             >
               <button
                 aria-label="Channel files"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon channel-header__icon--left -icon -xs"
                 id="channelHeaderFilesButton"
+                type="button"
               >
-                <i
-                  class="icon icon-file-text-outline"
-                />
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
+                >
+                  <i
+                    class="icon icon-file-text-outline"
+                  />
+                </span>
               </button>
             </div>
             <div
@@ -151,22 +174,33 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
       </div>
       <button
         aria-label="Open in new window"
-        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
         type="button"
       >
-        <i
+        <span
           aria-hidden="true"
-          class="icon icon-dock-window"
-        />
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            aria-hidden="true"
+            class="icon icon-dock-window"
+          />
+        </span>
       </button>
       <button
         aria-label="View Info"
-        class="channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon"
         id="channel-info-btn"
+        type="button"
       >
-        <i
-          class="Icon-clPswv hCFmLO icon-information-outline"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            class="Icon-clPswv hCFmLO icon-information-outline"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -202,32 +236,44 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
             >
               <button
                 aria-label="Members"
-                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left -icon -xs"
                 id="member_rhs"
+                type="button"
               >
                 <span
-                  class="channel-header__members-icon-wrapper"
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
                 >
-                  <i
-                    aria-hidden="true"
-                    class="icon icon-account-outline channel-header__members"
-                  />
-                </span>
-                <span
-                  class="icon__text"
-                  id="channelMemberCountText"
-                >
-                  2
+                  <span
+                    class="channel-header__members-icon-wrapper"
+                  >
+                    <i
+                      aria-hidden="true"
+                      class="icon icon-account-outline channel-header__members"
+                    />
+                  </span>
+                  <span
+                    class="icon__text"
+                    id="channelMemberCountText"
+                  >
+                    2
+                  </span>
                 </span>
               </button>
               <button
                 aria-label="Channel files"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs  channel-header__icon--active"
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon channel-header__icon--left -icon -xs channel-header__icon--active"
                 id="channelHeaderFilesButton"
+                type="button"
               >
-                <i
-                  class="icon icon-file-text-outline"
-                />
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
+                >
+                  <i
+                    class="icon icon-file-text-outline"
+                  />
+                </span>
               </button>
             </div>
             <div
@@ -249,22 +295,33 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
         type="button"
       >
-        <i
+        <span
           aria-hidden="true"
-          class="icon icon-dock-window"
-        />
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            aria-hidden="true"
+            class="icon icon-dock-window"
+          />
+        </span>
       </button>
       <button
         aria-label="View Info"
-        class="channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon"
         id="channel-info-btn"
+        type="button"
       >
-        <i
-          class="Icon-clPswv hCFmLO icon-information-outline"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            class="Icon-clPswv hCFmLO icon-information-outline"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -300,32 +357,44 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
             >
               <button
                 aria-label="Members"
-                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left -icon -xs"
                 id="member_rhs"
+                type="button"
               >
                 <span
-                  class="channel-header__members-icon-wrapper"
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
                 >
-                  <i
-                    aria-hidden="true"
-                    class="icon icon-account-outline channel-header__members"
-                  />
-                </span>
-                <span
-                  class="icon__text"
-                  id="channelMemberCountText"
-                >
-                  2
+                  <span
+                    class="channel-header__members-icon-wrapper"
+                  >
+                    <i
+                      aria-hidden="true"
+                      class="icon icon-account-outline channel-header__members"
+                    />
+                  </span>
+                  <span
+                    class="icon__text"
+                    id="channelMemberCountText"
+                  >
+                    2
+                  </span>
                 </span>
               </button>
               <button
                 aria-label="Channel files"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon channel-header__icon--left -icon -xs"
                 id="channelHeaderFilesButton"
+                type="button"
               >
-                <i
-                  class="icon icon-file-text-outline"
-                />
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
+                >
+                  <i
+                    class="icon icon-file-text-outline"
+                  />
+                </span>
               </button>
             </div>
             <div
@@ -347,22 +416,33 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
         type="button"
       >
-        <i
+        <span
           aria-hidden="true"
-          class="icon icon-dock-window"
-        />
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            aria-hidden="true"
+            class="icon icon-dock-window"
+          />
+        </span>
       </button>
       <button
         aria-label="View Info"
-        class="channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon"
         id="channel-info-btn"
+        type="button"
       >
-        <i
-          class="Icon-clPswv hCFmLO icon-information-outline"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            class="Icon-clPswv hCFmLO icon-information-outline"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -398,32 +478,44 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
             >
               <button
                 aria-label="Members"
-                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left -icon -xs"
                 id="member_rhs"
+                type="button"
               >
                 <span
-                  class="channel-header__members-icon-wrapper"
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
                 >
-                  <i
-                    aria-hidden="true"
-                    class="icon icon-account-outline channel-header__members"
-                  />
-                </span>
-                <span
-                  class="icon__text"
-                  id="channelMemberCountText"
-                >
-                  2
+                  <span
+                    class="channel-header__members-icon-wrapper"
+                  >
+                    <i
+                      aria-hidden="true"
+                      class="icon icon-account-outline channel-header__members"
+                    />
+                  </span>
+                  <span
+                    class="icon__text"
+                    id="channelMemberCountText"
+                  >
+                    2
+                  </span>
                 </span>
               </button>
               <button
                 aria-label="Channel files"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon channel-header__icon--left -icon -xs"
                 id="channelHeaderFilesButton"
+                type="button"
               >
-                <i
-                  class="icon icon-file-text-outline"
-                />
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
+                >
+                  <i
+                    class="icon icon-file-text-outline"
+                  />
+                </span>
               </button>
             </div>
             <div
@@ -445,22 +537,33 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
         type="button"
       >
-        <i
+        <span
           aria-hidden="true"
-          class="icon icon-dock-window"
-        />
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            aria-hidden="true"
+            class="icon icon-dock-window"
+          />
+        </span>
       </button>
       <button
         aria-label="View Info"
-        class="channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon"
         id="channel-info-btn"
+        type="button"
       >
-        <i
-          class="Icon-clPswv hCFmLO icon-information-outline"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            class="Icon-clPswv hCFmLO icon-information-outline"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -496,32 +599,44 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
             >
               <button
                 aria-label="Members"
-                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left -icon -xs"
                 id="member_rhs"
+                type="button"
               >
                 <span
-                  class="channel-header__members-icon-wrapper"
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
                 >
-                  <i
-                    aria-hidden="true"
-                    class="icon icon-account-outline channel-header__members"
-                  />
-                </span>
-                <span
-                  class="icon__text"
-                  id="channelMemberCountText"
-                >
-                  2
+                  <span
+                    class="channel-header__members-icon-wrapper"
+                  >
+                    <i
+                      aria-hidden="true"
+                      class="icon icon-account-outline channel-header__members"
+                    />
+                  </span>
+                  <span
+                    class="icon__text"
+                    id="channelMemberCountText"
+                  >
+                    2
+                  </span>
                 </span>
               </button>
               <button
                 aria-label="Channel files"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon channel-header__icon--left -icon -xs"
                 id="channelHeaderFilesButton"
+                type="button"
               >
-                <i
-                  class="icon icon-file-text-outline"
-                />
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
+                >
+                  <i
+                    class="icon icon-file-text-outline"
+                  />
+                </span>
               </button>
             </div>
             <div
@@ -543,22 +658,33 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
         type="button"
       >
-        <i
+        <span
           aria-hidden="true"
-          class="icon icon-dock-window"
-        />
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            aria-hidden="true"
+            class="icon icon-dock-window"
+          />
+        </span>
       </button>
       <button
         aria-label="View Info"
-        class="channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon"
         id="channel-info-btn"
+        type="button"
       >
-        <i
-          class="Icon-clPswv hCFmLO icon-information-outline"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            class="Icon-clPswv hCFmLO icon-information-outline"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -594,32 +720,44 @@ exports[`components/ChannelHeader should render archived view 1`] = `
             >
               <button
                 aria-label="Members"
-                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left -icon -xs"
                 id="member_rhs"
+                type="button"
               >
                 <span
-                  class="channel-header__members-icon-wrapper"
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
                 >
-                  <i
-                    aria-hidden="true"
-                    class="icon icon-account-outline channel-header__members"
-                  />
-                </span>
-                <span
-                  class="icon__text"
-                  id="channelMemberCountText"
-                >
-                  2
+                  <span
+                    class="channel-header__members-icon-wrapper"
+                  >
+                    <i
+                      aria-hidden="true"
+                      class="icon icon-account-outline channel-header__members"
+                    />
+                  </span>
+                  <span
+                    class="icon__text"
+                    id="channelMemberCountText"
+                  >
+                    2
+                  </span>
                 </span>
               </button>
               <button
                 aria-label="Channel files"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon channel-header__icon--left -icon -xs"
                 id="channelHeaderFilesButton"
+                type="button"
               >
-                <i
-                  class="icon icon-file-text-outline"
-                />
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
+                >
+                  <i
+                    class="icon icon-file-text-outline"
+                  />
+                </span>
               </button>
             </div>
             <div
@@ -641,22 +779,33 @@ exports[`components/ChannelHeader should render archived view 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
         type="button"
       >
-        <i
+        <span
           aria-hidden="true"
-          class="icon icon-dock-window"
-        />
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            aria-hidden="true"
+            class="icon icon-dock-window"
+          />
+        </span>
       </button>
       <button
         aria-label="View Info"
-        class="channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon"
         id="channel-info-btn"
+        type="button"
       >
-        <i
-          class="Icon-clPswv hCFmLO icon-information-outline"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            class="Icon-clPswv hCFmLO icon-information-outline"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -692,42 +841,60 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
             >
               <button
                 aria-label="Unmute"
-                class="channel-header__mute inactive btn btn-icon btn-xs"
+                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 channel-header__mute channel-header__icon"
                 id="toggleMute"
-              >
-                <i
-                  aria-hidden="true"
-                  class="icon icon-bell-off-outline"
-                />
-              </button>
-              <button
-                aria-label="Members"
-                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-                id="member_rhs"
+                type="button"
               >
                 <span
-                  class="channel-header__members-icon-wrapper"
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
                 >
                   <i
                     aria-hidden="true"
-                    class="icon icon-account-outline channel-header__members"
+                    class="icon icon-bell-off-outline"
                   />
                 </span>
+              </button>
+              <button
+                aria-label="Members"
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left -icon -xs"
+                id="member_rhs"
+                type="button"
+              >
                 <span
-                  class="icon__text"
-                  id="channelMemberCountText"
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
                 >
-                  2
+                  <span
+                    class="channel-header__members-icon-wrapper"
+                  >
+                    <i
+                      aria-hidden="true"
+                      class="icon icon-account-outline channel-header__members"
+                    />
+                  </span>
+                  <span
+                    class="icon__text"
+                    id="channelMemberCountText"
+                  >
+                    2
+                  </span>
                 </span>
               </button>
               <button
                 aria-label="Channel files"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon channel-header__icon--left -icon -xs"
                 id="channelHeaderFilesButton"
+                type="button"
               >
-                <i
-                  class="icon icon-file-text-outline"
-                />
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
+                >
+                  <i
+                    class="icon icon-file-text-outline"
+                  />
+                </span>
               </button>
             </div>
             <div
@@ -749,22 +916,33 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
         type="button"
       >
-        <i
+        <span
           aria-hidden="true"
-          class="icon icon-dock-window"
-        />
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            aria-hidden="true"
+            class="icon icon-dock-window"
+          />
+        </span>
       </button>
       <button
         aria-label="View Info"
-        class="channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon"
         id="channel-info-btn"
+        type="button"
       >
-        <i
-          class="Icon-clPswv hCFmLO icon-information-outline"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            class="Icon-clPswv hCFmLO icon-information-outline"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -800,32 +978,44 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
             >
               <button
                 aria-label="Members"
-                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left -icon -xs"
                 id="member_rhs"
+                type="button"
               >
                 <span
-                  class="channel-header__members-icon-wrapper"
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
                 >
-                  <i
-                    aria-hidden="true"
-                    class="icon icon-account-outline channel-header__members"
-                  />
-                </span>
-                <span
-                  class="icon__text"
-                  id="channelMemberCountText"
-                >
-                  2
+                  <span
+                    class="channel-header__members-icon-wrapper"
+                  >
+                    <i
+                      aria-hidden="true"
+                      class="icon icon-account-outline channel-header__members"
+                    />
+                  </span>
+                  <span
+                    class="icon__text"
+                    id="channelMemberCountText"
+                  >
+                    2
+                  </span>
                 </span>
               </button>
               <button
                 aria-label="Channel files"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon channel-header__icon--left -icon -xs"
                 id="channelHeaderFilesButton"
+                type="button"
               >
-                <i
-                  class="icon icon-file-text-outline"
-                />
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
+                >
+                  <i
+                    class="icon icon-file-text-outline"
+                  />
+                </span>
               </button>
             </div>
             <div
@@ -847,22 +1037,33 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
         type="button"
       >
-        <i
+        <span
           aria-hidden="true"
-          class="icon icon-dock-window"
-        />
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            aria-hidden="true"
+            class="icon icon-dock-window"
+          />
+        </span>
       </button>
       <button
         aria-label="View Info"
-        class="channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon"
         id="channel-info-btn"
+        type="button"
       >
-        <i
-          class="Icon-clPswv hCFmLO icon-information-outline"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            class="Icon-clPswv hCFmLO icon-information-outline"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -898,12 +1099,18 @@ exports[`components/ChannelHeader should render properly when custom status is e
             >
               <button
                 aria-label="Channel files"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon channel-header__icon--left -icon -xs"
                 id="channelHeaderFilesButton"
+                type="button"
               >
-                <i
-                  class="icon icon-file-text-outline"
-                />
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
+                >
+                  <i
+                    class="icon icon-file-text-outline"
+                  />
+                </span>
               </button>
             </div>
             <div
@@ -918,7 +1125,7 @@ exports[`components/ChannelHeader should render properly when custom status is e
                 >
                   Last online 
                   <time
-                    datetime="2021-09-20T14:02:42.846"
+                    datetime="2021-09-20T16:02:42.846"
                   >
                     September 20, 2021
                   </time>
@@ -939,22 +1146,33 @@ exports[`components/ChannelHeader should render properly when custom status is e
       </div>
       <button
         aria-label="Open in new window"
-        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
         type="button"
       >
-        <i
+        <span
           aria-hidden="true"
-          class="icon icon-dock-window"
-        />
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            aria-hidden="true"
+            class="icon icon-dock-window"
+          />
+        </span>
       </button>
       <button
         aria-label="View Info"
-        class="channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon"
         id="channel-info-btn"
+        type="button"
       >
-        <i
-          class="Icon-clPswv hCFmLO icon-information-outline"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            class="Icon-clPswv hCFmLO icon-information-outline"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -990,12 +1208,18 @@ exports[`components/ChannelHeader should render properly when custom status is s
             >
               <button
                 aria-label="Channel files"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon channel-header__icon--left -icon -xs"
                 id="channelHeaderFilesButton"
+                type="button"
               >
-                <i
-                  class="icon icon-file-text-outline"
-                />
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
+                >
+                  <i
+                    class="icon icon-file-text-outline"
+                  />
+                </span>
               </button>
             </div>
             <div
@@ -1010,7 +1234,7 @@ exports[`components/ChannelHeader should render properly when custom status is s
                 >
                   Last online 
                   <time
-                    datetime="2021-09-20T14:02:42.846"
+                    datetime="2021-09-20T16:02:42.846"
                   >
                     September 20, 2021
                   </time>
@@ -1034,22 +1258,33 @@ exports[`components/ChannelHeader should render properly when custom status is s
       </div>
       <button
         aria-label="Open in new window"
-        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
         type="button"
       >
-        <i
+        <span
           aria-hidden="true"
-          class="icon icon-dock-window"
-        />
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            aria-hidden="true"
+            class="icon icon-dock-window"
+          />
+        </span>
       </button>
       <button
         aria-label="View Info"
-        class="channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon"
         id="channel-info-btn"
+        type="button"
       >
-        <i
-          class="Icon-clPswv hCFmLO icon-information-outline"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            class="Icon-clPswv hCFmLO icon-information-outline"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -1085,32 +1320,44 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
             >
               <button
                 aria-label="Members"
-                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left -icon -xs"
                 id="member_rhs"
+                type="button"
               >
                 <span
-                  class="channel-header__members-icon-wrapper"
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
                 >
-                  <i
-                    aria-hidden="true"
-                    class="icon icon-account-outline channel-header__members"
-                  />
-                </span>
-                <span
-                  class="icon__text"
-                  id="channelMemberCountText"
-                >
-                  2
+                  <span
+                    class="channel-header__members-icon-wrapper"
+                  >
+                    <i
+                      aria-hidden="true"
+                      class="icon icon-account-outline channel-header__members"
+                    />
+                  </span>
+                  <span
+                    class="icon__text"
+                    id="channelMemberCountText"
+                  >
+                    2
+                  </span>
                 </span>
               </button>
               <button
                 aria-label="Channel files"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon channel-header__icon--left -icon -xs"
                 id="channelHeaderFilesButton"
+                type="button"
               >
-                <i
-                  class="icon icon-file-text-outline"
-                />
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
+                >
+                  <i
+                    class="icon icon-file-text-outline"
+                  />
+                </span>
               </button>
             </div>
             <div
@@ -1132,22 +1379,33 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
         type="button"
       >
-        <i
+        <span
           aria-hidden="true"
-          class="icon icon-dock-window"
-        />
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            aria-hidden="true"
+            class="icon icon-dock-window"
+          />
+        </span>
       </button>
       <button
         aria-label="View Info"
-        class="channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon"
         id="channel-info-btn"
+        type="button"
       >
-        <i
-          class="Icon-clPswv hCFmLO icon-information-outline"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            class="Icon-clPswv hCFmLO icon-information-outline"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -1183,32 +1441,44 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
             >
               <button
                 aria-label="Members"
-                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left -icon -xs"
                 id="member_rhs"
+                type="button"
               >
                 <span
-                  class="channel-header__members-icon-wrapper"
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
                 >
-                  <i
-                    aria-hidden="true"
-                    class="icon icon-account-outline channel-header__members"
-                  />
-                </span>
-                <span
-                  class="icon__text"
-                  id="channelMemberCountText"
-                >
-                  2
+                  <span
+                    class="channel-header__members-icon-wrapper"
+                  >
+                    <i
+                      aria-hidden="true"
+                      class="icon icon-account-outline channel-header__members"
+                    />
+                  </span>
+                  <span
+                    class="icon__text"
+                    id="channelMemberCountText"
+                  >
+                    2
+                  </span>
                 </span>
               </button>
               <button
                 aria-label="Channel files"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon channel-header__icon--left -icon -xs"
                 id="channelHeaderFilesButton"
+                type="button"
               >
-                <i
-                  class="icon icon-file-text-outline"
-                />
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
+                >
+                  <i
+                    class="icon icon-file-text-outline"
+                  />
+                </span>
               </button>
             </div>
             <div
@@ -1230,22 +1500,33 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
         type="button"
       >
-        <i
+        <span
           aria-hidden="true"
-          class="icon icon-dock-window"
-        />
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            aria-hidden="true"
+            class="icon icon-dock-window"
+          />
+        </span>
       </button>
       <button
         aria-label="View Info"
-        class="channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon"
         id="channel-info-btn"
+        type="button"
       >
-        <i
-          class="Icon-clPswv hCFmLO icon-information-outline"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            class="Icon-clPswv hCFmLO icon-information-outline"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -1281,32 +1562,44 @@ exports[`components/ChannelHeader should render properly when populated with cha
             >
               <button
                 aria-label="Members"
-                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left -icon -xs"
                 id="member_rhs"
+                type="button"
               >
                 <span
-                  class="channel-header__members-icon-wrapper"
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
                 >
-                  <i
-                    aria-hidden="true"
-                    class="icon icon-account-outline channel-header__members"
-                  />
-                </span>
-                <span
-                  class="icon__text"
-                  id="channelMemberCountText"
-                >
-                  2
+                  <span
+                    class="channel-header__members-icon-wrapper"
+                  >
+                    <i
+                      aria-hidden="true"
+                      class="icon icon-account-outline channel-header__members"
+                    />
+                  </span>
+                  <span
+                    class="icon__text"
+                    id="channelMemberCountText"
+                  >
+                    2
+                  </span>
                 </span>
               </button>
               <button
                 aria-label="Channel files"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon channel-header__icon--left -icon -xs"
                 id="channelHeaderFilesButton"
+                type="button"
               >
-                <i
-                  class="icon icon-file-text-outline"
-                />
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
+                >
+                  <i
+                    class="icon icon-file-text-outline"
+                  />
+                </span>
               </button>
             </div>
             <div
@@ -1328,22 +1621,33 @@ exports[`components/ChannelHeader should render properly when populated with cha
       </div>
       <button
         aria-label="Open in new window"
-        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
         type="button"
       >
-        <i
+        <span
           aria-hidden="true"
-          class="icon icon-dock-window"
-        />
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            aria-hidden="true"
+            class="icon icon-dock-window"
+          />
+        </span>
       </button>
       <button
         aria-label="View Info"
-        class="channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon"
         id="channel-info-btn"
+        type="button"
       >
-        <i
-          class="Icon-clPswv hCFmLO icon-information-outline"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            class="Icon-clPswv hCFmLO icon-information-outline"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -1379,37 +1683,49 @@ exports[`components/ChannelHeader should render properly when there are pending 
             >
               <button
                 aria-label="Members — pending join requests"
-                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left -icon -xs"
                 id="member_rhs"
+                type="button"
               >
                 <span
-                  class="channel-header__members-icon-wrapper"
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
                 >
-                  <i
-                    aria-hidden="true"
-                    class="icon icon-account-outline channel-header__members"
-                  />
                   <span
-                    aria-hidden="true"
-                    class="channel-header__join-request-badge"
-                    data-testid="channelHeaderJoinRequestBadge"
-                  />
-                </span>
-                <span
-                  class="icon__text"
-                  id="channelMemberCountText"
-                >
-                  2
+                    class="channel-header__members-icon-wrapper"
+                  >
+                    <i
+                      aria-hidden="true"
+                      class="icon icon-account-outline channel-header__members"
+                    />
+                    <span
+                      aria-hidden="true"
+                      class="channel-header__join-request-badge"
+                      data-testid="channelHeaderJoinRequestBadge"
+                    />
+                  </span>
+                  <span
+                    class="icon__text"
+                    id="channelMemberCountText"
+                  >
+                    2
+                  </span>
                 </span>
               </button>
               <button
                 aria-label="Channel files"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon channel-header__icon--left -icon -xs"
                 id="channelHeaderFilesButton"
+                type="button"
               >
-                <i
-                  class="icon icon-file-text-outline"
-                />
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
+                >
+                  <i
+                    class="icon icon-file-text-outline"
+                  />
+                </span>
               </button>
             </div>
             <div
@@ -1431,22 +1747,33 @@ exports[`components/ChannelHeader should render properly when there are pending 
       </div>
       <button
         aria-label="Open in new window"
-        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
         type="button"
       >
-        <i
+        <span
           aria-hidden="true"
-          class="icon icon-dock-window"
-        />
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            aria-hidden="true"
+            class="icon icon-dock-window"
+          />
+        </span>
       </button>
       <button
         aria-label="View Info"
-        class="channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon"
         id="channel-info-btn"
+        type="button"
       >
-        <i
-          class="Icon-clPswv hCFmLO icon-information-outline"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            class="Icon-clPswv hCFmLO icon-information-outline"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -1482,32 +1809,44 @@ exports[`components/ChannelHeader should render shared view 1`] = `
             >
               <button
                 aria-label="Members"
-                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left -icon -xs"
                 id="member_rhs"
+                type="button"
               >
                 <span
-                  class="channel-header__members-icon-wrapper"
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
                 >
-                  <i
-                    aria-hidden="true"
-                    class="icon icon-account-outline channel-header__members"
-                  />
-                </span>
-                <span
-                  class="icon__text"
-                  id="channelMemberCountText"
-                >
-                  2
+                  <span
+                    class="channel-header__members-icon-wrapper"
+                  >
+                    <i
+                      aria-hidden="true"
+                      class="icon icon-account-outline channel-header__members"
+                    />
+                  </span>
+                  <span
+                    class="icon__text"
+                    id="channelMemberCountText"
+                  >
+                    2
+                  </span>
                 </span>
               </button>
               <button
                 aria-label="Channel files"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon channel-header__icon--left -icon -xs"
                 id="channelHeaderFilesButton"
+                type="button"
               >
-                <i
-                  class="icon icon-file-text-outline"
-                />
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
+                >
+                  <i
+                    class="icon icon-file-text-outline"
+                  />
+                </span>
               </button>
             </div>
             <div
@@ -1529,22 +1868,33 @@ exports[`components/ChannelHeader should render shared view 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
         type="button"
       >
-        <i
+        <span
           aria-hidden="true"
-          class="icon icon-dock-window"
-        />
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            aria-hidden="true"
+            class="icon icon-dock-window"
+          />
+        </span>
       </button>
       <button
         aria-label="View Info"
-        class="channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon"
         id="channel-info-btn"
+        type="button"
       >
-        <i
-          class="Icon-clPswv hCFmLO icon-information-outline"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            class="Icon-clPswv hCFmLO icon-information-outline"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -1580,48 +1930,66 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
             >
               <button
                 aria-label="Members"
-                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left -icon -xs"
                 id="member_rhs"
+                type="button"
               >
                 <span
-                  class="channel-header__members-icon-wrapper"
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
                 >
-                  <i
-                    aria-hidden="true"
-                    class="icon icon-account-outline channel-header__members"
-                  />
-                </span>
-                <span
-                  class="icon__text"
-                  id="channelMemberCountText"
-                >
-                  2
+                  <span
+                    class="channel-header__members-icon-wrapper"
+                  >
+                    <i
+                      aria-hidden="true"
+                      class="icon icon-account-outline channel-header__members"
+                    />
+                  </span>
+                  <span
+                    class="icon__text"
+                    id="channelMemberCountText"
+                  >
+                    2
+                  </span>
                 </span>
               </button>
               <button
                 aria-label="Pinned messages"
-                class="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon channel-header__icon--wide channel-header__icon--left -icon -xs"
                 id="channelHeaderPinButton"
+                type="button"
               >
-                <i
-                  aria-hidden="true"
-                  class="icon icon-pin-outline channel-header__pin"
-                />
                 <span
-                  class="icon__text"
-                  id="channelPinnedPostCountText"
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
                 >
-                  2
+                  <i
+                    aria-hidden="true"
+                    class="icon icon-pin-outline channel-header__pin"
+                  />
+                  <span
+                    class="icon__text"
+                    id="channelPinnedPostCountText"
+                  >
+                    2
+                  </span>
                 </span>
               </button>
               <button
                 aria-label="Channel files"
-                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon channel-header__icon--left -icon -xs"
                 id="channelHeaderFilesButton"
+                type="button"
               >
-                <i
-                  class="icon icon-file-text-outline"
-                />
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
+                >
+                  <i
+                    class="icon icon-file-text-outline"
+                  />
+                </span>
               </button>
             </div>
             <div
@@ -1643,22 +2011,33 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
       </div>
       <button
         aria-label="Open in new window"
-        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
         type="button"
       >
-        <i
+        <span
           aria-hidden="true"
-          class="icon icon-dock-window"
-        />
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            aria-hidden="true"
+            class="icon icon-dock-window"
+          />
+        </span>
       </button>
       <button
         aria-label="View Info"
-        class="channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 channel-header__icon"
         id="channel-info-btn"
+        type="button"
       >
-        <i
-          class="Icon-clPswv hCFmLO icon-information-outline"
-        />
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_g2m23_33"
+        >
+          <i
+            class="Icon-clPswv hCFmLO icon-information-outline"
+          />
+        </span>
       </button>
     </div>
   </div>

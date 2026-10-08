@@ -305,15 +305,10 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .SidebarFilters .SidebarFilters_filterButton {
-        display: block;
-        width: 28px;
-        height: 28px;
         border-radius: 4px;
         color: rgba(var(--sidebar-text-rgb), 0.64);
         font-size: 18px;
         font-weight: 400;
-        line-height: 26px;
-        text-align: center;
     }
 
     .SidebarFilters .SidebarFilters_filterButton:hover {

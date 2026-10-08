@@ -63,7 +63,8 @@ export const HistoryButtons = () => {
             >
                 <IconButton
                     style='inverted'
-                    size='medium'
+                    size='small'
+                    padding='compact'
                     icon={<i className='icon icon-arrow-left' aria-hidden='true'/>}
                     onClick={goBack}
                     disabled={!canGoBack}
@@ -75,7 +76,8 @@ export const HistoryButtons = () => {
             >
                 <IconButton
                     style='inverted'
-                    size='medium'
+                    size='small'
+                    padding='compact'
                     icon={<i className='icon icon-arrow-right' aria-hidden='true'/>}
                     onClick={goForward}
                     disabled={!canGoForward}

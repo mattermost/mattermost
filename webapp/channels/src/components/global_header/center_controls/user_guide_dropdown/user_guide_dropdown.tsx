@@ -122,10 +122,12 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                 >
                     <IconButton
                         style='inverted'
-                        size='medium'
+                        size='small'
+                        padding='compact'
                         icon={<i className='icon icon-help-circle-outline' aria-hidden='true'/>}
                         aria-controls='userHelpGuide'
                         aria-label={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
+                        active={this.state.buttonActive}
                         aria-expanded={this.state.buttonActive}
                         aria-haspopup={true}
                     />

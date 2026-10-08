@@ -7,7 +7,7 @@ exports[`components/global/AtMentionsButton should match snapshot 1`] = `
     aria-expanded="false"
     aria-label="Recent mentions"
     aria-pressed="false"
-    class="_icon-button_g2m23_2 _icon-button--size-medium_g2m23_83 _icon-button--style-inverted_g2m23_145"
+    class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 _icon-button--padding-compact_g2m23_64 _icon-button--style-inverted_g2m23_145"
     type="button"
   >
     <span

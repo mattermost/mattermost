@@ -11,7 +11,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
       aria-expanded="false"
       aria-haspopup="true"
       aria-label="Help"
-      class="_icon-button_g2m23_2 _icon-button--size-medium_g2m23_83 _icon-button--style-inverted_g2m23_145"
+      class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 _icon-button--padding-compact_g2m23_64 _icon-button--style-inverted_g2m23_145"
       type="button"
     >
       <span
@@ -39,7 +39,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
       aria-expanded="false"
       aria-haspopup="true"
       aria-label="Help"
-      class="_icon-button_g2m23_2 _icon-button--size-medium_g2m23_83 _icon-button--style-inverted_g2m23_145"
+      class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 _icon-button--padding-compact_g2m23_64 _icon-button--style-inverted_g2m23_145"
       type="button"
     >
       <span
@@ -67,7 +67,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
       aria-expanded="false"
       aria-haspopup="true"
       aria-label="Help"
-      class="_icon-button_g2m23_2 _icon-button--size-medium_g2m23_83 _icon-button--style-inverted_g2m23_145"
+      class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 _icon-button--padding-compact_g2m23_64 _icon-button--style-inverted_g2m23_145"
       type="button"
     >
       <span

@@ -28,7 +28,8 @@ const HeaderIconButton = React.forwardRef<HTMLButtonElement, HeaderIconButtonPro
         <IconButton
             ref={ref}
             style='inverted'
-            size='medium'
+            size='small'
+            padding='compact'
             icon={<i className={`icon icon-${icon}`} aria-hidden='true'/>}
             {...otherProps}
         />

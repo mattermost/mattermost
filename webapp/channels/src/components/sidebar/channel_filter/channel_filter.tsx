@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {defineMessages, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
@@ -79,7 +80,8 @@ export class ChannelFilter extends React.PureComponent<Props> {
                     <IconButton
                         style='inverted'
                         size='small'
-                        className='SidebarFilters_filterButton'
+                        padding='compact'
+                        className={classNames('SidebarFilters_filterButton', {active: unreadFilterEnabled})}
                         icon={<i className='icon icon-filter-variant' aria-hidden='true'/>}
                         toggled={unreadFilterEnabled}
                         data-testid='sidebar-unread-filter-button'
