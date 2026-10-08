@@ -168,6 +168,9 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	field.ObjectType = c.Params.ObjectType
 	field.GroupID = group.ID
+	// This API can neither show nor change a permissions object, so one it
+	// accepted here would be enforced out of the caller's sight.
+	field.Permissions = nil
 
 	auditRec := c.MakeAuditRecord(model.AuditEventCreatePropertyField, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
