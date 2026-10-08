@@ -5,6 +5,10 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, type IntlShape, defineMessage, injectIntl} from 'react-intl';
 
+import {ArrowLeftIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {GroupCreateWithUserIds} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -242,14 +246,15 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                     {
                         typeof this.props.backButtonCallback === 'function' ? (
                             <div className='d-flex align-items-center'>
-                                <button
-                                    type='button'
-                                    className='modal-header-back-button btn btn-icon'
-                                    aria-label={this.props.intl.formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
-                                    onClick={this.doHide}
-                                >
-                                    <i className='icon icon-arrow-left'/>
-                                </button>
+                                <WithTooltip title={this.props.intl.formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}>
+                                    <IconButton
+                                        size='medium'
+                                        className='modal-header-back-button'
+                                        icon={<Icon glyph={<ArrowLeftIcon/>}/>}
+                                        aria-label={this.props.intl.formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
+                                        onClick={this.doHide}
+                                    />
+                                </WithTooltip>
                                 <Modal.Title
                                     componentClass='h1'
                                     id='createGroupsModalTitleWithBack'

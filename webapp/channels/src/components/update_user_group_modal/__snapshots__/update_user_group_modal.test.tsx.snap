@@ -46,21 +46,48 @@ exports[`component/update_user_group_modal should match snapshot 1`] = `
               Close
             </span>
           </button>
-          <button
-            aria-label="Back"
-            class="modal-header-back-button btn btn-icon"
-            type="button"
+          <div
+            class="d-flex align-items-center"
           >
-            <i
-              class="icon icon-arrow-left"
-            />
-          </button>
-          <h1
-            class="modal-title"
-            id="updateGroupsModalTitle"
-          >
-            Edit Group Details
-          </h1>
+            <button
+              aria-label="Back"
+              class="_icon-button_mytxt_2 _icon-button--size-medium_mytxt_83 modal-header-back-button"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+                class="_icon-button__icon-slot_mytxt_33"
+              >
+                <div
+                  aria-hidden="true"
+                  class="_icon_1i355_2 _icon--size-20_1i355_46"
+                >
+                  <div
+                    class="_icon__glyph-area_1i355_9"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+              id="updateGroupsModalTitle"
+            >
+              Edit Group Details
+            </h1>
+          </div>
         </div>
         <div
           class="overflow--visible modal-body"

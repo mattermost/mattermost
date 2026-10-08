@@ -5,7 +5,11 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {ArrowLeftIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {CustomGroupPatch, Group} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -172,23 +176,26 @@ const UpdateUserGroupModal = ({
             id='createUserGroupsModal'
         >
             <Modal.Header closeButton={true}>
-                <button
-                    type='button'
-                    className='modal-header-back-button btn btn-icon'
-                    aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
-                    onClick={goBack}
-                >
-                    <i className='icon icon-arrow-left'/>
-                </button>
-                <Modal.Title
-                    componentClass='h1'
-                    id='updateGroupsModalTitle'
-                >
-                    <FormattedMessage
-                        id='user_groups_modal.editGroupTitle'
-                        defaultMessage='Edit Group Details'
-                    />
-                </Modal.Title>
+                <div className='d-flex align-items-center'>
+                    <WithTooltip title={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}>
+                        <IconButton
+                            size='medium'
+                            className='modal-header-back-button'
+                            icon={<Icon glyph={<ArrowLeftIcon/>}/>}
+                            aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
+                            onClick={goBack}
+                        />
+                    </WithTooltip>
+                    <Modal.Title
+                        componentClass='h1'
+                        id='updateGroupsModalTitle'
+                    >
+                        <FormattedMessage
+                            id='user_groups_modal.editGroupTitle'
+                            defaultMessage='Edit Group Details'
+                        />
+                    </Modal.Title>
+                </div>
             </Modal.Header>
             <Modal.Body
                 className='overflow--visible'
