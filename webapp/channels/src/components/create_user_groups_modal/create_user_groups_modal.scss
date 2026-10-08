@@ -3,6 +3,12 @@
         margin-top: calc(50vh - 240px);
     }
 
+    .modal-content .modal-header {
+        .d-flex.align-items-center .modal-title {
+            margin-left: 16px;
+        }
+    }
+
     .modal-body {
         overflow: visible;
     }
