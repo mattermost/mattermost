@@ -1,78 +1,64 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {combineReducers} from 'redux';
+import {createSlice} from '@reduxjs/toolkit';
+import type {PayloadAction} from '@reduxjs/toolkit';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 
-import {ActionTypes} from 'utils/constants';
+import type {GlobalState} from 'types/store';
 
-import type {MMAction} from 'types/store';
+export type TextboxState = {
+    shouldShowPreviewOnEditChannelHeaderModal: boolean;
+    shouldShowPreviewOnChannelSettingsHeaderModal: boolean;
+    shouldShowPreviewOnChannelSettingsPurposeModal: boolean;
+};
 
-function shouldShowPreviewOnCreateComment(state = false, action: MMAction) {
-    switch (action.type) {
-    case ActionTypes.SET_SHOW_PREVIEW_ON_CREATE_COMMENT:
-        return action.showPreview;
+const initialState: TextboxState = {
+    shouldShowPreviewOnEditChannelHeaderModal: false,
+    shouldShowPreviewOnChannelSettingsHeaderModal: false,
+    shouldShowPreviewOnChannelSettingsPurposeModal: false,
+};
 
-    case UserTypes.LOGOUT_SUCCESS:
-        return false;
-    default:
-        return state;
-    }
-}
-
-function shouldShowPreviewOnCreatePost(state = false, action: MMAction) {
-    switch (action.type) {
-    case ActionTypes.SET_SHOW_PREVIEW_ON_CREATE_POST:
-        return action.showPreview;
-
-    case UserTypes.LOGOUT_SUCCESS:
-        return false;
-    default:
-        return state;
-    }
-}
-
-function shouldShowPreviewOnEditChannelHeaderModal(state = false, action: MMAction) {
-    switch (action.type) {
-    case ActionTypes.SET_SHOW_PREVIEW_ON_EDIT_CHANNEL_HEADER_MODAL:
-        return action.showPreview;
-
-    case UserTypes.LOGOUT_SUCCESS:
-        return false;
-    default:
-        return state;
-    }
-}
-
-function shouldShowPreviewOnChannelSettingsHeaderModal(state = false, action: MMAction) {
-    switch (action.type) {
-    case ActionTypes.SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_HEADER_MODAL:
-        return action.showPreview;
-
-    case UserTypes.LOGOUT_SUCCESS:
-        return false;
-    default:
-        return state;
-    }
-}
-
-function shouldShowPreviewOnChannelSettingsPurposeModal(state = false, action: MMAction) {
-    switch (action.type) {
-    case ActionTypes.SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_PURPOSE_MODAL:
-        return action.showPreview;
-
-    case UserTypes.LOGOUT_SUCCESS:
-        return false;
-    default:
-        return state;
-    }
-}
-
-export default combineReducers({
-    shouldShowPreviewOnCreateComment,
-    shouldShowPreviewOnCreatePost,
-    shouldShowPreviewOnEditChannelHeaderModal,
-    shouldShowPreviewOnChannelSettingsHeaderModal,
-    shouldShowPreviewOnChannelSettingsPurposeModal,
+const textboxSlice = createSlice({
+    name: 'views/textbox',
+    initialState,
+    reducers: {
+        editChannelHeaderPreviewChanged(state, action: PayloadAction<boolean>) {
+            state.shouldShowPreviewOnEditChannelHeaderModal = action.payload;
+        },
+        channelSettingsHeaderPreviewToggled(state) {
+            state.shouldShowPreviewOnChannelSettingsHeaderModal = !state.shouldShowPreviewOnChannelSettingsHeaderModal;
+        },
+        channelSettingsPurposePreviewToggled(state) {
+            state.shouldShowPreviewOnChannelSettingsPurposeModal = !state.shouldShowPreviewOnChannelSettingsPurposeModal;
+        },
+        channelSettingsModalClosed(state) {
+            state.shouldShowPreviewOnChannelSettingsHeaderModal = false;
+            state.shouldShowPreviewOnChannelSettingsPurposeModal = false;
+        },
+    },
+    extraReducers: (builder) => {
+        builder.addCase(UserTypes.LOGOUT_SUCCESS, () => initialState);
+    },
+    selectors: {
+        showPreviewOnEditChannelHeaderModal: (state) => state.shouldShowPreviewOnEditChannelHeaderModal,
+        showPreviewOnChannelSettingsHeaderModal: (state) => state.shouldShowPreviewOnChannelSettingsHeaderModal,
+        showPreviewOnChannelSettingsPurposeModal: (state) => state.shouldShowPreviewOnChannelSettingsPurposeModal,
+    },
 });
+
+export const {
+    editChannelHeaderPreviewChanged,
+    channelSettingsHeaderPreviewToggled,
+    channelSettingsPurposePreviewToggled,
+    channelSettingsModalClosed,
+} = textboxSlice.actions;
+
+export const {
+    showPreviewOnEditChannelHeaderModal,
+    showPreviewOnChannelSettingsHeaderModal,
+    showPreviewOnChannelSettingsPurposeModal,
+} = textboxSlice.getSelectors((state: GlobalState) => state.views.textbox);
+
+export default textboxSlice.reducer;
