@@ -452,30 +452,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         }
     }
 
-    .SidebarMenu_menuButton {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        border: none;
-        border-radius: 4px;
-        background: transparent;
-        color: rgba(var(--sidebar-text-rgb), 0.64);
-        font-size: 16px;
-        line-height: 16px;
-
-        &:hover,
-        &:active,
-        &:focus {
-            color: var(--sidebar-text);
-            cursor: pointer;
-        }
-    }
-
-    .SidebarMenu_menuButton:focus {
-        outline-style: none;
-    }
-
     .SidebarNavContainer {
         position: relative;
         display: flex;
@@ -614,14 +590,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         transition: box-shadow 0.25s ease-in-out;
 
         .SidebarMenu_menuButton {
-            width: 28px;
-            height: 28px;
             margin: 2px 16px 2px 2px;
-
-            &:hover,
-            &:focus {
-                background-color: rgba(255, 255, 255, 0.08);
-            }
 
             &.sortingMenu {
                 margin: 0;
@@ -993,11 +962,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
             &:hover {
                 opacity: 1;
             }
-        }
-
-        .SidebarMenu_menuButton {
-            width: 28px;
-            height: 28px;
         }
 
         .SidebarChannel__selectedCount {

@@ -16,6 +16,7 @@ import {
     ChevronRightIcon,
     CheckIcon,
 } from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import {CategorySorting} from '@mattermost/types/channel_categories';
 
@@ -26,6 +27,7 @@ import {getVisibleDmGmLimit} from 'mattermost-redux/selectors/entities/preferenc
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import * as Menu from 'components/menu';
+import {SidebarMenuTrigger} from 'components/sidebar/sidebar_menu_trigger';
 
 import Constants from 'utils/constants';
 
@@ -191,8 +193,9 @@ const SidebarCategorySortingMenu = ({
                 menuButton={{
                     id: `SidebarCategorySortingMenu-Button-${category.id}`,
                     'aria-label': formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: '{name} category options'}, {name: category.display_name}),
+                    as: SidebarMenuTrigger,
                     class: 'SidebarMenu_menuButton sortingMenu',
-                    children: <DotsVerticalIcon size={16}/>,
+                    children: <Icon glyph={<DotsVerticalIcon/>}/>,
                 }}
                 menuButtonTooltip={{
                     text: formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: '{name} category options'}, {name: category.display_name}),
