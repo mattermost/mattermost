@@ -93,7 +93,7 @@ const ChannelHeaderTitleFavorite = () => {
             <IconButton
                 id='toggleFavorite'
                 size='x-small'
-                className={classNames('channel-header__favorites channel-header__icon', {active: isFavorite, inactive: !isFavorite})}
+                className={classNames('channel-header__favorites', {active: isFavorite, inactive: !isFavorite})}
                 icon={<i className={classNames('icon', {'icon-star': isFavorite, 'icon-star-outline': !isFavorite})} aria-hidden='true'/>}
                 onClick={toggleFavoriteCallback}
                 aria-label={ariaLabel}
