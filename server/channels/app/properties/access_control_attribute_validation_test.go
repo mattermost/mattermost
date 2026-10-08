@@ -1339,9 +1339,9 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 
 	t.Run("sanitizeAndValidateOptions writes back canonical []any of map[string]any", func(t *testing.T) {
 		// Downstream readers (asOptionSlice, EnsureOptionIDs, store-layer
-		// serialization) expect the canonical loose-typed shape. Writing back
-		// a typed PropertyOptions slice from the hook used to break the linked-
-		// options diff on every no-op patch — see commit bc15075016.
+		// serialization) expect the canonical loose-typed shape. A typed
+		// PropertyOptions slice from the hook breaks the linked-options diff
+		// on every no-op patch — see commit bc15075016.
 		field := &model.PropertyField{
 			GroupID:    group.ID,
 			Name:       "field_" + model.NewId(),
@@ -2181,6 +2181,52 @@ func TestAccessControlAttributeValidationHook_Owners(t *testing.T) {
 		assert.Equal(t, "com.mattermost.scim", owners[0].ID)
 		assert.Equal(t, model.PropertyOwnerTypePlugin, owners[0].Type)
 		assert.ElementsMatch(t, []string{"entra", "okta"}, owners[0].Scopes)
+	})
+
+	t.Run("merging duplicate entries unions their allow lists in order", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: newOwnerFieldAttrs([]model.PropertyOwner{
+				{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}, Allow: []string{model.PropertyActionValueRead, model.PropertyActionValueWrite}},
+				{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Allow: []string{model.PropertyActionFieldWrite, model.PropertyActionValueRead, model.PropertyActionOptionRead}},
+			}),
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+
+		owners := model.GetPropertyFieldOwners(created)
+		require.Len(t, owners, 1)
+		assert.Equal(t, []string{"entra"}, owners[0].Scopes)
+		assert.Equal(t, []string{
+			model.PropertyActionValueRead,
+			model.PropertyActionValueWrite,
+			model.PropertyActionFieldWrite,
+			model.PropertyActionOptionRead,
+		}, owners[0].Allow)
+	})
+
+	t.Run("merging a duplicate entry with no allow list leaves the merged allow empty", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: newOwnerFieldAttrs([]model.PropertyOwner{
+				{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}, Allow: []string{model.PropertyActionValueRead}},
+				{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin},
+			}),
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+
+		owners := model.GetPropertyFieldOwners(created)
+		require.Len(t, owners, 1)
+		assert.Empty(t, owners[0].Allow)
 	})
 
 	t.Run("preserves scope label case verbatim", func(t *testing.T) {

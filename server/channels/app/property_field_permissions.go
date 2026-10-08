@@ -28,11 +28,6 @@ type PropertyPermissionBasis struct {
 	GrantScope    string
 	GrantWildcard bool
 
-	// Legacy is true when the field carried no Permissions, so the legacy
-	// columns decided the outcome instead of the field's restrictions tier
-	// or a matching grant.
-	Legacy bool
-
 	// Unrestricted is true when a local-mode session bypassed the check.
 	Unrestricted bool
 
@@ -48,9 +43,9 @@ type PropertyPermissionBasis struct {
 // decidePropertyFieldPermission answers whether userID may perform action on
 // field, unioning the human restrictions ladder with any grant naming the
 // caller: the most permissive result across both, since the model is
-// grant-only and has no deny. A field with no Permissions falls back to the
-// legacy columns, the cutover shim that keeps the tree working while
-// existing data is converted.
+// grant-only and has no deny. A field with no Permissions (a PSAv1 field,
+// which cannot hold one) satisfies no tier and matches no grant, so every
+// action is denied.
 func (a *App) decidePropertyFieldPermission(rctx request.CTX, userID string, field *model.PropertyField, action, valueTargetID string) PropertyPermissionBasis {
 	basis := PropertyPermissionBasis{
 		Action:     action,
@@ -58,15 +53,6 @@ func (a *App) decidePropertyFieldPermission(rctx request.CTX, userID string, fie
 		CallerID:   userID,
 	}
 	if field == nil || userID == "" {
-		return basis
-	}
-
-	if field.Permissions == nil {
-		basis.Legacy = true
-		basis.Allowed = a.legacyPropertyFieldPermission(rctx, userID, field, action, valueTargetID)
-		if !basis.Allowed {
-			logPropertyFieldPermissionDenied(rctx, basis, field)
-		}
 		return basis
 	}
 
@@ -97,31 +83,16 @@ func logPropertyFieldPermissionDenied(rctx request.CTX, basis PropertyPermission
 		mlog.String("field_id", field.ID),
 		mlog.String("action", basis.Action),
 		mlog.String("required_tier", string(requiredPermissionTierFor(field, basis.Action))),
-		mlog.Bool("legacy", basis.Legacy),
 	)
 }
 
 // requiredPermissionTierFor reports the permission tier configured for
 // action on field, for the denial log: the restrictions ladder's tier when
-// the field carries permissions, else the equivalent legacy permission
-// column.
+// the field carries Permissions, else none — a PSAv1 field, which can't
+// carry one.
 func requiredPermissionTierFor(field *model.PropertyField, action string) model.PermissionLevel {
 	if field.Permissions != nil {
 		return field.Permissions.Restrictions.TierFor(action)
-	}
-	switch action {
-	case model.PropertyActionFieldWrite:
-		if field.PermissionField != nil {
-			return *field.PermissionField
-		}
-	case model.PropertyActionOptionWrite:
-		if field.PermissionOptions != nil {
-			return *field.PermissionOptions
-		}
-	case model.PropertyActionValueWrite:
-		if field.PermissionValues != nil {
-			return *field.PermissionValues
-		}
 	}
 	return model.PermissionLevelNone
 }
@@ -158,19 +129,12 @@ func (a *App) PropertyPermissionBasisFor(rctx request.CTX, field *model.Property
 		return basis
 	}
 
-	if field.Permissions == nil {
-		basis.Legacy = true
-		basis.Allowed = a.legacyPropertyFieldPermission(rctx, callerID, field, action, valueTargetID)
-		return basis
-	}
-
-	// Decide machine vs. human before matching any grant, mirroring
-	// AccessControlHook.isMachineCaller exactly (plugin, or LDAP sync, or
-	// SAML sync) so the audit basis and the enforcement gate cannot
-	// disagree about a caller. An installed plugin's ID could otherwise
-	// match a wildcard ("*") plugin grant even when the caller is actually
-	// a human, since Permissions.MatchingGrant honours the wildcard against
-	// any ID.
+	// Mirror AccessControlHook.isMachineCaller (plugin, LDAP sync, SAML
+	// sync, or a system subsystem) so the audit basis and the enforcement
+	// gate cannot disagree about a caller. An installed plugin's ID could
+	// otherwise match a wildcard ("*") plugin grant even when the caller
+	// is actually a human, since Permissions.MatchingGrant honours the
+	// wildcard against any ID.
 	switch {
 	case a.IsInstalledPlugin(callerID):
 		scope := model.PropertyRequestOptionsFromContext(rctx.Context()).ActingAsScope
@@ -183,6 +147,10 @@ func (a *App) PropertyPermissionBasisFor(rctx request.CTX, field *model.Property
 		return basisFromMatchingGrant(basis, field.Permissions, model.PropertyOwnerTypeService, model.PropertyFieldAttrLDAP, "", action)
 	case callerID == model.CallerIDSAMLSync:
 		return basisFromMatchingGrant(basis, field.Permissions, model.PropertyOwnerTypeService, model.PropertyFieldAttrSAML, "", action)
+	default:
+		if group, ok := model.SystemCallerOwnedGroup(callerID); ok {
+			return basisFromMatchingGrant(basis, field.Permissions, model.PropertyOwnerTypeService, group, "", action)
+		}
 	}
 
 	return a.decidePropertyFieldPermission(rctx, callerID, field, action, valueTargetID)
@@ -216,6 +184,11 @@ func basisFromMatchingGrant(basis PropertyPermissionBasis, permissions *model.Pe
 // objects they can already access.
 func (a *App) propertyGrantForHuman(rctx request.CTX, userID string, field *model.PropertyField, action string) *model.Grant {
 	permissions := field.Permissions
+	if permissions == nil {
+		// A PSAv1 field can't hold Permissions at all, so it reaches here
+		// with nil rather than an empty Grants list.
+		return nil
+	}
 	if grant := permissions.MatchingGrant(model.PropertyOwnerTypeUser, userID, "", action); grant != nil {
 		return grant
 	}
@@ -252,41 +225,6 @@ func (a *App) propertyCallerRoles(rctx request.CTX, userID string) []string {
 		return nil
 	}
 	return user.GetRoles()
-}
-
-// legacyPropertyFieldPermission is the pre-Permissions behaviour, expressed
-// per action so callers can ask by action either way. decidePropertyFieldPermission
-// runs this only for a field with no Permissions set; a field carrying
-// Permissions is decided by the restrictions ladder and grants instead, never
-// by this function.
-func (a *App) legacyPropertyFieldPermission(rctx request.CTX, userID string, field *model.PropertyField, action, valueTargetID string) bool {
-	switch action {
-	case model.PropertyActionFieldWrite:
-		if field.Protected {
-			return false
-		}
-		if field.PermissionField == nil {
-			return false
-		}
-		return a.hasPropertyFieldPermissionLevel(rctx, userID, field, *field.PermissionField)
-	case model.PropertyActionOptionWrite:
-		if field.PermissionOptions == nil {
-			return false
-		}
-		return a.hasPropertyFieldPermissionLevel(rctx, userID, field, *field.PermissionOptions)
-	case model.PropertyActionValueWrite:
-		if field.PermissionValues == nil {
-			return false
-		}
-		return a.hasPropertyFieldValuePermissionLevel(rctx, userID, field, valueTargetID, *field.PermissionValues)
-	case model.PropertyActionOptionRead, model.PropertyActionValueRead:
-		// Legacy reads are not gated by any permission column: they are
-		// gated by the access_mode attr, enforced in the property hook's
-		// read filter, which keeps running untouched for these fields.
-		return true
-	default:
-		return false
-	}
 }
 
 // propertyRestrictionsAllow evaluates the human restrictions ladder for action

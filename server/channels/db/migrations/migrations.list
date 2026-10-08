@@ -467,3 +467,7 @@ channels/db/migrations/postgres/000235_add_permissions_column_and_grants_table.d
 channels/db/migrations/postgres/000235_add_permissions_column_and_grants_table.up.sql
 channels/db/migrations/postgres/000236_create_property_field_grants_type_id_index.down.sql
 channels/db/migrations/postgres/000236_create_property_field_grants_type_id_index.up.sql
+channels/db/migrations/postgres/000237_add_everyone_to_permission_level.down.sql
+channels/db/migrations/postgres/000237_add_everyone_to_permission_level.up.sql
+channels/db/migrations/postgres/000238_move_access_control_group_to_v3.down.sql
+channels/db/migrations/postgres/000238_move_access_control_group_to_v3.up.sql

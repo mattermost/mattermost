@@ -577,6 +577,19 @@ func TestPluginProperties(t *testing.T) {
 					return fmt.Errorf("field name not updated correctly")
 				}
 
+				// A read-modify-write echoes the projected columns back
+				readField, err := p.API.GetPropertyField("` + cpaID + `", createdField.ID)
+				if err != nil {
+					return fmt.Errorf("failed to read own protected field: %w", err)
+				}
+				if !readField.Protected {
+					return fmt.Errorf("own protected field read back unprotected")
+				}
+				readField.Name = "reread_protected_field"
+				if _, err = p.API.UpdatePropertyField("` + cpaID + `", readField); err != nil {
+					return fmt.Errorf("failed to update own protected field after reading it: %w", err)
+				}
+
 				return nil
 			}
 
