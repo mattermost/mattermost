@@ -16,13 +16,11 @@ import {isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {
-    setShowPreviewOnChannelSettingsHeaderModal,
-    setShowPreviewOnChannelSettingsPurposeModal,
-} from 'reducers/views/textbox';
-import {
+    channelSettingsHeaderPreviewToggled,
+    channelSettingsPurposePreviewToggled,
     showPreviewOnChannelSettingsHeaderModal,
     showPreviewOnChannelSettingsPurposeModal,
-} from 'selectors/views/textbox';
+} from 'reducers/views/textbox';
 
 import ConvertConfirmModal from 'components/admin_console/team_channel_settings/convert_confirm_modal';
 import CategorySelector from 'components/category_selector/category_selector';
@@ -240,12 +238,12 @@ function ChannelSettingsInfoTab({
     }, [internalUrlError]);
 
     const togglePurposePreview = useCallback(() => {
-        dispatch(setShowPreviewOnChannelSettingsPurposeModal(!shouldShowPreviewPurpose));
-    }, [dispatch, shouldShowPreviewPurpose]);
+        dispatch(channelSettingsPurposePreviewToggled());
+    }, [dispatch]);
 
     const toggleHeaderPreview = useCallback(() => {
-        dispatch(setShowPreviewOnChannelSettingsHeaderModal(!shouldShowPreviewHeader));
-    }, [dispatch, shouldShowPreviewHeader]);
+        dispatch(channelSettingsHeaderPreviewToggled());
+    }, [dispatch]);
 
     const discoverableTitle = formatMessage({
         id: 'channel_settings.discoverable.title',

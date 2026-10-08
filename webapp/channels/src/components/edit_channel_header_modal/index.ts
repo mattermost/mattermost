@@ -10,8 +10,7 @@ import {patchChannel} from 'mattermost-redux/actions/channels';
 import {Preferences} from 'mattermost-redux/constants';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
-import {setShowPreviewOnEditChannelHeaderModal} from 'reducers/views/textbox';
-import {showPreviewOnEditChannelHeaderModal} from 'selectors/views/textbox';
+import {editChannelHeaderPreviewChanged, showPreviewOnEditChannelHeaderModal} from 'reducers/views/textbox';
 
 import type {GlobalState} from 'types/store';
 
@@ -28,7 +27,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             patchChannel,
-            setShowPreview: setShowPreviewOnEditChannelHeaderModal,
+            setShowPreview: editChannelHeaderPreviewChanged,
         }, dispatch),
     };
 }
