@@ -46,6 +46,7 @@ const AtMentionsButton = (): JSX.Element => {
                     />
                 </>
             }
+            forcedPlacement='bottom'
         >
             <IconButton
                 style='inverted'

@@ -37,6 +37,7 @@ const SavedPostsButton = (): JSX.Element | null => {
                     defaultMessage='Saved messages'
                 />
             }
+            forcedPlacement='bottom'
         >
             <IconButton
                 style='inverted'

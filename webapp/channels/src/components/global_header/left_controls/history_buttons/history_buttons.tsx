@@ -60,6 +60,7 @@ export const HistoryButtons = () => {
         <div className='globalHeader-leftControls-historyButtons'>
             <WithTooltip
                 title={getTooltip(KEYBOARD_SHORTCUTS.browserChannelPrev)}
+                forcedPlacement='bottom'
             >
                 <IconButton
                     style='inverted'
@@ -78,6 +79,7 @@ export const HistoryButtons = () => {
             </WithTooltip>
             <WithTooltip
                 title={getTooltip(KEYBOARD_SHORTCUTS.browserChannelNext)}
+                forcedPlacement='bottom'
             >
                 <IconButton
                     style='inverted'

@@ -120,6 +120,7 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
             >
                 <WithTooltip
                     title={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
+                    forcedPlacement='bottom'
                 >
                     <IconButton
                         style='inverted'

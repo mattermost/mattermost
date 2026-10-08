@@ -30,6 +30,7 @@ const SettingsButton = (props: Props): JSX.Element | null => {
                     defaultMessage='Settings'
                 />
             }
+            forcedPlacement='bottom'
         >
             <IconButton
                 style='inverted'
