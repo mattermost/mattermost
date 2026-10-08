@@ -7,7 +7,8 @@ import type {ListChildComponentProps} from 'react-window';
 import {VariableSizeList} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 
-import {AccountMultipleOutlineIcon, ArchiveOutlineIcon, RestoreIcon} from '@mattermost/compass-icons/components';
+import {AccountMultipleOutlineIcon, ArchiveOutlineIcon, DotsVerticalIcon, RestoreIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {Group, GroupPermissions} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -23,6 +24,8 @@ import {ModalIdentifiers} from 'utils/constants';
 import type {ModalData} from 'types/actions';
 
 import ADLDAPUpsellBanner from '../ad_ldap_upsell_banner';
+
+const GroupActionsMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'x-small'});
 
 export type Props = {
     groups: Group[];
@@ -125,6 +128,8 @@ const UserGroupsList = (props: Props) => {
                 return null;
             }
 
+            const menuLabel = formatMessage({id: 'user_groups_list.menuAriaLabel', defaultMessage: '{group_name} actions'}, {group_name: group.display_name});
+
             return (
                 <button
                     className='group-row'
@@ -158,14 +163,17 @@ const UserGroupsList = (props: Props) => {
                         <Menu.Container
                             menuButton={{
                                 id: `customWrapper-${group.id}`,
-                                class: 'btn btn-icon btn-xs',
-                                children: <i className='icon icon-dots-vertical'/>,
-                                'aria-label': formatMessage({id: 'user_groups_list.menuAriaLabel', defaultMessage: '{group_name} actions'}, {group_name: group.display_name}),
+                                as: GroupActionsMenuTrigger,
+                                children: <Icon glyph={<DotsVerticalIcon/>}/>,
+                                'aria-label': menuLabel,
+                            }}
+                            menuButtonTooltip={{
+                                text: menuLabel,
                             }}
                             menu={{
                                 id: 'group-actions-menu',
                                 onToggle,
-                                'aria-label': formatMessage({id: 'user_groups_list.menuAriaLabel', defaultMessage: '{group_name} actions'}, {group_name: group.display_name}),
+                                'aria-label': menuLabel,
                                 className: 'group-actions-menu',
                             }}
                         >

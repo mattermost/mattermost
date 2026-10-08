@@ -14303,6 +14303,10 @@
     "defaultMessage": "Disable attribute",
     "description": "Title of the confirmation modal for disabling a session attribute in the System Console."
   },
+  "admin.session_attributes.dotmenu.button.aria_label": {
+    "defaultMessage": "Attribute actions",
+    "description": "Accessibility label and tooltip for the per-row '...' actions menu button in the session attributes table."
+  },
   "admin.session_attributes.dotmenu.disable.label": {
     "defaultMessage": "Disable",
     "description": "Menu item in a session attribute row's '...' menu; disables the attribute."

@@ -140,26 +140,6 @@
         text-align: right;
     }
 
-    &__permissionsPolicyRowMenuButton {
-        display: inline-flex;
-        width: 32px;
-        height: 32px;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        border: 0;
-        border-radius: 4px;
-        background: transparent;
-
-        &:hover {
-            background-color: rgba(var(--center-channel-color-rgb), 0.08);
-        }
-
-        i {
-            font-size: 18px;
-        }
-    }
-
     &__permissionsPolicyEmpty td {
         padding: 24px 12px;
         color: rgba(var(--center-channel-color-rgb), 0.56);

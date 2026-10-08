@@ -44,8 +44,9 @@ jest.mock('components/admin_console/access_control/editors/table_editor/table_ed
 jest.mock('components/menu', () => {
     const React = require('react'); // eslint-disable-line @typescript-eslint/no-shadow, global-require
     return {
+        createMenuIconButtonTrigger: () => 'button',
         Container: ({children, menuButton}: any) => {
-            const {class: className, dataTestId, children: btnChildren, ...rest} = menuButton || {};
+            const {class: className, dataTestId, children: btnChildren, as, ...rest} = menuButton || {}; // eslint-disable-line @typescript-eslint/no-unused-vars
             return React.createElement(
                 'div',
                 null,
