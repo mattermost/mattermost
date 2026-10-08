@@ -27,6 +27,7 @@ type Props = {
     tooltipShortcut?: ShortcutDefinition;
     isRhsOpen?: boolean;
     pluginId?: string;
+    size?: React.ComponentProps<typeof IconButton>['size'];
 };
 
 const LEGACY_BTN_CLASSES = /\b(btn|btn-icon|btn-xs|btn-sm|btn-md|btn-lg)\b/g;
@@ -42,6 +43,7 @@ const HeaderIconWrapper = (props: Props) => {
         tooltipShortcut,
         isRhsOpen,
         pluginId,
+        size = 'x-small',
     } = props;
 
     const boardsEnabled = pluginId === suitePluginIds.focalboard;
@@ -61,7 +63,7 @@ const HeaderIconWrapper = (props: Props) => {
             >
                 <IconButton
                     id={buttonId}
-                    size='x-small'
+                    size={size}
                     className={cleanedClassName}
                     icon={children}
                     onClick={onClick}

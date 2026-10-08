@@ -57,7 +57,7 @@ const ChannelInfoButton = ({channel}: Props) => {
         tooltip = intl.formatMessage({id: 'channel_header.openChannelInfo', defaultMessage: 'View Info'});
     }
 
-    let buttonClass = 'channel-header__icon';
+    let buttonClass = 'channel-header__icon channel-header__icon--small';
     if (buttonActive) {
         buttonClass += ' channel-header__icon--active-inverted';
     }
@@ -67,6 +67,7 @@ const ChannelInfoButton = ({channel}: Props) => {
             buttonClass={buttonClass}
             buttonId='channel-info-btn'
             onClick={toggleRHS}
+            size='small'
             tooltip={tooltip}
         >
             <Icon className='icon-information-outline'/>
