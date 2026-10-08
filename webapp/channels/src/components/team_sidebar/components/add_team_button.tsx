@@ -4,6 +4,7 @@
 import React from 'react';
 import type {JSX} from 'react';
 
+import {PlusIcon} from '@mattermost/compass-icons/components';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
@@ -26,12 +27,7 @@ export default function AddTeamButton({url, tip, label, switchTeam}: Props) {
                     id={`${url.slice(1)}TeamButton`}
                     style='inverted'
                     size='medium'
-                    icon={
-                        <i
-                            className='icon icon-plus'
-                            aria-hidden='true'
-                        />
-                    }
+                    icon={<PlusIcon size={24}/>}
                     aria-label={label}
                     onClick={() => {
                         mark(Mark.TeamLinkClicked);
