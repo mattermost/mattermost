@@ -107,22 +107,7 @@
     width: auto;
     min-width: unset;
     padding: 0 6px;
-}
-
-.channel-header__icon--left {
-    height: unset;
-    padding: 4px;
-    margin: 0;
-
-    .icon {
-        width: 16px;
-        height: 16px;
-    }
-
-    svg {
-        width: 12px;
-        height: 12px;
-    }
+    gap: 4px;
 }
 
 .userGuideHelp {

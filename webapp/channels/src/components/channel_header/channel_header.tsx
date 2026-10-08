@@ -267,11 +267,11 @@ class ChannelHeader extends React.PureComponent<Props> {
             }
         }
 
-        const channelFilesIconClass = classNames('channel-header__icon channel-header__icon--left btn btn-icon btn-xs ', {
+        const channelFilesIconClass = classNames('channel-header__icon', {
             'channel-header__icon--active': rhsState === RHSStates.CHANNEL_FILES,
         });
         const channelFilesIcon = <i className='icon icon-file-text-outline'/>;
-        const pinnedIconClass = classNames('channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs', {
+        const pinnedIconClass = classNames('channel-header__icon channel-header__icon--wide', {
             'channel-header__icon--active': rhsState === RHSStates.PIN,
         });
         const pinnedIcon = this.props.pinnedPostsCount ? (
@@ -309,7 +309,7 @@ class ChannelHeader extends React.PureComponent<Props> {
 
         let memberListButton = null;
         if (!isDirect) {
-            const membersIconClass = classNames('member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs', {
+            const membersIconClass = classNames('member-rhs__trigger channel-header__icon channel-header__icon--wide', {
                 'channel-header__icon--active': rhsState === RHSStates.CHANNEL_MEMBERS,
             });
             const membersIcon = (
