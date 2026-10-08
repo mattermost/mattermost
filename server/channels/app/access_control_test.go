@@ -3583,9 +3583,10 @@ func TestCPAFieldIsProtectedForChannelAdmin(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	tests := []struct {
-		name  string
-		field *model.CPAField
-		want  bool
+		name       string
+		field      *model.CPAField
+		accessMode string
+		want       bool
 	}{
 		{
 			name: "visibility=hidden is protected",
@@ -3597,62 +3598,50 @@ func TestCPAFieldIsProtectedForChannelAdmin(t *testing.T) {
 		{
 			name: "access_mode=source_only is protected",
 			field: &model.CPAField{
-				Attrs: model.CPAAttrs{
-					Visibility: model.CustomProfileAttributesVisibilityWhenSet,
-					AccessMode: model.PropertyAccessModeSourceOnly,
-				},
+				Attrs: model.CPAAttrs{Visibility: model.CustomProfileAttributesVisibilityWhenSet},
 			},
-			want: true,
+			accessMode: model.PropertyAccessModeSourceOnly,
+			want:       true,
 		},
 		{
 			name: "access_mode=shared_only is protected",
 			field: &model.CPAField{
-				Attrs: model.CPAAttrs{
-					Visibility: model.CustomProfileAttributesVisibilityWhenSet,
-					AccessMode: model.PropertyAccessModeSharedOnly,
-				},
+				Attrs: model.CPAAttrs{Visibility: model.CustomProfileAttributesVisibilityWhenSet},
 			},
-			want: true,
+			accessMode: model.PropertyAccessModeSharedOnly,
+			want:       true,
 		},
 		{
 			name: "visibility=when_set + public access mode is NOT protected",
 			field: &model.CPAField{
-				Attrs: model.CPAAttrs{
-					Visibility: model.CustomProfileAttributesVisibilityWhenSet,
-					AccessMode: model.PropertyAccessModePublic,
-				},
+				Attrs: model.CPAAttrs{Visibility: model.CustomProfileAttributesVisibilityWhenSet},
 			},
-			want: false,
+			accessMode: model.PropertyAccessModePublic,
+			want:       false,
 		},
 		{
 			name: "visibility=always + public access mode is NOT protected",
 			field: &model.CPAField{
-				Attrs: model.CPAAttrs{
-					Visibility: model.CustomProfileAttributesVisibilityAlways,
-					AccessMode: model.PropertyAccessModePublic,
-				},
+				Attrs: model.CPAAttrs{Visibility: model.CustomProfileAttributesVisibilityAlways},
 			},
-			want: false,
+			accessMode: model.PropertyAccessModePublic,
+			want:       false,
 		},
 		{
 			name: "empty access mode defaults to public and is NOT protected",
 			field: &model.CPAField{
-				Attrs: model.CPAAttrs{
-					Visibility: model.CustomProfileAttributesVisibilityWhenSet,
-					AccessMode: "",
-				},
+				Attrs: model.CPAAttrs{Visibility: model.CustomProfileAttributesVisibilityWhenSet},
 			},
-			want: false,
+			accessMode: "",
+			want:       false,
 		},
 		{
 			name: "visibility=hidden wins over public access mode (still protected)",
 			field: &model.CPAField{
-				Attrs: model.CPAAttrs{
-					Visibility: model.CustomProfileAttributesVisibilityHidden,
-					AccessMode: model.PropertyAccessModePublic,
-				},
+				Attrs: model.CPAAttrs{Visibility: model.CustomProfileAttributesVisibilityHidden},
 			},
-			want: true,
+			accessMode: model.PropertyAccessModePublic,
+			want:       true,
 		},
 		{
 			name:  "nil field is not protected (caller short-circuits but the predicate is defensive)",
@@ -3663,7 +3652,7 @@ func TestCPAFieldIsProtectedForChannelAdmin(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := cpaFieldIsProtectedForChannelAdmin(tt.field)
+			got := cpaFieldIsProtectedForChannelAdmin(tt.field, tt.accessMode)
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -4115,6 +4104,37 @@ func TestRedactSimulationAttributesForCallerAccessModes(t *testing.T) {
 	t.Run("shared_only access mode is redacted on every surface", func(t *testing.T) {
 		field := createProtectedField(t, model.PropertyAccessModeSharedOnly)
 		assertRedactedAgainst(t, field.Name)
+	})
+
+	t.Run("shared_only inherited from a linked field's template is redacted on every surface", func(t *testing.T) {
+		tmpl, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+			GroupID:    cpaGroup.ID,
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		require.NoError(t, sErr)
+
+		linked, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+			GroupID:       cpaGroup.ID,
+			Name:          celSafeName(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &tmpl.ID,
+			// Non-nil but unmasked: what makes effectiveAccessModeUsing follow
+			// LinkedFieldID to the template rather than reading the field's own
+			// (necessarily nil) Masking.
+			Permissions: &model.Permissions{},
+		})
+		require.NoError(t, sErr)
+
+		tmpl.Permissions = &model.Permissions{Masking: &model.Masking{}}
+		_, sErr = th.Store.PropertyField().Update(cpaGroup.ID, []*model.PropertyField{tmpl}, nil)
+		require.NoError(t, sErr)
+
+		assertRedactedAgainst(t, linked.Name)
 	})
 }
 
@@ -5205,6 +5225,66 @@ func TestGetAccessControlPolicyAttributes_MaskedFieldsWithNameCollisionAreFilter
 	assert.Equal(t, expectedAttributes, result)
 	assert.NotContains(t, result, "SourceField")
 	assert.NotContains(t, result, model.NativeAttributePropertyFieldIsBot)
+	mockACS.AssertExpectations(t)
+}
+
+// TestGetAccessControlPolicyAttributes_LinkedFieldFollowsTemplateMasking verifies
+// that a linked user field of a masked scheme is still stripped from the
+// policy-attribute allowlist even though its own Permissions carry no Masking
+// -- a linked field's own Masking is always nil by construction, so its
+// effective mode must follow the template (effectiveAccessModeUsing), not
+// GetAccessMode alone.
+func TestGetAccessControlPolicyAttributes_LinkedFieldFollowsTemplateMasking(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	rctx := request.TestContext(t)
+
+	cpaGroup, cErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, cErr)
+
+	tmpl, sErr := th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       "template_" + model.NewId()[:8],
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Permissions: &model.Permissions{
+			Masking: &model.Masking{},
+		},
+	})
+	require.NoError(t, sErr)
+
+	fieldName := "f_" + model.NewId()[:8]
+	_, sErr = th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
+		GroupID:       cpaGroup.ID,
+		Name:          fieldName,
+		Type:          model.PropertyFieldTypeSelect,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &tmpl.ID,
+		Permissions: &model.Permissions{
+			// Ordinary, unmasked-looking tiers -- the field's own Masking is nil
+			// (locked on a linked field), so GetAccessMode alone reports public.
+			Restrictions: &model.Restrictions{
+				Value:  model.ReadWrite{Read: model.PermissionLevelEveryone},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+			},
+		},
+	})
+	require.NoError(t, sErr)
+
+	channelID := model.NewId()
+	rawAttributes := map[string][]string{fieldName: {"Alpha", "Bravo"}}
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockACS
+	mockACS.On("GetPolicyRuleAttributes", mock.Anything, channelID, model.AccessControlPolicyActionMembership).
+		Return(rawAttributes, nil).Once()
+
+	result, appErr := th.App.GetAccessControlPolicyAttributes(th.Context, channelID, model.AccessControlPolicyActionMembership)
+	require.Nil(t, appErr)
+	assert.NotContains(t, result, fieldName)
 	mockACS.AssertExpectations(t)
 }
 

@@ -380,10 +380,16 @@ func TestSanitizePropertyValue(t *testing.T) {
 func TestBroadcastValue(t *testing.T) {
 	value := json.RawMessage(`"secret"`)
 
-	publicField := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModePublic}}
-	sourceOnlyField := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModeSourceOnly}}
-	sharedOnlyField := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModeSharedOnly}}
-	noAttrsField := &PropertyField{}
+	readable := &Restrictions{
+		Value:  ReadWrite{Read: PermissionLevelEveryone},
+		Option: ReadWrite{Read: PermissionLevelEveryone},
+	}
+	publicField := &PropertyField{Permissions: &Permissions{Restrictions: readable}}
+	sourceOnlyField := &PropertyField{Permissions: &Permissions{Restrictions: &Restrictions{
+		Option: ReadWrite{Read: PermissionLevelEveryone},
+	}}}
+	sharedOnlyField := &PropertyField{Permissions: &Permissions{Restrictions: readable, Masking: &Masking{}}}
+	noPermissionsField := &PropertyField{}
 
 	cases := []struct {
 		name  string
@@ -394,7 +400,7 @@ func TestBroadcastValue(t *testing.T) {
 		{"source_only field returns the marker", sourceOnlyField, json.RawMessage(PropertyValueWithheldJSON)},
 		{"shared_only field returns the marker", sharedOnlyField, json.RawMessage(PropertyValueWithheldJSON)},
 		{"nil field returns the marker", nil, json.RawMessage(PropertyValueWithheldJSON)},
-		{"field with no Attrs counts as public", noAttrsField, value},
+		{"field with no permissions counts as public", noPermissionsField, value},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
