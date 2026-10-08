@@ -35,7 +35,12 @@ declare module 'redux' {
       ? (
           ...args: Parameters<ActionCreators[ActionCreatorName]>
         ) => ReturnType<ReturnType<ActionCreators[ActionCreatorName]>>
-      : ActionCreators[ActionCreatorName]
+      // Redux Toolkit action creators have `type` and `match` properties that bound functions don't
+      : ActionCreators[ActionCreatorName] extends { type: string; match: Function }
+        ? (
+            ...args: Parameters<ActionCreators[ActionCreatorName]>
+          ) => ReturnType<ActionCreators[ActionCreatorName]>
+        : ActionCreators[ActionCreatorName]
   }
 
   /*
