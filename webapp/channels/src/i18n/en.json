@@ -7571,6 +7571,66 @@
     "defaultMessage": "Last evaluated {time}",
     "description": "Line at the top of the System Console Site health page; {time} is a relative time such as \"38 minutes ago\" of the latest health check run."
   },
+  "admin.health_dashboard.mute.confirm.body": {
+    "defaultMessage": "{title} will be muted permanently and hidden from the open list for every admin. It stays muted until someone unmutes it from Muted findings.",
+    "description": "First paragraph of the confirmation dialog shown before muting a finding on the System Console Site health page; {title} is the finding's title. Muting has no expiry."
+  },
+  "admin.health_dashboard.mute.confirm.body_on_node": {
+    "defaultMessage": "{title} on {node} will be muted permanently and hidden from the open list for every admin. It stays muted until someone unmutes it from Muted findings.",
+    "description": "First paragraph of the confirmation dialog shown before muting a finding that applies to one server node on the System Console Site health page; {title} is the finding's title and {node} the node's hostname. Muting has no expiry."
+  },
+  "admin.health_dashboard.mute.confirm.button": {
+    "defaultMessage": "Mute permanently",
+    "description": "Confirm button of the dialog that mutes a finding on the System Console Site health page; the mute has no expiry."
+  },
+  "admin.health_dashboard.mute.confirm.scope": {
+    "defaultMessage": "Only this exact finding is muted. A different problem with the same setting is still reported.",
+    "description": "Second paragraph of the mute confirmation dialog on the System Console Site health page, explaining that only this finding is muted and other problems with the same setting are still reported."
+  },
+  "admin.health_dashboard.mute.confirm.scope_on_node": {
+    "defaultMessage": "Only {node} is muted. The same check on other nodes is still reported, and so is a different problem with this setting.",
+    "description": "Second paragraph of the mute confirmation dialog for a finding on one server node, on the System Console Site health page; {node} is the node's hostname. The same check on other nodes is unaffected."
+  },
+  "admin.health_dashboard.mute.confirm.title": {
+    "defaultMessage": "Mute this finding permanently?",
+    "description": "Title of the confirmation dialog shown before muting a finding on the System Console Site health page."
+  },
+  "admin.health_dashboard.mute.error": {
+    "defaultMessage": "The finding could not be muted, so it is still in the open list. Try again.",
+    "description": "Error banner on the System Console Site health page when muting a finding failed and the finding was put back in the open list."
+  },
+  "admin.health_dashboard.mute.mute": {
+    "defaultMessage": "Mute",
+    "description": "Button on a finding row of the System Console Site health page that hides the finding from the open list for every admin, after a confirmation."
+  },
+  "admin.health_dashboard.mute.unmute": {
+    "defaultMessage": "Unmute",
+    "description": "Button on a muted finding row of the System Console Site health page that returns the finding to the open list."
+  },
+  "admin.health_dashboard.muted.by": {
+    "defaultMessage": "Muted by {name} {time}",
+    "description": "Shown on a muted finding on the System Console Site health page; {name} is the admin who muted it and {time} a relative time such as \"2 hours ago\"."
+  },
+  "admin.health_dashboard.muted.empty.body": {
+    "defaultMessage": "Findings muted by any admin are listed here, with who muted them and when.",
+    "description": "Body of the empty state of the muted findings list on the System Console Site health page."
+  },
+  "admin.health_dashboard.muted.empty.title": {
+    "defaultMessage": "No muted findings",
+    "description": "Title of the empty state of the muted findings list on the System Console Site health page."
+  },
+  "admin.health_dashboard.muted.note": {
+    "defaultMessage": "Muted findings are hidden from the open list for every admin, and they keep being checked. A different problem with the same check is still reported. Unmute a finding to return it to the open list.",
+    "description": "Explanation above the list of muted findings on the System Console Site health page."
+  },
+  "admin.health_dashboard.muted.title": {
+    "defaultMessage": "Muted findings",
+    "description": "Heading of the list of findings muted by any admin on the System Console Site health page."
+  },
+  "admin.health_dashboard.muted.toggle": {
+    "defaultMessage": "Muted",
+    "description": "Toolbar button next to the tabs on the System Console Site health page that shows the muted findings; followed by their count."
+  },
   "admin.health_dashboard.severity.critical": {
     "defaultMessage": "Critical",
     "description": "Severity label of a health finding on the System Console Site health page; compact space."
@@ -7622,6 +7682,10 @@
   "admin.health_dashboard.unknown.title": {
     "defaultMessage": "Could not be evaluated",
     "description": "Heading of the section on the System Console Site health page listing health checks that could not be evaluated."
+  },
+  "admin.health_dashboard.unmute.error": {
+    "defaultMessage": "The finding could not be unmuted, so it is still muted. Try again.",
+    "description": "Error banner on the System Console Site health page when unmuting a finding failed and the finding stayed muted."
   },
   "admin.image.amazonS3BucketDescription": {
     "defaultMessage": "Name you selected for your S3 bucket in AWS.",

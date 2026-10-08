@@ -41,7 +41,9 @@ function header() {
     return within(screen.getByRole('button', {name: /Push notification server is not HTTPS/}));
 }
 
-function renderRow(finding: HealthFinding, {expanded = false, hideArea = false, onToggle = jest.fn()} = {}) {
+function renderRow(finding: HealthFinding, {expanded = false, hideArea = false, onToggle = jest.fn(), state = {}} = {}) {
+    const onMute = jest.fn();
+    const onUnmute = jest.fn();
     const history = createMemoryHistory();
     jest.spyOn(history, 'push');
     renderWithContext(
@@ -51,13 +53,15 @@ function renderRow(finding: HealthFinding, {expanded = false, hideArea = false, 
                 now={now}
                 expanded={expanded}
                 onToggle={onToggle}
+                onMute={onMute}
+                onUnmute={onUnmute}
                 hideArea={hideArea}
             />
         </ul>,
-        {},
+        state,
         {history},
     );
-    return {history, onToggle};
+    return {history, onToggle, onMute, onUnmute};
 }
 
 describe('components/admin_console/health_dashboard/finding_row', () => {
@@ -202,6 +206,47 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
             renderRow(makeFinding({docs_url: docsURL}), {expanded: true});
 
             expect(screen.queryByRole('button', {name: 'Go to setting'})).not.toBeInTheDocument();
+        });
+    });
+
+    describe('mute', () => {
+        test.each([
+            ['firing' as const],
+            ['unknown' as const],
+        ])('a %s finding offers Mute next to the row, without expanding it', async (state) => {
+            const {onMute, onToggle} = renderRow(makeFinding({state}));
+
+            await userEvent.click(screen.getByRole('button', {name: 'Mute'}));
+
+            expect(onMute).toHaveBeenCalledWith('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+            expect(onToggle).not.toHaveBeenCalled();
+        });
+
+        test('a resolved finding offers no mute', () => {
+            renderRow(makeFinding({state: 'resolved'}));
+
+            expect(screen.queryByRole('button', {name: 'Mute'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Unmute'})).not.toBeInTheDocument();
+        });
+
+        test('a muted finding offers Unmute and says who muted it and when', async () => {
+            const {onUnmute} = renderRow(
+                makeFinding({muted_at: now - (3 * 60 * 60000), muted_by: 'user1'}),
+                {state: {entities: {users: {profiles: {user1: {id: 'user1', username: 'alice', first_name: '', last_name: '', nickname: ''}}}}}},
+            );
+
+            expect(screen.getByTestId('healthFindingMutedBy')).toHaveTextContent('Muted by alice 3 hours ago');
+            expect(screen.queryByRole('button', {name: 'Mute'})).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Unmute'}));
+
+            expect(onUnmute).toHaveBeenCalledWith('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+        });
+
+        test('an unmuted finding shows no muted attribution', () => {
+            renderRow(makeFinding());
+
+            expect(screen.queryByTestId('healthFindingMutedBy')).not.toBeInTheDocument();
         });
     });
 });

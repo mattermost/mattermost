@@ -5,8 +5,8 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {getHealthFindings} from 'mattermost-redux/actions/health';
-import {getFindings, getLastEvaluatedAt} from 'mattermost-redux/selectors/entities/health';
+import {getHealthFindings, muteHealthFinding, unmuteHealthFinding} from 'mattermost-redux/actions/health';
+import {getFindings, getLastEvaluatedAt, getMutedFindings} from 'mattermost-redux/selectors/entities/health';
 
 import type {GlobalState} from 'types/store';
 
@@ -15,6 +15,7 @@ import HealthDashboard from './health_dashboard';
 function mapStateToProps(state: GlobalState) {
     return {
         findings: getFindings(state),
+        mutedFindings: getMutedFindings(state),
         lastEvaluatedAt: getLastEvaluatedAt(state),
     };
 }
@@ -23,6 +24,8 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             getHealthFindings,
+            muteHealthFinding,
+            unmuteHealthFinding,
         }, dispatch),
     };
 }
