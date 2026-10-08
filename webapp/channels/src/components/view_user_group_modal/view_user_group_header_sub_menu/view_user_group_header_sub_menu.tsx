@@ -17,7 +17,7 @@ import {ModalIdentifiers} from 'utils/constants';
 
 import type {ModalData} from 'types/actions';
 
-const UserGroupActionsMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'medium'});
+const UserGroupActionsMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
 
 export type Props = {
     group: Group;
