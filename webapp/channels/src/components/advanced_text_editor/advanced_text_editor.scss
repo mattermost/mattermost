@@ -256,8 +256,6 @@
 // specificity plus an element selector to win regardless of load order.
 button.ToggleFormattingBarButton {
     width: auto;
-    min-width: 32px;
-    padding: 0 var(--spacing-xs);
 
     > span {
         gap: 0;
