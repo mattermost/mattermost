@@ -7,7 +7,7 @@ import type {HealthFinding, HealthFindingList} from '@mattermost/types/health';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, within} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import HealthDashboard from './index';
@@ -387,10 +387,8 @@ describe('components/admin_console/health_dashboard', () => {
             return screen.getByRole('button', {name: /^Muted\s?\d+$/});
         }
 
-        async function confirmMute(title: string) {
+        async function mute(title: string) {
             await userEvent.click(within(row(title)).getByRole('button', {name: 'Mute'}));
-            await userEvent.click(await screen.findByRole('button', {name: 'Mute permanently'}));
-            await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
         }
 
         test('the muted count sits next to the tabs and muted findings are left out of every tab', async () => {
@@ -427,42 +425,14 @@ describe('components/admin_console/health_dashboard', () => {
             expect(screen.getByText('No muted findings')).toBeInTheDocument();
         });
 
-        test('confirmation says the mute is permanent and names the finding', async () => {
-            const mute = jest.spyOn(Client4, 'muteHealthFinding');
-            await renderDashboard(evaluated([pushFinding]), admins);
-
-            await userEvent.click(within(row('Push notification server is not HTTPS')).getByRole('button', {name: 'Mute'}));
-
-            const modal = await screen.findByRole('dialog');
-            expect(modal).toHaveTextContent('Mute this finding permanently?');
-            expect(modal).toHaveTextContent('Push notification server is not HTTPS will be muted permanently');
-            expect(modal).toHaveTextContent('A different problem with the same setting is still reported.');
-            expect(modal).not.toHaveTextContent('node');
-
-            await userEvent.click(within(modal).getByRole('button', {name: 'Cancel'}));
-
-            expect(mute).not.toHaveBeenCalled();
-            expect(rowTitles()).toEqual(['Push notification server is not HTTPS']);
-        });
-
-        test('confirmation for a node-scoped finding names the node', async () => {
-            await renderDashboard(evaluated([diskFinding]), admins);
-
-            await userEvent.click(within(row('Disk space is low on node-3')).getByRole('button', {name: 'Mute'}));
-
-            const modal = await screen.findByRole('dialog');
-            expect(modal).toHaveTextContent('Disk space is low on node-3 will be muted permanently');
-            expect(modal).toHaveTextContent('Only node-3 is muted. The same check on other nodes is still reported');
-        });
-
         test('mute moves a finding from the open list to the muted list, and unmute moves it back', async () => {
-            const mute = jest.spyOn(Client4, 'muteHealthFinding').mockResolvedValue({status: 'OK'});
-            const unmute = jest.spyOn(Client4, 'unmuteHealthFinding').mockResolvedValue({status: 'OK'});
+            const muteRequest = jest.spyOn(Client4, 'muteHealthFinding').mockResolvedValue({status: 'OK'});
+            const unmuteRequest = jest.spyOn(Client4, 'unmuteHealthFinding').mockResolvedValue({status: 'OK'});
             await renderDashboard(evaluated([pushFinding, diskFinding]), admins);
 
-            await confirmMute('Push notification server is not HTTPS');
+            await mute('Push notification server is not HTTPS');
 
-            expect(mute).toHaveBeenCalledWith('c1');
+            expect(muteRequest).toHaveBeenCalledWith('c1');
             expect(rowTitles()).toEqual(['Disk space is low on node-3']);
             expect(tabTexts()[0]).toBe('Open1');
             expect(mutedToggle()).toHaveTextContent('Muted1');
@@ -474,7 +444,7 @@ describe('components/admin_console/health_dashboard', () => {
 
             await userEvent.click(screen.getByRole('button', {name: 'Unmute'}));
 
-            expect(unmute).toHaveBeenCalledWith('c1');
+            expect(unmuteRequest).toHaveBeenCalledWith('c1');
             expect(screen.getByText('No muted findings')).toBeInTheDocument();
             expect(mutedToggle()).toHaveTextContent('Muted0');
 
@@ -488,7 +458,7 @@ describe('components/admin_console/health_dashboard', () => {
             jest.spyOn(Client4, 'muteHealthFinding').mockRejectedValue(new Error('boom'));
             await renderDashboard(evaluated([pushFinding]), admins);
 
-            await confirmMute('Push notification server is not HTTPS');
+            await mute('Push notification server is not HTTPS');
 
             expect(await screen.findByText('The finding could not be muted, so it is still in the open list. Try again.')).toBeVisible();
             expect(rowTitles()).toEqual(['Push notification server is not HTTPS']);

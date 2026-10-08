@@ -11,7 +11,7 @@ import {isHealthFindingMuted, isHealthFindingOpen} from 'mattermost-redux/utils/
 
 type Props = {
     finding: HealthFinding;
-    onMute: (finding: HealthFinding) => void;
+    onMute: (fingerprint: string) => void;
     onUnmute: (fingerprint: string) => void;
 };
 
@@ -27,7 +27,7 @@ const MuteButton = ({finding, onMute, onUnmute}: Props) => {
         <button
             type='button'
             className='btn btn-tertiary btn-sm HealthFinding__muteButton'
-            onClick={() => (muted ? onUnmute(finding.fingerprint) : onMute(finding))}
+            onClick={() => (muted ? onUnmute : onMute)(finding.fingerprint)}
         >
             <Icon
                 size={16}

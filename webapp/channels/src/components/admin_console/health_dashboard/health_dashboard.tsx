@@ -30,7 +30,6 @@ import type {RowState} from './finding_section';
 import FindingTabs, {tabId} from './finding_tabs';
 import GroupByControl from './group_by_control';
 import type {GroupBy} from './group_by_control';
-import MuteConfirmModal from './mute_confirm_modal';
 import MutedFindings from './muted_findings';
 import RelativeTime from './relative_time';
 
@@ -103,7 +102,6 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
     const [groupBy, setGroupBy] = useState<GroupBy>('severity');
     const [expanded, setExpanded] = useState<string | null>(null);
     const [showMuted, setShowMuted] = useState(false);
-    const [confirmingMute, setConfirmingMute] = useState<HealthFinding | null>(null);
     const [muteError, setMuteError] = useState<MessageDescriptor | null>(null);
     const idPrefix = useId();
     const panelId = `${idPrefix}-panel`;
@@ -146,7 +144,7 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
         setMuteError(error ? unmuteErrorMessage : null);
     }, [actions]);
 
-    const rowState = {now, expanded, onToggle: toggle, onMute: setConfirmingMute, onUnmute: unmute};
+    const rowState = {now, expanded, onToggle: toggle, onMute: mute, onUnmute: unmute};
 
     let content;
     if (loading) {
@@ -280,13 +278,6 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
                     {content}
                 </div>
             </div>
-            {confirmingMute && (
-                <MuteConfirmModal
-                    finding={confirmingMute}
-                    onConfirm={mute}
-                    onExited={() => setConfirmingMute(null)}
-                />
-            )}
         </div>
     );
 };

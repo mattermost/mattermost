@@ -214,12 +214,11 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
             ['firing' as const],
             ['unknown' as const],
         ])('a %s finding offers Mute next to the row, without expanding it', async (state) => {
-            const finding = makeFinding({state});
-            const {onMute, onToggle} = renderRow(finding);
+            const {onMute, onToggle} = renderRow(makeFinding({state}));
 
             await userEvent.click(screen.getByRole('button', {name: 'Mute'}));
 
-            expect(onMute).toHaveBeenCalledWith(finding);
+            expect(onMute).toHaveBeenCalledWith('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
             expect(onToggle).not.toHaveBeenCalled();
         });
 
