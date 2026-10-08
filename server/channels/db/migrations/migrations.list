@@ -463,3 +463,7 @@ channels/db/migrations/postgres/000233_strip_sync_attrs_from_non_user_fields.dow
 channels/db/migrations/postgres/000233_strip_sync_attrs_from_non_user_fields.up.sql
 channels/db/migrations/postgres/000234_recreate_posts_message_txt_index.down.sql
 channels/db/migrations/postgres/000234_recreate_posts_message_txt_index.up.sql
+channels/db/migrations/postgres/000235_add_permissions_column_and_grants_table.down.sql
+channels/db/migrations/postgres/000235_add_permissions_column_and_grants_table.up.sql
+channels/db/migrations/postgres/000236_create_property_field_grants_type_id_index.down.sql
+channels/db/migrations/postgres/000236_create_property_field_grants_type_id_index.up.sql

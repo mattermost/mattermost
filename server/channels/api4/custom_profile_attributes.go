@@ -79,6 +79,10 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// This API can neither show nor change a permissions object, so one it
+	// accepted here would be enforced out of the caller's sight.
+	pf.Permissions = nil
+
 	// Translate to PropertyField and route through the generic property API.
 	// Server-controlled fields (group, type, target shape, creator) are
 	// stamped here; ID/TargetID/Protected are stripped so a caller can't
