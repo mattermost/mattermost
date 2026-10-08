@@ -154,9 +154,37 @@ exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot
               </code>
               <button
                 aria-label="Copy Token"
-                class="btn btn-link icon-content-copy ml-2"
+                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 ml-2"
                 data-testid="copyText"
-              />
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_mytxt_33"
+                >
+                  <div
+                    aria-hidden="true"
+                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                  >
+                    <div
+                      class="_icon__glyph-area_1i355_9"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="14"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </span>
+              </button>
             </span>
           </div>
           <div
@@ -262,9 +290,37 @@ exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot
               </code>
               <button
                 aria-label="Copy Token"
-                class="btn btn-link icon-content-copy ml-2"
+                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 ml-2"
                 data-testid="copyText"
-              />
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_mytxt_33"
+                >
+                  <div
+                    aria-hidden="true"
+                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                  >
+                    <div
+                      class="_icon__glyph-area_1i355_9"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="14"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </span>
+              </button>
             </span>
           </div>
           <div
@@ -297,13 +353,13 @@ exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot
         1 - 2 of 2
         <button
           aria-label="Previous"
-          class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 ml-2 prev"
+          class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 ml-2 prev"
           disabled=""
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_g2m23_33"
+            class="_icon-button__icon-slot_mytxt_33"
           >
             <div
               aria-hidden="true"
@@ -330,13 +386,13 @@ exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot
         </button>
         <button
           aria-label="Next"
-          class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 next"
+          class="_icon-button_mytxt_2 _icon-button--size-small_mytxt_69 next"
           disabled=""
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_g2m23_33"
+            class="_icon-button__icon-slot_mytxt_33"
           >
             <div
               aria-hidden="true"
