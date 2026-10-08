@@ -10218,7 +10218,7 @@
   {
     "id": "app.pap.masking.ambiguous_sibling.app_error",
     "translation": "Multiple user attributes link the same template, so channel-attribute visibility cannot be determined unambiguously.",
-    "description": "API error (500) surfaced when resolving attribute-based access control masking: more than one user attribute field points at the same linked template, so the server cannot tell which one governs visibility of the channel attribute. Seen by a system admin editing access rules."
+    "description": ""
   },
   {
     "id": "app.pap.masking.graph_value_unmarshal.app_error",
@@ -11161,6 +11161,11 @@
     "description": "API error returned when a property-field request contains invalid parameters; generic validation failure."
   },
   {
+    "id": "app.property_field.linked_option_read_ceiling.app_error",
+    "translation": "A linked field's option.read tier ({{.FieldTier}}) cannot be more permissive than its template ({{.TemplateID}})'s tier ({{.TemplateTier}}).",
+    "description": ""
+  },
+  {
     "id": "app.property_field.managed_admin.permission.app_error",
     "translation": "You do not have permission to mark this property field as admin-managed.",
     "description": "Permission error when a non-admin tries to flag a custom property field as admin-managed."
@@ -11216,6 +11221,11 @@
     "description": "API error returned when a search query over property fields (custom attribute definitions) fails."
   },
   {
+    "id": "app.property_field.self_writable_holdings.app_error",
+    "translation": "This field is the holdings source for its masked template, so its value write level cannot be '{{.ValueWrite}}'. The people the template filters could otherwise edit their own holdings and widen what they can see.",
+    "description": ""
+  },
+  {
     "id": "app.property_field.update.app_error",
     "translation": "Unable to update property fields.",
     "description": "API error returned when saving changes to property fields (custom attribute definitions) fails."
@@ -11259,6 +11269,11 @@
     "id": "app.property_field.update.name_conflict.app_error",
     "translation": "Cannot update property to \"{{.Name}}\": a property with this name already exists at the {{.ConflictLevel}} level.",
     "description": "API error when renaming a property (custom attribute) to a name that already exists; {{.Name}} is the attempted name and {{.ConflictLevel}} is where the conflict is."
+  },
+  {
+    "id": "app.property_field.update.option_read_ceiling_dependents.app_error",
+    "translation": "Cannot update: linked field {{.DependentID}} is at option.read tier {{.DependentTier}}, which would exceed the new tier {{.NewTier}}.",
+    "description": ""
   },
   {
     "id": "app.property_field.update.options_withheld.app_error",

@@ -549,7 +549,7 @@ func TestOwnersWithAdminManaged(t *testing.T) {
 	}
 
 	// Register hooks in production order.
-	acHook := NewAccessControlHook(th.service, nil, th.CPAGroupID)
+	acHook := NewAccessControlHook(th.service, nil, nil, nil, th.CPAGroupID)
 	acHook.setPluginCheckerForTests(pluginChecker)
 	th.service.AddHook(acHook)
 
