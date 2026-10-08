@@ -21,7 +21,7 @@ import {haveIChannelPermission, haveISystemPermission} from 'mattermost-redux/se
 import {
     setShowPreviewOnChannelSettingsHeaderModal,
     setShowPreviewOnChannelSettingsPurposeModal,
-} from 'actions/views/textbox';
+} from 'reducers/views/textbox';
 import {getBasePath, isChannelAccessControlEnabled} from 'selectors/general';
 import {getChannelSettingsTabs} from 'selectors/plugins';
 
