@@ -448,6 +448,17 @@
         gap: 5px;
     }
 
+    // Inline, not flex: react-intl wraps the sentence in a span, so this sits in a line of text.
+    &__mutedBy {
+        color: rgba(var(--sys-center-channel-color-rgb), 0.88);
+        font-weight: 600;
+
+        .Avatar {
+            margin-right: 4px;
+            vertical-align: text-bottom;
+        }
+    }
+
     &__chevron {
         flex-shrink: 0;
         color: rgba(var(--sys-center-channel-color-rgb), 0.56);

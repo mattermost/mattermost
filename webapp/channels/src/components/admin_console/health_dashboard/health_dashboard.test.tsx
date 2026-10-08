@@ -406,7 +406,7 @@ describe('components/admin_console/health_dashboard', () => {
 
             expect(mutedToggle()).toHaveAttribute('aria-pressed', 'true');
             expect(rowTitles()).toEqual(['Muted by a colleague']);
-            expect(within(row('Muted by a colleague')).getByTestId('healthFindingMutedBy')).toHaveTextContent('Muted by bob 2 days ago');
+            expect(within(row('Muted by a colleague')).getByTestId('healthFindingMutedBy')).toHaveTextContent('Muted by @bob 2 days ago');
             for (const tab of screen.getAllByRole('tab')) {
                 expect(tab).toHaveAttribute('aria-selected', 'false');
             }
@@ -464,7 +464,7 @@ describe('components/admin_console/health_dashboard', () => {
             await userEvent.click(mutedToggle());
 
             expect(rowTitles()).toEqual(['Push notification server is not HTTPS']);
-            expect(screen.getByTestId('healthFindingMutedBy')).toHaveTextContent('Muted by alice');
+            expect(screen.getByTestId('healthFindingMutedBy')).toHaveTextContent('Muted by @alice');
 
             await userEvent.click(screen.getByRole('button', {name: 'Unmute'}));
 
