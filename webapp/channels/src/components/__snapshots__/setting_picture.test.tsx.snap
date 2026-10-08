@@ -524,21 +524,43 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
                 src="http://localhost:8065/api/v4/users/src_id"
               />
             </div>
-            <button
+            <div
               class="team-img__remove"
-              data-testid="removeSettingPicture"
             >
-              <span
-                aria-hidden="true"
+              <button
+                aria-label="Remove This Icon"
+                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--padding-compact_mytxt_64 _icon-button--rounded_mytxt_115"
+                data-testid="removeSettingPicture"
+                type="button"
               >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Remove This Icon
-              </span>
-            </button>
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_mytxt_33"
+                >
+                  <div
+                    aria-hidden="true"
+                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                  >
+                    <div
+                      class="_icon__glyph-area_1i355_9"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="14"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </span>
+              </button>
+            </div>
           </div>
         </li>
         <div
@@ -627,21 +649,43 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
                 src="http://localhost:8065/api/v4/users/src_id"
               />
             </div>
-            <button
+            <div
               class="profile-img__remove"
-              data-testid="removeSettingPicture"
             >
-              <span
-                aria-hidden="true"
+              <button
+                aria-label="Remove Profile Picture"
+                class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 _icon-button--padding-compact_mytxt_64 _icon-button--rounded_mytxt_115"
+                data-testid="removeSettingPicture"
+                type="button"
               >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Remove Profile Picture
-              </span>
-            </button>
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_mytxt_33"
+                >
+                  <div
+                    aria-hidden="true"
+                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                  >
+                    <div
+                      class="_icon__glyph-area_1i355_9"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="14"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </span>
+              </button>
+            </div>
           </div>
         </li>
         <div

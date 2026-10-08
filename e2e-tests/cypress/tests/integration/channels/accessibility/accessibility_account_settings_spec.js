@@ -246,9 +246,11 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         cy.get('.profile-img').should('have.attr', 'alt', 'profile image');
 
         // # Option to Remove Profile picture should be present
-        cy.findByTestId('removeSettingPicture').within(() => {
-            cy.get('.sr-only').should('have.text', 'Remove Profile Picture');
-        });
+        cy.findByTestId('removeSettingPicture').should(
+            'have.attr',
+            'aria-label',
+            'Remove Profile Picture',
+        );
 
         // # Check tab behavior
         cy.findByTestId('removeSettingPicture').focus().tab({shift: true}).tab();

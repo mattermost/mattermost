@@ -128,29 +128,16 @@
 
         .profile-img__remove {
             position: absolute;
-            top: 4px;
-            right: 8px;
+            top: 0;
+            right: 4px;
             display: flex;
-            width: 26px;
-            height: 26px;
+            width: 32px;
+            height: 32px;
             align-items: center;
             justify-content: center;
-            padding: 0;
-            border: none;
             border-radius: 50%;
-            background: variables.$black;
-            color: variables.$white;
-            text-decoration: none;
-            transition: all 0.15s ease;
-
-            &:hover {
-                background: var(--button-bg);
-            }
-
-            span {
-                margin-top: -3px;
-                font-size: 22px;
-            }
+            background: var(--center-channel-bg);
+            box-shadow: var(--elevation-2);
         }
 
         .team-img-preview,
@@ -185,27 +172,14 @@
             position: absolute;
             top: -8px;
             right: -8px;
-            width: 24px;
-            height: 24px;
-            padding: 0;
-            border: none;
+            display: flex;
+            width: 32px;
+            height: 32px;
+            align-items: center;
+            justify-content: center;
             border-radius: 50%;
-            background: variables.$black;
-            color: variables.$white;
-            line-height: 23px;
-            text-align: center;
-            text-decoration: none;
-            transition: all 0.15s ease;
-
-            &:hover {
-                background: var(--button-bg);
-                color: var(--button-color);
-            }
-
-            span {
-                margin-top: -3px;
-                font-size: 22px;
-            }
+            background: var(--center-channel-bg);
+            box-shadow: var(--elevation-2);
         }
 
         .settings-table {
