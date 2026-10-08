@@ -83,18 +83,27 @@ exports[`components/ChannelHeader should match snapshot with last active display
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
       <button
@@ -107,18 +116,27 @@ exports[`components/ChannelHeader should match snapshot with last active display
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
     </div>
@@ -198,18 +216,27 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
       <button
@@ -222,18 +249,27 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
     </div>
@@ -337,18 +373,27 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
       <button
@@ -361,18 +406,27 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
     </div>
@@ -475,18 +529,27 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
       <button
@@ -499,18 +562,27 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
     </div>
@@ -613,18 +685,27 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
       <button
@@ -637,18 +718,27 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
     </div>
@@ -774,18 +864,27 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
       <button
@@ -798,18 +897,27 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
     </div>
@@ -912,18 +1020,27 @@ exports[`components/ChannelHeader should render archived view 1`] = `
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
       <button
@@ -936,18 +1053,27 @@ exports[`components/ChannelHeader should render archived view 1`] = `
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
     </div>
@@ -1066,18 +1192,27 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
       <button
@@ -1090,18 +1225,27 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
     </div>
@@ -1204,18 +1348,27 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
       <button
@@ -1228,18 +1381,27 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
     </div>
@@ -1330,18 +1492,27 @@ exports[`components/ChannelHeader should render properly when custom status is e
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
       <button
@@ -1354,18 +1525,27 @@ exports[`components/ChannelHeader should render properly when custom status is e
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
     </div>
@@ -1459,18 +1639,27 @@ exports[`components/ChannelHeader should render properly when custom status is s
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
       <button
@@ -1483,18 +1672,27 @@ exports[`components/ChannelHeader should render properly when custom status is s
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
     </div>
@@ -1597,18 +1795,27 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
       <button
@@ -1621,18 +1828,27 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
     </div>
@@ -1735,18 +1951,27 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
       <button
@@ -1759,18 +1984,27 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
     </div>
@@ -1873,18 +2107,27 @@ exports[`components/ChannelHeader should render properly when populated with cha
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
       <button
@@ -1897,18 +2140,27 @@ exports[`components/ChannelHeader should render properly when populated with cha
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
     </div>
@@ -2016,18 +2268,27 @@ exports[`components/ChannelHeader should render properly when there are pending 
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
       <button
@@ -2040,18 +2301,27 @@ exports[`components/ChannelHeader should render properly when there are pending 
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
     </div>
@@ -2154,18 +2424,27 @@ exports[`components/ChannelHeader should render shared view 1`] = `
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
       <button
@@ -2178,18 +2457,27 @@ exports[`components/ChannelHeader should render shared view 1`] = `
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
     </div>
@@ -2314,18 +2602,27 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
       <button
@@ -2338,18 +2635,27 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
           aria-hidden="true"
           class="_icon-button__icon-slot_g2m23_33"
         >
-          <svg
-            fill="currentColor"
-            height="16"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
           >
-            <path
-              d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
-            />
-          </svg>
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                />
+              </svg>
+            </div>
+          </div>
         </span>
       </button>
     </div>

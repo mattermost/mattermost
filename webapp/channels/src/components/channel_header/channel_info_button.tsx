@@ -6,6 +6,7 @@ import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {Channel} from '@mattermost/types/channels';
 
 import {closeRightHandSide, showChannelInfo} from 'actions/views/rhs';
@@ -58,7 +59,7 @@ const ChannelInfoButton = ({channel}: Props) => {
             size='small'
             tooltip={tooltip}
         >
-            <InformationOutlineIcon size={16}/>
+            <Icon glyph={<InformationOutlineIcon/>}/>
         </HeaderIconWrapper>
     );
 };
