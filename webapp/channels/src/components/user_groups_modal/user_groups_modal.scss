@@ -10,21 +10,19 @@
         border-radius: 8px;
 
         .modal-header {
+            position: relative;
             align-items: flex-start;
 
             .user-groups-modal__header-title-row {
                 flex: 1;
                 min-width: 0;
-
-                .modal-title {
-                    margin-left: 16px;
-                }
+                gap: 16px;
             }
 
             .user-groups-modal__header-close {
-                position: static;
-                top: auto;
-                right: auto;
+                position: absolute;
+                top: 18px;
+                right: 18px;
                 flex-shrink: 0;
             }
         }

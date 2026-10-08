@@ -77,7 +77,7 @@ exports[`component/view_user_group_modal should match snapshot 1`] = `
             />
             <button
               aria-label="Close"
-              class="_icon-button_mytxt_2 _icon-button--size-medium_mytxt_83 user-groups-modal__header-close view-user-groups-modal__close"
+              class="_icon-button_mytxt_2 _icon-button--size-medium_mytxt_83 user-groups-modal__header-close"
               type="button"
             >
               <span
