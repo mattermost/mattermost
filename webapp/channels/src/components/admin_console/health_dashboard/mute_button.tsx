@@ -7,48 +7,44 @@ import {FormattedMessage} from 'react-intl';
 import {BellOffOutlineIcon, BellOutlineIcon} from '@mattermost/compass-icons/components';
 import type {HealthFinding} from '@mattermost/types/health';
 
-import {isHealthFindingMuted} from 'mattermost-redux/utils/health_utils';
+import {isHealthFindingOpen} from 'mattermost-redux/utils/health_utils';
 
 type Props = {
     finding: HealthFinding;
-    onMute: (fingerprint: string) => void;
+    muted: boolean;
+    onMute: (finding: HealthFinding) => void;
     onUnmute: (fingerprint: string) => void;
 };
 
-const iconProps = {size: 16, color: 'currentColor', 'aria-hidden': true} as const;
-
-const MuteButton = ({finding, onMute, onUnmute}: Props) => {
-    if (isHealthFindingMuted(finding)) {
-        return (
-            <button
-                type='button'
-                className='btn btn-tertiary btn-sm HealthFinding__muteButton'
-                onClick={() => onUnmute(finding.fingerprint)}
-            >
-                <BellOutlineIcon {...iconProps}/>
-                <FormattedMessage
-                    id='admin.health_dashboard.mute.unmute'
-                    defaultMessage='Unmute'
-                />
-            </button>
-        );
-    }
-
-    if (finding.state !== 'firing' && finding.state !== 'unknown') {
+const MuteButton = ({finding, muted, onMute, onUnmute}: Props) => {
+    if (!muted && !isHealthFindingOpen(finding)) {
         return null;
     }
+
+    const Icon = muted ? BellOutlineIcon : BellOffOutlineIcon;
 
     return (
         <button
             type='button'
             className='btn btn-tertiary btn-sm HealthFinding__muteButton'
-            onClick={() => onMute(finding.fingerprint)}
+            onClick={() => (muted ? onUnmute(finding.fingerprint) : onMute(finding))}
         >
-            <BellOffOutlineIcon {...iconProps}/>
-            <FormattedMessage
-                id='admin.health_dashboard.mute.mute'
-                defaultMessage='Mute'
+            <Icon
+                size={16}
+                color='currentColor'
+                aria-hidden={true}
             />
+            {muted ? (
+                <FormattedMessage
+                    id='admin.health_dashboard.mute.unmute'
+                    defaultMessage='Unmute'
+                />
+            ) : (
+                <FormattedMessage
+                    id='admin.health_dashboard.mute.mute'
+                    defaultMessage='Mute'
+                />
+            )}
         </button>
     );
 };

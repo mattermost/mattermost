@@ -21,13 +21,13 @@ type Props = RowState & {
 const MutedFindings = ({findings, now, expanded, onToggle, onMute, onUnmute}: Props) => {
     const dispatch = useDispatch();
     const headingId = useId();
-    const mutedBy = [...new Set(findings.map((finding) => finding.muted_by ?? '').filter(Boolean))].sort().join(',');
 
     useEffect(() => {
-        if (mutedBy) {
-            dispatch(getMissingProfilesByIds(mutedBy.split(',')));
+        const mutedBy = findings.flatMap((finding) => finding.muted_by || []);
+        if (mutedBy.length) {
+            dispatch(getMissingProfilesByIds(mutedBy));
         }
-    }, [dispatch, mutedBy]);
+    }, [dispatch, findings]);
 
     return (
         <section

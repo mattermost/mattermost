@@ -16,7 +16,7 @@ export type RowState = {
     now: number;
     expanded: string | null;
     onToggle: (fingerprint: string) => void;
-    onMute: (fingerprint: string) => void;
+    onMute: (finding: HealthFinding) => void;
     onUnmute: (fingerprint: string) => void;
 };
 
