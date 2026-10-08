@@ -4,7 +4,7 @@
 import type {HealthFinding} from '@mattermost/types/health';
 import type {GlobalState} from '@mattermost/types/store';
 
-import {getFindings, getLastEvaluatedAt} from 'mattermost-redux/selectors/entities/health';
+import {getFindings, getLastEvaluatedAt, getMutedFindings} from 'mattermost-redux/selectors/entities/health';
 
 function makeFinding(overrides: Partial<HealthFinding> & Pick<HealthFinding, 'fingerprint'>): HealthFinding {
     return {
@@ -59,6 +59,20 @@ describe('selectors.entities.health', () => {
         const node5 = makeFinding({fingerprint: 'node5', code: 'disk_low', scope: 'node-5'});
 
         expect(getFindings(stateWith([node5, node3]))).toEqual([node3, node5]);
+    });
+
+    test('getFindings leaves out muted findings and getMutedFindings returns only them, sorted the same way', () => {
+        const open = makeFinding({fingerprint: 'open', severity: 'warning'});
+        const mutedWarning = makeFinding({fingerprint: 'mutedWarning', severity: 'warning', muted_at: 50, muted_by: 'admin'});
+        const mutedCritical = makeFinding({fingerprint: 'mutedCritical', severity: 'critical', state: 'resolved', muted_at: 60, muted_by: 'admin'});
+        const state = stateWith([mutedWarning, open, mutedCritical]);
+
+        expect(getFindings(state)).toEqual([open]);
+        expect(getMutedFindings(state)).toEqual([mutedCritical, mutedWarning]);
+    });
+
+    test('getMutedFindings is empty when nothing is muted', () => {
+        expect(getMutedFindings(stateWith([makeFinding({fingerprint: 'a'})]))).toEqual([]);
     });
 
     test('getLastEvaluatedAt is the stored evaluation time, not derived from the findings', () => {

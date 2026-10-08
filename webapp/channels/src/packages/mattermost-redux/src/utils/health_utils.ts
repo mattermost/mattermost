@@ -25,6 +25,10 @@ export function compareHealthFindings(a: HealthFinding, b: HealthFinding) {
         a.scope.localeCompare(b.scope);
 }
 
+export function isHealthFindingMuted(finding: HealthFinding) {
+    return Boolean(finding.muted_at);
+}
+
 // A check that passed on its first run is stored as resolved without ever having changed state.
 export function isRecentlyResolved(finding: HealthFinding, now: number) {
     return finding.state === 'resolved' &&
