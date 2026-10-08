@@ -222,7 +222,6 @@ export type ViewsState = {
         shouldShowPreviewOnCreateComment: boolean;
         shouldShowPreviewOnCreatePost: boolean;
         shouldShowPreviewOnEditChannelHeaderModal: boolean;
-        shouldShowPreviewOnEditPostModal: boolean;
         shouldShowPreviewOnChannelSettingsHeaderModal: boolean;
         shouldShowPreviewOnChannelSettingsPurposeModal: boolean;
     };

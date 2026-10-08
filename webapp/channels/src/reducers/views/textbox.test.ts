@@ -1,13 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
+import {UserTypes} from 'mattermost-redux/action_types';
 
-import textboxReducer from 'reducers/views/textbox';
+import textboxReducer, {
+    setShowPreviewOnChannelSettingsHeaderModal,
+    setShowPreviewOnChannelSettingsPurposeModal,
+    setShowPreviewOnCreateComment,
+    setShowPreviewOnCreatePost,
+    setShowPreviewOnEditChannelHeaderModal,
+} from 'reducers/views/textbox';
 
-import {ActionTypes} from 'utils/constants';
-
-describe('Reducers.RHS', () => {
+describe('Reducers.views.textbox', () => {
     const initialState = {
         shouldShowPreviewOnCreateComment: false,
         shouldShowPreviewOnCreatePost: false,
@@ -16,87 +20,60 @@ describe('Reducers.RHS', () => {
         shouldShowPreviewOnChannelSettingsPurposeModal: false,
     };
 
-    test('Initial state', () => {
-        const nextState = textboxReducer(
-            {},
-            {} as AnyAction,
-        );
-
-        expect(nextState).toEqual(initialState);
+    test('should return the initial state', () => {
+        expect(textboxReducer(undefined, {type: 'unknown'})).toEqual(initialState);
     });
 
-    test('update show preview value on create comment', () => {
-        const nextState = textboxReducer(
-            {},
-            {
-                type: ActionTypes.SET_SHOW_PREVIEW_ON_CREATE_COMMENT,
-                showPreview: true,
-            },
-        );
-
-        expect(nextState).toEqual({
+    test('should set show preview on create comment', () => {
+        expect(textboxReducer(initialState, setShowPreviewOnCreateComment(true))).toEqual({
             ...initialState,
             shouldShowPreviewOnCreateComment: true,
         });
     });
 
-    test('update show preview value on create post', () => {
-        const nextState = textboxReducer(
-            {},
-            {
-                type: ActionTypes.SET_SHOW_PREVIEW_ON_CREATE_POST,
-                showPreview: true,
-            },
-        );
-
-        expect(nextState).toEqual({
+    test('should set show preview on create post', () => {
+        expect(textboxReducer(initialState, setShowPreviewOnCreatePost(true))).toEqual({
             ...initialState,
             shouldShowPreviewOnCreatePost: true,
         });
     });
 
-    test('update show preview value on edit channel header modal', () => {
-        const nextState = textboxReducer(
-            {},
-            {
-                type: ActionTypes.SET_SHOW_PREVIEW_ON_EDIT_CHANNEL_HEADER_MODAL,
-                showPreview: true,
-            },
-        );
-
-        expect(nextState).toEqual({
+    test('should set show preview on edit channel header modal', () => {
+        expect(textboxReducer(initialState, setShowPreviewOnEditChannelHeaderModal(true))).toEqual({
             ...initialState,
             shouldShowPreviewOnEditChannelHeaderModal: true,
         });
     });
 
-    test('update show preview value on channel settings header modal', () => {
-        const nextState = textboxReducer(
-            {},
-            {
-                type: ActionTypes.SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_HEADER_MODAL,
-                showPreview: true,
-            },
-        );
-
-        expect(nextState).toEqual({
+    test('should set show preview on channel settings header modal', () => {
+        expect(textboxReducer(initialState, setShowPreviewOnChannelSettingsHeaderModal(true))).toEqual({
             ...initialState,
             shouldShowPreviewOnChannelSettingsHeaderModal: true,
         });
     });
 
-    test('update show preview value on channel settings purpose modal', () => {
-        const nextState = textboxReducer(
-            {},
-            {
-                type: ActionTypes.SET_SHOW_PREVIEW_ON_CHANNEL_SETTINGS_PURPOSE_MODAL,
-                showPreview: true,
-            },
-        );
-
-        expect(nextState).toEqual({
+    test('should set show preview on channel settings purpose modal', () => {
+        expect(textboxReducer(initialState, setShowPreviewOnChannelSettingsPurposeModal(true))).toEqual({
             ...initialState,
             shouldShowPreviewOnChannelSettingsPurposeModal: true,
         });
+    });
+
+    test('should clear show preview', () => {
+        const previousState = {...initialState, shouldShowPreviewOnCreatePost: true};
+
+        expect(textboxReducer(previousState, setShowPreviewOnCreatePost(false))).toEqual(initialState);
+    });
+
+    test('should reset all values on logout', () => {
+        const previousState = {
+            shouldShowPreviewOnCreateComment: true,
+            shouldShowPreviewOnCreatePost: true,
+            shouldShowPreviewOnEditChannelHeaderModal: true,
+            shouldShowPreviewOnChannelSettingsHeaderModal: true,
+            shouldShowPreviewOnChannelSettingsPurposeModal: true,
+        };
+
+        expect(textboxReducer(previousState, {type: UserTypes.LOGOUT_SUCCESS})).toEqual(initialState);
     });
 });

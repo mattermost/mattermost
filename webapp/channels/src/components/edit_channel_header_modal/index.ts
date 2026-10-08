@@ -10,7 +10,7 @@ import {patchChannel} from 'mattermost-redux/actions/channels';
 import {Preferences} from 'mattermost-redux/constants';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
-import {setShowPreviewOnEditChannelHeaderModal} from 'actions/views/textbox';
+import {setShowPreviewOnEditChannelHeaderModal} from 'reducers/views/textbox';
 import {showPreviewOnEditChannelHeaderModal} from 'selectors/views/textbox';
 
 import type {GlobalState} from 'types/store';

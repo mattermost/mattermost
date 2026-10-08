@@ -18,7 +18,7 @@ import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles'
 import {
     setShowPreviewOnChannelSettingsHeaderModal,
     setShowPreviewOnChannelSettingsPurposeModal,
-} from 'actions/views/textbox';
+} from 'reducers/views/textbox';
 import {
     showPreviewOnChannelSettingsHeaderModal,
     showPreviewOnChannelSettingsPurposeModal,
