@@ -826,6 +826,30 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-8-0-is-now-avail
 
 </Attention>
 
+- **11.7.12, released 2026-10-08**
+  - Mattermost v11.7.12 contains Low to Medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged Playbooks plugin version [v2.9.6](https://github.com/mattermost/mattermost-plugin-playbooks/releases/tag/v2.9.6).
+  - Pre-packaged Jira plugin version [v4.7.3](https://github.com/mattermost/mattermost-plugin-jira/releases/tag/v4.7.3).
+  - Pre-packaged GitLab plugin version [v1.12.4](https://github.com/mattermost/mattermost-plugin-gitlab/releases/tag/v1.12.4).
+  - Pre-packaged Zoom plugin version [v1.13.1](https://github.com/mattermost/mattermost-plugin-zoom/releases/tag/v1.13.1).
+  - Updated custom emoji image processing to use the shared image decoder, so animated GIF sources are subject to the configured maximum image resolution and image decoder concurrency.
+  - Updated file metadata preparation for post retrieval, channel bookmarks, and notification delivery.
+  - Updated how file metadata is served for drafts and post edit history.
+  - Updated OAuth application management and authorization endpoint handling.
+  - Updated team filter handling in the users listing API.
+  - Updated direct and group channel targeting for incoming webhooks while direct messages are scoped to team members.
+  - Updated how channel mentions are handled in permalink previews.
+  - Limited the input size accepted by the plain-text content extractor.
+  - Added a Plugin API method for session-scoped file action policy checks.
+  - Fixed an issue where extracting content from ZIP archives could lead to excessive memory consumption.
+  - Fixed an issue where invalidating cached sessions did not propagate to already-open websocket connections in some cases.
+  - Fixed an issue where relative date separators between posts did not update when the local day changed while a channel stayed open, leaving a stale "Today" separator and creating a second "Today" separator for posts made after midnight.
+  - Fixed an issue with output formatting in ``mmctl``.
+  - Fixed an issue with bulk import handling for existing accounts.
+  - Fixed an issue where thread popout windows opened empty, showing only the thread header and message box.
+  - Fixed an issue where clicking outside an image in a post but within the post area would open the image preview instead of interacting with the post.
+  - Updated moment-timezone to 0.6.4 (IANA tzdata 2026d) so that scheduling, reminder and custom time calculations use the 2026 rules for British Columbia, Alberta, the Northwest Territories and Morocco.
+  - Mattermost v11.7.12 contains no database or functional changes.
 - **11.7.11, released 2026-09-15**
   - Mattermost v11.7.11 contains Low to High severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
   - Pre-packaged Agents plugin version [v2.0.9](https://github.com/mattermost/mattermost-plugin-agents/releases/tag/v2.0.9).
