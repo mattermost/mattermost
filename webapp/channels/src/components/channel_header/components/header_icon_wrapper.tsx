@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useLayoutEffect, useRef} from 'react';
 
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import type {ShortcutDefinition} from '@mattermost/shared/components/tooltip';
@@ -22,6 +22,17 @@ type Props = {
     active?: boolean;
     buttonClass?: string;
     buttonId: string;
+
+    /**
+     * Numeric count shown after the icon via IconButton's count prop (Compass layout + typography).
+     */
+    count?: number;
+
+    /**
+     * Optional id applied to IconButton's count span for legacy e2e selectors.
+     */
+    countId?: string;
+
     children: React.ReactNode;
     onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
     tooltip: string;
@@ -40,6 +51,8 @@ const HeaderIconWrapper = (props: Props) => {
         buttonClass,
         buttonId,
         children,
+        count,
+        countId,
         onClick,
         tooltip: tooltipText,
         tooltipShortcut,
@@ -48,6 +61,7 @@ const HeaderIconWrapper = (props: Props) => {
         size = 'x-small',
     } = props;
 
+    const buttonRef = useRef<HTMLButtonElement>(null);
     const boardsEnabled = pluginId === suitePluginIds.focalboard;
 
     const ariaLabelText = ariaLabelOverride ?? tooltipText;
@@ -57,6 +71,17 @@ const HeaderIconWrapper = (props: Props) => {
         replace(/\s{2,}/g, ' ').
         trim();
 
+    // IconButton does not expose a count element id; set it for legacy Cypress selectors.
+    useLayoutEffect(() => {
+        if (!buttonRef.current || count === undefined || !countId) {
+            return;
+        }
+        const countEl = buttonRef.current.children[1] as HTMLElement | undefined;
+        if (countEl) {
+            countEl.id = countId;
+        }
+    }, [count, countId]);
+
     return (
         <>
             <WithTooltip
@@ -64,10 +89,12 @@ const HeaderIconWrapper = (props: Props) => {
                 shortcut={tooltipShortcut}
             >
                 <IconButton
+                    ref={buttonRef}
                     id={buttonId}
                     size={size}
                     className={cleanedClassName}
                     icon={children}
+                    count={count}
                     active={active}
                     onClick={onClick}
                     aria-label={ariaLabelText}

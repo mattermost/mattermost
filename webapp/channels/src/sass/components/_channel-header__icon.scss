@@ -114,9 +114,14 @@
     height: 24px;
 }
 
+// Wide IconButtons use Compass --has-count for gap + count typography; only unlock width here.
 .channel-header__info .channel-header__icons .channel-header__icon--wide {
     width: auto;
     min-width: unset;
+}
+
+// Legacy plugin overflow toggle (not IconButton) still lays out icon + .icon__text itself.
+#pluginChannelHeaderButtonDropdown.channel-header__icon--wide {
     padding: 0 4px;
     gap: 4px;
 }

@@ -266,20 +266,7 @@ class ChannelHeader extends React.PureComponent<Props> {
         }
 
         const channelFilesIcon = <i className='icon icon-file-text-outline'/>;
-        const pinnedIcon = this.props.pinnedPostsCount ? (
-            <>
-                <i
-                    aria-hidden='true'
-                    className='icon icon-pin-outline channel-header__pin'
-                />
-                <span
-                    id='channelPinnedPostCountText'
-                    className='icon__text'
-                >
-                    {this.props.pinnedPostsCount}
-                </span>
-            </>
-        ) : (
+        const pinnedIcon = (
             <i
                 aria-hidden='true'
                 className='icon icon-pin-outline channel-header__pin'
@@ -291,6 +278,8 @@ class ChannelHeader extends React.PureComponent<Props> {
                 active={rhsState === RHSStates.PIN}
                 buttonClass='channel-header__icon channel-header__icon--wide'
                 buttonId={'channelHeaderPinButton'}
+                count={this.props.pinnedPostsCount}
+                countId='channelPinnedPostCountText'
                 onClick={this.showPinnedPosts}
                 tooltip={this.props.intl.formatMessage({id: 'channel_header.pinnedPosts', defaultMessage: 'Pinned messages'})}
             >
@@ -303,27 +292,19 @@ class ChannelHeader extends React.PureComponent<Props> {
         let memberListButton = null;
         if (!isDirect) {
             const membersIcon = (
-                <>
-                    <span className='channel-header__members-icon-wrapper'>
-                        <i
+                <span className='channel-header__members-icon-wrapper'>
+                    <i
+                        aria-hidden='true'
+                        className='icon icon-account-outline channel-header__members'
+                    />
+                    {this.props.hasPendingJoinRequests && (
+                        <span
+                            className='channel-header__join-request-badge'
                             aria-hidden='true'
-                            className='icon icon-account-outline channel-header__members'
+                            data-testid='channelHeaderJoinRequestBadge'
                         />
-                        {this.props.hasPendingJoinRequests && (
-                            <span
-                                className='channel-header__join-request-badge'
-                                aria-hidden='true'
-                                data-testid='channelHeaderJoinRequestBadge'
-                            />
-                        )}
-                    </span>
-                    <span
-                        id='channelMemberCountText'
-                        className='icon__text'
-                    >
-                        {this.props.memberCount || '-'}
-                    </span>
-                </>
+                    )}
+                </span>
             );
 
             memberListButton = (
@@ -334,6 +315,8 @@ class ChannelHeader extends React.PureComponent<Props> {
                     )}
                     buttonClass='member-rhs__trigger channel-header__icon channel-header__icon--wide'
                     buttonId={'member_rhs'}
+                    count={this.props.memberCount}
+                    countId='channelMemberCountText'
                     onClick={this.toggleChannelMembersRHS}
                 >
                     {membersIcon}

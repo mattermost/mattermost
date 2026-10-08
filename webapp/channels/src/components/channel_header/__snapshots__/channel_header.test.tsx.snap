@@ -270,7 +270,7 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--has-count_g2m23_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
@@ -286,12 +286,12 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
                       class="icon icon-account-outline channel-header__members"
                     />
                   </span>
-                  <span
-                    class="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    2
-                  </span>
+                </span>
+                <span
+                  class="_icon-button__count_g2m23_51"
+                  id="channelMemberCountText"
+                >
+                  2
                 </span>
               </button>
               <button
@@ -409,7 +409,7 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--has-count_g2m23_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
@@ -425,12 +425,12 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
                       class="icon icon-account-outline channel-header__members"
                     />
                   </span>
-                  <span
-                    class="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    2
-                  </span>
+                </span>
+                <span
+                  class="_icon-button__count_g2m23_51"
+                  id="channelMemberCountText"
+                >
+                  2
                 </span>
               </button>
               <button
@@ -547,7 +547,7 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--has-count_g2m23_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
@@ -563,12 +563,12 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
                       class="icon icon-account-outline channel-header__members"
                     />
                   </span>
-                  <span
-                    class="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    2
-                  </span>
+                </span>
+                <span
+                  class="_icon-button__count_g2m23_51"
+                  id="channelMemberCountText"
+                >
+                  2
                 </span>
               </button>
               <button
@@ -685,7 +685,7 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--has-count_g2m23_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
@@ -701,17 +701,17 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
                       class="icon icon-account-outline channel-header__members"
                     />
                   </span>
-                  <span
-                    class="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    2
-                  </span>
+                </span>
+                <span
+                  class="_icon-button__count_g2m23_51"
+                  id="channelMemberCountText"
+                >
+                  2
                 </span>
               </button>
               <button
                 aria-label="Pinned messages"
-                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--active_g2m23_25 channel-header__icon channel-header__icon--wide"
+                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--active_g2m23_25 _icon-button--has-count_g2m23_111 channel-header__icon channel-header__icon--wide"
                 data-active="true"
                 id="channelHeaderPinButton"
                 type="button"
@@ -724,12 +724,12 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
                     aria-hidden="true"
                     class="icon icon-pin-outline channel-header__pin"
                   />
-                  <span
-                    class="icon__text"
-                    id="channelPinnedPostCountText"
-                  >
-                    2
-                  </span>
+                </span>
+                <span
+                  class="_icon-button__count_g2m23_51"
+                  id="channelPinnedPostCountText"
+                >
+                  2
                 </span>
               </button>
               <button
@@ -846,7 +846,7 @@ exports[`components/ChannelHeader should render archived view 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--has-count_g2m23_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
@@ -862,12 +862,12 @@ exports[`components/ChannelHeader should render archived view 1`] = `
                       class="icon icon-account-outline channel-header__members"
                     />
                   </span>
-                  <span
-                    class="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    2
-                  </span>
+                </span>
+                <span
+                  class="_icon-button__count_g2m23_51"
+                  id="channelMemberCountText"
+                >
+                  2
                 </span>
               </button>
               <button
@@ -1000,7 +1000,7 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
               </button>
               <button
                 aria-label="Members"
-                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--has-count_g2m23_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
@@ -1016,12 +1016,12 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
                       class="icon icon-account-outline channel-header__members"
                     />
                   </span>
-                  <span
-                    class="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    2
-                  </span>
+                </span>
+                <span
+                  class="_icon-button__count_g2m23_51"
+                  id="channelMemberCountText"
+                >
+                  2
                 </span>
               </button>
               <button
@@ -1138,7 +1138,7 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--has-count_g2m23_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
@@ -1154,12 +1154,12 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
                       class="icon icon-account-outline channel-header__members"
                     />
                   </span>
-                  <span
-                    class="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    2
-                  </span>
+                </span>
+                <span
+                  class="_icon-button__count_g2m23_51"
+                  id="channelMemberCountText"
+                >
+                  2
                 </span>
               </button>
               <button
@@ -1531,7 +1531,7 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--has-count_g2m23_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
@@ -1547,12 +1547,12 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
                       class="icon icon-account-outline channel-header__members"
                     />
                   </span>
-                  <span
-                    class="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    2
-                  </span>
+                </span>
+                <span
+                  class="_icon-button__count_g2m23_51"
+                  id="channelMemberCountText"
+                >
+                  2
                 </span>
               </button>
               <button
@@ -1669,7 +1669,7 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--has-count_g2m23_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
@@ -1685,12 +1685,12 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
                       class="icon icon-account-outline channel-header__members"
                     />
                   </span>
-                  <span
-                    class="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    2
-                  </span>
+                </span>
+                <span
+                  class="_icon-button__count_g2m23_51"
+                  id="channelMemberCountText"
+                >
+                  2
                 </span>
               </button>
               <button
@@ -1807,7 +1807,7 @@ exports[`components/ChannelHeader should render properly when populated with cha
             >
               <button
                 aria-label="Members"
-                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--has-count_g2m23_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
@@ -1823,12 +1823,12 @@ exports[`components/ChannelHeader should render properly when populated with cha
                       class="icon icon-account-outline channel-header__members"
                     />
                   </span>
-                  <span
-                    class="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    2
-                  </span>
+                </span>
+                <span
+                  class="_icon-button__count_g2m23_51"
+                  id="channelMemberCountText"
+                >
+                  2
                 </span>
               </button>
               <button
@@ -1945,7 +1945,7 @@ exports[`components/ChannelHeader should render properly when there are pending 
             >
               <button
                 aria-label="Members — pending join requests"
-                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--has-count_g2m23_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
@@ -1966,12 +1966,12 @@ exports[`components/ChannelHeader should render properly when there are pending 
                       data-testid="channelHeaderJoinRequestBadge"
                     />
                   </span>
-                  <span
-                    class="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    2
-                  </span>
+                </span>
+                <span
+                  class="_icon-button__count_g2m23_51"
+                  id="channelMemberCountText"
+                >
+                  2
                 </span>
               </button>
               <button
@@ -2088,7 +2088,7 @@ exports[`components/ChannelHeader should render shared view 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--has-count_g2m23_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
@@ -2104,12 +2104,12 @@ exports[`components/ChannelHeader should render shared view 1`] = `
                       class="icon icon-account-outline channel-header__members"
                     />
                   </span>
-                  <span
-                    class="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    2
-                  </span>
+                </span>
+                <span
+                  class="_icon-button__count_g2m23_51"
+                  id="channelMemberCountText"
+                >
+                  2
                 </span>
               </button>
               <button
@@ -2226,7 +2226,7 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
             >
               <button
                 aria-label="Members"
-                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--has-count_g2m23_111 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
@@ -2242,17 +2242,17 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
                       class="icon icon-account-outline channel-header__members"
                     />
                   </span>
-                  <span
-                    class="icon__text"
-                    id="channelMemberCountText"
-                  >
-                    2
-                  </span>
+                </span>
+                <span
+                  class="_icon-button__count_g2m23_51"
+                  id="channelMemberCountText"
+                >
+                  2
                 </span>
               </button>
               <button
                 aria-label="Pinned messages"
-                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 channel-header__icon channel-header__icon--wide"
+                class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--has-count_g2m23_111 channel-header__icon channel-header__icon--wide"
                 id="channelHeaderPinButton"
                 type="button"
               >
@@ -2264,12 +2264,12 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
                     aria-hidden="true"
                     class="icon icon-pin-outline channel-header__pin"
                   />
-                  <span
-                    class="icon__text"
-                    id="channelPinnedPostCountText"
-                  >
-                    2
-                  </span>
+                </span>
+                <span
+                  class="_icon-button__count_g2m23_51"
+                  id="channelPinnedPostCountText"
+                >
+                  2
                 </span>
               </button>
               <button
