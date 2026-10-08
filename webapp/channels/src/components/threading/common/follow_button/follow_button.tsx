@@ -47,7 +47,7 @@ function FollowButton({
                             aria-hidden='true'
                         />
                     }
-                    toggled={following}
+                    active={following}
                     disabled={Boolean(disabled)}
                     aria-label={label}
                     aria-pressed={following}
