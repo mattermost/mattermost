@@ -48,6 +48,7 @@ describe('Actions.Health', () => {
         const list = {evaluated_at: 5000, findings: [finding]};
         nock(Client4.getBaseRoute()).
             get('/health/findings').
+            query({muted: 'included'}).
             reply(200, list);
 
         const result = await store.dispatch(Actions.getHealthFindings());
@@ -71,6 +72,7 @@ describe('Actions.Health', () => {
     test('getHealthFindings returns the error and keeps the store unchanged on failure', async () => {
         nock(Client4.getBaseRoute()).
             get('/health/findings').
+            query({muted: 'included'}).
             reply(403, {message: 'forbidden', status_code: 403});
 
         const result = await store.dispatch(Actions.getHealthFindings());

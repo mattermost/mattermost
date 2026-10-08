@@ -22,7 +22,7 @@ type Props = {
     now: number;
     expanded: boolean;
     onToggle: (fingerprint: string) => void;
-    onMute: (fingerprint: string) => void;
+    onMute: (finding: HealthFinding) => void;
     onUnmute: (fingerprint: string) => void;
     hideArea?: boolean;
 };
@@ -148,6 +148,7 @@ const FindingRow = ({finding, now, expanded, onToggle, onMute, onUnmute, hideAre
                 <span className='HealthFinding__action'>
                     <MuteButton
                         finding={finding}
+                        muted={muted}
                         onMute={onMute}
                         onUnmute={onUnmute}
                     />

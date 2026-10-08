@@ -11,7 +11,8 @@ import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
-export function getHealthFindings(filter: HealthFindingFilter = {}): ActionFuncAsync<HealthFindingList> {
+// Muted findings are included by default because the selectors split muted from unmuted.
+export function getHealthFindings(filter: HealthFindingFilter = {muted: 'included'}): ActionFuncAsync<HealthFindingList> {
     return bindClientFunc({
         clientFunc: Client4.getHealthFindings,
         onSuccess: HealthTypes.RECEIVED_HEALTH_FINDINGS,

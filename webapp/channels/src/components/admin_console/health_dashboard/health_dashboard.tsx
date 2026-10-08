@@ -3,7 +3,8 @@
 
 import classNames from 'classnames';
 import React, {useCallback, useEffect, useId, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 
 import {BellOffOutlineIcon} from '@mattermost/compass-icons/components';
 import type {HealthFinding, HealthFindingFilter, HealthFindingList} from '@mattermost/types/health';
@@ -45,6 +46,16 @@ export type Props = {
         unmuteHealthFinding: (fingerprint: string) => Promise<ActionResult>;
     };
 };
+
+const muteErrorMessage = defineMessage({
+    id: 'admin.health_dashboard.mute.error',
+    defaultMessage: 'The finding could not be muted, so it is still in the open list. Try again.',
+});
+
+const unmuteErrorMessage = defineMessage({
+    id: 'admin.health_dashboard.unmute.error',
+    defaultMessage: 'The finding could not be unmuted, so it is still muted. Try again.',
+});
 
 type FindingGroupsProps = RowState & {
     findings: HealthFinding[];
@@ -93,12 +104,12 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
     const [expanded, setExpanded] = useState<string | null>(null);
     const [showMuted, setShowMuted] = useState(false);
     const [confirmingMute, setConfirmingMute] = useState<HealthFinding | null>(null);
-    const [muteError, setMuteError] = useState<'mute' | 'unmute' | null>(null);
+    const [muteError, setMuteError] = useState<MessageDescriptor | null>(null);
     const idPrefix = useId();
     const panelId = `${idPrefix}-panel`;
 
     useEffect(() => {
-        actions.getHealthFindings({muted: 'included'}).then(({error}) => {
+        actions.getHealthFindings().then(({error}) => {
             setFailed(Boolean(error));
             setNow(Date.now());
             setLoading(false);
@@ -125,21 +136,17 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
         setExpanded((current) => (current === fingerprint ? null : fingerprint));
     }, []);
 
-    const requestMute = useCallback((fingerprint: string) => {
-        setConfirmingMute(findings.find((finding) => finding.fingerprint === fingerprint) ?? null);
-    }, [findings]);
-
     const mute = useCallback(async (fingerprint: string) => {
         const {error} = await actions.muteHealthFinding(fingerprint);
-        setMuteError(error ? 'mute' : null);
+        setMuteError(error ? muteErrorMessage : null);
     }, [actions]);
 
     const unmute = useCallback(async (fingerprint: string) => {
         const {error} = await actions.unmuteHealthFinding(fingerprint);
-        setMuteError(error ? 'unmute' : null);
+        setMuteError(error ? unmuteErrorMessage : null);
     }, [actions]);
 
-    const rowState = {now, expanded, onToggle: toggle, onMute: requestMute, onUnmute: unmute};
+    const rowState = {now, expanded, onToggle: toggle, onMute: setConfirmingMute, onUnmute: unmute};
 
     let content;
     if (loading) {
@@ -229,17 +236,7 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
                         mode='danger'
                         className='HealthDashboard__muteError'
                         onDismiss={() => setMuteError(null)}
-                        message={muteError === 'mute' ? (
-                            <FormattedMessage
-                                id='admin.health_dashboard.mute.error'
-                                defaultMessage='The finding could not be muted, so it is still in the open list. Try again.'
-                            />
-                        ) : (
-                            <FormattedMessage
-                                id='admin.health_dashboard.unmute.error'
-                                defaultMessage='The finding could not be unmuted, so it is still muted. Try again.'
-                            />
-                        )}
+                        message={<FormattedMessage {...muteError}/>}
                     />
                 )}
                 {showMuted ? (
