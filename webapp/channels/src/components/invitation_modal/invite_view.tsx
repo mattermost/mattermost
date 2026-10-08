@@ -6,7 +6,11 @@ import React, {useEffect, useMemo} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
+import {CloseIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel} from '@mattermost/types/channels';
 import type {LockProfileFieldsSetting} from '@mattermost/types/config';
 import type {MemberInviteProfile, Team} from '@mattermost/types/teams';
@@ -244,6 +248,11 @@ export default function InviteView(props: Props) {
         defaultMessage: 'guests',
     });
 
+    const closeLabel = formatMessage({
+        id: 'generic_modal.close',
+        defaultMessage: 'Close',
+    });
+
     return (
         <>
             <Modal.Header className={props.headerClass}>
@@ -262,13 +271,16 @@ export default function InviteView(props: Props) {
                         }}
                     />
                 </h1>
-                <button
-                    id='closeIcon'
-                    className='icon icon-close close'
-                    aria-label='Close'
-                    title='Close'
-                    onClick={props.onClose}
-                />
+                <WithTooltip title={closeLabel}>
+                    <IconButton
+                        id='closeIcon'
+                        className='GenericModal__close'
+                        size='medium'
+                        icon={<Icon glyph={<CloseIcon/>}/>}
+                        onClick={props.onClose}
+                        aria-label={closeLabel}
+                    />
+                </WithTooltip>
             </Modal.Header>
             <Modal.Body className='overflow-visible'>
                 {props.membershipPolicyEnforced && (
