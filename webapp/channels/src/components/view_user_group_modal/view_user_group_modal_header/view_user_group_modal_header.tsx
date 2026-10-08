@@ -172,8 +172,8 @@ const ViewUserGroupModalHeader = ({
     }, [backButtonCallback, onExited]);
 
     return (
-        <Modal.Header>
-            <div className='d-flex align-items-center'>
+        <Modal.Header closeButton={false}>
+            <div className='user-groups-modal__header-title-row d-flex align-items-start'>
                 <WithTooltip title={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}>
                     <IconButton
                         size='medium'
@@ -185,14 +185,14 @@ const ViewUserGroupModalHeader = ({
                 </WithTooltip>
                 {modalTitle()}
             </div>
-            <div className='d-flex align-items-center'>
+            <div className='d-flex align-items-start'>
                 {addPeopleButton()}
                 {restoreGroupButton()}
                 {subMenuButton()}
             </div>
             <WithTooltip title={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}>
                 <IconButton
-                    className='view-user-groups-modal__close'
+                    className='user-groups-modal__header-close'
                     size='medium'
                     icon={<Icon glyph={<CloseIcon/>}/>}
                     onClick={onExited}

@@ -5,7 +5,7 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, type IntlShape, defineMessage, injectIntl} from 'react-intl';
 
-import {ArrowLeftIcon} from '@mattermost/compass-icons/components';
+import {ArrowLeftIcon, CloseIcon} from '@mattermost/compass-icons/components';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -242,10 +242,10 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                         />
                     }
                 </div>
-                <Modal.Header closeButton={true}>
+                <Modal.Header closeButton={false}>
                     {
                         typeof this.props.backButtonCallback === 'function' ? (
-                            <div className='d-flex align-items-center'>
+                            <div className='user-groups-modal__header-title-row d-flex align-items-start'>
                                 <WithTooltip title={this.props.intl.formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}>
                                     <IconButton
                                         size='medium'
@@ -277,7 +277,15 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                             </Modal.Title>
                         )
                     }
-
+                    <WithTooltip title={this.props.intl.formatMessage({id: 'generic.close', defaultMessage: 'Close'})}>
+                        <IconButton
+                            className='user-groups-modal__header-close'
+                            size='medium'
+                            icon={<Icon glyph={<CloseIcon/>}/>}
+                            onClick={this.doHide}
+                            aria-label={this.props.intl.formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
+                        />
+                    </WithTooltip>
                 </Modal.Header>
                 <Modal.Body>
                     <div className='user-groups-modal__content'>

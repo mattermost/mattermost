@@ -5,7 +5,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {ArrowLeftIcon} from '@mattermost/compass-icons/components';
+import {ArrowLeftIcon, CloseIcon} from '@mattermost/compass-icons/components';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {Button} from '@mattermost/shared/components/button';
@@ -175,8 +175,8 @@ const UpdateUserGroupModal = ({
             aria-labelledby='createUserGroupsModalLabel'
             id='createUserGroupsModal'
         >
-            <Modal.Header closeButton={true}>
-                <div className='d-flex align-items-center'>
+            <Modal.Header closeButton={false}>
+                <div className='user-groups-modal__header-title-row d-flex align-items-start'>
                     <WithTooltip title={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}>
                         <IconButton
                             size='medium'
@@ -196,6 +196,15 @@ const UpdateUserGroupModal = ({
                         />
                     </Modal.Title>
                 </div>
+                <WithTooltip title={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}>
+                    <IconButton
+                        className='user-groups-modal__header-close'
+                        size='medium'
+                        icon={<Icon glyph={<CloseIcon/>}/>}
+                        onClick={doHide}
+                        aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
+                    />
+                </WithTooltip>
             </Modal.Header>
             <Modal.Body
                 className='overflow--visible'

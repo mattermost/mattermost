@@ -9,6 +9,26 @@
     .modal-content {
         border-radius: 8px;
 
+        .modal-header {
+            align-items: flex-start;
+
+            .user-groups-modal__header-title-row {
+                flex: 1;
+                min-width: 0;
+
+                .modal-title {
+                    margin-left: 16px;
+                }
+            }
+
+            .user-groups-modal__header-close {
+                position: static;
+                top: auto;
+                right: auto;
+                flex-shrink: 0;
+            }
+        }
+
         .ad_ldap_upsell_banner {
             position: sticky;
             z-index: 4;
