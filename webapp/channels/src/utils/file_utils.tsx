@@ -35,6 +35,14 @@ export function isFileAttachmentsEnabled(config: Partial<ClientConfig>): boolean
     return config.EnableFileAttachments === 'true';
 }
 
+export function isFileSearchEnabled(config: Partial<ClientConfig>): boolean {
+    return config.EnableFileSearch === 'true';
+}
+
+export function canSearchFiles(config: Partial<ClientConfig>): boolean {
+    return isFileAttachmentsEnabled(config) && isFileSearchEnabled(config);
+}
+
 export function isMobileFileUploadsEnabled(config: Partial<ClientConfig>): boolean {
     return config.EnableMobileFileUpload === 'true';
 }
