@@ -4,7 +4,6 @@
 import {createMenuIconButtonTrigger} from 'components/menu';
 
 export const SidebarMenuTrigger = createMenuIconButtonTrigger({
-    size: 'small',
-    padding: 'compact',
+    size: 'x-small',
     style: 'inverted',
 });

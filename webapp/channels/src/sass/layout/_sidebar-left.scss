@@ -814,27 +814,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
     .SidebarChannelGroupHeader_addButton {
         z-index: 1;
-        width: 28px;
-        min-width: 28px;
-        height: 28px;
-        padding: 0;
-        border: none;
-        border-radius: 4px;
         margin: 2px 16px 2px 2px;
-        background: transparent;
-        color: rgba(var(--sidebar-text-rgb), 0.64);
-        font-size: 18px;
-        line-height: 16px;
-    }
-
-    .SidebarChannelGroupHeader_addButton:hover {
-        background-color: rgba(255, 255, 255, 0.08);
-        color: var(--sidebar-text);
-        cursor: pointer;
-    }
-
-    .SidebarChannelGroupHeader_addButton:focus {
-        outline-style: none;
     }
 
     .SidebarChannelGroupHeader_sortButton {

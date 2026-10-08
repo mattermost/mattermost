@@ -30,7 +30,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should fetch sh
         aria-expanded="false"
         aria-haspopup="true"
         aria-label="Channel options for "
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 _icon-button--padding-compact_g2m23_64 _icon-button--style-inverted_g2m23_145 SidebarMenu_menuButton"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--style-inverted_g2m23_145 SidebarMenu_menuButton"
         id="SidebarChannelMenu-Button-channel_id"
         type="button"
       >
@@ -40,17 +40,17 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should fetch sh
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1i355_2 _icon--size-12_1i355_30"
           >
             <div
               class="_icon__glyph-area_1i355_9"
             >
               <svg
                 fill="currentColor"
-                height="18"
+                height="14"
                 version="1.1"
                 viewBox="0 0 24 24"
-                width="18"
+                width="14"
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path
@@ -92,7 +92,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
         aria-expanded="false"
         aria-haspopup="true"
         aria-label="Channel options for "
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 _icon-button--padding-compact_g2m23_64 _icon-button--style-inverted_g2m23_145 SidebarMenu_menuButton"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--style-inverted_g2m23_145 SidebarMenu_menuButton"
         id="SidebarChannelMenu-Button-channel_id"
         type="button"
       >
@@ -102,17 +102,17 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1i355_2 _icon--size-12_1i355_30"
           >
             <div
               class="_icon__glyph-area_1i355_9"
             >
               <svg
                 fill="currentColor"
-                height="18"
+                height="14"
                 version="1.1"
                 viewBox="0 0 24 24"
-                width="18"
+                width="14"
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path
@@ -154,7 +154,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
         aria-expanded="false"
         aria-haspopup="true"
         aria-label="Channel options for "
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 _icon-button--padding-compact_g2m23_64 _icon-button--style-inverted_g2m23_145 SidebarMenu_menuButton"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--style-inverted_g2m23_145 SidebarMenu_menuButton"
         id="SidebarChannelMenu-Button-channel_id"
         type="button"
       >
@@ -164,17 +164,17 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1i355_2 _icon--size-12_1i355_30"
           >
             <div
               class="_icon__glyph-area_1i355_9"
             >
               <svg
                 fill="currentColor"
-                height="18"
+                height="14"
                 version="1.1"
                 viewBox="0 0 24 24"
-                width="18"
+                width="14"
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path
@@ -216,7 +216,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
         aria-expanded="false"
         aria-haspopup="true"
         aria-label="Channel options for "
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 _icon-button--padding-compact_g2m23_64 _icon-button--style-inverted_g2m23_145 SidebarMenu_menuButton"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--style-inverted_g2m23_145 SidebarMenu_menuButton"
         id="SidebarChannelMenu-Button-channel_id"
         type="button"
       >
@@ -226,17 +226,17 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1i355_2 _icon--size-12_1i355_30"
           >
             <div
               class="_icon__glyph-area_1i355_9"
             >
               <svg
                 fill="currentColor"
-                height="18"
+                height="14"
                 version="1.1"
                 viewBox="0 0 24 24"
-                width="18"
+                width="14"
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path
@@ -289,7 +289,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
         aria-expanded="false"
         aria-haspopup="true"
         aria-label="Channel options for "
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 _icon-button--padding-compact_g2m23_64 _icon-button--style-inverted_g2m23_145 SidebarMenu_menuButton"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--style-inverted_g2m23_145 SidebarMenu_menuButton"
         id="SidebarChannelMenu-Button-channel_id"
         type="button"
       >
@@ -299,17 +299,17 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1i355_2 _icon--size-12_1i355_30"
           >
             <div
               class="_icon__glyph-area_1i355_9"
             >
               <svg
                 fill="currentColor"
-                height="18"
+                height="14"
                 version="1.1"
                 viewBox="0 0 24 24"
-                width="18"
+                width="14"
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path
@@ -355,7 +355,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should not fetc
         aria-expanded="false"
         aria-haspopup="true"
         aria-label="Channel options for "
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 _icon-button--padding-compact_g2m23_64 _icon-button--style-inverted_g2m23_145 SidebarMenu_menuButton"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--style-inverted_g2m23_145 SidebarMenu_menuButton"
         id="SidebarChannelMenu-Button-channel_id"
         type="button"
       >
@@ -365,17 +365,17 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should not fetc
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1i355_2 _icon--size-12_1i355_30"
           >
             <div
               class="_icon__glyph-area_1i355_9"
             >
               <svg
                 fill="currentColor"
-                height="18"
+                height="14"
                 version="1.1"
                 viewBox="0 0 24 24"
-                width="18"
+                width="14"
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path
@@ -417,7 +417,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should not fetc
         aria-expanded="false"
         aria-haspopup="true"
         aria-label="Channel options for "
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 _icon-button--padding-compact_g2m23_64 _icon-button--style-inverted_g2m23_145 SidebarMenu_menuButton"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--style-inverted_g2m23_145 SidebarMenu_menuButton"
         id="SidebarChannelMenu-Button-channel_id"
         type="button"
       >
@@ -427,17 +427,17 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should not fetc
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1i355_2 _icon--size-12_1i355_30"
           >
             <div
               class="_icon__glyph-area_1i355_9"
             >
               <svg
                 fill="currentColor"
-                height="18"
+                height="14"
                 version="1.1"
                 viewBox="0 0 24 24"
-                width="18"
+                width="14"
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path

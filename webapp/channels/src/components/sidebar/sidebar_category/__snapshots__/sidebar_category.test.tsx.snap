@@ -245,7 +245,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
           />
           <button
             aria-label="Write a direct message"
-            class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 _icon-button--padding-compact_g2m23_64 _icon-button--style-inverted_g2m23_145 SidebarChannelGroupHeader_addButton"
+            class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--style-inverted_g2m23_145 SidebarChannelGroupHeader_addButton"
             id="newDirectMessageButton"
             type="button"
           >
@@ -253,10 +253,27 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
               aria-hidden="true"
               class="_icon-button__icon-slot_g2m23_33"
             >
-              <i
+              <div
                 aria-hidden="true"
-                class="icon icon-plus"
-              />
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"
+                    />
+                  </svg>
+                </div>
+              </div>
             </span>
           </button>
         </div>
@@ -323,7 +340,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
           />
           <button
             aria-label="Write a direct message"
-            class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 _icon-button--padding-compact_g2m23_64 _icon-button--style-inverted_g2m23_145 SidebarChannelGroupHeader_addButton"
+            class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--style-inverted_g2m23_145 SidebarChannelGroupHeader_addButton"
             id="newDirectMessageButton"
             type="button"
           >
@@ -331,10 +348,27 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
               aria-hidden="true"
               class="_icon-button__icon-slot_g2m23_33"
             >
-              <i
+              <div
                 aria-hidden="true"
-                class="icon icon-plus"
-              />
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"
+                    />
+                  </svg>
+                </div>
+              </div>
             </span>
           </button>
         </div>
