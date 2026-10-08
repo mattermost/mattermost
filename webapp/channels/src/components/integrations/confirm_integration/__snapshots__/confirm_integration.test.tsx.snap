@@ -60,9 +60,37 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, comma
         </code>
         <button
           aria-label="Copy Token"
-          class="btn btn-link icon-content-copy ml-2"
+          class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 ml-2"
           data-testid="copyText"
-        />
+          type="button"
+        >
+          <span
+            aria-hidden="true"
+            class="_icon-button__icon-slot_mytxt_33"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-12_1i355_30"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="14"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="14"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+        </button>
       </p>
       <div
         class="backstage-form__footer"
@@ -139,9 +167,37 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, incom
         </code>
         <button
           aria-label="Copy Token"
-          class="btn btn-link icon-content-copy ml-2"
+          class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 ml-2"
           data-testid="copyText"
-        />
+          type="button"
+        >
+          <span
+            aria-hidden="true"
+            class="_icon-button__icon-slot_mytxt_33"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-12_1i355_30"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="14"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="14"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+        </button>
       </p>
       <div
         class="backstage-form__footer"
@@ -216,9 +272,37 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
         </code>
         <button
           aria-label="Copy Client Id"
-          class="btn btn-link icon-content-copy ml-2"
+          class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 ml-2"
           data-testid="copyText"
-        />
+          type="button"
+        >
+          <span
+            aria-hidden="true"
+            class="_icon-button__icon-slot_mytxt_33"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-12_1i355_30"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="14"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="14"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+        </button>
         <br />
         <b>
           Client Secret
@@ -229,9 +313,37 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
         </code>
         <button
           aria-label="Copy Client Secret"
-          class="btn btn-link icon-content-copy ml-2"
+          class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 ml-2"
           data-testid="copyText"
-        />
+          type="button"
+        >
+          <span
+            aria-hidden="true"
+            class="_icon-button__icon-slot_mytxt_33"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-12_1i355_30"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="14"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="14"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+        </button>
       </p>
       <p>
         Here are your authorized redirect URLs.
@@ -321,9 +433,37 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
         </code>
         <button
           aria-label="Copy Token"
-          class="btn btn-link icon-content-copy ml-2"
+          class="_icon-button_mytxt_2 _icon-button--size-x-small_mytxt_55 ml-2"
           data-testid="copyText"
-        />
+          type="button"
+        >
+          <span
+            aria-hidden="true"
+            class="_icon-button__icon-slot_mytxt_33"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-12_1i355_30"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="14"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="14"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+        </button>
       </p>
       <div
         class="backstage-form__footer"
