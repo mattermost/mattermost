@@ -269,11 +269,15 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
               </div>
             </div>
             <button
-              class="btn btn-primary btn-sm Filter_apply"
+              class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-small_doayp_40 Filter_apply"
               disabled=""
               type="button"
             >
-              Apply
+              <span
+                class="_button__label_doayp_24"
+              >
+                Apply
+              </span>
             </button>
           </div>
         </div>
@@ -703,11 +707,15 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
               </div>
             </div>
             <button
-              class="btn btn-primary btn-sm Filter_apply"
+              class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-small_doayp_40 Filter_apply"
               disabled=""
               type="button"
             >
-              Apply
+              <span
+                class="_button__label_doayp_24"
+              >
+                Apply
+              </span>
             </button>
           </div>
         </div>
@@ -1892,11 +1900,15 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should match sn
               </div>
             </div>
             <button
-              class="btn btn-primary btn-sm Filter_apply"
+              class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-small_doayp_40 Filter_apply"
               disabled=""
               type="button"
             >
-              Apply
+              <span
+                class="_button__label_doayp_24"
+              >
+                Apply
+              </span>
             </button>
           </div>
         </div>
@@ -2330,11 +2342,15 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
               </div>
             </div>
             <button
-              class="btn btn-primary btn-sm Filter_apply"
+              class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-small_doayp_40 Filter_apply"
               disabled=""
               type="button"
             >
-              Apply
+              <span
+                class="_button__label_doayp_24"
+              >
+                Apply
+              </span>
             </button>
           </div>
         </div>
@@ -2756,11 +2772,15 @@ exports[`admin_console/team_channel_settings/channel/ChannelList should render c
               </div>
             </div>
             <button
-              class="btn btn-primary btn-sm Filter_apply"
+              class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-small_doayp_40 Filter_apply"
               disabled=""
               type="button"
             >
-              Apply
+              <span
+                class="_button__label_doayp_24"
+              >
+                Apply
+              </span>
             </button>
           </div>
         </div>

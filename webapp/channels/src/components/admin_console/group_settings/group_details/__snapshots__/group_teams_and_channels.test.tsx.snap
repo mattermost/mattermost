@@ -63,11 +63,15 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
             class="text-right"
           >
             <button
-              class="btn btn-tertiary"
+              class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
               data-testid="Team 1_groupsyncable_remove"
               type="button"
             >
-              Remove
+              <span
+                class="_button__label_doayp_24"
+              >
+                Remove
+              </span>
             </button>
           </td>
         </tr>
@@ -113,11 +117,15 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
             class="text-right"
           >
             <button
-              class="btn btn-tertiary"
+              class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
               data-testid="Channel 4_groupsyncable_remove"
               type="button"
             >
-              Remove
+              <span
+                class="_button__label_doayp_24"
+              >
+                Remove
+              </span>
             </button>
           </td>
         </tr>
@@ -144,11 +152,15 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
             class="text-right"
           >
             <button
-              class="btn btn-tertiary"
+              class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
               data-testid="Team 2_groupsyncable_remove"
               type="button"
             >
-              Remove
+              <span
+                class="_button__label_doayp_24"
+              >
+                Remove
+              </span>
             </button>
           </td>
         </tr>
@@ -175,11 +187,15 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
             class="text-right"
           >
             <button
-              class="btn btn-tertiary"
+              class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
               data-testid="Team 3_groupsyncable_remove"
               type="button"
             >
-              Remove
+              <span
+                class="_button__label_doayp_24"
+              >
+                Remove
+              </span>
             </button>
           </td>
         </tr>
@@ -210,11 +226,15 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
             class="text-right"
           >
             <button
-              class="btn btn-tertiary"
+              class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
               data-testid="Team 9_groupsyncable_remove"
               type="button"
             >
-              Remove
+              <span
+                class="_button__label_doayp_24"
+              >
+                Remove
+              </span>
             </button>
           </td>
         </tr>
@@ -285,11 +305,15 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
             class="text-right"
           >
             <button
-              class="btn btn-tertiary"
+              class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
               data-testid="Channel 5_groupsyncable_remove"
               type="button"
             >
-              Remove
+              <span
+                class="_button__label_doayp_24"
+              >
+                Remove
+              </span>
             </button>
           </td>
         </tr>
@@ -360,11 +384,15 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
             class="text-right"
           >
             <button
-              class="btn btn-tertiary"
+              class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
               data-testid="Channel 6_groupsyncable_remove"
               type="button"
             >
-              Remove
+              <span
+                class="_button__label_doayp_24"
+              >
+                Remove
+              </span>
             </button>
           </td>
         </tr>

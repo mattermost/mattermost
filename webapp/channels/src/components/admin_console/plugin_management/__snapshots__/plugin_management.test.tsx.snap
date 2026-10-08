@@ -403,9 +403,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div
@@ -823,9 +821,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div
@@ -900,9 +896,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div
@@ -1318,9 +1312,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div
@@ -1744,9 +1736,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div
@@ -2162,9 +2152,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div
@@ -2579,9 +2567,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div
@@ -2999,9 +2985,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div
@@ -3416,9 +3400,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div
@@ -3854,9 +3836,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div
@@ -4554,9 +4534,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div
@@ -5052,9 +5030,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div
@@ -5550,9 +5526,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div
@@ -6048,9 +6022,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div
@@ -6732,9 +6704,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div

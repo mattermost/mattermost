@@ -25,12 +25,17 @@ exports[`components/onboarding_tasklist/onboarding_tasklist_completed.tsx should
       <br />
       Start your free Enterprise trial now!
     </span>
-    <a
-      class="btn btn-secondary"
+    <button
+      class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47"
       id="start_trial_btn"
+      type="button"
     >
-      Start trial
-    </a>
+      <span
+        class="_button__label_doayp_24"
+      >
+        Start trial
+      </span>
+    </button>
     <button
       class="no-thanks-link style-link"
     >

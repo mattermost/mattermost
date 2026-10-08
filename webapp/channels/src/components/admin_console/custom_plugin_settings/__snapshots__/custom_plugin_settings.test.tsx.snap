@@ -275,10 +275,14 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                     class="help-text"
                   >
                     <button
-                      class="btn btn-tertiary"
+                      class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                       type="button"
                     >
-                      Regenerate
+                      <span
+                        class="_button__label_doayp_24"
+                      >
+                        Regenerate
+                      </span>
                     </button>
                   </div>
                   <div
@@ -372,9 +376,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         <span
           class="_button__label_doayp_24"
         >
-          <span>
-            Save
-          </span>
+          Save
         </span>
       </button>
       <div
@@ -427,9 +429,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         <span
           class="_button__label_doayp_24"
         >
-          <span>
-            Save
-          </span>
+          Save
         </span>
       </button>
       <div
@@ -716,10 +716,14 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                     class="help-text"
                   >
                     <button
-                      class="btn btn-tertiary"
+                      class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                       type="button"
                     >
-                      Regenerate
+                      <span
+                        class="_button__label_doayp_24"
+                      >
+                        Regenerate
+                      </span>
                     </button>
                   </div>
                   <div
@@ -813,9 +817,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         <span
           class="_button__label_doayp_24"
         >
-          <span>
-            Save
-          </span>
+          Save
         </span>
       </button>
       <div

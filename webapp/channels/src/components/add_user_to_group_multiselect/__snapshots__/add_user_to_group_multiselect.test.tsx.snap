@@ -90,9 +90,7 @@ exports[`component/add_user_to_group_multiselect should match snapshot with diff
       <span
         class="_button__label_doayp_24"
       >
-        <span>
-          Update Group
-        </span>
+        Update Group
       </span>
     </button>
   </div>
@@ -189,9 +187,7 @@ exports[`component/add_user_to_group_multiselect should match snapshot with prof
       <span
         class="_button__label_doayp_24"
       >
-        <span>
-          Create Group
-        </span>
+        Create Group
       </span>
     </button>
   </div>
@@ -288,9 +284,7 @@ exports[`component/add_user_to_group_multiselect should match snapshot without a
       <span
         class="_button__label_doayp_24"
       >
-        <span>
-          Create Group
-        </span>
+        Create Group
       </span>
     </button>
   </div>

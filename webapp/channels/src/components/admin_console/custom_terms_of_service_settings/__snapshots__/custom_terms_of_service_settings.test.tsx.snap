@@ -149,9 +149,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div

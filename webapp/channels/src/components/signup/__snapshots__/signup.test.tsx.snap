@@ -356,9 +356,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                 <span
                   class="_button__label_doayp_24"
                 >
-                  <span>
-                    Create account
-                  </span>
+                  Create account
                 </span>
               </button>
             </form>
@@ -656,9 +654,7 @@ exports[`components/signup/Signup should match snapshot for all signup options e
                 <span
                   class="_button__label_doayp_24"
                 >
-                  <span>
-                    Create account
-                  </span>
+                  Create account
                 </span>
               </button>
             </form>

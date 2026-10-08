@@ -74,24 +74,32 @@ exports[`admin_console/system_user_detail/team_list/TeamList should match snapsh
         1 - 2 of 2
       </div>
       <button
-        class="btn btn-tertiary prev disabled"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 prev disabled"
         disabled=""
         type="button"
       >
-        <i
-          class="icon icon-chevron-left"
-          title="Previous Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </span>
       </button>
       <button
-        class="btn btn-tertiary next disabled"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 next disabled"
         disabled=""
         type="button"
       >
-        <i
-          class="icon icon-chevron-right"
-          title="Next Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </span>
       </button>
     </div>
   </div>

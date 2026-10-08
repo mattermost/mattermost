@@ -349,9 +349,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div
@@ -712,9 +710,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div
@@ -1075,9 +1071,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div
@@ -1438,9 +1432,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div

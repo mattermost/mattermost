@@ -146,9 +146,7 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
                         <span
                           class="_button__label_doayp_24"
                         >
-                          <span>
-                            Go
-                          </span>
+                          Go
                         </span>
                       </button>
                     </div>
@@ -399,9 +397,7 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
                         <span
                           class="_button__label_doayp_24"
                         >
-                          <span>
-                            Go
-                          </span>
+                          Go
                         </span>
                       </button>
                     </div>

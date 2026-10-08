@@ -156,9 +156,7 @@ exports[`component/update_user_group_modal should match snapshot 1`] = `
                 <span
                   class="_button__label_doayp_24"
                 >
-                  <span>
-                    Save Details
-                  </span>
+                  Save Details
                 </span>
               </button>
             </div>

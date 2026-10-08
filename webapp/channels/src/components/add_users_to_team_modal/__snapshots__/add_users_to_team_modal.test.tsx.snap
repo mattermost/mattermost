@@ -131,9 +131,7 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal sh
                   <span
                     class="_button__label_doayp_24"
                   >
-                    <span>
-                      Add
-                    </span>
+                    Add
                   </span>
                 </button>
               </div>

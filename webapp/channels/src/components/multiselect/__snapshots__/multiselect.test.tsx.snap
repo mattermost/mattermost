@@ -96,9 +96,7 @@ exports[`components/multiselect/multiselect MultiSelectList should match snapsho
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
       </div>
@@ -265,9 +263,7 @@ exports[`components/multiselect/multiselect should match snapshot 1`] = `
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
       </div>
@@ -434,9 +430,7 @@ exports[`components/multiselect/multiselect should match snapshot for page 2 1`]
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
       </div>

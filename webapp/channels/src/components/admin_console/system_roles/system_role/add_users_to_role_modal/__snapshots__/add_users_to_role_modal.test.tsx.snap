@@ -130,9 +130,7 @@ exports[`admin_console/add_users_to_role_modal search should not include bot use
                   <span
                     class="_button__label_doayp_24"
                   >
-                    <span>
-                      Add
-                    </span>
+                    Add
                   </span>
                 </button>
               </div>
@@ -320,9 +318,7 @@ exports[`admin_console/add_users_to_role_modal should exclude user 1`] = `
                   <span
                     class="_button__label_doayp_24"
                   >
-                    <span>
-                      Add
-                    </span>
+                    Add
                   </span>
                 </button>
               </div>
@@ -510,9 +506,7 @@ exports[`admin_console/add_users_to_role_modal should have single passed value 1
                   <span
                     class="_button__label_doayp_24"
                   >
-                    <span>
-                      Add
-                    </span>
+                    Add
                   </span>
                 </button>
               </div>
@@ -700,9 +694,7 @@ exports[`admin_console/add_users_to_role_modal should include additional user 1`
                   <span
                     class="_button__label_doayp_24"
                   >
-                    <span>
-                      Add
-                    </span>
+                    Add
                   </span>
                 </button>
               </div>
@@ -890,9 +882,7 @@ exports[`admin_console/add_users_to_role_modal should not include bot user 1`] =
                   <span
                     class="_button__label_doayp_24"
                   >
-                    <span>
-                      Add
-                    </span>
+                    Add
                   </span>
                 </button>
               </div>

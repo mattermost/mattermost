@@ -406,9 +406,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
         <span
           class="_button__label_doayp_24"
         >
-          <span>
-            Save
-          </span>
+          Save
         </span>
       </button>
       <button
@@ -837,9 +835,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
         <span
           class="_button__label_doayp_24"
         >
-          <span>
-            Save
-          </span>
+          Save
         </span>
       </button>
       <button
@@ -1266,9 +1262,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
         <span
           class="_button__label_doayp_24"
         >
-          <span>
-            Save
-          </span>
+          Save
         </span>
       </button>
       <button
@@ -1693,9 +1687,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
         <span
           class="_button__label_doayp_24"
         >
-          <span>
-            Save
-          </span>
+          Save
         </span>
       </button>
       <button

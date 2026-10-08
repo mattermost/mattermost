@@ -412,11 +412,15 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                   disabled=""
                   type="button"
                 >
-                  Test Connection
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Test Connection
+                  </span>
                 </button>
               </div>
               <div
@@ -448,11 +452,15 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                   >
                     <div>
                       <button
-                        class="btn btn-tertiary"
+                        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                         disabled=""
                         type="button"
                       >
-                        Index Now
+                        <span
+                          class="_button__label_doayp_24"
+                        >
+                          Index Now
+                        </span>
                       </button>
                     </div>
                     <div
@@ -510,11 +518,15 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                   disabled=""
                   type="button"
                 >
-                  Rebuild Channels Index
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Rebuild Channels Index
+                  </span>
                 </button>
               </div>
               <div
@@ -543,11 +555,15 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                   disabled=""
                   type="button"
                 >
-                  Purge Indexes
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Purge Indexes
+                  </span>
                 </button>
               </div>
               <div
@@ -748,9 +764,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div
@@ -1163,10 +1177,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                   type="button"
                 >
-                  Test Connection
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Test Connection
+                  </span>
                 </button>
               </div>
               <div
@@ -1198,10 +1216,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                   >
                     <div>
                       <button
-                        class="btn btn-tertiary"
+                        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                         type="button"
                       >
-                        Index Now
+                        <span
+                          class="_button__label_doayp_24"
+                        >
+                          Index Now
+                        </span>
                       </button>
                     </div>
                     <div
@@ -1259,10 +1281,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                   type="button"
                 >
-                  Rebuild Channels Index
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Rebuild Channels Index
+                  </span>
                 </button>
               </div>
               <div
@@ -1291,10 +1317,14 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                   type="button"
                 >
-                  Purge Indexes
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Purge Indexes
+                  </span>
                 </button>
               </div>
               <div
@@ -1488,9 +1518,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div
@@ -1912,10 +1940,14 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                   type="button"
                 >
-                  Test Connection
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Test Connection
+                  </span>
                 </button>
               </div>
               <div
@@ -1947,10 +1979,14 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                   >
                     <div>
                       <button
-                        class="btn btn-tertiary"
+                        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                         type="button"
                       >
-                        Index Now
+                        <span
+                          class="_button__label_doayp_24"
+                        >
+                          Index Now
+                        </span>
                       </button>
                     </div>
                     <div
@@ -2008,10 +2044,14 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                   type="button"
                 >
-                  Rebuild Channels Index
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Rebuild Channels Index
+                  </span>
                 </button>
               </div>
               <div
@@ -2040,10 +2080,14 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                   type="button"
                 >
-                  Purge Indexes
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Purge Indexes
+                  </span>
                 </button>
               </div>
               <div
@@ -2237,9 +2281,7 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div

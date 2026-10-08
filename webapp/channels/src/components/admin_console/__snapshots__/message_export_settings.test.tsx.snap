@@ -170,11 +170,15 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                   disabled=""
                   type="button"
                 >
-                  Run Compliance Export Job Now
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Run Compliance Export Job Now
+                  </span>
                 </button>
               </div>
               <div
@@ -230,9 +234,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div
@@ -620,11 +622,15 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                   disabled=""
                   type="button"
                 >
-                  Run Compliance Export Job Now
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Run Compliance Export Job Now
+                  </span>
                 </button>
               </div>
               <div
@@ -680,9 +686,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div
@@ -862,10 +866,14 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                   type="button"
                 >
-                  Run Compliance Export Job Now
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Run Compliance Export Job Now
+                  </span>
                 </button>
               </div>
               <div
@@ -921,9 +929,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div
@@ -1302,10 +1308,14 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                   type="button"
                 >
-                  Run Compliance Export Job Now
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Run Compliance Export Job Now
+                  </span>
                 </button>
               </div>
               <div
@@ -1361,9 +1371,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div
@@ -1866,10 +1874,14 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                   type="button"
                 >
-                  Run Compliance Export Job Now
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Run Compliance Export Job Now
+                  </span>
                 </button>
               </div>
               <div
@@ -1925,9 +1937,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
         <div

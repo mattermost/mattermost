@@ -4214,9 +4214,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         <span
           class="_button__label_doayp_24"
         >
-          <span>
-            Save
-          </span>
+          Save
         </span>
       </button>
       <button
@@ -4231,10 +4229,15 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         </span>
       </button>
       <button
-        class="btn btn-quaternary"
+        class="_button_doayp_2 _button--emphasis-quaternary_doayp_105 _button--size-medium_doayp_47"
         data-testid="resetPermissionsToDefault"
+        type="button"
       >
-        Reset to Defaults
+        <span
+          class="_button__label_doayp_24"
+        >
+          Reset to Defaults
+        </span>
       </button>
       <div
         class="error-message"
@@ -8289,9 +8292,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         <span
           class="_button__label_doayp_24"
         >
-          <span>
-            Save
-          </span>
+          Save
         </span>
       </button>
       <button
@@ -8306,10 +8307,15 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         </span>
       </button>
       <button
-        class="btn btn-quaternary"
+        class="_button_doayp_2 _button--emphasis-quaternary_doayp_105 _button--size-medium_doayp_47"
         data-testid="resetPermissionsToDefault"
+        type="button"
       >
-        Reset to Defaults
+        <span
+          class="_button__label_doayp_24"
+        >
+          Reset to Defaults
+        </span>
       </button>
       <div
         class="error-message"
@@ -12365,9 +12371,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         <span
           class="_button__label_doayp_24"
         >
-          <span>
-            Save
-          </span>
+          Save
         </span>
       </button>
       <button
@@ -12382,10 +12386,15 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         </span>
       </button>
       <button
-        class="btn btn-quaternary"
+        class="_button_doayp_2 _button--emphasis-quaternary_doayp_105 _button--size-medium_doayp_47"
         data-testid="resetPermissionsToDefault"
+        type="button"
       >
-        Reset to Defaults
+        <span
+          class="_button__label_doayp_24"
+        >
+          Reset to Defaults
+        </span>
       </button>
       <div
         class="error-message"
@@ -16440,9 +16449,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         <span
           class="_button__label_doayp_24"
         >
-          <span>
-            Save
-          </span>
+          Save
         </span>
       </button>
       <button
@@ -16457,10 +16464,15 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         </span>
       </button>
       <button
-        class="btn btn-quaternary"
+        class="_button_doayp_2 _button--emphasis-quaternary_doayp_105 _button--size-medium_doayp_47"
         data-testid="resetPermissionsToDefault"
+        type="button"
       >
-        Reset to Defaults
+        <span
+          class="_button__label_doayp_24"
+        >
+          Reset to Defaults
+        </span>
       </button>
       <div
         class="error-message"

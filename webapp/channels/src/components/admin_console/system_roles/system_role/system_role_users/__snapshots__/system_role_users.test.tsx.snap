@@ -23,10 +23,15 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
         class="button"
       >
         <button
-          class="style--none btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           id="addRoleMembers"
+          type="button"
         >
-          Add People
+          <span
+            class="_button__label_doayp_24"
+          >
+            Add People
+          </span>
         </button>
       </div>
     </div>
@@ -163,11 +168,16 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
         class="button"
       >
         <button
-          class="style--none btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           disabled=""
           id="addRoleMembers"
+          type="button"
         >
-          Add People
+          <span
+            class="_button__label_doayp_24"
+          >
+            Add People
+          </span>
         </button>
       </div>
     </div>

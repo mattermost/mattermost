@@ -182,9 +182,7 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
         <span
           class="_button__label_doayp_24"
         >
-          <span>
-            Save
-          </span>
+          Save
         </span>
       </button>
       <button
@@ -259,9 +257,7 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
         <span
           class="_button__label_doayp_24"
         >
-          <span>
-            Save
-          </span>
+          Save
         </span>
       </button>
       <button

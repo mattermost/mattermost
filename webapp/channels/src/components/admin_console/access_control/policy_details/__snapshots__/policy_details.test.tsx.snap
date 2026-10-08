@@ -276,11 +276,15 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                         </div>
                       </div>
                       <button
-                        class="btn btn-primary btn-sm Filter_apply"
+                        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-small_doayp_40 Filter_apply"
                         disabled=""
                         type="button"
                       >
-                        Apply
+                        <span
+                          class="_button__label_doayp_24"
+                        >
+                          Apply
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -396,9 +400,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
         <span
           class="_button__label_doayp_24"
         >
-          <span>
-            Save
-          </span>
+          Save
         </span>
       </button>
       <button
@@ -692,11 +694,15 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                         </div>
                       </div>
                       <button
-                        class="btn btn-primary btn-sm Filter_apply"
+                        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-small_doayp_40 Filter_apply"
                         disabled=""
                         type="button"
                       >
-                        Apply
+                        <span
+                          class="_button__label_doayp_24"
+                        >
+                          Apply
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -774,9 +780,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
         <span
           class="_button__label_doayp_24"
         >
-          <span>
-            Save
-          </span>
+          Save
         </span>
       </button>
       <button

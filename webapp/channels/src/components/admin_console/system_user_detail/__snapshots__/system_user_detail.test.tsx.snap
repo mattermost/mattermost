@@ -340,9 +340,7 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
       </div>
@@ -696,9 +694,7 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
       </div>
@@ -1052,9 +1048,7 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
       </div>
@@ -1408,9 +1402,7 @@ exports[`SystemUserDetail should not show manage user settings button when user 
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
       </div>
@@ -1775,9 +1767,7 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
       </div>
@@ -2131,9 +2121,7 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
       </div>
@@ -2518,9 +2506,7 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
           <span
             class="_button__label_doayp_24"
           >
-            <span>
-              Save
-            </span>
+            Save
           </span>
         </button>
       </div>

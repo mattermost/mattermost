@@ -172,9 +172,7 @@ exports[`component/add_users_to_group_modal should match snapshot 1`] = `
                       <span
                         class="_button__label_doayp_24"
                       >
-                        <span>
-                          Add People
-                        </span>
+                        Add People
                       </span>
                     </button>
                   </div>
