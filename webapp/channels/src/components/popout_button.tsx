@@ -13,11 +13,13 @@ import {canPopout} from 'utils/popouts/popout_windows';
 type Props = {
     onClick: React.MouseEventHandler<HTMLButtonElement>;
     className?: string;
+    size?: React.ComponentProps<typeof IconButton>['size'];
 };
 
 export default function PopoutButton({
     onClick,
     className,
+    size = 'small',
 }: Props) {
     const intl = useIntl();
 
@@ -35,7 +37,7 @@ export default function PopoutButton({
             }
         >
             <IconButton
-                size='small'
+                size={size}
                 className={classNames('PopoutButton', className)}
                 icon={
                     <i

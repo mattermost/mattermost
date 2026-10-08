@@ -453,6 +453,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                     <CallButton/>
                     {canPopout() && !isChannelPopoutWindow() && (
                         <PopoutButton
+                            size='x-small'
                             className='channel-header__icon'
                             onClick={this.popoutChannelView}
                         />

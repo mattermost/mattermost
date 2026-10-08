@@ -105,6 +105,12 @@
 
 .channel-header .channel-header__icon {
     margin: 0;
+
+    &:not(.channel-header__icon--wide) {
+        width: 24px;
+        min-width: 24px;
+        height: 24px;
+    }
 }
 
 .channel-header__info .channel-header__icons .channel-header__icon {

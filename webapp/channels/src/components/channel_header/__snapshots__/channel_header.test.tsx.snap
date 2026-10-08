@@ -76,7 +76,7 @@ exports[`components/ChannelHeader should match snapshot with last active display
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 PopoutButton channel-header__icon"
         type="button"
       >
         <span
@@ -174,7 +174,7 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 PopoutButton channel-header__icon"
         type="button"
       >
         <span
@@ -295,7 +295,7 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 PopoutButton channel-header__icon"
         type="button"
       >
         <span
@@ -416,7 +416,7 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 PopoutButton channel-header__icon"
         type="button"
       >
         <span
@@ -537,7 +537,7 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 PopoutButton channel-header__icon"
         type="button"
       >
         <span
@@ -658,7 +658,7 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 PopoutButton channel-header__icon"
         type="button"
       >
         <span
@@ -779,7 +779,7 @@ exports[`components/ChannelHeader should render archived view 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 PopoutButton channel-header__icon"
         type="button"
       >
         <span
@@ -916,7 +916,7 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 PopoutButton channel-header__icon"
         type="button"
       >
         <span
@@ -1037,7 +1037,7 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 PopoutButton channel-header__icon"
         type="button"
       >
         <span
@@ -1146,7 +1146,7 @@ exports[`components/ChannelHeader should render properly when custom status is e
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 PopoutButton channel-header__icon"
         type="button"
       >
         <span
@@ -1258,7 +1258,7 @@ exports[`components/ChannelHeader should render properly when custom status is s
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 PopoutButton channel-header__icon"
         type="button"
       >
         <span
@@ -1379,7 +1379,7 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 PopoutButton channel-header__icon"
         type="button"
       >
         <span
@@ -1500,7 +1500,7 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 PopoutButton channel-header__icon"
         type="button"
       >
         <span
@@ -1621,7 +1621,7 @@ exports[`components/ChannelHeader should render properly when populated with cha
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 PopoutButton channel-header__icon"
         type="button"
       >
         <span
@@ -1747,7 +1747,7 @@ exports[`components/ChannelHeader should render properly when there are pending 
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 PopoutButton channel-header__icon"
         type="button"
       >
         <span
@@ -1868,7 +1868,7 @@ exports[`components/ChannelHeader should render shared view 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 PopoutButton channel-header__icon"
         type="button"
       >
         <span
@@ -2011,7 +2011,7 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 PopoutButton channel-header__icon"
+        class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 PopoutButton channel-header__icon"
         type="button"
       >
         <span
