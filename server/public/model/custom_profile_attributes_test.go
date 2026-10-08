@@ -133,6 +133,26 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 	}
 }
 
+func TestNewCPAFieldFromPropertyField_DropsPermissions(t *testing.T) {
+	source := &PropertyField{
+		ID:      NewId(),
+		GroupID: AccessControlPropertyGroupName,
+		Name:    "Test Field",
+		Type:    PropertyFieldTypeText,
+		Permissions: &Permissions{
+			Grants: []Grant{
+				{Identity: Identity{Type: PropertyOwnerTypeUser, ID: NewId()}, Allow: []string{PropertyActionValueWrite}},
+			},
+		},
+	}
+
+	cpaField, err := NewCPAFieldFromPropertyField(source)
+	require.NoError(t, err)
+	require.Nil(t, cpaField.Permissions, "CPAField must never carry the source field's permissions object")
+
+	require.NotNil(t, source.Permissions, "converting to a CPAField must not mutate the source field")
+}
+
 func TestCPAFieldToPropertyField(t *testing.T) {
 	tests := []struct {
 		name     string

@@ -79,9 +79,12 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// This API can neither show nor change a permissions object, so one it
-	// accepted here would be enforced out of the caller's sight.
-	pf.Permissions = nil
+	// CPA responses never carry a permissions object, so accepting one would
+	// enforce something the caller can neither see nor change here.
+	if pf.Permissions != nil {
+		c.Err = model.NewAppError("createCPAField", "api.property_field.patch.permissions_not_supported.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
 
 	// Translate to PropertyField and route through the generic property API.
 	// Server-controlled fields (group, type, target shape, creator) are
