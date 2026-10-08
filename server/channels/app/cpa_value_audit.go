@@ -93,9 +93,6 @@ func (a *App) addCPAValueAuditBasis(rctx request.CTX, rec *model.AuditRecord, e 
 	if basis.GrantWildcard {
 		rec.AddMeta("basis_grant_wildcard", true)
 	}
-	if basis.Legacy {
-		rec.AddMeta("basis_legacy", true)
-	}
 	if basis.Unrestricted {
 		rec.AddMeta("basis_unrestricted", true)
 	}

@@ -40,12 +40,13 @@ func (a *App) shapePropertyFieldForCaller(rctx request.CTX, session model.Sessio
 		return field
 	}
 
-	copied := *field
-
 	if !serveV3 {
-		copied.Permissions = nil
-		return &copied
+		projected := a.projectLegacyPermissions(rctx, field, templates)
+		projected.Permissions = nil
+		return projected
 	}
+
+	copied := *field
 
 	isLinked := field.LinkedFieldID != nil && *field.LinkedFieldID != ""
 	canEdit := a.SessionPropertyFieldEditBasis(rctx, session, field).Allowed
@@ -123,6 +124,19 @@ func (a *App) linkedFieldMaskingPresence(rctx request.CTX, field *model.Property
 		return nil, false
 	}
 	return maskingPresence(template.Permissions.Masking)
+}
+
+// projectLegacyPermissions is model.ProjectLegacyPermissionsWithTemplate,
+// reading a linked field's template through linkedFieldTemplate and falling
+// back to the field's own access mode when that read fails.
+func (a *App) projectLegacyPermissions(rctx request.CTX, field *model.PropertyField, templates map[string]*model.PropertyField) *model.PropertyField {
+	var template *model.PropertyField
+	if field.Permissions != nil && field.LinkSourceID() != "" {
+		if t, err := a.linkedFieldTemplate(rctx, field, templates); err == nil {
+			template = t
+		}
+	}
+	return model.ProjectLegacyPermissionsWithTemplate(field, template)
 }
 
 // linkedFieldTemplate returns field's linked template, reading it once per

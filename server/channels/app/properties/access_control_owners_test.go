@@ -146,9 +146,24 @@ func TestOwnerFieldWriteAccessControl(t *testing.T) {
 	t.Run("human may edit an owner-managed field definition", func(t *testing.T) {
 		created := createOwnedField(t, th, "HumanEditable", "plugin-owner", []string{"entra"})
 		created.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility] = model.PropertyFieldVisibilityAlways
+
+		// field.write is pinned to sysadmin for every access_control field.
+		// The default test ladder only admits a member, so this install is
+		// what lets the administrator through.
+		th.service.setLadderCheckerForTests(sysadminLadderCheckerForTests)
+		t.Cleanup(func() { th.service.setLadderCheckerForTests(defaultLadderCheckerForTests) })
+
 		updated, _, upErr := th.service.UpdatePropertyField(rctxHuman, th.CPAGroupID, created)
 		require.NoError(t, upErr)
 		assert.Equal(t, model.PropertyFieldVisibilityAlways, updated.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
+	})
+
+	t.Run("a member human may not edit an owner-managed field definition", func(t *testing.T) {
+		created := createOwnedField(t, th, "HumanEditableMember", "plugin-owner", []string{"entra"})
+		created.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility] = model.PropertyFieldVisibilityAlways
+		_, _, upErr := th.service.UpdatePropertyField(rctxHuman, th.CPAGroupID, created)
+		require.Error(t, upErr)
+		assert.ErrorIs(t, upErr, ErrAccessDenied)
 	})
 
 	t.Run("listed owner plugin may delete an owner-managed field", func(t *testing.T) {
@@ -167,6 +182,10 @@ func TestOwnerFieldWriteAccessControl(t *testing.T) {
 
 	t.Run("human may delete an owner-managed field", func(t *testing.T) {
 		created := createOwnedField(t, th, "HumanDelete", "plugin-owner", []string{"entra"})
+
+		th.service.setLadderCheckerForTests(sysadminLadderCheckerForTests)
+		t.Cleanup(func() { th.service.setLadderCheckerForTests(defaultLadderCheckerForTests) })
+
 		require.NoError(t, th.service.DeletePropertyField(rctxHuman, th.CPAGroupID, created.ID))
 	})
 }
@@ -192,7 +211,12 @@ func TestOwnerListManagedByAdminOnly(t *testing.T) {
 		require.True(t, model.HasPropertyFieldOwners(created))
 	})
 
-	t.Run("rejects plugin update that adds owners", func(t *testing.T) {
+	t.Run("allows plugin update that adds owners", func(t *testing.T) {
+		// An unowned, unprotected field converts to an ambient wildcard
+		// field.write grant open to any installed plugin, so plugin-owner may
+		// add itself as an owner here even though the field names no owner
+		// yet. Grants are additive with no deny, so adding one takes nothing
+		// away from anyone.
 		plain, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
 			GroupID:    th.CPAGroupID,
 			Name:       "NoOwnersYet",
@@ -207,9 +231,9 @@ func TestOwnerListManagedByAdminOnly(t *testing.T) {
 				{ID: "plugin-owner", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
 			},
 		}
-		_, _, upErr := th.service.UpdatePropertyField(rctxOwner, th.CPAGroupID, plain)
-		require.Error(t, upErr)
-		assert.ErrorIs(t, upErr, ErrAccessDenied)
+		updated, _, upErr := th.service.UpdatePropertyField(rctxOwner, th.CPAGroupID, plain)
+		require.NoError(t, upErr)
+		require.True(t, model.HasPropertyFieldOwners(updated))
 	})
 
 	t.Run("allows human update that adds owners", func(t *testing.T) {
@@ -227,6 +251,13 @@ func TestOwnerListManagedByAdminOnly(t *testing.T) {
 				{ID: "plugin-owner", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
 			},
 		}
+
+		// field.write is pinned to sysadmin for every access_control field.
+		// The default test ladder only admits a member, so this install is
+		// what lets the administrator through.
+		th.service.setLadderCheckerForTests(sysadminLadderCheckerForTests)
+		t.Cleanup(func() { th.service.setLadderCheckerForTests(defaultLadderCheckerForTests) })
+
 		updated, _, upErr := th.service.UpdatePropertyField(rctxHuman, th.CPAGroupID, plain)
 		require.NoError(t, upErr)
 		require.True(t, model.HasPropertyFieldOwners(updated))
@@ -261,6 +292,10 @@ func TestOwnerListManagedByAdminOnly(t *testing.T) {
 		created.Attrs[model.PropertyAttrsOwners] = []model.PropertyOwner{
 			{ID: "plugin-owner", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra", "okta"}},
 		}
+
+		th.service.setLadderCheckerForTests(sysadminLadderCheckerForTests)
+		t.Cleanup(func() { th.service.setLadderCheckerForTests(defaultLadderCheckerForTests) })
+
 		updated, _, upErr := th.service.UpdatePropertyField(rctxHuman, th.CPAGroupID, created)
 		require.NoError(t, upErr)
 		owners := model.GetPropertyFieldOwners(updated)
@@ -271,6 +306,10 @@ func TestOwnerListManagedByAdminOnly(t *testing.T) {
 	t.Run("allows human update that removes owners", func(t *testing.T) {
 		created := createOwnedField(t, th, "RemovableOwners", "plugin-owner", []string{"entra"})
 		delete(created.Attrs, model.PropertyAttrsOwners)
+
+		th.service.setLadderCheckerForTests(sysadminLadderCheckerForTests)
+		t.Cleanup(func() { th.service.setLadderCheckerForTests(defaultLadderCheckerForTests) })
+
 		updated, _, upErr := th.service.UpdatePropertyField(rctxHuman, th.CPAGroupID, created)
 		require.NoError(t, upErr)
 		assert.False(t, model.HasPropertyFieldOwners(updated))
@@ -477,6 +516,22 @@ func TestOwnerSyncBidirectionalTransitions(t *testing.T) {
 
 	rctxHuman := RequestContextWithCallerID(th.Context, model.NewId())
 
+	// These fields' field.write is pinned to sysadmin (the same column-pinning
+	// every access_control field gets), and the hook's owner-managed branch no
+	// longer bypasses that ladder for a human once the field carries
+	// Permissions -- an administrator reaching this service call directly, the
+	// way this test does, needs the same standing an api4 caller would already
+	// have through SessionPropertyFieldEditBasis. defaultLadderCheckerForTests
+	// treats every caller as an ordinary member, so this test's own edits need
+	// their own checker rather than inferring privilege from a fixture's ID.
+	th.service.setLadderCheckerForTests(func(_ request.CTX, _ string, field *model.PropertyField, action, _ string) bool {
+		if field.Permissions == nil {
+			return false
+		}
+		return model.PermissionLevelSysadmin.AtMostAsPermissiveAs(field.Permissions.Restrictions.TierFor(action))
+	})
+	t.Cleanup(func() { th.service.setLadderCheckerForTests(nil) })
+
 	newValue := func(fieldID string) *model.PropertyValue {
 		return &model.PropertyValue{
 			GroupID:    th.CPAGroupID,
@@ -549,7 +604,13 @@ func TestOwnersWithAdminManaged(t *testing.T) {
 	}
 
 	// Register hooks in production order.
-	acHook := NewAccessControlHook(th.service, nil, nil, nil, th.CPAGroupID)
+	ladder := func(rctx request.CTX, userID string, field *model.PropertyField, action, valueTargetID string) bool {
+		if userID == adminID {
+			return sysadminLadderCheckerForTests(rctx, userID, field, action, valueTargetID)
+		}
+		return defaultLadderCheckerForTests(rctx, userID, field, action, valueTargetID)
+	}
+	acHook := NewAccessControlHook(th.service, nil, ladder, nil)
 	acHook.setPluginCheckerForTests(pluginChecker)
 	th.service.AddHook(acHook)
 
@@ -692,6 +753,6 @@ func TestOwnersWithAdminManaged(t *testing.T) {
 		created.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility] = model.PropertyFieldVisibilityHidden
 		_, _, upErr := th.service.UpdatePropertyField(RequestContextWithCallerID(th.Context, model.NewId()), th.CPAGroupID, created)
 		require.Error(t, upErr)
-		assert.ErrorIs(t, upErr, ErrAdminRequired)
+		assert.ErrorIs(t, upErr, ErrAccessDenied)
 	})
 }

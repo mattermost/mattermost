@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"reflect"
 	"testing"
 	"time"
 
@@ -1325,6 +1326,48 @@ func TestServePropertyFieldPermissionsPayload(t *testing.T) {
 		found := findPropertyFieldByID(fields, field.ID)
 		require.NotNil(t, found)
 		require.Nil(t, found.Permissions)
+	})
+
+	t.Run("v2 group reports a linked field's access mode from its template", func(t *testing.T) {
+		restrictions := func() *model.Restrictions {
+			return &model.Restrictions{
+				Field:  model.WriteOnly{Write: model.PermissionLevelNone},
+				Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelNone},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelNone},
+			}
+		}
+		template, err := th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
+			GroupID:     v2Group.ID,
+			Name:        model.NewId(),
+			Type:        model.PropertyFieldTypeText,
+			ObjectType:  model.PropertyFieldObjectTypeTemplate,
+			TargetType:  "system",
+			Permissions: &model.Permissions{Restrictions: restrictions(), Masking: &model.Masking{}},
+		})
+		require.NoError(t, err)
+		linked, err := th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
+			GroupID:       v2Group.ID,
+			Name:          model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    "post",
+			TargetType:    "system",
+			LinkedFieldID: &template.ID,
+			Permissions:   &model.Permissions{Restrictions: restrictions()},
+		})
+		require.NoError(t, err)
+
+		fields, resp, err := th.SystemAdminClient.SearchPropertyFields(context.Background(), v2Group.Name, model.PropertyFieldSearch{
+			ObjectTypes: []string{"post"},
+			TargetType:  "system",
+			PerPage:     200,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		found := findPropertyFieldByID(fields, linked.ID)
+		require.NotNil(t, found)
+		require.Equal(t, model.PropertyAccessModeSharedOnly, found.Attrs[model.PropertyAttrsAccessMode])
+		require.Equal(t, true, found.Attrs[model.PropertyAttrsProtected])
 	})
 
 	t.Run("v3 group with the flag off carries no permissions key", func(t *testing.T) {
@@ -4180,14 +4223,14 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 		patch := &model.PropertyFieldPatch{
 			Name: new("new name"),
 		}
-		require.False(t, isOptionsOnlyPatch(patch))
+		require.False(t, isOptionsOnlyPatch(patch, false, true))
 	})
 
 	t.Run("empty attrs is not options-only", func(t *testing.T) {
 		patch := &model.PropertyFieldPatch{
 			Attrs: &model.StringInterface{},
 		}
-		require.False(t, isOptionsOnlyPatch(patch))
+		require.False(t, isOptionsOnlyPatch(patch, false, true))
 	})
 
 	t.Run("attrs with only options is options-only", func(t *testing.T) {
@@ -4196,7 +4239,16 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 				"options": []any{},
 			},
 		}
-		require.True(t, isOptionsOnlyPatch(patch))
+		require.True(t, isOptionsOnlyPatch(patch, false, true))
+	})
+
+	t.Run("attrs with only options but nothing actually changed is not options-only", func(t *testing.T) {
+		patch := &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				"options": []any{},
+			},
+		}
+		require.False(t, isOptionsOnlyPatch(patch, false, false))
 	})
 
 	t.Run("attrs with options and other keys is not options-only", func(t *testing.T) {
@@ -4206,7 +4258,7 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 				"other":   "value",
 			},
 		}
-		require.False(t, isOptionsOnlyPatch(patch))
+		require.False(t, isOptionsOnlyPatch(patch, false, true))
 	})
 
 	t.Run("name change with options is not options-only", func(t *testing.T) {
@@ -4216,7 +4268,7 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 				"options": []any{},
 			},
 		}
-		require.False(t, isOptionsOnlyPatch(patch))
+		require.False(t, isOptionsOnlyPatch(patch, false, true))
 	})
 
 	t.Run("type change is not options-only", func(t *testing.T) {
@@ -4224,7 +4276,7 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 		patch := &model.PropertyFieldPatch{
 			Type: &newType,
 		}
-		require.False(t, isOptionsOnlyPatch(patch))
+		require.False(t, isOptionsOnlyPatch(patch, false, true))
 	})
 
 	t.Run("PermissionValues alongside an options-only attrs patch is not options-only", func(t *testing.T) {
@@ -4235,7 +4287,7 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 			},
 			PermissionValues: &memberLevel,
 		}
-		require.False(t, isOptionsOnlyPatch(patch), "PermissionValues must always require the full-edit permission tier, never the weaker options-only one")
+		require.False(t, isOptionsOnlyPatch(patch, false, true), "PermissionValues must always require the full-edit permission tier, never the weaker options-only one")
 	})
 }
 
@@ -6330,15 +6382,10 @@ func TestPropertyValuesUpdatedPayloadShapes(t *testing.T) {
 	t.Run("shape 5: a non-public field's value is withheld", func(t *testing.T) {
 		withheldField := newChannelField(t)
 
-		// Flipping access_mode through the store, not the API, bypasses
-		// ValidatePropertyFieldAccessMode (which would demand protected: true).
-		// Leaving protected unset is a test-only posture: it keeps the field
-		// writable by a session caller so the test can provoke a broadcast,
-		// which no plugin-authored source_only field would allow.
-		if withheldField.Attrs == nil {
-			withheldField.Attrs = model.StringInterface{}
-		}
-		withheldField.Attrs[model.PropertyAttrsAccessMode] = model.PropertyAccessModeSourceOnly
+		// Denying value.read through the store, not the API, keeps value.write
+		// open to a session caller so the test can provoke a broadcast, which
+		// no plugin-authored source_only field would allow.
+		withheldField.Permissions.Restrictions.Value.Read = model.PermissionLevelNone
 		_, err := th.App.Srv().Store().PropertyField().Update(group.ID, []*model.PropertyField{withheldField}, nil)
 		require.NoError(t, err)
 
@@ -7988,4 +8035,231 @@ func TestChannelAttributesRequireEnterpriseAdvanced(t *testing.T) {
 		_, _, err := th.SystemAdminClient.PatchPropertyField(context.Background(), groupName, model.PropertyFieldObjectTypeTemplate, template.ID, optionsOnlyPatch)
 		require.NoError(t, err)
 	})
+}
+
+// isOptionsOnlyPatch decides which permission a patch is gated on at this
+// layer; model.PropertyFieldChangeIsOptionsOnly decides the same thing inside
+// the enforcement hook, which never sees the patch and has to compare the
+// merged field against the stored one. If the two ever disagree, one layer
+// allows what the other refuses. This asserts they agree on every shape of
+// patch that reaches the handler.
+func TestOptionsOnlyPatchAgreesWithFieldComparison(t *testing.T) {
+	// One fixed option ID: stored() is called twice, so a fresh model.NewId()
+	// per call would make the two fields differ before any patch was applied.
+	storedOptionID := model.NewId()
+
+	stored := func() *model.PropertyField {
+		return &model.PropertyField{
+			ID:         "fieldid",
+			GroupID:    "groupid",
+			Name:       "Programs",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: "user",
+			TargetType: "system",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": storedOptionID, "name": "Air"},
+				},
+				"visibility": "always",
+			},
+		}
+	}
+
+	newOptions := []any{map[string]any{"id": model.NewId(), "name": "Sea"}}
+	storedPermissions := &model.Permissions{Restrictions: &model.Restrictions{
+		Field: model.WriteOnly{Write: model.PermissionLevelSysadmin},
+	}}
+
+	testCases := []struct {
+		name string
+		// permissions the field already carries, if any
+		permissions *model.Permissions
+		patch       *model.PropertyFieldPatch
+	}{
+		{"options alone", nil, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{model.PropertyFieldAttributeOptions: newOptions},
+		}},
+		{"options plus a sibling attr", nil, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{model.PropertyFieldAttributeOptions: newOptions, "visibility": "hidden"},
+		}},
+		{"options plus a name", nil, &model.PropertyFieldPatch{
+			Name:  model.NewPointer("Renamed"),
+			Attrs: &model.StringInterface{model.PropertyFieldAttributeOptions: newOptions},
+		}},
+		{"options plus permissions that change something", storedPermissions, &model.PropertyFieldPatch{
+			Attrs:       &model.StringInterface{model.PropertyFieldAttributeOptions: newOptions},
+			Permissions: &model.PermissionsPatch{Restrictions: json.RawMessage(`{"field":{"write":"member"}}`)},
+		}},
+		{"options plus a permissions echo", storedPermissions, &model.PropertyFieldPatch{
+			Attrs:       &model.StringInterface{model.PropertyFieldAttributeOptions: newOptions},
+			Permissions: &model.PermissionsPatch{Restrictions: json.RawMessage(`{"field":{"write":"sysadmin"}}`)},
+		}},
+		{"a sibling attr alone", nil, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{"visibility": "hidden"},
+		}},
+		{"a name alone", nil, &model.PropertyFieldPatch{
+			Name: model.NewPointer("Renamed"),
+		}},
+		{"no attrs at all", nil, &model.PropertyFieldPatch{}},
+		{"an unchanged options echo", nil, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": storedOptionID, "name": "Air"},
+			}},
+		}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			existing := stored()
+			existing.Permissions = tc.permissions
+			patched := stored()
+			patched.Permissions = tc.permissions
+
+			// Mirror patchPropertyField: resolve the permissions patch first,
+			// decide whether it changed anything, then apply the rest.
+			permissionsChanged := false
+			if tc.patch.Permissions != nil {
+				applied, err := tc.patch.Permissions.ApplyTo(patched.Permissions)
+				require.NoError(t, err)
+				permissionsChanged = !reflect.DeepEqual(patched.Permissions, applied)
+				patched.Permissions = applied
+			}
+
+			optionsChanged := false
+			if tc.patch.Attrs != nil {
+				if newOptions, ok := (*tc.patch.Attrs)[model.PropertyFieldAttributeOptions]; ok {
+					optionsChanged = !reflect.DeepEqual(existing.Attrs[model.PropertyFieldAttributeOptions], newOptions)
+				}
+			}
+
+			patched.Patch(tc.patch, true)
+
+			require.Equal(t,
+				isOptionsOnlyPatch(tc.patch, permissionsChanged, optionsChanged),
+				model.PropertyFieldChangeIsOptionsOnly(existing, patched),
+				"the api4 patch check and the hook's field comparison must agree")
+		})
+	}
+}
+
+func TestPatchPropertyFieldLegacyAttrs(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_legacy_attrs", Version: model.PropertyGroupVersionV2})
+	require.Nil(t, appErr)
+
+	restrictions := &model.Restrictions{
+		Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+		Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelMember},
+		Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelSysadmin},
+	}
+	createField := func(t *testing.T, grants []model.Grant) *model.PropertyField {
+		field, err := th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
+			GroupID:     group.ID,
+			Name:        model.NewId(),
+			Type:        model.PropertyFieldTypeText,
+			ObjectType:  model.PropertyFieldObjectTypePost,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{Restrictions: restrictions, Grants: grants},
+		})
+		require.NoError(t, err)
+		return field
+	}
+	ownersPatch := &model.PropertyFieldPatch{Attrs: &model.StringInterface{
+		model.PropertyAttrsOwners: []model.PropertyOwner{{Type: model.PropertyOwnerTypeUser, ID: model.NewId()}},
+	}}
+
+	t.Run("an owners change on permissions the legacy shape can express succeeds", func(t *testing.T) {
+		field := createField(t, nil)
+
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "post", field.ID, ownersPatch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("an owners change on permissions the legacy shape cannot express is a 400", func(t *testing.T) {
+		grant := model.Grant{
+			Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: model.NewId()},
+			Allow:    []string{model.PropertyActionValueWrite},
+		}
+		field := createField(t, []model.Grant{grant})
+
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "post", field.ID, ownersPatch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "app.property_field.update.legacy_attrs_lossy.app_error")
+
+		stored, appErr := th.App.GetPropertyField(th.Context, group.ID, field.ID)
+		require.Nil(t, appErr)
+		require.Equal(t, []model.Grant{grant}, stored.Permissions.Grants)
+	})
+}
+
+func TestDeleteOrphanedProtectedField(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	// Written straight to the store with field.write none, the shape a
+	// protected field converts to; the Protected column stays false so the
+	// store's IsValid accepts PermissionField sysadmin. No test plugin is
+	// installed, so any source_plugin_id names an uninstalled plugin.
+	createProtected := func(t *testing.T, sourcePluginID string) *model.PropertyField {
+		t.Helper()
+		sysadmin := model.PermissionLevelSysadmin
+		attrs := model.StringInterface{model.PropertyAttrsProtected: true}
+		if sourcePluginID != "" {
+			attrs[model.PropertyAttrsSourcePluginID] = sourcePluginID
+		}
+		field, err := th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
+			GroupID:         group.ID,
+			Name:            celSafeName(),
+			Type:            model.PropertyFieldTypeText,
+			Attrs:           attrs,
+			ObjectType:      model.PropertyFieldObjectTypeUser,
+			TargetType:      string(model.PropertyFieldTargetLevelSystem),
+			PermissionField: &sysadmin,
+			Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+				Field:  model.WriteOnly{Write: model.PermissionLevelNone},
+				Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelNone},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelNone},
+			}},
+		})
+		require.NoError(t, err)
+		return field
+	}
+
+	endpoints := map[string]func(fieldID string) (*model.Response, error){
+		"deletePropertyField": func(fieldID string) (*model.Response, error) {
+			return th.SystemAdminClient.DeletePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeUser, fieldID)
+		},
+		"deleteCPAField": func(fieldID string) (*model.Response, error) {
+			return th.SystemAdminClient.DeleteCPAField(context.Background(), fieldID)
+		},
+	}
+	for name, deleteField := range endpoints {
+		t.Run(name, func(t *testing.T) {
+			t.Run("a sysadmin can delete a field whose source plugin is gone", func(t *testing.T) {
+				field := createProtected(t, "removed-plugin")
+
+				resp, err := deleteField(field.ID)
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+			})
+
+			t.Run("a sysadmin cannot delete a protected field with no source plugin", func(t *testing.T) {
+				field := createProtected(t, "")
+
+				resp, err := deleteField(field.ID)
+				require.Error(t, err)
+				CheckForbiddenStatus(t, resp)
+			})
+		})
+	}
 }
