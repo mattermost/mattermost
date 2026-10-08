@@ -10051,12 +10051,40 @@
     "defaultMessage": "Add policy",
     "description": "Button on the System Console > Permission Policies page that starts creating a new attribute-based permission policy."
   },
+  "admin.permission_policies.channel_read_access_confirm.body_effect": {
+    "defaultMessage": "Any session that does not meet the conditions will lose access to channels covered by this policy.",
+    "description": ""
+  },
+  "admin.permission_policies.channel_read_access_confirm.body_scope_channel": {
+    "defaultMessage": "This policy controls Channel Read Access for this channel only.",
+    "description": ""
+  },
+  "admin.permission_policies.channel_read_access_confirm.body_scope_workspace": {
+    "defaultMessage": "This policy controls Channel Read Access across every channel in the workspace, except direct messages and group messages.",
+    "description": ""
+  },
+  "admin.permission_policies.channel_read_access_confirm.body_simulate": {
+    "defaultMessage": "Run Simulate rules first if you have not confirmed who this affects.",
+    "description": ""
+  },
+  "admin.permission_policies.channel_read_access_confirm.cancel": {
+    "defaultMessage": "Cancel",
+    "description": ""
+  },
+  "admin.permission_policies.channel_read_access_confirm.confirm": {
+    "defaultMessage": "Save policy",
+    "description": ""
+  },
+  "admin.permission_policies.channel_read_access_confirm.title": {
+    "defaultMessage": "Save this policy?",
+    "description": ""
+  },
   "admin.permission_policies.delete": {
     "defaultMessage": "Delete",
     "description": "Destructive menu item in a policy's actions menu that deletes the permission policy."
   },
   "admin.permission_policies.description": {
-    "defaultMessage": "Create policies to control channel action permissions based on user attributes.",
+    "defaultMessage": "Create policies to control what users can do, based on their attributes.",
     "description": "Description under the page title on the System Console > Permission Policies page."
   },
   "admin.permission_policies.edit": {
@@ -10250,6 +10278,14 @@
   "admin.permission_policies.page_title": {
     "defaultMessage": "Permission Policies",
     "description": "Page title of the System Console > Permission Policies page (attribute-based access control policies for permissions)."
+  },
+  "admin.permission_policies.permission.channel_read_access.description": {
+    "defaultMessage": "Allow users to read the channel and its content",
+    "description": ""
+  },
+  "admin.permission_policies.permission.channel_read_access.label": {
+    "defaultMessage": "Channel Read Access",
+    "description": ""
   },
   "admin.permission_policies.permission.create_bor.description": {
     "defaultMessage": "Allow users to send burn-on-read messages",
@@ -18599,6 +18635,22 @@
     "defaultMessage": "URLs must start with a lowercase letter or number.",
     "description": "Validation error when the channel or team URL slug starts with an invalid character."
   },
+  "channel_access_denied.body": {
+    "defaultMessage": "You no longer have access to {channel}. Your membership has not changed, and the channel will reappear if you regain access.",
+    "description": ""
+  },
+  "channel_access_denied.channelName": {
+    "defaultMessage": "this channel",
+    "description": ""
+  },
+  "channel_access_denied.okay": {
+    "defaultMessage": "Okay",
+    "description": ""
+  },
+  "channel_access_denied.title": {
+    "defaultMessage": "No longer available",
+    "description": ""
+  },
   "channel_attributes.banner.empty_notice": {
     "defaultMessage": "There's nothing to display until the attributes in the banner text have values.",
     "description": "Channel Settings > Configuration > channel banner preview. Body of the warning shown under the preview when the banner text contains attribute tokens but none of those attributes has a value yet, so the banner would render empty."
@@ -19943,6 +19995,14 @@
     "defaultMessage": "Channel Settings",
     "description": "Title of the Channel Settings modal."
   },
+  "channel_settings.permissions_policy.action.channel_read_access": {
+    "defaultMessage": "Channel read access",
+    "description": ""
+  },
+  "channel_settings.permissions_policy.action.channel_read_access.description": {
+    "defaultMessage": "Allow users to read the channel and its content",
+    "description": ""
+  },
   "channel_settings.permissions_policy.action.create_bor": {
     "defaultMessage": "Create burn-on-read message",
     "description": "Permission actioname inn the channel Permissions Policy rule editor; allows sending of burn-on-read messages."
@@ -20015,6 +20075,10 @@
     "defaultMessage": "Select at least one permission action for each rule.",
     "description": "Validation error on the Permissions Policy tab when a rule has no permission actions selected."
   },
+  "channel_settings.permissions_policy.error.back_to_editing": {
+    "defaultMessage": "Back to editing",
+    "description": ""
+  },
   "channel_settings.permissions_policy.error.expression_required": {
     "defaultMessage": "Each rule needs an attribute expression.",
     "description": "Validation error on the Permissions Policy tab when a rule is missing its user attribute condition expression."
@@ -20026,6 +20090,18 @@
   "channel_settings.permissions_policy.error.name_unique": {
     "defaultMessage": "Rule name \"{name}\" is used more than once. Names must be unique within this channel.",
     "description": "Validation error on the Permissions Policy tab for duplicate rule names; {name} is the duplicated rule name."
+  },
+  "channel_settings.permissions_policy.error.self_exclusion_check_failed": {
+    "defaultMessage": "Could not confirm that you would keep access to this channel. Please try again.",
+    "description": ""
+  },
+  "channel_settings.permissions_policy.error.self_exclusion_message": {
+    "defaultMessage": "You cannot save these rules because they would remove your own access to this channel. Update the Channel read access rules so that you still satisfy them, then try again.",
+    "description": ""
+  },
+  "channel_settings.permissions_policy.error.self_exclusion_title": {
+    "defaultMessage": "Cannot save permission rules",
+    "description": ""
   },
   "channel_settings.permissions_policy.field.actions": {
     "defaultMessage": "Permissions",

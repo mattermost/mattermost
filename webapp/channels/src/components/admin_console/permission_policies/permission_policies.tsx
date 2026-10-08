@@ -35,6 +35,7 @@ const ROLE_LABELS: Record<string, string> = {
 const ACTION_LABELS: Record<string, string> = {
     download_file_attachment: 'Download Files',
     upload_file_attachment: 'Upload Files',
+    channel_read_access: 'Channel Read Access',
     create_burn_on_read_post: 'Create Burn on Read Message',
 };
 
@@ -320,7 +321,7 @@ export default function PermissionPolicyList(props: Props): JSX.Element {
                     <p>
                         <FormattedMessage
                             id='admin.permission_policies.description'
-                            defaultMessage='Create policies to control channel action permissions based on user attributes.'
+                            defaultMessage='Create policies to control what users can do, based on their attributes.'
                         />
                     </p>
                 </div>

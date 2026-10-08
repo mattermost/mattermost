@@ -1231,6 +1231,57 @@ func TestSetupBroadcastHookForAbacFiles(t *testing.T) {
 	})
 }
 
+func TestChannelReadAccessBroadcastHook_Process(t *testing.T) {
+	mainHelper.Parallel(t)
+	hook := &channelReadAccessBroadcastHook{}
+
+	userID := model.NewId()
+	channelID := model.NewId()
+
+	makeMessage := func() *platform.HookedWebSocketEvent {
+		event := model.NewWebSocketEvent(model.WebsocketEventPosted, "", channelID, "", nil, "")
+		return platform.MakeHookedWebSocketEvent(event)
+	}
+
+	makeWebConn := func(t *testing.T, allowed bool, withSession bool) *platform.WebConn {
+		t.Helper()
+		mockSuite := &platform_mocks.SuiteIFace{}
+		mockSuite.On("HasChannelReadAccessByID", mock.Anything, userID, channelID).Return(allowed).Maybe()
+		wc := &platform.WebConn{
+			UserId:   userID,
+			Platform: &platform.PlatformService{},
+			Suite:    mockSuite,
+		}
+		if withSession {
+			wc.SetSession(&model.Session{UserId: userID, Roles: model.SystemUserRoleId})
+		}
+		return wc
+	}
+
+	t.Run("allowed recipient receives the event", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(t, true, true), map[string]any{"channel_id": channelID}))
+		assert.False(t, msg.Event().IsRejected())
+	})
+
+	t.Run("denied recipient has the event dropped", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(t, false, true), map[string]any{"channel_id": channelID}))
+		assert.True(t, msg.Event().IsRejected())
+	})
+
+	t.Run("a connection with no session is dropped", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(t, true, false), map[string]any{"channel_id": channelID}))
+		assert.True(t, msg.Event().IsRejected())
+	})
+
+	t.Run("a malformed arg is an error, not a silent delivery", func(t *testing.T) {
+		msg := makeMessage()
+		require.Error(t, hook.Process(msg, makeWebConn(t, true, true), map[string]any{"channel_id": 42}))
+	})
+}
+
 func TestAbacBookmarksBroadcastHook_Process(t *testing.T) {
 	mainHelper.Parallel(t)
 	hook := &abacBookmarksBroadcastHook{}

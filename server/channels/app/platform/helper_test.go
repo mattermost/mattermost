@@ -68,6 +68,10 @@ func (ms *mockSuite) HasPermissionToChannelAction(rctx request.CTX, userID strin
 	return true
 }
 
+func (ms *mockSuite) HasChannelReadAccessByID(rctx request.CTX, userID string, channelID string) bool {
+	return true
+}
+
 func (ms *mockSuite) MFARequired(rctx request.CTX, method string) *model.AppError {
 	return nil
 }
