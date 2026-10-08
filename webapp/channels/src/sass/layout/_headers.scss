@@ -53,22 +53,13 @@
     .channel-header__favorites {
         position: relative;
         z-index: 1;
-        height: 24px;
-        padding: 4px;
-        border-radius: 4px;
         color: var(--center-channel-color);
-        float: left;
 
         i {
-            position: relative;
-            top: -1px;
-            font-size: 18px !important;
             opacity: 0.64;
         }
 
         &:hover {
-            background: rgba(functions.v(center-channel-color-rgb), 0.08);
-
             i {
                 opacity: 0.8;
             }
