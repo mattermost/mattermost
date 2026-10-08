@@ -139,6 +139,7 @@ type LocalCacheStore struct {
 	channelPinnedPostCountsCache   cache.Cache
 	channelByIdCache               cache.Cache
 	channelMembersForUserCache     cache.Cache
+	channelMemberRolesForUserCache cache.Cache
 	channelMembersNotifyPropsCache cache.Cache
 	channelByNameCache             cache.Cache
 
@@ -329,6 +330,14 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		Name:                   "ChannelMembersForUser",
 		DefaultExpiry:          AllChannelMembersForUserCacheDuration,
 		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForUser,
+	}); err != nil {
+		return
+	}
+	if localCacheStore.channelMemberRolesForUserCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   AllChannelMembersForUserCacheSize,
+		Name:                   "ChannelMemberRolesForUser",
+		DefaultExpiry:          AllChannelMembersForUserCacheDuration,
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForChannelMemberRoles,
 	}); err != nil {
 		return
 	}
@@ -585,6 +594,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannelGuestCount, localCacheStore.channel.handleClusterInvalidateChannelGuestCounts)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannel, localCacheStore.channel.handleClusterInvalidateChannelById)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForUser, localCacheStore.channel.handleClusterInvalidateChannelForUser)
+		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannelMemberRoles, localCacheStore.channel.handleClusterInvalidateChannelMemberRolesForUser)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannelMembersNotifyProps, localCacheStore.channel.handleClusterInvalidateChannelMembersNotifyProps)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannelByName, localCacheStore.channel.handleClusterInvalidateChannelByName)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForLastPosts, localCacheStore.post.handleClusterInvalidateLastPosts)
@@ -818,6 +828,7 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.channelGuestCountCache)
 	s.doClearCacheCluster(s.channelByIdCache)
 	s.doClearCacheCluster(s.channelMembersForUserCache)
+	s.doClearCacheCluster(s.channelMemberRolesForUserCache)
 	s.doClearCacheCluster(s.channelMembersNotifyPropsCache)
 	s.doClearCacheCluster(s.channelByNameCache)
 	s.doClearCacheCluster(s.postLastPostsCache)

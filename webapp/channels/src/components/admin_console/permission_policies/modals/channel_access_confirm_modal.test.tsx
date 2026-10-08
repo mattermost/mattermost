@@ -3,16 +3,19 @@
 
 import React from 'react';
 
+import {ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS, ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS} from '@mattermost/types/access_control';
+
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
-import ChannelReadAccessConfirmModal from './channel_read_access_confirm_modal';
+import ChannelAccessConfirmModal from './channel_access_confirm_modal';
 
-describe('components/admin_console/permission_policies/modals/ChannelReadAccessConfirmModal', () => {
+describe('components/admin_console/permission_policies/modals/ChannelAccessConfirmModal', () => {
     const baseProps = {
         show: true,
         onHide: jest.fn(),
         onConfirm: jest.fn(),
         targetScope: 'system' as const,
+        actions: [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS],
     };
 
     const workspaceScopeCopy = 'This policy controls Channel Read Access across every channel in the workspace, except direct messages and group messages.';
@@ -23,7 +26,7 @@ describe('components/admin_console/permission_policies/modals/ChannelReadAccessC
     });
 
     test('states the workspace-wide scope, the effect on sessions and the simulate prompt', () => {
-        renderWithContext(<ChannelReadAccessConfirmModal {...baseProps}/>);
+        renderWithContext(<ChannelAccessConfirmModal {...baseProps}/>);
 
         expect(screen.getByText('Save this policy?')).toBeInTheDocument();
         expect(screen.getByText(workspaceScopeCopy)).toBeInTheDocument();
@@ -37,7 +40,7 @@ describe('components/admin_console/permission_policies/modals/ChannelReadAccessC
     // overstate the blast radius of the save being confirmed.
     test('scopes the copy to the single channel when saving a channel policy', () => {
         renderWithContext(
-            <ChannelReadAccessConfirmModal
+            <ChannelAccessConfirmModal
                 {...baseProps}
                 targetScope='channel'
             />,
@@ -51,8 +54,41 @@ describe('components/admin_console/permission_policies/modals/ChannelReadAccessC
         expect(screen.getByText('Run Simulate rules first if you have not confirmed who this affects.')).toBeInTheDocument();
     });
 
+    const managementWorkspaceScopeCopy = 'This policy controls Manage Channel across every channel in the workspace, except direct messages and group messages.';
+    const managementChannelScopeCopy = 'This policy controls Manage Channel for this channel only.';
+    const managementEffectCopy = 'Anyone who does not meet the conditions will no longer be able to change the settings, bookmarks, members or access rules of channels covered by this policy. System admins are not affected.';
+
+    test('explains channel_management_access alone when it is the only confirmable action', () => {
+        renderWithContext(
+            <ChannelAccessConfirmModal
+                {...baseProps}
+                actions={[ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS]}
+            />,
+        );
+
+        expect(screen.getByText(managementWorkspaceScopeCopy)).toBeInTheDocument();
+        expect(screen.getByText(managementEffectCopy)).toBeInTheDocument();
+        expect(screen.queryByText(workspaceScopeCopy)).not.toBeInTheDocument();
+        expect(screen.getByText('Run Simulate rules first if you have not confirmed who this affects.')).toBeInTheDocument();
+    });
+
+    test('explains both actions when the policy carries both', () => {
+        renderWithContext(
+            <ChannelAccessConfirmModal
+                {...baseProps}
+                targetScope='channel'
+                actions={[ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS, ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS]}
+            />,
+        );
+
+        expect(screen.getByText(channelScopeCopy)).toBeInTheDocument();
+        expect(screen.getByText(managementChannelScopeCopy)).toBeInTheDocument();
+        expect(screen.getByText(managementEffectCopy)).toBeInTheDocument();
+        expect(screen.getAllByText('Run Simulate rules first if you have not confirmed who this affects.')).toHaveLength(1);
+    });
+
     test('confirming calls onConfirm and not onHide', async () => {
-        renderWithContext(<ChannelReadAccessConfirmModal {...baseProps}/>);
+        renderWithContext(<ChannelAccessConfirmModal {...baseProps}/>);
 
         await userEvent.click(screen.getByRole('button', {name: 'Save policy'}));
 
@@ -61,7 +97,7 @@ describe('components/admin_console/permission_policies/modals/ChannelReadAccessC
     });
 
     test('cancelling calls onHide and not onConfirm', async () => {
-        renderWithContext(<ChannelReadAccessConfirmModal {...baseProps}/>);
+        renderWithContext(<ChannelAccessConfirmModal {...baseProps}/>);
 
         await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
 
@@ -73,7 +109,7 @@ describe('components/admin_console/permission_policies/modals/ChannelReadAccessC
     // state is reachable: isSaving is what stops a second confirm click.
     test('both buttons are inert while a save is in flight', () => {
         renderWithContext(
-            <ChannelReadAccessConfirmModal
+            <ChannelAccessConfirmModal
                 {...baseProps}
                 isSaving={true}
             />,
@@ -84,13 +120,13 @@ describe('components/admin_console/permission_policies/modals/ChannelReadAccessC
     });
 
     test('a second confirm click while saving does not fire onConfirm again', async () => {
-        const {rerender} = renderWithContext(<ChannelReadAccessConfirmModal {...baseProps}/>);
+        const {rerender} = renderWithContext(<ChannelAccessConfirmModal {...baseProps}/>);
 
         await userEvent.click(screen.getByRole('button', {name: 'Save policy'}));
         expect(baseProps.onConfirm).toHaveBeenCalledTimes(1);
 
         rerender(
-            <ChannelReadAccessConfirmModal
+            <ChannelAccessConfirmModal
                 {...baseProps}
                 isSaving={true}
             />,

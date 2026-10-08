@@ -12,6 +12,7 @@ import {Permissions} from 'mattermost-redux/constants';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import ChannelMoveToSubMenu from 'components/channel_move_to_sub_menu';
+import {useChannelManagementAccess} from 'components/common/hooks/useChannelManagementAccess';
 import * as Menu from 'components/menu';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 
@@ -54,6 +55,11 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
     const channelMembersPermission = isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS : Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS;
     const channelDeletePermission = isPrivate ? Permissions.DELETE_PRIVATE_CHANNEL : Permissions.DELETE_PUBLIC_CHANNEL;
     const channelUnarchivePermission = Permissions.MANAGE_TEAM;
+
+    // Unarchiving is authorised on manage_team, which the management decision does not
+    // reach through the permission selectors, so ask it here. An archived channel mounts
+    // no composer to prefetch it.
+    const managementAllowedByPolicy = useChannelManagementAccess(isArchived ? channel.id : '');
 
     return (
         <>
@@ -189,7 +195,7 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
                 </ChannelPermissionGate>
             )}
 
-            {isArchived && !isDefault && (
+            {isArchived && !isDefault && managementAllowedByPolicy && (
                 <ChannelPermissionGate
                     channelId={channel.id}
                     teamId={channel.team_id}

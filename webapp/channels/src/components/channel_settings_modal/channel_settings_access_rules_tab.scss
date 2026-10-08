@@ -9,6 +9,12 @@
         flex-direction: column;
         padding-bottom: 60px;
         overflow-y: auto;
+
+        // This container sets no flex gap, so the read-only banner needs its own space
+        // before the rules heading. The tabs that do set a gap space it already.
+        .ChannelSettingsModal__readOnlyNotice {
+            margin-bottom: 16px;
+        }
     }
 
     &__systemPolicies {

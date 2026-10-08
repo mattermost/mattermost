@@ -280,4 +280,30 @@ describe('Selectors.Views.ChannelSettings', () => {
         const result = canAccessChannelSettings(state, channelId);
         expect(result).toBe(true);
     });
+
+    describe('access rules permission', () => {
+        function getAbacState(enabled = true): GlobalState {
+            const state = getBaseState();
+            (state.entities as any).admin = {config: {AccessControlSettings: {EnableAttributeBasedAccessControl: enabled}}};
+            return state;
+        }
+
+        it('should return true on manage_channel_access_rules alone so a self-denying policy stays fixable', () => {
+            setPermissionCheckResults({[Permissions.MANAGE_CHANNEL_ACCESS_RULES]: true});
+
+            expect(canAccessChannelSettings(getAbacState(), channelId)).toBe(true);
+        });
+
+        it('should return false when attribute based access control is disabled', () => {
+            setPermissionCheckResults({[Permissions.MANAGE_CHANNEL_ACCESS_RULES]: true});
+
+            expect(canAccessChannelSettings(getAbacState(false), channelId)).toBe(false);
+        });
+
+        it('should return false for channels that cannot carry a policy', () => {
+            setPermissionCheckResults({[Permissions.MANAGE_CHANNEL_ACCESS_RULES]: true});
+
+            expect(canAccessChannelSettings(getAbacState(), defaultChannelId)).toBe(false);
+        });
+    });
 });

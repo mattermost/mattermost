@@ -475,6 +475,11 @@
     "description": "System message posted in a channel when it is converted from public to private."
   },
   {
+    "id": "api.channel.channel_management_access.abac_denied.app_error",
+    "translation": "You do not currently have permission to manage this channel.",
+    "description": ""
+  },
+  {
     "id": "api.channel.channel_member_counts_by_group.license.error",
     "translation": "Your license does not support groups",
     "description": "API error when requesting member counts by group without a license that includes user groups; 'groups' are user groups."
@@ -482,6 +487,11 @@
   {
     "id": "api.channel.channel_read_access.abac_denied.app_error",
     "translation": "You do not currently have access to this channel.",
+    "description": ""
+  },
+  {
+    "id": "api.channel.channel_write_access.abac_denied.app_error",
+    "translation": "You do not currently have permission to write in this channel.",
     "description": ""
   },
   {
@@ -14617,8 +14627,18 @@
     "description": "Validation error for an access control policy rule whose action list is invalid; 'action' is what the rule allows (e.g. join, view)."
   },
   {
+    "id": "model.access_policy.is_valid.actions.channel_management_access_type.app_error",
+    "translation": "The Manage Channel action is only allowed on permission and channel policies.",
+    "description": ""
+  },
+  {
     "id": "model.access_policy.is_valid.actions.channel_read_access_type.app_error",
     "translation": "The Channel Read Access action is only allowed on permission and channel policies.",
+    "description": ""
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_write_access_type.app_error",
+    "translation": "The Channel Write Access action is only allowed on permission and channel policies.",
     "description": ""
   },
   {

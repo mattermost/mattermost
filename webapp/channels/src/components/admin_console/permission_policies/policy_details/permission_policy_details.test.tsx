@@ -444,6 +444,26 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         );
     });
 
+    test('confirms before saving a policy that carries channel_management_access', async () => {
+        await renderAndOpenMenu();
+        await pickPermission('Manage Channel');
+
+        await userEvent.click(screen.getByText('Save'));
+
+        expect(await screen.findByText('Save this policy?')).toBeInTheDocument();
+        expect(screen.getByText('This policy controls Manage Channel across every channel in the workspace, except direct messages and group messages.')).toBeInTheDocument();
+        expect(mockCreatePolicy).not.toHaveBeenCalled();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Save policy'}));
+
+        await waitFor(() => {
+            expect(mockCreatePolicy).toHaveBeenCalledTimes(1);
+        });
+        expect(mockCreatePolicy.mock.calls[0][0].rules[0].actions).toEqual(
+            expect.arrayContaining(['channel_management_access']),
+        );
+    });
+
     test('cancelling the confirmation leaves the policy unsaved', async () => {
         await renderAndOpenMenu();
         await pickPermission('Channel Read Access');
