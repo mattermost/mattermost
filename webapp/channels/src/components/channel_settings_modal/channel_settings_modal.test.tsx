@@ -1204,6 +1204,31 @@ describe('ChannelSettingsModal', () => {
             });
         });
 
+        it('should hide the header and purpose previews only after the modal has closed', async () => {
+            const state = makeTestState();
+            state.views = {
+                ...state.views,
+                textbox: {
+                    shouldShowPreviewOnEditChannelHeaderModal: false,
+                    shouldShowPreviewOnChannelSettingsHeaderModal: true,
+                    shouldShowPreviewOnChannelSettingsPurposeModal: true,
+                },
+            };
+            const {store} = renderWithContext(<ChannelSettingsModal {...baseProps}/>, state);
+
+            await userEvent.click(screen.getByLabelText(/close/i));
+            expect(store.getState().views.textbox.shouldShowPreviewOnChannelSettingsHeaderModal).toBe(true);
+
+            await waitFor(() => {
+                expect(baseProps.onExited).toHaveBeenCalled();
+            });
+            expect(store.getState().views.textbox).toEqual({
+                shouldShowPreviewOnEditChannelHeaderModal: false,
+                shouldShowPreviewOnChannelSettingsHeaderModal: false,
+                shouldShowPreviewOnChannelSettingsPurposeModal: false,
+            });
+        });
+
         it('should prevent close on first attempt with unsaved changes', async () => {
             renderWithContext(<ChannelSettingsModal {...baseProps}/>, makeTestState());
 

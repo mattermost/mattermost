@@ -5,6 +5,7 @@ import React from 'react';
 
 import type {Channel, ChannelType} from '@mattermost/types/channels';
 
+import ConnectedEditChannelHeaderModal from 'components/edit_channel_header_modal';
 import {EditChannelHeaderModal} from 'components/edit_channel_header_modal/edit_channel_header_modal';
 
 import {type MockIntl} from 'tests/helpers/intl-test-helper';
@@ -48,7 +49,8 @@ describe('components/EditChannelHeaderModal', () => {
         shouldShowPreview: false,
         onExited: jest.fn(),
         actions: {
-            setShowPreview: jest.fn(),
+            togglePreview: jest.fn(),
+            editChannelHeaderModalClosed: jest.fn(),
             patchChannel: jest.fn().mockResolvedValue({}),
         },
         intl: {
@@ -147,6 +149,43 @@ describe('components/EditChannelHeaderModal', () => {
         });
 
         expect(baseElement).toMatchSnapshot();
+    });
+
+    test('should toggle the preview and hide it again when the modal is closed', async () => {
+        const onExited = jest.fn();
+        const {rerender} = renderWithContext(
+            <ConnectedEditChannelHeaderModal
+                channel={channel}
+                onExited={onExited}
+            />,
+        );
+
+        const previewLink = screen.getByRole('button', {name: 'Preview'});
+        const textboxWrapper = () => screen.getByTestId('edit_textbox').closest('.textarea-wrapper');
+
+        expect(textboxWrapper()).not.toHaveClass('textarea-wrapper-preview');
+
+        await userEvent.click(previewLink);
+        expect(textboxWrapper()).toHaveClass('textarea-wrapper-preview');
+
+        await userEvent.click(previewLink);
+        expect(textboxWrapper()).not.toHaveClass('textarea-wrapper-preview');
+
+        await userEvent.click(previewLink);
+        await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
+        expect(textboxWrapper()).toHaveClass('textarea-wrapper-preview');
+
+        await waitFor(() => expect(onExited).toHaveBeenCalled());
+
+        rerender(
+            <ConnectedEditChannelHeaderModal
+                key='reopened'
+                channel={channel}
+                onExited={jest.fn()}
+            />,
+        );
+
+        expect(textboxWrapper()).not.toHaveClass('textarea-wrapper-preview');
     });
 
     describe('handleSave', () => {

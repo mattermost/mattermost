@@ -68,8 +68,8 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
         }
     };
 
-    private setShowPreview = (newState: boolean): void => {
-        this.props.actions.setShowPreview(newState);
+    private togglePreview = (): void => {
+        this.props.actions.togglePreview();
     };
 
     private handleChange = (e: React.ChangeEvent<TextboxElement>): void => {
@@ -110,6 +110,11 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
         this.setState({
             show: false,
         });
+    };
+
+    private handleExited = (): void => {
+        this.props.actions.editChannelHeaderModalClosed();
+        this.props.onExited();
     };
 
     private focusTextbox = (): void => {
@@ -214,7 +219,7 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                 onKeyDown={this.handleModalKeyDown}
                 onHide={this.hideModal}
                 onEntering={this.handleEntering}
-                onExited={this.props.onExited}
+                onExited={this.handleExited}
                 role='none'
                 aria-labelledby='editChannelHeaderModalLabel'
             >
@@ -258,7 +263,7 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                         <div className='post-create-footer'>
                             <TextboxLinks
                                 showPreview={this.props.shouldShowPreview}
-                                updatePreview={this.setShowPreview}
+                                updatePreview={this.togglePreview}
                                 hasText={this.state.header ? this.state.header.length > 0 : false}
                                 hasExceededCharacterLimit={this.state.header ? this.state.header.length > headerMaxLength : false}
                                 previewMessageLink={

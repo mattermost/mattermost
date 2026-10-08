@@ -8,6 +8,8 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserThread} from '@mattermost/types/threads';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
+import type {TextboxState} from 'reducers/views/textbox';
+
 import type {I18nState} from './i18n';
 import type {LhsViewState} from './lhs';
 import type {RhsViewState} from './rhs';
@@ -218,11 +220,5 @@ export type ViewsState = {
         toastStatus: boolean;
     };
 
-    textbox: {
-        shouldShowPreviewOnCreateComment: boolean;
-        shouldShowPreviewOnCreatePost: boolean;
-        shouldShowPreviewOnEditChannelHeaderModal: boolean;
-        shouldShowPreviewOnChannelSettingsHeaderModal: boolean;
-        shouldShowPreviewOnChannelSettingsPurposeModal: boolean;
-    };
+    textbox: TextboxState;
 };
