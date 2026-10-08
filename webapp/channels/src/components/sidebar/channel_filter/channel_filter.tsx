@@ -6,6 +6,10 @@ import React from 'react';
 import {defineMessages, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
+import {
+    FilterVariantIcon,
+} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {ShortcutKeys} from '@mattermost/shared/components/shortcut_key';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -82,12 +86,7 @@ export class ChannelFilter extends React.PureComponent<Props> {
                         size='small'
                         padding='compact'
                         className={classNames('SidebarFilters_filterButton', {active: unreadFilterEnabled})}
-                        icon={
-                            <i
-                                className='icon icon-filter-variant'
-                                aria-hidden='true'
-                            />
-                        }
+                        icon={<Icon glyph={<FilterVariantIcon/>}/>}
                         toggled={unreadFilterEnabled}
                         data-testid='sidebar-unread-filter-button'
                         onClick={this.handleUnreadFilterClick}

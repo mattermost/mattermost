@@ -13,6 +13,7 @@ import {
     TrashCanOutlineIcon,
     TextBoxOutlineIcon,
 } from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
@@ -243,12 +244,7 @@ const LinkPopover = ({editor, onClose}: LinkPopoverProps) => {
                         <WithTooltip title={formatMessage({id: 'wysiwyg.link.open', defaultMessage: 'Open link'})}>
                             <IconButton
                                 size='small'
-                                icon={
-                                    <OpenInNewIcon
-                                        size={18}
-                                        color='currentColor'
-                                    />
-                                }
+                                icon={<Icon glyph={<OpenInNewIcon/>}/>}
                                 onClick={handleOpenExternal}
                                 aria-label={formatMessage({id: 'wysiwyg.link.open', defaultMessage: 'Open link'})}
                             />
@@ -259,12 +255,7 @@ const LinkPopover = ({editor, onClose}: LinkPopoverProps) => {
                             <IconButton
                                 size='small'
                                 destructive={true}
-                                icon={
-                                    <TrashCanOutlineIcon
-                                        size={18}
-                                        color='currentColor'
-                                    />
-                                }
+                                icon={<Icon glyph={<TrashCanOutlineIcon/>}/>}
                                 onClick={handleRemove}
                                 aria-label={formatMessage({id: 'wysiwyg.link.remove', defaultMessage: 'Remove link'})}
                             />

@@ -5,6 +5,8 @@ import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
+import {ArrowLeftIcon, ArrowRightIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
@@ -66,12 +68,7 @@ export const HistoryButtons = () => {
                     style='inverted'
                     size='small'
                     padding='compact'
-                    icon={
-                        <i
-                            className='icon icon-arrow-left'
-                            aria-hidden='true'
-                        />
-                    }
+                    icon={<Icon glyph={<ArrowLeftIcon/>}/>}
                     onClick={goBack}
                     disabled={!canGoBack}
                     aria-label={intl.formatMessage({id: 'sidebar_left.channel_navigator.goBackLabel', defaultMessage: 'Back'})}
@@ -85,12 +82,7 @@ export const HistoryButtons = () => {
                     style='inverted'
                     size='small'
                     padding='compact'
-                    icon={
-                        <i
-                            className='icon icon-arrow-right'
-                            aria-hidden='true'
-                        />
-                    }
+                    icon={<Icon glyph={<ArrowRightIcon/>}/>}
                     onClick={goForward}
                     disabled={!canGoForward}
                     aria-label={intl.formatMessage({id: 'sidebar_left.channel_navigator.goForwardLabel', defaultMessage: 'Forward'})}

@@ -4,6 +4,10 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import {
+    CloseIcon,
+} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
@@ -30,12 +34,7 @@ function ModalHeader({id, title, subtitle, handleClose}: Props) {
                 {handleClose && <div className='mm-modal-header__ctr'>
                     <WithTooltip title={intl.formatMessage({id: 'modal.header_close', defaultMessage: 'Close'})}>
                         <IconButton
-                            icon={
-                                <i
-                                    className='icon icon-close'
-                                    aria-hidden='true'
-                                />
-                            }
+                            icon={<Icon glyph={<CloseIcon/>}/>}
                             size='medium'
                             onClick={handleClose}
                             aria-label={intl.formatMessage({id: 'modal.header_close', defaultMessage: 'Close'})}

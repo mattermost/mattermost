@@ -5,6 +5,10 @@ import React, {useEffect, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {
+    CloseIcon,
+} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
@@ -152,12 +156,7 @@ const ProfilePopoverTitle = ({
                     ref={closeRef}
                     size='small'
                     className='closeButtonRelativePosition'
-                    icon={
-                        <i
-                            className='icon icon-close'
-                            aria-hidden='true'
-                        />
-                    }
+                    icon={<Icon glyph={<CloseIcon/>}/>}
                     onClick={handleClose}
                     aria-label={formatMessage({id: 'user_profile.close', defaultMessage: 'Close user profile popover'})}
                 />

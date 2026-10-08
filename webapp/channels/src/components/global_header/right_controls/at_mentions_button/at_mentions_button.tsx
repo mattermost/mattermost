@@ -5,6 +5,8 @@ import React, {type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {AtIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
@@ -52,12 +54,7 @@ const AtMentionsButton = (): JSX.Element => {
                 style='inverted'
                 size='small'
                 padding='compact'
-                icon={
-                    <i
-                        className='icon icon-at'
-                        aria-hidden='true'
-                    />
-                }
+                icon={<Icon glyph={<AtIcon/>}/>}
                 toggled={rhsState === RHSStates.MENTION}
                 onClick={mentionButtonClick}
                 aria-expanded={rhsState === RHSStates.MENTION}

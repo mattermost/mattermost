@@ -5,7 +5,11 @@ import classNames from 'classnames';
 import React, {useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
+import {
+    AlertCircleOutlineIcon,
+    CloseIcon,
+} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -99,12 +103,7 @@ function SaveChangesPanel({
                         <IconButton
                             id='panelCloseButton'
                             size='small'
-                            icon={
-                                <i
-                                    className='icon icon-close'
-                                    aria-hidden='true'
-                                />
-                            }
+                            icon={<Icon glyph={<CloseIcon/>}/>}
                             onClick={handleClose}
                             aria-label={intl.formatMessage({id: 'saveChangesPanel.close', defaultMessage: 'Close'})}
                         />

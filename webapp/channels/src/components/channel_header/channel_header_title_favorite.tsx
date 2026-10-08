@@ -6,6 +6,8 @@ import React, {memo, useCallback, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
+import {StarIcon, StarOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
@@ -94,12 +96,7 @@ const ChannelHeaderTitleFavorite = () => {
                 id='toggleFavorite'
                 size='x-small'
                 className={classNames('channel-header__favorites', {active: isFavorite, inactive: !isFavorite})}
-                icon={
-                    <i
-                        className={classNames('icon', {'icon-star': isFavorite, 'icon-star-outline': !isFavorite})}
-                        aria-hidden='true'
-                    />
-                }
+                icon={<Icon glyph={isFavorite ? <StarIcon/> : <StarOutlineIcon/>}/>}
                 onClick={toggleFavoriteCallback}
                 aria-label={ariaLabel}
                 ref={favIconRef}

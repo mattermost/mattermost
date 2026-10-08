@@ -6,6 +6,11 @@ import type {ChangeEvent, JSX, ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {
+    ChevronLeftIcon,
+    ChevronRightIcon,
+} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -189,12 +194,7 @@ const BackstageList = (remainingProps: Props) => {
                         <IconButton
                             size='small'
                             className='ml-2 prev'
-                            icon={
-                                <i
-                                    className='icon icon-chevron-left'
-                                    aria-hidden='true'
-                                />
-                            }
+                            icon={<Icon glyph={<ChevronLeftIcon/>}/>}
                             onClick={previousPageFn}
                             disabled={isFirstPage}
                             aria-label={formatMessage({id: 'backstage_list.previousButton.ariaLabel', defaultMessage: 'Previous'})}
@@ -204,12 +204,7 @@ const BackstageList = (remainingProps: Props) => {
                         <IconButton
                             size='small'
                             className='next'
-                            icon={
-                                <i
-                                    className='icon icon-chevron-right'
-                                    aria-hidden='true'
-                                />
-                            }
+                            icon={<Icon glyph={<ChevronRightIcon/>}/>}
                             onClick={nextPageFn}
                             disabled={isLastPage}
                             aria-label={formatMessage({id: 'backstage_list.nextButton.ariaLabel', defaultMessage: 'Next'})}

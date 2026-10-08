@@ -6,6 +6,8 @@ import React, {memo} from 'react';
 import type {ComponentProps} from 'react';
 import {useIntl} from 'react-intl';
 
+import {BellOffOutlineIcon, BellOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
@@ -41,12 +43,7 @@ function FollowButton({
                 <IconButton
                     size='small'
                     className={classNames('FollowButton FollowButton--icon', className)}
-                    icon={
-                        <i
-                            className={classNames('icon', following ? 'icon-bell-outline' : 'icon-bell-off-outline')}
-                            aria-hidden='true'
-                        />
-                    }
+                    icon={<Icon glyph={following ? <BellOutlineIcon/> : <BellOffOutlineIcon/>}/>}
                     active={following}
                     disabled={Boolean(disabled)}
                     aria-label={label}

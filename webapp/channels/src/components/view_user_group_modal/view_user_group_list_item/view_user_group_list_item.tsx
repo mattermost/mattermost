@@ -5,6 +5,10 @@ import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {
+    TrashCanOutlineIcon,
+} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Group} from '@mattermost/types/groups';
@@ -82,12 +86,7 @@ const ViewUserGroupListItem = (props: Props) => {
                         size='x-small'
                         destructive={true}
                         className='remove-group-member'
-                        icon={
-                            <i
-                                className='icon icon-trash-can-outline'
-                                aria-hidden='true'
-                            />
-                        }
+                        icon={<Icon glyph={<TrashCanOutlineIcon/>}/>}
                         aria-label={formatMessage({
                             id: 'view_user_group_list_item.removeUserFromGroup',
                             defaultMessage: 'Remove {user} from group',

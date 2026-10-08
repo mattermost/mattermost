@@ -4,6 +4,8 @@
 import React, {type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {SettingsOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
@@ -36,12 +38,7 @@ const SettingsButton = (props: Props): JSX.Element | null => {
                 style='inverted'
                 size='small'
                 padding='compact'
-                icon={
-                    <i
-                        className='icon icon-settings-outline'
-                        aria-hidden='true'
-                    />
-                }
+                icon={<Icon glyph={<SettingsOutlineIcon/>}/>}
                 onClick={(): void => {
                     props.actions.openModal({modalId: ModalIdentifiers.USER_SETTINGS, dialogType: UserSettingsModal, dialogProps: {isContentProductSettings: true, focusOriginElement: 'settings_button'}});
                 }}

@@ -5,6 +5,11 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
+import {
+    ArrowBackIosIcon,
+    CloseIcon,
+} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel} from '@mattermost/types/channels';
@@ -33,12 +38,7 @@ const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
                         <IconButton
                             size='small'
                             className='sidebar--right__back'
-                            icon={
-                                <i
-                                    className='icon icon-arrow-back-ios'
-                                    aria-hidden='true'
-                                />
-                            }
+                            icon={<Icon glyph={<ArrowBackIosIcon/>}/>}
                             onClick={goBack}
                             aria-label={formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Back Icon'})}
                         />
@@ -76,12 +76,7 @@ const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
                     id='rhsCloseButton'
                     size='small'
                     className='sidebar--right__close'
-                    icon={
-                        <i
-                            className='icon icon-close'
-                            aria-hidden='true'
-                        />
-                    }
+                    icon={<Icon glyph={<CloseIcon/>}/>}
                     aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
                     onClick={onClose}
                 />

@@ -5,6 +5,8 @@ import React from 'react';
 import {injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
+import {HelpCircleOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
@@ -126,12 +128,7 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                         style='inverted'
                         size='small'
                         padding='compact'
-                        icon={
-                            <i
-                                className='icon icon-help-circle-outline'
-                                aria-hidden='true'
-                            />
-                        }
+                        icon={<Icon glyph={<HelpCircleOutlineIcon/>}/>}
                         aria-controls='userHelpGuide'
                         aria-label={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
                         active={this.state.buttonActive}

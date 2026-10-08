@@ -5,6 +5,8 @@ import React, {type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {BookmarkOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
@@ -43,12 +45,7 @@ const SavedPostsButton = (): JSX.Element | null => {
                 style='inverted'
                 size='small'
                 padding='compact'
-                icon={
-                    <i
-                        className='icon icon-bookmark-outline'
-                        aria-hidden='true'
-                    />
-                }
+                icon={<Icon glyph={<BookmarkOutlineIcon/>}/>}
                 toggled={rhsState === RHSStates.FLAG}
                 onClick={savedPostsButtonClick}
                 aria-expanded={rhsState === RHSStates.FLAG}

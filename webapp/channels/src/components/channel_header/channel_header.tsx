@@ -6,6 +6,13 @@ import type {MouseEvent, ReactNode, RefObject} from 'react';
 import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
+import {
+    AccountOutlineIcon,
+    BellOffOutlineIcon,
+    FileTextOutlineIcon,
+    PinOutlineIcon,
+} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
@@ -265,13 +272,8 @@ class ChannelHeader extends React.PureComponent<Props> {
             }
         }
 
-        const channelFilesIcon = <i className='icon icon-file-text-outline'/>;
-        const pinnedIcon = (
-            <i
-                aria-hidden='true'
-                className='icon icon-pin-outline channel-header__pin'
-            />
-        );
+        const channelFilesIcon = <Icon glyph={<FileTextOutlineIcon/>}/>;
+        const pinnedIcon = <Icon glyph={<PinOutlineIcon/>}/>;
 
         const pinnedButton = this.props.pinnedPostsCount ? (
             <HeaderIconWrapper
@@ -293,10 +295,7 @@ class ChannelHeader extends React.PureComponent<Props> {
         if (!isDirect) {
             const membersIcon = (
                 <span className='channel-header__members-icon-wrapper'>
-                    <i
-                        aria-hidden='true'
-                        className='icon icon-account-outline channel-header__members'
-                    />
+                    <Icon glyph={<AccountOutlineIcon/>}/>
                     {this.props.hasPendingJoinRequests && (
                         <span
                             className='channel-header__join-request-badge'
@@ -339,12 +338,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                         id='toggleMute'
                         size='x-small'
                         className='channel-header__mute channel-header__icon'
-                        icon={
-                            <i
-                                className='icon icon-bell-off-outline'
-                                aria-hidden='true'
-                            />
-                        }
+                        icon={<Icon glyph={<BellOffOutlineIcon/>}/>}
                         onClick={this.unmute}
                         aria-label={this.props.intl.formatMessage({id: 'channelHeader.unmute', defaultMessage: 'Unmute'})}
                     />

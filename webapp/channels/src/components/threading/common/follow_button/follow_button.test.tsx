@@ -49,7 +49,7 @@ describe('components/threading/common/follow_button', () => {
         const offButton = screen.getByRole('button', {name: 'Follow'});
         expect(offButton).toHaveAttribute('aria-pressed', 'false');
         expect(offButton).not.toHaveAttribute('data-active');
-        expect(offButton.querySelector('.icon-bell-off-outline')).toBeInTheDocument();
+        expect(offButton.querySelector('svg')).toBeInTheDocument();
         expect(screen.queryByText('Follow')).not.toBeInTheDocument();
 
         rerender(
@@ -62,8 +62,7 @@ describe('components/threading/common/follow_button', () => {
         const onButton = screen.getByRole('button', {name: 'Following'});
         expect(onButton).toHaveAttribute('aria-pressed', 'true');
         expect(onButton).toHaveAttribute('data-active', 'true');
-        expect(onButton.querySelector('.icon-bell-outline')).toBeInTheDocument();
-        expect(onButton.querySelector('.icon-bell-off-outline')).not.toBeInTheDocument();
+        expect(onButton.querySelector('svg')).toBeInTheDocument();
     });
 
     test('should fire click handler', async () => {

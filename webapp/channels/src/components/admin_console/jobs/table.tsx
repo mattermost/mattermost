@@ -5,6 +5,11 @@ import classNames from 'classnames';
 import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {
+    ChevronLeftIcon,
+    ChevronRightIcon,
+} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -201,12 +206,7 @@ class JobTable extends React.PureComponent<Props, State> {
                                 <IconButton
                                     size='small'
                                     className='ml-2 prev'
-                                    icon={
-                                        <i
-                                            className='icon icon-chevron-left'
-                                            aria-hidden='true'
-                                        />
-                                    }
+                                    icon={<Icon glyph={<ChevronLeftIcon/>}/>}
                                     onClick={this.handlePrevPage}
                                     disabled={firstPage}
                                     aria-label='Previous page'
@@ -216,12 +216,7 @@ class JobTable extends React.PureComponent<Props, State> {
                                 <IconButton
                                     size='small'
                                     className='next'
-                                    icon={
-                                        <i
-                                            className='icon icon-chevron-right'
-                                            aria-hidden='true'
-                                        />
-                                    }
+                                    icon={<Icon glyph={<ChevronRightIcon/>}/>}
                                     onClick={this.handleNextPage}
                                     disabled={lastPage}
                                     aria-label='Next page'

@@ -102,16 +102,7 @@ const FormattingIcon = forwardRef<HTMLButtonElement, FormattingIconProps>((props
                 ref={ref}
                 id={props.id || `FormattingControl_${mode}`}
                 size='small'
-                icon={
-                    <Icon
-                        glyph={
-                            <CompassIcon
-                                color='currentColor'
-                                size={18}
-                            />
-                        }
-                    />
-                }
+                icon={<Icon glyph={<CompassIcon/>}/>}
                 onClick={onClick}
                 onMouseDown={handleMouseDown}
                 aria-label={buttonAriaLabel}

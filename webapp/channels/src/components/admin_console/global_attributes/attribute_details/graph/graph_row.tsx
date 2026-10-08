@@ -15,6 +15,7 @@ import {
     SitemapIcon,
     TrashCanOutlineIcon,
 } from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {PropertyFieldOption} from '@mattermost/types/properties';
@@ -271,7 +272,7 @@ export const GraphRow = React.memo(({
                         <IconButton
                             size='x-small'
                             className='attribute-options-graph-values__action'
-                            icon={<PlusIcon size={16}/>}
+                            icon={<Icon glyph={<PlusIcon/>}/>}
                             aria-label={addChildLabel}
                             disabled={atMax}
                             onClick={() => onOpenMenuAddChild(occurrence, index)}
@@ -282,7 +283,7 @@ export const GraphRow = React.memo(({
                         <IconButton
                             size='x-small'
                             className='attribute-options-graph-values__action'
-                            icon={<SitemapIcon size={16}/>}
+                            icon={<Icon glyph={<SitemapIcon/>}/>}
                             aria-label={formatMessage(messages.parentsAria, {name: occurrence.option.name})}
                             onClick={() => toggleMenu('parents')}
                             data-testid='attributeOptionsGraphRow__parents'
@@ -293,7 +294,7 @@ export const GraphRow = React.memo(({
                             size='x-small'
                             destructive={true}
                             className='attribute-options-graph-values__action'
-                            icon={<TrashCanOutlineIcon size={16}/>}
+                            icon={<Icon glyph={<TrashCanOutlineIcon/>}/>}
                             aria-label={deleteLabel}
                             onClick={() => onDelete(occurrence.option.name)}
                             data-testid='attributeOptionsGraphRow__delete'
