@@ -62,7 +62,9 @@ $positions: 't'top,
 .app__body [class*="_select__control"].a11y--focused,
 .app__body [class*="_combobox__control"].a11y--focused,
 .app__body [class*="_date-range-picker__trigger"].a11y--focused,
-.app__body button[class*="_button--emphasis-"].a11y--focused {
+.app__body button[class*="_button--emphasis-"].a11y--focused,
+.app__body button[class*="_icon-button"].a11y--focused,
+.app__body button[class*="_action-button"].a11y--focused {
     box-shadow: none;
 }
 
