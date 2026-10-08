@@ -94,7 +94,7 @@ const ChannelHeaderTitleFavorite = () => {
         >
             <IconButton
                 id='toggleFavorite'
-                size='x-small'
+                size='small'
                 className={classNames('channel-header__favorites', {active: isFavorite, inactive: !isFavorite})}
                 icon={<Icon glyph={isFavorite ? <StarIcon/> : <StarOutlineIcon/>}/>}
                 onClick={toggleFavoriteCallback}
