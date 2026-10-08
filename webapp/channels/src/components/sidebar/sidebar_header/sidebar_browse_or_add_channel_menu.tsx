@@ -13,6 +13,7 @@ import {
     GlobeIcon,
     AccountOutlineIcon,
 } from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
@@ -24,6 +25,12 @@ import {useShowOnboardingTutorialStep, CreateAndJoinChannelsTour, InvitePeopleTo
 
 export const ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU = 'browserOrAddChannelMenu';
 export const ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU_BUTTON = 'browseOrAddChannelMenuButton';
+
+const BrowseOrAddChannelMenuTrigger = Menu.createMenuIconButtonTrigger({
+    size: 'small',
+    style: 'inverted',
+    rounded: true,
+});
 
 type Props = {
     canCreateChannel: boolean;
@@ -185,12 +192,8 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
                     id: 'sidebarLeft.browserOrCreateChannelMenuButton.label',
                     defaultMessage: 'Browse or create channels',
                 }),
-
-                // TODO(compass-migration): Menu.Container.menuButton accepts a plain-object descriptor
-                // (not a React node), so IconButton cannot be passed here directly.
-                // Handoff: migrate once Menu.Container exposes a renderButton/as prop.
-                class: 'btn btn-icon btn-sm btn-tertiary btn-inverted btn-round',
-                children: <PlusIcon size={18}/>,
+                as: BrowseOrAddChannelMenuTrigger,
+                children: <Icon glyph={<PlusIcon/>}/>,
             }}
             menuButtonTooltip={{
                 text: formatMessage({id: 'sidebarLeft.browserOrCreateChannelMenuButton.label', defaultMessage: 'Browse or create channels'}),

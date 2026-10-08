@@ -7,7 +7,6 @@ import {useSelector} from 'react-redux';
 
 import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
 import {Icon} from '@mattermost/compass-ui/components/icon';
-import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import type {PostPriorityMetadata} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
 
@@ -23,6 +22,8 @@ import * as Keyboard from 'utils/keyboard';
 import {Header, MenuItem, StyledCheckIcon, ToggleItem, StandardIcon, ImportantIcon, UrgentIcon, AcknowledgementIcon, PersistentNotificationsIcon, Footer} from './post_priority_picker_item';
 
 import './post_priority_picker.scss';
+
+const PostPriorityMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
 
 type Props = {
     settings?: PostPriorityMetadata;
@@ -238,21 +239,11 @@ function PostPriorityPicker({
         <Menu.Container
             menuButton={{
                 id: 'messagePriority',
-                as: 'div',
-                children: (
-                    <IconButton
-                        id='messagePriority'
-                        className='control'
-                        size='small'
-                        active={pickerOpen}
-                        disabled={disabled}
-                        aria-label={messagePriority}
-                        icon={
-                            <Icon
-                                glyph={<AlertCircleOutlineIcon color='currentColor'/>}
-                            />
-                        }
-                    />),
+                as: PostPriorityMenuTrigger,
+                class: 'control',
+                disabled,
+                'aria-label': messagePriority,
+                children: <Icon glyph={<AlertCircleOutlineIcon/>}/>,
             }}
             menu={{
                 id: 'post.priority.dropdown',

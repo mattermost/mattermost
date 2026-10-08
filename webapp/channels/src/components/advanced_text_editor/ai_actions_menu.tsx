@@ -12,7 +12,6 @@ import {useSelector} from 'react-redux';
 
 import {ChevronRightIcon, CreationOutlineIcon, PencilOutlineIcon} from '@mattermost/compass-icons/components';
 import {Icon} from '@mattermost/compass-ui/components/icon';
-import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 
 import * as Menu from 'components/menu';
 
@@ -26,6 +25,8 @@ import type {AIActionMenuItemComponent} from 'types/store/plugins';
 
 import type {RewriteMenuProps} from './rewrite_menu';
 import {RewriteSubmenu, RewriteSubMenuHeader, RewriteSubMenuFooter} from './rewrite_menu';
+
+const AIActionsMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
 
 interface AIActionsMenuProps {
     draft: PostDraft;
@@ -142,33 +143,13 @@ const AIActionsMenu = ({
             <Menu.Container
                 menuButton={{
                     id: 'ai-actions-button',
-                    as: 'div',
+                    as: AIActionsMenuTrigger,
+                    class: 'control',
                     'aria-label': formatMessage({
                         id: 'texteditor.ai_actions',
                         defaultMessage: 'AI Actions',
                     }),
-                    children: (
-
-                        // IconButton is a real <button>, but the surrounding Menu.Container div
-                        // above is already the accessible menu trigger (role="button"). Hiding this
-                        // inner button from assistive tech avoids exposing two "AI Actions" buttons
-                        // with the same accessible name (nested interactive elements).
-                        <IconButton
-                            id='aiActionsMenu'
-                            className='control'
-                            size='small'
-                            active={isMenuOpen}
-                            tabIndex={-1}
-                            aria-hidden='true'
-                            icon={
-                                <Icon
-                                    glyph={
-                                        <CreationOutlineIcon color='currentColor'/>
-                                    }
-                                />
-                            }
-                        />
-                    ),
+                    children: <Icon glyph={<CreationOutlineIcon/>}/>,
                 }}
                 menuButtonTooltip={{
                     text: formatMessage({

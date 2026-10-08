@@ -17,7 +17,6 @@ import {
     SpellcheckIcon,
 } from '@mattermost/compass-icons/components';
 import {Icon} from '@mattermost/compass-ui/components/icon';
-import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {Button} from '@mattermost/shared/components/button';
 import type {Agent} from '@mattermost/types/agents';
 
@@ -31,6 +30,8 @@ import {RewriteAction} from './rewrite_action';
 import RewritePromptInput from './rewrite_prompt_input';
 
 import './use_rewrite.scss';
+
+const RewriteMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
 
 export interface MenuItemConfig {
     action: RewriteAction;
@@ -189,26 +190,13 @@ export default function RewriteMenu({
             )}
             menuButton={{
                 id: 'rewrite-button',
-                as: 'div',
-                children: (
-                    <IconButton
-                        id='rewrite'
-                        className='control'
-                        size='small'
-                        active={isMenuOpen}
-                        aria-label={formatMessage({
-                            id: 'texteditor.rewrite',
-                            defaultMessage: 'Rewrite',
-                        })}
-                        icon={
-                            <Icon
-                                glyph={
-                                    <CreationOutlineIcon color='currentColor'/>
-                                }
-                            />
-                        }
-                    />
-                ),
+                as: RewriteMenuTrigger,
+                class: 'control',
+                'aria-label': formatMessage({
+                    id: 'texteditor.rewrite',
+                    defaultMessage: 'Rewrite',
+                }),
+                children: <Icon glyph={<CreationOutlineIcon/>}/>,
             }}
             menuButtonTooltip={{
                 text: formatMessage({
