@@ -13,6 +13,7 @@ import {
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
     ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+    ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
 } from '@mattermost/types/access_control';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -65,6 +66,8 @@ const permissionMessages = defineMessages({
     uploadDescription: {id: 'admin.permission_policies.permission.upload_file.description', defaultMessage: 'Allow users to upload files while sending a message'},
     channelReadAccessLabel: {id: 'admin.permission_policies.permission.channel_read_access.label', defaultMessage: 'Channel Read Access'},
     channelReadAccessDescription: {id: 'admin.permission_policies.permission.channel_read_access.description', defaultMessage: 'Allow users to read the channel and its content'},
+    createBorLabel: {id: 'admin.permission_policies.permission.create_bor.label', defaultMessage: 'Create Burn-on-Read Message'},
+    createBorDescription: {id: 'admin.permission_policies.permission.create_bor.description', defaultMessage: 'Allow users to send burn-on-read messages'},
 });
 
 const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
@@ -82,6 +85,11 @@ const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
         value: ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
         label: permissionMessages.channelReadAccessLabel,
         description: permissionMessages.channelReadAccessDescription,
+    },
+    {
+        value: ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
+        label: permissionMessages.createBorLabel,
+        description: permissionMessages.createBorDescription,
     },
 ];
 
@@ -480,7 +488,7 @@ function PermissionPolicyDetails({
                                                 defaultMessage: 'Configure user attributes',
                                             }),
                                             onClick: () => {
-                                                getHistory().push('/admin_console/system_attributes/user_attributes');
+                                                getHistory().push('/admin_console/system_attributes/manage_attributes');
                                             },
                                         }}
                                     />
@@ -877,6 +885,7 @@ function PermissionPolicyDetails({
                                 [ACCESS_CONTROL_ACTION_UPLOAD_FILE]: formatMessage(permissionMessages.uploadLabel),
                                 [ACCESS_CONTROL_ACTION_DOWNLOAD_FILE]: formatMessage(permissionMessages.downloadLabel),
                                 [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS]: formatMessage(permissionMessages.channelReadAccessLabel),
+                                [ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ]: formatMessage(permissionMessages.createBorLabel),
                             }}
                             targetRole={selectedRole}
                             targetScope='system'

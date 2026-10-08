@@ -5534,14 +5534,12 @@ func (s *DisplaySettings) isValid() *AppError {
 }
 
 func (s *ImageProxySettings) isValid() *AppError {
-	if *s.ImageProxyType == ImageProxyTypeLegacyAtmosCamo {
-		return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_removed.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	if *s.Enable {
 		switch *s.ImageProxyType {
 		case ImageProxyTypeLocal:
 			// No other settings to validate
+		case ImageProxyTypeLegacyAtmosCamo:
+			return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_removed.app_error", nil, "", http.StatusBadRequest)
 		default:
 			return NewAppError("Config.IsValid", "model.config.is_valid.image_proxy_type.app_error", nil, "", http.StatusBadRequest)
 		}

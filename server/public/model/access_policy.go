@@ -50,6 +50,7 @@ const (
 	AccessControlPolicyActionUploadFileAttachment   = "upload_file_attachment"
 	AccessControlPolicyActionDownloadFileAttachment = "download_file_attachment"
 	AccessControlPolicyActionChannelReadAccess      = "channel_read_access"
+	AccessControlPolicyActionCreateBurnOnReadPost   = "create_burn_on_read_post"
 
 	AccessControlPolicyScopeTeam = "team"
 
@@ -89,6 +90,7 @@ var allowedActionsV0_3 = map[string]bool{
 	AccessControlPolicyActionUploadFileAttachment:   true,
 	AccessControlPolicyActionDownloadFileAttachment: true,
 	AccessControlPolicyActionChannelReadAccess:      true,
+	AccessControlPolicyActionCreateBurnOnReadPost:   true,
 }
 
 // allowedChannelRolesV0_4 is the set of channel-scoped roles that may appear
@@ -106,6 +108,7 @@ var allowedPermissionActionsV0_4 = map[string]bool{
 	AccessControlPolicyActionUploadFileAttachment:   true,
 	AccessControlPolicyActionDownloadFileAttachment: true,
 	AccessControlPolicyActionChannelReadAccess:      true,
+	AccessControlPolicyActionCreateBurnOnReadPost:   true,
 }
 
 // IsPermissionAction reports whether the given action is a non-membership

@@ -104,11 +104,17 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 
 		resp, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
 			Resource: channelResource,
-			Actions:  []string{model.AccessControlPolicyActionUploadFileAttachment, model.AccessControlPolicyActionDownloadFileAttachment},
+			Actions: []string{
+				model.AccessControlPolicyActionUploadFileAttachment,
+				model.AccessControlPolicyActionDownloadFileAttachment,
+				model.AccessControlPolicyActionCreateBurnOnReadPost},
 		})
 		require.Nil(t, appErr)
-		require.Len(t, resp.Decisions, 2)
-		for _, action := range []string{model.AccessControlPolicyActionUploadFileAttachment, model.AccessControlPolicyActionDownloadFileAttachment} {
+		require.Len(t, resp.Decisions, 3)
+		for _, action := range []string{
+			model.AccessControlPolicyActionUploadFileAttachment,
+			model.AccessControlPolicyActionDownloadFileAttachment,
+			model.AccessControlPolicyActionCreateBurnOnReadPost} {
 			require.True(t, resp.Decisions[action].Evaluated, action)
 			require.True(t, resp.Decisions[action].Allowed, action)
 			require.Empty(t, resp.Decisions[action].Reason, action)
@@ -177,11 +183,14 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 
 		resp, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
 			Resource: channelResource,
-			Actions:  []string{model.AccessControlPolicyActionUploadFileAttachment, model.AccessControlPolicyActionDownloadFileAttachment},
+			Actions: []string{
+				model.AccessControlPolicyActionUploadFileAttachment,
+				model.AccessControlPolicyActionDownloadFileAttachment,
+				model.AccessControlPolicyActionCreateBurnOnReadPost},
 		})
 		require.Nil(t, appErr)
-		require.Len(t, resp.Decisions, 2)
-		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 2)
+		require.Len(t, resp.Decisions, 3)
+		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 3)
 	})
 
 	for _, want := range []bool{true, false} {
@@ -199,7 +208,7 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 			})
 			require.Nil(t, appErr)
 
-			enforced := th.App.HasPermissionToFileAction(rctx, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionUploadFileAttachment)
+			enforced := th.App.HasPermissionToChannelAction(rctx, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionUploadFileAttachment)
 			require.Equal(t, enforced, resp.Decisions[model.AccessControlPolicyActionUploadFileAttachment].Allowed)
 			require.Equal(t, want, enforced)
 		})
@@ -214,8 +223,8 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 			Resource: channelResource,
 		})
 		require.Nil(t, appErr)
-		require.Len(t, resp.Decisions, 3)
-		require.Len(t, resp.Results, 3)
+		require.Len(t, resp.Decisions, 4)
+		require.Len(t, resp.Results, 4)
 		resultNames := make(map[string]bool, len(resp.Results))
 		for _, r := range resp.Results {
 			resultNames[r.Action.Name] = true
@@ -223,6 +232,7 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 		require.True(t, resultNames[model.AccessControlPolicyActionUploadFileAttachment])
 		require.True(t, resultNames[model.AccessControlPolicyActionDownloadFileAttachment])
 		require.True(t, resultNames[model.AccessControlPolicyActionChannelReadAccess])
+		require.True(t, resultNames[model.AccessControlPolicyActionCreateBurnOnReadPost])
 	})
 
 	t.Run("discovery mode ABAC active permitted in results denied excluded", func(t *testing.T) {
@@ -233,7 +243,8 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 			return req.Action == model.AccessControlPolicyActionUploadFileAttachment
 		})).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
 		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
-			return req.Action == model.AccessControlPolicyActionDownloadFileAttachment
+			return req.Action == model.AccessControlPolicyActionDownloadFileAttachment ||
+				req.Action == model.AccessControlPolicyActionCreateBurnOnReadPost
 		})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
 		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
 			return req.Action == model.AccessControlPolicyActionChannelReadAccess
@@ -243,7 +254,7 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 			Resource: channelResource,
 		})
 		require.Nil(t, appErr)
-		require.Len(t, resp.Decisions, 3)
+		require.Len(t, resp.Decisions, 4)
 		require.Len(t, resp.Results, 1)
 		require.Equal(t, model.AccessControlPolicyActionUploadFileAttachment, resp.Results[0].Action.Name)
 	})

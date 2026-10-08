@@ -2000,16 +2000,16 @@
     "description": "Title of the modal showing results after testing an attribute-based access rule against real users in the System Console."
   },
   "admin.accesscontrol.enableAuditLogging.desc": {
-    "defaultMessage": "When enabled, attribute-based access control policy decisions are written to the server audit log. Requires server audit logging to be active.",
+    "defaultMessage": "When enabled, membership policy decisions are written to the server audit log. Requires server audit logging to be active.",
     "description": "Admin console help text under the audit-logging toggle on the System Attributes > Attribute-Based Access Control page."
   },
   "admin.accesscontrol.enableAuditLogging.disabled": {
-    "defaultMessage": "When enabled, attribute-based access control policy decisions are written to the server audit log. This setting requires attribute-based access control to be enabled and server audit logging to be active (enable file audit logging or configure an advanced audit logging target).",
+    "defaultMessage": "When enabled, membership policy decisions are written to the server audit log. This setting requires attribute-based access control to be enabled and server audit logging to be active (enable file audit logging or configure an advanced audit logging target).",
     "description": "Alternate admin console help text for the access-control audit-logging toggle, shown when its prerequisites (ABAC and server audit logging) are not enabled."
   },
   "admin.accesscontrol.enableAuditLogging.title": {
-    "defaultMessage": "Enable audit logging for access control decisions",
-    "description": "Admin console setting label (toggle) on the Attribute-Based Access Control page for logging policy decisions."
+    "defaultMessage": "Enable audit logging for membership policy decisions",
+    "description": "Admin console setting label (toggle) on the Attribute-Based Access Control page for logging membership policy decisions."
   },
   "admin.accesscontrol.enableChannelPolicyIndicatorsDesc": {
     "defaultMessage": "When enabled, channels restricted by a membership access policy display the matching user attributes as tags in the channel members list and the invite dialog. Disable this to avoid revealing policy details to end users.",
@@ -2020,8 +2020,8 @@
     "description": "Admin console setting label (toggle) on the Attribute-Based Access Control page controlling whether end users see access-policy indicators."
   },
   "admin.accesscontrol.enableDesc": {
-    "defaultMessage": "Allow access restrictions based on user attributes using custom access policies. To effectively use this feature, you must define user attributes in the {userAttributes} section.",
-    "description": "Admin console help text for the main attribute-based access control toggle; {userAttributes} is replaced by a link labeled 'User Attributes'."
+    "defaultMessage": "Allow access restrictions based on user attributes using custom access policies. To effectively use this feature, you must define attributes in the {userAttributes} section.",
+    "description": "Admin console help text for the main attribute-based access control toggle; {userAttributes} is replaced by a link labeled 'Attribute Management'."
   },
   "admin.accesscontrol.enableTitle": {
     "defaultMessage": "Allow attribute based access controls on this server",
@@ -2052,8 +2052,8 @@
     "description": "Label of a true/false toggle in System Console > System Attributes > Attribute-Based Access > Session Attributes. 'Trust' is a verb; refers to an HTTP header set by a reverse proxy."
   },
   "admin.accesscontrol.user_properties.link.label": {
-    "defaultMessage": "User Attributes",
-    "description": "Link text inserted into the attribute-based access control help text; links to the User Attributes settings section."
+    "defaultMessage": "Attribute Management",
+    "description": "Link text inserted into the attribute-based access control help text; links to the Attribute Management settings section."
   },
   "admin.advance.cluster": {
     "defaultMessage": "High Availability",
@@ -3357,27 +3357,35 @@
   },
   "admin.classification_markings.conflict.channel_field": {
     "defaultMessage": "A channel attribute named \"{name}\" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management, then reload this page.",
-    "description": ""
+    "description": "System Console > Classification Markings. Body of the blocking notice shown to admins when a channel attribute with the same name as the classification attribute already exists but is not the classification set. {name} is that attribute's display name as the admin typed it (not localized). \"Attribute Management\" is the name of another System Console page."
   },
   "admin.classification_markings.conflict.clearance": {
     "defaultMessage": "A user attribute named \"{name}\" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management to enable the clearance attribute.",
-    "description": ""
+    "description": "System Console > Classification Markings. Body of the notice shown to admins when the clearance attribute cannot be created because a user attribute with the same name already exists. {name} is that attribute's display name (not localized). \"Attribute Management\" is the name of another System Console page."
+  },
+  "admin.classification_markings.conflict.clearance_template": {
+    "defaultMessage": "Rename \"{name}\" in Attribute Management so it isn't mistaken for this clearance attribute.",
+    "description": "Non-blocking warning shown next to the clearance checkbox in System Console > Classification Markings when an unrelated attribute in Attribute Management is already called 'clearance'. {name} is that attribute's name, as the admin typed it."
+  },
+  "admin.classification_markings.conflict.clearance_template_title": {
+    "defaultMessage": "Another attribute already uses this name",
+    "description": "Title of the non-blocking warning shown next to the clearance checkbox in System Console > Classification Markings when an unrelated attribute in Attribute Management is already called 'clearance'."
   },
   "admin.classification_markings.conflict.clearance_title": {
     "defaultMessage": "Clearance attribute cannot be created",
-    "description": ""
+    "description": "System Console > Classification Markings. Title of the notice shown when the clearance user attribute cannot be created because of a naming conflict; the body is admin.classification_markings.conflict.clearance."
   },
   "admin.classification_markings.conflict.system_field": {
     "defaultMessage": "A system attribute named \"{name}\" already exists but is not linked to these classification levels. Rename or remove it in Attribute Management, then reload this page.",
-    "description": ""
+    "description": "System Console > Classification Markings. Body of the blocking notice shown to admins when a system (built-in) attribute with the same name already exists but is not linked to the classification levels. {name} is that attribute's display name (not localized). \"Attribute Management\" is the name of another System Console page."
   },
   "admin.classification_markings.conflict.template": {
     "defaultMessage": "An attribute named \"{name}\" already exists with a different type, so it is not a set of classification levels. Rename or remove it in Attribute Management, then reload this page.",
-    "description": ""
+    "description": "System Console > Classification Markings. Body of the blocking notice shown to admins when an attribute with the same name exists but has a different type, so it cannot hold classification levels. {name} is that attribute's display name (not localized). \"Attribute Management\" is the name of another System Console page."
   },
   "admin.classification_markings.conflict.title": {
     "defaultMessage": "Classification markings cannot be configured",
-    "description": ""
+    "description": "System Console > Classification Markings. Title of the blocking notice shown when the page cannot be used because an existing attribute conflicts with the classification attribute; one of the admin.classification_markings.conflict.* bodies follows."
   },
   "admin.classification_markings.enable.description": {
     "defaultMessage": "Use this to enable classification markings as banners at the system and channel level. You can pre-select text and colors for your banner, as well as set a default option for consistency.",
@@ -3397,19 +3405,19 @@
   },
   "admin.classification_markings.enforcement.clearance.checkbox": {
     "defaultMessage": "Enable clearance attribute",
-    "description": "Label next to the checkbox in System Console > Classification Markings that creates the ranked Clearance user attribute. 'Enable' is a verb. The attribute is created with the hardcoded English display name 'Clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
+    "description": "Label next to the checkbox in System Console > Classification Markings that creates the ranked Clearance user attribute. 'Enable' is a verb. The attribute is created with the hardcoded English display name 'Classification clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
   },
   "admin.classification_markings.enforcement.clearance.help": {
-    "defaultMessage": "Creates a ranked \"Clearance\" user attribute linked to these classification levels. Channel membership can then be managed with a corresponding <link>membership policy</link>.",
-    "description": "Help text under the clearance checkbox in System Console > Classification Markings. \"Clearance\" in quotes is the literal name given to the generated user attribute. <link>…</link> wraps the words that become a link to the Membership Policies page in the System Console. The attribute is created with the hardcoded English display name 'Clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
+    "defaultMessage": "Creates a ranked \"Classification clearance\" user attribute linked to these classification levels. Channel membership can then be managed with a corresponding <link>membership policy</link>.",
+    "description": "Help text under the clearance checkbox in System Console > Classification Markings. \"Classification clearance\" in quotes is the literal name given to the generated user attribute. <link>…</link> wraps the words that become a link to the Membership Policies page in the System Console. The attribute is created with the hardcoded English display name 'Classification clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
   },
   "admin.classification_markings.enforcement.clearance.title": {
     "defaultMessage": "Clearance attribute",
-    "description": "Section heading above the clearance checkbox in System Console > Classification Markings. A noun phrase naming the feature, not an instruction. The attribute is created with the hardcoded English display name 'Clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
+    "description": "Section heading above the clearance checkbox in System Console > Classification Markings. A noun phrase naming the feature, not an instruction. The attribute is created with the hardcoded English display name 'Classification clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
   },
   "admin.classification_markings.error.create_name_conflict": {
     "defaultMessage": "Could not save because an attribute with a conflicting name already exists: {error} Rename or remove it in Attribute Management, then reload this page.",
-    "description": ""
+    "description": "System Console > Classification Markings. Error shown after a failed save when the server reports that an attribute with a conflicting name already exists. {error} is the server's error message, inserted as a full sentence. \"Attribute Management\" is the name of another System Console page."
   },
   "admin.classification_markings.error.delete_has_dependents": {
     "defaultMessage": "Cannot disable classification markings while channel classifications exist. Remove all channel classification markings first.",
@@ -4346,6 +4354,10 @@
   "admin.customProfileAttribDesc.saml": {
     "defaultMessage": "(Optional) The attribute in the SAML Assertion that will be used to populate the {name} of users in Mattermost.",
     "description": "Help text for a user-attribute mapping field in SAML admin settings; {name} is the attribute's display name."
+  },
+  "admin.customProfileAttributes.linkedNonText": {
+    "defaultMessage": "This field is a management attribute of type {type} and cannot be synced via LDAP or SAML. Only text-type fields support sync.",
+    "description": "Help text under a linked (Global Attribute) user-attribute field that is not text type; explains why the LDAP/SAML sync box is disabled."
   },
   "admin.customProfileAttributes.managedByPlugin": {
     "defaultMessage": "This field is managed by the {pluginId} plugin and cannot be edited.",
@@ -5904,7 +5916,7 @@
     "description": "Screen-reader label for the chevron button that collapses the Channels row in an attribute's 'Applies to' card in the System Console."
   },
   "admin.global_attributes.applies_to.channels.display.help": {
-    "defaultMessage": "Multiple locations can be selected. Uncheck all to keep it off the header and banner — Channel Info always shows the value.",
+    "defaultMessage": "Multiple display locations can be selected. You can always view and set the attribute value in the Channel Info sidebar. Unset values do not appear in the channel.",
     "description": "Help text under the 'Display location' checkboxes in an attribute's Channels settings in the System Console. 'header', 'banner' and 'Channel Info' refer to the Header, Banner and Channel Info checkbox options; 'it' is the attribute value. Use the same translations as those option labels."
   },
   "admin.global_attributes.applies_to.channels.display.label": {
@@ -5986,6 +5998,10 @@
   "admin.global_attributes.applies_to.empty": {
     "defaultMessage": "This attribute does not apply to any resource yet.",
     "description": "Empty-state message in the 'Applies to' card on the Classification attribute page in the System Console, shown when the attribute is not applied to channels or any other resource type."
+  },
+  "admin.global_attributes.applies_to.read_only_resource": {
+    "defaultMessage": "Applied to {resource} as {name}",
+    "description": "Read-only row in the 'Applies to' card on the Classification attribute page in the System Console, naming a resource this page does not edit. {resource} is a resource name such as Users; {name} is the unique name of the attribute created for it, which policies refer to."
   },
   "admin.global_attributes.applies_to.subtitle": {
     "defaultMessage": "Resources this attribute applies to, and how it behaves on each.",
@@ -6086,6 +6102,10 @@
   "admin.global_attributes.attribute_details.applies_to.locked_single_resource_tooltip": {
     "defaultMessage": "This resource cannot be changed — this attribute applies to only one resource.",
     "description": "Tooltip on the disabled row in an attribute's 'Applies to' list (System Console > Attribute Management > attribute details), explaining that the only resource type (e.g. Users) cannot be removed or changed because it is the attribute's sole one."
+  },
+  "admin.global_attributes.attribute_details.applies_to.owned_locked_tooltip": {
+    "defaultMessage": "This attribute is managed by {owners}.",
+    "description": "Tooltip on the locked Users row in an attribute's \"Applies to\" list (System Console > Attribute Management > attribute details), shown while integrations own the attribute so the Users resource cannot be removed. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
   },
   "admin.global_attributes.attribute_details.applies_to.resource_type.channel": {
     "defaultMessage": "Channels",
@@ -6475,6 +6495,18 @@
     "defaultMessage": "Values must be unique.",
     "description": "Inline validation error shown while editing or adding an option value on the attribute detail page, when the typed value duplicates an existing option."
   },
+  "admin.global_attributes.attribute_details.owners_source.helper_text": {
+    "defaultMessage": "Values for users are set by {owners}. Unique name and type are locked; display name, options, and Profile display can still be changed here.",
+    "description": "Helper text under the \"Managed by\" note on the attribute details page in System Console > Attribute Management, for an attribute owned by integrations. Explains which fields are locked and which can still be edited. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\"). \"Profile display\" is the name of a setting on the same page."
+  },
+  "admin.global_attributes.attribute_details.owners_source.managed_by": {
+    "defaultMessage": "Managed by {owners}",
+    "description": "Note at the top of the attribute details page in System Console > Attribute Management, naming the integrations that own the attribute and set its user values. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
+  },
+  "admin.global_attributes.attribute_details.owners_source.settings_link": {
+    "defaultMessage": "{pluginName} settings",
+    "description": "Link next to the \"Managed by\" note on the attribute details page in System Console > Attribute Management that opens the owning plugin's settings page. {pluginName} is the plugin's display name."
+  },
   "admin.global_attributes.attribute_details.plugin_source.helper_text": {
     "defaultMessage": "Name, type, and values are owned by the plugin and are read-only here.",
     "description": "Helper text in the attribute details page in System Console > System Attributes > Manage Attributes for a plugin-owned attribute, explaining which fields are read-only."
@@ -6591,6 +6623,10 @@
     "defaultMessage": "Type: {value}. Locked because a hierarchical attribute cannot be converted to another type.",
     "description": "Screen-reader label for the disabled Type field on the attribute edit page in System Console > Attribute Management. {value} is the localized type name (for example 'Hierarchical'). Explains why a hierarchical attribute's type cannot be changed."
   },
+  "admin.global_attributes.attribute_details.type.field_locked_owned_aria_label": {
+    "defaultMessage": "Type: {value}. Locked because this attribute is managed by {owners}.",
+    "description": "Screen-reader label for the locked Type field on the attribute details page in System Console > Attribute Management, for an attribute owned by integrations. {value} is the current type. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
+  },
   "admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label": {
     "defaultMessage": "Type: {value}. Locked because this attribute is managed by a plugin.",
     "description": "Screen-reader label for the locked Type field in the attribute details page in System Console > System Attributes > Manage Attributes for an attribute a plugin manages. {value} is the current type."
@@ -6614,6 +6650,10 @@
   "admin.global_attributes.attribute_details.type.locked_graph_tooltip": {
     "defaultMessage": "Type cannot be changed — a hierarchical attribute cannot be converted to another type. Create a new attribute of the type you need instead.",
     "description": "Tooltip on the disabled Type field on the attribute edit page in System Console > Attribute Management, shown for hierarchical attributes. Explains why the type is locked and what the admin should do instead."
+  },
+  "admin.global_attributes.attribute_details.type.locked_owned_tooltip": {
+    "defaultMessage": "Type cannot be changed — this attribute is managed by {owners}.",
+    "description": "Tooltip on the locked Type field on the attribute details page in System Console > Attribute Management, for an attribute owned by integrations. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
   },
   "admin.global_attributes.attribute_details.type.locked_plugin_orphaned_tooltip": {
     "defaultMessage": "Type cannot be changed — this attribute was managed by a plugin that's no longer installed.",
@@ -6659,6 +6699,14 @@
     "defaultMessage": "Name cannot be changed while this attribute applies to a resource. Remove and save first.",
     "description": "Tooltip on the locked name field in the attribute details page in System Console > System Attributes > Manage Attributes while the attribute applies to a resource."
   },
+  "admin.global_attributes.attribute_details.unique_name.locked_owned_aria_label": {
+    "defaultMessage": "Edit unique name. Locked because this attribute is managed by {owners}.",
+    "description": "Screen-reader label for the locked unique name field on the attribute details page in System Console > Attribute Management, for an attribute owned by integrations. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
+  },
+  "admin.global_attributes.attribute_details.unique_name.locked_owned_tooltip": {
+    "defaultMessage": "Name cannot be changed — this attribute is managed by {owners}.",
+    "description": "Tooltip on the locked unique name field on the attribute details page in System Console > Attribute Management, for an attribute owned by integrations. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
+  },
   "admin.global_attributes.attribute_details.unique_name.locked_plugin_aria_label": {
     "defaultMessage": "Edit unique name. Locked because this attribute is managed by a plugin.",
     "description": "Screen-reader label for the locked name field in the attribute details page in System Console > System Attributes > Manage Attributes for an attribute a plugin manages."
@@ -6701,7 +6749,7 @@
   },
   "admin.global_attributes.classification.name_conflict": {
     "defaultMessage": "An attribute named \"{name}\" already exists but is not part of classification. Rename or remove it in Attribute Management, then reload this page.",
-    "description": ""
+    "description": "System Console > Attribute Management > Classification attribute. Notice shown to admins when a user attribute named like the classification attribute already exists but is not the classification attribute. {name} is that attribute's display name (not localized). \"Attribute Management\" is the name of the current System Console section."
   },
   "admin.global_attributes.classification.name_fallback": {
     "defaultMessage": "Classification",
@@ -6755,6 +6803,10 @@
     "defaultMessage": "This attribute was created by the plugin \"{pluginId}\", which is no longer installed.",
     "description": "Extra paragraph in the delete-attribute confirmation dialog, shown only when the attribute came from a plugin that is no longer installed. {pluginId} is the raw plugin identifier string (not translated); it falls back to the literal \"unknown\"."
   },
+  "admin.global_attributes.confirm.delete.orphaned_owners_body": {
+    "defaultMessage": "This attribute was managed by {pluginIds}, which {count, plural, one {is} other {are}} no longer installed.",
+    "description": "Extra paragraph in the delete-attribute confirmation dialog, shown when every integration that owned the attribute has been uninstalled. {pluginIds} is a localized list of raw plugin identifiers (not translated); {count} is how many there are and selects singular or plural."
+  },
   "admin.global_attributes.confirm.delete.title": {
     "defaultMessage": "Delete {name} attribute",
     "description": "Title of the delete confirmation dialog in System Console > System Attributes > Manage Attributes. {name} is the attribute's display name. \"Delete\" is a verb (imperative)."
@@ -6771,9 +6823,29 @@
     "defaultMessage": "Remove {resources}?",
     "description": "Title of the confirmation dialog shown from the attribute details page in System Console > System Attributes > Manage Attributes before removing an attribute from resources. {resources} is a list of resource names."
   },
+  "admin.global_attributes.name_conflict.details_notice": {
+    "defaultMessage": "Another attribute already uses this name.",
+    "description": "Name-conflict notice shown on the attribute details page in System Console > System Attributes > Manage Attributes when another attribute already uses this name. Shown as a danger notice when the match is exact (Users would be blocked) and a warning notice otherwise."
+  },
+  "admin.global_attributes.name_conflict.linked_to_template": {
+    "defaultMessage": "A user attribute named \"{name}\" already exists and is linked to {owner}. Policies that use user.attributes.{name} read {owner}'s options, not this attribute's.",
+    "description": "Warning in System Console > System Attributes > Manage Attributes when another attribute already owns a user attribute of this name. {name} is that attribute's unique name and {owner} is the display name of the attribute it belongs to. 'user.attributes.' is literal policy syntax and must stay English."
+  },
+  "admin.global_attributes.name_conflict.standalone": {
+    "defaultMessage": "A standalone user attribute named \"{name}\" already exists. Policies that use user.attributes.{name} read that attribute, not this one.",
+    "description": "Warning in System Console > System Attributes > Manage Attributes when a user attribute of this name exists on its own rather than belonging to another attribute. {name} is its unique name. 'user.attributes.' is literal policy syntax and must stay English."
+  },
+  "admin.global_attributes.name_conflict.users_blocked_menu_label": {
+    "defaultMessage": "Name already in use",
+    "description": "Secondary label under the disabled Users option in the 'Add resource' menu on the attribute details page in System Console > System Attributes > Manage Attributes, saying why it cannot be chosen."
+  },
   "admin.global_attributes.new_attribute": {
     "defaultMessage": "New attribute",
     "description": "Label of the primary button at the top of System Console > System Attributes > Manage Attributes that opens the attribute creation page. \"New\" is an adjective; keep it identical to the creation page heading."
+  },
+  "admin.global_attributes.owners.scoped": {
+    "defaultMessage": "{owner}: {scopes}",
+    "description": "One entry in the list of integrations that own an attribute, used inside the \"Managed by\" text in System Console > Attribute Management. {owner} is the integration's display name; {scopes} is a comma-separated list of the scopes it owns (not translated)."
   },
   "admin.global_attributes.search.placeholder": {
     "defaultMessage": "Search attributes",
@@ -6798,6 +6870,10 @@
   "admin.global_attributes.table.actions.menu_label": {
     "defaultMessage": "Select an action",
     "description": "Accessible name of the per-row actions dropdown menu in the attributes table."
+  },
+  "admin.global_attributes.table.actions.owner_managed": {
+    "defaultMessage": "Managed by {owners}",
+    "description": "Secondary label next to the disabled Delete item in the attributes table row menu, explaining that integrations own the attribute so it cannot be deleted here. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
   },
   "admin.global_attributes.table.actions.plugin_managed": {
     "defaultMessage": "Plugin-managed",
@@ -6866,6 +6942,10 @@
   "admin.global_attributes.table.source.managed": {
     "defaultMessage": "Managed here",
     "description": "Value in the Source column of the attributes table meaning the attribute's values are maintained inside Mattermost rather than synced from an external directory. \"here\" refers to this admin console screen."
+  },
+  "admin.global_attributes.table.source.owned_by": {
+    "defaultMessage": "Managed by {owners}",
+    "description": "Value in the Source column of the attributes table in System Console > Attribute Management when integrations own the attribute and set its values. {owners} is a localized list of the integrations that own the attribute (for example \"SCIM and svc-sync\")."
   },
   "admin.global_attributes.table.source.saml": {
     "defaultMessage": "SAML",
@@ -10206,6 +10286,14 @@
   "admin.permission_policies.permission.channel_read_access.label": {
     "defaultMessage": "Channel Read Access",
     "description": ""
+  },
+  "admin.permission_policies.permission.create_bor.description": {
+    "defaultMessage": "Allow users to send burn-on-read messages",
+    "description": "Description of the Send Burn-On-Read permission toggle in the permission policy editor."
+  },
+  "admin.permission_policies.permission.create_bor.label": {
+    "defaultMessage": "Create Burn-on-Read Message",
+    "description": "Name of the Send Burn-On-Read permission toggle in the permission policy editor; also used as a column value in the policies table."
   },
   "admin.permission_policies.permission.download_file.description": {
     "defaultMessage": "Allow users to download files to their device",
@@ -17031,9 +17119,9 @@
     "defaultMessage": "Reorder row",
     "description": "Accessibility label for the drag handle button used to reorder rows in admin console tables."
   },
-  "adminConsole.list.table.exactTime.at": {
-    "defaultMessage": "at",
-    "description": "The word 'at' inserted between the date and the time in exact-timestamp tooltips of admin console tables (e.g. 'July 30, 2026 at 08:00:00 PM')."
+  "adminConsole.list.table.exactTime": {
+    "defaultMessage": "{date, date, long} at {date, time, medium}",
+    "description": "Tooltip on the relative dates (e.g. 'Today', '3 days') in admin console tables such as System Users, showing the exact date and time. {date} is a timestamp; the date and time are formatted for the reader's locale, so only the connecting word needs translating, and it may be dropped where the language needs none."
   },
   "adminConsole.list.table.genericError": {
     "defaultMessage": "There was an error loading the data, please try again",
@@ -18459,6 +18547,30 @@
     "defaultMessage": "Call type selector",
     "description": "Accessibility label for the dropdown in the channel header used to pick which call plugin/type to start."
   },
+  "call_button.start_call": {
+    "defaultMessage": "Start call",
+    "description": ""
+  },
+  "call_options.aria_label": {
+    "defaultMessage": "Call options",
+    "description": ""
+  },
+  "call_options.audio": {
+    "defaultMessage": "Start an Audio Call",
+    "description": ""
+  },
+  "call_options.audio_sub": {
+    "defaultMessage": "Mattermost Call",
+    "description": ""
+  },
+  "call_options.phone": {
+    "defaultMessage": "Call {label}",
+    "description": ""
+  },
+  "call_options.phone_sub": {
+    "defaultMessage": "{number} • Phone call",
+    "description": ""
+  },
   "carousel.nextButton": {
     "defaultMessage": "Next",
     "description": "Label of the button that moves to the next slide in a carousel (e.g. trial benefits carousel)."
@@ -18539,6 +18651,18 @@
     "defaultMessage": "No longer available",
     "description": ""
   },
+  "channel_attributes.banner.empty_notice": {
+    "defaultMessage": "There's nothing to display until the attributes in the banner text have values.",
+    "description": "Channel Settings > Configuration > channel banner preview. Body of the warning shown under the preview when the banner text contains attribute tokens but none of those attributes has a value yet, so the banner would render empty."
+  },
+  "channel_attributes.banner.empty_notice.no_text": {
+    "defaultMessage": "Add banner text to display a banner.",
+    "description": "Channel Settings > Configuration > channel banner preview. Body of the warning shown under the preview when the banner text is empty, telling the channel admin to enter some text."
+  },
+  "channel_attributes.banner.empty_notice.title": {
+    "defaultMessage": "The banner will not be displayed",
+    "description": "Channel Settings > Configuration > channel banner preview. Title of the warning shown when the banner would render empty; the body is one of the channel_attributes.banner.empty_notice* strings."
+  },
   "channel_attributes.banner.insert_attribute": {
     "defaultMessage": "Attributes",
     "description": "Button text (after a + icon) under the Banner text editor in Channel Settings > Configuration. It opens a menu for inserting a channel attribute placeholder into the banner. Plural noun."
@@ -18555,9 +18679,13 @@
     "defaultMessage": "Remove {label}",
     "description": "Screen-reader label for the small X on an attribute chip inside the Banner text editor in Channel Settings > Configuration. {label} is the attribute's display name, as defined by an admin."
   },
-  "channel_attributes.banner.renders_as_empty": {
-    "defaultMessage": "nothing yet — no values are set",
-    "description": "Shown in the banner Preview area in Channel Settings > Configuration when the banner text contains only attribute placeholders and none of them has a value, so the banner would be blank."
+  "channel_attributes.banner.token_value_set": {
+    "defaultMessage": "Value on this channel: {value}",
+    "description": "Channel Settings > Configuration > banner text editor. Secondary line of a menu item in the \"insert attribute\" picker, showing the attribute's current value on this channel. {value} is that value as entered by a user."
+  },
+  "channel_attributes.banner.token_value_unset": {
+    "defaultMessage": "The attribute has no value set and won't render in the banner, but will appear automatically the moment a value is set.",
+    "description": "Channel Settings > Configuration > banner text editor. Tooltip / secondary text shown for an attribute that has no value on this channel yet, both in the insert-attribute picker and next to an inserted token."
   },
   "channel_attributes.chip.label_prefix": {
     "defaultMessage": "{label}: ",
@@ -18574,10 +18702,6 @@
   "channel_attributes.info.add": {
     "defaultMessage": "Add attribute",
     "description": "Button (with a + icon), and its menu's screen-reader label, at the bottom of the Channel Attributes section in the channel info right-hand panel. Opens a list of attributes that can still be set on the channel."
-  },
-  "channel_attributes.info.clear": {
-    "defaultMessage": "Clear {label}",
-    "description": "Menu item or button in the value picker of a channel attribute in the channel info right-hand panel. It removes the attribute's value. {label} is the attribute's display name. 'Clear' is a verb."
   },
   "channel_attributes.info.edit": {
     "defaultMessage": "Edit {label}",
@@ -18599,9 +18723,17 @@
     "defaultMessage": "This attribute can only be raised, never lowered",
     "description": "Screen-reader label for the lock icon next to a ranked channel attribute in the channel info panel, such as a classification level. The value can only move to a higher rank."
   },
+  "channel_attributes.info.locked_source_managed": {
+    "defaultMessage": "This attribute is managed by an integration and cannot be changed here",
+    "description": "Screen-reader label for the lock icon next to a channel attribute in the channel info panel, when the value is set by an integration and cannot be edited here."
+  },
   "channel_attributes.info.not_set": {
     "defaultMessage": "Not set",
     "description": "Placeholder shown in place of the value of a channel attribute that has no value, in the channel info right-hand panel. Describes an attribute value, not a person."
+  },
+  "channel_attributes.info.remove_value": {
+    "defaultMessage": "Remove {value}",
+    "description": "Channel Settings > Info > channel attributes. Screen-reader label of the small x button that removes one selected value from a multi-value attribute. {value} is the value being removed. \"Remove\" is a verb."
   },
   "channel_attributes.info.save_failed": {
     "defaultMessage": "Couldn't save {label}. Try again.",
@@ -18638,6 +18770,10 @@
   "channel_banner.banner_preview.label": {
     "defaultMessage": "Preview",
     "description": "Label above the live preview of the channel banner in Channel Settings > Configuration, under the Banner text and Banner color settings. Noun."
+  },
+  "channel_banner.banner_text.help": {
+    "defaultMessage": "Any single- or double-character symbols between attributes (such as · . / ?) will be removed if those attribute values are not set. Empty attributes will not appear in the banner or elsewhere in the channel. The banner is hidden if there is no text available.",
+    "description": "Channel Settings > Configuration > channel banner. Help text under the banner text field when attribute tokens can be inserted into the banner. The symbols in parentheses (· . / ?) are literal examples of separator characters and should be kept as they are."
   },
   "channel_banner.banner_text.label": {
     "defaultMessage": "Banner text",
@@ -19815,6 +19951,10 @@
     "defaultMessage": "Discoverable (Users can request to join)",
     "description": "Toggle title in channel creation/settings making a private channel discoverable so users can request to join."
   },
+  "channel_settings.error_attributes_save_failed": {
+    "defaultMessage": "Couldn't save one or more channel attributes. Try again.",
+    "description": "Channel Settings > Info tab. Error shown at the bottom of the modal when saving the channel's attribute values failed on the server."
+  },
   "channel_settings.error_banner_color_required": {
     "defaultMessage": "Banner color is required",
     "description": "Validation error on the Configuration tab when the channel banner is enabled but no color is chosen."
@@ -19862,6 +20002,14 @@
   "channel_settings.permissions_policy.action.channel_read_access.description": {
     "defaultMessage": "Allow users to read the channel and its content",
     "description": ""
+  },
+  "channel_settings.permissions_policy.action.create_bor": {
+    "defaultMessage": "Create burn-on-read message",
+    "description": "Permission actioname inn the channel Permissions Policy rule editor; allows sending of burn-on-read messages."
+  },
+  "channel_settings.permissions_policy.action.create_bor.description": {
+    "defaultMessage": "Allow users to send burn-on-read messages in this channel",
+    "description": "Description shown under the `Create burn-on-read message` option in the permission picker of the channel permission rule editor."
   },
   "channel_settings.permissions_policy.action.download": {
     "defaultMessage": "Download files",
@@ -20134,6 +20282,10 @@
   "channel_settings.remove_sharing_confirm.title": {
     "defaultMessage": "Remove sharing from {count, plural, one {this connection} other {these connections}}?",
     "description": "Title of the confirmation dialog for removing a shared channel from connected workspaces; plural branches on the number of connections."
+  },
+  "channel_settings.save_changes_panel.banner_text.empty_error": {
+    "defaultMessage": "Add banner text, or turn off the channel banner.",
+    "description": "Channel Settings > Configuration. Error shown in the save-changes panel when the channel banner is turned on but the banner text is empty, and the user is allowed to turn the banner off instead."
   },
   "channel_settings.save_changes_panel.banner_text.required_error": {
     "defaultMessage": "Channel banner text cannot be empty when enabled",
@@ -25407,6 +25559,10 @@
     "defaultMessage": "Mark as read",
     "description": "Title of the confirmation dialog for marking multiple channels as read."
   },
+  "markdown_phone_link.tooltip": {
+    "defaultMessage": "Click to call {phoneNumber}",
+    "description": "Tooltip shown when hovering a phone number link in a message."
+  },
   "marketplace_command.disabled": {
     "defaultMessage": "The marketplace is disabled. Please contact your System Administrator for details.",
     "description": "Error returned when a user runs the /marketplace slash command but the marketplace feature is turned off."
@@ -25503,9 +25659,21 @@
     "defaultMessage": "Download all",
     "description": "Button above a post's media gallery that downloads every attachment in it."
   },
+  "media_gallery.download_all_error": {
+    "defaultMessage": "Unable to download these files.",
+    "description": "Inline error next to the media gallery's Download all button when the archive could not be created and the server gave no reason."
+  },
   "media_gallery.download_all_label": {
     "defaultMessage": "Download all {count, plural, one {# item} other {# items}}",
     "description": "Accessibility label for the button that downloads all attachments in a post's media gallery; {count} is the number of items with plural forms."
+  },
+  "media_gallery.download_all_preparing": {
+    "defaultMessage": "Preparing {done} of {total}...",
+    "description": "Text and accessibility label of the media gallery's Download all button while the zip is being built; {done} is the number of files fetched so far, {total} the number of files."
+  },
+  "media_gallery.download_all_too_large": {
+    "defaultMessage": "These files are too large to download together. Download them one at a time.",
+    "description": "Inline error next to the media gallery's Download all button when the attachments exceed the size limit for a single zip."
   },
   "media_gallery.image_label": {
     "defaultMessage": "Image {current} of {total}: {name}",

@@ -990,6 +990,10 @@
       "to": "/deployment-guide/quick-start-evaluation"
     },
     {
+      "from": "/deployment-guide/quick-start-evaluation/docker-and-azure",
+      "to": "/deployment-guide/quick-start-evaluation"
+    },
+    {
       "from": "/deploy/server/containers/install-docker",
       "to": "/deployment-guide/server/deploy-containers"
     },

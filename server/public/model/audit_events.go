@@ -252,6 +252,12 @@ const (
 	AuditEventUnlinkGroupSyncable     = "unlinkGroupSyncable"     // unlink group from team or channel synchronization
 )
 
+// Health Dashboard
+const (
+	AuditEventMuteHealthFinding   = "muteHealthFinding"   // mute health dashboard finding
+	AuditEventUnmuteHealthFinding = "unmuteHealthFinding" // unmute health dashboard finding
+)
+
 // Imports
 const (
 	AuditEventBulkImport   = "bulkImport"   // bulk import data from a file
