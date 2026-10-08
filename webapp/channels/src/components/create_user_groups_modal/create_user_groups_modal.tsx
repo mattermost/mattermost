@@ -245,7 +245,7 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                 <Modal.Header closeButton={false}>
                     {
                         typeof this.props.backButtonCallback === 'function' ? (
-                            <div className='user-groups-modal__header-title-row d-flex align-items-start'>
+                            <div className='user-groups-modal__header-title-row d-flex align-items-center'>
                                 <WithTooltip title={this.props.intl.formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}>
                                     <IconButton
                                         size='medium'

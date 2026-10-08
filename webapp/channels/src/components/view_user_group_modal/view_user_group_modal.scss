@@ -2,6 +2,10 @@
     .modal-content .modal-header {
         overflow: visible;
 
+        .user-groups-modal__header-title-row .modal-title {
+            min-width: 0;
+        }
+
         .modal-title {
             display: flex;
             align-items: center;

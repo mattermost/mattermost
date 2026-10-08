@@ -31,7 +31,7 @@ exports[`component/view_user_group_modal should match snapshot 1`] = `
             class="modal-header"
           >
             <div
-              class="user-groups-modal__header-title-row d-flex align-items-start"
+              class="user-groups-modal__header-title-row d-flex align-items-center"
             >
               <button
                 aria-label="Back"
@@ -73,7 +73,7 @@ exports[`component/view_user_group_modal should match snapshot 1`] = `
               </h1>
             </div>
             <div
-              class="user-groups-modal__header-actions d-flex align-items-start"
+              class="user-groups-modal__header-actions d-flex align-items-center"
             />
             <button
               aria-label="Close"

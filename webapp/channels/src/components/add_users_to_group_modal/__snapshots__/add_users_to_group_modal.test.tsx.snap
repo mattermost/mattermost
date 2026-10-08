@@ -32,7 +32,7 @@ exports[`component/add_users_to_group_modal should match snapshot 1`] = `
             class="modal-header"
           >
             <div
-              class="user-groups-modal__header-title-row d-flex align-items-start"
+              class="user-groups-modal__header-title-row d-flex align-items-center"
             >
               <button
                 aria-label="Back"

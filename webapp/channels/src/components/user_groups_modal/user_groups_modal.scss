@@ -11,7 +11,7 @@
 
         .modal-header {
             position: relative;
-            align-items: flex-start;
+            align-items: center;
 
             .user-groups-modal__header-title-row {
                 flex: 1;
@@ -27,7 +27,10 @@
             }
 
             .user-groups-modal__header-actions {
+                display: flex;
                 flex-shrink: 0;
+                align-items: center;
+                margin-left: auto;
                 gap: 8px;
                 padding-right: 48px;
             }

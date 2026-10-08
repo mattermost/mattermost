@@ -172,7 +172,7 @@ const ViewUserGroupModalHeader = ({
 
     return (
         <Modal.Header closeButton={false}>
-            <div className='user-groups-modal__header-title-row d-flex align-items-start'>
+            <div className='user-groups-modal__header-title-row d-flex align-items-center'>
                 <WithTooltip title={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}>
                     <IconButton
                         size='medium'
@@ -184,7 +184,7 @@ const ViewUserGroupModalHeader = ({
                 </WithTooltip>
                 {modalTitle()}
             </div>
-            <div className='user-groups-modal__header-actions d-flex align-items-start'>
+            <div className='user-groups-modal__header-actions d-flex align-items-center'>
                 {addPeopleButton()}
                 {restoreGroupButton()}
                 {subMenuButton()}
