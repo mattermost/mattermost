@@ -39,7 +39,6 @@ const OUT = join(SITE_ROOT, 'sidebars', 'documentation.generated.json');
 // if it's standalone. Forgetting logs `WARN: N file(s) missing from *_ORDER`
 // and appends it at the section root, so it surfaces as a build warning
 // rather than disappearing.
-
 const TOP_LEVEL = [
   {dir: 'product-overview',     label: 'Overview'},
   {dir: 'use-case-guide',       label: 'Use Case Guide'},
@@ -352,7 +351,9 @@ const DEPLOYMENT_GROUPS = {
 // constraints that shape the whole deployment, above the level of the
 // server-specific planning pages.
 const DEPLOYMENT_ROOT_ORDER = [
-  'quick-start-evaluation',
+  // Overview index + child pages (1-hour preview, Docker/Azure); auto keeps
+  // sidebar_position order without a hand-maintained items list.
+  {auto: 'quick-start-evaluation'},
   {group: 'deploymentScenarios'},
   {group: 'serverDeployment'},
   {group: 'calls'},
