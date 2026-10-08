@@ -50,19 +50,19 @@
         margin-left: 0;
     }
 
+    // IconButton + compass SVG use currentColor; legacy muted/active colors targeted `i` only.
     .channel-header__favorites {
         position: relative;
         z-index: 1;
-        color: var(--center-channel-color);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
 
-        i {
-            opacity: 0.64;
+        svg {
+            color: inherit;
+            fill: currentColor;
         }
 
-        &:hover {
-            i {
-                opacity: 0.8;
-            }
+        &:hover:not(:disabled) {
+            color: rgba(var(--center-channel-color-rgb), 0.8);
         }
 
         &:disabled {
@@ -70,16 +70,11 @@
             opacity: 0.32;
         }
 
-        &.inactive {
-            .icon {
-                color: functions.v(center-channel-color);
-            }
-        }
-
         &.active {
-            i {
+            color: var(--button-bg);
+
+            &:hover:not(:disabled) {
                 color: var(--button-bg);
-                opacity: 1;
             }
         }
     }
