@@ -13,8 +13,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {
     countHealthFindingsByTab,
     filterHealthFindingsByTab,
-    groupHealthFindingsByArea,
-    groupHealthFindingsBySection,
 } from 'mattermost-redux/utils/health_utils';
 import type {HealthFindingTab} from 'mattermost-redux/utils/health_utils';
 
@@ -22,11 +20,8 @@ import AlertBanner from 'components/alert_banner';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {orderAreas} from './area';
-import AreaAccordion from './area_accordion';
 import {EmptyState, TabEmptyState} from './empty_state';
-import FindingSection from './finding_section';
-import type {RowState} from './finding_section';
+import FindingGroups from './finding_groups';
 import FindingTabs, {tabId} from './finding_tabs';
 import GroupByControl from './group_by_control';
 import type {GroupBy} from './group_by_control';
@@ -55,44 +50,6 @@ const unmuteErrorMessage = defineMessage({
     id: 'admin.health_dashboard.unmute.error',
     defaultMessage: 'The finding could not be unmuted, so it is still muted. Try again.',
 });
-
-type FindingGroupsProps = RowState & {
-    findings: HealthFinding[];
-    groupBy: GroupBy;
-    tab: HealthFindingTab;
-};
-
-const FindingGroups = ({findings, groupBy, tab, ...rowState}: FindingGroupsProps) => {
-    if (groupBy === 'category') {
-        const byArea = groupHealthFindingsByArea(findings);
-        return (
-            <>
-                {orderAreas(byArea).map((area) => (
-                    <AreaAccordion
-                        key={area}
-                        area={area}
-                        findings={byArea[area]}
-                        expandAll={tab !== 'open'}
-                        {...rowState}
-                    />
-                ))}
-            </>
-        );
-    }
-
-    return (
-        <>
-            {groupHealthFindingsBySection(findings).map(({section, findings: sectionFindings}) => (
-                <FindingSection
-                    key={section}
-                    section={section}
-                    findings={sectionFindings}
-                    {...rowState}
-                />
-            ))}
-        </>
-    );
-};
 
 const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Props) => {
     const [loading, setLoading] = useState(true);
@@ -221,14 +178,12 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
                         <span className='HealthDashboard__tabCount'>{mutedFindings.length}</span>
                     </button>
                 </div>
-                {!showMuted && (
-                    <div className='HealthDashboard__toolbar HealthDashboard__toolbar--secondary'>
-                        <GroupByControl
-                            value={groupBy}
-                            onChange={changeGroupBy}
-                        />
-                    </div>
-                )}
+                <div className='HealthDashboard__toolbar HealthDashboard__toolbar--secondary'>
+                    <GroupByControl
+                        value={groupBy}
+                        onChange={changeGroupBy}
+                    />
+                </div>
                 {muteError && (
                     <AlertBanner
                         mode='danger'
@@ -240,6 +195,7 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
                 {showMuted ? (
                     <MutedFindings
                         findings={mutedFindings}
+                        groupBy={groupBy}
                         {...rowState}
                     />
                 ) : (
@@ -249,13 +205,16 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
                         aria-labelledby={tabId(idPrefix, tab)}
                     >
                         {visible.length === 0 ? (
-                            <TabEmptyState tab={tab}/>
+                            <TabEmptyState
+                                tab={tab}
+                                muted={filterHealthFindingsByTab(mutedFindings, tab, now).length}
+                            />
                         ) : (
                             <FindingGroups
                                 key={tab}
                                 findings={visible}
                                 groupBy={groupBy}
-                                tab={tab}
+                                expandAll={tab !== 'open'}
                                 {...rowState}
                             />
                         )}

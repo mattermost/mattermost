@@ -405,7 +405,6 @@ describe('components/admin_console/health_dashboard', () => {
             await userEvent.click(mutedToggle());
 
             expect(mutedToggle()).toHaveAttribute('aria-pressed', 'true');
-            expect(screen.getByRole('heading', {name: /^Muted findings/})).toBeInTheDocument();
             expect(rowTitles()).toEqual(['Muted by a colleague']);
             expect(within(row('Muted by a colleague')).getByTestId('healthFindingMutedBy')).toHaveTextContent('Muted by bob 2 days ago');
             for (const tab of screen.getAllByRole('tab')) {
@@ -415,6 +414,31 @@ describe('components/admin_console/health_dashboard', () => {
             await userEvent.click(screen.getByRole('tab', {name: /^Open/}));
 
             expect(rowTitles()).toEqual(['Push notification server is not HTTPS']);
+        });
+
+        test('the muted list follows the Group by choice', async () => {
+            const mutedCritical = makeFinding({fingerprint: 'm2', severity: 'critical', title: 'Muted critical', muted_at: NOW, muted_by: 'admin1'});
+            await renderDashboard(evaluated([mutedByBob, mutedCritical]), admins);
+
+            await userEvent.click(mutedToggle());
+
+            expect(sectionHeadings()).toEqual(['Critical1', 'Warning1']);
+
+            await userEvent.click(screen.getByRole('button', {name: 'Category'}));
+
+            expect(screen.getByRole('heading', {level: 3, name: /Database/})).toBeInTheDocument();
+            expect(rowTitles()).toEqual(['Muted critical', 'Muted by a colleague']);
+        });
+
+        test('a tab emptied by muting says how many findings are muted instead of all clear', async () => {
+            await renderDashboard(evaluated([mutedByBob, makeFinding({fingerprint: 'm2', title: 'Another', muted_at: NOW, muted_by: 'admin1'})]), admins);
+
+            expect(screen.queryByText('All clear')).not.toBeInTheDocument();
+            expect(screen.getByText('2 findings here are muted')).toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('tab', {name: /^Critical/}));
+
+            expect(screen.getByText('No critical findings')).toBeInTheDocument();
         });
 
         test('the muted list explains itself when nothing is muted', async () => {
