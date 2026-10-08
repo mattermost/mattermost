@@ -83,7 +83,7 @@ const ViewUserGroupListItem = (props: Props) => {
                 (!isSyncableSource(group.source.toLowerCase()) && props.permissionToLeaveGroup) &&
                 <WithTooltip title={formatMessage({id: 'view_user_group_list_item.removeUserFromGroup', defaultMessage: 'Remove {user} from group'}, {user: Utils.getFullName(user)})}>
                     <IconButton
-                        size='x-small'
+                        size='small'
                         destructive={true}
                         className='remove-group-member'
                         icon={<Icon glyph={<TrashCanOutlineIcon/>}/>}
