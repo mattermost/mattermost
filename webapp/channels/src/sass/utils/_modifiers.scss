@@ -56,17 +56,17 @@ $positions: 't'top,
 
 // Compass controls draw their own focus ring on the outer wrapper; a11y--focused
 // lands on the inner control (e.g. TextInput's <input>). Class names are hashed,
-// so match stable prefixes. Extra class specificity beats the runtime theme rule
-// `.app__body .a11y--focused`.
-.app__body [class*="_text-input__wrapper"] .a11y--focused,
-.app__body [class*="_text-area__wrapper"] .a11y--focused,
-.app__body [class*="_search-input__wrapper"] .a11y--focused,
-.app__body [class*="_select__wrapper"] .a11y--focused,
-.app__body [class*="_combobox__wrapper"] .a11y--focused,
-.app__body [class*="_date-range-picker__trigger"].a11y--focused,
-.app__body button[class*="_button--emphasis-"].a11y--focused,
-.app__body button[class*="_icon-button"].a11y--focused,
-.app__body button[class*="_action-button"].a11y--focused {
+// so match stable prefixes. #root raises specificity above the runtime theme rule
+// `.app__body .a11y--focused` and covers admin console, channels, and backstage.
+#root [class*="_text-input__wrapper"] .a11y--focused,
+#root [class*="_text-area__wrapper"] .a11y--focused,
+#root [class*="_search-input__wrapper"] .a11y--focused,
+#root [class*="_select__wrapper"] .a11y--focused,
+#root [class*="_combobox__wrapper"] .a11y--focused,
+#root [class*="_date-range-picker__trigger"].a11y--focused,
+#root button[class*="_button--emphasis-"].a11y--focused,
+#root button[class*="_icon-button"].a11y--focused,
+#root button[class*="_action-button"].a11y--focused {
     box-shadow: none;
 }
 
