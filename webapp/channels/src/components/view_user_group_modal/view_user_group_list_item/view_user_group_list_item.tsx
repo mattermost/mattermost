@@ -5,15 +5,14 @@ import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isSyncableSource} from 'mattermost-redux/utils/group_utils';
-
-import {IconButton} from '@mattermost/compass-ui/components/icon-button';
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import StatusIcon from 'components/status_icon';
 import Avatar from 'components/widgets/users/avatar';
@@ -83,7 +82,12 @@ const ViewUserGroupListItem = (props: Props) => {
                         size='x-small'
                         destructive={true}
                         className='remove-group-member'
-                        icon={<i className='icon icon-trash-can-outline' aria-hidden='true'/>}
+                        icon={
+                            <i
+                                className='icon icon-trash-can-outline'
+                                aria-hidden='true'
+                            />
+                        }
                         aria-label={formatMessage({
                             id: 'view_user_group_list_item.removeUserFromGroup',
                             defaultMessage: 'Remove {user} from group',

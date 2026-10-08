@@ -30,7 +30,12 @@ function ModalHeader({id, title, subtitle, handleClose}: Props) {
                 {handleClose && <div className='mm-modal-header__ctr'>
                     <WithTooltip title={intl.formatMessage({id: 'modal.header_close', defaultMessage: 'Close'})}>
                         <IconButton
-                            icon={<i className='icon icon-close' aria-hidden='true'/>}
+                            icon={
+                                <i
+                                    className='icon icon-close'
+                                    aria-hidden='true'
+                                />
+                            }
                             size='medium'
                             onClick={handleClose}
                             aria-label={intl.formatMessage({id: 'modal.header_close', defaultMessage: 'Close'})}

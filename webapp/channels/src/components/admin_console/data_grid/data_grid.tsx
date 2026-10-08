@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {CSSProperties, JSX} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -273,7 +273,12 @@ class DataGrid extends React.PureComponent<Props, State> {
                             <IconButton
                                 size='small'
                                 className='ml-2 prev'
-                                icon={<i className='icon icon-chevron-left' aria-hidden='true'/>}
+                                icon={
+                                    <i
+                                        className='icon icon-chevron-left'
+                                        aria-hidden='true'
+                                    />
+                                }
                                 onClick={prevPageFn}
                                 disabled={firstPage}
                                 aria-label='Previous page'
@@ -283,7 +288,12 @@ class DataGrid extends React.PureComponent<Props, State> {
                             <IconButton
                                 size='small'
                                 className='next'
-                                icon={<i className='icon icon-chevron-right' aria-hidden='true'/>}
+                                icon={
+                                    <i
+                                        className='icon icon-chevron-right'
+                                        aria-hidden='true'
+                                    />
+                                }
                                 onClick={nextPageFn}
                                 disabled={lastPage}
                                 aria-label='Next page'

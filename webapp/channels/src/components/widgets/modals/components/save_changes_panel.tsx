@@ -99,7 +99,12 @@ function SaveChangesPanel({
                         <IconButton
                             id='panelCloseButton'
                             size='small'
-                            icon={<i className='icon icon-close' aria-hidden='true'/>}
+                            icon={
+                                <i
+                                    className='icon icon-close'
+                                    aria-hidden='true'
+                                />
+                            }
                             onClick={handleClose}
                             aria-label={intl.formatMessage({id: 'saveChangesPanel.close', defaultMessage: 'Close'})}
                         />

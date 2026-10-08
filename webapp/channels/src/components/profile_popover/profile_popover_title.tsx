@@ -152,7 +152,12 @@ const ProfilePopoverTitle = ({
                     ref={closeRef}
                     size='small'
                     className='closeButtonRelativePosition'
-                    icon={<i className='icon icon-close' aria-hidden='true'/>}
+                    icon={
+                        <i
+                            className='icon icon-close'
+                            aria-hidden='true'
+                        />
+                    }
                     onClick={handleClose}
                     aria-label={formatMessage({id: 'user_profile.close', defaultMessage: 'Close user profile popover'})}
                 />

@@ -37,7 +37,12 @@ export default function PopoutButton({
             <IconButton
                 size='small'
                 className={classNames('PopoutButton', className)}
-                icon={<i className='icon icon-dock-window' aria-hidden='true'/>}
+                icon={
+                    <i
+                        className='icon icon-dock-window'
+                        aria-hidden='true'
+                    />
+                }
                 aria-label={intl.formatMessage({id: 'new_window_button.tooltip', defaultMessage: 'Open in new window'})}
                 onClick={onClick}
             />

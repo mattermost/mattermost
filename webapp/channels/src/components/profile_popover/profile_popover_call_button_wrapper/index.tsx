@@ -116,7 +116,12 @@ const CallButton = ({
             <IconButton
                 id='startCallButton'
                 size='small'
-                icon={<i className='icon icon-phone' aria-hidden='true'/>}
+                icon={
+                    <i
+                        className='icon icon-phone'
+                        aria-hidden='true'
+                    />
+                }
                 disabled={disabled}
                 aria-label={startCallMessage}
             />

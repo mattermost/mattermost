@@ -7,9 +7,8 @@ import type {MouseEvent, ReactNode, RefObject} from 'react';
 import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
-
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import ChannelAttributeLabels from 'components/channel_attributes/channel_attribute_labels';
 import {ChannelLabelSurface} from 'components/common/hooks/useChannelLabels';
@@ -339,9 +338,7 @@ class ChannelHeader extends React.PureComponent<Props> {
             memberListButton = (
                 <HeaderIconWrapper
                     tooltip={this.props.intl.formatMessage(
-                        this.props.hasPendingJoinRequests ?
-                            membersTooltipMessages.membersPendingRequests :
-                            membersTooltipMessages.members,
+                        this.props.hasPendingJoinRequests ? membersTooltipMessages.membersPendingRequests : membersTooltipMessages.members,
                     )}
                     buttonClass={membersIconClass}
                     buttonId={'member_rhs'}
@@ -367,7 +364,12 @@ class ChannelHeader extends React.PureComponent<Props> {
                         id='toggleMute'
                         size='x-small'
                         className='channel-header__mute channel-header__icon'
-                        icon={<i className='icon icon-bell-off-outline' aria-hidden='true'/>}
+                        icon={
+                            <i
+                                className='icon icon-bell-off-outline'
+                                aria-hidden='true'
+                            />
+                        }
                         onClick={this.unmute}
                         aria-label={this.props.intl.formatMessage({id: 'channelHeader.unmute', defaultMessage: 'Unmute'})}
                     />

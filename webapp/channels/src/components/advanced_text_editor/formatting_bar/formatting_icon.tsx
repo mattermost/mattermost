@@ -19,8 +19,8 @@ import {
     FormatListNumberedIcon,
 } from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
-import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import KeyboardShortcutSequence, {
@@ -73,7 +73,6 @@ export const IconContainer = styled.button`
         }
     }
 `;
-
 
 interface FormattingIconProps {
     id?: string;
@@ -147,7 +146,16 @@ const FormattingIcon = forwardRef<HTMLButtonElement, FormattingIconProps>((props
                 ref={ref}
                 id={props.id || `FormattingControl_${mode}`}
                 size='small'
-                icon={<Icon glyph={<CompassIcon color='currentColor' size={18}/>}/>}
+                icon={
+                    <Icon
+                        glyph={
+                            <CompassIcon
+                                color='currentColor'
+                                size={18}
+                            />
+                        }
+                    />
+                }
                 onClick={onClick}
                 onMouseDown={handleMouseDown}
                 aria-label={buttonAriaLabel}

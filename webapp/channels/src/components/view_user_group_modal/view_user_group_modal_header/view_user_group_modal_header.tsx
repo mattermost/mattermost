@@ -173,7 +173,12 @@ const ViewUserGroupModalHeader = ({
                     <IconButton
                         size='small'
                         className='modal-header-back-button'
-                        icon={<i className='icon icon-arrow-left' aria-hidden='true'/>}
+                        icon={
+                            <i
+                                className='icon icon-arrow-left'
+                                aria-hidden='true'
+                            />
+                        }
                         aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
                         onClick={goBack}
                     />

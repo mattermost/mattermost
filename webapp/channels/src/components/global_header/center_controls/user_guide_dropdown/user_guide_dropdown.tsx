@@ -7,6 +7,7 @@ import type {WrappedComponentProps} from 'react-intl';
 
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
@@ -124,7 +125,12 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                         style='inverted'
                         size='small'
                         padding='compact'
-                        icon={<i className='icon icon-help-circle-outline' aria-hidden='true'/>}
+                        icon={
+                            <i
+                                className='icon icon-help-circle-outline'
+                                aria-hidden='true'
+                            />
+                        }
                         aria-controls='userHelpGuide'
                         aria-label={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
                         active={this.state.buttonActive}

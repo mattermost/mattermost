@@ -103,10 +103,19 @@
     }
 }
 
+.channel-header .channel-header__icon {
+    margin: 0;
+}
+
+.channel-header__info .channel-header__icons .channel-header__icon {
+    min-width: 24px;
+    height: 24px;
+}
+
 .channel-header__info .channel-header__icons .channel-header__icon--wide {
     width: auto;
     min-width: unset;
-    padding: 0 6px;
+    padding: 0 4px;
     gap: 4px;
 }
 

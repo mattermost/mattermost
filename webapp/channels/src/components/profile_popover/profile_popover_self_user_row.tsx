@@ -75,7 +75,12 @@ const ProfilePopoverSelfUserRow = ({
             >
                 <IconButton
                     size='small'
-                    icon={<i className='icon icon-send' aria-hidden='true'/>}
+                    icon={
+                        <i
+                            className='icon icon-send'
+                            aria-hidden='true'
+                        />
+                    }
                     onClick={handleShowDirectChannel}
                     aria-label={formatMessage({id: 'user_profile.send.dm.yourself', defaultMessage: 'Send yourself a message'})}
                 />

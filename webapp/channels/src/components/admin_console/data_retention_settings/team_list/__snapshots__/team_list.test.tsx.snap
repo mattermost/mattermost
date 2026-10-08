@@ -125,25 +125,35 @@ exports[`components/admin_console/data_retention_settings/team_list should match
           </span>
           <button
             aria-label="Previous page"
-            class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+            class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 ml-2 prev"
             disabled=""
             type="button"
           >
-            <i
-              class="icon icon-chevron-left"
-              title="Previous Icon"
-            />
+            <span
+              aria-hidden="true"
+              class="_icon-button__icon-slot_g2m23_33"
+            >
+              <i
+                aria-hidden="true"
+                class="icon icon-chevron-left"
+              />
+            </span>
           </button>
           <button
             aria-label="Next page"
-            class="btn btn-quaternary btn-icon btn-sm next disabled"
+            class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 next"
             disabled=""
             type="button"
           >
-            <i
-              class="icon icon-chevron-right"
-              title="Next Icon"
-            />
+            <span
+              aria-hidden="true"
+              class="_icon-button__icon-slot_g2m23_33"
+            >
+              <i
+                aria-hidden="true"
+                class="icon icon-chevron-right"
+              />
+            </span>
           </button>
         </div>
       </div>
@@ -790,24 +800,34 @@ exports[`components/admin_console/data_retention_settings/team_list should match
           </span>
           <button
             aria-label="Previous page"
-            class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+            class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 ml-2 prev"
             disabled=""
             type="button"
           >
-            <i
-              class="icon icon-chevron-left"
-              title="Previous Icon"
-            />
+            <span
+              aria-hidden="true"
+              class="_icon-button__icon-slot_g2m23_33"
+            >
+              <i
+                aria-hidden="true"
+                class="icon icon-chevron-left"
+              />
+            </span>
           </button>
           <button
             aria-label="Next page"
-            class="btn btn-quaternary btn-icon btn-sm next "
+            class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 next"
             type="button"
           >
-            <i
-              class="icon icon-chevron-right"
-              title="Next Icon"
-            />
+            <span
+              aria-hidden="true"
+              class="_icon-button__icon-slot_g2m23_33"
+            >
+              <i
+                aria-hidden="true"
+                class="icon icon-chevron-right"
+              />
+            </span>
           </button>
         </div>
       </div>

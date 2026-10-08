@@ -30,7 +30,12 @@ const Header = ({channel, isMobile, onClose}: Props) => {
                         <IconButton
                             size='small'
                             className='sidebar--right__back'
-                            icon={<i className='icon icon-arrow-back-ios' aria-hidden='true'/>}
+                            icon={
+                                <i
+                                    className='icon icon-arrow-back-ios'
+                                    aria-hidden='true'
+                                />
+                            }
                             onClick={onClose}
                             aria-label={formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Back Icon'})}
                         />
@@ -67,7 +72,12 @@ const Header = ({channel, isMobile, onClose}: Props) => {
                     id='rhsCloseButton'
                     size='small'
                     className='sidebar--right__close'
-                    icon={<i className='icon icon-close' aria-hidden='true'/>}
+                    icon={
+                        <i
+                            className='icon icon-close'
+                            aria-hidden='true'
+                        />
+                    }
                     aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
                     onClick={onClose}
                 />

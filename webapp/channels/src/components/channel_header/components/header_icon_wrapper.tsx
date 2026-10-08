@@ -48,10 +48,10 @@ const HeaderIconWrapper = (props: Props) => {
 
     const ariaLabelText = ariaLabelOverride ?? tooltipText;
 
-    const cleanedClassName = (buttonClass ?? 'channel-header__icon')
-        .replace(LEGACY_BTN_CLASSES, '')
-        .replace(/\s{2,}/g, ' ')
-        .trim();
+    const cleanedClassName = (buttonClass ?? 'channel-header__icon').
+        replace(LEGACY_BTN_CLASSES, '').
+        replace(/\s{2,}/g, ' ').
+        trim();
 
     return (
         <>
@@ -61,7 +61,7 @@ const HeaderIconWrapper = (props: Props) => {
             >
                 <IconButton
                     id={buttonId}
-                    size='small'
+                    size='x-small'
                     className={cleanedClassName}
                     icon={children}
                     onClick={onClick}

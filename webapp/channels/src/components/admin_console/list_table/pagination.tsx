@@ -28,7 +28,12 @@ export function Pagination(props: Props) {
                 <WithTooltip title={formatMessage({id: 'adminConsole.list.table.pagination.previous', defaultMessage: 'Go to previous page'})}>
                     <IconButton
                         size='small'
-                        icon={<i className='icon icon-chevron-left' aria-hidden='true'/>}
+                        icon={
+                            <i
+                                className='icon icon-chevron-left'
+                                aria-hidden='true'
+                            />
+                        }
                         disabled={props.disablePrevPage || props.isLoading}
                         onClick={props.onPreviousPageClick}
                         aria-label={formatMessage({id: 'adminConsole.list.table.pagination.previous', defaultMessage: 'Go to previous page'})}
@@ -39,7 +44,12 @@ export function Pagination(props: Props) {
                 <WithTooltip title={formatMessage({id: 'adminConsole.list.table.pagination.next', defaultMessage: 'Go to next page'})}>
                     <IconButton
                         size='small'
-                        icon={<i className='icon icon-chevron-right' aria-hidden='true'/>}
+                        icon={
+                            <i
+                                className='icon icon-chevron-right'
+                                aria-hidden='true'
+                            />
+                        }
                         disabled={props.disableNextPage || props.isLoading}
                         onClick={props.onNextPageClick}
                         aria-label={formatMessage({id: 'adminConsole.list.table.pagination.next', defaultMessage: 'Go to next page'})}

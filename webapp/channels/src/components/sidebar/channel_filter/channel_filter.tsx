@@ -82,7 +82,12 @@ export class ChannelFilter extends React.PureComponent<Props> {
                         size='small'
                         padding='compact'
                         className={classNames('SidebarFilters_filterButton', {active: unreadFilterEnabled})}
-                        icon={<i className='icon icon-filter-variant' aria-hidden='true'/>}
+                        icon={
+                            <i
+                                className='icon icon-filter-variant'
+                                aria-hidden='true'
+                            />
+                        }
                         toggled={unreadFilterEnabled}
                         data-testid='sidebar-unread-filter-button'
                         onClick={this.handleUnreadFilterClick}

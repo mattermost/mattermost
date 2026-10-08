@@ -15,8 +15,8 @@ import {
     SitemapIcon,
     TrashCanOutlineIcon,
 } from '@mattermost/compass-icons/components';
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';

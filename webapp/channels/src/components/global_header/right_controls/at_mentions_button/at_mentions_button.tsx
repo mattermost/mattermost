@@ -51,7 +51,12 @@ const AtMentionsButton = (): JSX.Element => {
                 style='inverted'
                 size='small'
                 padding='compact'
-                icon={<i className='icon icon-at' aria-hidden='true'/>}
+                icon={
+                    <i
+                        className='icon icon-at'
+                        aria-hidden='true'
+                    />
+                }
                 toggled={rhsState === RHSStates.MENTION}
                 onClick={mentionButtonClick}
                 aria-expanded={rhsState === RHSStates.MENTION}

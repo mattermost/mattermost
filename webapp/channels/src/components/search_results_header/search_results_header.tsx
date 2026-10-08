@@ -51,9 +51,7 @@ function SearchResultsHeader(props: Props) {
         </>
     );
 
-    const expandOrCollapseSidebarButtonAriaLabel = props.isExpanded ?
-        formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'}) :
-        formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'});
+    const expandOrCollapseSidebarButtonAriaLabel = props.isExpanded ? formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'}) : formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'});
 
     return (
         <div className='sidebar--right__header'>
@@ -66,7 +64,12 @@ function SearchResultsHeader(props: Props) {
                         <IconButton
                             size='small'
                             className='sidebar--right__back'
-                            icon={<i className='icon icon-arrow-back-ios' aria-hidden='true'/>}
+                            icon={
+                                <i
+                                    className='icon icon-arrow-back-ios'
+                                    aria-hidden='true'
+                                />
+                            }
                             onClick={props.actions.goBack}
                             aria-label={formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Back Icon'})}
                         />
@@ -80,7 +83,12 @@ function SearchResultsHeader(props: Props) {
                         <IconButton
                             size='small'
                             className='sidebar--right__expand'
-                            icon={<i className={props.isExpanded ? 'icon icon-arrow-collapse' : 'icon icon-arrow-expand'} aria-hidden='true'/>}
+                            icon={
+                                <i
+                                    className={props.isExpanded ? 'icon icon-arrow-collapse' : 'icon icon-arrow-expand'}
+                                    aria-hidden='true'
+                                />
+                            }
                             onClick={props.actions.toggleRhsExpanded}
                             aria-label={expandOrCollapseSidebarButtonAriaLabel}
                         />
@@ -102,7 +110,12 @@ function SearchResultsHeader(props: Props) {
                             id='searchResultsCloseButton'
                             size='small'
                             className='sidebar--right__close'
-                            icon={<i className='icon icon-close' aria-hidden='true'/>}
+                            icon={
+                                <i
+                                    className='icon icon-close'
+                                    aria-hidden='true'
+                                />
+                            }
                             aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
                             onClick={props.actions.closeRightHandSide}
                         />

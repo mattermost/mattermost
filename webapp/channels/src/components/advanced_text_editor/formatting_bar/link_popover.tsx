@@ -243,7 +243,12 @@ const LinkPopover = ({editor, onClose}: LinkPopoverProps) => {
                         <WithTooltip title={formatMessage({id: 'wysiwyg.link.open', defaultMessage: 'Open link'})}>
                             <IconButton
                                 size='small'
-                                icon={<OpenInNewIcon size={18} color='currentColor'/>}
+                                icon={
+                                    <OpenInNewIcon
+                                        size={18}
+                                        color='currentColor'
+                                    />
+                                }
                                 onClick={handleOpenExternal}
                                 aria-label={formatMessage({id: 'wysiwyg.link.open', defaultMessage: 'Open link'})}
                             />
@@ -254,7 +259,12 @@ const LinkPopover = ({editor, onClose}: LinkPopoverProps) => {
                             <IconButton
                                 size='small'
                                 destructive={true}
-                                icon={<TrashCanOutlineIcon size={18} color='currentColor'/>}
+                                icon={
+                                    <TrashCanOutlineIcon
+                                        size={18}
+                                        color='currentColor'
+                                    />
+                                }
                                 onClick={handleRemove}
                                 aria-label={formatMessage({id: 'wysiwyg.link.remove', defaultMessage: 'Remove link'})}
                             />

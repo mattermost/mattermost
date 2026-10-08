@@ -35,12 +35,18 @@ exports[`component/view_user_group_modal should match snapshot 1`] = `
             >
               <button
                 aria-label="Back"
-                class="modal-header-back-button btn btn-icon"
+                class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 modal-header-back-button"
                 type="button"
               >
-                <i
-                  class="icon icon-arrow-left"
-                />
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_g2m23_33"
+                >
+                  <i
+                    aria-hidden="true"
+                    class="icon icon-arrow-left"
+                  />
+                </span>
               </button>
               <h1
                 class="modal-title"

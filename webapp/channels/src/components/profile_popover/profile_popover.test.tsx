@@ -586,7 +586,7 @@ describe('components/ProfilePopover', () => {
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         await act(async () => {
-            expect(await screen.findByLabelText('Start Call')).toBeInTheDocument();
+            expect(await screen.queryByLabelText('Start Call')).toBeInTheDocument();
         });
     });
 

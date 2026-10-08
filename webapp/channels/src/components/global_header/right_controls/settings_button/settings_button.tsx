@@ -35,7 +35,12 @@ const SettingsButton = (props: Props): JSX.Element | null => {
                 style='inverted'
                 size='small'
                 padding='compact'
-                icon={<i className='icon icon-settings-outline' aria-hidden='true'/>}
+                icon={
+                    <i
+                        className='icon icon-settings-outline'
+                        aria-hidden='true'
+                    />
+                }
                 onClick={(): void => {
                     props.actions.openModal({modalId: ModalIdentifiers.USER_SETTINGS, dialogType: UserSettingsModal, dialogProps: {isContentProductSettings: true, focusOriginElement: 'settings_button'}});
                 }}

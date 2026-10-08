@@ -65,7 +65,12 @@ export const HistoryButtons = () => {
                     style='inverted'
                     size='small'
                     padding='compact'
-                    icon={<i className='icon icon-arrow-left' aria-hidden='true'/>}
+                    icon={
+                        <i
+                            className='icon icon-arrow-left'
+                            aria-hidden='true'
+                        />
+                    }
                     onClick={goBack}
                     disabled={!canGoBack}
                     aria-label={intl.formatMessage({id: 'sidebar_left.channel_navigator.goBackLabel', defaultMessage: 'Back'})}
@@ -78,7 +83,12 @@ export const HistoryButtons = () => {
                     style='inverted'
                     size='small'
                     padding='compact'
-                    icon={<i className='icon icon-arrow-right' aria-hidden='true'/>}
+                    icon={
+                        <i
+                            className='icon icon-arrow-right'
+                            aria-hidden='true'
+                        />
+                    }
                     onClick={goForward}
                     disabled={!canGoForward}
                     aria-label={intl.formatMessage({id: 'sidebar_left.channel_navigator.goForwardLabel', defaultMessage: 'Forward'})}

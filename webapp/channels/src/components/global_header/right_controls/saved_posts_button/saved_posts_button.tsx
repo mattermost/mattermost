@@ -42,7 +42,12 @@ const SavedPostsButton = (): JSX.Element | null => {
                 style='inverted'
                 size='small'
                 padding='compact'
-                icon={<i className='icon icon-bookmark-outline' aria-hidden='true'/>}
+                icon={
+                    <i
+                        className='icon icon-bookmark-outline'
+                        aria-hidden='true'
+                    />
+                }
                 toggled={rhsState === RHSStates.FLAG}
                 onClick={savedPostsButtonClick}
                 aria-expanded={rhsState === RHSStates.FLAG}

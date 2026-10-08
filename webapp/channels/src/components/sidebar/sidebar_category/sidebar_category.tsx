@@ -312,7 +312,12 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                             size='small'
                             padding='compact'
                             className='SidebarChannelGroupHeader_addButton'
-                            icon={<i className='icon icon-plus' aria-hidden='true'/>}
+                            icon={
+                                <i
+                                    className='icon icon-plus'
+                                    aria-hidden='true'
+                                />
+                            }
                             onClick={this.handleOpenDirectMessagesModal}
                             aria-label={addHelpLabel}
                         />

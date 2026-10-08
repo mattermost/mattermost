@@ -41,7 +41,12 @@ function FollowButton({
                 <IconButton
                     size='small'
                     className={classNames('FollowButton FollowButton--icon', className)}
-                    icon={<i className={classNames('icon', following ? 'icon-bell-outline' : 'icon-bell-off-outline')} aria-hidden='true'/>}
+                    icon={
+                        <i
+                            className={classNames('icon', following ? 'icon-bell-outline' : 'icon-bell-off-outline')}
+                            aria-hidden='true'
+                        />
+                    }
                     toggled={following}
                     disabled={Boolean(disabled)}
                     aria-label={label}

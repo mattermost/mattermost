@@ -189,7 +189,12 @@ const BackstageList = (remainingProps: Props) => {
                         <IconButton
                             size='small'
                             className='ml-2 prev'
-                            icon={<i className='icon icon-chevron-left' aria-hidden='true'/>}
+                            icon={
+                                <i
+                                    className='icon icon-chevron-left'
+                                    aria-hidden='true'
+                                />
+                            }
                             onClick={previousPageFn}
                             disabled={isFirstPage}
                             aria-label={formatMessage({id: 'backstage_list.previousButton.ariaLabel', defaultMessage: 'Previous'})}
@@ -199,7 +204,12 @@ const BackstageList = (remainingProps: Props) => {
                         <IconButton
                             size='small'
                             className='next'
-                            icon={<i className='icon icon-chevron-right' aria-hidden='true'/>}
+                            icon={
+                                <i
+                                    className='icon icon-chevron-right'
+                                    aria-hidden='true'
+                                />
+                            }
                             onClick={nextPageFn}
                             disabled={isLastPage}
                             aria-label={formatMessage({id: 'backstage_list.nextButton.ariaLabel', defaultMessage: 'Next'})}
