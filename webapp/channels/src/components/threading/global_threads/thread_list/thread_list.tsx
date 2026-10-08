@@ -8,6 +8,8 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {PlaylistCheckIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {UserThread} from '@mattermost/types/threads';
 
@@ -237,20 +239,16 @@ const ThreadList = ({
                                 defaultMessage: 'Mark all threads as read',
                             })}
                         >
-                            <Button
+                            <IconButton
                                 id={'threads-list__mark-all-as-read'}
+                                size='small'
                                 aria-label={formatMessage({
                                     id: 'threading.threadList.markRead',
                                     defaultMessage: 'Mark all threads as read',
                                 })}
-                                className={'Button___large Button___icon'}
+                                icon={<Icon glyph={<PlaylistCheckIcon/>}/>}
                                 onClick={handleOpenMarkAllAsReadModal}
-                                marginTop={true}
-                            >
-                                <span className='icon'>
-                                    <PlaylistCheckIcon size={18}/>
-                                </span>
-                            </Button>
+                            />
                         </WithTooltip>
                     </div>
                 )}
