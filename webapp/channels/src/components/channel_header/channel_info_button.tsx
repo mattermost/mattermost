@@ -4,8 +4,8 @@
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import styled from 'styled-components';
 
+import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import {closeRightHandSide, showChannelInfo} from 'actions/views/rhs';
@@ -20,14 +20,6 @@ import HeaderIconWrapper from './components/header_icon_wrapper';
 interface Props {
     channel: Channel;
 }
-
-const Icon = styled.i`
-    font-size:18px;
-    line-height:18px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-`;
 
 const ChannelInfoButton = ({channel}: Props) => {
     const dispatch = useDispatch();
@@ -70,7 +62,7 @@ const ChannelInfoButton = ({channel}: Props) => {
             size='small'
             tooltip={tooltip}
         >
-            <Icon className='icon-information-outline'/>
+            <InformationOutlineIcon size={16}/>
         </HeaderIconWrapper>
     );
 };

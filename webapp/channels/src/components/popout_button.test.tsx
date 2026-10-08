@@ -51,7 +51,7 @@ describe('PopoutButton', () => {
             expect(button).toHaveAttribute('aria-label', 'Open in new window');
             expect(button).toHaveClass('PopoutButton');
 
-            const icon = screen.getByRole('button').querySelector('.icon-dock-window');
+            const icon = screen.getByRole('button').querySelector('svg');
             expect(icon).toBeInTheDocument();
         });
     });
