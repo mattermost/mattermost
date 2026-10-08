@@ -782,6 +782,26 @@ describe('components/team_settings/TeamMembershipTab', () => {
             expect(screen.getByRole('checkbox', {name: /auto-add members/i})).toBeDisabled();
         });
 
+        it('drops the parse lock when another team\'s rule loads', async () => {
+            mockLoadedRule('user.attributes.department in ["Engineering"]');
+
+            const {rerender} = renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
+
+            await userEvent.click(await screen.findByTestId('table-editor-parse-error'));
+            expect(screen.getByTestId('team-membership-locked-rules')).toBeInTheDocument();
+
+            mockLoadedRule('user.attributes.department == "Sales"');
+            rerender(
+                <TeamMembershipTab
+                    {...baseProps}
+                    team={{...baseTeam, id: 'other_team_id'}}
+                />,
+            );
+
+            expect(await screen.findByTestId('table-editor')).toBeInTheDocument();
+            expect(screen.queryByTestId('team-membership-locked-rules')).not.toBeInTheDocument();
+        });
+
         it('keeps the inline parse error, without locking, for an edited rule', async () => {
             mockLoadedRule('user.attributes.department in ["Sales"]');
 

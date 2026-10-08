@@ -232,6 +232,10 @@ function TeamMembershipTab({
             } finally {
                 if (!cancelled) {
                     setPoliciesLoaded(true);
+
+                    // Cleared here, not in an effect on originalExpression, so it lands in the
+                    // same render as the new rule; the remounted TableEditor re-locks if needed.
+                    setSavedRuleUnparsable(false);
                 }
             }
         };
