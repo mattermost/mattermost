@@ -7575,6 +7575,10 @@
     "defaultMessage": "Severity",
     "description": "Option of the Group by control on the System Console Site health page that groups findings by severity."
   },
+  "admin.health_dashboard.just_now": {
+    "defaultMessage": "just now",
+    "description": "Relative time on the System Console Site health page for a moment less than a minute ago, used inside sentences such as \"Last evaluated {time}\" and \"Muted by {name} {time}\"."
+  },
   "admin.health_dashboard.last_evaluated": {
     "defaultMessage": "Last evaluated {time}",
     "description": "Line at the top of the System Console Site health page; {time} is a relative time such as \"38 minutes ago\" of the latest health check run."
