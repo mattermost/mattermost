@@ -5,17 +5,29 @@ import type {HealthFinding} from '@mattermost/types/health';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {compareHealthFindings} from 'mattermost-redux/utils/health_utils';
+import {compareHealthFindings, isHealthFindingMuted} from 'mattermost-redux/utils/health_utils';
 
 function getFindingsByFingerprint(state: GlobalState) {
     return state.entities.health.findings;
 }
 
-// Every fetched finding, sorted for display; tab filtering and grouping happen over this list.
-export const getFindings = createSelector(
-    'getFindings',
+const getSortedFindings = createSelector(
+    'getSortedFindings',
     getFindingsByFingerprint,
     (findings): HealthFinding[] => Object.values(findings).sort(compareHealthFindings),
+);
+
+// Every unmuted finding, sorted for display; tab filtering and grouping happen over this list.
+export const getFindings = createSelector(
+    'getFindings',
+    getSortedFindings,
+    (findings) => findings.filter((finding) => !isHealthFindingMuted(finding)),
+);
+
+export const getMutedFindings = createSelector(
+    'getMutedFindings',
+    getSortedFindings,
+    (findings) => findings.filter(isHealthFindingMuted),
 );
 
 export function getLastEvaluatedAt(state: GlobalState) {
