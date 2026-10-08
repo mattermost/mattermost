@@ -76,15 +76,16 @@ func TestCreateCPAField(t *testing.T) {
 		}
 
 		createdField, resp, err := client.CreateCPAField(context.Background(), field)
-		CheckCreatedStatus(t, resp)
-		require.NoError(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.property_field.patch.permissions_not_supported.app_error")
+		require.Empty(t, createdField)
 
-		group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
-		require.Nil(t, appErr)
-		stored, storeErr := th.App.Srv().Store().PropertyField().Get(th.Context, group.ID, createdField.ID)
-		require.NoError(t, storeErr)
-		require.Nil(t, stored.Permissions)
-	}, "a submitted permissions object should not be stored")
+		fields, _, err := client.ListCPAFields(context.Background())
+		require.NoError(t, err)
+		for _, f := range fields {
+			require.NotEqual(t, field.Name, f.Name)
+		}
+	}, "a field carrying a permissions object should be rejected")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		webSocketClient := th.CreateConnectedWebSocketClient(t)
