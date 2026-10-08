@@ -44,14 +44,14 @@
     &__message {
         display: flex;
         align-items: center;
-        margin: 0;
-        gap: var(--spacing-s, 8px);
         padding-left: var(--spacing-m, 12px);
+        margin: 0;
         color: var(--center-channel-color);
         font-family: inherit;
         font-size: 14px;
         font-style: normal;
         font-weight: 600;
+        gap: var(--spacing-s, 8px);
         line-height: 20px;
 
         svg {
