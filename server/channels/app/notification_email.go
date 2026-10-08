@@ -178,6 +178,7 @@ func (a *App) sendNotificationEmail(rctx request.CTX, notification *PostNotifica
 
 	// Call plugin hook to allow customization of emailNotification
 	rejectionReason := ""
+	contentReplacedByPlugin := false
 	a.ch.RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
 		var replacementContent *model.EmailNotificationContent
 		replacementContent, rejectionReason = hooks.EmailNotificationWillBeSent(emailNotification)
@@ -191,6 +192,7 @@ func (a *App) sendNotificationEmail(rctx request.CTX, notification *PostNotifica
 		}
 		if replacementContent != nil {
 			emailNotification.EmailNotificationContent = *replacementContent
+			contentReplacedByPlugin = true
 
 			rctx.Logger().Info("Email notification modified by plugin.",
 				mlog.String("plugin_id", manifest.Id),
@@ -233,7 +235,7 @@ func (a *App) sendNotificationEmail(rctx request.CTX, notification *PostNotifica
 		// fall back to sending a single email if we can't batch it for some reason
 	}
 
-	hasContent := a.emailNotificationHasContent(emailNotification, post)
+	hasContent := a.emailNotificationHasContent(emailNotification, post, contentReplacedByPlugin)
 
 	// Handle sender photo
 	senderPhoto := ""
@@ -246,7 +248,7 @@ func (a *App) sendNotificationEmail(rctx request.CTX, notification *PostNotifica
 	}
 
 	// Build email body using EmailNotification data
-	var bodyText, err = a.getNotificationEmailBodyFromEmailNotification(rctx, user, emailNotification, post, senderPhoto)
+	var bodyText, err = a.getNotificationEmailBodyFromEmailNotification(rctx, user, emailNotification, post, senderPhoto, contentReplacedByPlugin)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to render the email notification template")
 	}
@@ -365,15 +367,17 @@ func (a *App) GetMessageForNotification(post *model.Post, teamName, siteUrl stri
 
 // emailNotificationHasContent reports whether the email should render the post.
 // A post with only message attachments has an empty MessageHTML even when full
-// contents are enabled, so the attachments count as content in that mode.
-func (a *App) emailNotificationHasContent(emailNotification *model.EmailNotification, post *model.Post) bool {
+// contents are enabled, so the attachments count as content in that mode. When a
+// plugin replaced the content, an empty MessageHTML is the plugin's choice and the
+// attachments do not count.
+func (a *App) emailNotificationHasContent(emailNotification *model.EmailNotification, post *model.Post, contentReplacedByPlugin bool) bool {
 	if emailNotification.MessageHTML != "" {
 		return true
 	}
-	return a.emailNotificationContentsType() == model.EmailNotificationContentsFull && len(post.Attachments()) > 0
+	return !contentReplacedByPlugin && a.emailNotificationContentsType() == model.EmailNotificationContentsFull && len(post.Attachments()) > 0
 }
 
-func (a *App) getNotificationEmailBodyFromEmailNotification(rctx request.CTX, recipient *model.User, emailNotification *model.EmailNotification, post *model.Post, senderPhoto string) (string, error) {
+func (a *App) getNotificationEmailBodyFromEmailNotification(rctx request.CTX, recipient *model.User, emailNotification *model.EmailNotification, post *model.Post, senderPhoto string, contentReplacedByPlugin bool) (string, error) {
 	translateFunc := i18n.GetUserTranslations(recipient.Locale)
 
 	pData := postData{
@@ -381,7 +385,7 @@ func (a *App) getNotificationEmailBodyFromEmailNotification(rctx request.CTX, re
 		SenderPhoto: senderPhoto,
 	}
 
-	if a.emailNotificationHasContent(emailNotification, post) {
+	if a.emailNotificationHasContent(emailNotification, post, contentReplacedByPlugin) {
 		pData.Message = template.HTML(emailNotification.MessageHTML)
 
 		// Get formatted time for message using the UseMilitaryTime field
@@ -415,7 +419,7 @@ func (a *App) getNotificationEmailBodyFromEmailNotification(rctx request.CTX, re
 	}
 
 	// Only include posts in notification email if message content is available
-	if a.emailNotificationHasContent(emailNotification, post) {
+	if a.emailNotificationHasContent(emailNotification, post, contentReplacedByPlugin) {
 		data.Props["Posts"] = []postData{pData}
 	} else {
 		data.Props["Posts"] = []postData{}
