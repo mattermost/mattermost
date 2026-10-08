@@ -18523,6 +18523,22 @@
     "defaultMessage": "URLs must start with a lowercase letter or number.",
     "description": "Validation error when the channel or team URL slug starts with an invalid character."
   },
+  "channel_access_denied.body": {
+    "defaultMessage": "You no longer have access to {channel}. Your membership has not changed, and the channel will reappear if you regain access.",
+    "description": ""
+  },
+  "channel_access_denied.channelName": {
+    "defaultMessage": "this channel",
+    "description": ""
+  },
+  "channel_access_denied.okay": {
+    "defaultMessage": "Okay",
+    "description": ""
+  },
+  "channel_access_denied.title": {
+    "defaultMessage": "No longer available",
+    "description": ""
+  },
   "channel_attributes.banner.insert_attribute": {
     "defaultMessage": "Attributes",
     "description": "Button text (after a + icon) under the Banner text editor in Channel Settings > Configuration. It opens a menu for inserting a channel attribute placeholder into the banner. Plural noun."
@@ -19911,6 +19927,10 @@
     "defaultMessage": "Select at least one permission action for each rule.",
     "description": "Validation error on the Permissions Policy tab when a rule has no permission actions selected."
   },
+  "channel_settings.permissions_policy.error.back_to_editing": {
+    "defaultMessage": "Back to editing",
+    "description": ""
+  },
   "channel_settings.permissions_policy.error.expression_required": {
     "defaultMessage": "Each rule needs an attribute expression.",
     "description": "Validation error on the Permissions Policy tab when a rule is missing its user attribute condition expression."
@@ -19922,6 +19942,18 @@
   "channel_settings.permissions_policy.error.name_unique": {
     "defaultMessage": "Rule name \"{name}\" is used more than once. Names must be unique within this channel.",
     "description": "Validation error on the Permissions Policy tab for duplicate rule names; {name} is the duplicated rule name."
+  },
+  "channel_settings.permissions_policy.error.self_exclusion_check_failed": {
+    "defaultMessage": "Could not confirm that you would keep access to this channel. Please try again.",
+    "description": ""
+  },
+  "channel_settings.permissions_policy.error.self_exclusion_message": {
+    "defaultMessage": "You cannot save these rules because they would remove your own access to this channel. Update the Channel read access rules so that you still satisfy them, then try again.",
+    "description": ""
+  },
+  "channel_settings.permissions_policy.error.self_exclusion_title": {
+    "defaultMessage": "Cannot save permission rules",
+    "description": ""
   },
   "channel_settings.permissions_policy.field.actions": {
     "defaultMessage": "Permissions",

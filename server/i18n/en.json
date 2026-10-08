@@ -480,6 +480,11 @@
     "description": "API error when requesting member counts by group without a license that includes user groups; 'groups' are user groups."
   },
   {
+    "id": "api.channel.channel_read_access.abac_denied.app_error",
+    "translation": "You do not currently have access to this channel.",
+    "description": ""
+  },
+  {
     "id": "api.channel.create_channel.attribute_no_permission.app_error",
     "translation": "You do not have permission to set one of the submitted channel attributes.",
     "description": "API error (403) when a user creating a channel supplies a value for a channel attribute (e.g. a classification marking) they are not allowed to set. The message deliberately does not name the attribute."
@@ -10364,6 +10369,11 @@
     "id": "app.pdp.access_evaluation.permission_policy.app_error",
     "translation": "Failed to evaluate permission policy.",
     "description": "Error when the server fails to evaluate a permission policy while checking a user's access."
+  },
+  {
+    "id": "app.pdp.action_has_permission_policy.app_error",
+    "translation": "Failed to determine if action has a permission policy",
+    "description": ""
   },
   {
     "id": "app.plugin.addon_not_licensed.app_error",
