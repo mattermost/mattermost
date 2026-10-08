@@ -10,13 +10,37 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace disabled 
       aria-expanded="true"
       aria-haspopup="true"
       aria-label="actions"
-      class="post-menu__item post-menu__item--active"
+      class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 _icon-button--padding-compact_g2m23_64 _icon-button--active_g2m23_25 post-menu__item post-menu__item--active"
+      data-active="true"
       id="center_actions_button_post_id_1"
       type="button"
     >
-      <i
-        class="icon icon-apps"
-      />
+      <span
+        aria-hidden="true"
+        class="_icon-button__icon-slot_g2m23_33"
+      >
+        <div
+          aria-hidden="true"
+          class="_icon_1i355_2 _icon--size-16_1i355_38"
+        >
+          <div
+            class="_icon__glyph-area_1i355_9"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3 11H11V3H3M5 5H9V9H5M13 21H21V13H13M15 15H19V19H15M3 21H11V13H3M5 15H9V19H5M13 3V11H21V3M19 9H15V5H19Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </span>
     </button>
     <div>
       <div
@@ -61,13 +85,37 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace enabled a
       aria-expanded="true"
       aria-haspopup="true"
       aria-label="actions"
-      class="post-menu__item post-menu__item--active"
+      class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 _icon-button--padding-compact_g2m23_64 _icon-button--active_g2m23_25 post-menu__item post-menu__item--active"
+      data-active="true"
       id="center_actions_button_post_id_1"
       type="button"
     >
-      <i
-        class="icon icon-apps"
-      />
+      <span
+        aria-hidden="true"
+        class="_icon-button__icon-slot_g2m23_33"
+      >
+        <div
+          aria-hidden="true"
+          class="_icon_1i355_2 _icon--size-16_1i355_38"
+        >
+          <div
+            class="_icon__glyph-area_1i355_9"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3 11H11V3H3M5 5H9V9H5M13 21H21V13H13M15 15H19V19H15M3 21H11V13H3M5 15H9V19H5M13 3V11H21V3M19 9H15V5H19Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </span>
     </button>
     <div>
       <div
@@ -145,13 +193,37 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
     aria-expanded="true"
     aria-haspopup="true"
     aria-label="actions"
-    class="post-menu__item post-menu__item--active"
+    class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 _icon-button--padding-compact_g2m23_64 _icon-button--active_g2m23_25 post-menu__item post-menu__item--active"
+    data-active="true"
     id="center_actions_button_post_id_1"
     type="button"
   >
-    <i
-      class="icon icon-apps"
-    />
+    <span
+      aria-hidden="true"
+      class="_icon-button__icon-slot_g2m23_33"
+    >
+      <div
+        aria-hidden="true"
+        class="_icon_1i355_2 _icon--size-16_1i355_38"
+      >
+        <div
+          class="_icon__glyph-area_1i355_9"
+        >
+          <svg
+            fill="currentColor"
+            height="18"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="18"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M3 11H11V3H3M5 5H9V9H5M13 21H21V13H13M15 15H19V19H15M3 21H11V13H3M5 15H9V19H5M13 3V11H21V3M19 9H15V5H19Z"
+            />
+          </svg>
+        </div>
+      </div>
+    </span>
   </button>
   <div
     data-testid="mock-popover"
