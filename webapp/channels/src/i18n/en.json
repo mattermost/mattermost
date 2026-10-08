@@ -7589,7 +7589,7 @@
   },
   "admin.health_dashboard.mute.mute": {
     "defaultMessage": "Mute",
-    "description": "Button on a finding row of the System Console Site health page that hides the finding from the open list for every admin, after a confirmation."
+    "description": "Button on a finding row of the System Console Site health page that hides the finding from the open list for every admin, immediately."
   },
   "admin.health_dashboard.mute.unmute": {
     "defaultMessage": "Unmute",
