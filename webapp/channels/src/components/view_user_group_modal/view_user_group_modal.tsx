@@ -7,7 +7,6 @@ import {defineMessage, FormattedMessage} from 'react-intl';
 
 import {useFocusTrap} from '@mattermost/components';
 import type {Group} from '@mattermost/types/groups';
-import {GroupSource, PluginGroupSourcePrefix} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
@@ -156,35 +155,6 @@ const ViewUserGroupModal: React.FC<Props> = ({
         };
     }, [searchTerm, groupId, actions, loadComplete]);
 
-    const mentionName = () => {
-        if (group) {
-            return (
-                <div className='group-mention-name'>
-                    <span className='group-name'>{`@${group.name}`}</span>
-                    {
-                        group.source.toLowerCase() === GroupSource.Ldap &&
-                        <span className='group-source'>
-                            <FormattedMessage
-                                id='view_user_group_modal.ldapSynced'
-                                defaultMessage='AD/LDAP SYNCED'
-                            />
-                        </span>
-                    }
-                    {
-                        group.source.toLowerCase().startsWith(PluginGroupSourcePrefix.Plugin) &&
-                        <span className='group-source'>
-                            <FormattedMessage
-                                id='view_user_group_modal.pluginSynced'
-                                defaultMessage='Plugin SYNCED'
-                            />
-                        </span>
-                    }
-                </div>
-            );
-        }
-        return (<></>);
-    };
-
     return (
         <Modal
             dialogClassName='a11y__modal view-user-groups-modal'
@@ -205,7 +175,6 @@ const ViewUserGroupModal: React.FC<Props> = ({
                     decrementMemberCount={decrementMemberCount}
                 />
                 <Modal.Body>
-                    {mentionName()}
                     {((users.length === 0 && !searchTerm && !loading) || !group) ? (
                         <NoResultsIndicator
                             variant={NoResultsVariant.UserGroupMembers}

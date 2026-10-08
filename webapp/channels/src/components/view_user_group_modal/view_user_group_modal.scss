@@ -1,19 +1,54 @@
 .view-user-groups-modal {
     .modal-content .modal-header {
         overflow: visible;
+        gap: 16px;
+
+        .user-groups-modal__header-title-block {
+            flex: 1;
+            min-width: 0;
+        }
 
         .modal-title {
             display: flex;
-            flex: 1 1 auto;
-            min-width: 0;
             align-items: center;
             gap: 4px;
+            overflow-wrap: anywhere;
 
             i,
             svg {
                 margin-left: 5px;
+                flex-shrink: 0;
                 color: rgba(var(--center-channel-color-rgb), 0.64);
             }
+        }
+
+        .user-groups-modal__header-subtitle {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 2px;
+            gap: 8px;
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            font-size: 12px;
+            line-height: 16px;
+
+            .group-source span {
+                padding: 0 4px;
+                border-radius: 4px;
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+                font-size: 10px;
+                line-height: 16px;
+            }
+        }
+
+        .user-groups-modal__header-actions {
+            margin-right: 0;
+        }
+
+        .user-groups-modal__header-close {
+            position: static;
+            top: auto;
+            right: auto;
         }
 
         .details-action {
@@ -28,26 +63,6 @@
 
         .no-results__wrapper {
             padding-bottom: 60px;
-        }
-
-        .group-mention-name {
-            margin: -24px 0 24px 6px;
-
-            span.group-name {
-                margin-left: 70px;
-                color: rgba(var(--center-channel-color-rgb), 0.75);
-                font-size: 12px;
-                line-height: 12px;
-            }
-
-            span.group-source span {
-                padding: 0 4px;
-                border-radius: 4px;
-                margin-left: 8px;
-                background: rgba(var(--center-channel-color-rgb), 0.08);
-                font-size: 10px;
-                line-height: 16px;
-            }
         }
 
         .user-groups-search {
