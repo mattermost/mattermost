@@ -1,26 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useId} from 'react';
+import React, {useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {BellOffOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
+import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {HealthFinding} from '@mattermost/types/health';
 
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 
 import {EmptyState} from './empty_state';
-import FindingRow from './finding_row';
+import FindingGroups from './finding_groups';
 import type {RowState} from './finding_section';
+import type {GroupBy} from './group_by_control';
 
 type Props = RowState & {
     findings: HealthFinding[];
+    groupBy: GroupBy;
 };
 
-const MutedFindings = ({findings, now, expanded, onToggle, onMute, onUnmute}: Props) => {
+const MutedFindings = ({findings, groupBy, ...rowState}: Props) => {
     const dispatch = useDispatch();
-    const headingId = useId();
 
     useEffect(() => {
         const mutedBy = findings.flatMap((finding) => finding.muted_by || []);
@@ -30,31 +31,7 @@ const MutedFindings = ({findings, now, expanded, onToggle, onMute, onUnmute}: Pr
     }, [dispatch, findings]);
 
     return (
-        <section
-            className='HealthDashboard__muted'
-            aria-labelledby={headingId}
-        >
-            <h3
-                id={headingId}
-                className='HealthDashboard__sectionTitle'
-            >
-                <span className='HealthDashboard__sectionIcon'>
-                    <BellOffOutlineIcon
-                        size={20}
-                        color='currentColor'
-                        aria-hidden={true}
-                    />
-                </span>
-                <FormattedMessage
-                    id='admin.health_dashboard.muted.title'
-                    defaultMessage='Muted findings'
-                />
-                <span className='HealthDashboard__sectionCount'>{findings.length}</span>
-                <span
-                    className='HealthDashboard__sectionRule'
-                    aria-hidden={true}
-                />
-            </h3>
+        <>
             <p className='HealthDashboard__mutedNote'>
                 <InformationOutlineIcon
                     size={18}
@@ -82,21 +59,14 @@ const MutedFindings = ({findings, now, expanded, onToggle, onMute, onUnmute}: Pr
                     }
                 />
             ) : (
-                <ul className='HealthDashboard__findings'>
-                    {findings.map((finding) => (
-                        <FindingRow
-                            key={finding.fingerprint}
-                            finding={finding}
-                            now={now}
-                            expanded={expanded === finding.fingerprint}
-                            onToggle={onToggle}
-                            onMute={onMute}
-                            onUnmute={onUnmute}
-                        />
-                    ))}
-                </ul>
+                <FindingGroups
+                    findings={findings}
+                    groupBy={groupBy}
+                    expandAll={true}
+                    {...rowState}
+                />
             )}
-        </section>
+        </>
     );
 };
 
