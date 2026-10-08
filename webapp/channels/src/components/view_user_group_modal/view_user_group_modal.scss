@@ -1,11 +1,13 @@
 .view-user-groups-modal {
     .modal-content .modal-header {
         overflow: visible;
+        align-items: flex-start;
+        padding-right: 18px;
         gap: 16px;
 
         .user-groups-modal__header-title-block {
-            flex: 1;
             min-width: 0;
+            flex: 1;
         }
 
         .modal-title {
@@ -16,8 +18,8 @@
 
             i,
             svg {
-                margin-left: 5px;
                 flex-shrink: 0;
+                margin-left: 5px;
                 color: rgba(var(--center-channel-color-rgb), 0.64);
             }
         }
@@ -27,9 +29,9 @@
             flex-wrap: wrap;
             align-items: center;
             margin-top: 2px;
-            gap: 8px;
             color: rgba(var(--center-channel-color-rgb), 0.75);
             font-size: 12px;
+            gap: 8px;
             line-height: 16px;
 
             .group-source span {
@@ -42,6 +44,7 @@
         }
 
         .user-groups-modal__header-actions {
+            align-items: flex-start;
             margin-right: 0;
         }
 
