@@ -64,7 +64,7 @@ func (ms *mockSuite) HasPermissionToResolveChannelMention(rctx request.CTX, user
 	return true
 }
 
-func (ms *mockSuite) HasPermissionToFileAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
+func (ms *mockSuite) HasPermissionToChannelAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
 	return true
 }
 

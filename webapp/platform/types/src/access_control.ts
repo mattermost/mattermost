@@ -109,6 +109,7 @@ export const ACCESS_CONTROL_ACTION_DOWNLOAD_FILE = 'download_file_attachment';
 export const ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS = 'channel_read_access';
 export const ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS = 'channel_write_access';
 export const ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS = 'channel_management_access';
+export const ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ = 'create_burn_on_read_post';
 
 export const ACCESS_CONTROL_PERMISSION_ACTIONS: string[] = [
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
@@ -116,6 +117,7 @@ export const ACCESS_CONTROL_PERMISSION_ACTIONS: string[] = [
     ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
     ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
     ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
+    ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
 ];
 
 // The channel-access actions share one feature flag, so pickers filter them together.

@@ -1347,7 +1347,12 @@ export async function createPermissionPolicy(
         name: string;
         celExpression: string;
         permissions: Array<
-            'Download Files' | 'Upload Files' | 'Channel Read Access' | 'Channel Write Access' | 'Manage Channel'
+            | 'Download Files'
+            | 'Upload Files'
+            | 'Channel Read Access'
+            | 'Channel Write Access'
+            | 'Manage Channel'
+            | 'Create Burn-on-Read Message'
         >;
         role?: 'system_guest' | 'system_user' | 'system_admin';
         adminClient?: Client4;
@@ -1419,6 +1424,7 @@ export async function createPermissionPolicy(
         'Channel Read Access': 'pp-add-permission-channel_read_access',
         'Channel Write Access': 'pp-add-permission-channel_write_access',
         'Manage Channel': 'pp-add-permission-channel_management_access',
+        'Create Burn-on-Read Message': 'pp-add-permission-create_burn_on_read_post',
     };
     for (const permission of options.permissions) {
         await page.getByRole('button', {name: 'Add permission'}).click();

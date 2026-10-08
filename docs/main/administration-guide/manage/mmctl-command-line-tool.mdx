@@ -39,6 +39,7 @@ This feature was developed to a large extent by community contributions and we'd
 - [mmctl group channel](#mmctl-group-channel) - Channel Group Management
 - [mmctl group team](#mmctl-group-team) - Team Group Management
 - [mmctl group user](#mmctl-group-user) - Custom User Group Management
+- [mmctl health](#mmctl-health) - Inspect workspace health findings
 - [mmctl import](#mmctl-import) - Import Management
 - [mmctl extract](#mmctl-extract) - Content Extraction Job Management
 - [mmctl integrity](#mmctl-integrity) - (Deprecated) Database Record Integrity
@@ -3741,6 +3742,68 @@ mmctl extract run
 --from int   The timestamp of the earliest file to extract, expressed in seconds since the unix epoch.
 -h, --help   help for run
 --to int     The timestamp of the latest file to extract, expressed in seconds since the unix epoch. Defaults to the current time.
+```
+
+**Options inherited from parent commands**
+
+``` sh
+--config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
+--disable-pager                disables paged output
+--insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
+--insecure-tls-version         allows to use TLS versions 1.0 and 1.1
+--json                         the output format will be in json format
+--local                        allows communicating with the server through a unix socket
+--quiet                        prevent mmctl to generate output for the commands
+--strict                       will only run commands if the mmctl version matches the server one
+--suppress-warnings            disables printing warning messages
+```
+
+## mmctl health
+
+**Description**
+
+Inspect workspace health findings.
+
+<Note>
+
+Requires a Mattermost Enterprise license and the `HealthDashboard` feature flag, which is disabled by default. If either requirement isn't met, these commands fail.
+
+</Note>
+
+> Child Commands  
+> - [mmctl health check](#mmctl-health-check) - Report current health findings
+
+**Options**
+
+``` sh
+-h, --help   help for health
+```
+
+### mmctl health check
+
+**Description**
+
+Report the findings of the server's latest health evaluation. By default only firing findings and findings that could not be evaluated are shown.
+
+**Format**
+
+``` sh
+mmctl health check [flags]
+```
+
+**Examples**
+
+``` sh
+mmctl health check
+mmctl health check --include-resolved --include-muted
+```
+
+**Options**
+
+``` sh
+-h, --help               help for check
+--include-muted          Include muted findings
+--include-resolved       Include resolved findings
 ```
 
 **Options inherited from parent commands**

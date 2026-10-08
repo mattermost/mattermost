@@ -15,6 +15,7 @@ import {
     ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
     ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
     ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
+    ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
 } from '@mattermost/types/access_control';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -71,6 +72,8 @@ const permissionMessages = defineMessages({
     channelWriteAccessDescription: {id: 'admin.permission_policies.permission.channel_write_access.description', defaultMessage: 'Allow users to post in the channel and change its content'},
     channelManagementAccessLabel: {id: 'admin.permission_policies.permission.channel_management_access.label', defaultMessage: 'Manage Channel'},
     channelManagementAccessDescription: {id: 'admin.permission_policies.permission.channel_management_access.description', defaultMessage: "Allow users to change the channel's settings, bookmarks, members and access rules"},
+    createBorLabel: {id: 'admin.permission_policies.permission.create_bor.label', defaultMessage: 'Create Burn-on-Read Message'},
+    createBorDescription: {id: 'admin.permission_policies.permission.create_bor.description', defaultMessage: 'Allow users to send burn-on-read messages'},
 });
 
 const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
@@ -98,6 +101,11 @@ const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
         value: ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
         label: permissionMessages.channelManagementAccessLabel,
         description: permissionMessages.channelManagementAccessDescription,
+    },
+    {
+        value: ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
+        label: permissionMessages.createBorLabel,
+        description: permissionMessages.createBorDescription,
     },
 ];
 
@@ -502,7 +510,7 @@ function PermissionPolicyDetails({
                                                 defaultMessage: 'Configure user attributes',
                                             }),
                                             onClick: () => {
-                                                getHistory().push('/admin_console/system_attributes/user_attributes');
+                                                getHistory().push('/admin_console/system_attributes/manage_attributes');
                                             },
                                         }}
                                     />
@@ -901,6 +909,7 @@ function PermissionPolicyDetails({
                                 [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS]: formatMessage(permissionMessages.channelReadAccessLabel),
                                 [ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS]: formatMessage(permissionMessages.channelWriteAccessLabel),
                                 [ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS]: formatMessage(permissionMessages.channelManagementAccessLabel),
+                                [ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ]: formatMessage(permissionMessages.createBorLabel),
                             }}
                             targetRole={selectedRole}
                             targetScope='system'

@@ -2312,3 +2312,46 @@ func TestChannelManagementAccessAction(t *testing.T) {
 		})
 	}
 }
+
+// TestCreateBurnOnReadPostAction covers how create_burn_on_read_post validates.
+// It is a permission action, so a v0.4 channel policy needs a channel role and a
+// unique rule name for it. A v0.3 system permission policy needs neither — its
+// role comes from the policy-level Roles field.
+func TestCreateBurnOnReadPostAction(t *testing.T) {
+	t.Run("is a permission action", func(t *testing.T) {
+		require.True(t, IsPermissionAction(AccessControlPolicyActionCreateBurnOnReadPost))
+		require.True(t, allowedActionsV0_3[AccessControlPolicyActionCreateBurnOnReadPost])
+	})
+
+	t.Run("valid on a v0.3 system permission policy", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Name:     "Burn-on-read for engineering",
+			Type:     AccessControlPolicyTypePermission,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Roles:    []string{SystemUserRoleId},
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionCreateBurnOnReadPost},
+				Expression: "user.attributes.dept == \"eng\"",
+			}},
+		}
+		require.Nil(t, policy.accessPolicyVersionV0_3())
+	})
+
+	t.Run("valid on a v0.4 channel policy with a channel role and rule name", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeChannel,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_4,
+			Rules: []AccessControlPolicyRule{{
+				Name:       "Burn-on-read for engineering",
+				Role:       ChannelUserRoleId,
+				Actions:    []string{AccessControlPolicyActionCreateBurnOnReadPost},
+				Expression: "user.attributes.dept == \"eng\"",
+			}},
+		}
+		require.Nil(t, policy.accessPolicyVersionV0_4())
+	})
+}

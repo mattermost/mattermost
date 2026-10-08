@@ -98,7 +98,7 @@
     &__infoTab {
         display: flex;
         flex-direction: column;
-        padding-bottom: 60px;
+        padding-bottom: 80px;
 
         // This container sets no flex gap, so the read-only banner needs its own space
         // before the first heading. The tabs that do set a gap space it already.
@@ -127,6 +127,10 @@
 
         .textbox-preview-area {
             box-shadow: none;
+        }
+
+        .ChannelSettingsModal__attributesSection {
+            margin-top: 24px;
         }
     }
 

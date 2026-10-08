@@ -5411,6 +5411,85 @@ components:
             which means EnableForAllChannels must be true. Direct and group message channels
             are rejected.
           example: [ "onymzj7qcjnz7dcnhtjp1noc3w" ]
+    HealthFinding:
+      type: object
+      description: The outcome of one health rule for one subject, as of the server's latest health evaluation.
+      properties:
+        fingerprint:
+          type: string
+          description: The finding's stable identity, derived from its code, subject and scope.
+        code:
+          type: string
+          description: The code of the rule that produced the finding.
+          example: SITE_URL_HTTP
+        subject:
+          type: string
+          description: What the finding is about, such as a configuration key. Never a configuration value.
+          example: ServiceSettings.SiteURL
+        scope:
+          type: string
+          description: The hostname of the node a node-scoped finding belongs to, or empty for a cluster-wide finding.
+        severity:
+          type: string
+          enum: [critical, warning, info]
+        state:
+          type: string
+          description: Whether the rule's condition holds (`firing`), no longer holds (`resolved`), or could not be evaluated (`unknown`).
+          enum: [firing, resolved, unknown]
+        area:
+          type: string
+          enum: [auth, database, search, jobs, cluster, notifications, compliance, platform, license, version]
+        surface:
+          type: string
+          description: Which consumers may see the finding. Always `product` in API responses.
+          enum: [product]
+        message_id:
+          type: string
+          description: The translation id of `message`.
+        details:
+          type: object
+          description: Finding-specific context used to render `message`.
+          additionalProperties:
+            type: string
+        title:
+          type: string
+          description: The rule's title in the request locale.
+        remediation:
+          type: string
+          description: How to resolve the finding, in the request locale.
+        message:
+          type: string
+          description: The finding-specific detail in the request locale. For an `unknown` finding, why the rule could not be evaluated.
+        first_seen_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the finding was first recorded.
+        last_seen_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the finding was last evaluated.
+        state_since:
+          type: integer
+          format: int64
+          description: The time in milliseconds the finding entered its current state.
+        muted_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the finding was muted. Omitted when the finding is not muted.
+        muted_by:
+          type: string
+          description: The id of the user who muted the finding. Omitted when the finding is not muted.
+    HealthFindingList:
+      type: object
+      properties:
+        evaluated_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the server last evaluated its health rules, or 0 if it has not evaluated yet or no health rule has fired yet.
+        findings:
+          type: array
+          items:
+            $ref: "#/components/schemas/HealthFinding"
     AccessControlPolicyActiveUpdateRequest:
       type: object
       properties:
