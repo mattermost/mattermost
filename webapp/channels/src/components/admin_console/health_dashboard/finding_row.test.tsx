@@ -235,7 +235,7 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
                 {state: {entities: {users: {profiles: {user1: {id: 'user1', username: 'alice', first_name: '', last_name: '', nickname: ''}}}}}},
             );
 
-            expect(screen.getByTestId('healthFindingMutedBy')).toHaveTextContent('Muted by alice 3 hours ago');
+            expect(screen.getByTestId('healthFindingMutedBy')).toHaveTextContent('Muted by @alice 3 hours ago');
             expect(screen.queryByRole('button', {name: 'Mute'})).not.toBeInTheDocument();
 
             await userEvent.click(screen.getByRole('button', {name: 'Unmute'}));
@@ -249,7 +249,21 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
                 {state: {entities: {users: {profiles: {user1: {id: 'user1', username: 'alice', first_name: '', last_name: '', nickname: ''}}}}}},
             );
 
-            expect(screen.getByTestId('healthFindingMutedBy')).toHaveTextContent('Muted by alice just now');
+            expect(screen.getByTestId('healthFindingMutedBy')).toHaveTextContent('Muted by @alice just now');
+        });
+
+        test('the muter is shown by full name, with their avatar, when names are displayed that way', () => {
+            renderRow(
+                makeFinding({muted_at: now - (3 * 60 * 60000), muted_by: 'user1'}),
+                {state: {entities: {
+                    general: {config: {TeammateNameDisplay: 'full_name'}},
+                    users: {profiles: {user1: {id: 'user1', username: 'alice', first_name: 'Alice', last_name: 'Liddell', nickname: ''}}},
+                }}},
+            );
+
+            const mutedBy = screen.getByTestId('healthFindingMutedBy');
+            expect(mutedBy).toHaveTextContent('Muted by Alice Liddell 3 hours ago');
+            expect(mutedBy.querySelector('img')).toHaveAttribute('src', expect.stringContaining('/users/user1/image'));
         });
 
         test('an unmuted finding shows no muted attribution', () => {
