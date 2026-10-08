@@ -29951,10 +29951,6 @@
     "defaultMessage": "Manually",
     "description": "Sorting option label meaning channels in a sidebar category are ordered manually by the user (drag and drop); adverb."
   },
-  "sidebar.team_menu.button.plusIcon": {
-    "defaultMessage": "Plus Icon",
-    "description": "Accessible label of the plus icon on the team sidebar button for joining or creating teams."
-  },
   "sidebar.team_menu.button.teamImage": {
     "defaultMessage": "{teamName} Team Image",
     "description": "Alt text for a team's icon image in the team sidebar; {teamName} is the team's display name."
