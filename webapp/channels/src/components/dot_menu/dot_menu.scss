@@ -19,13 +19,6 @@
     }
 }
 
-// Outranks IconButton's own display so the post hover-reveal rules in _post-menu.scss still apply.
-@media (min-width: 768px) {
-    .post-menu__item.dot-menu__button {
-        display: none;
-    }
-}
-
 .flag_post_menu_item {
     i.icon.icon-flag-outline:before {
         margin: 0;
