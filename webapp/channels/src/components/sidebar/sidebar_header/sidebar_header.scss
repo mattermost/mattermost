@@ -36,6 +36,11 @@
             justify-content: center;
         }
     }
+
+    // Keep specificity below Compass IconButton's hover/active/expanded selectors so those states still apply.
+    .browseOrAddChannelMenuTrigger {
+        background-color: rgba(var(--sidebar-text-rgb), 0.12);
+    }
 }
 
 #sidebarTeamMenu {

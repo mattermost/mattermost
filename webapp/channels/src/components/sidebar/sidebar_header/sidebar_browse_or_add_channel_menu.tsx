@@ -30,6 +30,7 @@ const BrowseOrAddChannelMenuTrigger = Menu.createMenuIconButtonTrigger({
     size: 'small',
     style: 'inverted',
     rounded: true,
+    className: 'browseOrAddChannelMenuTrigger',
 });
 
 type Props = {
