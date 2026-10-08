@@ -28,11 +28,12 @@
 
             .user-groups-modal__header-actions {
                 display: flex;
-                flex-shrink: 0;
+                flex: 0 0 auto;
+                width: fit-content;
                 align-items: center;
                 margin-left: auto;
+                margin-right: 48px;
                 gap: 8px;
-                padding-right: 48px;
             }
         }
 
