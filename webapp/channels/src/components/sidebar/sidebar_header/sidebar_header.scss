@@ -37,8 +37,13 @@
         }
     }
 
-    // Keep specificity below Compass IconButton's hover/active/expanded selectors so those states still apply.
+    // Rest fill matches Compass inverted hover (0.08). Hover override must beat
+    // Compass inverted :hover (hashed single classes); leave active/open to Compass.
     .browseOrAddChannelMenuTrigger {
+        background-color: rgba(var(--sidebar-text-rgb), 0.08);
+    }
+
+    button.browseOrAddChannelMenuTrigger:hover {
         background-color: rgba(var(--sidebar-text-rgb), 0.12);
     }
 }
