@@ -5,7 +5,6 @@ import classNames from 'classnames';
 import React, {forwardRef, memo} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
-import styled from 'styled-components';
 
 import {
     FormatBoldIcon,
@@ -30,49 +29,6 @@ import type {
     KeyboardShortcutDescriptor} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 
 import type {MarkdownMode} from 'utils/markdown/apply_markdown';
-
-/** @deprecated Use IconButton from '@mattermost/compass-ui/components/icon-button' directly. Kept for backward compatibility. */
-export const IconContainer = styled.button`
-    display: flex;
-    min-width: 32px;
-    height: 32px;
-    place-items: center;
-    place-content: center;
-    border: none;
-    background: transparent;
-    padding: 0 7px;
-    border-radius: 4px;
-    color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
-
-    &:hover {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
-        fill: currentColor;
-    }
-
-    &:active,
-    &.active,
-    &.active:hover {
-        background: rgba(var(--button-bg-rgb), 0.08);
-        color: var(--button-bg);
-        fill: currentColor;
-    }
-
-    &[disabled] {
-        pointer-events: none;
-        cursor: not-allowed;
-        color: rgba(var(--center-channel-color-rgb), 0.32);
-
-        &:hover,
-        &:active,
-        &.active,
-        &.active:hover {
-            background: inherit;
-            color: inherit;
-            fill: inherit;
-        }
-    }
-`;
 
 interface FormattingIconProps {
     id?: string;

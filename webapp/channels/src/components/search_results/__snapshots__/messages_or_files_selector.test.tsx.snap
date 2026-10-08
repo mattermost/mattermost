@@ -48,25 +48,39 @@ exports[`components/search_results/MessagesOrFilesSelector should match snapshot
         class="MenuWrapper "
       >
         <button
-          class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
+          class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 action-icon dots-icon"
           id="filesFilterButton"
           type="button"
         >
-          <i
-            class="icon-dot"
-          />
-          <svg
-            fill="currentColor"
-            height="18"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="18"
-            xmlns="http://www.w3.org/2000/svg"
+          <span
+            aria-hidden="true"
+            class="_icon-button__icon-slot_g2m23_33"
           >
-            <path
-              d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <span
+              class="_icon-button__unread-badge_g2m23_40"
             />
-          </svg>
+          </span>
         </button>
       </div>
     </div>
@@ -152,25 +166,39 @@ exports[`components/search_results/MessagesOrFilesSelector should match snapshot
         class="MenuWrapper "
       >
         <button
-          class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
+          class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 action-icon dots-icon"
           id="filesFilterButton"
           type="button"
         >
-          <i
-            class="icon-dot"
-          />
-          <svg
-            fill="currentColor"
-            height="18"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="18"
-            xmlns="http://www.w3.org/2000/svg"
+          <span
+            aria-hidden="true"
+            class="_icon-button__icon-slot_g2m23_33"
           >
-            <path
-              d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <span
+              class="_icon-button__unread-badge_g2m23_40"
             />
-          </svg>
+          </span>
         </button>
       </div>
     </div>

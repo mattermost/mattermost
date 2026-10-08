@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
@@ -17,6 +16,8 @@ import {
     AutoFixIcon,
     SpellcheckIcon,
 } from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {Button} from '@mattermost/shared/components/button';
 import type {Agent} from '@mattermost/types/agents';
 
@@ -26,7 +27,6 @@ import AgentDropdown from 'components/common/agents/agent_dropdown';
 import * as Menu from 'components/menu';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {IconContainer} from './formatting_bar/formatting_icon';
 import {RewriteAction} from './rewrite_action';
 import RewritePromptInput from './rewrite_prompt_input';
 
@@ -191,20 +191,23 @@ export default function RewriteMenu({
                 id: 'rewrite-button',
                 as: 'div',
                 children: (
-                    <IconContainer
+                    <IconButton
                         id='rewrite'
-                        className={classNames('control', {active: isMenuOpen})}
-                        type='button'
+                        className='control'
+                        size='small'
+                        active={isMenuOpen}
                         aria-label={formatMessage({
                             id: 'texteditor.rewrite',
                             defaultMessage: 'Rewrite',
                         })}
-                    >
-                        <CreationOutlineIcon
-                            size={18}
-                            color='currentColor'
-                        />
-                    </IconContainer>
+                        icon={
+                            <Icon
+                                glyph={
+                                    <CreationOutlineIcon color='currentColor'/>
+                                }
+                            />
+                        }
+                    />
                 ),
             }}
             menuButtonTooltip={{

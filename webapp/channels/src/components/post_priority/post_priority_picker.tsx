@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useCallback, useState, memo, useMemo, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import type {PostPriorityMetadata} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
 
 import {getPersistentNotificationIntervalMinutes, isPersistentNotificationsEnabled, isPostAcknowledgementsEnabled} from 'mattermost-redux/selectors/entities/posts';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
-import {IconContainer} from 'components/advanced_text_editor/formatting_bar/formatting_icon';
 import CompassDesignProvider from 'components/compass_design_provider';
 import * as Menu from 'components/menu';
 
@@ -240,18 +240,19 @@ function PostPriorityPicker({
                 id: 'messagePriority',
                 as: 'div',
                 children: (
-                    <IconContainer
+                    <IconButton
                         id='messagePriority'
-                        className={classNames({control: true, active: pickerOpen})}
+                        className='control'
+                        size='small'
+                        active={pickerOpen}
                         disabled={disabled}
-                        type='button'
                         aria-label={messagePriority}
-                    >
-                        <AlertCircleOutlineIcon
-                            size={18}
-                            color='currentColor'
-                        />
-                    </IconContainer>),
+                        icon={
+                            <Icon
+                                glyph={<AlertCircleOutlineIcon color='currentColor'/>}
+                            />
+                        }
+                    />),
             }}
             menu={{
                 id: 'post.priority.dropdown',

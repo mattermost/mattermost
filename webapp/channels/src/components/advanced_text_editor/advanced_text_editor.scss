@@ -251,3 +251,8 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+.ToggleFormattingBarButton {
+    width: auto;
+    padding: 0 var(--spacing-xs);
+}
