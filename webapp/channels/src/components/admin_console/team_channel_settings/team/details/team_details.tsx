@@ -893,8 +893,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             />
         );
 
-        // An unchanged rule was already accepted by the server; don't let it block
-        // unrelated saves on this page.
+        // Already accepted by the server; don't let it block unrelated saves.
         const expression = rawExpression.trim();
         if (!expression || expression === this.state.teamRulesOriginalExpression.trim()) {
             return undefined;
@@ -933,10 +932,9 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             return;
         }
 
-        // Reject a bad expression before anything is written: handleSubmit links parent
-        // policies before saving the team policy, so a server-side rejection there would
-        // leave a half-applied save. The editor validates on a 1s debounce, hence the
-        // authoritative check here too.
+        // Must run before anything is written: handleSubmit links parent policies before
+        // saving the team policy, so a rejection there would half-apply the save. The
+        // editor's own check is debounced and can lag the latest edit.
         if (this.props.abacSupported && this.state.policyEnforced) {
             this.setState({saving: true});
             const checkedExpression = this.state.teamRulesExpression;

@@ -42,8 +42,7 @@ function mapStateToProps(state: GlobalState, props: OwnProps) {
     const license = getLicense(state);
     const isLicensedForLDAPGroups = license.LDAPGroups === 'true';
 
-    // Team ABAC requires Enterprise Advanced, the main ABAC toggle and the
-    // team-membership kill switch, mirroring the server enforcement gate.
+    // Mirrors the server's team ABAC gate.
     const abacSupported = license?.IsLicensed === 'true' &&
         isMinimumEnterpriseAdvancedLicense(license) &&
         isTeamMembershipAccessControlEnabled(state);

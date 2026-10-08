@@ -284,8 +284,7 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
                             userAttributes={celAttributes}
                             actions={celActions}
 
-                            // No teamId (it would scope "Test access rule" to current members) and
-                            // no resourceAttributes (team policies reject resource.attributes.*).
+                            // No teamId (see TableEditor) or resourceAttributes: team rules can't use them.
                         />
                     ) : (
                         <TableEditor
@@ -295,9 +294,8 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
                             userAttributes={membershipAttributes}
                             onParseError={handleParseError}
 
-                            // No teamId: passing it scopes "Test access rule" to current team
-                            // members; the test must preview workspace-wide matches like the
-                            // policy and channel editors.
+                            // No teamId: it would scope "Test access rule" to current members
+                            // instead of workspace-wide matches.
                             actions={{
                                 getVisualAST: actions.getVisualAST,
                             }}

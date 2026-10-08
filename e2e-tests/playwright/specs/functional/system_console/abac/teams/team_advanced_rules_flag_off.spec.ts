@@ -6,8 +6,7 @@
  *            TeamMembershipAccessControl feature flag is off, even with ABAC enabled.
  * @reference MM-71104
  *
- * Kept apart from team_advanced_rules.spec.ts: it needs a different flag value, which
- * restarts the server.
+ * Separate file: a different flag value restarts the server.
  */
 
 import {expect, test} from '@mattermost/playwright-lib';

@@ -193,19 +193,12 @@ export async function loginRaw(baseRoute: string, loginId: string, password: str
     return res.headers.get('Token') ?? '';
 }
 
-/**
- * Flip the Team-specific membership rules editor between Simple and Advanced.
- * The toggle is disabled when no user attribute is usable.
- */
 export async function switchTeamRulesMode(page: Page): Promise<void> {
     const toggle = page.getByTestId('team-rules-editor-mode-toggle');
     await expect(toggle).toBeEnabled({timeout: 60_000});
     await toggle.click();
 }
 
-/**
- * Replace the Advanced (CEL) team rule with the given expression.
- */
 export async function typeTeamRulesCel(page: Page, expression: string): Promise<void> {
     const panel = page.locator('#team_level_access_rules');
     await panel.locator('.monaco-editor').waitFor({state: 'visible', timeout: 10_000});
@@ -214,9 +207,6 @@ export async function typeTeamRulesCel(page: Page, expression: string): Promise<
     await page.keyboard.type(expression, {delay: 10});
 }
 
-/**
- * Wait for the Advanced editor's debounced validation to settle on the given state.
- */
 export async function waitForTeamRulesValidation(page: Page, state: 'validated' | 'error'): Promise<void> {
     await expect(page.locator('#team_level_access_rules .cel-editor__status-bar')).toHaveAttribute(
         'data-validation-state',

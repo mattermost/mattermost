@@ -1642,8 +1642,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             expect(checkExpressionSpy).not.toHaveBeenCalled();
         });
 
-        // The team rule itself can't reference resource attributes (the pre-check blocks it),
-        // so these come from a linked parent.
+        // The pre-check blocks resource attributes in the team rule, so these come from a parent.
         test.each([
             ['app.pap.save_policy.team_resource_attributes', 'A linked membership policy references resource attributes, which team membership rules can\'t use.'],
             ['app.pap.save_policy.resource_attributes_disabled', 'A linked membership policy references resource attributes, which team membership rules can\'t use.'],

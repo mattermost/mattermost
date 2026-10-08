@@ -267,9 +267,8 @@ function TeamMembershipTab({
         }));
     }, [formatMessage, expression, originalExpression]);
 
-    // A rule written in the System Console's Advanced editor can't be shown as a
-    // table: the table renders empty, and adding a row would silently replace the
-    // rule. Lock the tab instead of letting a team admin overwrite what they can't see.
+    // An Advanced rule renders as an empty table, and adding a row would silently
+    // replace it; lock the tab rather than let a team admin overwrite what they can't see.
     const rulesLocked = savedRuleUnparsable || (originalExpression.trim() !== '' && !isSimpleExpression(originalExpression));
 
     const isEmptyRulesState = useMemo(() => {

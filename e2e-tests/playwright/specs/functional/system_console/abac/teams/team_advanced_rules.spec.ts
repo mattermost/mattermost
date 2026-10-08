@@ -50,12 +50,10 @@ import {
     waitForTeamRulesValidation,
 } from './helpers';
 
-// Run-unique admin-managed text fields. Location/Department are shared with other
-// specs, which create them with other types.
+// Run-unique text fields: other specs create Location/Department with other types.
 const DEPT = `Dept${getRandomId()}`;
 const LOC = `Loc${getRandomId()}`;
 
-// Built after beforeAll creates the fields.
 const orRule = () => `user.attributes.${LOC} == "US" || user.attributes.${LOC} == "EU"`;
 const simpleRule = () => `user.attributes.${DEPT} == "Sales"`;
 const engineeringRule = () => `user.attributes.${DEPT} == "Engineering"`;
@@ -125,10 +123,7 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         return user;
     }
 
-    /**
-     * Creates a team with the given fixture users as its only members, plus the
-     * four fixture users, and waits for the attribute view to see them.
-     */
+    // Waits for the attribute view to catch up; it lags behind attribute writes.
     async function setupFixture(
         pw: PlaywrightExtended,
         options: {members?: FixtureLabel[]; publicTeam?: boolean} = {},
@@ -174,10 +169,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         return {adminClient, adminUser, team, users};
     }
 
-    /**
-     * Opens the team's System Console page with membership policies enabled and
-     * returns the rules panel.
-     */
     async function openTeamRules(page: Page, team: Team) {
         const policyFetchDone = page
             .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {timeout: 20_000})
@@ -520,8 +511,8 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         test.setTimeout(180_000);
         const {adminClient, adminUser, team, users} = await setupFixture(pw, {members: []});
 
-        // The custom rule first: createTeamMembershipPolicy hard-codes empty imports,
-        // and assigning afterwards inherits into the existing child, keeping the rule.
+        // Custom rule first: the helper hard-codes empty imports, and assigning the
+        // parent afterwards keeps the existing rule.
         await createTeamMembershipPolicy(adminClient, team.id, orRule(), false);
         const parentName = `Eng Parent ${pw.random.id()}`;
         const parent = await createTeamMembershipParentPolicy(adminClient, parentName, engineeringRule());
@@ -546,8 +537,8 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
             .filter({hasText: parentName});
         await expect(parentRow).toBeVisible({timeout: 15_000});
 
-        // The save re-emits the rule from its AST, dropping redundant parentheses,
-        // so the edit needs grouping that precedence requires to round-trip verbatim.
+        // Saves re-emit the rule from its AST, dropping redundant parentheses; only
+        // grouping that precedence needs round-trips verbatim.
         const editedRule = `(${orRule()}) && ${engineeringRule()}`;
         await typeTeamRulesCel(page, editedRule);
         await waitForTeamRulesValidation(page, 'validated');
@@ -675,8 +666,7 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         await expect(page.getByTestId('team-rules-editor-mode-toggle')).toHaveCount(0);
         await expect(page.locator('.monaco-editor')).toHaveCount(0);
 
-        // The Simple-only tab can't show the rule, so it's read-only rather than an
-        // empty table a team admin could save over.
+        // Read-only, not an empty table a team admin could save over.
         const locked = teamSettings.container.getByTestId('team-membership-locked-rules');
         await expect(locked).toBeVisible();
         await expect(locked.getByRole('status')).toContainText('can only be edited in the System Console');
@@ -732,8 +722,8 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         await typeTeamRulesCel(page, orRule());
         await waitForTeamRulesValidation(page, 'validated');
 
-        // Monaco's suggest widget points aria-activedescendant at a row it hasn't
-        // rendered (an upstream Monaco issue), and it stays in the DOM once shown.
+        // Upstream Monaco bug: the suggest widget's aria-activedescendant points at an
+        // unrendered row, and the widget stays in the DOM once shown.
         const results = await axe
             .builder(page, {disableColorContrast: true})
             .include('#team_level_access_rules')
