@@ -4,6 +4,7 @@
 import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+import {Link} from 'react-router-dom';
 
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import {getMembershipRule, buildRulesWithMembership, getAutoAddFromRules, hasEffectiveRules, autoAddModeForToggle} from '@mattermost/types/access_control';
@@ -20,6 +21,8 @@ import {getTeamStats} from 'mattermost-redux/actions/teams';
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
+import {closeModal} from 'actions/views/modals';
+
 import {isSimpleExpression} from 'components/admin_console/access_control/editors/shared';
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import ConfirmModal from 'components/confirm_modal';
@@ -28,6 +31,7 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
+import {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -676,10 +680,27 @@ function TeamMembershipTab({
                     >
                         <i className='icon icon-information-outline'/>
                         <span>
-                            <FormattedMessage
-                                id='team_settings.membership_tab.advanced_rules_locked'
-                                defaultMessage='These rules use advanced logic and can only be edited in the System Console. Contact a System Admin to change them.'
-                            />
+                            {isSystemAdmin ? (
+                                <FormattedMessage
+                                    id='team_settings.membership_tab.advanced_rules_locked_admin'
+                                    defaultMessage='These rules use advanced logic and can only be edited in the <link>System Console</link>.'
+                                    values={{
+                                        link: (chunks: React.ReactNode) => (
+                                            <Link
+                                                to={`/admin_console/user_management/teams/${team.id}`}
+                                                onClick={() => dispatch(closeModal(ModalIdentifiers.TEAM_SETTINGS))}
+                                            >
+                                                {chunks}
+                                            </Link>
+                                        ),
+                                    }}
+                                />
+                            ) : (
+                                <FormattedMessage
+                                    id='team_settings.membership_tab.advanced_rules_locked'
+                                    defaultMessage='These rules use advanced logic and can only be edited in the System Console. Contact a System Admin to change them.'
+                                />
+                            )}
                         </span>
                     </div>
                     <code className='TeamMembershipTab__lockedExpression'>{originalExpression}</code>

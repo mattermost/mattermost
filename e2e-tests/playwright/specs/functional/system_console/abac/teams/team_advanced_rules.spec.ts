@@ -171,7 +171,9 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
 
     async function openTeamRules(page: Page, team: Team) {
         const policyFetchDone = page
-            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {timeout: 20_000})
+            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {
+                timeout: 20_000,
+            })
             .catch(() => {});
         await openTeamConfig(page, team.display_name);
         await policyFetchDone;
@@ -248,9 +250,7 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         expect(job.type).toBe('access_control_team_sync');
         expect(job.data?.policy_id).toBe(team.id);
 
-        await expect
-            .poll(() => getMembershipExpression(adminClient, team.id), {timeout: 15_000})
-            .toBe(orRule());
+        await expect.poll(() => getMembershipExpression(adminClient, team.id), {timeout: 15_000}).toBe(orRule());
     });
 
     test('MM-71104-T3 a saved complex rule opens in Advanced with Simple locked', async ({pw}) => {
@@ -584,7 +584,9 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         await page.getByTestId('saveSetting').click();
         await expect(page.locator('.ConfirmModal').filter({hasText: 'Apply membership policy'})).toHaveCount(0);
 
-        await expect.poll(async () => (await adminClient.getTeam(team.id)).policy_enforced, {timeout: 15_000}).toBe(false);
+        await expect
+            .poll(async () => (await adminClient.getTeam(team.id)).policy_enforced, {timeout: 15_000})
+            .toBe(false);
     });
 
     test('MM-71104-T14b clearing the Advanced rule with a parent keeps only the parent', async ({pw}) => {

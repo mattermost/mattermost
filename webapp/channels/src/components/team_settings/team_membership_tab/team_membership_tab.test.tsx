@@ -738,6 +738,37 @@ describe('components/team_settings/TeamMembershipTab', () => {
             expect(screen.getByRole('checkbox', {name: /auto-add members/i})).toBeDisabled();
         });
 
+        it('links a system admin to the team page in the System Console', async () => {
+            mockLoadedRule('user.attributes.department == "Engineering" || user.attributes.department == "Sales"');
+
+            renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
+
+            const link = await screen.findByRole('link', {name: 'System Console'});
+            expect(link).toHaveAttribute('href', `/admin_console/user_management/teams/${baseTeam.id}`);
+            expect(screen.getByRole('status')).not.toHaveTextContent('Contact a System Admin');
+        });
+
+        it('tells a team admin to contact a system admin', async () => {
+            mockLoadedRule('user.attributes.department == "Engineering" || user.attributes.department == "Sales"');
+            const teamAdminState = {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    users: {
+                        currentUserId: 'user_id',
+                        profiles: {
+                            user_id: TestHelper.getUserMock({id: 'user_id', roles: 'system_user'}),
+                        },
+                    },
+                },
+            };
+
+            renderWithContext(<TeamMembershipTab {...baseProps}/>, teamAdminState);
+
+            expect(await screen.findByRole('status')).toHaveTextContent('Contact a System Admin to change them.');
+            expect(screen.queryByRole('link', {name: 'System Console'})).not.toBeInTheDocument();
+        });
+
         it('locks the tab when the table fails to parse the saved rule', async () => {
             const rule = 'user.attributes.department in ["Engineering"]';
             mockLoadedRule(rule);
