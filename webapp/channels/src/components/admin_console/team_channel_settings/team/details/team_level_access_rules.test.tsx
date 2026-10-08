@@ -7,6 +7,8 @@ import type {FieldVisibility, FieldValueType} from '@mattermost/types/properties
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {Team} from '@mattermost/types/teams';
 
+import {Client4} from 'mattermost-redux/client';
+
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
@@ -62,6 +64,10 @@ jest.mock('components/admin_console/access_control/editors/cel_editor/editor', (
                 <button
                     data-testid='cel-invalid'
                     onClick={() => props.onValidate(false)}
+                />
+                <button
+                    data-testid='cel-check'
+                    onClick={() => props.actions?.checkExpression?.('true')}
                 />
             </div>
         );
@@ -704,10 +710,56 @@ describe('TeamLevelAccessRules', () => {
                 <TeamLevelAccessRules
                     {...defaultProps}
                     userAttributes={[]}
+                    attributesLoaded={false}
                 />,
             );
 
             expect(getToggle()).toBeEnabled();
+        });
+
+        test('disables the toggle once loaded with no attributes', () => {
+            renderWithContext(
+                <TeamLevelAccessRules
+                    {...defaultProps}
+                    userAttributes={[]}
+                    attributesLoaded={true}
+                />,
+            );
+
+            expect(getToggle()).toBeDisabled();
+        });
+
+        test('validates advanced expressions in the team context', async () => {
+            const checkSpy = jest.spyOn(Client4, 'checkAccessControlExpression').mockResolvedValue([]);
+            renderWithContext(
+                <TeamLevelAccessRules
+                    {...defaultProps}
+                    initialExpression={complexExpression}
+                />,
+            );
+
+            await userEvent.click(screen.getByTestId('cel-check'));
+
+            expect(checkSpy).toHaveBeenCalledWith('true', undefined, mockTeam.id);
+            checkSpy.mockRestore();
+        });
+
+        test('a table value containing && does not flip to advanced when echoed back', async () => {
+            const typed = 'user.attributes.department == "R&&D"';
+            const {rerender} = renderWithContext(<TeamLevelAccessRules {...defaultProps}/>);
+
+            await userEvent.type(screen.getByTestId('expression-input'), typed);
+
+            // The parent echoes the edit back as initialExpression.
+            rerender(
+                <TeamLevelAccessRules
+                    {...defaultProps}
+                    initialExpression={typed}
+                />,
+            );
+
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            expect(screen.queryByTestId('cel-editor')).not.toBeInTheDocument();
         });
 
         test('shows the error inline without switching modes when no attribute can be added', async () => {

@@ -10,6 +10,7 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {Team} from '@mattermost/types/teams';
 
+import {Client4} from 'mattermost-redux/client';
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
 
 import CELEditor from 'components/admin_console/access_control/editors/cel_editor/editor';
@@ -40,6 +41,9 @@ interface TeamLevelAccessRulesProps {
     // Server rules carry masked values the admin can't see; CEL mode is then read-only.
     hasMaskedRows?: boolean;
     onValidityChange?: (isValid: boolean) => void;
+
+    // False until the attribute fetch settles; an empty list only means "none" after that.
+    attributesLoaded?: boolean;
 }
 
 const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
@@ -53,6 +57,7 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
     hasParentPolicies = false,
     hasMaskedRows,
     onValidityChange,
+    attributesLoaded = true,
 }) => {
     const {formatMessage} = useIntl();
     const accessControlSettings = useSelector((state: GlobalState) => getAccessControlSettings(state));
@@ -71,9 +76,17 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
     const enableUserManaged = accessControlSettings?.EnableUserManagedAttributes || false;
     const membershipAttributes = useMemo(() => excludeSessionAttributes(userAttributes), [userAttributes]);
     const celAttributes = useMemo(() => toCELEditorAttributes(membershipAttributes, enableUserManaged), [membershipAttributes, enableUserManaged]);
-    const noUsableAttributes = membershipAttributes.length > 0 && !hasUsableAttributes(membershipAttributes, enableUserManaged);
+    const noUsableAttributes = attributesLoaded && !hasUsableAttributes(membershipAttributes, enableUserManaged);
 
     const actions = useChannelAccessControlActions(undefined, team.id);
+
+    // Validate in the team's context so a team admin without manage_system isn't refused.
+    const celActions = useMemo(() => ({
+        checkExpression: (expr: string) => Client4.checkAccessControlExpression(expr, undefined, team.id),
+    }), [team.id]);
+
+    // The last value this editor emitted; the parent echoes it back as initialExpression.
+    const lastEmittedExpression = useRef<string | null>(null);
 
     const originalValuesInitialized = useRef(false);
 
@@ -88,9 +101,12 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
         }
     }, [initialExpression, initialAutoSync]);
 
-    // A loaded rule the table can't represent opens in Advanced. Only ever upgrade:
-    // initialExpression echoes every edit back from the parent.
+    // A loaded rule the table can't represent opens in Advanced. Echoes of our own edits
+    // are skipped, so a table value containing && or || can't flip the mode mid-edit.
     useEffect(() => {
+        if (initialExpression === lastEmittedExpression.current) {
+            return;
+        }
         if (initialExpression && !isSimpleExpression(initialExpression)) {
             setEditorMode('cel');
         }
@@ -113,6 +129,7 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
     }, [hasChanges, expression, effectiveAutoSync, onRulesChange]);
 
     const handleExpressionChange = useCallback((newExpression: string) => {
+        lastEmittedExpression.current = newExpression;
         setExpression(newExpression);
         setFormError('');
     }, []);
@@ -265,6 +282,7 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
                             disabled={isDisabled || noUsableAttributes}
                             hasMaskedRows={hasMaskedRows}
                             userAttributes={celAttributes}
+                            actions={celActions}
 
                             // No teamId (it would scope "Test access rule" to current members) and
                             // no resourceAttributes (team policies reject resource.attributes.*).
@@ -292,7 +310,6 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
                         <div
                             className='team-access-rules__error'
                             role='alert'
-                            aria-live='polite'
                         >
                             <i className='icon icon-alert-outline'/>
                             <span>{guardError || formError}</span>

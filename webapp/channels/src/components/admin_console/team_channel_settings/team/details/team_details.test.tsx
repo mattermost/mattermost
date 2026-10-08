@@ -1595,7 +1595,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             await userEvent.click(screen.getByText('Save'));
 
             expect(await screen.findByText(invalidRulesMessage)).toBeInTheDocument();
-            expect(checkExpressionSpy).toHaveBeenCalledWith(celRule);
+            expect(checkExpressionSpy).toHaveBeenCalledWith(celRule, undefined, '123');
             expectNoWrites(actions);
         });
 
@@ -1623,7 +1623,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             await waitFor(() => {
                 expect(actions.createAccessControlTeamSyncJob).toHaveBeenCalledWith({policy_id: '123'});
             });
-            expect(checkExpressionSpy).toHaveBeenCalledWith(celRule);
+            expect(checkExpressionSpy).toHaveBeenCalledWith(celRule, undefined, '123');
             expect(actions.searchUsersForExpression).toHaveBeenCalledWith(celRule, '', '', 1000);
             expect(actions.saveTeamAccessPolicy).toHaveBeenCalledWith(expect.objectContaining({
                 id: '123',
@@ -1642,9 +1642,11 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             expect(checkExpressionSpy).not.toHaveBeenCalled();
         });
 
+        // The team rule itself can't reference resource attributes (the pre-check blocks it),
+        // so these come from a linked parent.
         test.each([
-            ['app.pap.save_policy.team_resource_attributes', 'Team membership rules can\'t reference resource attributes.'],
-            ['app.pap.save_policy.resource_attributes_disabled', 'Team membership rules can\'t reference resource attributes.'],
+            ['app.pap.save_policy.team_resource_attributes', 'A linked membership policy references resource attributes, which team membership rules can\'t use.'],
+            ['app.pap.save_policy.resource_attributes_disabled', 'A linked membership policy references resource attributes, which team membership rules can\'t use.'],
             ['model.access_policy.is_valid.session_attribute_on_membership.app_error', 'Team membership rules can\'t reference session attributes.'],
             ['app.pap.save_policy.self_exclusion', 'You do not satisfy one or more conditions in this policy. Contact a System Admin for assistance.'],
             ['some.unknown.error', 'raw'],
@@ -1683,6 +1685,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
 
             await userEvent.click(screen.getByTestId('remove-member'));
             await userEvent.click(screen.getByTestId('rules-invalid'));
+            await userEvent.click(screen.getByTestId('set-cel-rule'));
             await userEvent.click(screen.getByText('Save'));
 
             expect(await screen.findByText(invalidRulesMessage)).toBeInTheDocument();
@@ -1700,6 +1703,36 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
 
             expect(await screen.findByText(invalidRulesMessage)).toBeInTheDocument();
             expect(checkExpressionSpy).not.toHaveBeenCalled();
+            expectNoWrites(actions);
+        });
+
+        test('an unchanged rule does not block the save even if the editor reports it invalid', async () => {
+            renderEnforced([{actions: ['membership'], expression: 'user.attributes.Department == "Engineering"'}]);
+            await screen.findByTestId('team-level-access-rules');
+
+            await userEvent.click(screen.getByTestId('rules-invalid'));
+            await userEvent.click(screen.getByTestId('enable-autoadd-same-expr-button'));
+            await userEvent.click(screen.getByText('Save'));
+
+            expect(await screen.findByText('Apply membership policy')).toBeInTheDocument();
+            expect(screen.queryByText(invalidRulesMessage)).not.toBeInTheDocument();
+        });
+
+        test('re-validates an expression edited while the check was in flight', async () => {
+            let resolveCheck: (errors: CELExpressionError[]) => void = () => {};
+            checkExpressionSpy.mockImplementation(() => new Promise<CELExpressionError[]>((resolve) => {
+                resolveCheck = resolve;
+            }));
+            const actions = renderEnforced();
+            await screen.findByTestId('team-level-access-rules');
+
+            await userEvent.click(screen.getByTestId('set-cel-rule'));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('set-session-rule'));
+            resolveCheck([]);
+
+            expect(await screen.findByText(invalidRulesMessage)).toBeInTheDocument();
+            expect(checkExpressionSpy).toHaveBeenCalledTimes(1);
             expectNoWrites(actions);
         });
 

@@ -16171,6 +16171,10 @@
     "defaultMessage": "Fix the errors in the team-specific membership rules before saving.",
     "description": "Error shown in the save bar of the System Console per-team page when Save is clicked while the Team-specific membership rules expression is invalid or can't be saved; nothing is saved."
   },
+  "admin.team_settings.team_detail.rules.error.parent_resource_attributes": {
+    "defaultMessage": "A linked membership policy references resource attributes, which team membership rules can't use.",
+    "description": "Save bar error on the System Console per-team page when the server rejects the save because a parent membership policy linked to the team references resource.attributes.*; team membership rules can't use those."
+  },
   "admin.team_settings.team_detail.rules.error.resource_attributes": {
     "defaultMessage": "Team membership rules can't reference resource attributes.",
     "description": "Error on the System Console per-team page, shown inline under the Team-specific membership rules editor and in the save bar when the server rejects the save, because the rule references resource.attributes.*, which team membership rules can't use."

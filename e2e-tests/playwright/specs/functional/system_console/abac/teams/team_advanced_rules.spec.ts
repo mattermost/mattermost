@@ -204,7 +204,7 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     async function clearMonaco(page: Page) {
         const panel = page.locator('#team_level_access_rules');
         await panel.locator('.monaco-editor .view-lines').click({force: true});
-        await page.keyboard.press(process.platform === 'darwin' ? 'Meta+a' : 'Control+a');
+        await page.keyboard.press('ControlOrMeta+a');
         await page.keyboard.press('Delete');
     }
 

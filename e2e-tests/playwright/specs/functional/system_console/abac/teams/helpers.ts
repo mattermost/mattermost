@@ -195,7 +195,7 @@ export async function loginRaw(baseRoute: string, loginId: string, password: str
 
 /**
  * Flip the Team-specific membership rules editor between Simple and Advanced.
- * The toggle stays disabled until the user attributes load.
+ * The toggle is disabled when no user attribute is usable.
  */
 export async function switchTeamRulesMode(page: Page): Promise<void> {
     const toggle = page.getByTestId('team-rules-editor-mode-toggle');
@@ -210,7 +210,7 @@ export async function typeTeamRulesCel(page: Page, expression: string): Promise<
     const panel = page.locator('#team_level_access_rules');
     await panel.locator('.monaco-editor').waitFor({state: 'visible', timeout: 10_000});
     await panel.locator('.monaco-editor .view-lines').click({force: true});
-    await page.keyboard.press(process.platform === 'darwin' ? 'Meta+a' : 'Control+a');
+    await page.keyboard.press('ControlOrMeta+a');
     await page.keyboard.type(expression, {delay: 10});
 }
 

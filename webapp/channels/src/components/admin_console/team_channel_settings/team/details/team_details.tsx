@@ -854,10 +854,19 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             );
         case 'app.pap.save_policy.team_resource_attributes':
         case 'app.pap.save_policy.resource_attributes_disabled': // checked before the team rule when the resource-attributes flag is off
+            // The server raises these for the team's own rule and for an imported parent.
+            if (teamRuleGuardErrorId(this.state.teamRulesExpression) === 'resource_attributes') {
+                return (
+                    <FormattedMessage
+                        id='admin.team_settings.team_detail.rules.error.resource_attributes'
+                        defaultMessage={'Team membership rules can\'t reference resource attributes.'}
+                    />
+                );
+            }
             return (
                 <FormattedMessage
-                    id='admin.team_settings.team_detail.rules.error.resource_attributes'
-                    defaultMessage={'Team membership rules can\'t reference resource attributes.'}
+                    id='admin.team_settings.team_detail.rules.error.parent_resource_attributes'
+                    defaultMessage={'A linked membership policy references resource attributes, which team membership rules can\'t use.'}
                 />
             );
         case 'model.access_policy.is_valid.session_attribute_on_membership.app_error':
@@ -872,7 +881,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         }
     };
 
-    private validateTeamRulesExpression = async (): Promise<JSX.Element | undefined> => {
+    private validateTeamRulesExpression = async (rawExpression: string): Promise<JSX.Element | undefined> => {
         const invalid = (
             <FormError
                 error={
@@ -883,12 +892,15 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                 }
             />
         );
-        if (!this.state.teamRulesValid) {
-            return invalid;
-        }
-        const expression = this.state.teamRulesExpression.trim();
+
+        // An unchanged rule was already accepted by the server; don't let it block
+        // unrelated saves on this page.
+        const expression = rawExpression.trim();
         if (!expression || expression === this.state.teamRulesOriginalExpression.trim()) {
             return undefined;
+        }
+        if (!this.state.teamRulesValid) {
+            return invalid;
         }
 
         // /cel/check accepts these, but the team policy save rejects them.
@@ -896,7 +908,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             return invalid;
         }
         try {
-            const errors = await Client4.checkAccessControlExpression(expression);
+            const errors = await Client4.checkAccessControlExpression(expression, undefined, this.props.teamID);
             return errors.length ? invalid : undefined;
         } catch {
             return invalid;
@@ -927,10 +939,17 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         // authoritative check here too.
         if (this.props.abacSupported && this.state.policyEnforced) {
             this.setState({saving: true});
-            const invalidRulesError = await this.validateTeamRulesExpression();
+            const checkedExpression = this.state.teamRulesExpression;
+            const invalidRulesError = await this.validateTeamRulesExpression(checkedExpression);
             if (invalidRulesError) {
                 this.setState({serverError: invalidRulesError, saveNeeded: true, saving: false});
                 this.props.actions.setNavigationBlocked(true);
+                return;
+            }
+
+            // Edited while the check was in flight: validate what will actually be saved.
+            if (this.state.teamRulesExpression !== checkedExpression) {
+                this.setState({saving: false}, this.onSave);
                 return;
             }
             this.setState({saving: false, serverError: undefined});
@@ -1127,6 +1146,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                             hasParentPolicies={this.state.accessControlPolicies.length > 0}
                             hasMaskedRows={this.teamRulesHaveMaskedValues()}
                             onValidityChange={this.handleTeamRulesValidityChange}
+                            attributesLoaded={this.state.attributesLoaded}
                             syncFooter={
                                 <TeamMembershipSyncFooter
                                     teamId={this.props.teamID}
