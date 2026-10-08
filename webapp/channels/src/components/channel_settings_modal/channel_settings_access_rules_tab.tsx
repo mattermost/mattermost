@@ -70,8 +70,18 @@ function ChannelSettingsAccessRulesTab({
     const [expression, setExpression] = useState('');
     const [originalExpression, setOriginalExpression] = useState('');
     const [existingRules, setExistingRules] = useState<AccessControlPolicyRule[]>([]);
+
+    // Imports (system policy ids) read off the loaded policy. This is the
+    // authoritative source for the save path; the resolved system-policy
+    // objects from useChannelSystemPolicies are empty while loading and drop
+    // any parent that failed to fetch.
+    const [existingImports, setExistingImports] = useState<string[]>([]);
     const [userAttributes, setUserAttributes] = useState<UserPropertyField[]>([]);
     const [attributesLoaded, setAttributesLoaded] = useState(false);
+
+    // Set when the initial policy load fails for a non-404 reason. Blocks the
+    // editor so the author can't save over a policy that merely failed to load.
+    const [loadError, setLoadError] = useState('');
 
     // Auto-sync members toggle state
     const [autoSyncMembers, setAutoSyncMembers] = useState(false);
@@ -126,30 +136,56 @@ function ChannelSettingsAccessRulesTab({
         loadAttributes();
     }, [actions]);
 
-    // Load existing channel access rules
+    // Load existing channel access rules. getChannelPolicy never throws;
+    // failures arrive on result.error with a status_code. A 404 seeds empty
+    // defaults (first-time create); any other failure sets loadError instead of
+    // falling through to defaults, so a save can't overwrite an unloaded policy.
     useEffect(() => {
-        const loadChannelPolicy = async () => {
-            try {
-                const result = await actions.getChannelPolicy(channel.id);
-                if (result.data) {
-                    const existingExpression = getMembershipRule(result.data.rules)?.expression || '';
-                    const existingAutoSync = getAutoAddFromRules(result.data.rules);
+        let cancelled = false;
 
-                    setExpression(existingExpression);
-                    setOriginalExpression(existingExpression);
-                    setExistingRules(result.data.rules || []);
-                    setAutoSyncMembers(existingAutoSync);
-                    setOriginalAutoSyncMembers(existingAutoSync);
-                }
-            } catch {
-                // If no policy exists (404), that's fine - use defaults
+        const loadChannelPolicy = async () => {
+            const result = await actions.getChannelPolicy(channel.id);
+            if (cancelled) {
+                return;
+            }
+
+            if (result.data) {
+                const existingExpression = getMembershipRule(result.data.rules)?.expression || '';
+                const existingAutoSync = getAutoAddFromRules(result.data.rules);
+
+                setExpression(existingExpression);
+                setOriginalExpression(existingExpression);
+                setExistingRules(result.data.rules || []);
+                setExistingImports(result.data.imports || []);
+                setAutoSyncMembers(existingAutoSync);
+                setOriginalAutoSyncMembers(existingAutoSync);
+                setLoadError('');
+                return;
+            }
+
+            const error = result.error as {status_code?: number; message?: string} | undefined;
+            if (!error || error.status_code === 404) {
+                // No policy yet: seed the empty defaults the component starts with.
                 setExpression('');
                 setOriginalExpression('');
+                setExistingRules([]);
+                setExistingImports([]);
+                setLoadError('');
+                return;
             }
+
+            setLoadError(error.message || formatMessage({
+                id: 'channel_settings.access_rules.load_error',
+                defaultMessage: 'Failed to load this channel\'s access rules. Try closing and reopening the channel settings.',
+            }));
         };
 
         loadChannelPolicy();
-    }, [channel.id, actions]);
+
+        return () => {
+            cancelled = true;
+        };
+    }, [channel.id, actions, formatMessage]);
 
     // Update parent component when changes occur
     useEffect(() => {
@@ -389,24 +425,27 @@ function ChannelSettingsAccessRulesTab({
 
             const rules = buildRulesWithMembership(existingRules, expression, autoAddModeForToggle(autoSyncMembers));
 
-            // Channel permission rules (file upload/download) live on the same
-            // policy as the membership rule, so an empty membership expression
-            // does not make the policy empty. Only once nothing is left on it
-            // is the policy deleted, returning the channel to standard access.
-            const willBeEmptyState = !hasEffectiveRules(rules) && systemPolicies.length === 0;
+            // Channel permission rules (file upload/download) share this policy
+            // with the membership rule, so an empty membership expression does
+            // not make the policy empty. Delete it only once nothing effective
+            // is left and it imports no system policies. Imports come from the
+            // loaded policy, not the resolved system-policy objects.
+            const willDeletePolicy = !hasEffectiveRules(rules) && existingImports.length === 0;
 
-            if (willBeEmptyState) {
+            if (willDeletePolicy) {
                 const deleteResult = await actions.deleteChannelPolicy(channel.id);
 
-                // A 404 means the policy was never persisted, which is an
-                // effective success for this flow.
+                // A 404 means the policy was never persisted, an effective success.
                 if (deleteResult.error && deleteResult.error.status_code !== 404) {
                     throw new Error(deleteResult.error.message);
                 }
 
-                // Update original values to reflect the empty state
+                // The policy is gone; drop the cached rules/imports so a later
+                // save in this session doesn't rebuild anything from them.
                 setOriginalExpression('');
                 setOriginalAutoSyncMembers(false);
+                setExistingRules([]);
+                setExistingImports([]);
 
                 // Close confirmation modal if open
                 setShowConfirmModal(false);
@@ -423,13 +462,17 @@ function ChannelSettingsAccessRulesTab({
                 revision: 1,
                 created_at: Date.now(),
                 rules,
-                imports: systemPolicies.map((p) => p.id), // Include existing parent policies
+                imports: existingImports, // Preserve the loaded policy's system policies
             };
 
             const result = await actions.saveChannelPolicy(policy);
             if (result.error) {
                 throw new Error(result.error.message || 'Failed to save policy');
             }
+
+            // Refresh the cached rules so a second save in the same session
+            // rebuilds from the current policy, not a stale snapshot.
+            setExistingRules(result.data?.rules ?? rules);
 
             // Create a job to immediately sync channel membership when rules exist.
             // This ensures both user removal (always) and addition (conditional) happen immediately
@@ -468,7 +511,7 @@ function ChannelSettingsAccessRulesTab({
         } finally {
             setIsProcessingSave(false);
         }
-    }, [channel.id, channel.display_name, expression, existingRules, autoSyncMembers, systemPolicies, actions, formatMessage]);
+    }, [channel.id, channel.display_name, expression, existingRules, existingImports, autoSyncMembers, actions, formatMessage]);
 
     // Handle save action
     const handleSave = useCallback(async (): Promise<SaveResult> => {
@@ -694,6 +737,25 @@ function ChannelSettingsAccessRulesTab({
 
         return unsavedChanges || saveChangesPanelState === SAVE_RESULT_SAVED;
     }, [expression, originalExpression, autoSyncMembers, originalAutoSyncMembers, saveChangesPanelState]);
+
+    // Block all editing when the initial policy load failed (non-404), so an
+    // author can't save an empty membership rule over a policy that couldn't be
+    // fetched and wipe its permission rules.
+    if (loadError) {
+        return (
+            <div
+                className='ChannelSettingsModal__accessRulesTab'
+                data-testid='access-rules-load-error'
+            >
+                <div
+                    className='ChannelSettingsModal__accessRulesError'
+                    role='alert'
+                >
+                    {loadError}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className='ChannelSettingsModal__accessRulesTab'>
