@@ -8,6 +8,8 @@ import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import type {SelectInstance} from 'react-select';
 import ReactSelect from 'react-select';
 
+import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {AdminConfig} from '@mattermost/types/config';
 import type {DataRetentionCustomPolicies, DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
 import type {JobTypeBase, JobType} from '@mattermost/types/jobs';
@@ -20,14 +22,15 @@ import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
 import JobsTable from 'components/admin_console/jobs';
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
+import * as Menu from 'components/menu';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
-import Menu from 'components/widgets/menu/menu';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {getHistory} from 'utils/browser_history';
 import {JobTypes} from 'utils/constants';
 
 import './data_retention_settings.scss';
+
+const RetentionPolicyMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
 
 type OptionType = {
     label: string | JSX.Element;
@@ -67,6 +70,7 @@ const messages = defineMessages({
     jobCreation_title: {id: 'admin.data_retention.jobCreation.title', defaultMessage: 'Policy log'},
     jobCreation_subTitle: {id: 'admin.data_retention.jobCreation.subTitle', defaultMessage: 'Daily log of messages and files removed based on the policies defined above.'},
     createJob_instructions: {id: 'admin.data_retention.createJob.instructions', defaultMessage: 'Daily time to check policies and run delete job:'},
+    policyActionsMenu: {id: 'admin.data_retention.policyActionsMenu', defaultMessage: 'Policy actions menu'},
 });
 
 export const searchableStrings = [
@@ -79,6 +83,7 @@ export const searchableStrings = [
     messages.jobCreation_title,
     messages.jobCreation_subTitle,
     messages.createJob_instructions,
+    messages.policyActionsMenu,
 ];
 
 class DataRetentionSettings extends React.PureComponent<Props, State> {
@@ -253,6 +258,7 @@ class DataRetentionSettings extends React.PureComponent<Props, State> {
     };
     getGlobalPolicyRows = (): Row[] => {
         const {DataRetentionSettings} = this.props.config;
+        const policyMenuLabel = this.props.intl.formatMessage(messages.policyActionsMenu);
         return [{
             cells: {
                 description: this.props.intl.formatMessage({id: 'admin.data_retention.form.text', defaultMessage: 'Applies to all teams and channels, but does not apply to custom retention policies.'}),
@@ -267,31 +273,37 @@ class DataRetentionSettings extends React.PureComponent<Props, State> {
                     </div>
                 ),
                 actions: (
-                    <MenuWrapper
-                        isDisabled={false}
-                        stopPropagationOnToggle={true}
-                    >
-                        <div className='text-right'>
-                            <a>
-                                <i className='icon icon-dots-vertical'/>
-                            </a>
-                        </div>
-                        <Menu
-                            openLeft={false}
-                            openUp={false}
-                            ariaLabel={this.props.intl.formatMessage({id: 'admin.user_item.menuAriaLabel', defaultMessage: 'User Actions Menu'})}
+                    <div className='retention-policy-actions'>
+                        <Menu.Container
+                            menuButton={{
+                                id: 'global-retention-policy-menu',
+                                as: RetentionPolicyMenuTrigger,
+                                'aria-label': policyMenuLabel,
+                                children: <Icon glyph={<DotsVerticalIcon/>}/>,
+                            }}
+                            menuButtonTooltip={{
+                                text: policyMenuLabel,
+                            }}
+                            menu={{
+                                id: 'global-retention-policy-menu-dropdown',
+                                'aria-label': policyMenuLabel,
+                            }}
                         >
-                            <Menu.ItemAction
-                                show={true}
+                            <Menu.Item
+                                id='global-retention-policy-menu-edit'
                                 onClick={() => {
                                     getHistory().push('/admin_console/compliance/data_retention_settings/global_policy');
                                 }}
-                                text={this.props.intl.formatMessage({id: 'admin.data_retention.globalPoliciesTable.edit', defaultMessage: 'Edit'})}
-                                disabled={false}
-                                buttonClass={'edit_global_policy'}
+                                leadingElement={<i className='icon icon-pencil-outline'/>}
+                                labels={
+                                    <FormattedMessage
+                                        id='admin.data_retention.globalPoliciesTable.edit'
+                                        defaultMessage='Edit'
+                                    />
+                                }
                             />
-                        </Menu>
-                    </MenuWrapper>
+                        </Menu.Container>
+                    </div>
                 ),
             },
             onClick: () => {
@@ -322,6 +334,7 @@ class DataRetentionSettings extends React.PureComponent<Props, State> {
     getCustomPolicyRows = (startCount: number, endCount: number): Row[] => {
         let policies = Object.values(this.props.customPolicies);
         policies = policies.slice(startCount - 1, endCount);
+        const policyMenuLabel = this.props.intl.formatMessage(messages.policyActionsMenu);
 
         return policies.map((policy: DataRetentionCustomPolicy) => {
             const desciptionId = `customDescription-${policy.id}`;
@@ -346,39 +359,54 @@ class DataRetentionSettings extends React.PureComponent<Props, State> {
                         </div>
                     ),
                     actions: (
-                        <MenuWrapper
-                            isDisabled={false}
-                            stopPropagationOnToggle={true}
+                        <div
+                            className='retention-policy-actions'
                             id={menuWrapperId}
                         >
-                            <div className='text-right'>
-                                <a>
-                                    <i className='icon icon-dots-vertical'/>
-                                </a>
-                            </div>
-                            <Menu
-                                openLeft={false}
-                                openUp={false}
-                                ariaLabel={this.props.intl.formatMessage({id: 'admin.user_item.menuAriaLabel', defaultMessage: 'User Actions Menu'})}
+                            <Menu.Container
+                                menuButton={{
+                                    id: `custom-retention-policy-menu-${policy.id}`,
+                                    as: RetentionPolicyMenuTrigger,
+                                    'aria-label': policyMenuLabel,
+                                    children: <Icon glyph={<DotsVerticalIcon/>}/>,
+                                }}
+                                menuButtonTooltip={{
+                                    text: policyMenuLabel,
+                                }}
+                                menu={{
+                                    id: `custom-retention-policy-menu-dropdown-${policy.id}`,
+                                    'aria-label': policyMenuLabel,
+                                }}
                             >
-                                <Menu.ItemAction
-                                    show={true}
+                                <Menu.Item
+                                    id={`custom-retention-policy-menu-edit-${policy.id}`}
                                     onClick={() => {
                                         getHistory().push(`/admin_console/compliance/data_retention_settings/custom_policy/${policy.id}`);
                                     }}
-                                    text={this.props.intl.formatMessage({id: 'admin.data_retention.globalPoliciesTable.edit', defaultMessage: 'Edit'})}
-                                    disabled={false}
+                                    leadingElement={<i className='icon icon-pencil-outline'/>}
+                                    labels={
+                                        <FormattedMessage
+                                            id='admin.data_retention.globalPoliciesTable.edit'
+                                            defaultMessage='Edit'
+                                        />
+                                    }
                                 />
-                                <Menu.ItemAction
-                                    show={true}
+                                <Menu.Item
+                                    id={`custom-retention-policy-menu-delete-${policy.id}`}
                                     onClick={() => {
                                         this.deleteCustomPolicy(policy.id);
                                     }}
-                                    text={this.props.intl.formatMessage({id: 'admin.data_retention.globalPoliciesTable.delete', defaultMessage: 'Delete'})}
-                                    disabled={false}
+                                    leadingElement={<i className='icon icon-trash-can-outline'/>}
+                                    labels={
+                                        <FormattedMessage
+                                            id='admin.data_retention.globalPoliciesTable.delete'
+                                            defaultMessage='Delete'
+                                        />
+                                    }
+                                    isDestructive={true}
                                 />
-                            </Menu>
-                        </MenuWrapper>
+                            </Menu.Container>
+                        </div>
                     ),
                 },
                 onClick: () => {
