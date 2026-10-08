@@ -25,6 +25,7 @@ export default function AddTeamButton({url, tip, label, switchTeam}: Props) {
             <WithTooltip title={tip}>
                 <IconButton
                     id={`${url.slice(1)}TeamButton`}
+                    className='add-team-button'
                     style='inverted'
                     size='medium'
                     icon={<PlusIcon size={24}/>}
