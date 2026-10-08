@@ -25,7 +25,7 @@ import type {ModalData} from 'types/actions';
 
 import ADLDAPUpsellBanner from '../ad_ldap_upsell_banner';
 
-const GroupActionsMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'x-small'});
+const GroupActionsMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
 
 export type Props = {
     groups: Group[];
