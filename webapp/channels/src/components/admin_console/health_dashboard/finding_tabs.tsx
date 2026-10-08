@@ -29,7 +29,9 @@ const tabMessages: Record<HealthFindingTab, MessageDescriptor> = {
 type Props = {
     idPrefix: string;
     panelId: string;
-    active: HealthFindingTab;
+
+    // Null while the muted findings are shown instead of a tab.
+    active: HealthFindingTab | null;
     counts: Record<HealthFindingTab, number>;
     onChange: (tab: HealthFindingTab) => void;
 };
@@ -44,7 +46,7 @@ const FindingTabs = ({idPrefix, panelId, active, counts, onChange}: Props) => {
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        const index = HEALTH_FINDING_TABS.indexOf(active);
+        const index = active ? HEALTH_FINDING_TABS.indexOf(active) : 0;
         const last = HEALTH_FINDING_TABS.length - 1;
 
         let next: number;
@@ -83,7 +85,7 @@ const FindingTabs = ({idPrefix, panelId, active, counts, onChange}: Props) => {
                         role='tab'
                         aria-selected={selected}
                         aria-controls={panelId}
-                        tabIndex={selected ? 0 : -1}
+                        tabIndex={selected || (!active && tab === 'open') ? 0 : -1}
                         className={classNames('HealthDashboard__tab', `HealthDashboard__tab--${tab}`, {'HealthDashboard__tab--active': selected})}
                         onClick={() => onChange(tab)}
                         onKeyDown={handleKeyDown}

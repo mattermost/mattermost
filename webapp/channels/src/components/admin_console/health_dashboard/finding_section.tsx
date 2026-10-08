@@ -16,6 +16,8 @@ export type RowState = {
     now: number;
     expanded: string | null;
     onToggle: (fingerprint: string) => void;
+    onMute: (fingerprint: string) => void;
+    onUnmute: (fingerprint: string) => void;
 };
 
 const sectionMessages: Record<HealthFindingSection, MessageDescriptor> = {
@@ -29,7 +31,7 @@ type Props = RowState & {
     findings: HealthFinding[];
 };
 
-const FindingSection = ({section, findings, now, expanded, onToggle}: Props) => {
+const FindingSection = ({section, findings, now, expanded, onToggle, onMute, onUnmute}: Props) => {
     const headingId = useId();
 
     return (
@@ -70,6 +72,8 @@ const FindingSection = ({section, findings, now, expanded, onToggle}: Props) => 
                         now={now}
                         expanded={expanded === finding.fingerprint}
                         onToggle={onToggle}
+                        onMute={onMute}
+                        onUnmute={onUnmute}
                     />
                 ))}
             </ul>
