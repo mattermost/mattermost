@@ -114,7 +114,6 @@ const ViewUserGroupModalHeader = ({
                 <Button
                     emphasis='secondary'
                     size='sm'
-                    className='mr-2'
                     onClick={goToAddPeopleModal}
                 >
                     <FormattedMessage
@@ -185,7 +184,7 @@ const ViewUserGroupModalHeader = ({
                 </WithTooltip>
                 {modalTitle()}
             </div>
-            <div className='d-flex align-items-start'>
+            <div className='user-groups-modal__header-actions d-flex align-items-start'>
                 {addPeopleButton()}
                 {restoreGroupButton()}
                 {subMenuButton()}

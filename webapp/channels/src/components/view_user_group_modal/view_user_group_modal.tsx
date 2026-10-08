@@ -23,6 +23,7 @@ import Constants from 'utils/constants';
 import ViewUserGroupListItem from './view_user_group_list_item';
 import ViewUserGroupModalHeader from './view_user_group_modal_header';
 
+import 'components/user_groups_modal/user_groups_modal.scss';
 import './view_user_group_modal.scss';
 
 const USERS_PER_PAGE = 60;

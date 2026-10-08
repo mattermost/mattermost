@@ -25,6 +25,12 @@
                 right: 18px;
                 flex-shrink: 0;
             }
+
+            .user-groups-modal__header-actions {
+                flex-shrink: 0;
+                gap: 8px;
+                padding-right: 48px;
+            }
         }
 
         .ad_ldap_upsell_banner {
