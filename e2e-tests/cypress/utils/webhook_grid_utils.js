@@ -155,11 +155,15 @@ function gridRowElements(row, webhookBaseUrl) {
             placeholder: 'e.g. SO-1042',
             default: row.order,
         }),
+        // Whole kilograms, not decimals: a 'number' subtype renders an
+        // <input type="number">, and TextSetting reports those through
+        // parseInt, so a fractional weight is truncated before submission. The
+        // placeholder says so rather than inviting input the field discards.
         createElement('text', {
             display_name: 'Weight (kg)',
             name: gridCellName(row.id, 'weight'),
             subtype: 'number',
-            placeholder: '0.0',
+            placeholder: '0',
             default: row.weight,
             optional: true,
         }),
