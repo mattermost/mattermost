@@ -465,6 +465,28 @@ func TestPermissionsFromLegacyGrantsLinkedFieldDropsOptionRead(t *testing.T) {
 	assert.Equal(t, []string{PropertyActionValueRead}, p.Grants[1].Allow)
 }
 
+func TestPermissionsFromLegacyGrantsLinkedFieldDropsOptionReadOnlyGrant(t *testing.T) {
+	field := &PropertyField{
+		ObjectType: PropertyFieldObjectTypeUser,
+		Attrs: StringInterface{
+			PropertyAttrsAccessMode: PropertyAccessModeSourceOnly,
+			PropertyAttrsOwners: []PropertyOwner{
+				{Type: PropertyOwnerTypePlugin, ID: "plugin1", Allow: []string{PropertyActionOptionRead}},
+				{Type: PropertyOwnerTypePlugin, ID: "plugin2", Scopes: []string{"scope1"}, Allow: []string{PropertyActionValueRead, PropertyActionOptionRead}},
+			},
+		},
+	}
+	template := &Permissions{Restrictions: &Restrictions{}}
+
+	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true, Template: template})
+
+	require.NoError(t, p.IsValid(PropertyFieldObjectTypeUser))
+	require.Len(t, p.Grants, 1)
+	assert.Equal(t, "plugin2", p.Grants[0].ID)
+	assert.Equal(t, []string{"scope1"}, p.Grants[0].Scopes)
+	assert.Equal(t, []string{PropertyActionValueRead}, p.Grants[0].Allow)
+}
+
 func TestPermissionsFromLegacyMaskingSourcePlugin(t *testing.T) {
 	field := &PropertyField{
 		ObjectType: PropertyFieldObjectTypeChannel,
