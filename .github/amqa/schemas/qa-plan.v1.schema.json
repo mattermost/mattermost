@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "qa-plan.v1",
+  "type": "object",
+  "required": ["schema_version", "pr_number", "head_sha", "cis_score", "risk_tier", "scenarios"],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0" },
+    "plan_id": { "type": "string" },
+    "pr_number": { "type": "integer" },
+    "head_sha": { "type": "string" },
+    "cis_score": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "risk_tier": { "enum": ["low", "medium", "high", "critical"] },
+    "risk_source": { "enum": ["coderabbit", "cis_fallback", "blended"] },
+    "blast_radius": { "type": "array", "items": { "type": "string" } },
+    "coderabbit": { "type": "object" },
+    "tpa_status": { "type": "string" },
+    "automation_gap": { "type": "boolean" },
+    "scenarios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "type"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "type": { "enum": ["manual", "e2e", "api", "unit", "manual-only"] },
+          "priority": { "enum": ["P1", "P2", "P3"] },
+          "preconditions": { "type": "array", "items": { "type": "string" } },
+          "steps": { "type": "array", "items": { "type": "string" } },
+          "expected": { "type": "array", "items": { "type": "string" } },
+          "negative_case": { "type": "string" },
+          "mapped_specs": { "type": "array", "items": { "type": "string" } },
+          "edition": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}
