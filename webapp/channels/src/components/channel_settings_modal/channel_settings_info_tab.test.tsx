@@ -733,7 +733,7 @@ describe('ChannelSettingsInfoTab', () => {
                 stateWithDiscoverableFlag,
             );
             expect(screen.getByTestId('channel-settings-discoverable-toggle')).toBeInTheDocument();
-            expect(screen.getByTestId('channel-settings-discoverable-toggle')).toHaveAttribute('aria-pressed', 'false');
+            expect(screen.getByTestId('channel-settings-discoverable-toggle')).not.toBeChecked();
         });
 
         it('reflects the channel\'s existing discoverable value on mount', () => {
@@ -745,7 +745,7 @@ describe('ChannelSettingsInfoTab', () => {
                 />,
                 stateWithDiscoverableFlag,
             );
-            expect(screen.getByTestId('channel-settings-discoverable-toggle')).toHaveAttribute('aria-pressed', 'true');
+            expect(screen.getByTestId('channel-settings-discoverable-toggle')).toBeChecked();
         });
 
         it('disables the toggle when the user lacks manage_private_channel_discoverability', () => {

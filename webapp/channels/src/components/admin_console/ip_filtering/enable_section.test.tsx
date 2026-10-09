@@ -31,7 +31,7 @@ describe('EnableSectionContent', () => {
         expect(screen.getByText('Enable IP Filtering')).toBeInTheDocument();
         expect(screen.getByText('Limit access to your workspace by IP address.')).toBeInTheDocument();
         expect(screen.getByTestId('filterToggle-button')).toBeInTheDocument();
-        expect(screen.getByRole('button', {pressed: true})).toBeInTheDocument();
+        expect(screen.getByRole('switch', {checked: true})).toBeInTheDocument();
     });
 
     test('clicking the toggle calls setFilterToggle', async () => {
@@ -58,7 +58,7 @@ describe('EnableSectionContent', () => {
         expect(screen.getByText('Enable IP Filtering')).toBeInTheDocument();
         expect(screen.getByText('Limit access to your workspace by IP address.')).toBeInTheDocument();
         expect(screen.getByTestId('filterToggle-button')).toBeInTheDocument();
-        expect(screen.getByRole('button', {pressed: false})).toBeInTheDocument();
+        expect(screen.getByRole('switch', {checked: false})).toBeInTheDocument();
     });
 });
 

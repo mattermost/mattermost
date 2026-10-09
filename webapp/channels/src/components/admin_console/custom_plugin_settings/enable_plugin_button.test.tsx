@@ -28,11 +28,11 @@ describe('components/admin_console/custom_plugin_settings/PluginEnableButton', (
         );
 
         expect(screen.getByText('Disabled')).toBeInTheDocument();
-        await userEvent.click(screen.getByRole('button', {name: 'Enable plugin'}));
+        await userEvent.click(screen.getByRole('switch', {name: 'Enable plugin'}));
 
         expect(enablePlugin).toHaveBeenCalledWith('com.mattermost.calls');
         expect(disablePlugin).not.toHaveBeenCalled();
-        expect(screen.getByRole('button', {name: 'Enable plugin'}).closest('.col-sm-offset-4')).toBeNull();
+        expect(screen.getByRole('switch', {name: 'Enable plugin'}).closest('.col-sm-offset-4')).toBeNull();
     });
 
     it('disables the plugin when clicked while enabled', async () => {
@@ -50,11 +50,11 @@ describe('components/admin_console/custom_plugin_settings/PluginEnableButton', (
         );
 
         expect(screen.getByText('Enabled')).toBeInTheDocument();
-        await userEvent.click(screen.getByRole('button', {name: 'Disable plugin'}));
+        await userEvent.click(screen.getByRole('switch', {name: 'Disable plugin'}));
 
         expect(disablePlugin).toHaveBeenCalledWith('com.mattermost.calls');
         expect(enablePlugin).not.toHaveBeenCalled();
-        expect(screen.getByRole('button', {name: 'Disable plugin'})).toHaveAttribute('aria-pressed', 'true');
+        expect(screen.getByRole('switch', {name: 'Disable plugin'})).toBeChecked();
 
         await userEvent.click(screen.getByRole('button', {name: 'Plugin actions'}));
         expect(screen.getByRole('menuitem', {name: 'Uninstall plugin'})).toBeInTheDocument();
@@ -107,11 +107,11 @@ describe('components/admin_console/custom_plugin_settings/PluginEnableButton', (
             />,
         );
 
-        await userEvent.click(screen.getByRole('button', {name: 'Enable plugin'}));
+        await userEvent.click(screen.getByRole('switch', {name: 'Enable plugin'}));
 
         expect(screen.getByText('Enabling')).toBeInTheDocument();
         expect(screen.getByTestId('loadingSpinner')).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Enable plugin'})).toBeDisabled();
+        expect(screen.getByRole('switch', {name: 'Enable plugin'})).toBeDisabled();
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeDisabled();
         expect(screen.queryByText('Enabled')).not.toBeInTheDocument();
 
@@ -120,7 +120,7 @@ describe('components/admin_console/custom_plugin_settings/PluginEnableButton', (
         await waitFor(() => {
             expect(screen.queryByText('Enabling')).not.toBeInTheDocument();
         });
-        expect(screen.getByRole('button', {name: 'Enable plugin'})).toBeEnabled();
+        expect(screen.getByRole('switch', {name: 'Enable plugin'})).toBeEnabled();
         expect(screen.getByText('Disabled')).toBeInTheDocument();
     });
 
@@ -138,7 +138,7 @@ describe('components/admin_console/custom_plugin_settings/PluginEnableButton', (
             />,
         );
 
-        await userEvent.click(screen.getByRole('button', {name: 'Enable plugin'}));
+        await userEvent.click(screen.getByRole('switch', {name: 'Enable plugin'}));
 
         await waitFor(() => {
             expect(screen.getByText('Unable to enable plugin')).toBeInTheDocument();
@@ -160,7 +160,7 @@ describe('components/admin_console/custom_plugin_settings/PluginEnableButton', (
             />,
         );
 
-        await userEvent.click(screen.getByRole('button', {name: 'Enable plugin'}));
+        await userEvent.click(screen.getByRole('switch', {name: 'Enable plugin'}));
 
         expect(screen.getByText('Please save unsaved changes first')).toBeInTheDocument();
         expect(enablePlugin).not.toHaveBeenCalled();
