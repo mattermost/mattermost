@@ -105,3 +105,137 @@
         padding: 4px 12px 12px;
     }
 }
+
+// A refresh can return a form with a different size, which swaps the width
+// class on the open modal. Ease the change so it reads as a resize rather than
+// a jump, and leave it alone for anyone who has asked for less motion.
+@media (prefers-reduced-motion: no-preference) {
+    .modal .modal-dialog.apps-form-modal {
+        transition: width 150ms ease-in-out;
+    }
+}
+
+// The widest dialog tier, for Dialog.Size 'large'. Bootstrap's own .modal-lg is
+// 900px but Mattermost narrows it to 700px, so a grid that needs more than that
+// gets its own tier rather than widening .modal-lg for every consumer.
+// .modal-dialog's max-width: 95% still applies, so this shrinks on a narrow
+// viewport instead of overflowing.
+@media (min-width: 992px) {
+    .modal .apps-form-modal--large {
+        width: 900px;
+    }
+}
+
+.apps-form-grid {
+    margin-bottom: 24px;
+}
+
+// Wide grids scroll sideways rather than squeezing the inputs, the same
+// treatment Markdown tables get in a post. The table sizes to its content and
+// only stretches to fill a narrow container, so per-cell min-widths are
+// honoured instead of being collapsed.
+.apps-form-grid__scroll {
+    overflow-x: auto;
+}
+
+.apps-form-grid__table {
+    width: auto;
+    min-width: 100%;
+    border-collapse: collapse;
+
+    th,
+    td {
+        padding: 6px 8px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        text-align: left;
+        vertical-align: top;
+    }
+
+    thead th {
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+}
+
+// The sticky first column has to be opaque and painted above the scrolling
+// cells, or they show through it. thead's tint is translucent, so the corner
+// stacks that tint over the channel background instead of relying on it, and
+// both selectors are qualified to outrank `.apps-form-grid__table thead th`.
+.apps-form-grid__table thead .apps-form-grid__corner {
+    position: sticky;
+    z-index: 3;
+    left: 0;
+    min-width: 120px;
+    background:
+        linear-gradient(
+            rgba(var(--center-channel-color-rgb), 0.04),
+            rgba(var(--center-channel-color-rgb), 0.04)
+        ),
+        var(--center-channel-bg);
+}
+
+// The row header holds a real field and stays put while the rest of the row
+// scrolls, so it is still clear which record a cell belongs to on a wide grid.
+.apps-form-grid__table .apps-form-grid__row-header {
+    position: sticky;
+    z-index: 2;
+    left: 0;
+    background: var(--center-channel-bg);
+    box-shadow: inset -1px 0 0 rgba(var(--center-channel-color-rgb), 0.16);
+}
+
+.apps-form-grid__cell {
+    min-width: 108px;
+
+    // The column header carries the visible label, so the per-cell label is
+    // hidden from sight but kept for assistive technology. Only a direct child
+    // of .form-group is a field label: a checkbox's own text sits deeper.
+    .form-group > label {
+        position: absolute;
+        overflow: hidden;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        border: 0;
+        margin: -1px;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+    }
+
+    .form-group {
+        margin: 0;
+    }
+
+    // An empty help-text div still reserves space inside a table cell.
+    .help-text:empty {
+        display: none;
+    }
+
+    // An action_button cell. The column header already carries the button's
+    // label, so the button only has to fill its cell and stay on one line
+    // rather than wrapping the column narrower than its neighbours.
+    .btn {
+        width: 100%;
+        white-space: nowrap;
+    }
+
+    // A select cell. react-select is clearable here, so its control carries a
+    // clear button, a separator and a chevron before any value is drawn. At
+    // the cell's own floor that leaves almost nothing for the value, and the
+    // control is a wrapping flex container, so it resolves the squeeze in one
+    // of two bad ways: it wraps the indicators onto a second line, which makes
+    // every row in the grid taller, or it keeps one line and shrinks the value
+    // away to nothing. Give the control a floor of its own so the value always
+    // has room, and stop it wrapping so a select row is no taller than a text
+    // row.
+    // Nothing is needed below the control: react-select already truncates a
+    // long value with an ellipsis, and constraining its value container works
+    // against that, because the container is a grid whose track collapses to
+    // min-content once it is given an overflow.
+    .react-select__control {
+        min-width: 150px;
+        flex-wrap: nowrap;
+    }
+}

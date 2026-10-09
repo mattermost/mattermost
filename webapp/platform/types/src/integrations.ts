@@ -162,6 +162,10 @@ export type Dialog = {
     notify_on_cancel?: boolean;
     state?: string;
     source_url?: string;
+
+    // Width tier. Absent means 'small', the width every dialog had before this
+    // existed, so an existing dialog is unaffected.
+    size?: 'small' | 'medium' | 'large';
 };
 
 export type DialogSubmission = {

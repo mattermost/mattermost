@@ -57,6 +57,7 @@ type ServerDialogResponse = {
     callback_id?: string;
     notify_on_cancel?: boolean;
     state?: string;
+    size?: AppForm['size'];
 };
 
 // Transformed dialog props structure
@@ -70,6 +71,7 @@ type TransformedDialogProps = {
     callbackId?: string;
     notifyOnCancel?: boolean;
     state?: string;
+    size?: AppForm['size'];
 };
 
 export type ConversionOptions = {
@@ -468,6 +470,7 @@ export function convertElement(element: DialogElement, options: ConversionOption
                 fields: childFields,
                 expanded: !element.collapsible_config?.collapsed,
                 bordered: !element.collapsible_config?.borderless,
+                layout: element.subtype === 'grid' ? 'grid' : 'stacked',
             },
         };
         return {field: collapsibleField, errors};
@@ -606,6 +609,7 @@ export function transformServerDialogToProps(serverDialog: ServerDialogResponse)
         callbackId: serverDialog.callback_id,
         notifyOnCancel: serverDialog.notify_on_cancel,
         state: serverDialog.state,
+        size: serverDialog.size,
     };
 }
 
@@ -621,6 +625,7 @@ export function convertDialogToAppForm(
     sourceUrl: string,
     dialogState: string,
     options: ConversionOptions,
+    size?: AppForm['size'],
 ): ConversionResult {
     const allErrors: ValidationError[] = [];
     const convertedFields: AppField[] = [];
@@ -679,6 +684,7 @@ export function convertDialogToAppForm(
             state: dialogState || undefined,
         },
         fields: convertedFields,
+        size,
     };
 
     // Set source if sourceUrl is provided or if any fields have refresh enabled
@@ -747,6 +753,7 @@ export function convertServerDialogResponseToAppForm(
         transformedDialog.sourceUrl || '',
         transformedDialog.state || '',
         options,
+        transformedDialog.size,
     );
 
     return {form, errors};

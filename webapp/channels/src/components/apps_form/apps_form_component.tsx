@@ -29,6 +29,7 @@ import {flattenCollapsible} from 'utils/dialog_conversion';
 import type {DoAppCallResult} from 'types/apps';
 
 import AppsFormField from './apps_form_field';
+import AppsFormGrid from './apps_form_grid';
 import AppsFormHeader from './apps_form_header';
 import CollapsibleSection from './collapsible_section';
 
@@ -619,12 +620,27 @@ export class AppsForm extends React.PureComponent<Props, State> {
     };
 
     renderModal() {
-        const {fields, header} = this.props.form;
+        const {fields, header, size} = this.props.form;
         const loading = Boolean(this.state.loading);
         const bodyClass = loading ? 'apps-form-modal-body-loading' : 'apps-form-modal-body-loaded';
         const bodyClassNames = 'apps-form-modal-body-common ' + bodyClass;
 
-        const dialogClassName = 'a11y__modal about-modal';
+        // Width tier. An absent size keeps the historical width, so every
+        // dialog that predates the field renders exactly as before. The form is
+        // replaced wholesale on a refresh, so an integration that changes size
+        // in a refresh response resizes the modal that is already open.
+        let sizeClass = '';
+        if (size === 'medium') {
+            sizeClass = ' modal-lg';
+        } else if (size === 'large') {
+            sizeClass = ' apps-form-modal--large';
+        }
+
+        // apps-form-modal is what the width styles hang off. It is here rather
+        // than reusing a11y__modal because that class is on nearly a hundred
+        // modals across the app, none of which should pick up a width
+        // transition from this form.
+        const dialogClassName = 'a11y__modal about-modal apps-form-modal' + sizeClass;
         const hasDateTimeFields = this.hasDateTimeFields();
 
         return (
@@ -731,6 +747,19 @@ export class AppsForm extends React.PureComponent<Props, State> {
         const {isEmbedded} = this.props;
 
         if (originalField.type === AppFieldTypes.COLLAPSIBLE) {
+            // A grid container lays its child sections out as table rows
+            // instead of stacking them, so it renders its own subtree.
+            if (originalField.collapsible_config?.layout === 'grid') {
+                return (
+                    <AppsFormGrid
+                        key={originalField.name}
+                        field={originalField}
+                        excludeName={this.props.form.submit_buttons}
+                        renderCell={(cell, cellAutoFocus) => this.renderField(cell, autoFocus && cellAutoFocus, depth + 1)}
+                    />
+                );
+            }
+
             const childFields = (originalField.collapsible_config?.fields || []).filter(
                 (f) => f.name !== this.props.form.submit_buttons,
             );

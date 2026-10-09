@@ -316,6 +316,9 @@ export type AppForm = {
     submit_on_cancel?: boolean;
     fields?: AppField[];
 
+    // Width tier for the modal. Absent means 'small', the historical width.
+    size?: 'small' | 'medium' | 'large';
+
     // source is used in 2 cases:
     //   - if submit is not set, it is used to fetch the submittable form from
     //     the app.
@@ -443,6 +446,12 @@ export type CollapsibleConfig = {
     fields?: AppField[]; // Child fields grouped inside this collapsible section
     expanded?: boolean; // Whether the section starts expanded (default: true)
     bordered?: boolean; // Whether the section renders with a border (default: true)
+
+    // How the child fields are laid out. 'stacked' (the default) renders them
+    // vertically behind an expandable title. 'grid' renders child collapsibles
+    // as rows of a table, with one column per leaf field and the child's label
+    // as the row header, so a set of records can be filled in as a grid.
+    layout?: 'stacked' | 'grid';
 };
 
 export type DateTimeConfig = {
