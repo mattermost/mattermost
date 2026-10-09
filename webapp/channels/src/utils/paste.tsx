@@ -9,7 +9,11 @@ import {Locations} from 'utils/constants';
 import {execCommandInsertText} from 'utils/exec_commands';
 import {DEFAULT_PLACEHOLDER_URL} from 'utils/markdown/apply_markdown';
 import {splitMessageBasedOnCaretPosition, splitMessageBasedOnTextSelection} from 'utils/post_utils';
-import turndownService from 'utils/turndown';
+import turndownService, {isEmphasisReset} from 'utils/turndown';
+
+// Elements that carry formatting which can be expressed as markdown. HTML made up of anything else is pasted as
+// plain text so that unformatted content doesn't get needlessly escaped.
+const MARKDOWN_ELEMENTS_SELECTOR = 'a, b, blockquote, code, del, em, h1, h2, h3, h4, h5, h6, hr, i, ol, pre, s, strike, strong, table, ul';
 
 export function parseHtmlTable(html: string): HTMLTableElement | null {
     return new DOMParser().parseFromString(html, 'text/html').querySelector('table');
@@ -35,8 +39,17 @@ export function getHtmlTable(clipboardData: DataTransfer): HTMLTableElement | nu
     return table;
 }
 
-export function hasHtmlLink(clipboardData: DataTransfer): boolean {
-    return Array.from(clipboardData.types).includes('text/html') && (/<a/i).test(clipboardData.getData('text/html'));
+/**
+ * Checks whether the clipboard holds HTML with formatting that can be carried over as markdown.
+ */
+export function hasMarkdownFormatting(clipboardData: DataTransfer): boolean {
+    if (!Array.from(clipboardData.types).includes('text/html')) {
+        return false;
+    }
+
+    const html = new DOMParser().parseFromString(clipboardData.getData('text/html'), 'text/html');
+
+    return Array.from(html.querySelectorAll<HTMLElement>(MARKDOWN_ELEMENTS_SELECTOR)).some((element) => !isEmphasisReset(element));
 }
 
 export function isGitHubCodeBlock(tableClassName: string): boolean {
@@ -192,12 +205,12 @@ export function pasteHandler(event: ClipboardEvent, location: string, message: s
 
     const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
     const hasTextUrl = isTextUrl(clipboardData);
-    const hasHTMLLinks = hasHtmlLink(clipboardData);
+    const hasFormatting = hasMarkdownFormatting(clipboardData);
     const htmlTable = getHtmlTable(clipboardData);
     const shouldApplyLinkMarkdown = hasSelection && hasTextUrl;
     const shouldApplyGithubCodeBlock = htmlTable && isGitHubCodeBlock(htmlTable.className);
 
-    if (!htmlTable && !hasHTMLLinks && !shouldApplyLinkMarkdown) {
+    if (!hasFormatting && !shouldApplyLinkMarkdown) {
         return;
     }
 
