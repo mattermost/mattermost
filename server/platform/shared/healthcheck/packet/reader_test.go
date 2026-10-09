@@ -199,6 +199,30 @@ func TestReadSnapshotFields(t *testing.T) {
 	assert.Equal(t, "11.0.4", version)
 }
 
+// Not parallel: it sets the build date stamped into this binary.
+func TestReadBuildDate(t *testing.T) {
+	buildDate := model.BuildDate
+	t.Cleanup(func() { model.BuildDate = buildDate })
+
+	t.Run("a release build dates the packet with its own build date", func(t *testing.T) {
+		model.BuildDate = "Fri Oct  9 10:00:00 UTC 2026"
+
+		s := readFiles(t, fixtureFiles(t, "standalone")).Snapshot
+		assert.Equal(t, time.Date(2026, time.October, 9, 10, 0, 0, 0, time.UTC), s.Version.BuildDate.UTC())
+
+		findings := evaluate(t, s)
+		assert.Contains(t, findings, finding{Code: "VERSION_EOL", State: healthcheck.StateFiring, Subject: versionSubject})
+		assert.NotContains(t, findings, finding{Code: "VERSION_EOL_UNVERIFIED", State: healthcheck.StateFiring, Subject: versionSubject})
+	})
+
+	t.Run("a dev build has no build date", func(t *testing.T) {
+		model.BuildDate = ""
+
+		s := readFiles(t, fixtureFiles(t, "standalone")).Snapshot
+		assert.True(t, s.Version.BuildDate.IsZero())
+	})
+}
+
 func TestReadHALayout(t *testing.T) {
 	files := fixtureFiles(t, "ha")
 	for name := range files {
