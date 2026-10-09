@@ -1800,16 +1800,44 @@
     "description": "Comparison operator option in the access rule table editor dropdown; reads as 'attribute contains value'. Compact space."
   },
   "admin.access_control.table_editor.operator.covers_all": {
-    "defaultMessage": "covers all of",
-    "description": "Operator option in the rule table of the System Console access control policy editor, offered only for hierarchical attributes. Means every value the user holds is at or above each listed target value in the hierarchy; it is followed by the list of selected values, so keep it lowercase and sentence-continuing."
+    "defaultMessage": "has each of or a parent of",
+    "description": "Operator option in the rule table of the System Console access control policy editor, offered only for hierarchical attributes. 'Parent' means an ancestor at any level. Means the user holds each of the selected values, or something above it in the hierarchy; it is followed by the list of selected values, so keep it lowercase and sentence-continuing."
+  },
+  "admin.access_control.table_editor.operator.covers_all.description": {
+    "defaultMessage": "The user has each selected value, or a parent of it. {functionName}",
+    "description": "Help text under the 'has each of or a parent of' operator in the System Console access control policy editor, shown only for hierarchical attributes. 'Parent' means an ancestor at any level. {functionName} is the name of the policy-expression function this operator maps to, already wrapped in parentheses and shown as muted text; keep it at the end."
   },
   "admin.access_control.table_editor.operator.covers_any": {
-    "defaultMessage": "covers any of",
-    "description": "Operator option in the rule table of the System Console access control policy editor, offered only for hierarchical attributes. Means the user's values are at or above at least one of the listed target values in the hierarchy; it is followed by the list of selected values."
+    "defaultMessage": "has any of or a parent of",
+    "description": "Operator option in the rule table of the System Console access control policy editor, offered only for hierarchical attributes. 'Parent' means an ancestor at any level. Means the user holds at least one of the selected values, or something above it in the hierarchy; it is followed by the list of selected values."
+  },
+  "admin.access_control.table_editor.operator.covers_any.description": {
+    "defaultMessage": "The user has at least one selected value, or a parent of it. {functionName}",
+    "description": "Help text under the 'has any of or a parent of' operator in the System Console access control policy editor, shown only for hierarchical attributes. 'Parent' means an ancestor at any level. {functionName} is the name of the policy-expression function this operator maps to, already wrapped in parentheses and shown as muted text; keep it at the end."
   },
   "admin.access_control.table_editor.operator.ends_with": {
     "defaultMessage": "ends with",
     "description": "Comparison operator option in the access rule table editor dropdown; reads as 'attribute ends with value'. Compact space."
+  },
+  "admin.access_control.table_editor.operator.graph.group.children": {
+    "defaultMessage": "Children (any level)",
+    "description": "Group heading in the operator dropdown of the System Console access control policy editor, shown only for hierarchical attributes. Groups the operators that match values below the selected ones in the hierarchy. '(any level)' says a descendant at any depth counts, not just a direct child."
+  },
+  "admin.access_control.table_editor.operator.graph.group.exact": {
+    "defaultMessage": "Exact match",
+    "description": "Group heading in the operator dropdown of the System Console access control policy editor, shown only for hierarchical attributes. Groups the operators that ignore the hierarchy and compare values exactly."
+  },
+  "admin.access_control.table_editor.operator.graph.group.parents": {
+    "defaultMessage": "Parents (any level)",
+    "description": "Group heading in the operator dropdown of the System Console access control policy editor, shown only for hierarchical attributes. Groups the operators that match values above the selected ones in the hierarchy. '(any level)' says an ancestor at any depth counts, not just a direct parent."
+  },
+  "admin.access_control.table_editor.operator.graph.has_all_of.description": {
+    "defaultMessage": "The user has every selected value. A parent or a child is not enough. {functionName}",
+    "description": "Help text under the 'has all of' operator in the System Console access control policy editor, shown only for hierarchical attributes. 'Parent' and 'child' mean an ancestor or descendant at any level. {functionName} is the name of the policy-expression function this operator maps to, already wrapped in parentheses and shown as muted text; keep it at the end."
+  },
+  "admin.access_control.table_editor.operator.graph.has_any_of.description": {
+    "defaultMessage": "The user has at least one selected value. A parent or a child is not enough. {functionName}",
+    "description": "Help text under the 'has any of' operator in the System Console access control policy editor, shown only for hierarchical attributes. 'Parent' and 'child' mean an ancestor or descendant at any level. {functionName} is the name of the policy-expression function this operator maps to, already wrapped in parentheses and shown as muted text; keep it at the end."
   },
   "admin.access_control.table_editor.operator.has_all_of": {
     "defaultMessage": "has all of",
@@ -1880,12 +1908,20 @@
     "description": "Operator choice in the access rule table editor dropdown, strict less-than comparison on a version number. Reads as '<attribute> version is less than <value>'."
   },
   "admin.access_control.table_editor.operator.within_all": {
-    "defaultMessage": "is within all of",
-    "description": "Operator option in the rule table of the System Console access control policy editor, offered only for hierarchical attributes. Means the user's values sit at or below every listed value in the hierarchy (the opposite direction of 'covers'); it is followed by the list of selected values."
+    "defaultMessage": "is entirely within",
+    "description": "Operator option in the rule table of the System Console access control policy editor, offered only for hierarchical attributes. Means every value the user holds sits at or below one of the selected values in the hierarchy; it is followed by the list of selected values, so keep it lowercase and sentence-continuing."
+  },
+  "admin.access_control.table_editor.operator.within_all.description": {
+    "defaultMessage": "The user has at least one value, and each is a selected value or a child of one. {functionName}",
+    "description": "Help text under the 'is entirely within' operator in the System Console access control policy editor, shown only for hierarchical attributes. 'Child' means a descendant at any level. {functionName} is the name of the policy-expression function this operator maps to, already wrapped in parentheses and shown as muted text; keep it at the end."
   },
   "admin.access_control.table_editor.operator.within_any": {
-    "defaultMessage": "is within any of",
-    "description": "Operator option in the rule table of the System Console access control policy editor, offered only for hierarchical attributes. Means the user's values sit at or below at least one of the listed values in the hierarchy; it is followed by the list of selected values."
+    "defaultMessage": "has any of or a child of",
+    "description": "Operator option in the rule table of the System Console access control policy editor, offered only for hierarchical attributes. 'Child' means a descendant at any level. Means at least one value the user holds sits at or below one of the selected values in the hierarchy; it is followed by the list of selected values."
+  },
+  "admin.access_control.table_editor.operator.within_any.description": {
+    "defaultMessage": "At least one value the user has is a selected value, or a child of one. {functionName}",
+    "description": "Help text under the 'has any of or a child of' operator in the System Console access control policy editor, shown only for hierarchical attributes. 'Child' means a descendant at any level. {functionName} is the name of the policy-expression function this operator maps to, already wrapped in parentheses and shown as muted text; keep it at the end."
   },
   "admin.access_control.table_editor.operator.younger_than": {
     "defaultMessage": "younger than (days)",
