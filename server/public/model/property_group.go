@@ -30,6 +30,7 @@ var validPropertyGroupNameRegex = regexp.MustCompile(`^[a-z0-9][a-z0-9_]*$`)
 const (
 	PropertyGroupVersionV1 = 1
 	PropertyGroupVersionV2 = 2
+	PropertyGroupVersionV3 = 3
 )
 
 // AccessControlPropertyGroupSchemaVersion is the current schema version for
@@ -51,6 +52,10 @@ func (pg *PropertyGroup) IsPSAv1() bool {
 
 func (pg *PropertyGroup) IsPSAv2() bool {
 	return pg.Version == PropertyGroupVersionV2
+}
+
+func (pg *PropertyGroup) IsPSAv3() bool {
+	return pg.Version == PropertyGroupVersionV3
 }
 
 func (pg *PropertyGroup) PreSave() {
@@ -76,7 +81,7 @@ func (pg *PropertyGroup) IsValid() *AppError {
 		return NewAppError("PropertyGroup.IsValid", "model.property_group.is_valid.app_error", map[string]any{"FieldName": "name", "Reason": "invalid name"}, "id="+pg.ID, http.StatusBadRequest)
 	}
 
-	if pg.Version != PropertyGroupVersionV1 && pg.Version != PropertyGroupVersionV2 {
+	if pg.Version != PropertyGroupVersionV1 && pg.Version != PropertyGroupVersionV2 && pg.Version != PropertyGroupVersionV3 {
 		return NewAppError("PropertyGroup.IsValid", "model.property_group.is_valid.app_error", map[string]any{"FieldName": "version", "Reason": "unknown value"}, "id="+pg.ID, http.StatusBadRequest)
 	}
 
