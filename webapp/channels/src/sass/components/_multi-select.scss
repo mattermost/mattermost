@@ -7,8 +7,7 @@
     padding: 0 15px;
     gap: 8px;
 
-    // Target the submit control directly: compass-ui Button no longer has Bootstrap .btn
-    > button {
+    > .multi-select__go {
         height: 40px;
         flex-shrink: 0;
     }
