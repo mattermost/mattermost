@@ -831,7 +831,7 @@ Note the following when laying out a grid:
 To let users add rows, pair the grid with a [field refresh](#dynamic-field-refresh): when the refresh request arrives, append a row to the grid you return and echo the submitted cell values back as each element's `default`, so half-finished input stays on screen. Carry the grid itself in the dialog's `state`.
 
 ## Dialog width
-##### Minimum Server Version: 12.0
+### Minimum Server Version: 12.0
 
 By default a dialog is 600px wide. Set `size` on the dialog to widen it:
 
