@@ -21131,9 +21131,21 @@
     "defaultMessage": "{time} {user}’s time",
     "description": "Hint in the schedule-message menu showing the equivalent time for the direct message recipient; {time} is a formatted time and {user} is the teammate's name (possessive)."
   },
+  "create_post_button.option.schedule_message.options.today": {
+    "defaultMessage": "Today at {9amTime}",
+    "description": "Schedule-message menu option to send today, offered on weekdays before 9 AM; {9amTime} is a formatted time such as '9:00 AM'."
+  },
   "create_post_button.option.schedule_message.options.tomorrow": {
     "defaultMessage": "Tomorrow at {9amTime}",
     "description": "Schedule-message menu option to send tomorrow; {9amTime} is a formatted time such as '9:00 AM'."
+  },
+  "create_post_button.option.schedule_message.options.use_recipient_timezone": {
+    "defaultMessage": "Use recipient’s timezone ({offset})",
+    "description": "Checkbox in the schedule-message menu for direct messages; when checked, the scheduling times are in the recipient's timezone. {offset} is the recipient's UTC offset, such as 'UTC-04:00'."
+  },
+  "create_post_button.option.schedule_message.options.your_time": {
+    "defaultMessage": "{time} your time",
+    "description": "Hint under a schedule-message menu option when scheduling in the recipient's timezone, showing the equivalent time for the current user; {time} is a formatted time such as '10:00 AM'."
   },
   "create_post_button.option.send_now": {
     "defaultMessage": "Send Now",
@@ -28639,9 +28651,13 @@
     "defaultMessage": "Schedule",
     "description": "Confirm button of the custom date/time modal; schedules the message. 'Schedule' is a verb."
   },
-  "schedule_post.custom_time_modal.dm_user_time": {
-    "defaultMessage": "{dmUserTime} for {dmUserName}",
-    "description": "Line in the schedule-message modal for DMs showing the equivalent time for the recipient; {dmUserTime} is a time and {dmUserName} the recipient's name."
+  "schedule_post.custom_time_modal.current_user_time": {
+    "defaultMessage": "{time} your time",
+    "description": "Line under the date and time pickers in the schedule-message modal when scheduling in the recipient's timezone, showing the equivalent time for the current user; {time} is a relative date and time such as 'Tomorrow at 10:00 AM'."
+  },
+  "schedule_post.custom_time_modal.dm_user_time_label": {
+    "defaultMessage": "{dmUserTime} {dmUserName}’s time",
+    "description": "Line under the date and time pickers in the schedule-message modal for direct messages, showing the equivalent time for the recipient; {dmUserTime} is a relative date and time such as 'Tomorrow at 9:00 AM' and {dmUserName} is the recipient's name (possessive)."
   },
   "schedule_post.custom_time_modal.repeat_weekly": {
     "defaultMessage": "Repeat weekly",
@@ -28658,6 +28674,10 @@
   "schedule_post.custom_time_modal.title": {
     "defaultMessage": "Schedule message",
     "description": "Title of the modal where the user picks a custom date and time to schedule a message."
+  },
+  "schedule_post.custom_time_modal.use_recipient_timezone": {
+    "defaultMessage": "Use recipient’s timezone ({offset})",
+    "description": "Checkbox under the title of the schedule-message modal for direct messages; when checked, the date and time are picked in the recipient's timezone. {offset} is the recipient's UTC offset, such as 'UTC-04:00'."
   },
   "Schedule_post.empty_state.subtitle": {
     "defaultMessage": "Schedule drafts to send messages at a later time. Any scheduled drafts will show up here and can be modified after being scheduled.",
