@@ -412,6 +412,25 @@ func TestPermissionsPatchApplyTo(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, before, *existing.Restrictions)
 	})
+
+	t.Run("a kept key is a copy, so validating or extending the result leaves existing alone", func(t *testing.T) {
+		existing := &Permissions{
+			Restrictions: &Restrictions{Value: ReadWrite{Read: PermissionLevelEveryone}},
+			Grants:       make([]Grant, 1, 4),
+			Masking:      &Masking{MaskByFieldID: "holdings", Except: []Identity{{Type: PropertyOwnerTypePlugin, ID: "p1"}}},
+		}
+		existing.Grants[0] = Grant{Identity: Identity{Type: PropertyOwnerTypeUser, ID: "u1"}, Allow: []string{PropertyActionValueWrite}}
+
+		result, err := (&PermissionsPatch{}).ApplyTo(existing)
+		require.NoError(t, err)
+		_ = result.IsValid(PropertyFieldObjectTypeUser)
+		result.Grants = append(result.Grants, Grant{Identity: Identity{Type: PropertyOwnerTypeUser, ID: "u2"}})
+		result.Masking.Except[0].ID = "p2"
+
+		assert.Equal(t, PermissionLevel(""), existing.Restrictions.Value.Write)
+		assert.Empty(t, existing.Grants[:2][1].ID)
+		assert.Equal(t, "p1", existing.Masking.Except[0].ID)
+	})
 }
 
 func TestRestrictionsTierFor(t *testing.T) {
