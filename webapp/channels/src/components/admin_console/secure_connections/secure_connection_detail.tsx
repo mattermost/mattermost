@@ -3,8 +3,8 @@
 
 import {createColumnHelper, getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef} from '@tanstack/react-table';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {SelectCallback} from 'react-bootstrap';
-import {Tabs, Tab} from 'react-bootstrap';
+import {Tabs} from '@mattermost/compass-ui/components/tabs';
+import type {TabItem} from '@mattermost/compass-ui/components/tabs';
 import {useIntl, FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory, useParams, useLocation} from 'react-router-dom';
@@ -239,9 +239,31 @@ function SharedChannelRemotes(props: {remoteId: string; rc: RemoteCluster | unde
         }
     }, [confirmed]);
 
-    const handleChangeTab = useCallback<SelectCallback>((tabKey) => {
-        setFilter(tabKey);
+    const handleChangeTab = useCallback((tabKey: string) => {
+        setFilter(tabKey as 'home' | 'remote');
     }, []);
+
+    const sharedChannelTabs = useMemo((): TabItem[] => {
+        if (!props.rc) {
+            return [];
+        }
+
+        return [
+            {
+                key: 'remote',
+                label: props.rc.display_name,
+            },
+            {
+                key: 'home',
+                label: (
+                    <FormattedMessage
+                        id='admin.secure_connections.details.shared_channels.tabs.home'
+                        defaultMessage='Your channels'
+                    />
+                ),
+            },
+        ];
+    }, [props.rc]);
 
     const handleAdd = async () => {
         await promptAdd();
@@ -304,25 +326,10 @@ function SharedChannelRemotes(props: {remoteId: string; rc: RemoteCluster | unde
                     <Tabs
                         id='shared-channels'
                         className='tabs'
-                        defaultActiveKey={'remote'}
-                        activeKey={filter}
-                        onSelect={handleChangeTab}
-                        unmountOnExit={true}
-                    >
-                        <Tab
-                            eventKey={'remote'}
-                            title={props.rc?.display_name}
-                        />
-                        <Tab
-                            eventKey={'home'}
-                            title={(
-                                <FormattedMessage
-                                    id='admin.secure_connections.details.shared_channels.tabs.home'
-                                    defaultMessage='Your channels'
-                                />
-                            )}
-                        />
-                    </Tabs>
+                        tabs={sharedChannelTabs}
+                        activeKey={filter ?? 'home'}
+                        onChange={handleChangeTab}
+                    />
                 )}
                 <SectionContent $compact={Boolean(data)}>
                     {content}
@@ -375,52 +382,12 @@ const TabsWrapper = styled.div`
         display: flex;
         width: 100%;
         flex-direction: column;
-
-        .nav-tabs {
-            border-bottom: 1px solid var(--center-channel-color-12, rgba(63, 67, 80, 0.12));
-        }
     }
 
-    .nav-tabs {
+    [role='tablist'] {
         padding: 0 32px;
         margin: 0 0 8px;
-
-        li {
-            margin-right: 0;
-
-            a {
-                padding: 13px 12px;
-                border: none;
-                background: transparent;
-                color: rgba(var(--center-channel-color-rgb), 0.75);
-                font-size: 14px;
-                font-weight: 600;
-                line-height: 20px;
-                transition: all 0.15s ease;
-
-                &:hover,
-                &:active,
-                &:focus,
-                &:focus-within {
-                    border: none;
-                    border-radius: none;
-                    background: transparent;
-                    color: var(--center-channel-color);
-                }
-            }
-
-            &.active {
-                border-bottom: 2px solid var(--button-bg);
-
-                a {
-                    color: var(--button-bg);
-                }
-            }
-
-            &:not(:first-child) {
-                margin-left: 8px;
-            }
-        }
+        border-bottom: 1px solid var(--center-channel-color-12, rgba(63, 67, 80, 0.12));
     }
 `;
 
