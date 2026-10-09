@@ -197,6 +197,35 @@ func TestPropertyRoutesWithPostAttributesFlag(t *testing.T) {
 	})
 }
 
+// This is the request the sidebar makes first: the webapp loads the managed
+// category field before it asks for a team's channel-to-category mappings, so a
+// group version the endpoint will not serve hides managed categories entirely
+// even though the mappings are intact (MM-71093).
+func TestManagedCategoryFieldsRequireGroupAtV2(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ManagedChannelCategories = true
+	}).InitBasic(t)
+
+	groupName := model.ManagedCategoryPropertyGroupName
+	search := model.PropertyFieldSearch{TargetType: "system"}
+
+	// The state server startup leaves behind.
+	fields, resp, err := th.SystemAdminClient.GetPropertyFields(context.Background(), groupName, model.PropertyValueTargetTypeChannel, search)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	require.Len(t, fields, 1)
+	require.Equal(t, model.ManagedCategoryPropertyFieldName, fields[0].Name)
+
+	// The state an affected server booted into.
+	require.NoError(t, th.App.Srv().Store().PropertyGroup().SetVersion(groupName, model.PropertyGroupVersionV2+1))
+
+	_, resp, err = th.SystemAdminClient.GetPropertyFields(context.Background(), groupName, model.PropertyValueTargetTypeChannel, search)
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+}
+
 // The gate is an OR across every Properties feature flag, so the off case is
 // only meaningful with all of them disabled — ClassificationMarkings defaults to
 // true. This is the half that backs "off by default exposes nothing".
