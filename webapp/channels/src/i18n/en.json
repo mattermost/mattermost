@@ -7379,6 +7379,250 @@
     "defaultMessage": "Whitelisted Guest Domains:",
     "description": "Setting label for a text field on the Guest Access admin page; a list of email domains allowed for guest accounts. Ends with a colon."
   },
+  "admin.health_dashboard.all_clear.body": {
+    "defaultMessage": "Nothing is firing and every check could be evaluated.",
+    "description": "Body of the empty Open tab on the System Console Site health page, shown when no health check is firing or unknown."
+  },
+  "admin.health_dashboard.all_clear.title": {
+    "defaultMessage": "All clear",
+    "description": "Title of the empty Open tab on the System Console Site health page, shown when no health check is firing or unknown."
+  },
+  "admin.health_dashboard.area.auth": {
+    "defaultMessage": "Authentication",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"authentication\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.cluster": {
+    "defaultMessage": "High availability",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"cluster / high availability\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.compliance": {
+    "defaultMessage": "Compliance",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"compliance\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.count": {
+    "defaultMessage": "{count, plural, one {# finding} other {# findings}}",
+    "description": "Secondary line in an area header on the System Console Site health page when findings are grouped by category; {count} is the number of findings in the area."
+  },
+  "admin.health_dashboard.area.database": {
+    "defaultMessage": "Database",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"database\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.jobs": {
+    "defaultMessage": "Jobs",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"background jobs\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.license": {
+    "defaultMessage": "Licensing",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"license\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.notifications": {
+    "defaultMessage": "Notifications",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"notifications\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.platform": {
+    "defaultMessage": "Platform",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"server platform\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.search": {
+    "defaultMessage": "Search",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"search\" area; noun, compact space."
+  },
+  "admin.health_dashboard.area.version": {
+    "defaultMessage": "Updates",
+    "description": "Section heading on the System Console Site health page grouping health findings in the \"server version and updates\" area; noun, compact space."
+  },
+  "admin.health_dashboard.detail.details": {
+    "defaultMessage": "Details",
+    "description": "Heading of the key/value details list in an expanded finding on the System Console Site health page."
+  },
+  "admin.health_dashboard.detail.first_seen": {
+    "defaultMessage": "First detected",
+    "description": "Label in an expanded finding on the System Console Site health page; followed by a relative time such as \"3 days ago\"."
+  },
+  "admin.health_dashboard.detail.go_to_setting": {
+    "defaultMessage": "Go to setting",
+    "description": "Primary button in an expanded finding on the System Console Site health page that opens the System Console setting that resolves the finding."
+  },
+  "admin.health_dashboard.detail.last_seen": {
+    "defaultMessage": "Last checked",
+    "description": "Label in an expanded finding on the System Console Site health page; followed by a relative time of the most recent evaluation."
+  },
+  "admin.health_dashboard.detail.node": {
+    "defaultMessage": "Node",
+    "description": "Label in an expanded finding on the System Console Site health page; followed by the hostname of the cluster node the finding applies to."
+  },
+  "admin.health_dashboard.detail.open_setting": {
+    "defaultMessage": "Open this setting in the System Console",
+    "description": "Link card in an expanded finding on the System Console Site health page that opens the related setting in the System Console."
+  },
+  "admin.health_dashboard.detail.read_docs": {
+    "defaultMessage": "Read the documentation",
+    "description": "Link card in an expanded finding on the System Console Site health page that opens the related documentation in a new tab."
+  },
+  "admin.health_dashboard.detail.remediation": {
+    "defaultMessage": "How to fix it",
+    "description": "Heading above the remediation steps in an expanded finding on the System Console Site health page."
+  },
+  "admin.health_dashboard.detail.resolve": {
+    "defaultMessage": "Resolve here",
+    "description": "Heading above the setting and documentation links in an expanded finding on the System Console Site health page."
+  },
+  "admin.health_dashboard.detail.state": {
+    "defaultMessage": "State",
+    "description": "Label in the details list of an expanded finding on the System Console Site health page; the value says how long the finding has been firing, unevaluated or when it resolved."
+  },
+  "admin.health_dashboard.duration.days": {
+    "defaultMessage": "{days}d",
+    "description": "Compact duration in days on the System Console Site health page, such as \"3d\"; d abbreviates days."
+  },
+  "admin.health_dashboard.duration.days_hours": {
+    "defaultMessage": "{days}d {hours}h",
+    "description": "Compact duration in days and hours on the System Console Site health page, such as \"3d 4h\"; d abbreviates days and h hours."
+  },
+  "admin.health_dashboard.duration.hours": {
+    "defaultMessage": "{hours}h",
+    "description": "Compact duration in hours on the System Console Site health page, such as \"5h\"; h abbreviates hours."
+  },
+  "admin.health_dashboard.duration.hours_minutes": {
+    "defaultMessage": "{hours}h {minutes}m",
+    "description": "Compact duration in hours and minutes on the System Console Site health page, such as \"2h 5m\"; h abbreviates hours and m minutes."
+  },
+  "admin.health_dashboard.duration.minutes": {
+    "defaultMessage": "{minutes}m",
+    "description": "Compact duration in minutes on the System Console Site health page, such as \"9m\"; m abbreviates minutes."
+  },
+  "admin.health_dashboard.empty_tab.critical": {
+    "defaultMessage": "No critical findings",
+    "description": "Title of the empty Critical tab on the System Console Site health page, shown when no critical finding is firing."
+  },
+  "admin.health_dashboard.empty_tab.info": {
+    "defaultMessage": "No info findings",
+    "description": "Title of the empty Info tab on the System Console Site health page, shown when no info finding is firing."
+  },
+  "admin.health_dashboard.empty_tab.resolved": {
+    "defaultMessage": "Nothing resolved in the last 7 days",
+    "description": "Title of the empty Recently resolved tab on the System Console Site health page, shown when no finding resolved in the last 7 days."
+  },
+  "admin.health_dashboard.empty_tab.resolved_body": {
+    "defaultMessage": "Findings that clear on their own are listed here for 7 days.",
+    "description": "Body of the empty Recently resolved tab on the System Console Site health page."
+  },
+  "admin.health_dashboard.empty_tab.severity_body": {
+    "defaultMessage": "Nothing at this severity is firing.",
+    "description": "Body of an empty Critical, Warning or Info tab on the System Console Site health page."
+  },
+  "admin.health_dashboard.empty_tab.unknown": {
+    "defaultMessage": "Every check could be evaluated",
+    "description": "Title of the empty Unknown tab on the System Console Site health page, shown when every health check could be evaluated."
+  },
+  "admin.health_dashboard.empty_tab.unknown_body": {
+    "defaultMessage": "Checks that cannot run are listed here as unknown, never as healthy.",
+    "description": "Body of the empty Unknown tab on the System Console Site health page; stresses that an unknown check is never treated as healthy."
+  },
+  "admin.health_dashboard.empty_tab.warning": {
+    "defaultMessage": "No warning findings",
+    "description": "Title of the empty Warning tab on the System Console Site health page, shown when no warning finding is firing."
+  },
+  "admin.health_dashboard.empty.body": {
+    "defaultMessage": "The first health check runs within an hour of enabling the feature.",
+    "description": "Body of the System Console Site health page empty state shown before the first health check has run."
+  },
+  "admin.health_dashboard.empty.title": {
+    "defaultMessage": "Not evaluated yet",
+    "description": "Title of the System Console Site health page empty state shown before the first health check has run."
+  },
+  "admin.health_dashboard.error.body": {
+    "defaultMessage": "Reload the page to try again.",
+    "description": "Body shown on the System Console Site health page when the health findings request fails."
+  },
+  "admin.health_dashboard.error.title": {
+    "defaultMessage": "Health findings could not be loaded",
+    "description": "Title shown on the System Console Site health page when the health findings request fails."
+  },
+  "admin.health_dashboard.finding.resolved_badge": {
+    "defaultMessage": "Resolved ({severity} when firing)",
+    "description": "Badge on a recently resolved finding row on the System Console Site health page; {severity} is the severity label (Critical, Warning or Info) the finding had while firing."
+  },
+  "admin.health_dashboard.finding.title_on_node": {
+    "defaultMessage": "{title} on {node}",
+    "description": "Finding title on the System Console Site health page for a finding that applies to one cluster node; {title} is the already translated finding title and {node} is a hostname."
+  },
+  "admin.health_dashboard.finding.unknown_badge": {
+    "defaultMessage": "Unknown ({severity} when firing)",
+    "description": "Badge on a finding row of the System Console Site health page for a check that could not be evaluated; {severity} is a severity label (Critical, Warning or Info) the finding would have if it fired."
+  },
+  "admin.health_dashboard.finding.unknown_fallback": {
+    "defaultMessage": "This check could not run, so its result is unknown.",
+    "description": "Cause shown on a finding row of the System Console Site health page when a check could not be evaluated and the server gave no reason."
+  },
+  "admin.health_dashboard.group_by.category": {
+    "defaultMessage": "Category",
+    "description": "Option of the Group by control on the System Console Site health page that groups findings by area, such as Database or Notifications."
+  },
+  "admin.health_dashboard.group_by.label": {
+    "defaultMessage": "Group by",
+    "description": "Label of the control on the System Console Site health page that switches how findings are grouped."
+  },
+  "admin.health_dashboard.group_by.severity": {
+    "defaultMessage": "Severity",
+    "description": "Option of the Group by control on the System Console Site health page that groups findings by severity."
+  },
+  "admin.health_dashboard.last_evaluated": {
+    "defaultMessage": "Last evaluated {time}",
+    "description": "Line at the top of the System Console Site health page; {time} is a relative time such as \"38 minutes ago\" of the latest health check run."
+  },
+  "admin.health_dashboard.severity.critical": {
+    "defaultMessage": "Critical",
+    "description": "Severity label of a health finding on the System Console Site health page; compact space."
+  },
+  "admin.health_dashboard.severity.info": {
+    "defaultMessage": "Info",
+    "description": "Severity label of a health finding on the System Console Site health page, short for informational; compact space."
+  },
+  "admin.health_dashboard.severity.warning": {
+    "defaultMessage": "Warning",
+    "description": "Severity label of a health finding on the System Console Site health page; compact space."
+  },
+  "admin.health_dashboard.state.resolved": {
+    "defaultMessage": "Recently resolved",
+    "description": "Tab and section label on the System Console Site health page for findings that stopped firing in the last 7 days."
+  },
+  "admin.health_dashboard.state.unknown": {
+    "defaultMessage": "Unknown",
+    "description": "Tab label on the System Console Site health page for health checks that could not be evaluated."
+  },
+  "admin.health_dashboard.tab.open": {
+    "defaultMessage": "Open",
+    "description": "Default tab on the System Console Site health page listing every firing finding and every check that could not be evaluated."
+  },
+  "admin.health_dashboard.tabs.label": {
+    "defaultMessage": "Filter findings",
+    "description": "Screen reader label for the tabs that filter findings on the System Console Site health page."
+  },
+  "admin.health_dashboard.title": {
+    "defaultMessage": "Site health",
+    "description": "Page header of the System Console Site health page, which lists health findings for the workspace."
+  },
+  "admin.health_dashboard.trend.firing": {
+    "defaultMessage": "Firing for {duration}",
+    "description": "Meta line on a finding row of the System Console Site health page; {duration} is a compact duration such as \"3d 4h\"."
+  },
+  "admin.health_dashboard.trend.resolved": {
+    "defaultMessage": "Resolved {time}",
+    "description": "Meta line on a resolved finding row of the System Console Site health page; {time} is a relative time such as \"2 hours ago\"."
+  },
+  "admin.health_dashboard.trend.unknown": {
+    "defaultMessage": "Unevaluated for {duration}",
+    "description": "Meta line on a finding row of the System Console Site health page for a check that could not be evaluated; {duration} is a compact duration such as \"5h\"."
+  },
+  "admin.health_dashboard.unknown.explanation": {
+    "defaultMessage": "These checks could not run, so their result is unknown. Unknown does not mean healthy: each one shows why it could not be checked.",
+    "description": "Explanation under the \"Could not be evaluated\" section of the System Console Site health page; unknown results must not be read as healthy."
+  },
+  "admin.health_dashboard.unknown.title": {
+    "defaultMessage": "Could not be evaluated",
+    "description": "Heading of the section on the System Console Site health page listing health checks that could not be evaluated."
+  },
   "admin.image.amazonS3BucketDescription": {
     "defaultMessage": "Name you selected for your S3 bucket in AWS.",
     "description": "Admin console help text under the Amazon S3 Bucket field on the Environment > File Storage page."
@@ -14718,6 +14962,10 @@
   "admin.sidebar.site": {
     "defaultMessage": "Site Configuration",
     "description": "Category heading in the System Console left navigation sidebar, grouping site-wide configuration pages; compact space."
+  },
+  "admin.sidebar.siteHealth": {
+    "defaultMessage": "Site health",
+    "description": "Navigation item in the System Console sidebar under Reporting; opens the Site health page listing health findings; compact space."
   },
   "admin.sidebar.smtp": {
     "defaultMessage": "SMTP",

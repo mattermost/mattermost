@@ -45,6 +45,7 @@ describe('components/AdminSidebar', () => {
         navigationBlocked: false,
         siteName: 'test snap',
         subscriptionProduct: undefined,
+        isCurrentUserSystemAdmin: true,
         plugins: {
             plugin_0: {
                 active: false,
@@ -167,6 +168,7 @@ describe('components/AdminSidebar', () => {
             buildEnterpriseReady: false,
             siteName: 'test snap',
             subscriptionProduct: undefined,
+            isCurrentUserSystemAdmin: true,
             navigationBlocked: false,
             plugins: {
                 plugin_0: {
@@ -213,6 +215,7 @@ describe('components/AdminSidebar', () => {
             buildEnterpriseReady: false,
             siteName: 'test snap',
             subscriptionProduct: undefined,
+            isCurrentUserSystemAdmin: true,
             navigationBlocked: false,
             plugins: {
                 plugin_0: {
@@ -262,6 +265,7 @@ describe('components/AdminSidebar', () => {
             navigationBlocked: false,
             siteName: 'test snap',
             subscriptionProduct: undefined,
+            isCurrentUserSystemAdmin: true,
             plugins: {
                 plugin_0: {
                     active: false,
@@ -338,6 +342,7 @@ describe('components/AdminSidebar', () => {
             navigationBlocked: false,
             siteName: 'test snap',
             subscriptionProduct: undefined,
+            isCurrentUserSystemAdmin: true,
             plugins: {
                 plugin_0: {
                     active: false,
@@ -404,6 +409,7 @@ describe('components/AdminSidebar', () => {
             navigationBlocked: false,
             siteName: 'test snap',
             subscriptionProduct: undefined,
+            isCurrentUserSystemAdmin: true,
             plugins: {
                 plugin_0: {
                     active: false,
@@ -468,6 +474,7 @@ describe('components/AdminSidebar', () => {
             navigationBlocked: false,
             siteName: 'test snap',
             subscriptionProduct: undefined,
+            isCurrentUserSystemAdmin: true,
             plugins: {
                 plugin_0: {
                     active: false,
@@ -534,6 +541,7 @@ describe('components/AdminSidebar', () => {
             navigationBlocked: false,
             siteName: 'test snap',
             subscriptionProduct: undefined,
+            isCurrentUserSystemAdmin: true,
             plugins: {
                 plugin_0: {
                     active: false,
@@ -607,6 +615,7 @@ describe('components/AdminSidebar', () => {
             navigationBlocked: false,
             siteName: 'test snap',
             subscriptionProduct: undefined,
+            isCurrentUserSystemAdmin: true,
             plugins: {
                 'mattermost-autolink': samplePlugin1,
             },
@@ -747,6 +756,7 @@ describe('components/AdminSidebar', () => {
             navigationBlocked: false,
             siteName: 'test snap',
             subscriptionProduct: undefined,
+            isCurrentUserSystemAdmin: true,
             plugins: {
                 'mattermost-autolink': samplePlugin1,
             },

@@ -16,6 +16,7 @@ import emojis from './emojis';
 import files from './files';
 import general from './general';
 import groups from './groups';
+import health from './health';
 import hostedCustomer from './hosted_customer';
 import integrations from './integrations';
 import jobs from './jobs';
@@ -69,4 +70,5 @@ export default combineReducers({
     contentFlagging,
     properties,
     renderPermissions,
+    health,
 });
