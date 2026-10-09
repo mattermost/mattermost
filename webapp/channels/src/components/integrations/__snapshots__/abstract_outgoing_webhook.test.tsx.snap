@@ -95,20 +95,53 @@ exports[`components/integrations/AbstractOutgoingWebhook should match snapshot 1
           <div
             class="col-md-5 col-sm-8"
           >
-            <select
-              class="form-control"
+            <div
+              class="_select_h9fbq_2 _select--size-medium_h9fbq_167"
             >
-              <option
-                value="application/x-www-form-urlencoded"
+              <div
+                class="_select__wrapper_h9fbq_8"
               >
-                application/x-www-form-urlencoded
-              </option>
-              <option
-                value="application/json"
-              >
-                application/json
-              </option>
-            </select>
+                <button
+                  aria-controls="_r_0_-listbox"
+                  aria-expanded="false"
+                  aria-haspopup="listbox"
+                  class="_select__control_h9fbq_56"
+                  id="_r_0_"
+                  role="combobox"
+                  type="button"
+                >
+                  <span
+                    class="_select__value_h9fbq_82"
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="_select__trailing-icon_h9fbq_99"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="14"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="14"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                </button>
+              </div>
+            </div>
             <div
               class="form__help"
             >
@@ -202,21 +235,61 @@ word
           <div
             class="col-md-5 col-sm-8"
           >
-            <select
-              class="form-control"
-              id="triggerWhen"
+            <div
+              class="_select_h9fbq_2 _select--size-medium_h9fbq_167"
             >
-              <option
+              <div
+                class="_select__wrapper_h9fbq_8"
+              >
+                <button
+                  aria-controls="triggerWhen-listbox"
+                  aria-expanded="false"
+                  aria-haspopup="listbox"
+                  aria-label="Trigger When"
+                  class="_select__control_h9fbq_56"
+                  id="triggerWhen"
+                  role="combobox"
+                  type="button"
+                >
+                  <span
+                    class="_select__value_h9fbq_82"
+                  >
+                    First word matches a trigger word exactly
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    class="_select__trailing-icon_h9fbq_99"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="14"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="14"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                </button>
+              </div>
+              <input
+                name="triggerWhen"
+                type="hidden"
                 value="0"
-              >
-                First word matches a trigger word exactly
-              </option>
-              <option
-                value="1"
-              >
-                First word starts with a trigger word
-              </option>
-            </select>
+              />
+            </div>
             <div
               class="form__help"
             >

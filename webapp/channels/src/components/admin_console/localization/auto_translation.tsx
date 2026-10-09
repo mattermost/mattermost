@@ -7,6 +7,8 @@ import {Link} from 'react-router-dom';
 
 import type {AutoTranslationSettings} from '@mattermost/types/config';
 
+import {Select} from '@mattermost/compass-ui/components/select';
+
 import BooleanSetting from 'components/admin_console/boolean_setting';
 import MultiSelectSetting from 'components/admin_console/multiselect_settings';
 import Setting from 'components/admin_console/setting';
@@ -202,17 +204,16 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                     >
                         <div className='auto-translation-provider-body'>
                             {providerDescription}
-                            <select
-                                data-testid='Providerdropdown'
-                                className='form-control'
+                            <Select
                                 id='Provider'
                                 value={autoTranslationSettings.Provider || 'libretranslate'}
-                                onChange={(e) => handleChange('Provider', e.target.value as AutoTranslationSettings['Provider'])}
+                                onChange={(value) => handleChange('Provider', value as AutoTranslationSettings['Provider'])}
                                 disabled={props.disabled || props.setByEnv}
-                            >
-                                <option value='libretranslate'>{'LibreTranslate'}</option>
-                                <option value='agents'>{'Mattermost Agents'}</option>
-                            </select>
+                                options={[
+                                    {value: 'libretranslate', label: 'LibreTranslate'},
+                                    {value: 'agents', label: 'Mattermost Agents'},
+                                ]}
+                            />
                             {showAgentsError && (
                                 <div className='auto-translation-provider-error-message'>
                                     <i className='icon icon-alert-outline'/>

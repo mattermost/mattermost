@@ -121,28 +121,56 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
             <div
               class="col-sm-8"
             >
-              <select
-                class="form-control"
-                data-testid="exportFormatdropdown"
-                disabled=""
-                id="exportFormat"
+              <div
+                class="_select_h9fbq_2 _select--size-medium_h9fbq_167 _select--disabled_h9fbq_16"
               >
-                <option
-                  value="actiance"
+                <div
+                  class="_select__wrapper_h9fbq_8"
                 >
-                  Actiance XML
-                </option>
-                <option
-                  value="csv"
-                >
-                  CSV
-                </option>
-                <option
-                  value="globalrelay"
-                >
-                  Global Relay EML
-                </option>
-              </select>
+                  <button
+                    aria-controls="exportFormat-listbox"
+                    aria-expanded="false"
+                    aria-haspopup="listbox"
+                    class="_select__control_h9fbq_56"
+                    disabled=""
+                    id="exportFormat"
+                    role="combobox"
+                    type="button"
+                  >
+                    <span
+                      class="_select__value_h9fbq_82"
+                    >
+                      Actiance XML
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      class="_select__trailing-icon_h9fbq_99"
+                    >
+                      <div
+                        aria-hidden="true"
+                        class="_icon_1i355_2 _icon--size-12_1i355_30"
+                      >
+                        <div
+                          class="_icon__glyph-area_1i355_9"
+                        >
+                          <svg
+                            fill="currentColor"
+                            height="14"
+                            version="1.1"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </span>
+                  </button>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="exportFormathelp-text"
@@ -361,28 +389,56 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
             <div
               class="col-sm-8"
             >
-              <select
-                class="form-control"
-                data-testid="exportFormatdropdown"
-                disabled=""
-                id="exportFormat"
+              <div
+                class="_select_h9fbq_2 _select--size-medium_h9fbq_167 _select--disabled_h9fbq_16"
               >
-                <option
-                  value="actiance"
+                <div
+                  class="_select__wrapper_h9fbq_8"
                 >
-                  Actiance XML
-                </option>
-                <option
-                  value="csv"
-                >
-                  CSV
-                </option>
-                <option
-                  value="globalrelay"
-                >
-                  Global Relay EML
-                </option>
-              </select>
+                  <button
+                    aria-controls="exportFormat-listbox"
+                    aria-expanded="false"
+                    aria-haspopup="listbox"
+                    class="_select__control_h9fbq_56"
+                    disabled=""
+                    id="exportFormat"
+                    role="combobox"
+                    type="button"
+                  >
+                    <span
+                      class="_select__value_h9fbq_82"
+                    >
+                      Global Relay EML
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      class="_select__trailing-icon_h9fbq_99"
+                    >
+                      <div
+                        aria-hidden="true"
+                        class="_icon_1i355_2 _icon--size-12_1i355_30"
+                      >
+                        <div
+                          class="_icon__glyph-area_1i355_9"
+                        >
+                          <svg
+                            fill="currentColor"
+                            height="14"
+                            version="1.1"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </span>
+                  </button>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="exportFormathelp-text"
@@ -806,27 +862,55 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
             <div
               class="col-sm-8"
             >
-              <select
-                class="form-control"
-                data-testid="exportFormatdropdown"
-                id="exportFormat"
+              <div
+                class="_select_h9fbq_2 _select--size-medium_h9fbq_167"
               >
-                <option
-                  value="actiance"
+                <div
+                  class="_select__wrapper_h9fbq_8"
                 >
-                  Actiance XML
-                </option>
-                <option
-                  value="csv"
-                >
-                  CSV
-                </option>
-                <option
-                  value="globalrelay"
-                >
-                  Global Relay EML
-                </option>
-              </select>
+                  <button
+                    aria-controls="exportFormat-listbox"
+                    aria-expanded="false"
+                    aria-haspopup="listbox"
+                    class="_select__control_h9fbq_56"
+                    id="exportFormat"
+                    role="combobox"
+                    type="button"
+                  >
+                    <span
+                      class="_select__value_h9fbq_82"
+                    >
+                      Actiance XML
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      class="_select__trailing-icon_h9fbq_99"
+                    >
+                      <div
+                        aria-hidden="true"
+                        class="_icon_1i355_2 _icon--size-12_1i355_30"
+                      >
+                        <div
+                          class="_icon__glyph-area_1i355_9"
+                        >
+                          <svg
+                            fill="currentColor"
+                            height="14"
+                            version="1.1"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </span>
+                  </button>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="exportFormathelp-text"
@@ -1043,27 +1127,55 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
             <div
               class="col-sm-8"
             >
-              <select
-                class="form-control"
-                data-testid="exportFormatdropdown"
-                id="exportFormat"
+              <div
+                class="_select_h9fbq_2 _select--size-medium_h9fbq_167"
               >
-                <option
-                  value="actiance"
+                <div
+                  class="_select__wrapper_h9fbq_8"
                 >
-                  Actiance XML
-                </option>
-                <option
-                  value="csv"
-                >
-                  CSV
-                </option>
-                <option
-                  value="globalrelay"
-                >
-                  Global Relay EML
-                </option>
-              </select>
+                  <button
+                    aria-controls="exportFormat-listbox"
+                    aria-expanded="false"
+                    aria-haspopup="listbox"
+                    class="_select__control_h9fbq_56"
+                    id="exportFormat"
+                    role="combobox"
+                    type="button"
+                  >
+                    <span
+                      class="_select__value_h9fbq_82"
+                    >
+                      Global Relay EML
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      class="_select__trailing-icon_h9fbq_99"
+                    >
+                      <div
+                        aria-hidden="true"
+                        class="_icon_1i355_2 _icon--size-12_1i355_30"
+                      >
+                        <div
+                          class="_icon__glyph-area_1i355_9"
+                        >
+                          <svg
+                            fill="currentColor"
+                            height="14"
+                            version="1.1"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </span>
+                  </button>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="exportFormathelp-text"
@@ -1479,27 +1591,55 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
             <div
               class="col-sm-8"
             >
-              <select
-                class="form-control"
-                data-testid="exportFormatdropdown"
-                id="exportFormat"
+              <div
+                class="_select_h9fbq_2 _select--size-medium_h9fbq_167"
               >
-                <option
-                  value="actiance"
+                <div
+                  class="_select__wrapper_h9fbq_8"
                 >
-                  Actiance XML
-                </option>
-                <option
-                  value="csv"
-                >
-                  CSV
-                </option>
-                <option
-                  value="globalrelay"
-                >
-                  Global Relay EML
-                </option>
-              </select>
+                  <button
+                    aria-controls="exportFormat-listbox"
+                    aria-expanded="false"
+                    aria-haspopup="listbox"
+                    class="_select__control_h9fbq_56"
+                    id="exportFormat"
+                    role="combobox"
+                    type="button"
+                  >
+                    <span
+                      class="_select__value_h9fbq_82"
+                    >
+                      Global Relay EML
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      class="_select__trailing-icon_h9fbq_99"
+                    >
+                      <div
+                        aria-hidden="true"
+                        class="_icon_1i355_2 _icon--size-12_1i355_30"
+                      >
+                        <div
+                          class="_icon__glyph-area_1i355_9"
+                        >
+                          <svg
+                            fill="currentColor"
+                            height="14"
+                            version="1.1"
+                            viewBox="0 0 24 24"
+                            width="14"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </span>
+                  </button>
+                </div>
+              </div>
               <div
                 class="help-text"
                 data-testid="exportFormathelp-text"

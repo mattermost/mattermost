@@ -4,8 +4,9 @@
 import React, {Fragment, useCallback, useEffect, useMemo, useRef, memo} from 'react';
 import type {ChangeEvent, ReactNode} from 'react';
 import {FormattedMessage, useIntl, defineMessage} from 'react-intl';
-import ReactSelect from 'react-select';
-import type {OnChangeValue, Options} from 'react-select';
+import type {Options} from 'react-select';
+
+import {Select} from '@mattermost/compass-ui/components/select';
 
 import type {UserNotifyProps} from '@mattermost/types/users';
 
@@ -86,10 +87,8 @@ function DesktopAndMobileNotificationSettings({
         setParentState('desktopAndMobileSettingsDifferent', value);
     }, [setParentState]);
 
-    const handleChangeForSendMobileNotificationsSelect = useCallback((selectedOption: OnChangeValue<SelectOption, boolean>) => {
-        if (selectedOption && 'value' in selectedOption) {
-            setParentState('pushActivity', selectedOption.value);
-        }
+    const handleChangeForSendMobileNotificationsSelect = useCallback((selectedValue: string) => {
+        setParentState('pushActivity', selectedValue);
     }, [setParentState]);
 
     const handleChangeForMobileThreadsCheckbox = useCallback((event: ChangeEvent<HTMLInputElement>) => {
@@ -97,10 +96,8 @@ function DesktopAndMobileNotificationSettings({
         setParentState('pushThreads', value);
     }, [setParentState]);
 
-    const handleChangeForTriggerMobileNotificationsSelect = useCallback((selectedOption: OnChangeValue<SelectOption, boolean>) => {
-        if (selectedOption && 'value' in selectedOption) {
-            setParentState('pushStatus', selectedOption.value);
-        }
+    const handleChangeForTriggerMobileNotificationsSelect = useCallback((selectedValue: string) => {
+        setParentState('pushStatus', selectedValue);
     }, [setParentState]);
 
     const maximizedSettingsInputs = useMemo(() => {
@@ -195,19 +192,18 @@ function DesktopAndMobileNotificationSettings({
                             defaultMessage='Send mobile notifications for:'
                         />
                     </label>
-                    <ReactSelect
-                        inputId='sendMobileNotificationsSelectInput'
-                        aria-labelledby='sendMobileNotificationsLabel'
-                        className='react-select singleSelect'
-                        classNamePrefix='react-select'
-                        options={optionsOfSendNotifications}
-                        isClearable={false}
-                        isSearchable={false}
-                        components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
-                        value={getValueOfSendMobileNotificationForSelect(pushActivity)}
+                    <Select
+                        id='sendMobileNotificationsSelectInput'
+                        aria-label={intl.formatMessage({
+                            id: 'user.settings.notifications.desktopAndMobile.sendMobileNotificationsFor',
+                            defaultMessage: 'Send mobile notifications for:',
+                        })}
+                        options={optionsOfSendNotifications.map((option) => ({
+                            value: option.value,
+                            label: getOptionLabel(option, intl),
+                        }))}
+                        value={getValueOfSendMobileNotificationForSelect(pushActivity).value}
                         onChange={handleChangeForSendMobileNotificationsSelect}
-                        getOptionLabel={(option) => getOptionLabel(option, intl)}
-
                     />
                 </React.Fragment>
             );
@@ -250,18 +246,18 @@ function DesktopAndMobileNotificationSettings({
                             defaultMessage='Trigger mobile notifications when I am:'
                         />
                     </label>
-                    <ReactSelect
-                        inputId='pushMobileNotificationSelectInput'
-                        aria-labelledby='pushMobileNotificationsLabel'
-                        className='react-select singleSelect'
-                        classNamePrefix='react-select'
-                        options={optionsOfSendMobileNotificationsWhenSelect}
-                        isClearable={false}
-                        isSearchable={false}
-                        components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
-                        value={getValueOfSendMobileNotificationWhenSelect(pushStatus)}
+                    <Select
+                        id='pushMobileNotificationSelectInput'
+                        aria-label={intl.formatMessage({
+                            id: 'user.settings.notifications.desktopAndMobile.pushNotification',
+                            defaultMessage: 'Trigger mobile notifications when I am:',
+                        })}
+                        options={optionsOfSendMobileNotificationsWhenSelect.map((option) => ({
+                            value: option.value,
+                            label: getOptionLabel(option, intl),
+                        }))}
+                        value={getValueOfSendMobileNotificationWhenSelect(pushStatus).value}
                         onChange={handleChangeForTriggerMobileNotificationsSelect}
-                        getOptionLabel={(option) => getOptionLabel(option, intl)}
                     />
                 </React.Fragment>
             );
@@ -345,10 +341,6 @@ function DesktopAndMobileNotificationSettings({
             updateSection={handleChangeForMinSection}
         />
     );
-}
-
-function NoIndicatorSeparatorComponent() {
-    return null;
 }
 
 const optionsOfSendNotifications = [

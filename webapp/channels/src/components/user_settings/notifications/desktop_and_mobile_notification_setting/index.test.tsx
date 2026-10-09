@@ -203,8 +203,7 @@ describe('DesktopNotificationSettings', () => {
             const selectElement = screen.getByLabelText(/Send mobile notifications for:/);
             expect(selectElement).toBeInTheDocument();
 
-            // The aria-labelledby should reference the correct label
-            expect(selectElement).toHaveAttribute('aria-labelledby', 'sendMobileNotificationsLabel');
+            expect(selectElement).toHaveAttribute('aria-label', 'Send mobile notifications for:');
         });
 
         test('should render mobile notification status options correctly', () => {

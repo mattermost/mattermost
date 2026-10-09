@@ -11,6 +11,8 @@ import type {ScheduledRecapTimePeriod} from '@mattermost/types/recaps';
 
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
+import {Select} from '@mattermost/compass-ui/components/select';
+
 import DropdownInput from 'components/dropdown_input';
 import {formatRelativeScheduleTime} from 'components/recaps/schedule_time_format';
 import Input from 'components/widgets/inputs/input/input';
@@ -204,13 +206,13 @@ const ScheduleConfiguration = ({
                             defaultMessage='Select a time period for your recap to cover'
                         />
                     </label>
-                    <DropdownInput
+                    <Select
+                        id='DropdownInput_timePeriod'
                         name='timePeriod'
-                        legend={formatMessage({id: 'recaps.modal.timePeriod', defaultMessage: 'Time period to cover'})}
-                        value={timePeriodOptions.find((o) => o.value === timePeriod)}
+                        label={formatMessage({id: 'recaps.modal.timePeriod', defaultMessage: 'Time period to cover'})}
+                        value={timePeriod}
                         options={timePeriodOptions}
-                        onChange={(val) => setTimePeriod(val.value)}
-                        required={true}
+                        onChange={(value) => setTimePeriod(value as ScheduledRecapTimePeriod)}
                     />
                 </div>
             </div>

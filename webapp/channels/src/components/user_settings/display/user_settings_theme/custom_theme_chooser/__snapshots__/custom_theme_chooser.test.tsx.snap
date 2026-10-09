@@ -770,32 +770,56 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
             class="input-group theme-group group--code dropdown"
             id="codeTheme"
           >
-            <select
-              class="form-control"
-              id="codeThemeSelect"
+            <div
+              class="_select_h9fbq_2 _select--size-medium_h9fbq_167 form-control"
             >
-              <option
-                value="solarized-dark"
+              <div
+                class="_select__wrapper_h9fbq_8"
               >
-                Solarized Dark
-              </option>
-              <option
-                value="solarized-light"
-              >
-                Solarized Light
-              </option>
-              <option
-                selected=""
-                value="github"
-              >
-                GitHub
-              </option>
-              <option
-                value="monokai"
-              >
-                Monokai
-              </option>
-            </select>
+                <button
+                  aria-controls="codeThemeSelect-listbox"
+                  aria-expanded="false"
+                  aria-haspopup="listbox"
+                  aria-label="Code Theme"
+                  class="_select__control_h9fbq_56"
+                  id="codeThemeSelect"
+                  role="combobox"
+                  type="button"
+                >
+                  <span
+                    class="_select__value_h9fbq_82"
+                  >
+                    GitHub
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    class="_select__trailing-icon_h9fbq_99"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="14"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="14"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                </button>
+              </div>
+            </div>
             <span
               class="input-group-addon"
             >
