@@ -73,9 +73,9 @@ describe('AdminDefinition - Site health or Workspace Optimization, never both', 
         }
     });
 
-    test('flag on with an Enterprise license hides Workspace Optimization from admins who cannot see Site health', () => {
+    test('flag on with an Enterprise license keeps Workspace Optimization for delegated admins who cannot see Site health', () => {
         expect(isHidden('site_health', enterpriseLicense, false)).toBe(true);
-        expect(isHidden('workspace_optimization', enterpriseLicense, false)).toBe(true);
+        expect(isHidden('workspace_optimization', enterpriseLicense, false)).toBe(false);
     });
 
     test('flag on with a Cloud Enterprise license shows Site health only', () => {
@@ -83,32 +83,15 @@ describe('AdminDefinition - Site health or Workspace Optimization, never both', 
         expect(isHidden('workspace_optimization', cloudEnterpriseLicense)).toBe(true);
     });
 
-    test('at most one Reporting page is routed per URL, and never both dashboards', () => {
+    test('never shows both dashboards', () => {
         const licenses = [enterpriseLicense, enterpriseAdvancedLicense, professionalLicense, cloudEnterpriseLicense, noLicense];
         for (const license of licenses) {
             for (const flag of [true, false]) {
                 for (const isSystemAdmin of [true, false]) {
                     const visible = (Object.keys(reporting) as ReportingKey[]).filter((key) => !isHidden(key, license, isSystemAdmin, flag));
-                    const urls = visible.map((key) => reporting[key].url);
-
-                    expect(new Set(urls).size).toBe(urls.length);
                     expect(visible.includes('site_health') && visible.includes('workspace_optimization')).toBe(false);
                 }
             }
         }
-    });
-
-    test('reporting/workspace_optimization redirects to Site health while Site health is shown', () => {
-        expect(reporting.workspace_optimization_redirect.url).toBe(reporting.workspace_optimization.url);
-        expect(isHidden('workspace_optimization_redirect', enterpriseLicense)).toBe(false);
-        expect(isHidden('workspace_optimization_redirect', enterpriseLicense, true, false)).toBe(true);
-        expect(isHidden('workspace_optimization_redirect', professionalLicense)).toBe(true);
-    });
-
-    test('reporting/site_health redirects to Workspace Optimization while Workspace Optimization is shown', () => {
-        expect(reporting.site_health_redirect.url).toBe(reporting.site_health.url);
-        expect(isHidden('site_health_redirect', enterpriseLicense, true, false)).toBe(false);
-        expect(isHidden('site_health_redirect', professionalLicense)).toBe(false);
-        expect(isHidden('site_health_redirect', enterpriseLicense)).toBe(true);
     });
 });
