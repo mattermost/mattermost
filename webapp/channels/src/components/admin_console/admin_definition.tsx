@@ -280,6 +280,19 @@ const adminDefinitionMessages = defineMessages({
     redis_clientcache_desc: {id: 'admin.cacheSettings.redisClientCacheDesc', defaultMessage: 'When true, client-side caching is disabled.'},
 });
 
+const siteHealthHidden = it.any(
+    it.not(it.configIsTrue('FeatureFlags', 'HealthDashboard')),
+    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+    it.not(it.isSystemAdmin),
+);
+
+// Site health replaces Workspace Optimization only for admins who can see it; delegated admins keep the old page.
+const workspaceOptimizationHidden = it.any(
+    it.not(siteHealthHidden),
+    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.REPORTING.SITE_STATISTICS)),
+    it.licensedForFeature('Cloud'),
+);
+
 const AdminDefinition: AdminDefinitionType = {
     about: {
         icon: (
@@ -384,11 +397,7 @@ const AdminDefinition: AdminDefinitionType = {
                     id: 'HealthDashboard',
                     component: HealthDashboard,
                 },
-                isHidden: it.any(
-                    it.configIsFalse('FeatureFlags', 'HealthDashboard'),
-                    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
-                    it.not(it.isSystemAdmin),
-                ),
+                isHidden: siteHealthHidden,
             },
             workspace_optimization: {
                 url: 'reporting/workspace_optimization',
@@ -397,10 +406,7 @@ const AdminDefinition: AdminDefinitionType = {
                     id: 'WorkspaceOptimizationDashboard',
                     component: WorkspaceOptimizationDashboard,
                 },
-                isHidden: it.any(
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.REPORTING.SITE_STATISTICS)),
-                    it.licensedForFeature('Cloud'),
-                ),
+                isHidden: workspaceOptimizationHidden,
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.REPORTING.SITE_STATISTICS)),
             },
             system_analytics: {
