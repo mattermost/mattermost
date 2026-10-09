@@ -122,10 +122,18 @@ func isJSONNull(raw json.RawMessage) bool {
 // so.
 func (pp *PermissionsPatch) ApplyTo(existing *Permissions) (*Permissions, error) {
 	result := &Permissions{Filtered: pp.Filtered}
+	// Copied, not shared: IsValid normalizes Restrictions in place.
 	if existing != nil {
-		result.Restrictions = existing.Restrictions
-		result.Grants = existing.Grants
-		result.Masking = existing.Masking
+		if existing.Restrictions != nil {
+			r := *existing.Restrictions
+			result.Restrictions = &r
+		}
+		result.Grants = slices.Clone(existing.Grants)
+		if existing.Masking != nil {
+			m := *existing.Masking
+			m.Except = slices.Clone(existing.Masking.Except)
+			result.Masking = &m
+		}
 	}
 
 	if pp.Restrictions != nil {
