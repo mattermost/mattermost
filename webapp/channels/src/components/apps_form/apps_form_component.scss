@@ -110,7 +110,7 @@
 // class on the open modal. Ease the change so it reads as a resize rather than
 // a jump, and leave it alone for anyone who has asked for less motion.
 @media (prefers-reduced-motion: no-preference) {
-    .modal .modal-dialog.a11y__modal {
+    .modal .modal-dialog.apps-form-modal {
         transition: width 150ms ease-in-out;
     }
 }

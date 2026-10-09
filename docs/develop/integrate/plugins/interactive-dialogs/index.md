@@ -763,7 +763,7 @@ The full list of supported fields is included below:
 | `display_name`       | String | Heading shown for the section. Maximum 24 characters.                                                                             |
 | `name`               | String | Name of the container element. Maximum 300 characters. You should use unique `name` fields in the same dialog.                    |
 | `type`               | String | Set this value to `collapsible` for a container element.                                                                          |
-| `subtype`            | String | (Optional) Set to `grid` to lay the container's children out as a table. See [Grid layout](#grid-layout). Omit it to stack them.   |
+| `subtype`            | String | (Optional) Set to `grid` to lay the container's children out as a table. See [Grid layout](#grid-layout). Omit it to stack them. Any other value is rejected when the dialog is opened. |
 | `collapsible_config` | Object | Container configuration. Required for this element type. See the fields below.                                                    |
 
 The `collapsible_config` object supports:
@@ -821,7 +821,7 @@ Give every cell a **unique name** across the whole grid — synthesizing it from
 
 Note the following when laying out a grid:
 
-- **Column headers come from the first row.** Every row should hold the same elements in the same order. A row with fewer elements is padded on the right rather than shifted, so a mismatch shows as a gap instead of data under the wrong heading.
+- **Column headers come from the first row.** Every row should hold the same elements in the same order. A mismatched row is still laid out in full rather than losing elements: a row with fewer elements is padded on the right rather than shifted, so the mismatch shows as a gap instead of data under the wrong heading, and a row with more elements than the first widens the table, taking the extra heading from the first row that has an element in that position.
 - **The first element of each row is the row header.** It renders in a sticky column that stays visible while the rest of the row scrolls sideways, and it remains editable — a record's identifier is usually something the user is filling in too.
 - **Cell labels are hidden visually, not removed.** The column heading carries the visible text, and each cell keeps its own label for screen readers. Headings are capped at 24 characters like any other `display_name`.
 - **The container's own `display_name` is not shown** in grid mode. It is used as the section heading if the same elements are rendered stacked.

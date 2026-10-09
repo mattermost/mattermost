@@ -45,9 +45,10 @@ const cellFields = (row: AppField, excludeName?: string): AppField[] =>
 // title if the same form is rendered stacked.
 //
 // Column headers come from the first row, so every row is expected to hold the
-// same fields in the same order. A row with fewer cells is padded rather than
-// shifted, which keeps a short row from silently landing under the wrong
-// column.
+// same fields in the same order. A mismatched row is still laid out rather than
+// losing cells: a short row is padded on the right rather than shifted, which
+// keeps it from landing under the wrong column, and a row longer than the first
+// widens the table instead of having its extra cells dropped.
 //
 // Cell labels are not removed, only visually hidden by
 // .apps-form-grid__cell (the column header carries the visible text), so the
@@ -63,7 +64,28 @@ const AppsFormGrid = ({field, renderCell, excludeName}: Props) => {
         return <>{children.map((child, i) => renderCell(child, i === 0))}</>;
     }
 
-    const columns = cellFields(rows[0], excludeName).map((cell) => cell.label || cell.name);
+    const rowCells = rows.map((row) => cellFields(row, excludeName));
+
+    // The table is as wide as the widest row, not as wide as the first one. A
+    // cell past the first row's width is still a real field: it is seeded into
+    // the form's values and checked on submit like any other. Dropping it would
+    // mean a required cell could block submission with an error that has
+    // nowhere to render, leaving a dialog that will not submit and will not say
+    // why. For a well-formed grid every row is the same width and this is
+    // exactly the first row's columns.
+    const columnCount = Math.max(...rowCells.map((cells) => cells.length));
+
+    // A heading comes from the first row that actually has a cell in that
+    // position, which is the first row unless that row is short. Keying on the
+    // cell name rather than the label keeps two columns that share a label from
+    // colliding.
+    const columns = Array.from({length: columnCount}, (_, columnIndex) => {
+        const source = rowCells.find((cells) => cells[columnIndex])?.[columnIndex];
+        return {
+            label: source ? (source.label || source.name) : '',
+            key: source ? source.name : 'column-' + columnIndex,
+        };
+    });
 
     return (
         <div className='apps-form-grid'>
@@ -71,53 +93,50 @@ const AppsFormGrid = ({field, renderCell, excludeName}: Props) => {
                 <table className='apps-form-grid__table'>
                     <thead>
                         <tr>
-                            {columns.map((label, columnIndex) => (
+                            {columns.map((column, columnIndex) => (
                                 <th
-                                    key={label}
+                                    key={column.key}
                                     scope='col'
                                     className={columnIndex === 0 ? 'apps-form-grid__corner' : undefined}
                                 >
-                                    {label}
+                                    {column.label}
                                 </th>
                             ))}
                         </tr>
                     </thead>
                     <tbody>
-                        {rows.map((row, rowIndex) => {
-                            const cells = cellFields(row, excludeName);
-                            return (
-                                <tr key={row.name}>
-                                    {columns.map((_, columnIndex) => {
-                                        const cell = cells[columnIndex];
-                                        const content = cell ? renderCell(cell, rowIndex === 0 && columnIndex === 0) : null;
+                        {rows.map((row, rowIndex) => (
+                            <tr key={row.name}>
+                                {columns.map((column, columnIndex) => {
+                                    const cell = rowCells[rowIndex][columnIndex];
+                                    const content = cell ? renderCell(cell, rowIndex === 0 && columnIndex === 0) : null;
 
-                                        // The first column is the row header, so it is a <th
-                                        // scope='row'> rather than a <td>, but it holds a real
-                                        // field and is styled like any other cell.
-                                        if (columnIndex === 0) {
-                                            return (
-                                                <th
-                                                    key={row.name + '-' + columnIndex}
-                                                    scope='row'
-                                                    className='apps-form-grid__cell apps-form-grid__row-header'
-                                                >
-                                                    {content}
-                                                </th>
-                                            );
-                                        }
-
+                                    // The first column is the row header, so it is a <th
+                                    // scope='row'> rather than a <td>, but it holds a real
+                                    // field and is styled like any other cell.
+                                    if (columnIndex === 0) {
                                         return (
-                                            <td
-                                                key={row.name + '-' + columnIndex}
-                                                className='apps-form-grid__cell'
+                                            <th
+                                                key={row.name + '-' + column.key}
+                                                scope='row'
+                                                className='apps-form-grid__cell apps-form-grid__row-header'
                                             >
                                                 {content}
-                                            </td>
+                                            </th>
                                         );
-                                    })}
-                                </tr>
-                            );
-                        })}
+                                    }
+
+                                    return (
+                                        <td
+                                            key={row.name + '-' + column.key}
+                                            className='apps-form-grid__cell'
+                                        >
+                                            {content}
+                                        </td>
+                                    );
+                                })}
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
             </div>

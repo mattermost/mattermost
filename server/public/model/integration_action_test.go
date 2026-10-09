@@ -3098,3 +3098,57 @@ func TestDialogSizeValidation(t *testing.T) {
 		assert.Equal(t, DialogSizeLarge, decoded.Size)
 	})
 }
+
+func TestDialogCollapsibleSubTypeIsValid(t *testing.T) {
+	// A collapsible holding one leaf, with subtype left to the caller.
+	getCollapsible := func(subType string, childSubType string) DialogElement {
+		return DialogElement{
+			DisplayName: "Orders",
+			Name:        "order_grid",
+			Type:        "collapsible",
+			SubType:     subType,
+			Optional:    true,
+			CollapsibleConfig: &DialogElementCollapsibleConfig{
+				Elements: []DialogElement{
+					{
+						DisplayName: "Row",
+						Name:        "row_r1",
+						Type:        "collapsible",
+						SubType:     childSubType,
+						Optional:    true,
+						CollapsibleConfig: &DialogElementCollapsibleConfig{
+							Elements: []DialogElement{
+								{DisplayName: "Order #", Name: "cell_r1_order", Type: "text"},
+							},
+						},
+					},
+				},
+			},
+		}
+	}
+
+	for _, subType := range []string{"", DialogCollapsibleSubTypeGrid} {
+		t.Run("should accept collapsible subtype "+strconv.Quote(subType), func(t *testing.T) {
+			element := getCollapsible(subType, "")
+			assert.NoError(t, element.IsValid())
+		})
+	}
+
+	t.Run("should reject an unknown subtype on a collapsible", func(t *testing.T) {
+		element := getCollapsible("gird", "")
+		assert.ErrorContains(t, element.IsValid(), `invalid collapsible subtype "gird"`)
+	})
+
+	t.Run("should reject an unknown subtype on a nested collapsible", func(t *testing.T) {
+		// Nesting recurses into validateCollapsible directly rather than back
+		// through the type switch, so this is the path that would be missed if
+		// the check lived in isValid.
+		element := getCollapsible(DialogCollapsibleSubTypeGrid, "gird")
+		assert.ErrorContains(t, element.IsValid(), `invalid collapsible subtype "gird"`)
+	})
+
+	t.Run("should be case sensitive, matching how Size is validated", func(t *testing.T) {
+		element := getCollapsible("Grid", "")
+		assert.ErrorContains(t, element.IsValid(), `invalid collapsible subtype "Grid"`)
+	})
+}

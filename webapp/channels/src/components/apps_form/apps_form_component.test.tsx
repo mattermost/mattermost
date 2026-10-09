@@ -1884,6 +1884,17 @@ describe('AppsFormComponent', () => {
             expect(dialogClassList()).not.toContain('apps-form-modal--large');
         });
 
+        test('carries the apps-form-modal class the width styles hang off, at every tier', () => {
+            // The width transition is scoped to this class rather than to
+            // a11y__modal, which nearly every modal in the app carries and none
+            // of which should animate because this form can resize.
+            for (const size of [undefined, 'small', 'medium', 'large'] as const) {
+                const {unmount} = renderWithSize(size);
+                expect(dialogClassList()).toContain('apps-form-modal');
+                unmount();
+            }
+        });
+
         test('adds no width class for small, which is the historical width', () => {
             renderWithSize('small');
 

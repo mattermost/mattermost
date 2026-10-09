@@ -155,14 +155,37 @@ describe('AppsFormGrid', () => {
             expect(shortRow.querySelectorAll('td')[0]).toContainElement(screen.getByTestId('r2_weight'));
         });
 
-        it('ignores extra cells beyond the column count taken from the first row', () => {
+        it('widens the table for a row longer than the first rather than dropping its cells', () => {
             renderGrid(container([
                 row('r1', [cell('r1_order', 'Order #')]),
                 row('r2', [cell('r2_order', 'Order #'), cell('r2_extra', 'Extra')]),
             ]));
 
-            expect(screen.getAllByRole('columnheader')).toHaveLength(1);
-            expect(screen.queryByTestId('r2_extra')).not.toBeInTheDocument();
+            // The extra cell is a real field: it is seeded into the form's
+            // values and checked on submit, so dropping it would block the
+            // dialog with an error that has nowhere to render.
+            expect(screen.getAllByRole('columnheader')).toHaveLength(2);
+            expect(screen.getByTestId('r2_extra')).toBeInTheDocument();
+
+            // The heading for the widened column comes from the first row that
+            // has a cell there.
+            expect(screen.getAllByRole('columnheader')[1]).toHaveTextContent('Extra');
+
+            // The first row is padded under the new column rather than shifted.
+            const [, firstRow] = screen.getAllByRole('row');
+            expect(firstRow.querySelectorAll('th, td')).toHaveLength(2);
+            expect(firstRow.querySelectorAll('td')[0]).toBeEmptyDOMElement();
+        });
+
+        it('keeps two columns apart when they share a label', () => {
+            renderGrid(container([
+                row('r1', [cell('r1_a', 'Qty'), cell('r1_b', 'Qty')]),
+                row('r2', [cell('r2_a', 'Qty'), cell('r2_b', 'Qty')]),
+            ]));
+
+            expect(screen.getAllByRole('columnheader')).toHaveLength(2);
+            expect(screen.getByTestId('r1_a')).toBeInTheDocument();
+            expect(screen.getByTestId('r1_b')).toBeInTheDocument();
         });
     });
 

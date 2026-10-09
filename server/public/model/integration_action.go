@@ -461,6 +461,11 @@ const (
 	DialogSizeLarge  = "large"
 )
 
+// DialogCollapsibleSubTypeGrid lays a collapsible's children out as a table
+// rather than stacking them. It is the only subtype a collapsible accepts;
+// empty means stacked.
+const DialogCollapsibleSubTypeGrid = "grid"
+
 type Dialog struct {
 	CallbackId       string          `json:"callback_id"`
 	Title            string          `json:"title"`
@@ -1030,6 +1035,15 @@ func (e *DialogElement) validateCommon() error {
 // top-level collapsible is depth 1.
 func (e *DialogElement) validateCollapsible(depth int, seen map[string]bool) error {
 	var multiErr *multierror.Error
+
+	// Checked here rather than in isValid's type switch so that a nested
+	// collapsible is covered too: nesting recurses straight into this method to
+	// preserve depth tracking and never passes back through that switch.
+	// Rejecting an unknown subtype matches how Dialog.Size is handled, and
+	// stops a typo reaching the client and silently rendering as stacked.
+	if e.SubType != "" && e.SubType != DialogCollapsibleSubTypeGrid {
+		multiErr = multierror.Append(multiErr, errors.Errorf("invalid collapsible subtype %q", e.SubType))
+	}
 
 	cfg := e.CollapsibleConfig
 	if cfg == nil || len(cfg.Elements) == 0 {
