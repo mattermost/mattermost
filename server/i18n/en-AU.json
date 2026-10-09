@@ -6824,10 +6824,6 @@
     "translation": "Already deleted ID={{.PostId}}."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Unable to find the existing post or comment to update."
-  },
-  {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "Cannot update a post in a deleted channel."
   },

@@ -4120,11 +4120,6 @@
     "description": "API error when editing a post is blocked in a direct message channel restricted by admin policy."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Unable to find the existing post or comment to update.",
-    "description": "API error when the message or comment targeted by an edit cannot be found."
-  },
-  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Already deleted id={{.PostId}}.",
     "description": "Detail text attached to an edit-post permission error; {{.PostId}} is the ID of the post that was already deleted. Mostly developer-facing."
