@@ -19823,6 +19823,10 @@
     "defaultMessage": "There are errors in the form above",
     "description": "Error shown in the unsaved-changes panel of the Access Rules tab when the form above has validation errors."
   },
+  "channel_settings.access_rules.load_error": {
+    "defaultMessage": "Failed to load this channel's access rules. Try closing and reopening the channel settings.",
+    "description": "Error on the Access Rules tab when the channel's existing policy could not be loaded, blocking the editor to avoid overwriting it."
+  },
   "channel_settings.access_rules.parse_error": {
     "defaultMessage": "Invalid expression format",
     "description": "Error on the Access Rules tab when the attribute rule expression could not be parsed."
