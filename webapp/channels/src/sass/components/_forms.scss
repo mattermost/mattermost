@@ -68,6 +68,10 @@
     &__text {
         line-height: 20px;
     }
+
+    &__radio--label-before {
+        flex-direction: row-reverse;
+    }
 }
 
 .checkbox-matrix {
