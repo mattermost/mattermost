@@ -1085,6 +1085,29 @@ func TestCreatePropertyField(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
+	t.Run("a submitted permissions object is not stored", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value: model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelSysadmin},
+					Field: model.WriteOnly{Write: model.PermissionLevelSysadmin},
+				},
+			},
+		}
+
+		created, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Nil(t, created.Permissions)
+
+		stored, storeErr := th.App.Srv().Store().PropertyField().Get(th.Context, group.ID, created.ID)
+		require.NoError(t, storeErr)
+		require.Nil(t, stored.Permissions)
+	})
+
 	t.Run("a non-scope-admin cannot pin the creator permission level", func(t *testing.T) {
 		// Only a caller who administers the field's scope may configure
 		// permission levels; everyone else has all three pinned to the object

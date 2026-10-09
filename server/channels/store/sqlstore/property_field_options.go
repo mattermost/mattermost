@@ -1100,6 +1100,17 @@ func storedFieldAttrs(field *model.PropertyField) model.StringInterface {
 	return stored
 }
 
+// storedFieldPermissions encodes field.Permissions to JSONB for storage. If
+// Permissions is nil, returns nil for database NULL; otherwise marshals to JSON
+// text. lib/pq sends []byte as binary jsonb, whose first byte is a version
+// number — JSON text starting with '{' is version 123 and Postgres rejects it.
+func storedFieldPermissions(field *model.PropertyField) any {
+	if field.Permissions == nil {
+		return nil
+	}
+	return string(model.ToJSON(field.Permissions))
+}
+
 // hydratePropertyFieldOptions inlines each field's effective option set into
 // Attrs["options"], in the order the options were last written in. Fields whose
 // type carries no options are left untouched.
