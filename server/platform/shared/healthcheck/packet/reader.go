@@ -95,6 +95,9 @@ func readPacket(z *budgetedZip) (*Packet, error) {
 		snapshot.Deployment.IsCloud = diag.License.IsCloud
 	}
 
+	// The packet records no build date; the table evaluating it is this binary's, so its build date applies.
+	snapshot.Version.BuildDate, _ = time.Parse(time.UnixDate, model.BuildDate)
+
 	var metadata model.PacketMetadata
 	found, err := z.readMember(model.PacketMetadataFileName, &metadata, yaml.Unmarshal)
 	switch {
