@@ -62,6 +62,30 @@ func findingFingerprints(findings []*model.HealthFinding) []string {
 	return fingerprints
 }
 
+func checkHealthDashboardNotImplemented(t *testing.T, th *TestHelper) {
+	t.Helper()
+
+	finding := newHealthFinding("SITE_URL_HTTP", healthcheck.SurfaceProduct)
+	storeHealthFindings(t, th, finding)
+
+	_, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, resp)
+
+	resp, err = th.SystemAdminClient.MuteHealthFinding(context.Background(), finding.Fingerprint)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, resp)
+
+	resp, err = th.SystemAdminClient.UnmuteHealthFinding(context.Background(), finding.Fingerprint)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, resp)
+
+	stored, err := th.App.Srv().Store().HealthFinding().GetByFingerprints([]string{finding.Fingerprint})
+	require.NoError(t, err)
+	require.Len(t, stored, 1)
+	assert.False(t, stored[0].IsMuted())
+}
+
 func TestHealthDashboardAccess(t *testing.T) {
 	t.Run("unauthenticated", func(t *testing.T) {
 		th := setupHealthDashboard(t, true)
@@ -99,28 +123,19 @@ func TestHealthDashboardAccess(t *testing.T) {
 
 	t.Run("flag off", func(t *testing.T) {
 		th := setupHealthDashboard(t, false)
-
-		_, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
-		require.Error(t, err)
-		CheckNotImplementedStatus(t, resp)
+		checkHealthDashboardNotImplemented(t, th)
 	})
 
 	t.Run("no license", func(t *testing.T) {
 		th := setupHealthDashboard(t, true)
 		th.App.Srv().SetLicense(nil)
-
-		_, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
-		require.Error(t, err)
-		CheckNotImplementedStatus(t, resp)
+		checkHealthDashboardNotImplemented(t, th)
 	})
 
 	t.Run("license below Enterprise", func(t *testing.T) {
 		th := setupHealthDashboard(t, true)
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
-
-		_, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
-		require.Error(t, err)
-		CheckNotImplementedStatus(t, resp)
+		checkHealthDashboardNotImplemented(t, th)
 	})
 
 	t.Run("admin with the flag and license", func(t *testing.T) {
