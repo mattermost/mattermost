@@ -119,12 +119,16 @@ func PermissionsFromLegacy(field *PropertyField, opts LegacyConversionOpts) *Per
 	}
 }
 
-// ProjectLegacyPermissions is the inverse of PermissionsFromLegacy: it
-// returns a copy of field with its legacy permission columns and Attrs
-// populated from field.Permissions, so a v2 caller keeps reading a field
-// whose access is decided from permissions alone. Returns field
-// unchanged when Permissions is nil — there is nothing to project. Never
+// ProjectLegacyPermissions returns a copy of field with its legacy permission
+// columns and Attrs populated from field.Permissions, so a v2 caller keeps
+// reading a field whose access is decided from permissions alone. Returns
+// field unchanged when Permissions is nil — there is nothing to project. Never
 // mutates field or its Attrs map.
+//
+// It is not a lossless inverse of PermissionsFromLegacy. Every grant becomes
+// an owner, including synthesized ones such as the plugin wildcard, and
+// field.write none becomes protected; both read back as human write locks.
+// A caller reconverting a projection must strip those first.
 func ProjectLegacyPermissions(field *PropertyField) *PropertyField {
 	if field.Permissions == nil {
 		return field
