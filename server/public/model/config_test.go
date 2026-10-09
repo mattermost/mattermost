@@ -2193,6 +2193,13 @@ func TestSanitizeDataSource(t *testing.T) {
 			absent:     []string{"tail"},
 		},
 		{
+			name:       "unescaped at-sign and slash in password",
+			dataSource: "postgres://mmuser:sentinel_pw_atslash@tail/more@localhost/mattermost",
+			rejected:   true,
+			credential: "sentinel_pw_atslash",
+			absent:     []string{"tail"},
+		},
+		{
 			name:       "unescaped question mark in password",
 			dataSource: "postgres://mmuser:sentinel_pw_query?tail@localhost:5432/mattermost",
 			rejected:   true,
@@ -2200,10 +2207,24 @@ func TestSanitizeDataSource(t *testing.T) {
 			absent:     []string{"tail"},
 		},
 		{
+			name:       "unescaped at-sign and question mark in password",
+			dataSource: "postgres://mmuser:sentinel_pw_atquery@tail?more@localhost/mattermost",
+			rejected:   true,
+			credential: "sentinel_pw_atquery",
+			absent:     []string{"tail"},
+		},
+		{
 			name:       "unescaped hash in password",
 			dataSource: "postgres://mmuser:#sentinel_pw_hash@localhost:5432/mattermost",
 			rejected:   true,
 			credential: "sentinel_pw_hash",
+		},
+		{
+			name:       "unescaped at-sign and hash in password",
+			dataSource: "postgres://mmuser:sentinel_pw_athash@tail#more@localhost/mattermost",
+			rejected:   true,
+			credential: "sentinel_pw_athash",
+			absent:     []string{"tail"},
 		},
 		{
 			name:       "unescaped hash after a numeric password start",

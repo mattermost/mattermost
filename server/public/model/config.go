@@ -5178,14 +5178,14 @@ func SanitizeDataSource(driverName, dataSource string) (string, error) {
 	// character, so the '@' that separates the credentials from the host lands in
 	// the path, query, or fragment. url.Parse keeps those parts, so the credentials
 	// would survive redaction. The authority runs up to the first '/', '?' or '#';
-	// if the '@' only appears past it, the credentials are not isolated and the
+	// if an '@' appears past it, the credentials are not isolated and the
 	// connection string cannot be partially redacted.
 	rest := dataSource[strings.Index(dataSource, "://")+len("://"):]
 	authority := rest
 	if end := strings.IndexAny(rest, "/?#"); end >= 0 {
 		authority = rest[:end]
 	}
-	if !strings.Contains(authority, "@") && strings.Contains(rest, "@") {
+	if strings.Contains(rest[len(authority):], "@") {
 		return "", errors.New("invalid data source")
 	}
 
