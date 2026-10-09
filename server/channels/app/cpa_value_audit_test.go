@@ -116,9 +116,9 @@ func TestBuildCPAValueAuditRecord(t *testing.T) {
 		assert.Equal(t, true, wildcardRec.Meta["basis_grant_wildcard"])
 	})
 
-	t.Run("a write to a field with no permissions records basis_legacy", func(t *testing.T) {
+	t.Run("a write to a field created without permissions records the converted restriction tier", func(t *testing.T) {
 		field := createField(t, &model.PropertyField{
-			Name:       "legacy basis",
+			Name:       "no permissions basis",
 			Type:       model.PropertyFieldTypeText,
 			ObjectType: model.PropertyFieldObjectTypeUser,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
@@ -133,7 +133,8 @@ func TestBuildCPAValueAuditRecord(t *testing.T) {
 			Current:    &model.PropertyValue{Value: []byte(`"v"`)},
 		})
 
-		assert.Equal(t, true, rec.Meta["basis_legacy"])
+		assert.Equal(t, model.PermissionLevelMember, rec.Meta["basis_tier"])
+		assert.NotContains(t, rec.Meta, "basis_grant_id")
 	})
 
 	t.Run("a write changing the caller's own holdings on a masked field is called out", func(t *testing.T) {
@@ -207,7 +208,7 @@ func TestBuildCPAValueAuditRecord(t *testing.T) {
 		assert.Equal(t, th.BasicUser.Id, rec.Meta["caller_id"])
 		for _, key := range []string{
 			"basis_tier", "basis_grant_id", "basis_grant_scope", "basis_grant_wildcard",
-			"basis_legacy", "basis_unrestricted", "basis_holdings_change",
+			"basis_unrestricted", "basis_holdings_change",
 		} {
 			assert.NotContains(t, rec.Meta, key)
 		}
@@ -226,7 +227,7 @@ func TestBuildCPAValueAuditRecord(t *testing.T) {
 		assert.Equal(t, th.BasicUser.Id, rec.Meta["caller_id"])
 		for _, key := range []string{
 			"basis_tier", "basis_grant_id", "basis_grant_scope", "basis_grant_wildcard",
-			"basis_legacy", "basis_unrestricted", "basis_holdings_change",
+			"basis_unrestricted", "basis_holdings_change",
 		} {
 			assert.NotContains(t, rec.Meta, key)
 		}

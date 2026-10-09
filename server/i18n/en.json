@@ -10226,11 +10226,6 @@
     "description": "API error for admins when the server fails to hide (mask) restricted attribute values inside an access control policy expression."
   },
   {
-    "id": "app.pap.masking.ambiguous_sibling.app_error",
-    "translation": "Multiple user attributes link the same template, so channel-attribute visibility cannot be determined unambiguously.",
-    "description": ""
-  },
-  {
     "id": "app.pap.masking.graph_value_unmarshal.app_error",
     "translation": "Could not read the caller's graph field value.",
     "description": "Server error when evaluating attribute-based access control and the requesting user's own value for a hierarchical (graph-type) attribute cannot be read. 'Caller' means the user making the request."
@@ -11266,6 +11261,11 @@
     "description": "API error when an admin tries to change an existing property field's type to or from 'graph' (hierarchical options). 'graph' is the internal field type name."
   },
   {
+    "id": "app.property_field.update.legacy_attrs_lossy.app_error",
+    "translation": "Cannot change this field's owners, access mode, protected or sync settings this way because its permissions cannot be expressed in that form. Update its permissions directly instead.",
+    "description": ""
+  },
+  {
     "id": "app.property_field.update.linked_options_change.app_error",
     "translation": "Cannot modify options of a linked field. Options are inherited from the source.",
     "description": "API error when an update tries to change the selectable options of a linked property field; options come from the source field."
@@ -11274,6 +11274,11 @@
     "id": "app.property_field.update.linked_type_change.app_error",
     "translation": "Cannot modify type of a linked field. Type is inherited from the source.",
     "description": "API error when an update tries to change the data type of a linked property field; the type comes from the source field."
+  },
+  {
+    "id": "app.property_field.update.masking_discarded.app_error",
+    "translation": "Cannot change this field's access mode because it contains data the caller may not read.",
+    "description": ""
   },
   {
     "id": "app.property_field.update.name_conflict.app_error",

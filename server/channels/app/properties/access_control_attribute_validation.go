@@ -140,8 +140,9 @@ func (h *AccessControlAttributeValidationHook) requiredEnforced() bool {
 // attr, and auto-IDs+validates options for select-shaped fields. Mutates
 // field.Attrs in place. prevType is the field's type before this operation.
 // prevType is empty on creation of a new field. prevActions is the field's
-// attrs["actions"] before this operation, nil on creation.
-func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(field *model.PropertyField, prevType model.PropertyFieldType, prevActions any, prevRequired bool) error {
+// attrs["actions"] before this operation, nil on creation. existing is the
+// stored field, nil on creation or when it isn't found.
+func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(field, existing *model.PropertyField, prevType model.PropertyFieldType, prevActions any, prevRequired bool) error {
 	if field.Attrs == nil {
 		field.Attrs = model.StringInterface{}
 	}
@@ -189,7 +190,7 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 	if managed != "" && managed != "admin" {
 		return fmt.Errorf("invalid managed %q (must be empty or %q): %w", managed, "admin", ErrInvalidFieldAttrs)
 	}
-	if err := h.sanitizeAndValidateOwners(field); err != nil {
+	if err := h.sanitizeAndValidateOwners(field, existing); err != nil {
 		return err
 	}
 	if dn, _ := field.Attrs[model.PropertyFieldAttrDisplayName].(string); utf8.RuneCountInString(dn) > model.PropertyFieldNameMaxRunes {
@@ -360,19 +361,22 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOptions(field 
 // sanitizeAndValidateOwners normalizes and validates the owners attr on a
 // field. Each entry is trimmed and must be well-formed ({id, type, scopes}
 // with a recognized type); scopes are trimmed and deduped; duplicate owner
-// entries (same type+id) are merged. An empty or absent list is removed so
-// HasPropertyFieldOwners stays false. The normalized list is written back in
-// canonical form ([]any of maps) so downstream readers see a single shape.
+// entries (same type+id) are merged by mergeDuplicateOwners. An empty or
+// absent list is removed so HasPropertyFieldOwners stays false. The
+// normalized list is written back in canonical form ([]any of maps) so
+// downstream readers see a single shape.
 //
 // Defensive bounds (see the Property Owner* constants) cap the id and scope
 // lengths and the number of owners/scopes so a buggy or hostile owner cannot
-// bloat the Attrs blob. They are deliberately far above real usage.
+// bloat the Attrs blob. They are deliberately far above real usage. The owner
+// cap skips the synthetic owners a projected echo of existing carries, since
+// they are dropped before saving.
 //
 // An unrecognized owner type is rejected here, but an owner that simply does
 // not correspond to any real installed plugin/service is intentionally
 // accepted: it is a harmless no-op (the field stays locked to its real owners),
 // so the system fails safe and access is checked at the moment of action.
-func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOwners(field *model.PropertyField) error {
+func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOwners(field, existing *model.PropertyField) error {
 	raw, ok := field.Attrs[model.PropertyAttrsOwners]
 	if !ok || raw == nil {
 		return nil
@@ -392,9 +396,8 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOwners(field *
 		return nil
 	}
 
-	normalized := make([]model.PropertyOwner, 0, len(owners))
-	indexByKey := make(map[string]int, len(owners))
-	for _, owner := range owners {
+	for i := range owners {
+		owner := &owners[i]
 		owner.ID = strings.TrimSpace(owner.ID)
 		owner.Type = strings.TrimSpace(owner.Type)
 		if owner.ID == "" {
@@ -422,22 +425,20 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOwners(field *
 			scopes = append(scopes, scope)
 		}
 		owner.Scopes = scopes
-
-		key := owner.Type + "\x00" + owner.ID
-		if idx, dup := indexByKey[key]; dup {
-			for _, scope := range owner.Scopes {
-				if !slices.Contains(normalized[idx].Scopes, scope) {
-					normalized[idx].Scopes = append(normalized[idx].Scopes, scope)
-				}
-			}
-			continue
-		}
-		indexByKey[key] = len(normalized)
-		normalized = append(normalized, owner)
 	}
+	normalized := mergeDuplicateOwners(owners)
 
-	if len(normalized) > model.PropertyOwnersMaxPerField {
-		return fmt.Errorf("invalid owners: too many owners (%d), max is %d: %w", len(normalized), model.PropertyOwnersMaxPerField, ErrInvalidFieldAttrs)
+	saved := len(normalized)
+	if existing != nil {
+		synthetic := syntheticOwnerIdentities(existing)
+		for _, owner := range normalized {
+			if synthetic[model.Identity{Type: owner.Type, ID: owner.ID}] {
+				saved--
+			}
+		}
+	}
+	if saved > model.PropertyOwnersMaxPerField {
+		return fmt.Errorf("invalid owners: too many owners (%d), max is %d: %w", saved, model.PropertyOwnersMaxPerField, ErrInvalidFieldAttrs)
 	}
 	for _, owner := range normalized {
 		if len(owner.Scopes) > model.PropertyOwnerScopesMax {
@@ -455,6 +456,44 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOwners(field *
 	}
 	field.Attrs[model.PropertyAttrsOwners] = canonical
 	return nil
+}
+
+// mergeDuplicateOwners merges owners sharing a type and id into the first
+// one, unioning Scopes and Allow in first-seen order; a map would make the
+// order random. The projection splits a scoped owner into a value half and
+// an unscoped rest (see grantsFromLegacy), and the union converts back to
+// the same two grants. An empty Allow means every action, so it absorbs the
+// other entry's list. owners is not modified.
+func mergeDuplicateOwners(owners []model.PropertyOwner) []model.PropertyOwner {
+	appendMissing := func(into, from []string) []string {
+		into = slices.Clip(into)
+		for _, s := range from {
+			if !slices.Contains(into, s) {
+				into = append(into, s)
+			}
+		}
+		return into
+	}
+
+	merged := make([]model.PropertyOwner, 0, len(owners))
+	indexByIdentity := make(map[model.Identity]int, len(owners))
+	for _, owner := range owners {
+		identity := model.Identity{Type: owner.Type, ID: owner.ID}
+		idx, dup := indexByIdentity[identity]
+		if !dup {
+			indexByIdentity[identity] = len(merged)
+			merged = append(merged, owner)
+			continue
+		}
+		first := &merged[idx]
+		first.Scopes = appendMissing(first.Scopes, owner.Scopes)
+		if len(first.Allow) == 0 || len(owner.Allow) == 0 {
+			first.Allow = nil
+		} else {
+			first.Allow = appendMissing(first.Allow, owner.Allow)
+		}
+	}
+	return merged
 }
 
 // validateRankOptions enforces that every option on a rank field carries a
@@ -515,19 +554,25 @@ func rankSortKey(rank *int) int {
 // enforceGroupPermissions pins schema-edit permissions for fields in
 // managed groups and applies the managed=admin upgrade to PermissionValues:
 //   - PermissionField and PermissionOptions are always set to sysadmin so
-//     that only admins can modify field definitions and options.
+//     that only admins can modify field definitions and options. A protected
+//     field gets PermissionField none instead, the only level IsValid
+//     accepts with Protected. On update, Protected follows the protected
+//     attr (see pinFieldPermission).
 //   - When managed="admin", PermissionValues is set to sysadmin. This is
 //     gated on PermissionManageSystem; callers without an identifiable
 //     caller ID (e.g. internal callers with no session on rctx) are
 //     treated as non-admin and rejected. A plugin listed as an owner of a
 //     field that is already admin-managed is exempt, so it can edit the
 //     field or remove itself as owner without being a system admin.
-//   - When the field is owner-managed, PermissionValues is pinned to sysadmin.
-//     Human value writes are already blocked authoritatively by
-//     checkOwnerValueWriteAccess in the property-service hook, but pinning
-//     sysadmin here is the safe fallback: if the owners list is ever dropped,
-//     the field defaults to admin-only rather than becoming writable by every
-//     member.
+//   - When the field is created owner-managed or an update changes its owners,
+//     PermissionValues is pinned to sysadmin. Human value writes are already
+//     blocked authoritatively by the converted restriction
+//     (PermissionsFromLegacy forces value.write to none for an owner-managed
+//     field), but pinning sysadmin here is the safe fallback: if the owners
+//     list is ever dropped, the field defaults to admin-only rather than
+//     becoming writable by every member. An unchanged echo is not pinned: a
+//     projected read reports every grant as an owner, and pinning it would
+//     reconvert value.write to none on a field nobody touched.
 //   - Otherwise, PermissionValues is left as-is when set, and default-filled
 //     by ObjectType when nil (member for user fields, sysadmin for system
 //     and template). Caller pins are never downgraded.
@@ -558,18 +603,35 @@ func (h *AccessControlAttributeValidationHook) enforceGroupPermissions(rctx requ
 			}
 		}
 		field.PermissionValues = &sysadmin
-	} else if model.HasPropertyFieldOwners(field) {
+	} else if model.HasPropertyFieldOwners(field) && (existing == nil || legacyOwnersChanged(field, existing)) {
 		field.PermissionValues = &sysadmin
 	} else if field.PermissionValues == nil {
 		defaultLevel := defaultPermissionValuesForObjectType(field.ObjectType)
 		field.PermissionValues = &defaultLevel
 	}
 
-	// Fields in managed groups always require sysadmin for field/options edits.
-	field.PermissionField = &sysadmin
+	// Fields in managed groups require sysadmin for field/options edits.
+	pinFieldPermission(field, existing)
 	field.PermissionOptions = &sysadmin
 
 	return field, nil
+}
+
+// pinFieldPermission pins PermissionField to sysadmin, or to none on a
+// protected field. The stored columns are written from Permissions, so
+// pinning none grants nobody anything. On update, protection comes from the
+// attr alone: the projection reports Protected whenever field.write is none,
+// so an echo that clears the attr still carries Protected, and reconverting
+// from it would keep the field locked.
+func pinFieldPermission(field, existing *model.PropertyField) {
+	if existing != nil {
+		field.Protected = model.IsPropertyFieldProtected(field)
+	}
+	level := model.PermissionLevelSysadmin
+	if field.Protected {
+		level = model.PermissionLevelNone
+	}
+	field.PermissionField = &level
 }
 
 // defaultPermissionValuesForObjectType returns the PermissionValues level a
@@ -610,7 +672,7 @@ func (h *AccessControlAttributeValidationHook) PreCreatePropertyField(rctx reque
 	// repaired, actions get the strict check with nothing to grandfather, and a
 	// required=true channel field is rejected outright if the kill switch is on
 	// (there is nothing to grandfather on a brand new field).
-	if err := h.sanitizeAndValidateFieldAttrs(field, "", nil, false); err != nil {
+	if err := h.sanitizeAndValidateFieldAttrs(field, nil, "", nil, false); err != nil {
 		return nil, err
 	}
 
@@ -635,7 +697,7 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyField(rctx reque
 		}
 	}
 
-	if err := h.sanitizeAndValidateFieldAttrs(field, existing.Type, existing.Attrs[model.PropertyFieldAttrActions], model.IsPropertyFieldRequired(existing)); err != nil {
+	if err := h.sanitizeAndValidateFieldAttrs(field, existing, existing.Type, existing.Attrs[model.PropertyFieldAttrActions], model.IsPropertyFieldRequired(existing)); err != nil {
 		return nil, err
 	}
 
@@ -682,7 +744,7 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx requ
 			prevActions = existing.Attrs[model.PropertyFieldAttrActions]
 			prevRequired = model.IsPropertyFieldRequired(existing)
 		}
-		if err := h.sanitizeAndValidateFieldAttrs(field, prevType, prevActions, prevRequired); err != nil {
+		if err := h.sanitizeAndValidateFieldAttrs(field, existing, prevType, prevActions, prevRequired); err != nil {
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 

@@ -412,8 +412,13 @@ func TestPermissionsReadAccessControl(t *testing.T) {
 		sysadminID := model.NewId()
 		memberID := model.NewId()
 
+		// option.write is here so the sysadmin can seed a row-backed option
+		// below; the paged listing this asserts on needs one to filter. Option
+		// changes are gated on option.write, not field.write.
 		th.service.setLadderCheckerForTests(func(_ request.CTX, userID string, _ *model.PropertyField, action, valueTargetID string) bool {
-			return userID == sysadminID && (action == model.PropertyActionOptionRead || action == model.PropertyActionFieldWrite)
+			return userID == sysadminID && (action == model.PropertyActionOptionRead ||
+				action == model.PropertyActionOptionWrite ||
+				action == model.PropertyActionFieldWrite)
 		})
 
 		field := grantsField(th.CPAGroupID, "OptionReadField", nil)

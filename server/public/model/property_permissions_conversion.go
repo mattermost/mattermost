@@ -120,6 +120,14 @@ func PermissionsFromLegacy(field *PropertyField, opts LegacyConversionOpts) *Per
 // unchanged when Permissions is nil — there is nothing to project. Never
 // mutates field or its Attrs map.
 func ProjectLegacyPermissions(field *PropertyField) *PropertyField {
+	return ProjectLegacyPermissionsWithTemplate(field, nil)
+}
+
+// ProjectLegacyPermissionsWithTemplate is ProjectLegacyPermissions with
+// access_mode taken from EffectiveAccessMode, so a linked field reports its
+// template's mode. template is nil when field isn't linked or its template
+// couldn't be read.
+func ProjectLegacyPermissionsWithTemplate(field, template *PropertyField) *PropertyField {
 	if field.Permissions == nil {
 		return field
 	}
@@ -155,7 +163,7 @@ func ProjectLegacyPermissions(field *PropertyField) *PropertyField {
 		delete(projected.Attrs, PropertyAttrsOwners)
 	}
 
-	if accessMode := field.GetAccessMode(); accessMode == PropertyAccessModePublic {
+	if accessMode := EffectiveAccessMode(field, template); accessMode == PropertyAccessModePublic {
 		// An absent key already means public.
 		delete(projected.Attrs, PropertyAttrsAccessMode)
 	} else {

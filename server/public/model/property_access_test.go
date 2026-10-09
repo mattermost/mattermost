@@ -159,25 +159,101 @@ func TestIsPropertyFieldProtected(t *testing.T) {
 }
 
 func TestPropertyFieldGetAccessMode(t *testing.T) {
-	t.Run("nil attrs returns public", func(t *testing.T) {
+	t.Run("nil permissions returns public regardless of attrs", func(t *testing.T) {
 		f := &PropertyField{Attrs: nil}
 		require.Equal(t, PropertyAccessModePublic, f.GetAccessMode())
-	})
-	t.Run("missing access_mode returns public", func(t *testing.T) {
-		f := &PropertyField{Attrs: StringInterface{}}
+
+		f = &PropertyField{Attrs: StringInterface{}}
+		require.Equal(t, PropertyAccessModePublic, f.GetAccessMode())
+
+		f = &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: 123}}
+		require.Equal(t, PropertyAccessModePublic, f.GetAccessMode())
+
+		f = &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModeSharedOnly}}
+		require.Equal(t, PropertyAccessModePublic, f.GetAccessMode())
+
+		f = &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModeSourceOnly}}
 		require.Equal(t, PropertyAccessModePublic, f.GetAccessMode())
 	})
-	t.Run("non-string access_mode returns public", func(t *testing.T) {
-		f := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: 123}}
-		require.Equal(t, PropertyAccessModePublic, f.GetAccessMode())
-	})
-	t.Run("shared_only returned as-is", func(t *testing.T) {
-		f := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModeSharedOnly}}
+
+	// Non-nil Permissions ignores Attrs entirely -- it is the field's own
+	// state once the backfill has converted it.
+	t.Run("masking present reports shared_only regardless of tiers", func(t *testing.T) {
+		f := &PropertyField{
+			Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModePublic},
+			Permissions: &Permissions{
+				Restrictions: &Restrictions{
+					Value:  ReadWrite{Read: PermissionLevelEveryone},
+					Option: ReadWrite{Read: PermissionLevelEveryone},
+				},
+				Masking: &Masking{},
+			},
+		}
 		require.Equal(t, PropertyAccessModeSharedOnly, f.GetAccessMode())
 	})
-	t.Run("source_only returned as-is", func(t *testing.T) {
-		f := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModeSourceOnly}}
+	t.Run("no masking, value.read none reports source_only", func(t *testing.T) {
+		f := &PropertyField{
+			Permissions: &Permissions{
+				Restrictions: &Restrictions{
+					Option: ReadWrite{Read: PermissionLevelEveryone},
+				},
+			},
+		}
 		require.Equal(t, PropertyAccessModeSourceOnly, f.GetAccessMode())
+	})
+	t.Run("no masking, option.read none reports source_only", func(t *testing.T) {
+		f := &PropertyField{
+			Permissions: &Permissions{
+				Restrictions: &Restrictions{
+					Value: ReadWrite{Read: PermissionLevelEveryone},
+				},
+			},
+		}
+		require.Equal(t, PropertyAccessModeSourceOnly, f.GetAccessMode())
+	})
+	t.Run("no masking, nil restrictions reports source_only", func(t *testing.T) {
+		f := &PropertyField{Permissions: &Permissions{}}
+		require.Equal(t, PropertyAccessModeSourceOnly, f.GetAccessMode())
+	})
+	t.Run("no masking, both read tiers set reports public", func(t *testing.T) {
+		f := &PropertyField{
+			Permissions: &Permissions{
+				Restrictions: &Restrictions{
+					Value:  ReadWrite{Read: PermissionLevelEveryone},
+					Option: ReadWrite{Read: PermissionLevelEveryone},
+				},
+			},
+		}
+		require.Equal(t, PropertyAccessModePublic, f.GetAccessMode())
+	})
+}
+
+func TestEffectiveAccessMode(t *testing.T) {
+	public := &Restrictions{
+		Value:  ReadWrite{Read: PermissionLevelEveryone},
+		Option: ReadWrite{Read: PermissionLevelEveryone},
+	}
+	template := &PropertyField{ID: NewId(), Permissions: &Permissions{Restrictions: public, Masking: &Masking{}}}
+	linked := &PropertyField{LinkedFieldID: &template.ID, Permissions: &Permissions{Restrictions: public}}
+
+	t.Run("a linked field with no masking of its own follows its template", func(t *testing.T) {
+		assert.Equal(t, PropertyAccessModeSharedOnly, EffectiveAccessMode(linked, template))
+	})
+	t.Run("a nil template reports the field's own mode", func(t *testing.T) {
+		assert.Equal(t, PropertyAccessModePublic, EffectiveAccessMode(linked, nil))
+	})
+	t.Run("an unlinked field reports its own mode", func(t *testing.T) {
+		unlinked := &PropertyField{Permissions: &Permissions{Restrictions: public}}
+		assert.Equal(t, PropertyAccessModePublic, EffectiveAccessMode(unlinked, template))
+	})
+	t.Run("nil permissions reports the field's own mode", func(t *testing.T) {
+		unconverted := &PropertyField{LinkedFieldID: &template.ID}
+		assert.Equal(t, PropertyAccessModePublic, EffectiveAccessMode(unconverted, template))
+	})
+	t.Run("a field's own masking wins over its template", func(t *testing.T) {
+		sourceOnly := &PropertyField{ID: NewId(), Permissions: &Permissions{Restrictions: &Restrictions{}}}
+		masked := &PropertyField{LinkedFieldID: &sourceOnly.ID, Permissions: &Permissions{Restrictions: public, Masking: &Masking{}}}
+		assert.Equal(t, PropertyAccessModeSharedOnly, EffectiveAccessMode(masked, sourceOnly))
 	})
 }
 
