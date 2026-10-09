@@ -11,6 +11,7 @@ import type {ScheduledRecapTimePeriod} from '@mattermost/types/recaps';
 
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
+import {Combobox} from '@mattermost/compass-ui/components/combobox';
 import DropdownInput from 'components/dropdown_input';
 import {formatRelativeScheduleTime} from 'components/recaps/schedule_time_format';
 import Input from 'components/widgets/inputs/input/input';
@@ -166,14 +167,18 @@ const ScheduleConfiguration = ({
                             defaultMessage='At what time?'
                         />
                     </label>
-                    <DropdownInput
-                        name='timeOfDay'
-                        legend={formatMessage({id: 'recaps.modal.selectTime', defaultMessage: 'Select time'})}
-                        value={timeOptions.find((o) => o.value === timeOfDay)}
+                    <Combobox
+                        id='timeOfDay'
+                        label={formatMessage({id: 'recaps.modal.selectTime', defaultMessage: 'Select time'})}
                         options={timeOptions}
-                        onChange={(val) => setTimeOfDay(val.value)}
-                        required={true}
-                        error={timeError ? formatMessage({id: 'recaps.modal.selectTimeRequired', defaultMessage: 'Please select a time'}) : undefined}
+                        value={timeOfDay}
+                        onChange={(value) => {
+                            if (typeof value === 'string') {
+                                setTimeOfDay(value);
+                            }
+                        }}
+                        invalid={timeError}
+                        emptyMessage={formatMessage({id: 'recaps.modal.selectTimeRequired', defaultMessage: 'Please select a time'})}
                     />
                     {/* Next run preview - always rendered with fixed height to prevent modal jumping */}
                     <div className='next-run-preview-container'>
