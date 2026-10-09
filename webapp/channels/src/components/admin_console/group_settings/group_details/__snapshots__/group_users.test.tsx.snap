@@ -855,24 +855,32 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         1 - 20 of 20
       </div>
       <button
-        class="btn btn-tertiary prev disabled"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 prev disabled"
         disabled=""
         type="button"
       >
-        <i
-          class="icon icon-chevron-left"
-          title="Previous Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </span>
       </button>
       <button
-        class="btn btn-tertiary next disabled"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 next disabled"
         disabled=""
         type="button"
       >
-        <i
-          class="icon icon-chevron-right"
-          title="Next Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -1734,23 +1742,31 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         1 - 20 of 55
       </div>
       <button
-        class="btn btn-tertiary prev disabled"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 prev disabled"
         disabled=""
         type="button"
       >
-        <i
-          class="icon icon-chevron-left"
-          title="Previous Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </span>
       </button>
       <button
-        class="btn btn-tertiary next"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 next"
         type="button"
       >
-        <i
-          class="icon icon-chevron-right"
-          title="Next Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -2612,22 +2628,30 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         21 - 40 of 55
       </div>
       <button
-        class="btn btn-tertiary prev"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 prev"
         type="button"
       >
-        <i
-          class="icon icon-chevron-left"
-          title="Previous Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </span>
       </button>
       <button
-        class="btn btn-tertiary next"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 next"
         type="button"
       >
-        <i
-          class="icon icon-chevron-right"
-          title="Next Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -3284,23 +3308,31 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         41 - 55 of 55
       </div>
       <button
-        class="btn btn-tertiary prev"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 prev"
         type="button"
       >
-        <i
-          class="icon icon-chevron-left"
-          title="Previous Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </span>
       </button>
       <button
-        class="btn btn-tertiary next disabled"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 next disabled"
         disabled=""
         type="button"
       >
-        <i
-          class="icon icon-chevron-right"
-          title="Next Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -4162,24 +4194,32 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         1 - 20 of 20
       </div>
       <button
-        class="btn btn-tertiary prev disabled"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 prev disabled"
         disabled=""
         type="button"
       >
-        <i
-          class="icon icon-chevron-left"
-          title="Previous Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </span>
       </button>
       <button
-        class="btn btn-tertiary next disabled"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 next disabled"
         disabled=""
         type="button"
       >
-        <i
-          class="icon icon-chevron-right"
-          title="Next Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -5079,24 +5119,32 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         1 - 20 of 20
       </div>
       <button
-        class="btn btn-tertiary prev disabled"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 prev disabled"
         disabled=""
         type="button"
       >
-        <i
-          class="icon icon-chevron-left"
-          title="Previous Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </span>
       </button>
       <button
-        class="btn btn-tertiary next disabled"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 next disabled"
         disabled=""
         type="button"
       >
-        <i
-          class="icon icon-chevron-right"
-          title="Next Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </span>
       </button>
     </div>
   </div>
@@ -5991,24 +6039,32 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         1 - 20 of 20
       </div>
       <button
-        class="btn btn-tertiary prev disabled"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 prev disabled"
         disabled=""
         type="button"
       >
-        <i
-          class="icon icon-chevron-left"
-          title="Previous Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </span>
       </button>
       <button
-        class="btn btn-tertiary next disabled"
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 next disabled"
         disabled=""
         type="button"
       >
-        <i
-          class="icon icon-chevron-right"
-          title="Next Icon"
-        />
+        <span
+          class="_button__label_doayp_24"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </span>
       </button>
     </div>
   </div>

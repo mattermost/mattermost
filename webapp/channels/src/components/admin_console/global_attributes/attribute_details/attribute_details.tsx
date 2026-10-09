@@ -10,7 +10,6 @@ import {useParams} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
 import {ChevronLeftIcon} from '@mattermost/compass-icons/components';
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldVisibility, PropertyField, PropertyFieldOption, PropertyPermissionLevel} from '@mattermost/types/properties';
 import {supportsHierarchy, supportsOptions} from '@mattermost/types/properties';
@@ -18,6 +17,7 @@ import type {PropertyFieldOwner} from '@mattermost/types/properties_user';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
+import BlockableButton from 'components/admin_console/blockable_button';
 import BlockableLink from 'components/admin_console/blockable_link';
 import {findRankCollision, isValidRank} from 'components/admin_console/system_properties/rank_utils';
 import Card from 'components/card/card';
@@ -1816,13 +1816,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     onClick={handleSave}
                     defaultMessage={<FormattedMessage {...messages.save}/>}
                 />
-                <BlockableLink
-                    className={buttonClassNames({emphasis: 'quaternary'})}
+                <BlockableButton
                     to={LIST_ROUTE}
                     data-testid='attributeCancelLink'
                 >
                     <FormattedMessage {...messages.cancel}/>
-                </BlockableLink>
+                </BlockableButton>
                 {errorKind && (
                     <span
                         id='attribute-save-error'

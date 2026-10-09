@@ -2,16 +2,47 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {ReactNode} from 'react';
+import type {ButtonHTMLAttributes, ReactNode} from 'react';
+import {FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
-import {Button, type ButtonProps} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
+import type {ButtonEmphasis, ButtonSize as CompassButtonSize} from '@mattermost/compass-ui/components/button';
 
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+type SharedSize = 'xs' | 'sm' | 'md' | 'lg';
 
-export interface SpinnerButtonProps extends Omit<ButtonProps, 'emphasis'> {
+const SHARED_TO_COMPASS_SIZE: Record<SharedSize, CompassButtonSize> = {
+    xs: 'x-small',
+    sm: 'small',
+    md: 'medium',
+    lg: 'large',
+};
+
+export interface SpinnerButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
+    children: ReactNode;
     spinning: boolean;
     spinningText: ReactNode | MessageDescriptor;
+    emphasis?: ButtonEmphasis;
+    size?: SharedSize | CompassButtonSize;
+    destructive?: boolean;
+}
+
+function mapSize(size?: SharedSize | CompassButtonSize): CompassButtonSize | undefined {
+    if (!size) {
+        return undefined;
+    }
+    if (size in SHARED_TO_COMPASS_SIZE) {
+        return SHARED_TO_COMPASS_SIZE[size as SharedSize];
+    }
+    return size as CompassButtonSize;
+}
+
+function isMessageDescriptor(text: ReactNode | MessageDescriptor): text is MessageDescriptor {
+    return typeof text === 'object' && text !== null && 'id' in text && 'defaultMessage' in text;
+}
+
+function renderSpinningText(text: ReactNode | MessageDescriptor): ReactNode {
+    return isMessageDescriptor(text) ? <FormattedMessage {...text}/> : text;
 }
 
 const SpinnerButton = ({
@@ -19,19 +50,17 @@ const SpinnerButton = ({
     spinningText,
     children,
     disabled,
+    size,
     ...otherProps
 }: SpinnerButtonProps) => {
     return (
         <Button
             disabled={disabled || spinning}
+            loading={spinning}
+            size={mapSize(size)}
             {...otherProps}
         >
-            <LoadingWrapper
-                loading={spinning}
-                text={spinningText}
-            >
-                {children}
-            </LoadingWrapper>
+            {spinning ? renderSpinningText(spinningText) : children}
         </Button>
     );
 };

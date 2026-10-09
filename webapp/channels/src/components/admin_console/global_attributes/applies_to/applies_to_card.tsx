@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import {defineMessages, FormattedMessage} from 'react-intl';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import Card from 'components/card/card';
 
@@ -109,16 +108,17 @@ const AppliesToCard = ({channelResource, onChannelResourceChange, onChannelResou
                 )}
                 {!channelResource && (
                     <div className='AppliesToCard__footer'>
-                        <button
+                        <Button
                             type='button'
-                            className={classNames(buttonClassNames({emphasis: 'tertiary'}), 'AppliesToCard__addResource')}
+                            emphasis='tertiary'
+                            className='AppliesToCard__addResource'
                             onClick={() => onChannelResourceChange({...DEFAULT_CHANNEL_RESOURCE_CONFIG})}
                             disabled={disabled}
                             data-testid='appliesToAddResource'
                         >
                             <PlusIcon size={16}/>
                             <FormattedMessage {...messages.addResource}/>
-                        </button>
+                        </Button>
                     </div>
                 )}
             </Card.Body>

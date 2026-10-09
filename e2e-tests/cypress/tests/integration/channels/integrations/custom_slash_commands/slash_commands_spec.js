@@ -155,7 +155,7 @@ describe('Slash commands page', () => {
         cy.get('#url').clear().type('http://mattermost.com');
 
         // # Click on Cancel
-        cy.get('a').contains('Cancel').click();
+        cy.findByRole('button', {name: 'Cancel'}).click();
 
         // # Click on edit again
         cy.get('a[href*="/edit"]').click();

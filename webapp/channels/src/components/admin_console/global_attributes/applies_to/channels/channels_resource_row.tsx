@@ -6,7 +6,7 @@ import React, {useMemo, useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import {ChevronDownIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import ChannelsResourceSettings from './channels_resource_settings';
 import {summarizeChannelResource} from './summary';
@@ -79,8 +79,8 @@ const ChannelsResourceRow = ({value, onChange, onRemove, ordered, disabled}: Pro
                     <Button
                         type='button'
                         emphasis='tertiary'
-                        variant='destructive'
-                        size='sm'
+                        destructive={true}
+                        size='small'
                         className='ChannelsResourceRow__remove'
                         onClick={onRemove}
                         disabled={disabled}

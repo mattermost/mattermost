@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Job, JobType} from '@mattermost/types/jobs';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -153,7 +153,7 @@ class JobTable extends React.PureComponent<Props, State> {
                             <Button
                                 type='button'
                                 emphasis='quaternary'
-                                size='sm'
+                                size='small'
                                 className='view-details-link'
                                 onClick={(e) => {
                                     e.stopPropagation();

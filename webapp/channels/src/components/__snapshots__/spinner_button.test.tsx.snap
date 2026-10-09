@@ -3,14 +3,19 @@
 exports[`components/SpinnerButton should match snapshot with children 1`] = `
 <div>
   <button
-    class="btn btn-primary"
+    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+    type="button"
   >
     <span
-      id="child1"
-    />
-    <span
-      id="child2"
-    />
+      class="_button__label_doayp_24"
+    >
+      <span
+        id="child1"
+      />
+      <span
+        id="child2"
+      />
+    </span>
   </button>
 </div>
 `;
@@ -18,9 +23,14 @@ exports[`components/SpinnerButton should match snapshot with children 1`] = `
 exports[`components/SpinnerButton should match snapshot with required props 1`] = `
 <div>
   <button
-    class="btn btn-primary"
+    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+    type="button"
   >
-    Test
+    <span
+      class="_button__label_doayp_24"
+    >
+      Test
+    </span>
   </button>
 </div>
 `;
@@ -28,18 +38,24 @@ exports[`components/SpinnerButton should match snapshot with required props 1`] 
 exports[`components/SpinnerButton should match snapshot with spinning 1`] = `
 <div>
   <button
-    class="btn btn-primary"
+    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
     disabled=""
+    type="button"
   >
     <span
-      class="LoadingSpinner with-text"
-      data-testid="loadingSpinner"
-      id="loadingSpinner"
+      aria-hidden="true"
+      class="_button__icon-slot_doayp_27"
     >
       <span
-        class="fa fa-spinner fa-fw fa-pulse spinner"
-        title="Loading Icon"
+        aria-label="Loading"
+        class="_spinner_3elm7_10"
+        role="status"
+        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
       />
+    </span>
+    <span
+      class="_button__label_doayp_24"
+    >
       Test
     </span>
   </button>

@@ -5,7 +5,10 @@ import classNames from 'classnames';
 import React, {useMemo} from 'react';
 
 import glyphMap from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
+import {Button} from '@mattermost/compass-ui/components/button';
+import type {ButtonAppearance, ButtonSize} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import {useBooleanProp, useDropdownProp, useStringProp} from './hooks';
 import {buildComponent} from './utils';
@@ -15,32 +18,48 @@ const propPossibilities = {};
 const iconValues = [''].concat(Object.keys(glyphMap));
 
 const emphasisValues = ['primary', 'secondary', 'tertiary', 'quaternary'];
-const sizeValues = ['xs', 'sm', 'md', 'lg'];
-const variantValues = ['', 'destructive'];
+const sizeValues = ['x-small', 'small', 'medium', 'large'];
 
 type Props = {
     backgroundClass: string;
 };
 
+function iconFromName(name: string | undefined) {
+    if (!name) {
+        return undefined;
+    }
+
+    const Glyph = glyphMap[name as IconGlyphTypes];
+    if (!Glyph) {
+        return undefined;
+    }
+
+    return <Icon glyph={<Glyph/>}/>;
+}
+
 export default function ButtonComponentLibrary({backgroundClass}: Props) {
     const [label, labelSelector] = useStringProp('label', 'Label', false);
 
-    const [leadingIcon, leadingIconPossibilities, leadingIconSelector] = useDropdownProp('leadingIcon', 'mattermost', iconValues, false);
-    const [trailingIcon, trailingIconPossibilities, trailingIconSelector] = useDropdownProp('trailingIcon', '', iconValues, false);
+    const [leadingIcon, , leadingIconSelector] = useDropdownProp('leadingIcon', 'mattermost', iconValues, false);
+    const [trailingIcon, , trailingIconSelector] = useDropdownProp('trailingIcon', '', iconValues, false);
 
     const [emphasis, emphasisPossibilities, emphasisSelector] = useDropdownProp('emphasis', 'primary', emphasisValues, true);
-    const [size, sizePossibilities, sizeSelector] = useDropdownProp('size', 'md', sizeValues, true);
-    const [variant, variantPossibilities, variantSelector] = useDropdownProp('variant', '', variantValues, true);
+    const [size, sizePossibilities, sizeSelector] = useDropdownProp('size', 'medium', sizeValues, true);
+    const [destructive, destructiveSelector] = useBooleanProp('destructive', false);
 
     const [disabled, disabledSelector] = useBooleanProp('disabled', false);
 
-    const children = useMemo(() => (
-        <>
-            {leadingIcon?.leadingIcon ? <i className={classNames('icon', `icon-${leadingIcon.leadingIcon}`)}/> : null}
-            {label.label}
-            {trailingIcon?.trailingIcon ? <i className={classNames('icon', `icon-${trailingIcon.trailingIcon}`)}/> : null}
-        </>
-    ), [label, leadingIcon, trailingIcon]);
+    const leadingIconProp = useMemo(() => {
+        const icon = iconFromName(leadingIcon?.leadingIcon);
+        return icon ? {leadingIcon: icon} : undefined;
+    }, [leadingIcon]);
+
+    const trailingIconProp = useMemo(() => {
+        const icon = iconFromName(trailingIcon?.trailingIcon);
+        return icon ? {trailingIcon: icon} : undefined;
+    }, [trailingIcon]);
+
+    const children = useMemo(() => label.label, [label]);
 
     const components = useMemo(
         () => buildComponent(
@@ -48,29 +67,27 @@ export default function ButtonComponentLibrary({backgroundClass}: Props) {
             propPossibilities,
             [
                 emphasisPossibilities,
-                leadingIconPossibilities,
                 sizePossibilities,
-                trailingIconPossibilities,
-                variantPossibilities,
             ], [
                 {children},
+                leadingIconProp,
+                trailingIconProp,
                 emphasis,
                 size,
-                variant,
+                destructive,
                 disabled,
             ],
         ),
         [
             children,
+            destructive,
             disabled,
             emphasis,
             emphasisPossibilities,
-            leadingIconPossibilities,
+            leadingIconProp,
             size,
             sizePossibilities,
-            trailingIconPossibilities,
-            variant,
-            variantPossibilities,
+            trailingIconProp,
         ],
     );
 
@@ -82,7 +99,7 @@ export default function ButtonComponentLibrary({backgroundClass}: Props) {
             <hr/>
             {emphasisSelector}
             {sizeSelector}
-            {variantSelector}
+            {destructiveSelector}
             <hr/>
             {disabledSelector}
             <div className={classNames('clWrapper', backgroundClass)}>{components}</div>
@@ -92,26 +109,29 @@ export default function ButtonComponentLibrary({backgroundClass}: Props) {
 }
 
 function ButtonGrid() {
-    const sizes = ['md', 'xs', 'sm', 'lg'] as const;
-    const variants = ['', 'destructive', 'inverted'] as const;
+    const sizes: ButtonSize[] = ['medium', 'x-small', 'small', 'large'];
+    const appearances: Array<{label: string; appearance?: ButtonAppearance; destructive?: boolean}> = [
+        {label: 'default'},
+        {label: 'destructive', destructive: true},
+        {label: 'inverted', appearance: 'inverted'},
+    ];
     const states = ['default', 'hover', 'active', 'focus', 'disabled'] as const;
 
     const emphasisLevels = ['primary', 'secondary', 'tertiary', 'quaternary'] as const;
 
     const rows = [];
     for (const size of sizes) {
-        for (const variant of variants) {
+        for (const appearance of appearances) {
             for (const state of states) {
                 const row = [];
 
-                if (variant === '' && state === 'default') {
-                    const sizeLabels = {md: 'medium', xs: 'x-small', sm: 'small', lg: 'large'} as const;
+                if (appearance.label === 'default' && state === 'default') {
                     row.push(
                         <th
                             key='size'
                             scope='row'
                         >
-                            {sizeLabels[size]}
+                            {size}
                         </th>,
                     );
                 } else {
@@ -126,7 +146,7 @@ function ButtonGrid() {
                             key='variant'
                             scope='row'
                         >
-                            {variant}
+                            {appearance.label}
                         </th>,
                     );
                 } else {
@@ -153,12 +173,13 @@ function ButtonGrid() {
                     row.push(
                         <td
                             key={emphasis}
-                            className={classNames({inverted: variant === 'inverted'})}
+                            className={classNames({inverted: appearance.appearance === 'inverted'})}
                         >
                             <Button
                                 emphasis={emphasis}
                                 size={size}
-                                variant={variant}
+                                destructive={appearance.destructive}
+                                appearance={appearance.appearance}
                                 className={stateClassName}
                                 disabled={state === 'disabled'}
                             >
@@ -169,7 +190,7 @@ function ButtonGrid() {
                 }
 
                 rows.push(
-                    <tr key={`${size}-${variant}-${state}`} >
+                    <tr key={`${size}-${appearance.label}-${state}`} >
                         {row}
                     </tr>,
                 );

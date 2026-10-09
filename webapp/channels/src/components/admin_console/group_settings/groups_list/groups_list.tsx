@@ -5,7 +5,9 @@ import classNames from 'classnames';
 import React, {type JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {LinkVariantIcon, LinkVariantOffIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {GroupSearchOpts, MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -164,8 +166,8 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                     emphasis='primary'
                     onClick={() => this.linkSelectedGroups()}
                     disabled={this.props.readOnly}
+                    leadingIcon={<Icon glyph={<LinkVariantIcon/>}/>}
                 >
-                    <i className='icon fa fa-link'/>
                     <FormattedMessage
                         id='admin.group_settings.groups_list.link_selected'
                         defaultMessage='Link Selected Groups'
@@ -179,8 +181,8 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                     emphasis='primary'
                     onClick={() => this.unlinkSelectedGroups()}
                     disabled={this.props.readOnly}
+                    leadingIcon={<Icon glyph={<LinkVariantOffIcon/>}/>}
                 >
-                    <i className='icon fa fa-unlink'/>
                     <FormattedMessage
                         id='admin.group_settings.groups_list.unlink_selected'
                         defaultMessage='Unlink Selected Groups'
@@ -193,8 +195,8 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                     type='button'
                     emphasis='primary'
                     disabled={this.props.readOnly}
+                    leadingIcon={<Icon glyph={<LinkVariantIcon/>}/>}
                 >
-                    <i className='icon icon-link-variant'/>
                     <FormattedMessage
                         id='admin.group_settings.groups_list.link_selected'
                         defaultMessage='Link Selected Groups'

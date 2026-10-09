@@ -7,12 +7,11 @@ import {defineMessage, FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
-
 import {getCloudCustomer, updateCloudCustomer, updateCloudCustomerAddress} from 'mattermost-redux/actions/cloud';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
+import BlockableButton from 'components/admin_console/blockable_button';
 import BlockableLink from 'components/admin_console/blockable_link';
 import CountrySelector from 'components/payment_form/country_selector';
 import StateSelector from 'components/payment_form/state_selector';
@@ -285,15 +284,12 @@ const CompanyInfoEdit: React.FC<Props> = () => {
                         />
                     )}
                 />
-                <BlockableLink
-                    className={buttonClassNames({emphasis: 'tertiary'})}
-                    to='/admin_console/billing/company_info'
-                >
+                <BlockableButton to='/admin_console/billing/company_info'>
                     <FormattedMessage
                         id='admin.billing.company_info_edit.cancel'
                         defaultMessage='Cancel'
                     />
-                </BlockableLink>
+                </BlockableButton>
             </div>
         </div>
     );

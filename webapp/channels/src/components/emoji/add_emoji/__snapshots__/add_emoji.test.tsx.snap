@@ -74,9 +74,14 @@ exports[`components/emoji/components/AddEmoji should match snapshot 1`] = `
                 class="add-emoji__upload"
               >
                 <button
-                  class="btn btn-primary"
+                  class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                  type="button"
                 >
-                  Select
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Select
+                  </span>
                 </button>
                 <input
                   accept=".jpeg,.jpg,.png,.gif"
@@ -95,18 +100,26 @@ exports[`components/emoji/components/AddEmoji should match snapshot 1`] = `
         <div
           class="backstage-form__footer"
         >
-          <a
-            class="btn btn-tertiary"
-            href="/undefined/emoji"
-          >
-            Cancel
-          </a>
           <button
-            class="btn btn-primary"
+            class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
+            type="button"
+          >
+            <span
+              class="_button__label_doayp_24"
+            >
+              Cancel
+            </span>
+          </button>
+          <button
+            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
             data-testid="save-button"
             type="submit"
           >
-            Save
+            <span
+              class="_button__label_doayp_24"
+            >
+              Save
+            </span>
           </button>
         </div>
       </form>
@@ -189,9 +202,14 @@ exports[`components/emoji/components/AddEmoji should select a file and match sna
                 class="add-emoji__upload"
               >
                 <button
-                  class="btn btn-primary"
+                  class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                  type="button"
                 >
-                  Select
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Select
+                  </span>
                 </button>
                 <input
                   accept=".jpeg,.jpg,.png,.gif"
@@ -235,18 +253,26 @@ exports[`components/emoji/components/AddEmoji should select a file and match sna
         <div
           class="backstage-form__footer"
         >
-          <a
-            class="btn btn-tertiary"
-            href="/undefined/emoji"
-          >
-            Cancel
-          </a>
           <button
-            class="btn btn-primary"
+            class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
+            type="button"
+          >
+            <span
+              class="_button__label_doayp_24"
+            >
+              Cancel
+            </span>
+          </button>
+          <button
+            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
             data-testid="save-button"
             type="submit"
           >
-            Save
+            <span
+              class="_button__label_doayp_24"
+            >
+              Save
+            </span>
           </button>
         </div>
       </form>
@@ -329,9 +355,14 @@ exports[`components/emoji/components/AddEmoji should update emoji name and match
                 class="add-emoji__upload"
               >
                 <button
-                  class="btn btn-primary"
+                  class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                  type="button"
                 >
-                  Select
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Select
+                  </span>
                 </button>
                 <input
                   accept=".jpeg,.jpg,.png,.gif"
@@ -350,18 +381,26 @@ exports[`components/emoji/components/AddEmoji should update emoji name and match
         <div
           class="backstage-form__footer"
         >
-          <a
-            class="btn btn-tertiary"
-            href="/undefined/emoji"
-          >
-            Cancel
-          </a>
           <button
-            class="btn btn-primary"
+            class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
+            type="button"
+          >
+            <span
+              class="_button__label_doayp_24"
+            >
+              Cancel
+            </span>
+          </button>
+          <button
+            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
             data-testid="save-button"
             type="submit"
           >
-            Save
+            <span
+              class="_button__label_doayp_24"
+            >
+              Save
+            </span>
           </button>
         </div>
       </form>

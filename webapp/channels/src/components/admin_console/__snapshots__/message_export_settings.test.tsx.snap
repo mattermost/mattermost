@@ -170,11 +170,15 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                   disabled=""
                   type="button"
                 >
-                  Run Compliance Export Job Now
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Run Compliance Export Job Now
+                  </span>
                 </button>
               </div>
               <div
@@ -221,13 +225,15 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_doayp_24"
+          >
             Save
           </span>
         </button>
@@ -616,11 +622,15 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                   disabled=""
                   type="button"
                 >
-                  Run Compliance Export Job Now
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Run Compliance Export Job Now
+                  </span>
                 </button>
               </div>
               <div
@@ -667,13 +677,15 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_doayp_24"
+          >
             Save
           </span>
         </button>
@@ -854,10 +866,14 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                   type="button"
                 >
-                  Run Compliance Export Job Now
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Run Compliance Export Job Now
+                  </span>
                 </button>
               </div>
               <div
@@ -904,13 +920,15 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_doayp_24"
+          >
             Save
           </span>
         </button>
@@ -1290,10 +1308,14 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                   type="button"
                 >
-                  Run Compliance Export Job Now
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Run Compliance Export Job Now
+                  </span>
                 </button>
               </div>
               <div
@@ -1340,13 +1362,15 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_doayp_24"
+          >
             Save
           </span>
         </button>
@@ -1850,10 +1874,14 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
             >
               <div>
                 <button
-                  class="btn btn-tertiary"
+                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
                   type="button"
                 >
-                  Run Compliance Export Job Now
+                  <span
+                    class="_button__label_doayp_24"
+                  >
+                    Run Compliance Export Job Now
+                  </span>
                 </button>
               </div>
               <div
@@ -1900,13 +1928,15 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_doayp_24"
+          >
             Save
           </span>
         </button>

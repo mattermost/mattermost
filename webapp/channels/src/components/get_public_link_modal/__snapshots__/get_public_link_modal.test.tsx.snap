@@ -71,22 +71,30 @@ exports[`components/GetPublicLinkModal should match snapshot when link is empty 
           class="modal-footer"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
             id="linkModalCloseButton"
             type="button"
           >
-            Close
+            <span
+              class="_button__label_doayp_24"
+            >
+              Close
+            </span>
           </button>
           <button
-            class="btn btn-primary pull-left"
+            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 pull-left"
             data-copy-btn="true"
             id="linkModalCopyLink"
             type="button"
           >
-            <i
-              class="icon icon-link-variant"
-            />
-            Copy Link
+            <span
+              class="_button__label_doayp_24"
+            >
+              <i
+                class="icon icon-link-variant"
+              />
+              Copy Link
+            </span>
           </button>
         </div>
       </div>
@@ -168,22 +176,30 @@ exports[`components/GetPublicLinkModal should match snapshot when link is not em
           class="modal-footer"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
             id="linkModalCloseButton"
             type="button"
           >
-            Close
+            <span
+              class="_button__label_doayp_24"
+            >
+              Close
+            </span>
           </button>
           <button
-            class="btn btn-primary pull-left"
+            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 pull-left"
             data-copy-btn="true"
             id="linkModalCopyLink"
             type="button"
           >
-            <i
-              class="icon icon-link-variant"
-            />
-            Copy Link
+            <span
+              class="_button__label_doayp_24"
+            >
+              <i
+                class="icon icon-link-variant"
+              />
+              Copy Link
+            </span>
           </button>
         </div>
       </div>

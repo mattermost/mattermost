@@ -391,7 +391,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       </div>
       <div>
         <section
-          class="section-max form-horizontal "
+          class="section-max form-horizontal a11y--active a11y--focused"
         >
           <h4
             class="col-sm-12 section-title"
@@ -454,23 +454,34 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                 <div
                   role="alert"
                 />
-                <button
-                  class="btn btn-primary a11y--active a11y--focused"
-                  data-testid="saveSetting"
-                  id="saveSetting"
-                  type="submit"
+                <div
+                  class="setting-list-item__buttons"
                 >
-                  <span>
-                    Save
-                  </span>
-                </button>
-                <button
-                  class="btn btn-tertiary"
-                  data-testid="cancelButton"
-                  id="cancelSetting"
-                >
-                  Cancel
-                </button>
+                  <button
+                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    data-testid="saveSetting"
+                    id="saveSetting"
+                    type="submit"
+                  >
+                    <span
+                      class="_button__label_doayp_24"
+                    >
+                      Save
+                    </span>
+                  </button>
+                  <button
+                    class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
+                    data-testid="cancelButton"
+                    id="cancelSetting"
+                    type="button"
+                  >
+                    <span
+                      class="_button__label_doayp_24"
+                    >
+                      Cancel
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -953,7 +964,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       </div>
       <div>
         <section
-          class="section-max form-horizontal "
+          class="section-max form-horizontal a11y--active a11y--focused"
         >
           <h4
             class="col-sm-12 section-title"
@@ -1016,23 +1027,34 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                 <div
                   role="alert"
                 />
-                <button
-                  class="btn btn-primary a11y--active a11y--focused"
-                  data-testid="saveSetting"
-                  id="saveSetting"
-                  type="submit"
+                <div
+                  class="setting-list-item__buttons"
                 >
-                  <span>
-                    Save
-                  </span>
-                </button>
-                <button
-                  class="btn btn-tertiary"
-                  data-testid="cancelButton"
-                  id="cancelSetting"
-                >
-                  Cancel
-                </button>
+                  <button
+                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    data-testid="saveSetting"
+                    id="saveSetting"
+                    type="submit"
+                  >
+                    <span
+                      class="_button__label_doayp_24"
+                    >
+                      Save
+                    </span>
+                  </button>
+                  <button
+                    class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
+                    data-testid="cancelButton"
+                    id="cancelSetting"
+                    type="button"
+                  >
+                    <span
+                      class="_button__label_doayp_24"
+                    >
+                      Cancel
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1289,7 +1311,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       </div>
       <div>
         <section
-          class="section-max form-horizontal "
+          class="section-max form-horizontal a11y--active a11y--focused"
         >
           <h4
             class="col-sm-12 section-title"
@@ -1352,23 +1374,34 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                 <div
                   role="alert"
                 />
-                <button
-                  class="btn btn-primary a11y--active a11y--focused"
-                  data-testid="saveSetting"
-                  id="saveSetting"
-                  type="submit"
+                <div
+                  class="setting-list-item__buttons"
                 >
-                  <span>
-                    Save
-                  </span>
-                </button>
-                <button
-                  class="btn btn-tertiary"
-                  data-testid="cancelButton"
-                  id="cancelSetting"
-                >
-                  Cancel
-                </button>
+                  <button
+                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    data-testid="saveSetting"
+                    id="saveSetting"
+                    type="submit"
+                  >
+                    <span
+                      class="_button__label_doayp_24"
+                    >
+                      Save
+                    </span>
+                  </button>
+                  <button
+                    class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
+                    data-testid="cancelButton"
+                    id="cancelSetting"
+                    type="button"
+                  >
+                    <span
+                      class="_button__label_doayp_24"
+                    >
+                      Cancel
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -2077,7 +2110,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       </div>
       <div>
         <section
-          class="section-max form-horizontal "
+          class="section-max form-horizontal a11y--active a11y--focused"
         >
           <h4
             class="col-sm-12 section-title"
@@ -2140,23 +2173,34 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                 <div
                   role="alert"
                 />
-                <button
-                  class="btn btn-primary a11y--active a11y--focused"
-                  data-testid="saveSetting"
-                  id="saveSetting"
-                  type="submit"
+                <div
+                  class="setting-list-item__buttons"
                 >
-                  <span>
-                    Save
-                  </span>
-                </button>
-                <button
-                  class="btn btn-tertiary"
-                  data-testid="cancelButton"
-                  id="cancelSetting"
-                >
-                  Cancel
-                </button>
+                  <button
+                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    data-testid="saveSetting"
+                    id="saveSetting"
+                    type="submit"
+                  >
+                    <span
+                      class="_button__label_doayp_24"
+                    >
+                      Save
+                    </span>
+                  </button>
+                  <button
+                    class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
+                    data-testid="cancelButton"
+                    id="cancelSetting"
+                    type="button"
+                  >
+                    <span
+                      class="_button__label_doayp_24"
+                    >
+                      Cancel
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -3663,7 +3707,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       </div>
       <div>
         <section
-          class="section-max form-horizontal "
+          class="section-max form-horizontal a11y--active a11y--focused"
         >
           <h4
             class="col-sm-12 section-title"
@@ -3726,23 +3770,34 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                 <div
                   role="alert"
                 />
-                <button
-                  class="btn btn-primary a11y--active a11y--focused"
-                  data-testid="saveSetting"
-                  id="saveSetting"
-                  type="submit"
+                <div
+                  class="setting-list-item__buttons"
                 >
-                  <span>
-                    Save
-                  </span>
-                </button>
-                <button
-                  class="btn btn-tertiary"
-                  data-testid="cancelButton"
-                  id="cancelSetting"
-                >
-                  Cancel
-                </button>
+                  <button
+                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    data-testid="saveSetting"
+                    id="saveSetting"
+                    type="submit"
+                  >
+                    <span
+                      class="_button__label_doayp_24"
+                    >
+                      Save
+                    </span>
+                  </button>
+                  <button
+                    class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
+                    data-testid="cancelButton"
+                    id="cancelSetting"
+                    type="button"
+                  >
+                    <span
+                      class="_button__label_doayp_24"
+                    >
+                      Cancel
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -4336,7 +4391,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       </div>
       <div>
         <section
-          class="section-max form-horizontal "
+          class="section-max form-horizontal a11y--active a11y--focused"
         >
           <h4
             class="col-sm-12 section-title"
@@ -4411,23 +4466,34 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                 <div
                   role="alert"
                 />
-                <button
-                  class="btn btn-primary a11y--active a11y--focused"
-                  data-testid="saveSetting"
-                  id="saveSetting"
-                  type="submit"
+                <div
+                  class="setting-list-item__buttons"
                 >
-                  <span>
-                    Save
-                  </span>
-                </button>
-                <button
-                  class="btn btn-tertiary"
-                  data-testid="cancelButton"
-                  id="cancelSetting"
-                >
-                  Cancel
-                </button>
+                  <button
+                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    data-testid="saveSetting"
+                    id="saveSetting"
+                    type="submit"
+                  >
+                    <span
+                      class="_button__label_doayp_24"
+                    >
+                      Save
+                    </span>
+                  </button>
+                  <button
+                    class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
+                    data-testid="cancelButton"
+                    id="cancelSetting"
+                    type="button"
+                  >
+                    <span
+                      class="_button__label_doayp_24"
+                    >
+                      Cancel
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

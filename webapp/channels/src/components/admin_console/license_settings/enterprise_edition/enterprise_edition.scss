@@ -37,14 +37,14 @@
     }
 
     .purchase_buttons {
+        display: flex;
+        flex-direction: column;
         margin-top: 20px;
-        .btn-primary {
-            margin-bottom: 8px;
-        }
+        gap: 8px;
 
         .trial-btn {
             width: 100%;
-            margin-left: 0px;
+            margin-left: 0;
         }
     }
 

@@ -91,11 +91,15 @@ exports[`ProductNoticesModal Match snapshot for single notice 1`] = `
             class="modal-footer"
           >
             <button
-              class="btn btn-primary GenericModal__button confirm"
+              class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 GenericModal__button confirm"
               type="submit"
             >
-              <span>
-                Download
+              <span
+                class="_button__label_doayp_24"
+              >
+                <span>
+                  Download
+                </span>
               </span>
             </button>
           </div>
@@ -221,20 +225,28 @@ exports[`ProductNoticesModal Match snapshot for user notice 1`] = `
             class="modal-footer"
           >
             <button
-              class="btn btn-tertiary"
+              class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
               type="button"
             >
-              <i
-                class="icon icon-chevron-left"
-                title="Previous Icon"
-              />
-              Previous
+              <span
+                class="_button__label_doayp_24"
+              >
+                <i
+                  class="icon icon-chevron-left"
+                  title="Previous Icon"
+                />
+                Previous
+              </span>
             </button>
             <button
-              class="btn btn-primary GenericModal__button confirm"
+              class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 GenericModal__button confirm"
               type="submit"
             >
-              Done
+              <span
+                class="_button__label_doayp_24"
+              >
+                Done
+              </span>
             </button>
           </div>
         </div>
@@ -389,14 +401,18 @@ exports[`ProductNoticesModal Should match snapshot for system admin notice 1`] =
             class="modal-footer"
           >
             <button
-              class="btn btn-primary GenericModal__button confirm"
+              class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 GenericModal__button confirm"
               type="submit"
             >
-              Next
-              <i
-                class="icon icon-chevron-right"
-                title="Next Icon"
-              />
+              <span
+                class="_button__label_doayp_24"
+              >
+                Next
+                <i
+                  class="icon icon-chevron-right"
+                  title="Next Icon"
+                />
+              </span>
             </button>
           </div>
         </div>

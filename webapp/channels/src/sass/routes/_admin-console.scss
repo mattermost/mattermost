@@ -547,41 +547,10 @@
         padding: 0 10px;
         border-top: 1px solid functions.alpha-color(variables.$black, 0.1);
         background: white;
-
-        .save-button {
-            min-width: 100px;
-            height: 34px;
-            margin: 0 10px;
-            background: variables.$light-gray;
-            color: functions.alpha-color(variables.$black, 0.5);
-            opacity: 1;
-
-            &.btn-primary {
-                background: variables.$primary-color;
-                color: variables.$white;
-            }
-        }
-
-        .cancel-button {
-            display: flex;
-            min-width: 100px;
-            height: 34px;
-            align-items: center;
-            justify-content: center;
-            border-radius: var(--radius-s);
-            margin: 0 10px 0 0;
-            text-decoration: none;
-            transition: all 0.15s ease;
-
-            &:hover {
-                background-color: variables.$primary-color;
-                color: variables.$white;
-            }
-        }
+        gap: 8px;
 
         .error-message {
             overflow: hidden;
-            margin-left: 10px;
 
             .control-label {
                 padding: 5px 0 0 0;
@@ -1205,11 +1174,13 @@
 
     .banner-buttons {
         display: flex;
+        align-items: center;
+        gap: 8px;
 
         .banner-buttons__log-format {
             display: flex;
             align-items: center;
-            margin-right: 28px;
+            margin-right: 20px;
             gap: 8px;
 
             label {

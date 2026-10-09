@@ -60,10 +60,15 @@ exports[`components/ChannelMembersModal should match snapshot 1`] = `
              Members
           </h1>
           <button
-            class="btn btn-primary"
+            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
             id="showInviteModal"
+            type="button"
           >
-             Add Members
+            <span
+              class="_button__label_doayp_24"
+            >
+               Add Members
+            </span>
           </button>
         </div>
         <div

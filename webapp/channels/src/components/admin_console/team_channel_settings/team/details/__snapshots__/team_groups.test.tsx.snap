@@ -23,10 +23,15 @@ exports[`admin_console/team_channel_settings/team/TeamGroups should match snapsh
         class="button"
       >
         <button
-          class="style--none btn btn-primary"
+          class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
           id="addGroupsToTeamToggle"
+          type="button"
         >
-          Add Group
+          <span
+            class="_button__label_doayp_24"
+          >
+            Add Group
+          </span>
         </button>
       </div>
     </div>
@@ -80,25 +85,33 @@ exports[`admin_console/team_channel_settings/team/TeamGroups should match snapsh
           1 - 1 of 1
         </div>
         <button
-          class="btn btn-tertiary disabled"
+          class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 disabled"
           disabled=""
           type="button"
         >
-          <i
-            class="icon icon-chevron-left"
-            title="Previous Icon"
-          />
+          <span
+            class="_button__label_doayp_24"
+          >
+            <i
+              class="icon icon-chevron-left"
+              title="Previous Icon"
+            />
+          </span>
         </button>
         <button
-          class="btn btn-tertiary disabled"
+          class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 disabled"
           data-testid="page-link-next"
           disabled=""
           type="button"
         >
-          <i
-            class="icon icon-chevron-right"
-            title="Next Icon"
-          />
+          <span
+            class="_button__label_doayp_24"
+          >
+            <i
+              class="icon icon-chevron-right"
+              title="Next Icon"
+            />
+          </span>
         </button>
       </div>
     </div>

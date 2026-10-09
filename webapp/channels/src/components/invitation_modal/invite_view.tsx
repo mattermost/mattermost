@@ -6,7 +6,9 @@ import React, {useEffect, useMemo} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {CheckIcon, LinkVariantIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {Channel} from '@mattermost/types/channels';
 import type {LockProfileFieldsSetting} from '@mattermost/types/config';
 import type {MemberInviteProfile, Team} from '@mattermost/types/teams';
@@ -150,24 +152,22 @@ export default function InviteView(props: Props) {
             }
             emphasis='secondary'
             aria-live='polite'
-        >
-            {!copyText.copiedRecently && (
-                <>
-                    <i className='icon icon-link-variant'/>
-                    <FormattedMessage
-                        id='invite_modal.copy_link'
-                        defaultMessage='Copy invite link'
-                    />
-                </>
+            leadingIcon={(
+                <Icon
+                    glyph={copyText.copiedRecently ? <CheckIcon/> : <LinkVariantIcon/>}
+                />
             )}
-            {copyText.copiedRecently && (
-                <>
-                    <i className='icon icon-check'/>
-                    <FormattedMessage
-                        id='invite_modal.copied'
-                        defaultMessage='Copied'
-                    />
-                </>
+        >
+            {copyText.copiedRecently ? (
+                <FormattedMessage
+                    id='invite_modal.copied'
+                    defaultMessage='Copied'
+                />
+            ) : (
+                <FormattedMessage
+                    id='invite_modal.copy_link'
+                    defaultMessage='Copy invite link'
+                />
             )}
         </Button>
     );

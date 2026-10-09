@@ -44,7 +44,7 @@ function DeleteDraftModal({
     return (
         <GenericModal
             confirmButtonText={confirmButtonText}
-            confirmButtonVariant='destructive'
+            destructive={true}
             handleCancel={noop}
             handleConfirm={onConfirm}
             modalHeaderText={title}

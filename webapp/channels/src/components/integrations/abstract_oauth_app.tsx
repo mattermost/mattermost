@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {OAuthApp} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
@@ -17,6 +17,8 @@ import BackstageHeader from 'components/backstage/components/backstage_header';
 import FormError from 'components/form_error';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import SpinnerButton from 'components/spinner_button';
+
+import {getHistory} from 'utils/browser_history';
 
 type Props = {
 
@@ -530,15 +532,16 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                                 type='backstage'
                                 errors={[this.props.serverError, this.state.clientError]}
                             />
-                            <Link
-                                className={buttonClassNames({emphasis: 'tertiary'})}
-                                to={`/${this.props.team.name}/integrations/oauth2-apps`}
+                            <Button
+                                type='button'
+                                emphasis='tertiary'
+                                onClick={() => getHistory().push(`/${this.props.team.name}/integrations/oauth2-apps`)}
                             >
                                 <FormattedMessage
                                     id='installed_oauth_apps.cancel'
                                     defaultMessage='Cancel'
                                 />
-                            </Link>
+                            </Button>
                             <SpinnerButton
                                 type='submit'
                                 spinning={this.state.saving}

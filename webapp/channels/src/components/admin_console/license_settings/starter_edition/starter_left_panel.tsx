@@ -5,7 +5,7 @@ import React from 'react';
 import type {JSX, RefObject} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 
@@ -39,7 +39,7 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
             id='starter_edition_view_plans'
             onClick={openPricingModal}
             emphasis='tertiary'
-            size='sm'
+            size='small'
             className='PlanDetails__viewPlansButton'
         >
             {intl.formatMessage({

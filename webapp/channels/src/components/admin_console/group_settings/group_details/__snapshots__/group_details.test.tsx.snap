@@ -165,14 +165,18 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                   class="MenuWrapper "
                 >
                   <button
-                    class="btn btn-primary"
+                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
                     id="add_team_or_channel"
                     type="button"
                   >
-                    Add Team or Channel
-                    <i
-                      class="fa fa-caret-down"
-                    />
+                    <span
+                      class="_button__label_doayp_24"
+                    >
+                      Add Team or Channel
+                      <i
+                        class="fa fa-caret-down"
+                      />
+                    </span>
                   </button>
                 </div>
               </div>
@@ -357,24 +361,32 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 1 - 20 of 20
               </div>
               <button
-                class="btn btn-tertiary prev disabled"
+                class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 prev disabled"
                 disabled=""
                 type="button"
               >
-                <i
-                  class="icon icon-chevron-left"
-                  title="Previous Icon"
-                />
+                <span
+                  class="_button__label_doayp_24"
+                >
+                  <i
+                    class="icon icon-chevron-left"
+                    title="Previous Icon"
+                  />
+                </span>
               </button>
               <button
-                class="btn btn-tertiary next disabled"
+                class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 next disabled"
                 disabled=""
                 type="button"
               >
-                <i
-                  class="icon icon-chevron-right"
-                  title="Next Icon"
-                />
+                <span
+                  class="_button__label_doayp_24"
+                >
+                  <i
+                    class="icon icon-chevron-right"
+                    title="Next Icon"
+                  />
+                </span>
               </button>
             </div>
           </div>
@@ -385,23 +397,29 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_doayp_24"
+        >
           Save
         </span>
       </button>
-      <a
-        class="btn btn-quaternary"
-        href="/admin_console/user_management/groups"
+      <button
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
         id="cancelButtonSettings"
+        type="button"
       >
-        Cancel
-      </a>
+        <span
+          class="_button__label_doayp_24"
+        >
+          Cancel
+        </span>
+      </button>
       <div
         class="error-message"
         data-testid="saveChangesPanel-errorMessage"
@@ -576,14 +594,18 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                   class="MenuWrapper "
                 >
                   <button
-                    class="btn btn-primary"
+                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
                     id="add_team_or_channel"
                     type="button"
                   >
-                    Add Team or Channel
-                    <i
-                      class="fa fa-caret-down"
-                    />
+                    <span
+                      class="_button__label_doayp_24"
+                    >
+                      Add Team or Channel
+                      <i
+                        class="fa fa-caret-down"
+                      />
+                    </span>
                   </button>
                 </div>
               </div>
@@ -768,24 +790,32 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 1 - 20 of 20
               </div>
               <button
-                class="btn btn-tertiary prev disabled"
+                class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 prev disabled"
                 disabled=""
                 type="button"
               >
-                <i
-                  class="icon icon-chevron-left"
-                  title="Previous Icon"
-                />
+                <span
+                  class="_button__label_doayp_24"
+                >
+                  <i
+                    class="icon icon-chevron-left"
+                    title="Previous Icon"
+                  />
+                </span>
               </button>
               <button
-                class="btn btn-tertiary next disabled"
+                class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 next disabled"
                 disabled=""
                 type="button"
               >
-                <i
-                  class="icon icon-chevron-right"
-                  title="Next Icon"
-                />
+                <span
+                  class="_button__label_doayp_24"
+                >
+                  <i
+                    class="icon icon-chevron-right"
+                    title="Next Icon"
+                  />
+                </span>
               </button>
             </div>
           </div>
@@ -796,23 +826,29 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_doayp_24"
+        >
           Save
         </span>
       </button>
-      <a
-        class="btn btn-quaternary"
-        href="/admin_console/user_management/groups"
+      <button
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
         id="cancelButtonSettings"
+        type="button"
       >
-        Cancel
-      </a>
+        <span
+          class="_button__label_doayp_24"
+        >
+          Cancel
+        </span>
+      </button>
       <div
         class="error-message"
         data-testid="saveChangesPanel-errorMessage"
@@ -985,14 +1021,18 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                   class="MenuWrapper "
                 >
                   <button
-                    class="btn btn-primary"
+                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
                     id="add_team_or_channel"
                     type="button"
                   >
-                    Add Team or Channel
-                    <i
-                      class="fa fa-caret-down"
-                    />
+                    <span
+                      class="_button__label_doayp_24"
+                    >
+                      Add Team or Channel
+                      <i
+                        class="fa fa-caret-down"
+                      />
+                    </span>
                   </button>
                 </div>
               </div>
@@ -1177,24 +1217,32 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 1 - 20 of 20
               </div>
               <button
-                class="btn btn-tertiary prev disabled"
+                class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 prev disabled"
                 disabled=""
                 type="button"
               >
-                <i
-                  class="icon icon-chevron-left"
-                  title="Previous Icon"
-                />
+                <span
+                  class="_button__label_doayp_24"
+                >
+                  <i
+                    class="icon icon-chevron-left"
+                    title="Previous Icon"
+                  />
+                </span>
               </button>
               <button
-                class="btn btn-tertiary next disabled"
+                class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 next disabled"
                 disabled=""
                 type="button"
               >
-                <i
-                  class="icon icon-chevron-right"
-                  title="Next Icon"
-                />
+                <span
+                  class="_button__label_doayp_24"
+                >
+                  <i
+                    class="icon icon-chevron-right"
+                    title="Next Icon"
+                  />
+                </span>
               </button>
             </div>
           </div>
@@ -1205,23 +1253,29 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_doayp_24"
+        >
           Save
         </span>
       </button>
-      <a
-        class="btn btn-quaternary"
-        href="/admin_console/user_management/groups"
+      <button
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
         id="cancelButtonSettings"
+        type="button"
       >
-        Cancel
-      </a>
+        <span
+          class="_button__label_doayp_24"
+        >
+          Cancel
+        </span>
+      </button>
       <div
         class="error-message"
         data-testid="saveChangesPanel-errorMessage"
@@ -1394,14 +1448,18 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                   class="MenuWrapper "
                 >
                   <button
-                    class="btn btn-primary"
+                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
                     id="add_team_or_channel"
                     type="button"
                   >
-                    Add Team or Channel
-                    <i
-                      class="fa fa-caret-down"
-                    />
+                    <span
+                      class="_button__label_doayp_24"
+                    >
+                      Add Team or Channel
+                      <i
+                        class="fa fa-caret-down"
+                      />
+                    </span>
                   </button>
                 </div>
               </div>
@@ -1584,24 +1642,32 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 1 - 20 of 20
               </div>
               <button
-                class="btn btn-tertiary prev disabled"
+                class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 prev disabled"
                 disabled=""
                 type="button"
               >
-                <i
-                  class="icon icon-chevron-left"
-                  title="Previous Icon"
-                />
+                <span
+                  class="_button__label_doayp_24"
+                >
+                  <i
+                    class="icon icon-chevron-left"
+                    title="Previous Icon"
+                  />
+                </span>
               </button>
               <button
-                class="btn btn-tertiary next disabled"
+                class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 next disabled"
                 disabled=""
                 type="button"
               >
-                <i
-                  class="icon icon-chevron-right"
-                  title="Next Icon"
-                />
+                <span
+                  class="_button__label_doayp_24"
+                >
+                  <i
+                    class="icon icon-chevron-right"
+                    title="Next Icon"
+                  />
+                </span>
               </button>
             </div>
           </div>
@@ -1612,23 +1678,29 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_doayp_24"
+        >
           Save
         </span>
       </button>
-      <a
-        class="btn btn-quaternary"
-        href="/admin_console/user_management/groups"
+      <button
+        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
         id="cancelButtonSettings"
+        type="button"
       >
-        Cancel
-      </a>
+        <span
+          class="_button__label_doayp_24"
+        >
+          Cancel
+        </span>
+      </button>
       <div
         class="error-message"
         data-testid="saveChangesPanel-errorMessage"

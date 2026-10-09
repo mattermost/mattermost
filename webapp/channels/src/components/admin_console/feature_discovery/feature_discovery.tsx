@@ -5,7 +5,8 @@ import React, {type JSX} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
-import {Button, buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {AnalyticsState} from '@mattermost/types/admin';
 import type {CloudCustomer} from '@mattermost/types/cloud';
 import type {ClientLicense} from '@mattermost/types/config';
@@ -93,7 +94,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
             <div className='purchase-card'>
                 <Button
                     emphasis='primary'
-                    size='lg'
+                    size='large'
                     data-testid='featureDiscovery_primaryCallToAction'
                     onClick={() => {
                         this.contactSalesFunc();

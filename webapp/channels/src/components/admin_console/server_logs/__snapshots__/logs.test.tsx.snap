@@ -64,10 +64,14 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
               </label>
             </div>
             <button
-              class="btn btn-primary"
+              class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
               type="submit"
             >
-              Reload Logs
+              <span
+                class="_button__label_doayp_24"
+              >
+                Reload Logs
+              </span>
             </button>
             <a
               class="btn btn-primary"
@@ -222,18 +226,27 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                     </div>
                   </div>
                   <button
-                    class="btn btn-primary btn-sm Filter_apply"
+                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-small_doayp_40 Filter_apply"
                     disabled=""
                     type="button"
                   >
-                    Apply
+                    <span
+                      class="_button__label_doayp_24"
+                    >
+                      Apply
+                    </span>
                   </button>
                 </div>
               </div>
               <button
-                class="btn btn-tertiary btn-sm ml-2"
+                class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-small_doayp_40 ml-2"
+                type="button"
               >
-                Show last 0 errors
+                <span
+                  class="_button__label_doayp_24"
+                >
+                  Show last 0 errors
+                </span>
               </button>
             </div>
             <div
@@ -352,10 +365,14 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                   style="flex-grow: 1; text-align: left;"
                 >
                   <button
-                    class="btn btn-secondary btn-sm"
+                    class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-small_doayp_40"
                     type="submit"
                   >
-                    Full Log event
+                    <span
+                      class="_button__label_doayp_24"
+                    >
+                      Full Log event
+                    </span>
                   </button>
                 </div>
               </div>
@@ -419,10 +436,14 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                   style="flex-grow: 1; text-align: left;"
                 >
                   <button
-                    class="btn btn-secondary btn-sm"
+                    class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-small_doayp_40"
                     type="submit"
                   >
-                    Full Log event
+                    <span
+                      class="_button__label_doayp_24"
+                    >
+                      Full Log event
+                    </span>
                   </button>
                 </div>
               </div>
@@ -486,10 +507,14 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                   style="flex-grow: 1; text-align: left;"
                 >
                   <button
-                    class="btn btn-secondary btn-sm"
+                    class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-small_doayp_40"
                     type="submit"
                   >
-                    Full Log event
+                    <span
+                      class="_button__label_doayp_24"
+                    >
+                      Full Log event
+                    </span>
                   </button>
                 </div>
               </div>

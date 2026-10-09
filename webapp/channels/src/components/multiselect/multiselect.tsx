@@ -532,6 +532,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                             {this.props.saveButtonPosition === 'top' &&
                                 <SaveButton
                                     id='saveItems'
+                                    extraClasses='multi-select__go'
                                     saving={this.props.saving}
                                     disabled={this.props.saving}
                                     onClick={this.handleOnClick}

@@ -4,7 +4,7 @@
 import React, {type JSX} from 'react';
 import {FormattedDate, FormattedMessage, FormattedTime, defineMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Compliance} from '@mattermost/types/compliance';
 import type {UserProfile} from '@mattermost/types/users';
 

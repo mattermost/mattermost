@@ -48,12 +48,40 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
           class="CommercialSupportModal__download"
         >
           <button
-            class="btn btn-primary DownloadSupportPacket"
+            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 DownloadSupportPacket"
+            type="button"
           >
-            <i
-              class="icon icon-download-outline"
-            />
-            Download Support Packet
+            <span
+              aria-hidden="true"
+              class="_button__icon-slot_doayp_27"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-16_1i355_38"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="18"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="18"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M19,18H5v2h14V18z M11,2h2v10.2l4.5-4.5l1.4,1.4L12,16L5.1,9.1l1.4-1.4l4.5,4.5V2z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <span
+              class="_button__label_doayp_24"
+            >
+              Download Support Packet
+            </span>
           </button>
         </div>
       </div>

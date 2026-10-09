@@ -1019,7 +1019,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                 show={show}
                 title={title}
                 message={message}
-                confirmButtonVariant='destructive'
+                destructive={true}
                 confirmButtonText={removeButton}
                 onConfirm={onConfirm}
                 onCancel={onCancel}

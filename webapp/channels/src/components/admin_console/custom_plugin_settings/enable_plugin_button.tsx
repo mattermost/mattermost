@@ -171,7 +171,7 @@ export function PluginEnableButton({actions, disabled, homepageUrl, id, saveNeed
                     defaultMessage='Are you sure you would like to remove the plugin?'
                 />
             }
-            confirmButtonVariant='destructive'
+            destructive={true}
             confirmButtonText={
                 <FormattedMessage
                     id='admin.plugin.remove_modal.overwrite'

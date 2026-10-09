@@ -64,17 +64,25 @@ exports[`components/delete_post_modal should match snapshot for delete_post_moda
           class="modal-footer"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
             type="button"
           >
-            Cancel
+            <span
+              class="_button__label_doayp_24"
+            >
+              Cancel
+            </span>
           </button>
           <button
-            class="btn btn-danger"
+            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 _button--destructive_doayp_130"
             id="deletePostModalButton"
             type="button"
           >
-            Delete
+            <span
+              class="_button__label_doayp_24"
+            >
+              Delete
+            </span>
           </button>
         </div>
       </div>
@@ -150,17 +158,25 @@ exports[`components/delete_post_modal should match snapshot for delete_post_moda
           class="modal-footer"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
             type="button"
           >
-            Cancel
+            <span
+              class="_button__label_doayp_24"
+            >
+              Cancel
+            </span>
           </button>
           <button
-            class="btn btn-danger"
+            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 _button--destructive_doayp_130"
             id="deletePostModalButton"
             type="button"
           >
-            Delete
+            <span
+              class="_button__label_doayp_24"
+            >
+              Delete
+            </span>
           </button>
         </div>
       </div>
@@ -233,17 +249,25 @@ exports[`components/delete_post_modal should match snapshot for post with 1 comm
           class="modal-footer"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
             type="button"
           >
-            Cancel
+            <span
+              class="_button__label_doayp_24"
+            >
+              Cancel
+            </span>
           </button>
           <button
-            class="btn btn-danger"
+            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 _button--destructive_doayp_130"
             id="deletePostModalButton"
             type="button"
           >
-            Delete
+            <span
+              class="_button__label_doayp_24"
+            >
+              Delete
+            </span>
           </button>
         </div>
       </div>

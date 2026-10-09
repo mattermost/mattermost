@@ -5,7 +5,7 @@ import React, {type JSX} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
 import {
     SyncableType,
