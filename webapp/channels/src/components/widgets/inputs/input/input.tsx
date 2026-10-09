@@ -7,6 +7,10 @@ import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 
 import {CloseCircleIcon} from '@mattermost/compass-icons/components';
+import {TextArea} from '@mattermost/compass-ui/components/text-area';
+import type {TextAreaSize} from '@mattermost/compass-ui/components/text-area';
+import {TextInput} from '@mattermost/compass-ui/components/text-input';
+import type {TextInputSize} from '@mattermost/compass-ui/components/text-input';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {ItemStatus} from 'utils/constants';
@@ -20,6 +24,11 @@ export enum SIZE {
 }
 
 export type CustomMessageInputType = {type?: 'info' | 'error' | 'warning' | 'success'; value: React.ReactNode} | null;
+
+const INPUT_SIZE_MAP: Record<SIZE, TextInputSize & TextAreaSize> = {
+    [SIZE.MEDIUM]: 'medium',
+    [SIZE.LARGE]: 'large',
+};
 
 export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement>, 'placeholder'> {
     required?: boolean;
@@ -76,6 +85,7 @@ const Input = React.forwardRef((
         onClear,
         rows,
         validate,
+        type: inputType,
         ...otherProps
     }: InputProps,
     ref?: React.Ref<HTMLInputElement | HTMLTextAreaElement>,
@@ -221,28 +231,45 @@ const Input = React.forwardRef((
         </WithTooltip>
     ) : null;
 
+    const isTextarea = inputType === 'textarea';
+    const isInvalid = error || hasError;
+    const describedBy = customInputLabel ? errorId : undefined;
+
     const generateInput = () => {
         const placeholderValue = formatAsString(formatMessage, focused ? (label && placeholder) || label : label || placeholder);
         const ariaLabel = formatAsString(formatMessage, label || placeholder);
+        const floatingLabel = useLegend ? formatAsString(formatMessage, label || placeholder) : undefined;
+        const compassPlaceholder = useLegend ?
+            formatAsString(formatMessage, placeholder) :
+            placeholderValue;
 
         // Omit `value` when unset so defaultValue can keep the field uncontrolled.
         // Passing value={undefined} still makes React treat the input as controlled
         // and re-assert an empty string on render, which wipes IME composition (MM-70289).
         const valueProps = value === undefined || value === null ? {} : {value};
 
-        if (otherProps.type === 'textarea') {
+        const trailingIcon = (inputSuffix || clearButton) ? (
+            <>
+                {inputSuffix}
+                {clearButton}
+            </>
+        ) : undefined;
+
+        if (isTextarea) {
             return (
-                <textarea
-                    ref={ref as React.RefObject<HTMLTextAreaElement | null>}
+                <TextArea
+                    ref={ref as React.Ref<HTMLTextAreaElement>}
                     id={inputId}
-                    className={classNames('Input form-control', inputSize, inputClassName, {Input__focus: showLegend})}
-                    placeholder={placeholderValue}
-                    aria-label={ariaLabel}
-                    aria-describedby={customInputLabel ? errorId : undefined}
-                    aria-invalid={error || hasError}
+                    className={classNames('Input', 'form-control', inputSize, inputClassName)}
+                    size={INPUT_SIZE_MAP[inputSize]}
+                    invalid={isInvalid}
+                    label={floatingLabel}
+                    placeholder={compassPlaceholder}
                     rows={rows || 3}
                     name={name}
                     disabled={disabled}
+                    aria-label={!useLegend ? ariaLabel : undefined}
+                    aria-describedby={describedBy}
                     {...valueProps}
                     {...otherProps}
                     maxLength={limit ? undefined : maxLength}
@@ -252,17 +279,23 @@ const Input = React.forwardRef((
                 />
             );
         }
+
         return (
-            <input
-                ref={ref as React.RefObject<HTMLInputElement | null>}
+            <TextInput
+                ref={ref as React.Ref<HTMLInputElement>}
                 id={inputId}
-                className={classNames('Input form-control', inputSize, inputClassName, {Input__focus: showLegend})}
-                placeholder={placeholderValue}
-                aria-label={ariaLabel}
-                aria-describedby={customInputLabel ? errorId : undefined}
-                aria-invalid={error || hasError}
+                className={classNames('Input', 'form-control', inputClassName)}
+                size={INPUT_SIZE_MAP[inputSize]}
+                invalid={isInvalid}
+                label={floatingLabel}
+                placeholder={compassPlaceholder}
+                leadingIcon={inputPrefix}
+                trailingIcon={trailingIcon}
+                type={inputType}
                 name={name}
                 disabled={disabled}
+                aria-label={!useLegend ? ariaLabel : undefined}
+                aria-describedby={describedBy}
                 {...valueProps}
                 {...otherProps}
                 maxLength={limit ? undefined : maxLength}
@@ -282,19 +315,12 @@ const Input = React.forwardRef((
                 })}
                 data-testid='input-wrapper'
             >
-                {useLegend && (
-                    <label
-                        htmlFor={inputId}
-                        className={classNames('Input_legend', {Input_legend___focus: showLegend})}
-                    >                        {showLegend ? formatAsString(formatMessage, label || placeholder) : null}
-                    </label>
-                )}
                 <div className={classNames('Input_wrapper', wrapperClassName)}>
-                    {inputPrefix}
+                    {isTextarea && inputPrefix}
                     {textPrefix && <span>{textPrefix}</span>}
                     {generateInput()}
-                    {inputSuffix}
-                    {clearButton}
+                    {isTextarea && inputSuffix}
+                    {isTextarea && clearButton}
                 </div>
                 {addon}
             </div>
