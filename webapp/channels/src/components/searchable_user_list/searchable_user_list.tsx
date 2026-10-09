@@ -5,13 +5,13 @@ import React, {type JSX} from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
+import {SearchInput} from '@mattermost/compass-ui/components/search-input';
 import {Button} from '@mattermost/shared/components/button';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import Scrollbars from 'components/common/scrollbars';
-import QuickInput from 'components/quick_input';
 import UserList from 'components/user_list';
 
 const NEXT_BUTTON_TIMEOUT = 500;
@@ -141,11 +141,9 @@ class SearchableUserList extends React.PureComponent<Props, State> {
         }
     };
 
-    handleInput = (e: React.FormEvent<HTMLInputElement> | undefined) => {
-        if (e) {
-            this.props.onTermChange(e.currentTarget.value);
-            this.props.search(e.currentTarget.value);
-        }
+    handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+        this.props.onTermChange(e.currentTarget.value);
+        this.props.search(e.currentTarget.value);
     };
 
     renderCount = (users: UserProfile[] | null | undefined) => {
@@ -277,13 +275,13 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                                 defaultMessage='Search users'
                             />
                         </label>
-                        <QuickInput
+                        <SearchInput
                             ref={this.filterRef}
                             id='searchUsersInput'
-                            className='form-control filter-textbox'
+                            className='filter-textbox'
                             placeholder={this.props.intl.formatMessage({id: 'filtered_user_list.search', defaultMessage: 'Search users'})}
                             aria-label={this.props.intl.formatMessage({id: 'filtered_user_list.search', defaultMessage: 'Search users'})}
-                            onInput={this.handleInput}
+                            onChange={this.handleInput}
                             value={this.props.term}
                         />
                     </div>

@@ -3,8 +3,9 @@
 
 import React from 'react';
 import type {ChangeEvent, ChangeEventHandler, JSX} from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
+import {SearchInput} from '@mattermost/compass-ui/components/search-input';
 import {Button} from '@mattermost/shared/components/button';
 import type {CustomEmoji} from '@mattermost/types/emojis';
 
@@ -14,11 +15,11 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import EmojiListItem from 'components/emoji/emoji_list_item';
 import LoadingScreen from 'components/loading_screen';
-import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 import SaveButton from 'components/save_button';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
-import SearchIcon from 'components/widgets/icons/fa_search_icon';
+
+import {getIntl} from 'utils/i18n';
 
 const EMOJI_PER_PAGE = 50;
 const EMOJI_SEARCH_DELAY_MILLISECONDS = 200;
@@ -267,13 +268,10 @@ export default class EmojiList extends React.PureComponent<Props, State> {
             <div>
                 <div className='backstage-filters'>
                     <div className='backstage-filter__search'>
-                        <SearchIcon/>
-                        <LocalizedPlaceholderInput
-                            type='search'
+                        <SearchInput
                             className='form-control'
-                            placeholder={defineMessage({id: 'emoji_list.search', defaultMessage: 'Search Custom Emoji'})}
+                            placeholder={getIntl().formatMessage({id: 'emoji_list.search', defaultMessage: 'Search Custom Emoji'})}
                             onChange={this.onSearchChange}
-                            style={style.search}
                         />
                     </div>
                 </div>
@@ -332,7 +330,3 @@ export default class EmojiList extends React.PureComponent<Props, State> {
         );
     }
 }
-
-const style = {
-    search: {flexGrow: 0, flexShrink: 0},
-};
