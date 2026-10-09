@@ -17,8 +17,29 @@ describe('components/new_search/SearchBoxTypeSelector', () => {
     };
 
     test('should have the built-in type options', () => {
-        renderWithContext(<SearchBoxTypeSelector {...baseProps}/>);
+        renderWithContext(
+            <SearchBoxTypeSelector {...baseProps}/>,
+            {entities: {general: {config: {EnableFileAttachments: 'true', EnableFileSearch: 'true'}}}},
+        );
         expect(screen.getByText('Files')).toBeInTheDocument();
+        expect(screen.getByText('Messages')).toBeInTheDocument();
+    });
+
+    test('should not have the files option when file search is disabled', () => {
+        renderWithContext(
+            <SearchBoxTypeSelector {...baseProps}/>,
+            {entities: {general: {config: {EnableFileAttachments: 'true', EnableFileSearch: 'false'}}}},
+        );
+        expect(screen.queryByText('Files')).not.toBeInTheDocument();
+        expect(screen.getByText('Messages')).toBeInTheDocument();
+    });
+
+    test('should not have the files option when file attachments are disabled', () => {
+        renderWithContext(
+            <SearchBoxTypeSelector {...baseProps}/>,
+            {entities: {general: {config: {EnableFileAttachments: 'false', EnableFileSearch: 'true'}}}},
+        );
+        expect(screen.queryByText('Files')).not.toBeInTheDocument();
         expect(screen.getByText('Messages')).toBeInTheDocument();
     });
 

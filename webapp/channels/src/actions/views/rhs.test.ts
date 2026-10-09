@@ -86,6 +86,12 @@ jest.mock('mattermost-redux/actions/search', () => ({
 describe('rhs view actions', () => {
     const initialState = {
         entities: {
+            general: {
+                config: {
+                    EnableFileAttachments: 'true',
+                    EnableFileSearch: 'true',
+                },
+            },
             channels: {
                 currentChannelId,
             },
@@ -249,6 +255,30 @@ describe('rhs view actions', () => {
             const compareStore = mockStore(initialState);
             compareStore.dispatch(SearchActions.searchPostsWithParams(currentTeamId, {include_deleted_channels: true, terms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
             compareStore.dispatch(SearchActions.searchFilesWithParams(currentTeamId, {include_deleted_channels: true, terms: filesExtTerms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
+
+            expect(store.getActions()).toEqual(compareStore.getActions());
+        });
+
+        test.each([
+            ['file search is disabled', {EnableFileAttachments: 'true', EnableFileSearch: 'false'}],
+            ['file attachments are disabled', {EnableFileAttachments: 'false', EnableFileSearch: 'true'}],
+        ])('it does not dispatch searchFiles when %s', (_, config) => {
+            store = mockStore({
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    general: {
+                        ...initialState.entities.general,
+                        config,
+                    },
+                },
+            });
+
+            const terms = '@here test search';
+            store.dispatch(performSearch(terms, currentTeamId, false));
+
+            const compareStore = mockStore(initialState);
+            compareStore.dispatch(SearchActions.searchPostsWithParams(currentTeamId, {include_deleted_channels: true, terms, is_or_search: false, time_zone_offset: timeZoneOffset, page: 0, per_page: 20}));
 
             expect(store.getActions()).toEqual(compareStore.getActions());
         });

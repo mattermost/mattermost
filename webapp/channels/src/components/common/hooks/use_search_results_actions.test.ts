@@ -39,6 +39,12 @@ describe('useSearchResultsActions', () => {
     const channel = TestHelper.getChannelMock({id: 'channel1', name: 'test-channel'});
     const initialState = {
         entities: {
+            general: {
+                config: {
+                    EnableFileAttachments: 'true',
+                    EnableFileSearch: 'true',
+                },
+            },
             channels: {
                 currentChannelId: channel.id,
                 channels: {
@@ -91,6 +97,19 @@ describe('useSearchResultsActions', () => {
     test('getMoreFilesForSearch should dispatch with search team', () => {
         callAction((a) => a.getMoreFilesForSearch());
         expect(jest.mocked(getMoreFilesForSearch)).toHaveBeenCalledWith('team1');
+    });
+
+    test('getMoreFilesForSearch should not dispatch when file search is unavailable', () => {
+        const state = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {config: {EnableFileAttachments: 'true', EnableFileSearch: 'false'}},
+            },
+        };
+        const {result} = renderHookWithContext(() => useSearchResultsActions(), state);
+        act(() => result.current.getMoreFilesForSearch());
+        expect(jest.mocked(getMoreFilesForSearch)).not.toHaveBeenCalled();
     });
 
     test('setSearchFilterType should dispatch filter and trigger search results', () => {
