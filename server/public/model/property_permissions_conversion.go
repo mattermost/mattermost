@@ -3,7 +3,10 @@
 
 package model
 
-import "maps"
+import (
+	"maps"
+	"slices"
+)
 
 // LegacyConversionOpts controls how PermissionsFromLegacy reads a field's
 // legacy permission columns and Attrs.
@@ -104,6 +107,9 @@ func PermissionsFromLegacy(field *PropertyField, opts LegacyConversionOpts) *Per
 		for i := range grants {
 			grants[i].Allow = removeAction(grants[i].Allow, PropertyActionOptionRead)
 		}
+		// A grant that only carried option.read now allows nothing, which
+		// Grant.isValid rejects.
+		grants = slices.DeleteFunc(grants, func(g Grant) bool { return len(g.Allow) == 0 })
 	}
 
 	return &Permissions{
