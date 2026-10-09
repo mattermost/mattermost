@@ -31,6 +31,9 @@ import (
 const (
 	pushSubject    = "EmailSettings.PushNotificationServer"
 	siteURLSubject = "ServiceSettings.SiteURL"
+
+	// The fixtures run 11.0, whose supporting ESR had ended when they were collected.
+	versionSubject = "11.0"
 )
 
 type finding struct {
@@ -127,12 +130,14 @@ func TestReadGoldenPackets(t *testing.T) {
 			expected: []finding{
 				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateFiring, Subject: pushSubject},
 				{Code: "SITE_URL_HTTP", State: healthcheck.StateFiring, Subject: siteURLSubject},
+				{Code: "VERSION_EOL_UNVERIFIED", State: healthcheck.StateFiring, Subject: versionSubject},
 			},
 		},
 		{
 			name: "ha",
 			expected: []finding{
 				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject},
+				{Code: "VERSION_EOL_UNVERIFIED", State: healthcheck.StateFiring, Subject: versionSubject},
 			},
 		},
 	}
@@ -155,6 +160,7 @@ func TestReadSnapshotFields(t *testing.T) {
 	assert.Equal(t, time.Date(2026, time.September, 25, 10, 0, 0, 0, time.UTC), s.CollectedAt)
 	assert.Equal(t, "11.0.4", s.Version.Current)
 	assert.Empty(t, s.Version.Latest)
+	assert.True(t, s.Version.BuildDate.IsZero())
 	assert.Nil(t, s.License)
 	assert.False(t, s.Deployment.IsCloud)
 
