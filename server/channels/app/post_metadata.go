@@ -79,6 +79,9 @@ func (a *App) PreparePostListForClient(rctx request.CTX, originalList *model.Pos
 		acknowledgements, _ := a.GetAcknowledgementsForPostList(list)
 
 		for _, id := range list.Order {
+			if post := list.Posts[id]; post == nil || post.DeleteAt > 0 {
+				continue
+			}
 			if _, ok := priority[id]; ok {
 				list.Posts[id].Metadata.Priority = priority[id]
 			}
@@ -118,6 +121,9 @@ func (a *App) populatePostListTranslations(rctx request.CTX, list *model.PostLis
 	postsNeedingTranslations := make(map[string][]string) // channelID -> postIDs
 
 	for _, post := range list.Posts {
+		if post.DeleteAt > 0 {
+			continue
+		}
 		// Skip if translations already populated (e.g., from CreatePost)
 		if post.Metadata != nil && len(post.Metadata.Translations) > 0 {
 			continue

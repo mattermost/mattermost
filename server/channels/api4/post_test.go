@@ -5439,6 +5439,46 @@ func TestGetPostThread(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestGetPostThreadUpdatesOnlyDeletedReplies(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	root := th.CreatePost(t)
+	kept, _, err := client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, RootId: root.Id, Message: "kept"})
+	require.NoError(t, err)
+	deleted, _, err := client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, RootId: root.Id, Message: "deleted"})
+	require.NoError(t, err)
+	_, err = client.DeletePost(context.Background(), deleted.Id)
+	require.NoError(t, err)
+
+	updatesSince := func(collapsed bool) model.GetPostsOptions {
+		return model.GetPostsOptions{CollapsedThreads: collapsed, UpdatesOnly: true, FromUpdateAt: deleted.CreateAt - 1, Direction: "down"}
+	}
+
+	for _, collapsed := range []bool{true, false} {
+		t.Run(fmt.Sprintf("collapsed=%t", collapsed), func(t *testing.T) {
+			list, _, getErr := client.GetPostThreadWithOpts(context.Background(), root.Id, "", model.GetPostsOptions{CollapsedThreads: collapsed, Direction: "down"})
+			require.NoError(t, getErr)
+			require.Contains(t, list.Posts, kept.Id)
+			require.NotContains(t, list.Posts, deleted.Id)
+
+			list, _, getErr = client.GetPostThreadWithOpts(context.Background(), root.Id, "", updatesSince(collapsed))
+			require.NoError(t, getErr)
+			require.Contains(t, list.Order, deleted.Id)
+			assert.NotZero(t, list.Posts[deleted.Id].DeleteAt)
+			assert.Empty(t, list.Posts[deleted.Id].Message)
+		})
+	}
+
+	_, err = client.DeletePost(context.Background(), root.Id)
+	require.NoError(t, err)
+	_, resp, err := client.GetPostThreadWithOpts(context.Background(), root.Id, "", updatesSince(true))
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+}
+
 func TestSearchPosts(t *testing.T) {
 	mainHelper.Parallel(t)
 

@@ -644,6 +644,10 @@ func (s *SqlPostStore) buildFlaggedPostChannelFilterClause(channelId string, que
 	return "AND ChannelId = ?", append(queryParams, channelId)
 }
 
+func threadUpdatesIncludeDeletions(opts model.GetPostsOptions) bool {
+	return opts.UpdatesOnly && opts.Direction == "down" && opts.FromUpdateAt != 0
+}
+
 func (s *SqlPostStore) getPostWithCollapsedThreads(rctx request.CTX, id, userID string, opts model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	if id == "" {
 		return nil, store.NewErrInvalidInput("Post", "id", id)
@@ -677,10 +681,10 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(rctx request.CTX, id, userID 
 	}
 
 	posts := []*model.Post{}
-	query = s.postsQuery.Where(sq.Eq{
-		"Posts.RootId":   id,
-		"Posts.DeleteAt": 0,
-	})
+	query = s.postsQuery.Where(sq.Eq{"Posts.RootId": id})
+	if !threadUpdatesIncludeDeletions(opts) {
+		query = query.Where(sq.Eq{"Posts.DeleteAt": 0})
+	}
 
 	var sort string
 	if opts.Direction != "" {
@@ -803,6 +807,11 @@ func (s *SqlPostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptio
 			return nil, errors.Wrapf(err, "invalid rootId with value=%s", rootId)
 		}
 
+		var visible sq.Sqlizer = sq.Eq{"p.DeleteAt": 0}
+		if threadUpdatesIncludeDeletions(opts) {
+			visible = sq.Or{visible, sq.Eq{"p.RootId": rootId}}
+		}
+
 		var query sq.SelectBuilder
 		query = s.getQueryBuilder().
 			Select(postSliceColumnsWithName("p")...).
@@ -823,7 +832,7 @@ func (s *SqlPostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptio
 					sq.Eq{"p.Id": rootId},
 					sq.Eq{"p.RootId": rootId},
 				},
-				sq.Eq{"p.DeleteAt": 0},
+				visible,
 			})
 
 		var sort string

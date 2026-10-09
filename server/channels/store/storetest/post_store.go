@@ -1037,6 +1037,54 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.GreaterOrEqual(t, r1.Posts[r1.Order[1]].UpdateAt, m1.UpdateAt)
 		require.True(t, *r1.HasNext)
 	})
+
+	t.Run("Deleted replies", func(t *testing.T) {
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: "DisplayName1",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		now := model.GetMillis()
+		root, err := ss.Post().Save(rctx, &model.Post{CreateAt: now, ChannelId: channel.Id, UserId: model.NewId(), Message: NewTestID()})
+		require.NoError(t, err)
+		replies := make([]*model.Post, 3)
+		for i := range replies {
+			replies[i], err = ss.Post().Save(rctx, &model.Post{CreateAt: now + int64(i) + 1, ChannelId: channel.Id, UserId: model.NewId(), Message: NewTestID(), RootId: root.Id})
+			require.NoError(t, err)
+		}
+		deletedAt := now + 10
+		require.NoError(t, ss.Post().Delete(rctx, replies[1].Id, deletedAt, ""))
+
+		for _, collapsed := range []bool{true, false} {
+			t.Run(fmt.Sprintf("collapsed=%t", collapsed), func(t *testing.T) {
+				opts := model.GetPostsOptions{CollapsedThreads: collapsed, Direction: "down"}
+				list, getErr := ss.Post().Get(rctx, root.Id, opts, root.UserId, map[string]bool{})
+				require.NoError(t, getErr)
+				assert.Equal(t, []string{root.Id, replies[0].Id, replies[2].Id}, list.Order)
+
+				opts = model.GetPostsOptions{CollapsedThreads: collapsed, Direction: "down", UpdatesOnly: true, FromUpdateAt: now + 5}
+				list, getErr = ss.Post().Get(rctx, root.Id, opts, root.UserId, map[string]bool{})
+				require.NoError(t, getErr)
+				assert.Equal(t, []string{root.Id, replies[1].Id}, list.Order)
+				assert.Equal(t, deletedAt, list.Posts[replies[1].Id].DeleteAt)
+
+				opts.Direction = ""
+				list, getErr = ss.Post().Get(rctx, root.Id, opts, root.UserId, map[string]bool{})
+				require.NoError(t, getErr)
+				assert.NotContains(t, list.Posts, replies[1].Id)
+			})
+		}
+
+		require.NoError(t, ss.Post().Delete(rctx, root.Id, now+20, ""))
+		for _, collapsed := range []bool{true, false} {
+			opts := model.GetPostsOptions{CollapsedThreads: collapsed, Direction: "down", UpdatesOnly: true, FromUpdateAt: now + 5}
+			_, err = ss.Post().Get(rctx, root.Id, opts, root.UserId, map[string]bool{})
+			require.IsType(t, &store.ErrNotFound{}, err)
+		}
+	})
 }
 
 func testPostStoreGetSingle(t *testing.T, rctx request.CTX, ss store.Store) {
