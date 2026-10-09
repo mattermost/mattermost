@@ -88,8 +88,8 @@ export function gotoTeamAndPostImage() {
 
 export function gotoGlobalPolicy() {
     // # Click edit on global policy data table
-    cy.get('#global_policy_table .DataGrid .MenuWrapper').trigger('mouseover').click();
-    cy.findByRole('button', {name: /edit/i}).should('be.visible').click();
+    cy.get('#global-retention-policy-menu').should('be.visible').click();
+    cy.findByRole('menuitem', {name: /edit/i}).should('be.visible').click();
     cy.get('.DataRetentionSettings .admin-console__header', {timeout: TIMEOUTS.TWO_MIN}).should('be.visible').invoke('text').should('include', 'Global Retention Policy');
 }
 

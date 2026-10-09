@@ -5,6 +5,11 @@ import React, {useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {
+    SendIcon,
+} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
@@ -72,17 +77,12 @@ const ProfilePopoverSelfUserRow = ({
             <WithTooltip
                 title={formatMessage({id: 'user_profile.send.dm.yourself', defaultMessage: 'Send yourself a message'})}
             >
-                <button
-                    type='button'
-                    className='btn btn-icon btn-sm'
+                <IconButton
+                    size='small'
+                    icon={<Icon glyph={<SendIcon/>}/>}
                     onClick={handleShowDirectChannel}
                     aria-label={formatMessage({id: 'user_profile.send.dm.yourself', defaultMessage: 'Send yourself a message'})}
-                >
-                    <i
-                        className='icon icon-send'
-                        aria-hidden='true'
-                    />
-                </button>
+                />
             </WithTooltip>
         </div>
     );

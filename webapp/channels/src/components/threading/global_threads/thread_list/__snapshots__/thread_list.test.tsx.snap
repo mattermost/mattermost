@@ -71,28 +71,35 @@ exports[`components/threading/global_threads/thread_list should match snapshot 1
         >
           <button
             aria-label="Mark all threads as read"
-            class="Button Button___transparent Button___large Button___icon"
+            class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69"
             id="threads-list__mark-all-as-read"
+            type="button"
           >
             <span
-              class="Button_label margin_top"
+              aria-hidden="true"
+              class="_icon-button__icon-slot_g2m23_33"
             >
-              <span
-                class="icon"
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-16_1i355_38"
               >
-                <svg
-                  fill="currentColor"
-                  height="18"
-                  version="1.1"
-                  viewBox="0 0 24 24"
-                  width="18"
-                  xmlns="http://www.w3.org/2000/svg"
+                <div
+                  class="_icon__glyph-area_1i355_9"
                 >
-                  <path
-                    d="M14,10H2V12H14V10M14,6H2V8H14V6M2,16H10V14H2V16M21.5,11.5L23,13L16,20L11.5,15.5L13,14L16,17L21.5,11.5Z"
-                  />
-                </svg>
-              </span>
+                  <svg
+                    fill="currentColor"
+                    height="18"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="18"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M14,10H2V12H14V10M14,6H2V8H14V6M2,16H10V14H2V16M21.5,11.5L23,13L16,20L11.5,15.5L13,14L16,17L21.5,11.5Z"
+                    />
+                  </svg>
+                </div>
+              </div>
             </span>
           </button>
         </div>

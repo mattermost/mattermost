@@ -4,8 +4,9 @@
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import styled from 'styled-components';
 
+import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {Channel} from '@mattermost/types/channels';
 
 import {closeRightHandSide, showChannelInfo} from 'actions/views/rhs';
@@ -20,14 +21,6 @@ import HeaderIconWrapper from './components/header_icon_wrapper';
 interface Props {
     channel: Channel;
 }
-
-const Icon = styled.i`
-    font-size:18px;
-    line-height:18px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-`;
 
 const ChannelInfoButton = ({channel}: Props) => {
     const dispatch = useDispatch();
@@ -57,19 +50,16 @@ const ChannelInfoButton = ({channel}: Props) => {
         tooltip = intl.formatMessage({id: 'channel_header.openChannelInfo', defaultMessage: 'View Info'});
     }
 
-    let buttonClass = 'channel-header__icon';
-    if (buttonActive) {
-        buttonClass += ' channel-header__icon--active-inverted';
-    }
-
     return (
         <HeaderIconWrapper
-            buttonClass={buttonClass}
+            active={buttonActive}
+            buttonClass='channel-header__icon channel-header__icon--small'
             buttonId='channel-info-btn'
             onClick={toggleRHS}
+            size='small'
             tooltip={tooltip}
         >
-            <Icon className='icon-information-outline'/>
+            <Icon glyph={<InformationOutlineIcon/>}/>
         </HeaderIconWrapper>
     );
 };

@@ -6,6 +6,7 @@ import {useIntl, FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {DotsHorizontalIcon, PencilOutlineIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {ScheduledRecap} from '@mattermost/types/recaps';
 
 import {pauseScheduledRecap, resumeScheduledRecap, deleteScheduledRecap} from 'mattermost-redux/actions/recaps';
@@ -18,6 +19,8 @@ import Toggle from 'components/toggle';
 import {useScheduleDisplay} from './schedule_display';
 
 import './scheduled_recap_item.scss';
+
+const ScheduledRecapMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small', padding: 'compact'});
 
 type Props = {
     scheduledRecap: ScheduledRecap;
@@ -68,6 +71,7 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
 
     const menuId = `scheduled-recap-menu-${scheduledRecap.id}`;
     const buttonId = `${menuId}-button`;
+    const menuLabel = formatMessage({id: 'recaps.menu.ariaLabel', defaultMessage: 'Options for {title}'}, {title: scheduledRecap.title});
 
     return (
         <div
@@ -114,13 +118,16 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
                     <Menu.Container
                         menuButton={{
                             id: buttonId,
-                            class: 'scheduled-recap-menu-button',
-                            'aria-label': formatMessage({id: 'recaps.menu.ariaLabel', defaultMessage: 'Options for {title}'}, {title: scheduledRecap.title}),
-                            children: <DotsHorizontalIcon size={16}/>,
+                            as: ScheduledRecapMenuTrigger,
+                            'aria-label': menuLabel,
+                            children: <Icon glyph={<DotsHorizontalIcon/>}/>,
+                        }}
+                        menuButtonTooltip={{
+                            text: menuLabel,
                         }}
                         menu={{
                             id: menuId,
-                            'aria-label': formatMessage({id: 'recaps.menu.ariaLabel', defaultMessage: 'Options for {title}'}, {title: scheduledRecap.title}),
+                            'aria-label': menuLabel,
                         }}
                         anchorOrigin={{
                             vertical: 'bottom',

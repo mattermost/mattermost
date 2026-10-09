@@ -30,37 +30,80 @@ exports[`component/update_user_group_modal should match snapshot 1`] = `
         <div
           class="modal-header"
         >
+          <div
+            class="user-groups-modal__header-title-row d-flex align-items-center"
+          >
+            <button
+              aria-label="Back"
+              class="_icon-button_mytxt_2 _icon-button--size-medium_mytxt_83 modal-header-back-button"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+                class="_icon-button__icon-slot_mytxt_33"
+              >
+                <div
+                  aria-hidden="true"
+                  class="_icon_1i355_2 _icon--size-20_1i355_46"
+                >
+                  <div
+                    class="_icon__glyph-area_1i355_9"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+              id="updateGroupsModalTitle"
+            >
+              Edit Group Details
+            </h1>
+          </div>
           <button
             aria-label="Close"
-            class="close"
+            class="_icon-button_mytxt_2 _icon-button--size-medium_mytxt_83 user-groups-modal__header-close"
             type="button"
           >
             <span
               aria-hidden="true"
+              class="_icon-button__icon-slot_mytxt_33"
             >
-              ×
-            </span>
-            <span
-              class="sr-only"
-            >
-              Close
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-20_1i355_46"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="24"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                    />
+                  </svg>
+                </div>
+              </div>
             </span>
           </button>
-          <button
-            aria-label="Back"
-            class="modal-header-back-button btn btn-icon"
-            type="button"
-          >
-            <i
-              class="icon icon-arrow-left"
-            />
-          </button>
-          <h1
-            class="modal-title"
-            id="updateGroupsModalTitle"
-          >
-            Edit Group Details
-          </h1>
         </div>
         <div
           class="overflow--visible modal-body"

@@ -5,9 +5,10 @@ import React, {type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {FilterVariantIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
-import {IconContainer} from 'components/advanced_text_editor/formatting_bar/formatting_icon';
 import type {SearchFilterType} from 'components/search/types';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
@@ -31,17 +32,17 @@ export default function FilesFilterMenu(props: Props): JSX.Element {
                             defaultMessage='Filter'
                         />}
                 >
-                    <IconContainer
+                    <IconButton
                         id='filesFilterButton'
                         className='action-icon dots-icon'
-                        type='button'
-                    >
-                        {props.selectedFilter !== 'all' && <i className='icon-dot'/>}
-                        <FilterVariantIcon
-                            size={18}
-                            color='currentColor'
-                        />
-                    </IconContainer>
+                        size='small'
+                        unreadBadge={props.selectedFilter !== 'all'}
+                        icon={
+                            <Icon
+                                glyph={<FilterVariantIcon color='currentColor'/>}
+                            />
+                        }
+                    />
                 </WithTooltip>
 
                 <Menu

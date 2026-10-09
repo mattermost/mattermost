@@ -16,7 +16,7 @@ exports[`components/admin_console/billing_subscription/CloudTrialBanner should m
       <div
         class="AlertBanner__message"
       >
-        Your trial ends on Jan 1, 1970  11:59 pm UTC. Upgrade to one of our paid plans with no limits.
+        Your trial ends on Jan 1, 1970  11:59 pm CEST. Upgrade to one of our paid plans with no limits.
       </div>
       <div
         class="AlertBanner__actionButtons"

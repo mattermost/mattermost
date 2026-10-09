@@ -26,6 +26,7 @@ import {
     TranslateIcon,
     TrashCanOutlineIcon,
 } from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
 
@@ -53,6 +54,8 @@ import type {ModalData} from 'types/actions';
 import PostReminderSubMenu from './post_reminder_submenu';
 
 import './dot_menu.scss';
+
+const PostDotMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small', padding: 'compact', className: 'dot-menu__button'});
 
 type ChangeEvent = React.KeyboardEvent | React.MouseEvent;
 
@@ -614,11 +617,12 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                 menuButton={{
                     id: `${this.props.location}_button_${this.props.post.id}`,
                     dataTestId: `PostDotMenu-Button-${this.props.post.id}`,
+                    as: PostDotMenuTrigger,
                     class: classNames('post-menu__item', {
                         'post-menu__item--active': this.props.isMenuOpen,
                     }),
                     'aria-label': formatMessage({id: 'post_info.dot_menu.tooltip.more', defaultMessage: 'More'}).toLowerCase(),
-                    children: <DotsHorizontalIcon size={16}/>,
+                    children: <Icon glyph={<DotsHorizontalIcon/>}/>,
                 }}
                 menu={{
                     id: `${this.props.location}_dropdown_${this.props.post.id}`,

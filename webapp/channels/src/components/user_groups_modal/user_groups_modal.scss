@@ -9,6 +9,39 @@
     .modal-content {
         border-radius: 8px;
 
+        .modal-header {
+            position: relative;
+            align-items: center;
+
+            .user-groups-modal__header-title-row {
+                flex: 1 1 auto;
+                min-width: 0;
+                gap: 16px;
+
+                .modal-title {
+                    flex: 1 1 auto;
+                    min-width: 0;
+                }
+            }
+
+            .user-groups-modal__header-close {
+                position: absolute;
+                top: 18px;
+                right: 18px;
+                flex-shrink: 0;
+            }
+
+            .user-groups-modal__header-actions {
+                display: flex;
+                flex: 0 0 auto;
+                width: fit-content;
+                align-items: center;
+                margin-left: auto;
+                margin-right: calc(18px + 40px + 8px - 64px);
+                gap: 8px;
+            }
+        }
+
         .ad_ldap_upsell_banner {
             position: sticky;
             z-index: 4;
@@ -239,10 +272,10 @@
                 .group-row {
                     display: flex;
                     align-items: center;
-                    padding: 14px 32px;
+                    padding: 10px 32px;
                     border: none;
                     background: none;
-                    line-height: 38px;
+                    line-height: 20px;
 
                     &:hover {
                         background: rgba(var(--center-channel-color-rgb), 0.08);
@@ -284,19 +317,11 @@
                     }
 
                     .group-action {
-                        width: 24px;
-
-                        .MenuWrapper {
-                            width: 24px;
-                            margin-left: auto;
-
-                            .Menu {
-                                position: absolute;
-                                border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-                                border-radius: 4px;
-                                margin-top: 8px;
-                            }
-                        }
+                        display: flex;
+                        width: 32px;
+                        flex-shrink: 0;
+                        align-items: center;
+                        justify-content: center;
 
                         .group-actions-menu {
                             span.MenuItem__primary-text {
@@ -304,42 +329,6 @@
                                 line-height: 20px;
                             }
                         }
-                    }
-
-                    .group-action button.action-wrapper {
-                        display: flex;
-                        width: 24px;
-                        height: 24px;
-                        flex-direction: column;
-                        align-items: center;
-                        padding: 4px 6px;
-                        border: none;
-                        border-radius: 4px;
-                        margin-left: auto;
-                        background: transparent;
-                        color: rgba(var(--center-channel-color-rgb), 0.75);
-                        text-decoration: none;
-
-                        &:hover {
-                            border-radius: 4px;
-                            background: rgba(var(--center-channel-color-rgb), 0.08);
-                            color: rgba(var(--center-channel-color-rgb), 0.8);
-                            fill: rgba(var(--center-channel-color-rgb), 0.8);
-                        }
-
-                        &:active {
-                            background-color: rgba(var(--button-bg-rgb), 0.08);
-                            color: var(--button-bg);
-                        }
-
-                        i.icon {
-                            font-size: 16px;
-                            line-height: 16px;
-                        }
-                    }
-
-                    &:hover .group-action button.action-wrapper i {
-                        display: flex;
                     }
                 }
 

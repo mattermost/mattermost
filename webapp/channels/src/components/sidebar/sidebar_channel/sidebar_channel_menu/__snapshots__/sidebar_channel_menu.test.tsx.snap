@@ -12,21 +12,37 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
       aria-expanded="true"
       aria-haspopup="true"
       aria-label="Channel options for {channelName}"
-      class="SidebarMenu_menuButton"
+      class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--style-inverted_g2m23_145 _icon-button--active_g2m23_25 SidebarMenu_menuButton"
+      data-active="true"
       id="SidebarChannelMenu-Button-channel_id"
+      type="button"
     >
-      <svg
-        fill="currentColor"
-        height="16"
-        version="1.1"
-        viewBox="0 0 24 24"
-        width="16"
-        xmlns="http://www.w3.org/2000/svg"
+      <span
+        aria-hidden="true"
+        class="_icon-button__icon-slot_g2m23_33"
       >
-        <path
-          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
-        />
-      </svg>
+        <div
+          aria-hidden="true"
+          class="_icon_1i355_2 _icon--size-12_1i355_30"
+        >
+          <div
+            class="_icon__glyph-area_1i355_9"
+          >
+            <svg
+              fill="currentColor"
+              height="14"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="14"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </span>
     </button>
   </div>
   <div
@@ -309,21 +325,37 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
       aria-expanded="true"
       aria-haspopup="true"
       aria-label="Channel options for {channelName}"
-      class="SidebarMenu_menuButton"
+      class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--style-inverted_g2m23_145 _icon-button--active_g2m23_25 SidebarMenu_menuButton"
+      data-active="true"
       id="SidebarChannelMenu-Button-channel_id"
+      type="button"
     >
-      <svg
-        fill="currentColor"
-        height="16"
-        version="1.1"
-        viewBox="0 0 24 24"
-        width="16"
-        xmlns="http://www.w3.org/2000/svg"
+      <span
+        aria-hidden="true"
+        class="_icon-button__icon-slot_g2m23_33"
       >
-        <path
-          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
-        />
-      </svg>
+        <div
+          aria-hidden="true"
+          class="_icon_1i355_2 _icon--size-12_1i355_30"
+        >
+          <div
+            class="_icon__glyph-area_1i355_9"
+          >
+            <svg
+              fill="currentColor"
+              height="14"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="14"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </span>
     </button>
   </div>
   <div
@@ -602,21 +634,37 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
       aria-expanded="true"
       aria-haspopup="true"
       aria-label="Channel options for {channelName}"
-      class="SidebarMenu_menuButton"
+      class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--style-inverted_g2m23_145 _icon-button--active_g2m23_25 SidebarMenu_menuButton"
+      data-active="true"
       id="SidebarChannelMenu-Button-channel_id"
+      type="button"
     >
-      <svg
-        fill="currentColor"
-        height="16"
-        version="1.1"
-        viewBox="0 0 24 24"
-        width="16"
-        xmlns="http://www.w3.org/2000/svg"
+      <span
+        aria-hidden="true"
+        class="_icon-button__icon-slot_g2m23_33"
       >
-        <path
-          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
-        />
-      </svg>
+        <div
+          aria-hidden="true"
+          class="_icon_1i355_2 _icon--size-12_1i355_30"
+        >
+          <div
+            class="_icon__glyph-area_1i355_9"
+          >
+            <svg
+              fill="currentColor"
+              height="14"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="14"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </span>
     </button>
   </div>
   <div
@@ -895,21 +943,37 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
       aria-expanded="true"
       aria-haspopup="true"
       aria-label="Channel options for {channelName}"
-      class="SidebarMenu_menuButton"
+      class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--style-inverted_g2m23_145 _icon-button--active_g2m23_25 SidebarMenu_menuButton"
+      data-active="true"
       id="SidebarChannelMenu-Button-channel_id"
+      type="button"
     >
-      <svg
-        fill="currentColor"
-        height="16"
-        version="1.1"
-        viewBox="0 0 24 24"
-        width="16"
-        xmlns="http://www.w3.org/2000/svg"
+      <span
+        aria-hidden="true"
+        class="_icon-button__icon-slot_g2m23_33"
       >
-        <path
-          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
-        />
-      </svg>
+        <div
+          aria-hidden="true"
+          class="_icon_1i355_2 _icon--size-12_1i355_30"
+        >
+          <div
+            class="_icon__glyph-area_1i355_9"
+          >
+            <svg
+              fill="currentColor"
+              height="14"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="14"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </span>
     </button>
   </div>
   <div
@@ -1120,21 +1184,37 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
       aria-expanded="true"
       aria-haspopup="true"
       aria-label="Channel options for {channelName}"
-      class="SidebarMenu_menuButton"
+      class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--style-inverted_g2m23_145 _icon-button--active_g2m23_25 SidebarMenu_menuButton"
+      data-active="true"
       id="SidebarChannelMenu-Button-channel_id"
+      type="button"
     >
-      <svg
-        fill="currentColor"
-        height="16"
-        version="1.1"
-        viewBox="0 0 24 24"
-        width="16"
-        xmlns="http://www.w3.org/2000/svg"
+      <span
+        aria-hidden="true"
+        class="_icon-button__icon-slot_g2m23_33"
       >
-        <path
-          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
-        />
-      </svg>
+        <div
+          aria-hidden="true"
+          class="_icon_1i355_2 _icon--size-12_1i355_30"
+        >
+          <div
+            class="_icon__glyph-area_1i355_9"
+          >
+            <svg
+              fill="currentColor"
+              height="14"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="14"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </span>
     </button>
   </div>
   <div
@@ -1381,21 +1461,37 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
       aria-expanded="true"
       aria-haspopup="true"
       aria-label="Channel options for {channelName}"
-      class="SidebarMenu_menuButton"
+      class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--style-inverted_g2m23_145 _icon-button--active_g2m23_25 SidebarMenu_menuButton"
+      data-active="true"
       id="SidebarChannelMenu-Button-channel_id"
+      type="button"
     >
-      <svg
-        fill="currentColor"
-        height="16"
-        version="1.1"
-        viewBox="0 0 24 24"
-        width="16"
-        xmlns="http://www.w3.org/2000/svg"
+      <span
+        aria-hidden="true"
+        class="_icon-button__icon-slot_g2m23_33"
       >
-        <path
-          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
-        />
-      </svg>
+        <div
+          aria-hidden="true"
+          class="_icon_1i355_2 _icon--size-12_1i355_30"
+        >
+          <div
+            class="_icon__glyph-area_1i355_9"
+          >
+            <svg
+              fill="currentColor"
+              height="14"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="14"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </span>
     </button>
   </div>
   <div
@@ -1671,21 +1767,37 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
       aria-expanded="true"
       aria-haspopup="true"
       aria-label="Channel options for {channelName}"
-      class="SidebarMenu_menuButton"
+      class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--style-inverted_g2m23_145 _icon-button--active_g2m23_25 SidebarMenu_menuButton"
+      data-active="true"
       id="SidebarChannelMenu-Button-channel_id"
+      type="button"
     >
-      <svg
-        fill="currentColor"
-        height="16"
-        version="1.1"
-        viewBox="0 0 24 24"
-        width="16"
-        xmlns="http://www.w3.org/2000/svg"
+      <span
+        aria-hidden="true"
+        class="_icon-button__icon-slot_g2m23_33"
       >
-        <path
-          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
-        />
-      </svg>
+        <div
+          aria-hidden="true"
+          class="_icon_1i355_2 _icon--size-12_1i355_30"
+        >
+          <div
+            class="_icon__glyph-area_1i355_9"
+          >
+            <svg
+              fill="currentColor"
+              height="14"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="14"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </span>
     </button>
   </div>
   <div
@@ -1964,21 +2076,37 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
       aria-expanded="true"
       aria-haspopup="true"
       aria-label="Channel options for {channelName}"
-      class="SidebarMenu_menuButton"
+      class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--style-inverted_g2m23_145 _icon-button--active_g2m23_25 SidebarMenu_menuButton"
+      data-active="true"
       id="SidebarChannelMenu-Button-channel_id"
+      type="button"
     >
-      <svg
-        fill="currentColor"
-        height="16"
-        version="1.1"
-        viewBox="0 0 24 24"
-        width="16"
-        xmlns="http://www.w3.org/2000/svg"
+      <span
+        aria-hidden="true"
+        class="_icon-button__icon-slot_g2m23_33"
       >
-        <path
-          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
-        />
-      </svg>
+        <div
+          aria-hidden="true"
+          class="_icon_1i355_2 _icon--size-12_1i355_30"
+        >
+          <div
+            class="_icon__glyph-area_1i355_9"
+          >
+            <svg
+              fill="currentColor"
+              height="14"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="14"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </span>
     </button>
   </div>
   <div
@@ -2257,21 +2385,37 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
       aria-expanded="true"
       aria-haspopup="true"
       aria-label="Channel options for {channelName}"
-      class="SidebarMenu_menuButton"
+      class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--style-inverted_g2m23_145 _icon-button--active_g2m23_25 SidebarMenu_menuButton"
+      data-active="true"
       id="SidebarChannelMenu-Button-channel_id"
+      type="button"
     >
-      <svg
-        fill="currentColor"
-        height="16"
-        version="1.1"
-        viewBox="0 0 24 24"
-        width="16"
-        xmlns="http://www.w3.org/2000/svg"
+      <span
+        aria-hidden="true"
+        class="_icon-button__icon-slot_g2m23_33"
       >
-        <path
-          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
-        />
-      </svg>
+        <div
+          aria-hidden="true"
+          class="_icon_1i355_2 _icon--size-12_1i355_30"
+        >
+          <div
+            class="_icon__glyph-area_1i355_9"
+          >
+            <svg
+              fill="currentColor"
+              height="14"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="14"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </span>
     </button>
   </div>
   <div
@@ -2550,21 +2694,37 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
       aria-expanded="true"
       aria-haspopup="true"
       aria-label="Channel options for {channelName}"
-      class="SidebarMenu_menuButton"
+      class="_icon-button_g2m23_2 _icon-button--size-x-small_g2m23_55 _icon-button--style-inverted_g2m23_145 _icon-button--active_g2m23_25 SidebarMenu_menuButton"
+      data-active="true"
       id="SidebarChannelMenu-Button-channel_id"
+      type="button"
     >
-      <svg
-        fill="currentColor"
-        height="16"
-        version="1.1"
-        viewBox="0 0 24 24"
-        width="16"
-        xmlns="http://www.w3.org/2000/svg"
+      <span
+        aria-hidden="true"
+        class="_icon-button__icon-slot_g2m23_33"
       >
-        <path
-          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
-        />
-      </svg>
+        <div
+          aria-hidden="true"
+          class="_icon_1i355_2 _icon--size-12_1i355_30"
+        >
+          <div
+            class="_icon__glyph-area_1i355_9"
+          >
+            <svg
+              fill="currentColor"
+              height="14"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="14"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </span>
     </button>
   </div>
   <div

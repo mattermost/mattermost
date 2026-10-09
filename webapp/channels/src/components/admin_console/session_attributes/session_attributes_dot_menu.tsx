@@ -6,6 +6,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {AlertCircleOutlineIcon, CancelIcon, CheckIcon, CheckCircleOutlineIcon, ChevronRightIcon, DotsVerticalIcon, UpdateIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import {openModal} from 'actions/views/modals';
 
@@ -17,6 +18,8 @@ import DisableAttributeModal from './disable_attribute_modal';
 import type {StagedAttrs} from './use_session_attribute_edits';
 import {DURATION_PRESETS_SECONDS, formatDuration, getSessionAttrs, getSessionDisplayName, isServerSourced} from './utils';
 import type {SessionAttributeField} from './utils';
+
+const SessionAttributesMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'medium'});
 
 type Props = {
     field: SessionAttributeField;
@@ -67,14 +70,20 @@ export default function SessionAttributesDotMenu({field, onStageChange, disabled
         />
     ));
 
+    const buttonLabel = formatMessage({id: 'admin.session_attributes.dotmenu.button.aria_label', defaultMessage: 'Attribute actions'});
+
     return (
         <Menu.Container
             menuButton={{
                 id: menuId,
-                class: 'btn btn-transparent',
-                children: <DotsVerticalIcon size={18}/>,
+                as: SessionAttributesMenuTrigger,
+                'aria-label': buttonLabel,
+                children: <Icon glyph={<DotsVerticalIcon/>}/>,
                 dataTestId: menuId,
                 disabled,
+            }}
+            menuButtonTooltip={{
+                text: buttonLabel,
             }}
             menu={{
                 id: `${menuId}-menu`,

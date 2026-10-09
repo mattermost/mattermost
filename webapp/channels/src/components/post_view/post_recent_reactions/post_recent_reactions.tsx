@@ -81,19 +81,19 @@ export default class PostRecentReactions extends React.PureComponent<Props> {
                 teamId={teamId}
                 permissions={[Permissions.ADD_REACTION]}
             >
-                <WithTooltip
-                    title={this.emojiName(emoji, this.props.locale)}
-                    emoji={getEmojiName(emoji)}
-                    isEmojiLarge={true}
-                >
-                    <li>
+                <li>
+                    <WithTooltip
+                        title={this.emojiName(emoji, this.props.locale)}
+                        emoji={getEmojiName(emoji)}
+                        isEmojiLarge={true}
+                    >
                         <EmojiItem
                             emoji={emoji}
                             onItemClick={this.handleToggleEmoji}
                             order={n}
                         />
-                    </li>
-                </WithTooltip>
+                    </WithTooltip>
+                </li>
             </ChannelPermissionGate>
         ),
         );

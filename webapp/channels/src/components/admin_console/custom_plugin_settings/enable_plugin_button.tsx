@@ -8,6 +8,7 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {DotsHorizontalIcon, OpenInNewIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import {disablePlugin, enablePlugin, removePlugin} from 'mattermost-redux/actions/admin';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -31,6 +32,8 @@ type Props = {
     saveNeeded?: false | string;
     value: boolean;
 };
+
+const PluginActionsMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
 
 const pluginStatePrefix = 'PluginSettings.PluginStates.';
 const pluginStateSuffix = '.Enable';
@@ -208,10 +211,10 @@ export function PluginEnableButton({actions, disabled, homepageUrl, id, saveNeed
                 <Menu.Container
                     menuButton={{
                         id: `plugin-actions-menu-button-${pluginId}`,
-                        class: `btn btn-icon btn-sm PluginMetadataPanel__menuButton${actionsDisabled ? ' disabled' : ''}`,
+                        as: PluginActionsMenuTrigger,
                         disabled: actionsDisabled,
                         'aria-label': formatMessage({id: 'admin.plugin.actions.menu.aria_label', defaultMessage: 'Plugin actions'}),
-                        children: <DotsHorizontalIcon size={16}/>,
+                        children: <Icon glyph={<DotsHorizontalIcon/>}/>,
                     }}
                     menuButtonTooltip={{
                         text: formatMessage({id: 'admin.plugin.actions.menu.tooltip', defaultMessage: 'More plugin actions'}),

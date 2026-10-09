@@ -5,16 +5,40 @@ exports[`components/sidebar/channel_filter should match snapshot 1`] = `
   <div
     class="SidebarFilters"
   >
-    <a
+    <button
       aria-label="unreads filter"
-      class="SidebarFilters_filterButton"
+      aria-pressed="false"
+      class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 _icon-button--padding-compact_g2m23_64 _icon-button--style-inverted_g2m23_145 SidebarFilters_filterButton"
       data-testid="sidebar-unread-filter-button"
-      href="#"
+      type="button"
     >
-      <i
-        class="icon icon-filter-variant"
-      />
-    </a>
+      <span
+        aria-hidden="true"
+        class="_icon-button__icon-slot_g2m23_33"
+      >
+        <div
+          aria-hidden="true"
+          class="_icon_1i355_2 _icon--size-16_1i355_38"
+        >
+          <div
+            class="_icon__glyph-area_1i355_9"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </span>
+    </button>
   </div>
 </div>
 `;
@@ -24,16 +48,40 @@ exports[`components/sidebar/channel_filter should match snapshot if the unread f
   <div
     class="SidebarFilters"
   >
-    <a
+    <button
       aria-label="unreads filter"
-      class="SidebarFilters_filterButton active"
+      aria-pressed="true"
+      class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69 _icon-button--padding-compact_g2m23_64 _icon-button--style-inverted_g2m23_145 _icon-button--toggled_g2m23_25 SidebarFilters_filterButton active"
       data-testid="sidebar-unread-filter-button"
-      href="#"
+      type="button"
     >
-      <i
-        class="icon icon-filter-variant"
-      />
-    </a>
+      <span
+        aria-hidden="true"
+        class="_icon-button__icon-slot_g2m23_33"
+      >
+        <div
+          aria-hidden="true"
+          class="_icon_1i355_2 _icon--size-16_1i355_38"
+        >
+          <div
+            class="_icon__glyph-area_1i355_9"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </span>
+    </button>
   </div>
 </div>
 `;

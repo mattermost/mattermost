@@ -81,7 +81,7 @@ describe('Verify Guest User Identification in different screens', () => {
             });
 
             // #Close Channel Members Dialog
-            cy.wrap($el).find('.close').click();
+            cy.wrap($el).find('button[aria-label="Close"]').click();
         });
     });
 
@@ -143,7 +143,7 @@ describe('Verify Guest User Identification in different screens', () => {
 
         // # Close Dialog
         cy.get('#quickSwitchModal').within(() => {
-            cy.get('button.close[aria-label="Close"]').click();
+            cy.get('button[aria-label="Close"]').click();
         });
     });
 
@@ -159,7 +159,7 @@ describe('Verify Guest User Identification in different screens', () => {
         });
 
         // # Close the Direct Messages dialog
-        cy.get('#moreDmModal .close').click();
+        cy.get('#moreDmModal').find('button[aria-label="Close"]').click();
     });
 
     it('Verify Guest Badge in DM header and GM header', () => {

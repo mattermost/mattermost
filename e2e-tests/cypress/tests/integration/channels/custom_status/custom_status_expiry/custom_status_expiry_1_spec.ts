@@ -132,7 +132,7 @@ describe('MM-T4063 Custom status expiry', () => {
         cy.get('#custom_status_modal .expiry-value').invoke('text').should('match', expiresAtRegexp);
 
         // # Close custom status modal
-        cy.get('#custom_status_modal .modal-header .close').click();
+        cy.get('#custom_status_modal').find('button[aria-label="Close"]').click();
     });
 
     it('MM-T4063_8 previous custom status duration should be reset if custom status is expired', () => {

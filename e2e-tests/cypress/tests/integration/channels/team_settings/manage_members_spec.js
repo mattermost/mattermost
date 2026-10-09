@@ -151,7 +151,7 @@ describe('Manage Members', () => {
                 cy.get(`#teamMembersDropdown_${user.username}`).should('not.exist');
 
                 // # Close the modal
-                cy.get('#teamMembersModal').find('button.close').should('be.visible').click();
+                cy.get('#teamMembersModal').find('button[aria-label="Close"]').should('be.visible').click();
 
                 // # Get the invite link
                 cy.getInvitePeopleLink({user: testUser}).then((inviteLink) => {

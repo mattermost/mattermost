@@ -4583,6 +4583,10 @@
     "defaultMessage": "{time} PM (UTC)",
     "description": "Displays the daily deletion job start time in the afternoon/evening; {time} is an hour:minute value, UTC timezone noted."
   },
+  "admin.data_retention.policyActionsMenu": {
+    "defaultMessage": "Policy actions menu",
+    "description": "Accessible name and tooltip for the row actions menu button in the global and custom data retention policy tables."
+  },
   "admin.data_retention.retention_days": {
     "defaultMessage": "{count} {count, plural, one {day} other {days}}",
     "description": "Retention duration cell in the data retention tables; {count} is the number of days, with plural forms."
@@ -14302,6 +14306,10 @@
   "admin.session_attributes.disable.title": {
     "defaultMessage": "Disable attribute",
     "description": "Title of the confirmation modal for disabling a session attribute in the System Console."
+  },
+  "admin.session_attributes.dotmenu.button.aria_label": {
+    "defaultMessage": "Attribute actions",
+    "description": "Accessibility label and tooltip for the per-row '...' actions menu button in the session attributes table."
   },
   "admin.session_attributes.dotmenu.disable.label": {
     "defaultMessage": "Disable",
@@ -28611,6 +28619,10 @@
     "defaultMessage": "Undo",
     "description": "Button in the unsaved-changes panel at the bottom of settings screens that reverts the pending changes; 'Undo' is a verb."
   },
+  "saveChangesPanel.dismiss": {
+    "defaultMessage": "Dismiss",
+    "description": ""
+  },
   "saveChangesPanel.error": {
     "defaultMessage": "There was an error saving your settings",
     "description": "Error text in the unsaved-changes panel when saving settings fails."
@@ -29946,10 +29958,6 @@
   "sidebar.sortedManually": {
     "defaultMessage": "Manually",
     "description": "Sorting option label meaning channels in a sidebar category are ordered manually by the user (drag and drop); adverb."
-  },
-  "sidebar.team_menu.button.plusIcon": {
-    "defaultMessage": "Plus Icon",
-    "description": "Accessible label of the plus icon on the team sidebar button for joining or creating teams."
   },
   "sidebar.team_menu.button.teamImage": {
     "defaultMessage": "{teamName} Team Image",

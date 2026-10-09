@@ -40,7 +40,8 @@
         }
     }
 
-    &:active,
+    // Legacy active class for non-IconButton consumers (e.g. plugin dropdown toggle).
+    // Channel header IconButtons use Compass `active` instead.
     &--active,
     &--active.btn.btn-icon,
     &--active:hover {
@@ -55,13 +56,6 @@
         .icon {
             color: functions.v(button-bg);
         }
-    }
-
-    &--active-inverted,
-    &--active-inverted:hover {
-        background: functions.v(button-bg);
-        color: functions.v(button-color);
-        fill: functions.v(button-color);
     }
 
     .icon__text {
@@ -98,31 +92,38 @@
 
     &:active .channel-header__join-request-badge,
     &--active .channel-header__join-request-badge,
-    &--active:hover .channel-header__join-request-badge {
+    &[data-active='true'] .channel-header__join-request-badge,
+    &--active:hover .channel-header__join-request-badge,
+    &[data-active='true']:hover .channel-header__join-request-badge {
         box-shadow: 0 0 0 2px color-mix(in srgb, var(--button-bg) 8%, var(--center-channel-bg));
     }
 }
 
+.channel-header .channel-header__icon {
+    margin: 0;
+
+    &:not(.channel-header__icon--wide, .channel-header__icon--small) {
+        width: 24px;
+        min-width: 24px;
+        height: 24px;
+    }
+}
+
+.channel-header__info .channel-header__icons .channel-header__icon {
+    min-width: 24px;
+    height: 24px;
+}
+
+// Wide IconButtons use Compass --has-count for gap + count typography; only unlock width here.
 .channel-header__info .channel-header__icons .channel-header__icon--wide {
     width: auto;
     min-width: unset;
-    padding: 0 6px;
 }
 
-.channel-header__icon--left {
-    height: unset;
-    padding: 4px;
-    margin: 0;
-
-    .icon {
-        width: 16px;
-        height: 16px;
-    }
-
-    svg {
-        width: 12px;
-        height: 12px;
-    }
+// Legacy plugin overflow toggle (not IconButton) still lays out icon + .icon__text itself.
+#pluginChannelHeaderButtonDropdown.channel-header__icon--wide {
+    padding: 0 4px;
+    gap: 4px;
 }
 
 .userGuideHelp {
