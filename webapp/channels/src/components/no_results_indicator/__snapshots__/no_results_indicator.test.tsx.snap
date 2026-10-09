@@ -6,163 +6,276 @@ exports[`components/no_results_indicator should match snapshot when expanded 1`]
     class="no-results__holder"
   >
     <div
-      class="no-results__wrapper"
+      class="no-results__wrapper no-results__wrapper--compass"
       data-testid="no-results-wrapper"
     >
       <div
-        class="no-results__variant-wrapper"
+        class="_scrollbar_f5sq5_2 _empty-state_zgtu5_2 no-results__empty-state"
+        data-simplebar="init"
       >
-        <span
-          class="no-results__icon"
-        >
-          <svg
-            aria-label="Search Icon"
-            height="99"
-            role="img"
-            viewBox="0 0 123 99"
-            width="123"
-          >
-            <g>
-              <rect
-                fill="var(--button-bg)"
-                fill-opacity="0.12"
-                height="31"
-                rx="3.75"
-                width="107"
-                x="0.255005"
-                y="32"
-              />
-              <rect
-                fill="var(--button-bg)"
-                fill-opacity="0.12"
-                height="27"
-                rx="3.75"
-                width="76"
-                x="46.255"
-              />
-              <rect
-                fill="var(--button-bg)"
-                fill-opacity="0.12"
-                height="27"
-                rx="3.75"
-                width="76"
-                x="46.255"
-                y="67"
-              />
-              <path
-                d="M62.5814 6.60593C70.262 6.55738 77.3232 8.54646 83.755 12.5732C86.3956 14.2264 88.9301 16.223 91.3579 18.5631C94.3589 21.6787 96.7911 24.9905 98.653 28.5M62.5813 87.8542C53.6129 87.7863 45.4964 85.1063 38.255 79.7911C36.7377 78.6774 35.2587 77.4479 33.8185 76.1025C30.0784 72.0903 27.2249 67.8234 25.255 63.299M21.9572 47.2301C21.964 41.8688 22.9467 36.7921 24.9051 32C26.8843 27.1573 29.8599 22.6053 33.8322 18.3439M101.949 37C102.786 40.2642 103.206 43.6739 103.206 47.2301C103.2 51.5308 102.585 55.6211 101.358 59.5M100.495 32.5C100.769 33.1979 101.022 33.903 101.255 34.6153"
-                fill="none"
-                stroke="var(--center-channel-color)"
-                stroke-opacity="0.48"
-              />
-              <path
-                d="M82.6551 5.72396C90.4991 9.4225 96.7179 14.8934 101.302 22.1318C103.184 25.1036 104.79 28.3733 106.12 31.9406"
-                fill="none"
-                stroke="var(--center-channel-color)"
-                stroke-opacity="0.48"
-              />
-              <rect
-                fill="var(--center-channel-color)"
-                fill-opacity="0.48"
-                height="7.45395"
-                rx="1"
-                transform="rotate(45 89.8878 69.3516)"
-                width="33.9752"
-                x="89.8878"
-                y="69.3516"
-              />
-              <rect
-                fill="none"
-                height="6.45395"
-                rx="0.5"
-                stroke="var(--center-channel-color)"
-                stroke-opacity="0.8"
-                transform="rotate(45 89.8878 70.0587)"
-                width="32.9752"
-                x="89.8878"
-                y="70.0587"
-              />
-              <path
-                d="M62.5706 11.2232C72.1732 11.1625 80.6832 14.6952 88.0764 21.8213C95.0689 29.0809 98.5773 37.5423 98.5773 47.2299C98.5652 56.9053 95.0689 65.3789 88.0764 72.6385C80.6832 79.7646 72.1975 83.2973 62.5706 83.2366C52.9559 83.1637 44.4459 79.7039 37.077 72.8206C30.0724 65.3061 26.5761 56.7839 26.564 47.2299C26.5761 37.6759 30.0845 29.1416 37.0892 21.627C44.4702 14.7559 52.968 11.2839 62.5706 11.2232Z"
-                fill="var(--center-channel-bg)"
-              />
-              <path
-                d="M62.5738 11.7232C72.0335 11.6634 80.418 15.1368 87.7227 22.1748C94.6257 29.3444 98.0773 37.6809 98.0773 47.2299C98.0652 56.7673 94.6251 65.1159 87.7228 72.2849C80.418 79.323 72.0576 82.7964 62.5738 82.7366C53.0959 82.6646 44.7093 79.2606 37.431 72.467C30.5135 65.0406 27.0759 56.6419 27.064 47.2294C27.0762 37.8176 30.5255 29.4072 37.4428 21.9809C44.7342 15.1984 53.109 11.783 62.5738 11.7232Z"
-                fill="none"
-                stroke="var(--center-channel-color)"
-                stroke-opacity="0.8"
-              />
-              <path
-                clip-rule="evenodd"
-                d="M88.076 21.8213C80.6829 14.6952 72.1729 11.1625 62.5703 11.2232C52.9677 11.2839 44.4698 14.7559 37.0888 21.627C30.0841 29.1416 26.5757 37.6759 26.5636 47.2299C26.5757 56.7839 30.072 65.3061 37.0767 72.8206C44.4455 79.7039 52.9555 83.1638 62.5703 83.2366C72.1971 83.2973 80.6829 79.7646 88.076 72.6385C95.0685 65.3789 98.5648 56.9053 98.577 47.2299C98.577 37.5423 95.0685 29.0809 88.076 21.8213ZM84.5637 25.3086C78.1852 19.1606 70.8432 16.1128 62.5586 16.1652C54.274 16.2175 46.9424 19.213 40.5745 25.1411C34.5312 31.6242 31.5043 38.9872 31.4939 47.2299C31.5043 55.4726 34.5207 62.8251 40.564 69.3083C46.9215 75.2468 54.2635 78.2318 62.5586 78.2947C70.8642 78.347 78.1852 75.2992 84.5637 69.1512C90.5965 62.888 93.6129 55.5774 93.6233 47.2299C93.6233 38.872 90.5965 31.5719 84.5637 25.3086Z"
-                fill="var(--center-channel-bg)"
-                fill-rule="evenodd"
-              />
-              <path
-                clip-rule="evenodd"
-                d="M88.076 21.8213C80.6828 14.6952 72.1728 11.1625 62.5702 11.2232C52.9676 11.2839 44.4697 14.7559 37.0887 21.627C30.0841 29.1416 26.5757 37.6759 26.5635 47.2299C26.5757 56.7839 30.0719 65.3061 37.0766 72.8206C44.4455 79.7039 52.9555 83.1638 62.5702 83.2366C72.1971 83.2973 80.6828 79.7646 88.076 72.6385C95.0685 65.3789 98.5648 56.9053 98.5769 47.2299C98.5769 37.5423 95.0685 29.0809 88.076 21.8213ZM84.5636 25.3086C78.1852 19.1606 70.8432 16.1128 62.5585 16.1652C54.2739 16.2175 46.9424 19.213 40.5744 25.1411C34.5312 31.6242 31.5043 38.9872 31.4938 47.2299C31.5043 55.4726 34.5207 62.8251 40.564 69.3083C46.9214 75.2468 54.2634 78.2318 62.5585 78.2947C70.8641 78.347 78.1852 75.2992 84.5636 69.1512C90.5964 62.888 93.6128 55.5774 93.6233 47.2299C93.6233 38.872 90.5964 31.5719 84.5636 25.3086Z"
-                fill="var(--center-channel-color)"
-                fill-opacity="0.8"
-                fill-rule="evenodd"
-              />
-              <path
-                d="M62.5736 11.7232C72.0333 11.6634 80.4179 15.1369 87.7225 22.1748C94.6255 29.3444 98.0771 37.681 98.0771 47.2299C98.065 56.7674 94.625 65.1159 87.7226 72.2849C80.4178 79.3231 72.0575 82.7964 62.5736 82.7366C53.0957 82.6647 44.7092 79.2607 37.4308 72.4671C30.5133 65.0407 27.0758 56.642 27.0638 47.2294C27.076 37.8176 30.5254 29.4072 37.4426 21.9809C44.734 15.1984 53.1088 11.783 62.5736 11.7232Z"
-                fill="none"
-                stroke="var(--center-channel-color)"
-                stroke-opacity="0.8"
-              />
-              <circle
-                cx="51.255"
-                cy="36"
-                fill="var(--center-channel-color)"
-                fill-opacity="0.32"
-                r="9"
-              />
-              <path
-                d="M43.255 56H85.255"
-                fill="none"
-                stroke="var(--center-channel-color)"
-                stroke-linecap="round"
-                stroke-opacity="0.8"
-              />
-              <path
-                d="M43.255 63H65.255"
-                fill="none"
-                stroke="var(--center-channel-color)"
-                stroke-linecap="round"
-                stroke-opacity="0.8"
-              />
-              <path
-                d="M43.255 50H60.255"
-                fill="none"
-                stroke="var(--center-channel-color)"
-                stroke-linecap="round"
-                stroke-opacity="0.8"
-              />
-              <path
-                d="M65.255 50H80.255"
-                fill="none"
-                stroke="var(--center-channel-color)"
-                stroke-linecap="round"
-                stroke-opacity="0.8"
-              />
-            </g>
-          </svg>
-        </span>
-      </div>
-      <div
-        class="no-results__text-container"
-      >
-        <h3
-          class="no-results__title"
-          data-testid="no-results-title"
-        >
-          No results for “test-channel”
-        </h3>
         <div
-          class="no-results__subtitle"
+          class="simplebar-wrapper"
         >
-          Check the spelling or try another search.
+          <div
+            class="simplebar-height-auto-observer-wrapper"
+          >
+            <div
+              class="simplebar-height-auto-observer"
+            />
+          </div>
+          <div
+            class="simplebar-mask"
+          >
+            <div
+              class="simplebar-offset"
+              style="right: 0px; bottom: 0px;"
+            >
+              <div
+                aria-label="scrollable content"
+                class="simplebar-content-wrapper"
+                role="region"
+                style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+                tabindex="-1"
+              >
+                <div
+                  class="simplebar-content"
+                >
+                  <div
+                    class="_empty-state__container_zgtu5_14"
+                  >
+                    <div
+                      class="_empty-state__illustration_zgtu5_24"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_illustration_xetnl_2"
+                      >
+                        <svg
+                          fill="none"
+                          height="101"
+                          viewBox="0 0 128 101"
+                          width="128"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <g
+                            clip-path="url(#clip0_3901_6947)"
+                          >
+                            <path
+                              d="M110.044 91.1199L120 101V50C120 48.8954 119.105 48 118 48H70C68.8954 48 68 48.8954 68 50V88.5395C68 89.644 68.8954 90.5395 70 90.5395H108.635C109.163 90.5395 109.67 90.7481 110.044 91.1199Z"
+                              fill="var(--center-channel-bg)"
+                              opacity="0.4"
+                            />
+                            <path
+                              d="M110.044 91.1199L120 101V50C120 48.8954 119.105 48 118 48H70C68.8954 48 68 48.8954 68 50V88.5395C68 89.644 68.8954 90.5395 70 90.5395H108.635C109.163 90.5395 109.67 90.7481 110.044 91.1199Z"
+                              fill="var(--button-bg)"
+                              fill-opacity="0.12"
+                            />
+                            <path
+                              d="M5.5 18L5.5 33L94 33"
+                              stroke="var(--center-channel-color)"
+                              stroke-linecap="round"
+                              stroke-opacity="0.32"
+                            />
+                            <path
+                              d="M3.00001 94L13.5 83.5L13.5 44.5L34.5 44.5"
+                              stroke="var(--center-channel-color)"
+                              stroke-linecap="round"
+                              stroke-opacity="0.32"
+                            />
+                            <path
+                              d="M21.5 70.5L21.5 56.5L95.498 56.5"
+                              stroke="var(--center-channel-color)"
+                              stroke-linecap="round"
+                              stroke-opacity="0.32"
+                            />
+                            <circle
+                              cx="2.5"
+                              cy="2.5"
+                              fill="var(--center-channel-color)"
+                              fill-opacity="0.48"
+                              r="2.5"
+                              transform="matrix(1 8.74228e-08 8.74228e-08 -1 3 18)"
+                            />
+                            <circle
+                              cx="2.5"
+                              cy="2.5"
+                              fill="var(--center-channel-color)"
+                              fill-opacity="0.48"
+                              r="2.5"
+                              transform="matrix(1 8.74228e-08 8.74228e-08 -1 19 74)"
+                            />
+                            <path
+                              d="M47.605 78.5638L34 92V23C34 21.8954 34.8954 21 36 21H102C103.105 21 104 21.8954 104 23V75.9868C104 77.0914 103.105 77.9868 102 77.9868H49.0103C48.4842 77.9868 47.9793 78.1941 47.605 78.5638Z"
+                              fill="var(--color-indigo-500)"
+                            />
+                            <path
+                              d="M42.605 73.5638L29 87V18C29 16.8954 29.8954 16 31 16H97C98.1046 16 99 16.8954 99 18V70.9868C99 72.0914 98.1046 72.9868 97 72.9868H44.0103C43.4842 72.9868 42.9793 73.1941 42.605 73.5638Z"
+                              fill="var(--center-channel-bg)"
+                            />
+                            <path
+                              d="M31 16.5H97C97.8284 16.5 98.5 17.1716 98.5 18V70.9873C98.4998 71.8155 97.8283 72.4873 97 72.4873H44.0107C43.3532 72.4873 42.7218 72.746 42.2539 73.208L29.5 85.8027V18C29.5 17.1716 30.1716 16.5 31 16.5Z"
+                              stroke="var(--center-channel-color)"
+                              stroke-opacity="0.8"
+                            />
+                            <circle
+                              cx="47"
+                              cy="35"
+                              fill="var(--center-channel-color)"
+                              fill-opacity="0.32"
+                              r="9"
+                            />
+                            <path
+                              d="M62 31H78"
+                              stroke="var(--center-channel-color)"
+                              stroke-linecap="round"
+                              stroke-opacity="0.48"
+                            />
+                            <path
+                              d="M39 55H72"
+                              stroke="var(--center-channel-color)"
+                              stroke-linecap="round"
+                              stroke-opacity="0.48"
+                            />
+                            <path
+                              d="M39 62H61"
+                              stroke="var(--center-channel-color)"
+                              stroke-linecap="round"
+                              stroke-opacity="0.48"
+                            />
+                            <path
+                              d="M62 37H87"
+                              stroke="var(--center-channel-color)"
+                              stroke-linecap="round"
+                              stroke-opacity="0.48"
+                            />
+                            <path
+                              d="M39 49H56"
+                              stroke="var(--center-channel-color)"
+                              stroke-linecap="round"
+                              stroke-opacity="0.48"
+                            />
+                            <path
+                              d="M60 49H78"
+                              stroke="var(--center-channel-color)"
+                              stroke-linecap="round"
+                              stroke-opacity="0.48"
+                            />
+                            <circle
+                              cx="17.8576"
+                              cy="17.8576"
+                              fill="var(--center-channel-bg)"
+                              r="17.3576"
+                              stroke="var(--center-channel-color)"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              transform="matrix(-1 0 0 1 123.713 0)"
+                            />
+                            <path
+                              d="M92.998 19C92.998 25.6274 98.3706 31 104.998 31"
+                              stroke="var(--center-channel-color)"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-opacity="0.48"
+                              stroke-width="1.42861"
+                            />
+                            <line
+                              stroke="var(--center-channel-color)"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              transform="matrix(0.707107 0.707107 0.707107 -0.707107 116.766 30.6265)"
+                              x1="0.5"
+                              x2="15.3865"
+                              y1="-0.5"
+                              y2="-0.5"
+                            />
+                            <path
+                              d="M127 44.5V62H89.5"
+                              stroke="var(--center-channel-color)"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            />
+                            <path
+                              d="M86 62H76"
+                              stroke="var(--center-channel-color)"
+                              stroke-linecap="round"
+                            />
+                            <path
+                              d="M73 62H67"
+                              stroke="var(--center-channel-color)"
+                              stroke-linecap="round"
+                            />
+                            <circle
+                              cx="2.5"
+                              cy="94.5"
+                              fill="var(--center-channel-color)"
+                              fill-opacity="0.48"
+                              r="2.5"
+                            />
+                          </g>
+                          <defs>
+                            <clippath
+                              id="clip0_3901_6947"
+                            >
+                              <rect
+                                fill="var(--center-channel-bg)"
+                                height="101"
+                                width="128"
+                              />
+                            </clippath>
+                          </defs>
+                        </svg>
+                      </span>
+                    </div>
+                    <div
+                      class="_empty-state__titles_zgtu5_30"
+                    >
+                      <h2
+                        class="_empty-state__title_zgtu5_30"
+                      >
+                        <span
+                          class=""
+                          data-testid="no-results-title"
+                        >
+                          No results for “test-channel”
+                        </span>
+                      </h2>
+                      <p
+                        class="_empty-state__description_zgtu5_46"
+                      >
+                        <span
+                          class=""
+                        >
+                          Check the spelling or try another search.
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="simplebar-placeholder"
+            style="width: 0px; height: 0px;"
+          />
+        </div>
+        <div
+          class="simplebar-track simplebar-horizontal"
+          style="visibility: hidden;"
+        >
+          <div
+            class="simplebar-scrollbar"
+            style="width: 0px; display: none;"
+          />
+        </div>
+        <div
+          class="simplebar-track simplebar-vertical"
+          style="visibility: hidden;"
+        >
+          <div
+            class="simplebar-scrollbar"
+            style="height: 0px; display: none;"
+          />
         </div>
       </div>
     </div>
@@ -189,8 +302,12 @@ exports[`components/no_results_indicator should match snapshot with horizontal l
     class="no-results__wrapper horizontal-layout"
     data-testid="no-results-wrapper"
   >
-    <div>
-      Test
+    <div
+      class="no-results__variant-wrapper"
+    >
+      <div>
+        Test
+      </div>
     </div>
     <div
       class="no-results__text-container"
@@ -214,25 +331,105 @@ exports[`components/no_results_indicator should match snapshot with horizontal l
 exports[`components/no_results_indicator should match snapshot with variant ChannelFiles 1`] = `
 <div>
   <div
-    class="no-results__wrapper"
+    class="no-results__wrapper no-results__wrapper--compass"
     data-testid="no-results-wrapper"
   >
-    <div>
-      Test
-    </div>
     <div
-      class="no-results__text-container"
+      class="_scrollbar_f5sq5_2 _empty-state_zgtu5_2 no-results__empty-state"
+      data-simplebar="init"
     >
-      <h3
-        class="no-results__title"
-        data-testid="no-results-title"
-      >
-        No files yet
-      </h3>
       <div
-        class="no-results__subtitle"
+        class="simplebar-wrapper"
       >
-        Files posted in this channel will show here.
+        <div
+          class="simplebar-height-auto-observer-wrapper"
+        >
+          <div
+            class="simplebar-height-auto-observer"
+          />
+        </div>
+        <div
+          class="simplebar-mask"
+        >
+          <div
+            class="simplebar-offset"
+            style="right: 0px; bottom: 0px;"
+          >
+            <div
+              aria-label="scrollable content"
+              class="simplebar-content-wrapper"
+              role="region"
+              style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+              tabindex="-1"
+            >
+              <div
+                class="simplebar-content"
+              >
+                <div
+                  class="_empty-state__container_zgtu5_14"
+                >
+                  <div
+                    class="_empty-state__illustration_zgtu5_24"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_illustration_xetnl_2"
+                    >
+                      <div>
+                        Test
+                      </div>
+                    </span>
+                  </div>
+                  <div
+                    class="_empty-state__titles_zgtu5_30"
+                  >
+                    <h2
+                      class="_empty-state__title_zgtu5_30"
+                    >
+                      <span
+                        class=""
+                        data-testid="no-results-title"
+                      >
+                        No files yet
+                      </span>
+                    </h2>
+                    <p
+                      class="_empty-state__description_zgtu5_46"
+                    >
+                      <span
+                        class=""
+                      >
+                        Files posted in this channel will show here.
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="simplebar-placeholder"
+          style="width: 0px; height: 0px;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-horizontal"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="width: 0px; display: none;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-vertical"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="height: 0px; display: none;"
+        />
       </div>
     </div>
   </div>
@@ -242,25 +439,105 @@ exports[`components/no_results_indicator should match snapshot with variant Chan
 exports[`components/no_results_indicator should match snapshot with variant ChannelFilesFiltered 1`] = `
 <div>
   <div
-    class="no-results__wrapper"
+    class="no-results__wrapper no-results__wrapper--compass"
     data-testid="no-results-wrapper"
   >
-    <div>
-      Test
-    </div>
     <div
-      class="no-results__text-container"
+      class="_scrollbar_f5sq5_2 _empty-state_zgtu5_2 no-results__empty-state"
+      data-simplebar="init"
     >
-      <h3
-        class="no-results__title"
-        data-testid="no-results-title"
-      >
-        No files found
-      </h3>
       <div
-        class="no-results__subtitle"
+        class="simplebar-wrapper"
       >
-        This channel doesn't contains any file with the selected file format.
+        <div
+          class="simplebar-height-auto-observer-wrapper"
+        >
+          <div
+            class="simplebar-height-auto-observer"
+          />
+        </div>
+        <div
+          class="simplebar-mask"
+        >
+          <div
+            class="simplebar-offset"
+            style="right: 0px; bottom: 0px;"
+          >
+            <div
+              aria-label="scrollable content"
+              class="simplebar-content-wrapper"
+              role="region"
+              style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+              tabindex="-1"
+            >
+              <div
+                class="simplebar-content"
+              >
+                <div
+                  class="_empty-state__container_zgtu5_14"
+                >
+                  <div
+                    class="_empty-state__illustration_zgtu5_24"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_illustration_xetnl_2"
+                    >
+                      <div>
+                        Test
+                      </div>
+                    </span>
+                  </div>
+                  <div
+                    class="_empty-state__titles_zgtu5_30"
+                  >
+                    <h2
+                      class="_empty-state__title_zgtu5_30"
+                    >
+                      <span
+                        class=""
+                        data-testid="no-results-title"
+                      >
+                        No files found
+                      </span>
+                    </h2>
+                    <p
+                      class="_empty-state__description_zgtu5_46"
+                    >
+                      <span
+                        class=""
+                      >
+                        This channel doesn't contains any file with the selected file format.
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="simplebar-placeholder"
+          style="width: 0px; height: 0px;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-horizontal"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="width: 0px; display: none;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-vertical"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="height: 0px; display: none;"
+        />
       </div>
     </div>
   </div>
@@ -270,25 +547,105 @@ exports[`components/no_results_indicator should match snapshot with variant Chan
 exports[`components/no_results_indicator should match snapshot with variant ChannelSearch 1`] = `
 <div>
   <div
-    class="no-results__wrapper"
+    class="no-results__wrapper no-results__wrapper--compass"
     data-testid="no-results-wrapper"
   >
-    <div>
-      Test
-    </div>
     <div
-      class="no-results__text-container"
+      class="_scrollbar_f5sq5_2 _empty-state_zgtu5_2 no-results__empty-state"
+      data-simplebar="init"
     >
-      <h3
-        class="no-results__title"
-        data-testid="no-results-title"
-      >
-        No results for “test-channel”
-      </h3>
       <div
-        class="no-results__subtitle"
+        class="simplebar-wrapper"
       >
-        Check the spelling or try another search.
+        <div
+          class="simplebar-height-auto-observer-wrapper"
+        >
+          <div
+            class="simplebar-height-auto-observer"
+          />
+        </div>
+        <div
+          class="simplebar-mask"
+        >
+          <div
+            class="simplebar-offset"
+            style="right: 0px; bottom: 0px;"
+          >
+            <div
+              aria-label="scrollable content"
+              class="simplebar-content-wrapper"
+              role="region"
+              style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+              tabindex="-1"
+            >
+              <div
+                class="simplebar-content"
+              >
+                <div
+                  class="_empty-state__container_zgtu5_14"
+                >
+                  <div
+                    class="_empty-state__illustration_zgtu5_24"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_illustration_xetnl_2"
+                    >
+                      <div>
+                        Test
+                      </div>
+                    </span>
+                  </div>
+                  <div
+                    class="_empty-state__titles_zgtu5_30"
+                  >
+                    <h2
+                      class="_empty-state__title_zgtu5_30"
+                    >
+                      <span
+                        class=""
+                        data-testid="no-results-title"
+                      >
+                        No results for “test-channel”
+                      </span>
+                    </h2>
+                    <p
+                      class="_empty-state__description_zgtu5_46"
+                    >
+                      <span
+                        class=""
+                      >
+                        Check the spelling or try another search.
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="simplebar-placeholder"
+          style="width: 0px; height: 0px;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-horizontal"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="width: 0px; display: none;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-vertical"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="height: 0px; display: none;"
+        />
       </div>
     </div>
   </div>
@@ -298,25 +655,105 @@ exports[`components/no_results_indicator should match snapshot with variant Chan
 exports[`components/no_results_indicator should match snapshot with variant FlaggedPosts 1`] = `
 <div>
   <div
-    class="no-results__wrapper"
+    class="no-results__wrapper no-results__wrapper--compass"
     data-testid="no-results-wrapper"
   >
-    <div>
-      Test
-    </div>
     <div
-      class="no-results__text-container"
+      class="_scrollbar_f5sq5_2 _empty-state_zgtu5_2 no-results__empty-state"
+      data-simplebar="init"
     >
-      <h3
-        class="no-results__title"
-        data-testid="no-results-title"
-      >
-        No saved messages yet
-      </h3>
       <div
-        class="no-results__subtitle"
+        class="simplebar-wrapper"
       >
-        To save something for later, open the context menu on a message and choose Save. Saved messages are only visible to you
+        <div
+          class="simplebar-height-auto-observer-wrapper"
+        >
+          <div
+            class="simplebar-height-auto-observer"
+          />
+        </div>
+        <div
+          class="simplebar-mask"
+        >
+          <div
+            class="simplebar-offset"
+            style="right: 0px; bottom: 0px;"
+          >
+            <div
+              aria-label="scrollable content"
+              class="simplebar-content-wrapper"
+              role="region"
+              style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+              tabindex="-1"
+            >
+              <div
+                class="simplebar-content"
+              >
+                <div
+                  class="_empty-state__container_zgtu5_14"
+                >
+                  <div
+                    class="_empty-state__illustration_zgtu5_24"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_illustration_xetnl_2"
+                    >
+                      <div>
+                        Test
+                      </div>
+                    </span>
+                  </div>
+                  <div
+                    class="_empty-state__titles_zgtu5_30"
+                  >
+                    <h2
+                      class="_empty-state__title_zgtu5_30"
+                    >
+                      <span
+                        class=""
+                        data-testid="no-results-title"
+                      >
+                        No saved messages yet
+                      </span>
+                    </h2>
+                    <p
+                      class="_empty-state__description_zgtu5_46"
+                    >
+                      <span
+                        class=""
+                      >
+                        To save something for later, open the context menu on a message and choose Save. Saved messages are only visible to you
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="simplebar-placeholder"
+          style="width: 0px; height: 0px;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-horizontal"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="width: 0px; display: none;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-vertical"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="height: 0px; display: none;"
+        />
       </div>
     </div>
   </div>
@@ -326,25 +763,105 @@ exports[`components/no_results_indicator should match snapshot with variant Flag
 exports[`components/no_results_indicator should match snapshot with variant Mentions 1`] = `
 <div>
   <div
-    class="no-results__wrapper"
+    class="no-results__wrapper no-results__wrapper--compass"
     data-testid="no-results-wrapper"
   >
-    <div>
-      Test
-    </div>
     <div
-      class="no-results__text-container"
+      class="_scrollbar_f5sq5_2 _empty-state_zgtu5_2 no-results__empty-state"
+      data-simplebar="init"
     >
-      <h3
-        class="no-results__title"
-        data-testid="no-results-title"
-      >
-        No mentions yet
-      </h3>
       <div
-        class="no-results__subtitle"
+        class="simplebar-wrapper"
       >
-        Messages where someone mentions you or includes your trigger words are saved here.
+        <div
+          class="simplebar-height-auto-observer-wrapper"
+        >
+          <div
+            class="simplebar-height-auto-observer"
+          />
+        </div>
+        <div
+          class="simplebar-mask"
+        >
+          <div
+            class="simplebar-offset"
+            style="right: 0px; bottom: 0px;"
+          >
+            <div
+              aria-label="scrollable content"
+              class="simplebar-content-wrapper"
+              role="region"
+              style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+              tabindex="-1"
+            >
+              <div
+                class="simplebar-content"
+              >
+                <div
+                  class="_empty-state__container_zgtu5_14"
+                >
+                  <div
+                    class="_empty-state__illustration_zgtu5_24"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_illustration_xetnl_2"
+                    >
+                      <div>
+                        Test
+                      </div>
+                    </span>
+                  </div>
+                  <div
+                    class="_empty-state__titles_zgtu5_30"
+                  >
+                    <h2
+                      class="_empty-state__title_zgtu5_30"
+                    >
+                      <span
+                        class=""
+                        data-testid="no-results-title"
+                      >
+                        No mentions yet
+                      </span>
+                    </h2>
+                    <p
+                      class="_empty-state__description_zgtu5_46"
+                    >
+                      <span
+                        class=""
+                      >
+                        Messages where someone mentions you or includes your trigger words are saved here.
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="simplebar-placeholder"
+          style="width: 0px; height: 0px;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-horizontal"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="width: 0px; display: none;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-vertical"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="height: 0px; display: none;"
+        />
       </div>
     </div>
   </div>
@@ -354,25 +871,105 @@ exports[`components/no_results_indicator should match snapshot with variant Ment
 exports[`components/no_results_indicator should match snapshot with variant PinnedPosts 1`] = `
 <div>
   <div
-    class="no-results__wrapper"
+    class="no-results__wrapper no-results__wrapper--compass"
     data-testid="no-results-wrapper"
   >
-    <div>
-      Test
-    </div>
     <div
-      class="no-results__text-container"
+      class="_scrollbar_f5sq5_2 _empty-state_zgtu5_2 no-results__empty-state"
+      data-simplebar="init"
     >
-      <h3
-        class="no-results__title"
-        data-testid="no-results-title"
-      >
-        No pinned messages yet
-      </h3>
       <div
-        class="no-results__subtitle"
+        class="simplebar-wrapper"
       >
-        To pin important messages, open the context menu on a message and choose Pin to Channel. Pinned messages will be visible to everyone in this channel.
+        <div
+          class="simplebar-height-auto-observer-wrapper"
+        >
+          <div
+            class="simplebar-height-auto-observer"
+          />
+        </div>
+        <div
+          class="simplebar-mask"
+        >
+          <div
+            class="simplebar-offset"
+            style="right: 0px; bottom: 0px;"
+          >
+            <div
+              aria-label="scrollable content"
+              class="simplebar-content-wrapper"
+              role="region"
+              style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+              tabindex="-1"
+            >
+              <div
+                class="simplebar-content"
+              >
+                <div
+                  class="_empty-state__container_zgtu5_14"
+                >
+                  <div
+                    class="_empty-state__illustration_zgtu5_24"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="_illustration_xetnl_2"
+                    >
+                      <div>
+                        Test
+                      </div>
+                    </span>
+                  </div>
+                  <div
+                    class="_empty-state__titles_zgtu5_30"
+                  >
+                    <h2
+                      class="_empty-state__title_zgtu5_30"
+                    >
+                      <span
+                        class=""
+                        data-testid="no-results-title"
+                      >
+                        No pinned messages yet
+                      </span>
+                    </h2>
+                    <p
+                      class="_empty-state__description_zgtu5_46"
+                    >
+                      <span
+                        class=""
+                      >
+                        To pin important messages, open the context menu on a message and choose Pin to Channel. Pinned messages will be visible to everyone in this channel.
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="simplebar-placeholder"
+          style="width: 0px; height: 0px;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-horizontal"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="width: 0px; display: none;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-vertical"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="height: 0px; display: none;"
+        />
       </div>
     </div>
   </div>
