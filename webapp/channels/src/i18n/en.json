@@ -7499,6 +7499,14 @@
     "defaultMessage": "No info findings",
     "description": "Title of the empty Info tab on the System Console Site health page, shown when no info finding is firing."
   },
+  "admin.health_dashboard.empty_tab.muted_body": {
+    "defaultMessage": "Muted findings are still checked but hidden from this list. Open Muted to review or unmute them.",
+    "description": "Body of an empty tab on the System Console Site health page when the tab is empty only because its findings are muted; Muted is the toolbar button that lists them."
+  },
+  "admin.health_dashboard.empty_tab.muted_title": {
+    "defaultMessage": "{count, plural, one {# finding here is muted} other {# findings here are muted}}",
+    "description": "Title of an empty tab on the System Console Site health page, shown instead of the all-clear message when every finding in the tab is muted; {count} is how many are muted."
+  },
   "admin.health_dashboard.empty_tab.resolved": {
     "defaultMessage": "Nothing resolved in the last 7 days",
     "description": "Title of the empty Recently resolved tab on the System Console Site health page, shown when no finding resolved in the last 7 days."
@@ -7567,9 +7575,45 @@
     "defaultMessage": "Severity",
     "description": "Option of the Group by control on the System Console Site health page that groups findings by severity."
   },
+  "admin.health_dashboard.just_now": {
+    "defaultMessage": "just now",
+    "description": "Relative time on the System Console Site health page for a moment less than a minute ago, used inside sentences such as \"Last evaluated {time}\" and \"Muted by {name} {time}\"."
+  },
   "admin.health_dashboard.last_evaluated": {
     "defaultMessage": "Last evaluated {time}",
     "description": "Line at the top of the System Console Site health page; {time} is a relative time such as \"38 minutes ago\" of the latest health check run."
+  },
+  "admin.health_dashboard.mute.error": {
+    "defaultMessage": "The finding could not be muted, so it is still in the open list. Try again.",
+    "description": "Error banner on the System Console Site health page when muting a finding failed and the finding was put back in the open list."
+  },
+  "admin.health_dashboard.mute.mute": {
+    "defaultMessage": "Mute",
+    "description": "Button on a finding row of the System Console Site health page that hides the finding from the open list for every admin, immediately."
+  },
+  "admin.health_dashboard.mute.unmute": {
+    "defaultMessage": "Unmute",
+    "description": "Button on a muted finding row of the System Console Site health page that returns the finding to the open list."
+  },
+  "admin.health_dashboard.muted.by": {
+    "defaultMessage": "Muted by {name} {time}",
+    "description": "Shown on a muted finding on the System Console Site health page; {name} is the admin who muted it and {time} a relative time such as \"2 hours ago\"."
+  },
+  "admin.health_dashboard.muted.empty.body": {
+    "defaultMessage": "Findings muted by any admin are listed here, with who muted them and when.",
+    "description": "Body of the empty state of the muted findings list on the System Console Site health page."
+  },
+  "admin.health_dashboard.muted.empty.title": {
+    "defaultMessage": "No muted findings",
+    "description": "Title of the empty state of the muted findings list on the System Console Site health page."
+  },
+  "admin.health_dashboard.muted.note": {
+    "defaultMessage": "Muted findings are hidden from the open list for every admin, and they keep being checked. A different problem with the same check is still reported. Unmute a finding to return it to the open list.",
+    "description": "Explanation above the list of muted findings on the System Console Site health page."
+  },
+  "admin.health_dashboard.muted.toggle": {
+    "defaultMessage": "Muted",
+    "description": "Toolbar button next to the tabs on the System Console Site health page that shows the muted findings; followed by their count."
   },
   "admin.health_dashboard.severity.critical": {
     "defaultMessage": "Critical",
@@ -7622,6 +7666,10 @@
   "admin.health_dashboard.unknown.title": {
     "defaultMessage": "Could not be evaluated",
     "description": "Heading of the section on the System Console Site health page listing health checks that could not be evaluated."
+  },
+  "admin.health_dashboard.unmute.error": {
+    "defaultMessage": "The finding could not be unmuted, so it is still muted. Try again.",
+    "description": "Error banner on the System Console Site health page when unmuting a finding failed and the finding stayed muted."
   },
   "admin.image.amazonS3BucketDescription": {
     "defaultMessage": "Name you selected for your S3 bucket in AWS.",

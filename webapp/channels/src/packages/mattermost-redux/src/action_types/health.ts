@@ -5,4 +5,5 @@ import keyMirror from 'mattermost-redux/utils/key_mirror';
 
 export default keyMirror({
     RECEIVED_HEALTH_FINDINGS: null,
+    RECEIVED_HEALTH_FINDING: null,
 });

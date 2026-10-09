@@ -45,6 +45,18 @@ describe('reducers.entities.health', () => {
         expect(state).toEqual({findings: {}, evaluatedAt: 10});
     });
 
+    test('RECEIVED_HEALTH_FINDING replaces one finding and keeps the others', () => {
+        const first = makeFinding('first');
+        const second = makeFinding('second');
+        const state = reducer(undefined, {type: HealthTypes.RECEIVED_HEALTH_FINDINGS, data: {evaluated_at: 10, findings: [first, second]}});
+
+        const mutedFirst = {...first, muted_at: 30, muted_by: 'admin'};
+        const next = reducer(state, {type: HealthTypes.RECEIVED_HEALTH_FINDING, data: mutedFirst});
+
+        expect(next).toEqual({findings: {first: mutedFirst, second}, evaluatedAt: 10});
+        expect(next.findings.second).toBe(second);
+    });
+
     test('LOGOUT_SUCCESS clears the findings and evaluation time', () => {
         const state = reducer(undefined, {type: HealthTypes.RECEIVED_HEALTH_FINDINGS, data: {evaluated_at: 10, findings: [makeFinding('first')]}});
 
