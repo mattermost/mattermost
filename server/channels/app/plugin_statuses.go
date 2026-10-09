@@ -40,6 +40,15 @@ func (a *App) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) 
 	return a.ch.GetPluginStatus(id)
 }
 
+// IsInstalledPlugin reports whether id names a plugin installed on this
+// server. It is the one plugin-membership check shared by the property
+// access-control hook and the audit basis derivation, so the two cannot
+// disagree about which caller IDs are machine callers.
+func (a *App) IsInstalledPlugin(id string) bool {
+	_, err := a.GetPluginStatus(id)
+	return err == nil
+}
+
 // GetPluginStatuses returns the status for plugins installed on this server.
 func (ch *Channels) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
 	pluginsEnvironment := ch.GetPluginsEnvironment()

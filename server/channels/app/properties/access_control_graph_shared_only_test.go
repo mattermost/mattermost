@@ -765,7 +765,7 @@ func TestGraphSharedOnly_OptionListOptionsOmitted(t *testing.T) {
 	// above is what answers instead.
 	read, err := h.th.service.GetPropertyField(RequestContextWithCallerID(h.th.Context, caller), h.th.CPAGroupID, field.ID)
 	require.NoError(t, err)
-	requireOptionsHidden(t, read)
+	requireWithheldOptionsHidden(t, read)
 }
 
 // TestGraphSharedOnly_FieldOptionList covers the option list a field read carries
