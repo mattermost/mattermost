@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {ItemStatus} from 'utils/constants';
 
 import InputBusinessEmail from './input_business_email';
@@ -49,8 +49,7 @@ describe('/components/cloud_start_trial/input_business_email', () => {
         const {container} = renderWithContext(
             <InputBusinessEmail {...{...baseProps, customInputLabel: {type: ItemStatus.ERROR, value: 'error value'}}}/>,
         );
-        const customMessageElement = container.querySelector('.Input___customMessage.Input___error');
-        expect(customMessageElement).toBeInTheDocument();
+        expect(screen.getByRole('alert')).toHaveTextContent('error value');
     });
 
     test('test input business email displays the INFO custom message correctly', () => {
