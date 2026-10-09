@@ -119,9 +119,16 @@ const GlobalThreads = () => {
             promises.push(dispatch(getThreadsForCurrentTeam({unread: true})));
         }
 
+        let isStale = false;
         Promise.all(promises).then(() => {
-            setLoading(false);
+            if (!isStale) {
+                setLoading(false);
+            }
         });
+
+        return () => {
+            isStale = true;
+        };
     }, [filter, threadIds, unreadThreadIds, numUnread]);
 
     useEffect(() => {

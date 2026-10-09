@@ -232,5 +232,44 @@ describe('components/threading/global_threads', () => {
 
             expect(screen.getByRole('link', {name: '1 thread'}).getAttribute('href')).not.toContain('undefined');
         });
+
+        test('should keep loading until the latest fetch finishes', async () => {
+            const resolvers: Array<() => void> = [];
+            const defaultImplementation = jest.mocked(getThreadsForCurrentTeam).getMockImplementation();
+            const deferredFetch = () => new Promise<void>((resolve) => {
+                resolvers.push(resolve);
+            });
+            jest.mocked(getThreadsForCurrentTeam).mockImplementation(() => deferredFetch as unknown as ReturnType<typeof getThreadsForCurrentTeam>);
+
+            const emptyState = {
+                ...unreadsState,
+                entities: {
+                    ...unreadsState.entities,
+                    threads: {
+                        ...unreadsState.entities.threads,
+                        threads: {},
+                        threadsInTeam: {team1: []},
+                    },
+                },
+            };
+
+            store = renderWithContext(<GlobalThreads/>, emptyState).store;
+            await runPostRenderAct();
+            const initialFetchCount = resolvers.length;
+
+            receiveUnreadCount(1);
+            await runPostRenderAct();
+            expect(resolvers.length).toBeGreaterThan(initialFetchCount);
+
+            resolvers.slice(0, initialFetchCount).forEach((resolve) => resolve());
+            await runPostRenderAct();
+            expect(screen.getByText('Loading')).toBeInTheDocument();
+
+            resolvers.slice(initialFetchCount).forEach((resolve) => resolve());
+            await runPostRenderAct();
+            expect(screen.queryByText('Loading')).not.toBeInTheDocument();
+
+            jest.mocked(getThreadsForCurrentTeam).mockImplementation(defaultImplementation);
+        });
     });
 });
