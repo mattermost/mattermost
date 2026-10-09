@@ -4,6 +4,7 @@
 package app
 
 import (
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -67,7 +68,7 @@ func (a *App) buildHealthSnapshotWithLatestVersionURL(rctx request.CTX, latestVe
 		sections[model.SectionVersion] = appErr
 	} else {
 		sections[model.SectionVersion] = nil
-		snapshot.Version.Latest = release.TagName
+		snapshot.Version.Latest = strings.TrimPrefix(release.TagName, "v")
 	}
 
 	return snapshot, nil
