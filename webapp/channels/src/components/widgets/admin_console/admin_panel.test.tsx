@@ -22,11 +22,11 @@ describe('components/widgets/admin_console/AdminPanel', () => {
         );
 
         // Verify panel is rendered by checking its heading
-        const heading = screen.getByRole('heading', {level: 3});
+        const heading = screen.getByRole('heading', {level: 2});
         expect(heading).toHaveTextContent('test-title-default');
 
         // Verify panel has correct classes via its container
-        const panel = heading.closest('.AdminPanel');
+        const panel = document.getElementById('test-id');
         expect(panel).toHaveClass('AdminPanel', 'clearfix', 'test-class-name');
         expect(panel).toHaveAttribute('id', 'test-id');
 
@@ -56,20 +56,26 @@ describe('components/widgets/admin_console/AdminPanel', () => {
         expect(screen.getByText('Test')).toBeInTheDocument();
     });
 
-    test('should call onHeaderClick when header is clicked', async () => {
-        const onHeaderClick = jest.fn();
+    test('should call header action handler when header action is clicked', async () => {
+        const onActionClick = jest.fn();
         renderWithContext(
             <AdminPanel
                 {...defaultProps}
-                onHeaderClick={onHeaderClick}
+                button={
+                    <button
+                        type='button'
+                        onClick={onActionClick}
+                    >
+                        {'Header action'}
+                    </button>
+                }
             >
                 {'Test'}
             </AdminPanel>,
         );
 
-        // Click on the title to trigger header click
-        await userEvent.click(screen.getByText('test-title-default'));
+        await userEvent.click(screen.getByRole('button', {name: 'Header action'}));
 
-        expect(onHeaderClick).toHaveBeenCalledTimes(1);
+        expect(onActionClick).toHaveBeenCalledTimes(1);
     });
 });

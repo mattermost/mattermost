@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {AdminPanel as CompassAdminPanel} from '@mattermost/compass-ui/components/admin-panel';
+import classNames from 'classnames';
 import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
@@ -10,53 +12,38 @@ import './admin_panel.scss';
 type Props = {
     id?: string;
     className?: string;
-    onHeaderClick?: React.EventHandler<React.MouseEvent>;
     title: MessageDescriptor;
     subtitle: MessageDescriptor;
-    subtitleValues?: any;
+    subtitleValues?: Record<string, unknown>;
     button?: React.ReactNode;
     children?: React.ReactNode;
-};
+} & Omit<React.ComponentProps<typeof CompassAdminPanel>, 'title' | 'subtitle' | 'headerActions' | 'children' | 'className'>;
 
-const AdminPanel: React.FC<Props> = ({
+const AdminPanel = ({
     subtitle,
     title,
     button,
     children,
     className = '',
     id,
-    onHeaderClick,
     subtitleValues,
+    ...rest
 }: Props) => (
-    <div
-        className={'AdminPanel clearfix ' + className}
+    <CompassAdminPanel
         id={id}
+        className={classNames('AdminPanel', 'clearfix', className)}
+        title={<FormattedMessage {...title}/>}
+        subtitle={
+            <FormattedMessage
+                {...subtitle}
+                values={subtitleValues}
+            />
+        }
+        headerActions={button}
+        {...rest}
     >
-        <div
-            className='header'
-            onClick={onHeaderClick}
-        >
-            <div>
-                <h3>
-                    <FormattedMessage
-                        {...title}
-                    />
-                </h3>
-                <div className='mt-2'>
-                    <FormattedMessage
-                        {...subtitle}
-                        values={subtitleValues}
-                    />
-                </div>
-            </div>
-            {button &&
-                <div className='button'>
-                    {button}
-                </div>
-            }
-        </div>
         {children}
-    </div>
+    </CompassAdminPanel>
 );
 
 export default AdminPanel;
