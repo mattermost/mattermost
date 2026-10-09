@@ -124,6 +124,9 @@ on:
         required: false
       CWS_EXTRA_HTTP_HEADERS:
         required: false
+      ANTHROPIC_API_KEY:
+        description: "Optional; enables the second judge in E2E triage"
+        required: false
 
 # Callers must grant: contents: read, statuses: write, id-token: write
 permissions:
@@ -404,6 +407,8 @@ jobs:
       contents: read
       id-token: write
       statuses: write
+      # Triage reads the PR's changed files to tell a spec it edits from one it does not.
+      pull-requests: read
     outputs:
       commit_status_description: ${{ steps.summary.outputs.commit_status_description }}
       webhook_payload: ${{ steps.summary.outputs.webhook_payload }}
@@ -428,6 +433,50 @@ jobs:
           ref-branch: ${{ inputs.ref_branch }}
           commit-status-context: ${{ inputs.context_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      # Answers from an earlier attempt at the same commit, so a re-run does not
+      # pay for the same question twice. Restore and save are separate steps:
+      # the cache action saves only when the job succeeds, and a red run is the
+      # one most likely to be re-run.
+      - name: Restore triage answers
+        if: always() && steps.summary.outcome != 'success'
+        continue-on-error: true
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: e2e-triage-answers.json
+          key: e2e-triage-answers-${{ inputs.context_name }}-${{ fromJSON(needs.prepare-run.outputs.composite-identity-json).commit_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: e2e-triage-answers-${{ inputs.context_name }}-${{ fromJSON(needs.prepare-run.outputs.composite-identity-json).commit_sha }}-
+      - name: ci/e2e-triage
+        id: triage
+        # Runs on master as well as on PRs. On master the question changes from
+        # "is this the PR's fault" to "is master noisy or actually broken", and
+        # only intermittency clears a failure: a test that failed in the previous
+        # master run too is a streak, not a flake, and stays red. A master run has
+        # no PR to comment on, so the story lands in the job summary.
+        #
+        # Only a red run is worth triaging: the verdict can turn a red run green
+        # and never the other way round, so on a green one there is nothing for
+        # it to change.
+        if: always() && steps.summary.outcome != 'success'
+        continue-on-error: true
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-triage@a4970f0ecd440dbf9f2937791b80828fea9f5b6c # actions/e2e-triage
+        with:
+          composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
+          status-context: ${{ inputs.context_name }}
+          # One triage check for the whole PR, summarising Playwright and Cypress.
+          triage-status-context: e2e-test/triage
+          triage-lanes: e2e-test/playwright-full/enterprise,e2e-test/cypress-full/enterprise
+          test-root: e2e-tests/cypress
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          mode: ${{ vars.E2E_TRIAGE_MODE || 'enforce' }}
+          answers-cache: e2e-triage-answers.json
+      - name: Save triage answers
+        if: always() && steps.summary.outcome != 'success' && hashFiles('e2e-triage-answers.json') != ''
+        continue-on-error: true
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: e2e-triage-answers.json
+          key: e2e-triage-answers-${{ inputs.context_name }}-${{ fromJSON(needs.prepare-run.outputs.composite-identity-json).commit_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: ci/publish-webhook
         if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
         env:
@@ -438,5 +487,15 @@ jobs:
       - name: ci/assert-results
         env:
           SUMMARY_OUTCOME: ${{ steps.summary.outcome }}
+          TRIAGE_VERDICT: ${{ steps.triage.outputs.verdict }}
+          TRIAGE_MODE: ${{ vars.E2E_TRIAGE_MODE || 'enforce' }}
         run: |
-          [ "$SUMMARY_OUTCOME" = "success" ]
+          # Triage can only turn a red run green, never the other way round.
+          # A green summary passes on its own, so a triage outage can never fail
+          # a run whose tests all passed. A red summary passes only on a SUCCESS
+          # verdict in enforce mode, so an empty verdict — triage itself failed —
+          # leaves the run red. That is the fail-closed default.
+          if [ "$SUMMARY_OUTCOME" = "success" ]; then
+            exit 0
+          fi
+          [ "$TRIAGE_MODE" = "enforce" ] && [ "$TRIAGE_VERDICT" = "SUCCESS" ]
