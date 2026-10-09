@@ -27,6 +27,7 @@ func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("UpdatePropertyField", func(t *testing.T) { testUpdatePropertyField(t, rctx, ss) })
 	t.Run("DeletePropertyField", func(t *testing.T) { testDeletePropertyField(t, rctx, ss, s) })
 	t.Run("SearchPropertyFields", func(t *testing.T) { testSearchPropertyFields(t, rctx, ss, s) })
+	t.Run("GetForGroupVersion", func(t *testing.T) { testGetForGroupVersion(t, rctx, ss) })
 	t.Run("CountForGroup", func(t *testing.T) { testCountForGroup(t, rctx, ss) })
 	t.Run("CheckPropertyNameConflict", func(t *testing.T) { testCheckPropertyNameConflict(t, rctx, ss) })
 	t.Run("CountLinkedFields", func(t *testing.T) { testCountLinkedFields(t, rctx, ss) })
@@ -36,6 +37,16 @@ func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("OptionStorage", func(t *testing.T) { testPropertyFieldOptionStorage(t, rctx, ss, s) })
 	t.Run("OptionEdges", func(t *testing.T) { testPropertyFieldOptionEdges(t, rctx, ss, s) })
 	t.Run("OptionHierarchy", func(t *testing.T) { testPropertyFieldOptionHierarchy(t, rctx, ss) })
+}
+
+func testGetForGroupVersion(t *testing.T, rctx request.CTX, ss store.Store) {
+	groupID := model.NewId()
+	first, err := ss.PropertyField().GetForGroupVersion(rctx, groupID)
+	require.NoError(t, err)
+	second, err := ss.PropertyField().GetForGroupVersion(rctx, groupID)
+	require.NoError(t, err)
+	require.NotEmpty(t, first)
+	require.NotEqual(t, first, second)
 }
 
 func testCreatePropertyField(t *testing.T, rctx request.CTX, ss store.Store) {

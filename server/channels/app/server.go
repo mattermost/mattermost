@@ -16,6 +16,7 @@ import (
 	"path"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -137,6 +138,8 @@ type Server struct {
 	userService      *users.UserService
 	teamService      *teams.TeamService
 	propertyService  *properties.PropertyService
+
+	sessionAttributeSchema atomic.Pointer[sessionAttributeSchema]
 
 	serviceMux           sync.RWMutex
 	remoteClusterService remotecluster.RemoteClusterServiceIFace
