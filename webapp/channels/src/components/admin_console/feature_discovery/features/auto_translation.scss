@@ -1,31 +1,26 @@
-@use 'utils/variables';
+.AutoTranslationFeatureDiscovery {
+    .FeatureDiscovery_panel {
+        all: unset;
+        display: grid;
+        align-items: center;
+        font-family: 'Open Sans', sans-serif;
+        font-style: normal;
+        font-weight: normal;
+        gap: 24px;
+        grid-template-columns: 1fr auto;
 
-.AutoTranslationFeatureDiscovery .FeatureDiscovery {
-    all: unset; // removes all inheritable and non-inheritable properties (use with caution)
-    
-    display: grid;
-    align-items: center;
-    font-family: 'Open Sans', sans-serif;
-    font-style: normal;
-    font-weight: normal;
-    gap: 24px;
-    grid-template-columns: 1fr auto;
+        :global([class*='feature-discovery-panel__content']) {
+            padding: 0;
+        }
 
-    
-    .FeatureDiscovery_copyWrapper {
-        padding: 0;
-    }
+        :global([class*='feature-discovery-panel__illustration']) {
+            padding: 8px 32px;
+            width: auto;
+        }
 
-    .FeatureDiscovery_imageWrapper {
-        padding: 8px 32px;
-    }
-
-    .SkuTag.FeatureDiscovery_tag {
-        margin-bottom: 8px;
-    }
-
-    .FeatureDiscovery_title {
-        padding-bottom: 8px;
+        :global([class*='feature-discovery-panel__title']) {
+            padding-bottom: 8px;
+        }
     }
 }
 

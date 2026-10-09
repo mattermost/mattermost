@@ -33,7 +33,10 @@ const AutoTranslationFeatureDiscovery: React.FC = () => {
                             id: 'admin.auto_translation_feature_discovery.copy',
                             // eslint-disable-next-line formatjs/enforce-placeholders -- values spread onto FormattedMessage in FeatureDiscovery
                             defaultMessage: 'Effortlessly collaborate across languages with auto-translation. Messages in shared channels are instantly translated based on each user’s language preference—no extra steps required.{br}<strong>Only available in Enterprise Advanced.</strong>',
-                            values: {strong: (msg: string) => <strong>{msg}</strong>, br: <br/>},
+                            values: {
+                                strong: (msg: string) => <strong key='auto-translation-strong'>{msg}</strong>,
+                                br: <br key='auto-translation-br'/>,
+                            },
                         })}
                         learnMoreURL='https://docs.mattermost.com/administration-guide/manage/admin/autotranslation.html'
                         featureDiscoveryImage={

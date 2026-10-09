@@ -1,51 +1,52 @@
-@use 'utils/variables';
-
 .FeatureDiscovery {
-    display: grid;
-    padding: 20px;
-    border-radius: 8px;
-    background: variables.$white;
-    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
-    font-family: Open Sans;
-    font-style: normal;
-    font-weight: normal;
-    grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
-}
+    .FeatureDiscovery_panel {
+        width: 100%;
+    }
 
-.FeatureDiscovery_imageWrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+    .FeatureDiscovery_imageWrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-.FeatureDiscovery_copyWrapper,
-.FeatureDiscovery_imageWrapper {
-    padding: 20px 0 20px 20px; 
-    grid-template-columns: repeat(2, 1fr);
-}
+    &--hostTrialActions {
+        display: grid;
 
-.FeatureDiscovery_image {
-    height: 220px;
-}
+        .FeatureDiscovery_panel {
+            grid-area: 1 / 1;
+        }
 
-.FeatureDiscovery_title {
-    padding-bottom: 16px;
-    font-family: Metropolis, sans-serif !important;
-    font-size: 20px;
-    line-height: 28px;
-}
+        .FeatureDiscovery_hostTrialFooter {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-m);
+            grid-area: 1 / 1;
+            align-self: end;
+            justify-self: start;
+            margin: 0 0 var(--spacing-xxxl) var(--spacing-xxxl);
+            max-width: calc(100% - 340px - (3 * var(--spacing-xxl)));
+        }
 
-.FeatureDiscovery_copy {
-    padding-bottom: 24px;
-    font-size: 14px;
-    line-height: 20px;
-}
+        .FeatureDiscovery_actionRow {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: var(--spacing-m);
+        }
 
-.purchase-card {
-    display: flex;
-    gap: 8px;
+        .FeatureDiscovery_learnMoreLink {
+            font-size: var(--font-size-100);
+            font-weight: var(--font-weight-semibold);
+        }
+    }
 
-    .btn {
-        margin-left: 0;
+    .trial-error {
+        margin-top: var(--spacing-m);
+    }
+
+    .trial-legal-terms {
+        margin-top: var(--spacing-m);
+        font-size: var(--font-size-75);
+        line-height: var(--line-height-75);
     }
 }
