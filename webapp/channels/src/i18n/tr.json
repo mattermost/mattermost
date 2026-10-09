@@ -7110,6 +7110,7 @@
   "save_button.saving": "Kaydediliyor",
   "schedule_post.custom_time_modal.cancel_button_text": "İptal",
   "schedule_post.custom_time_modal.confirm_button_text": "Zamanla",
+  "schedule_post.custom_time_modal.dm_user_time": "{dmUserName} için {dmUserTime}",
   "schedule_post.custom_time_modal.repeat_weekly": "Her hafta yinelensin",
   "schedule_post.custom_time_modal.repeat_weekly.attachments_tooltip": "Ek dosyası olan iletiler yinelenemez",
   "schedule_post.custom_time_modal.title": "Zamanlanmış ileti",

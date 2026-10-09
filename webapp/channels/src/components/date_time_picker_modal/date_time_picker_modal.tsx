@@ -77,7 +77,7 @@ export default function DateTimePickerModal({
         const converted = dateTime.clone().tz(displayTimezone);
         setDateTime(converted);
         onChange?.(converted);
-    }, [displayTimezone]); // eslint-disable-line react-hooks/exhaustive-deps -- only convert when the timezone changes
+    }, [displayTimezone, dateTime, onChange]);
 
     const [isInteracting, setIsInteracting] = useState(false);
 

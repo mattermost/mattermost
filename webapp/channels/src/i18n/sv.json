@@ -7110,6 +7110,7 @@
   "save_button.saving": "Sparar",
   "schedule_post.custom_time_modal.cancel_button_text": "Avbryt",
   "schedule_post.custom_time_modal.confirm_button_text": "Schema",
+  "schedule_post.custom_time_modal.dm_user_time": "{dmUserTime} för {dmUserName}",
   "schedule_post.custom_time_modal.repeat_weekly": "Upprepa varje vecka",
   "schedule_post.custom_time_modal.repeat_weekly.attachments_tooltip": "Meddelanden med bilagor kan inte upprepas",
   "schedule_post.custom_time_modal.title": "Schemalägg meddelande",

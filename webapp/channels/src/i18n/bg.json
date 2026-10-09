@@ -7108,6 +7108,7 @@
   "save_button.saving": "Записване",
   "schedule_post.custom_time_modal.cancel_button_text": "Отказ",
   "schedule_post.custom_time_modal.confirm_button_text": "Планиране",
+  "schedule_post.custom_time_modal.dm_user_time": "{dmUserTime} за {dmUserName}",
   "schedule_post.custom_time_modal.repeat_weekly": "Повтаряне всяка седмица",
   "schedule_post.custom_time_modal.repeat_weekly.attachments_tooltip": "Съобщенията с прикачени файлове не могат да се повтарят",
   "schedule_post.custom_time_modal.title": "Планиране на съобщение",

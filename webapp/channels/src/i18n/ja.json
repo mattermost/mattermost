@@ -7110,6 +7110,7 @@
   "save_button.saving": "保存中",
   "schedule_post.custom_time_modal.cancel_button_text": "キャンセル",
   "schedule_post.custom_time_modal.confirm_button_text": "スケジュール",
+  "schedule_post.custom_time_modal.dm_user_time": "{dmUserName} の {dmUserTime}",
   "schedule_post.custom_time_modal.repeat_weekly": "毎週繰り返す",
   "schedule_post.custom_time_modal.repeat_weekly.attachments_tooltip": "添付ファイルのあるメッセージは繰り返し送信できません",
   "schedule_post.custom_time_modal.title": "メッセージをスケジュールする",

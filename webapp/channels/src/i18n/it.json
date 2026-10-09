@@ -7108,6 +7108,7 @@
   "save_button.saving": "Salvataggio",
   "schedule_post.custom_time_modal.cancel_button_text": "Annulla",
   "schedule_post.custom_time_modal.confirm_button_text": "Programma",
+  "schedule_post.custom_time_modal.dm_user_time": "{dmUserTime} per {dmUserName}",
   "schedule_post.custom_time_modal.repeat_weekly": "Ripeti ogni settimana",
   "schedule_post.custom_time_modal.repeat_weekly.attachments_tooltip": "I messaggi con allegati non possono essere ripetuti",
   "schedule_post.custom_time_modal.title": "Programma messaggio",

@@ -7108,6 +7108,7 @@
   "save_button.saving": "Enregistrement en cours",
   "schedule_post.custom_time_modal.cancel_button_text": "Annuler",
   "schedule_post.custom_time_modal.confirm_button_text": "Planifier",
+  "schedule_post.custom_time_modal.dm_user_time": "{dmUserTime} pour {dmUserName}",
   "schedule_post.custom_time_modal.repeat_weekly": "Répéter chaque semaine",
   "schedule_post.custom_time_modal.repeat_weekly.attachments_tooltip": "Les messages contenant des pièces jointes ne peuvent pas être répétés",
   "schedule_post.custom_time_modal.title": "Planifier le message",

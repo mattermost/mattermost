@@ -7108,6 +7108,7 @@
   "save_button.saving": "Salvez",
   "schedule_post.custom_time_modal.cancel_button_text": "Anulează",
   "schedule_post.custom_time_modal.confirm_button_text": "Programează",
+  "schedule_post.custom_time_modal.dm_user_time": "{dmUserTime} pentru {dmUserName}",
   "schedule_post.custom_time_modal.repeat_weekly": "Repetă săptămânal",
   "schedule_post.custom_time_modal.repeat_weekly.attachments_tooltip": "Mesajele cu atașamente nu se pot repeta",
   "schedule_post.custom_time_modal.title": "Programează mesajul",

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {DateTime} from 'luxon';
-import React, {memo} from 'react';
+import React, {memo, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -108,11 +108,15 @@ function CoreMenuOptions({handleOnSelect, channelId, isUsingRecipientTimezone = 
         return undefined;
     };
 
-    const makeOption = (key: string, timestamp: number, label: React.ReactElement, autoFocus: boolean) => (
+    const todayClickHandler = useCallback((e: React.UIEvent) => handleOnSelect(e, today9amTime), [handleOnSelect, today9amTime]);
+    const tomorrowClickHandler = useCallback((e: React.UIEvent) => handleOnSelect(e, tomorrow9amTime), [handleOnSelect, tomorrow9amTime]);
+    const nextMondayClickHandler = useCallback((e: React.UIEvent) => handleOnSelect(e, nextMonday), [handleOnSelect, nextMonday]);
+
+    const makeOption = (key: string, timestamp: number, onClick: (e: React.UIEvent) => void, label: React.ReactElement, autoFocus: boolean) => (
         <Menu.Item
             key={key}
             data-testid={key}
-            onClick={(e: React.UIEvent) => handleOnSelect(e, timestamp)}
+            onClick={onClick}
             labels={label}
             className='core-menu-options'
             autoFocus={autoFocus}
@@ -131,6 +135,7 @@ function CoreMenuOptions({handleOnSelect, channelId, isUsingRecipientTimezone = 
     const optionToday = (autoFocus: boolean) => makeOption(
         'scheduling_time_today_9_am',
         today9amTime,
+        todayClickHandler,
         (
             <FormattedMessage
                 id='create_post_button.option.schedule_message.options.today'
@@ -144,6 +149,7 @@ function CoreMenuOptions({handleOnSelect, channelId, isUsingRecipientTimezone = 
     const optionTomorrow = (autoFocus: boolean) => makeOption(
         'scheduling_time_tomorrow_9_am',
         tomorrow9amTime,
+        tomorrowClickHandler,
         (
             <FormattedMessage
                 id='create_post_button.option.schedule_message.options.tomorrow'
@@ -157,6 +163,7 @@ function CoreMenuOptions({handleOnSelect, channelId, isUsingRecipientTimezone = 
     const optionNextMonday = (autoFocus: boolean) => makeOption(
         'scheduling_time_next_monday_9_am',
         nextMonday,
+        nextMondayClickHandler,
         (
             <FormattedMessage
                 id='create_post_button.option.schedule_message.options.next_monday'
@@ -170,6 +177,7 @@ function CoreMenuOptions({handleOnSelect, channelId, isUsingRecipientTimezone = 
     const optionMonday = (autoFocus: boolean) => makeOption(
         'scheduling_time_monday_9_am',
         nextMonday,
+        nextMondayClickHandler,
         (
             <FormattedMessage
                 id='create_post_button.option.schedule_message.options.monday'

@@ -7109,6 +7109,7 @@
   "save_button.saving": "저장중",
   "schedule_post.custom_time_modal.cancel_button_text": "취소",
   "schedule_post.custom_time_modal.confirm_button_text": "일정",
+  "schedule_post.custom_time_modal.dm_user_time": "{dmUserTime} 에 대한 {dmUserName}",
   "schedule_post.custom_time_modal.repeat_weekly": "매주 반복",
   "schedule_post.custom_time_modal.repeat_weekly.attachments_tooltip": "첨부 파일이 있는 메시지는 반복할 수 없습니다",
   "schedule_post.custom_time_modal.title": "일정 메시지",
