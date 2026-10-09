@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ProgressBar} from '@mattermost/compass-ui/components/progress-bar';
 import React, {useEffect, useRef, useState, type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
@@ -29,12 +30,11 @@ export default function DowngradeModal() {
     const [progress, setProgress] = useState(0);
 
     const progressBar: JSX.Element | null = (
-        <div className='ProcessPayment-progress'>
-            <div
-                className='ProcessPayment-progress-fill'
-                style={{width: `${progress}%`}}
-            />
-        </div>
+        <ProgressBar
+            className='DowngradeModal-progress'
+            value={progress}
+            size='small'
+        />
     );
 
     useEffect(() => {

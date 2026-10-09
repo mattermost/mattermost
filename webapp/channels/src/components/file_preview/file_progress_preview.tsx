@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ProgressBar} from '@mattermost/compass-ui/components/progress-bar';
 import React from 'react';
-import {ProgressBar} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
 import FilenameOverlay from 'components/file_attachment/filename_overlay';
@@ -66,8 +66,8 @@ export default class FileProgressPreview extends React.PureComponent<Props> {
                 progressBar = (
                     <ProgressBar
                         className='post-image__progressBar'
-                        now={percent}
-                        active={percent === 100}
+                        value={percent}
+                        size='small'
                     />
                 );
             }
