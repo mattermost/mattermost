@@ -65,6 +65,36 @@ On iOS, audio will automatically come through a connected device. You can overri
 </TabItem>
 </Tabs>
 
+## Call a phone number
+
+If your system admin has enabled outbound phone dialing for Calls, you can call a phone number from Mattermost using a web browser.
+
+### Call a person's phone
+
+You can call a person's phone when they have a phone number in their profile. Phone numbers come from [user attributes](/administration-guide/manage/admin/user-attributes#add-attributes) of the **Phone** type. Attributes set to **Always hide** can't be called.
+
+1.  Open a direct message with the person and select **Start call** in the channel header. Alternatively, select the person's name or profile picture to open their profile, then select the **Phone** icon.
+2.  Choose one of the following options:
+    - **Start an Audio Call** starts a Mattermost call in the direct message.
+    - **Call** followed by the attribute name, such as **Call Mobile**, dials that phone number. Each of the person's phone numbers is listed as its own option, with the number shown below it.
+
+If the person has no phone number in their profile, or a call is already in progress in the direct message, the button starts a Mattermost call as usual. You can't call the phone numbers of bots or deactivated users.
+
+### Call any phone number
+
+- Use the `/call dial` slash command followed by the number, such as `/call dial +1 555-123-4567`.
+- Select a [phone number link](/end-user-guide/collaborate/format-messages) in a message. When outbound phone dialing is turned off, or you're using a mobile browser, the link opens your device's own dialer instead.
+
+### During and after a phone call
+
+Phone calls take place in your direct message with the **Calls** bot. A call card in that direct message shows the call's progress. To end the call, select **Hang up** on the card, or leave the call from the call widget. When the call ends, the card shows how it ended, such as **Call ended**, **No answer**, or **Call declined**. Select **Call again** to dial the same number again.
+
+<Note>
+
+- You can't place a phone call while you're in another call. Leave the current call first.
+- Your system admin can limit phone calls to members of specific teams, or to an approved list of numbers. If a call isn't permitted, Mattermost tells you when you try to dial.
+
+</Note>
 
 ## Host controls
 

@@ -6,13 +6,15 @@ import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useStat
 import {useIntl} from 'react-intl';
 
 import {CloseCircleIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
 import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 
 import type {BannerSegment} from './banner_template';
-import {attributeToken, parseBannerTemplate} from './banner_template';
+import {attributeToken, insertToken, parseBannerTemplate} from './banner_template';
 import BannerTokenControls from './banner_token_controls';
+import {unsetValueMessage} from './unset_value_indicator';
 
 import './banner_text_editor.scss';
 
@@ -117,10 +119,6 @@ type Props = {
 
     onChange: (next: string) => void;
 
-    // Attributes the admin designated for the banner. Their chips carry no remove
-    // control: the channel may add to the banner, not drop what was mandated.
-    lockedTokens?: string[];
-
     disabled?: boolean;
     maxLength?: number;
     hasError?: boolean;
@@ -135,7 +133,7 @@ type Props = {
  * chips with free text in a single caret flow; everything below exists to keep that
  * DOM and the template string in agreement.
  */
-const BannerTextEditor = ({value, attributes, onChange, lockedTokens, disabled, maxLength, hasError}: Props) => {
+const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, hasError}: Props) => {
     const {formatMessage} = useIntl();
     const editorRef = useRef<HTMLDivElement>(null);
 
@@ -159,8 +157,6 @@ const BannerTextEditor = ({value, attributes, onChange, lockedTokens, disabled, 
     // message box.
     const restoreRef = useRef<{focused: boolean; caret: number | null}>({focused: false, caret: null});
 
-    const locked = useMemo(() => new Set(lockedTokens ?? []), [lockedTokens]);
-
     const labels = useMemo(() => {
         const byName = new Map<string, string>();
         for (const attribute of attributes) {
@@ -168,6 +164,13 @@ const BannerTextEditor = ({value, attributes, onChange, lockedTokens, disabled, 
         }
         return byName;
     }, [attributes]);
+
+    // Known attributes with no value on this channel: their chips render nothing in
+    // the banner yet. A token for an attribute that no longer exists is not flagged,
+    // since no value can ever arrive for it.
+    const unset = useMemo(() => new Set(
+        attributes.filter((attribute) => !attribute.displayValue).map((attribute) => attribute.field.name),
+    ), [attributes]);
 
     const {segments} = snapshot;
 
@@ -277,13 +280,13 @@ const BannerTextEditor = ({value, attributes, onChange, lockedTokens, disabled, 
         const caret = Math.min(caretRef.current ?? visibleTotal, visibleTotal);
         const at = templateOffsetFor(segments, labels, caret);
 
-        const next = template.slice(0, at) + attributeToken(name) + template.slice(at);
+        const {template: next, leadingSpace} = insertToken(template, at, attributeToken(name));
         emittedRef.current = next;
         onChange(next);
 
         // The menu took focus, so the editor is refocused regardless, with the caret
         // left after the chip just inserted.
-        caretRef.current = caret + label.length;
+        caretRef.current = caret + (leadingSpace ? 1 : 0) + label.length;
         rebuild(next, {focused: true, caret: caretRef.current});
     }, [disabled, labels, onChange, rebuild, serialize]);
 
@@ -356,20 +359,20 @@ const BannerTextEditor = ({value, attributes, onChange, lockedTokens, disabled, 
                         }
 
                         const label = labels.get(segment.name) ?? segment.name;
-                        const isLocked = locked.has(segment.name);
+                        const isUnset = unset.has(segment.name);
 
-                        return (
+                        const chip = (
                             <span
                                 key={chipKeys[index]}
                                 className={classNames('BannerTextEditor__chip', {
-                                    'BannerTextEditor__chip--locked': isLocked,
+                                    'BannerTextEditor__chip--unset': isUnset,
                                 })}
                                 contentEditable={false}
                                 data-token={segment.name}
                                 data-testid={`bannerTextEditorChip-${segment.name}`}
                             >
                                 {label}
-                                {!disabled && !isLocked && (
+                                {!disabled && (
                                     <button
                                         type='button'
                                         className='BannerTextEditor__chipRemove'
@@ -381,11 +384,25 @@ const BannerTextEditor = ({value, attributes, onChange, lockedTokens, disabled, 
                                         onMouseDown={(event) => event.preventDefault()}
                                         onClick={handleRemoveToken}
                                     >
-                                        <CloseCircleIcon size={12}/>
+                                        <CloseCircleIcon
+                                            size={12}
+                                            aria-hidden={true}
+                                        />
                                     </button>
                                 )}
                             </span>
                         );
+
+                        // The tooltip clones the chip and portals out of the editor, so
+                        // it adds nothing to the text the editor serializes.
+                        return isUnset ? (
+                            <WithTooltip
+                                key={chipKeys[index]}
+                                title={formatMessage(unsetValueMessage)}
+                            >
+                                {chip}
+                            </WithTooltip>
+                        ) : chip;
                     })}
                 </div>
 
