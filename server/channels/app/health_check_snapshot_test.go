@@ -230,6 +230,12 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, offline.Warnings)
 
+	// Offline has no feed and dates the packet by its generation time; align them so only the
+	// rules are compared.
+	offline.Snapshot.Version.Latest = live.Version.Latest
+	offline.Snapshot.Version.BuildDate = live.Version.BuildDate
+	offline.Snapshot.CollectedAt = live.CollectedAt
+
 	evaluatedAt := time.Now()
 	engine := healthcheck.NewEngine(healthcheck.EngineOpts{
 		Registry: healthcheck.Builtin(),
