@@ -453,6 +453,14 @@ type ExecuteDialogActionResponse struct {
 	TriggerId string `json:"trigger_id"`
 }
 
+// Dialog width tiers for Dialog.Size. Small is the historical width and the
+// default when Size is empty, so an existing dialog is unaffected.
+const (
+	DialogSizeSmall  = "small"
+	DialogSizeMedium = "medium"
+	DialogSizeLarge  = "large"
+)
+
 type Dialog struct {
 	CallbackId       string          `json:"callback_id"`
 	Title            string          `json:"title"`
@@ -463,6 +471,15 @@ type Dialog struct {
 	NotifyOnCancel   bool            `json:"notify_on_cancel"`
 	State            string          `json:"state"`
 	SourceURL        string          `json:"source_url,omitempty"`
+
+	// Size selects the dialog's width tier. Empty means DialogSizeSmall, which
+	// is the width every dialog had before this field existed, so leaving it
+	// unset never changes an existing dialog. The integration picks it because
+	// it is the party that knows how much content the form holds.
+	//
+	// Tiers rather than a pixel width, so the client stays free to theme them
+	// and to fall back sensibly on a narrow viewport.
+	Size string `json:"size,omitempty"`
 }
 
 // DialogDateTimeConfig groups date/datetime specific configuration
@@ -756,6 +773,12 @@ func (d *Dialog) IsValid() error {
 
 	if d.Title == "" || len(d.Title) > DialogTitleMaxLength {
 		multiErr = multierror.Append(multiErr, errors.Errorf("invalid dialog title %q", d.Title))
+	}
+
+	switch d.Size {
+	case "", DialogSizeSmall, DialogSizeMedium, DialogSizeLarge:
+	default:
+		multiErr = multierror.Append(multiErr, errors.Errorf("invalid dialog size %q", d.Size))
 	}
 
 	if d.IconURL != "" && !IsValidHTTPURL(d.IconURL) {

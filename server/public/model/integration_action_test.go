@@ -3023,3 +3023,78 @@ func TestDialogElementIsValid_ActionButton(t *testing.T) {
 		assert.Contains(t, err.Error(), "invalid action_button URL")
 	})
 }
+
+func TestDialogSizeValidation(t *testing.T) {
+	getBaseDialog := func() Dialog {
+		return Dialog{
+			CallbackId: "callbackid",
+			Title:      "Some Title",
+			Elements: []DialogElement{
+				{
+					DisplayName: "Element Name",
+					Name:        "element_name",
+					Type:        "text",
+					Placeholder: "Enter a value",
+				},
+			},
+			SubmitLabel: "Submit",
+		}
+	}
+
+	t.Run("should accept an empty size, which is the width every dialog had before Size existed", func(t *testing.T) {
+		dialog := getBaseDialog()
+		dialog.Size = ""
+		assert.NoError(t, dialog.IsValid())
+	})
+
+	for _, size := range []string{DialogSizeSmall, DialogSizeMedium, DialogSizeLarge} {
+		t.Run("should accept size "+size, func(t *testing.T) {
+			dialog := getBaseDialog()
+			dialog.Size = size
+			assert.NoError(t, dialog.IsValid())
+		})
+	}
+
+	t.Run("should reject an unknown size", func(t *testing.T) {
+		dialog := getBaseDialog()
+		dialog.Size = "enormous"
+		assert.ErrorContains(t, dialog.IsValid(), `invalid dialog size "enormous"`)
+	})
+
+	t.Run("should reject a size differing only in case, so the tiers stay an exact set", func(t *testing.T) {
+		dialog := getBaseDialog()
+		dialog.Size = "Large"
+		assert.ErrorContains(t, dialog.IsValid(), `invalid dialog size "Large"`)
+	})
+
+	t.Run("should report a bad size alongside other validation failures", func(t *testing.T) {
+		dialog := getBaseDialog()
+		dialog.Size = "enormous"
+		dialog.Title = ""
+
+		err := dialog.IsValid()
+		assert.ErrorContains(t, err, "invalid dialog size")
+		assert.ErrorContains(t, err, "invalid dialog title")
+	})
+
+	t.Run("should omit size from JSON when unset, so an existing integration's payload is unchanged", func(t *testing.T) {
+		dialog := getBaseDialog()
+
+		b, err := json.Marshal(dialog)
+		require.NoError(t, err)
+		assert.NotContains(t, string(b), `"size"`)
+	})
+
+	t.Run("should round trip a size through JSON", func(t *testing.T) {
+		dialog := getBaseDialog()
+		dialog.Size = DialogSizeLarge
+
+		b, err := json.Marshal(dialog)
+		require.NoError(t, err)
+		assert.Contains(t, string(b), `"size":"large"`)
+
+		var decoded Dialog
+		require.NoError(t, json.Unmarshal(b, &decoded))
+		assert.Equal(t, DialogSizeLarge, decoded.Size)
+	})
+}

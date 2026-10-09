@@ -1862,4 +1862,172 @@ describe('AppsFormComponent', () => {
             expect(screen.getByTestId('innerinput')).toHaveFocus();
         });
     });
+
+    describe('modal width tier', () => {
+        // The tier lands on the modal's dialogClassName. An absent size has to
+        // leave the class list exactly as it was before Size existed, or every
+        // dialog that predates the field changes width.
+        const dialogClassList = () => document.querySelector('.modal-dialog')!.className;
+
+        const renderWithSize = (size?: 'small' | 'medium' | 'large') => renderWithContext(
+            <AppsForm
+                {...baseProps}
+                form={{...baseProps.form, size}}
+            />,
+        );
+
+        test('adds no width class when size is unset, keeping the historical width', () => {
+            renderWithSize();
+
+            expect(dialogClassList()).toContain('about-modal');
+            expect(dialogClassList()).not.toContain('modal-lg');
+            expect(dialogClassList()).not.toContain('apps-form-modal--large');
+        });
+
+        test('adds no width class for small, which is the historical width', () => {
+            renderWithSize('small');
+
+            expect(dialogClassList()).not.toContain('modal-lg');
+            expect(dialogClassList()).not.toContain('apps-form-modal--large');
+        });
+
+        test('reuses the existing modal-lg tier for medium', () => {
+            renderWithSize('medium');
+
+            expect(dialogClassList()).toContain('modal-lg');
+            expect(dialogClassList()).not.toContain('apps-form-modal--large');
+        });
+
+        test('uses the new wide tier for large', () => {
+            renderWithSize('large');
+
+            expect(dialogClassList()).toContain('apps-form-modal--large');
+            expect(dialogClassList()).not.toContain('modal-lg');
+        });
+
+        test('keeps the a11y and about-modal classes at every tier', () => {
+            renderWithSize('large');
+
+            expect(dialogClassList()).toContain('a11y__modal');
+            expect(dialogClassList()).toContain('about-modal');
+        });
+    });
+
+    describe('grid layout', () => {
+        // A grid container renders its child collapsibles as table rows rather
+        // than stacking them. The rows are the same nesting the stacked
+        // renderer already handles, so the only difference is the layout flag.
+        const gridForm = (layout: 'grid' | 'stacked'): Props['form'] => ({
+            ...baseProps.form,
+            fields: [
+                {
+                    name: 'grid',
+                    type: 'collapsible',
+                    label: 'Orders',
+                    collapsible_config: {
+                        expanded: true,
+                        layout,
+                        fields: [
+                            {
+                                name: 'row1',
+                                type: 'collapsible',
+                                label: 'SO-1042',
+                                collapsible_config: {
+                                    expanded: true,
+                                    fields: [
+                                        {name: 'r1_order', type: 'text', label: 'Order #'},
+                                        {name: 'r1_weight', type: 'text', label: 'Weight'},
+                                    ],
+                                },
+                            },
+                            {
+                                name: 'row2',
+                                type: 'collapsible',
+                                label: 'SO-1043',
+                                collapsible_config: {
+                                    expanded: true,
+                                    fields: [
+                                        {name: 'r2_order', type: 'text', label: 'Order #'},
+                                        {name: 'r2_weight', type: 'text', label: 'Weight'},
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                },
+            ],
+        });
+
+        test("renders a table when the container's layout is grid", () => {
+            renderWithContext(
+                <AppsForm
+                    {...baseProps}
+                    form={gridForm('grid')}
+                />,
+            );
+
+            expect(screen.getByRole('table')).toBeInTheDocument();
+
+            // Column headers come from the first row's fields, once each,
+            // rather than once per row.
+            expect(screen.getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['Order #', 'Weight']);
+
+            // One header row plus one row per record.
+            expect(screen.getAllByRole('row')).toHaveLength(3);
+        });
+
+        test('stacks the same form into collapsible sections when layout is not grid', () => {
+            renderWithContext(
+                <AppsForm
+                    {...baseProps}
+                    form={gridForm('stacked')}
+                />,
+            );
+
+            expect(screen.queryByRole('table')).not.toBeInTheDocument();
+
+            // Stacked, the row labels are section titles and the container's
+            // own label is shown too.
+            expect(screen.getByText('Orders')).toBeInTheDocument();
+            expect(screen.getByText('SO-1042')).toBeInTheDocument();
+        });
+
+        test('renders every cell as a real input, so the grid is fillable', () => {
+            renderWithContext(
+                <AppsForm
+                    {...baseProps}
+                    form={gridForm('grid')}
+                />,
+            );
+
+            // Four cells across two rows, each one an input the user can type
+            // into. The grid is a layout over ordinary fields, not a widget.
+            const table = screen.getByRole('table');
+            expect(table.querySelectorAll('input')).toHaveLength(4);
+        });
+
+        test('submits grid cells as ordinary flat values', async () => {
+            const submit = jest.fn().mockResolvedValue({data: {type: 'ok'}});
+
+            renderWithContext(
+                <AppsForm
+                    {...baseProps}
+                    actions={{...baseProps.actions, submit}}
+                    form={gridForm('grid')}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: /submit/i}));
+
+            await waitFor(() => expect(submit).toHaveBeenCalled());
+
+            // Cells arrive keyed by their own names at the top level; nothing
+            // nests them under the container or the row.
+            const values = submit.mock.calls[0][0].values;
+            expect(values).toHaveProperty('r1_order');
+            expect(values).toHaveProperty('r2_weight');
+            expect(values).not.toHaveProperty('grid');
+            expect(values).not.toHaveProperty('row1');
+        });
+    });
 });
