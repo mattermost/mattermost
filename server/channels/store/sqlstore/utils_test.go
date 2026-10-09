@@ -37,6 +37,32 @@ func TestNeutralizeNonWordHyphens(t *testing.T) {
 	}
 }
 
+func TestExpandNumericTerms(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{"bare number", "12345", "(12345|-12345)"},
+		{"wildcard number", "12345:* ", "(12345:*|-12345:*)"},
+		{"several terms", "flight 12345 678", "flight (12345|-12345) (678|-678)"},
+		{"number inside a quoted phrase", `"flight 12345" 678`, `"flight 12345" (678|-678)`},
+		{"number after a quoted phrase", `"12345 flight" 12345`, `"12345 flight" (12345|-12345)`},
+		{"single quoted number", `"12345"`, `"12345"`},
+		{"hyphenated term", "flight-12345", "flight-12345"},
+		{"leading symbol", "$12345", "$12345"},
+		{"leading hash", "#12345", "#12345"},
+		{"no digits", "flight today", "flight today"},
+		{"empty string", "", ""},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.expected, expandNumericTerms(tc.input))
+		})
+	}
+}
+
 func TestChunkSlice(t *testing.T) {
 	if enableFullyParallelTests {
 		t.Parallel()

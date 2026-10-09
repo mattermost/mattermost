@@ -3,7 +3,7 @@
 
 import {expect, test, enableABAC, navigateToABACPage} from '@mattermost/playwright-lib';
 
-import {createBasicPolicy, getPolicyIdByName} from '../support';
+import {createBasicPolicy, ensureUserAttributes, getPolicyIdByName} from '../support';
 
 /**
  * @objective E2E coverage for membership policy edit action navigation:
@@ -28,6 +28,7 @@ test.describe('ABAC Policy Management - Edit Action Navigation', () => {
         await pw.skipIfNoLicense();
 
         const {adminUser, adminClient, team} = await pw.initSetup();
+        await ensureUserAttributes(adminClient);
 
         // Create a test channel for the policy
         const channelName = `abac-edit-nav-test-${pw.random.id()}`;
@@ -117,6 +118,7 @@ test.describe('ABAC Policy Management - Edit Action Navigation', () => {
         await pw.skipIfNoLicense();
 
         const {adminUser, adminClient, team} = await pw.initSetup();
+        await ensureUserAttributes(adminClient);
 
         // Create a test channel for the policy
         const channelName = `abac-row-click-test-${pw.random.id()}`;
