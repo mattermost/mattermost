@@ -35,8 +35,24 @@
         "AdvertiseAddress": "",
         "UseIPAddress": true,
         "EnableGossipCompression": true,
+        "EnableGossipEncryption": true,
         "ReadOnlyConfig": true,
         "GossipPort": 8074
+    },
+    "CacheSettings": {
+        "CacheType": "lru",
+        "RedisAddress": "",
+        "RedisPassword": "",
+        "RedisDB": -1
+    },
+    "RateLimitSettings": {
+        "Enable": false,
+        "PerSec": 10,
+        "MaxBurst": 100,
+        "MemoryStoreSize": 10000,
+        "VaryByRemoteAddr": true,
+        "VaryByUser": false,
+        "VaryByHeader": ""
     },
     "FeatureFlags": {
         "TestFeature": "off",

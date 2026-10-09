@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,6 +40,66 @@ func TestNodeVersionParityLiveAndPacket(t *testing.T) {
 	require.True(t, liveOK)
 	require.True(t, packetOK)
 	require.Equal(t, liveVersion, packetVersion)
+}
+
+func TestNodeVersion(t *testing.T) {
+	t.Parallel()
+
+	diagNode := func(clusterInfo *model.ClusterInfo, version string) *NodeSnapshot {
+		node := &NodeSnapshot{
+			ClusterInfo: clusterInfo,
+			Diagnostics: &model.NodeDiagnostics{
+				Diagnostics: &model.SupportPacketDiagnostics{},
+				Errors:      model.SectionErrors{model.SectionServerSoftware: nil},
+			},
+		}
+		node.Diagnostics.Diagnostics.Server.Version = version
+		return node
+	}
+
+	t.Run("live cluster answers from cluster info for every node", func(t *testing.T) {
+		leader := diagNode(&model.ClusterInfo{Hostname: "node-2", Version: "11.1.0.12345"}, "11.1.0")
+		leader.IsLeader = true
+		snapshot := NewSnapshot([]*NodeSnapshot{
+			{ClusterInfo: &model.ClusterInfo{Hostname: "node-1", Version: "11.1.0.12345"}},
+			leader,
+			{ClusterInfo: &model.ClusterInfo{Hostname: "node-3", Version: "11.1.0.12345"}},
+		})
+
+		for _, node := range snapshot.Nodes() {
+			version, ok := node.NodeVersion()
+			require.True(t, ok, node.ClusterInfo.Hostname)
+			assert.Equal(t, "11.1.0.12345", version, node.ClusterInfo.Hostname)
+		}
+	})
+
+	t.Run("packet node answers from diagnostics", func(t *testing.T) {
+		version, ok := diagNode(nil, "11.1.0").NodeVersion()
+		require.True(t, ok)
+		assert.Equal(t, "11.1.0", version)
+	})
+
+	t.Run("live standalone leader answers from diagnostics", func(t *testing.T) {
+		leader := diagNode(nil, "11.1.0")
+		leader.IsLeader = true
+
+		version, ok := leader.NodeVersion()
+		require.True(t, ok)
+		assert.Equal(t, "11.1.0", version)
+	})
+
+	t.Run("cluster info without a version falls back to diagnostics", func(t *testing.T) {
+		version, ok := diagNode(&model.ClusterInfo{Hostname: "node-1"}, "11.1.0").NodeVersion()
+		require.True(t, ok)
+		assert.Equal(t, "11.1.0", version)
+	})
+
+	t.Run("db-only node reports nothing", func(t *testing.T) {
+		node := &NodeSnapshot{ClusterInfo: &model.ClusterInfo{Id: "id-3", Hostname: "node-3"}}
+
+		_, ok := node.NodeVersion()
+		require.False(t, ok)
+	})
 }
 
 func TestSchemaVersion(t *testing.T) {
@@ -109,20 +170,6 @@ func TestSchemaVersion(t *testing.T) {
 		_, ok := node.SchemaVersion()
 		require.False(t, ok)
 	})
-}
-
-func TestPacketNodeConfigHashUnavailable(t *testing.T) {
-	t.Parallel()
-
-	packetNode := &NodeSnapshot{
-		Diagnostics: &model.NodeDiagnostics{
-			Diagnostics: &model.SupportPacketDiagnostics{},
-			Errors:      model.SectionErrors{model.SectionServerSoftware: nil},
-		},
-	}
-
-	_, ok := packetNode.ConfigHash()
-	require.False(t, ok)
 }
 
 func TestNodeSectionAvailability(t *testing.T) {
