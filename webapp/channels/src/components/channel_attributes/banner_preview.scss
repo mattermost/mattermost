@@ -7,22 +7,27 @@
     gap: 8px;
 
     // Compact the shared SectionNotice for this narrow preview slot.
-    .sectionNoticeContent {
+    .sectionNoticeContainer [class*='section-notice__content'] {
         padding: 8px 12px;
         gap: 8px;
     }
 
-    .sectionNoticeIcon {
+    .sectionNoticeContainer [class*='section-notice__icon'] {
         font-size: 16px;
     }
 
-    .sectionNoticeTitle {
+    .sectionNoticeContainer [class*='section-notice__title'] {
         font-size: 12px;
         line-height: 16px;
     }
 
-    .sectionNoticeBody {
+    .sectionNoticeContainer [class*='section-notice__body'] {
         gap: 2px;
+    }
+
+    .sectionNoticeContainer [class*='section-notice__description'] {
+        font-size: 12px;
+        line-height: 16px;
 
         p {
             font-size: 12px;

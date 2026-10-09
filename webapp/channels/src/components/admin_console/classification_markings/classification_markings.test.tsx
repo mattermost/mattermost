@@ -742,7 +742,7 @@ describe('ClassificationMarkings component', () => {
 
         await screen.findByText('True');
 
-        expect(screen.getByRole('heading', {name: 'Classification markings are informational only'})).toBeInTheDocument();
+        expect(screen.getByText('Classification markings are informational only')).toBeInTheDocument();
         expect(
             screen.getByText('Markings are not tied to access control decisions at this time and are for display purposes only.'),
         ).toBeInTheDocument();
@@ -767,13 +767,13 @@ describe('ClassificationMarkings component', () => {
 
         expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeChecked();
         expect(
-            screen.queryByRole('heading', {name: 'Classification markings are informational only'}),
+            screen.queryByText('Classification markings are informational only'),
         ).not.toBeInTheDocument();
 
         // ...and it comes back the moment enforcement is turned off again.
         await userEvent.setup().click(screen.getByTestId('clearanceAttributeCheckbox'));
         expect(
-            await screen.findByRole('heading', {name: 'Classification markings are informational only'}),
+            await screen.findByText('Classification markings are informational only'),
         ).toBeInTheDocument();
         await act(async () => {});
     });
@@ -2175,7 +2175,7 @@ describe('Conflicting same-named fields', () => {
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
-        expect(await screen.findByRole('heading', {name: 'Classification markings cannot be configured'})).toBeInTheDocument();
+        expect(await screen.findByText('Classification markings cannot be configured')).toBeInTheDocument();
         expect(screen.getByText(/An attribute named "classification" already exists with a different type/)).toBeInTheDocument();
 
         // Adopting it would show the feature enabled with an empty levels table.
@@ -2203,7 +2203,7 @@ describe('Conflicting same-named fields', () => {
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
-        expect(await screen.findByRole('heading', {name: 'Classification markings cannot be configured'})).toBeInTheDocument();
+        expect(await screen.findByText('Classification markings cannot be configured')).toBeInTheDocument();
         expect(screen.getByText(/A channel attribute named "classification" already exists/)).toBeInTheDocument();
 
         // Save stays inert rather than committing the template and system field
@@ -2226,7 +2226,7 @@ describe('Conflicting same-named fields', () => {
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
-        expect(await screen.findByRole('heading', {name: 'Classification markings cannot be configured'})).toBeInTheDocument();
+        expect(await screen.findByText('Classification markings cannot be configured')).toBeInTheDocument();
         expect(screen.getByText(/A system attribute named "classification" already exists/)).toBeInTheDocument();
 
         // The real template is still shown, just not editable: the admin can see
@@ -2251,13 +2251,13 @@ describe('Conflicting same-named fields', () => {
         const checkbox = await screen.findByTestId('clearanceAttributeCheckbox');
         expect(checkbox).toBeDisabled();
         expect(checkbox).not.toBeChecked();
-        expect(screen.getByRole('heading', {name: 'Clearance attribute cannot be created'})).toBeInTheDocument();
+        expect(screen.getByText('Clearance attribute cannot be created')).toBeInTheDocument();
         expect(screen.getByText(/A user attribute named "clearance" already exists/)).toBeInTheDocument();
 
         // Scoped to that one control: the levels are still editable.
         expect(screen.getByRole('textbox', {name: /Classification level name/i})).not.toHaveAttribute('readonly');
         expect(screen.getByText('Add level')).toBeInTheDocument();
-        expect(screen.queryByRole('heading', {name: 'Classification markings cannot be configured'})).not.toBeInTheDocument();
+        expect(screen.queryByText('Classification markings cannot be configured')).not.toBeInTheDocument();
     });
 });
 
@@ -2289,7 +2289,7 @@ describe('Clearance name shared with another attribute', () => {
 
         const section = await renderClearanceSection();
 
-        expect(section.getByRole('heading', {name: 'Another attribute already uses this name'})).toBeInTheDocument();
+        expect(section.getByText('Another attribute already uses this name')).toBeInTheDocument();
         expect(section.getByText(WARNING_TEXT)).toBeInTheDocument();
 
         // Its severity, not only its presence: the blocking notice below carries
@@ -2297,7 +2297,7 @@ describe('Clearance name shared with another attribute', () => {
         // text can see, so without this the warning could be dressed as a block
         // while still reading as a warning. SectionNotice puts its type on the
         // container's class list.
-        const notice = section.getByRole('heading', {name: 'Another attribute already uses this name'}).closest('.sectionNoticeContainer');
+        const notice = section.getByText('Another attribute already uses this name').closest('.sectionNoticeContainer');
         expect(notice).toHaveClass('warning');
         expect(notice).not.toHaveClass('danger');
 
@@ -2306,7 +2306,7 @@ describe('Clearance name shared with another attribute', () => {
         // to create it — unlike the same-named user field below.
         expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
         expect(screen.getByTestId('clearanceAttributeCheckbox')).not.toBeChecked();
-        expect(section.queryByRole('heading', {name: 'Clearance attribute cannot be created'})).not.toBeInTheDocument();
+        expect(section.queryByText('Clearance attribute cannot be created')).not.toBeInTheDocument();
     });
 
     test('should read the same way, and stay unblocking, once clearance is already enabled', async () => {
@@ -2321,13 +2321,13 @@ describe('Clearance name shared with another attribute', () => {
         const section = await renderClearanceSection();
 
         expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeChecked();
-        expect(section.getByRole('heading', {name: 'Another attribute already uses this name'})).toBeInTheDocument();
+        expect(section.getByText('Another attribute already uses this name')).toBeInTheDocument();
         expect(section.getByText(WARNING_TEXT)).toBeInTheDocument();
 
         // Still not a block: the checkbox stays live so clearance can be turned
         // back off, which is the only action the warning leaves to take.
         expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
-        expect(section.queryByRole('heading', {name: 'Clearance attribute cannot be created'})).not.toBeInTheDocument();
+        expect(section.queryByText('Clearance attribute cannot be created')).not.toBeInTheDocument();
     });
 
     test('should catch the name in a casing the server would not call a conflict', async () => {
@@ -2339,7 +2339,7 @@ describe('Clearance name shared with another attribute', () => {
 
         const section = await renderClearanceSection();
 
-        expect(section.getByRole('heading', {name: 'Another attribute already uses this name'})).toBeInTheDocument();
+        expect(section.getByText('Another attribute already uses this name')).toBeInTheDocument();
         expect(section.getByText(/Rename "CLEARANCE" in Attribute Management/)).toBeInTheDocument();
         expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
     });
@@ -2363,7 +2363,7 @@ describe('Clearance name shared with another attribute', () => {
 
         const section = await renderClearanceSection();
 
-        expect(section.queryByRole('heading', {name: 'Another attribute already uses this name'})).not.toBeInTheDocument();
+        expect(section.queryByText('Another attribute already uses this name')).not.toBeInTheDocument();
         expect(section.queryByText(/in Attribute Management so it isn't mistaken/)).not.toBeInTheDocument();
         expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
     });
@@ -2379,8 +2379,8 @@ describe('Clearance name shared with another attribute', () => {
         const section = await renderClearanceSection();
 
         expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeDisabled();
-        expect(section.getByRole('heading', {name: 'Clearance attribute cannot be created'})).toBeInTheDocument();
-        expect(section.queryByRole('heading', {name: 'Another attribute already uses this name'})).not.toBeInTheDocument();
+        expect(section.getByText('Clearance attribute cannot be created')).toBeInTheDocument();
+        expect(section.queryByText('Another attribute already uses this name')).not.toBeInTheDocument();
     });
 });
 
@@ -2456,7 +2456,7 @@ describe('Clearance name listing failures', () => {
 
         // The only casualty. The same fixture warns in the tests above, so its
         // absence here is the failed listing and nothing else.
-        expect(screen.queryByRole('heading', {name: 'Another attribute already uses this name'})).not.toBeInTheDocument();
+        expect(screen.queryByText('Another attribute already uses this name')).not.toBeInTheDocument();
         expect(screen.queryByText(/in Attribute Management so it isn't mistaken/)).not.toBeInTheDocument();
     });
 
@@ -2473,7 +2473,7 @@ describe('Clearance name listing failures', () => {
 
         expectPageFullyUsable();
 
-        expect(screen.queryByRole('heading', {name: 'Another attribute already uses this name'})).not.toBeInTheDocument();
+        expect(screen.queryByText('Another attribute already uses this name')).not.toBeInTheDocument();
         expect(screen.queryByText(/in Attribute Management so it isn't mistaken/)).not.toBeInTheDocument();
     });
 
@@ -2498,7 +2498,7 @@ describe('Clearance name listing failures', () => {
         expect(templateListingCalls()).toHaveLength(0);
 
         expect(screen.queryByTestId('clearanceAttributeCheckbox')).not.toBeInTheDocument();
-        expect(screen.queryByRole('heading', {name: 'Another attribute already uses this name'})).not.toBeInTheDocument();
+        expect(screen.queryByText('Another attribute already uses this name')).not.toBeInTheDocument();
     });
 });
 
