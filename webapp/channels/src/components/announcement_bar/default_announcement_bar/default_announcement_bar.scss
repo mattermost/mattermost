@@ -3,3 +3,13 @@
     max-width: 90vw;
     pointer-events: auto;
 }
+
+.announcement-bar__compass {
+    width: 100%;
+    min-height: inherit;
+    max-height: inherit;
+}
+
+.announcement-bar__compass--custom {
+    background: transparent;
+}
