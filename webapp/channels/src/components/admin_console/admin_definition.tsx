@@ -102,7 +102,6 @@ import ClassificationAttribute from './global_attributes/classification_attribut
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
 import HealthDashboard from './health_dashboard';
-import {RedirectToSiteHealth, RedirectToWorkspaceOptimization} from './health_dashboard/reporting_redirects';
 import IPFiltering from './ip_filtering';
 import LDAPWizard from './ldap_wizard';
 import LicenseSettings from './license_settings';
@@ -281,19 +280,15 @@ const adminDefinitionMessages = defineMessages({
     redis_clientcache_desc: {id: 'admin.cacheSettings.redisClientCacheDesc', defaultMessage: 'When true, client-side caching is disabled.'},
 });
 
-// Site health replaces Workspace Optimization wherever it is enabled, so the two never show together.
-const healthDashboardEnabled = it.all(
-    it.configIsTrue('FeatureFlags', 'HealthDashboard'),
-    it.minLicenseTier(LicenseSkus.Enterprise),
-);
-
 const siteHealthHidden = it.any(
-    it.not(healthDashboardEnabled),
+    it.not(it.configIsTrue('FeatureFlags', 'HealthDashboard')),
+    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
     it.not(it.isSystemAdmin),
 );
 
+// Site health replaces Workspace Optimization only for admins who can see it; delegated admins keep the old page.
 const workspaceOptimizationHidden = it.any(
-    healthDashboardEnabled,
+    it.not(siteHealthHidden),
     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.REPORTING.SITE_STATISTICS)),
     it.licensedForFeature('Cloud'),
 );
@@ -404,17 +399,6 @@ const AdminDefinition: AdminDefinitionType = {
                 },
                 isHidden: siteHealthHidden,
             },
-
-            // Each redirect is shown only while its target page is, which implies its own URL's page is hidden.
-            site_health_redirect: {
-                url: 'reporting/site_health',
-                schema: {
-                    id: 'SiteHealthRedirect',
-                    component: RedirectToWorkspaceOptimization,
-                },
-                isHidden: workspaceOptimizationHidden,
-                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.REPORTING.SITE_STATISTICS)),
-            },
             workspace_optimization: {
                 url: 'reporting/workspace_optimization',
                 title: defineMessage({id: 'admin.sidebar.workspaceOptimization', defaultMessage: 'Workspace Optimization'}),
@@ -424,14 +408,6 @@ const AdminDefinition: AdminDefinitionType = {
                 },
                 isHidden: workspaceOptimizationHidden,
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.REPORTING.SITE_STATISTICS)),
-            },
-            workspace_optimization_redirect: {
-                url: 'reporting/workspace_optimization',
-                schema: {
-                    id: 'WorkspaceOptimizationRedirect',
-                    component: RedirectToSiteHealth,
-                },
-                isHidden: siteHealthHidden,
             },
             system_analytics: {
                 url: 'reporting/system_analytics',
