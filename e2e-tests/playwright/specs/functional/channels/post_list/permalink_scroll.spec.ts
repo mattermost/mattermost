@@ -7,7 +7,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {Page} from '@playwright/test';
 import type {Post} from '@mattermost/types/posts';
 
-import {expect, setupFileServer, test, testConfig} from '@mattermost/playwright-lib';
+import {expect, permalinkUrl, setupFileServer, test, testConfig} from '@mattermost/playwright-lib';
 import type {ChannelsPage, PlaywrightClient4} from '@mattermost/playwright-lib';
 
 import {watchPostListScroll, type PostListScrollWatcher} from './scroll_helpers';
@@ -160,11 +160,12 @@ test.describe('Post list scroll to permalink', () => {
                 const firstPost = await userClient.createTestPost({
                     channel_id: channel.id,
                 });
+                const permalink = await permalinkUrl(userClient, team.name, firstPost.id);
 
                 for (let i = 0; i < 60; i++) {
                     await userClient.createTestPost({
                         channel_id: channel.id,
-                        message: `${testConfig.internalBaseURL}/${team.name}/pl/${firstPost.id}`,
+                        message: permalink,
                     });
                 }
             },
@@ -172,11 +173,12 @@ test.describe('Post list scroll to permalink', () => {
                 const firstPost = await userClient.createTestPost({
                     channel_id: channel.id,
                 });
+                const permalink = await permalinkUrl(userClient, team.name, firstPost.id);
 
                 for (let i = 60; i < 120; i++) {
                     await userClient.createTestPost({
                         channel_id: channel.id,
-                        message: `${testConfig.internalBaseURL}/${team.name}/pl/${firstPost.id}`,
+                        message: permalink,
                     });
                 }
             },

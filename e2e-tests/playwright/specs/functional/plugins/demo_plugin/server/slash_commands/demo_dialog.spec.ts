@@ -12,6 +12,10 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
 
     // 1. Setup
     const {adminClient, user, team} = await pw.initSetup();
+    // Submitting /dialog makes the server POST to the callback URL the plugin built from
+    // SiteURL, so this needs a SiteURL the server can reach itself on. The error-dialog tests
+    // below don't: their callback URL is relative, which the server dispatches in-process.
+    await pw.ensureInternalSiteUrl();
     await setupDemoPlugin(adminClient, pw);
 
     // 2. Login
@@ -89,6 +93,7 @@ test('should post cancellation notification when /dialog is cancelled', async ({
 
     // 1. Setup
     const {adminClient, user, team} = await pw.initSetup();
+    await pw.ensureInternalSiteUrl();
     await setupDemoPlugin(adminClient, pw);
 
     // 2. Login

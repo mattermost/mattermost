@@ -48,6 +48,7 @@ import {
     enableUserMfa,
     ensureServerEnv,
     ensureSiteUrl,
+    ensureInternalSiteUrl,
     generateKeycloakUser,
     generateLdapUser,
     getAdminClient,
@@ -170,6 +171,7 @@ export class PlaywrightExtended {
     readonly enableUserMfa;
     readonly ensureServerEnv;
     readonly ensureSiteUrl;
+    readonly ensureInternalSiteUrl;
     readonly generateKeycloakUser;
     readonly generateLdapUser;
     readonly keycloakSamlDescriptorUrl;
@@ -296,6 +298,7 @@ export class PlaywrightExtended {
         this.enableUserMfa = enableUserMfa;
         this.ensureServerEnv = ensureServerEnv;
         this.ensureSiteUrl = ensureSiteUrl;
+        this.ensureInternalSiteUrl = ensureInternalSiteUrl;
         this.generateKeycloakUser = generateKeycloakUser;
         this.generateLdapUser = generateLdapUser;
         this.keycloakSamlDescriptorUrl = keycloakSamlDescriptorUrl;
