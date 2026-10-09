@@ -126,6 +126,8 @@ type inlineParser struct {
 	ranges               []Range
 	referenceDefinitions []*ReferenceDefinition
 
+	referenceIndex *referenceIndex
+
 	raw            string
 	position       int
 	inlines        []Inline
@@ -334,13 +336,22 @@ func (p *inlineParser) peekAtInlineLinkDestinationAndTitle(position int, isImage
 }
 
 func (p *inlineParser) referenceDefinition(label string) *ReferenceDefinition {
-	clean := strings.Join(strings.Fields(label), " ")
-	for _, d := range p.referenceDefinitions {
-		if strings.EqualFold(clean, strings.Join(strings.Fields(d.Label()), " ")) {
-			return d
+	if len(p.referenceDefinitions) == 0 {
+		return nil
+	}
+
+	if p.referenceIndex == nil {
+		// Definitions a document was parsed into arrive with an index built for the whole
+		// document. Anything a caller assembled itself is indexed here instead, once for the
+		// parser rather than once for each label it resolves.
+		if index := p.referenceDefinitions[0].index; index != nil && index.covers(p.referenceDefinitions) {
+			p.referenceIndex = index
+		} else {
+			p.referenceIndex = newReferenceIndex(p.referenceDefinitions)
 		}
 	}
-	return nil
+
+	return p.referenceIndex.lookup(label)
 }
 
 func (p *inlineParser) lookForLinkOrImage() {

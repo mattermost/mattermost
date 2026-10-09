@@ -132,22 +132,36 @@ func relativeToAbsolutePosition(ranges []Range, position int) int {
 	return ranges[len(ranges)-1].End
 }
 
-func trimBytesFromRanges(ranges []Range, bytes int) (result []Range) {
-	rem := bytes
+// joinRanges returns the text the ranges cover, in order.
+func joinRanges(markdown string, ranges []Range) string {
+	length := 0
 	for _, r := range ranges {
-		if rem == 0 {
-			result = append(result, r)
-			continue
-		}
-		l := r.End - r.Position
+		length += r.End - r.Position
+	}
+
+	var sb strings.Builder
+	sb.Grow(length)
+	for _, r := range ranges {
+		sb.WriteString(markdown[r.Position:r.End])
+	}
+	return sb.String()
+}
+
+// trimBytesFromRanges drops the leading bytes bytes of the text the ranges cover. The result is
+// a reslice of ranges whose first element it may rewrite in place, so a caller keeps the result
+// rather than its own view of the slice, and gets a trim that never allocates in return.
+func trimBytesFromRanges(ranges []Range, bytes int) []Range {
+	rem := bytes
+	for len(ranges) > 0 {
+		l := ranges[0].End - ranges[0].Position
 		if rem < l {
-			result = append(result, Range{r.Position + rem, r.End})
-			rem = 0
-			continue
+			ranges[0].Position += rem
+			break
 		}
 		rem -= l
+		ranges = ranges[1:]
 	}
-	return
+	return ranges
 }
 
 func Parse(markdown string) (*Document, []*ReferenceDefinition) {
