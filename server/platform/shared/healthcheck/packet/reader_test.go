@@ -31,6 +31,9 @@ import (
 const (
 	pushSubject    = "EmailSettings.PushNotificationServer"
 	siteURLSubject = "ServiceSettings.SiteURL"
+
+	// The fixtures run 11.0, whose supporting ESR had ended when they were collected.
+	versionSubject = "11.0"
 )
 
 type finding struct {
@@ -127,12 +130,14 @@ func TestReadGoldenPackets(t *testing.T) {
 			expected: []finding{
 				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateFiring, Subject: pushSubject},
 				{Code: "SITE_URL_HTTP", State: healthcheck.StateFiring, Subject: siteURLSubject},
+				{Code: "VERSION_EOL_UNVERIFIED", State: healthcheck.StateFiring, Subject: versionSubject},
 			},
 		},
 		{
 			name: "ha",
 			expected: []finding{
 				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject},
+				{Code: "VERSION_EOL_UNVERIFIED", State: healthcheck.StateFiring, Subject: versionSubject},
 			},
 		},
 	}
@@ -155,6 +160,7 @@ func TestReadSnapshotFields(t *testing.T) {
 	assert.Equal(t, time.Date(2026, time.September, 25, 10, 0, 0, 0, time.UTC), s.CollectedAt)
 	assert.Equal(t, "11.0.4", s.Version.Current)
 	assert.Empty(t, s.Version.Latest)
+	assert.True(t, s.Version.BuildDate.IsZero())
 	assert.Nil(t, s.License)
 	assert.False(t, s.Deployment.IsCloud)
 
@@ -191,6 +197,30 @@ func TestReadSnapshotFields(t *testing.T) {
 	version, ok := nodes[0].NodeVersion()
 	require.True(t, ok)
 	assert.Equal(t, "11.0.4", version)
+}
+
+// Not parallel: it sets the build date stamped into this binary.
+func TestReadBuildDate(t *testing.T) {
+	buildDate := model.BuildDate
+	t.Cleanup(func() { model.BuildDate = buildDate })
+
+	t.Run("a release build dates the packet with its own build date", func(t *testing.T) {
+		model.BuildDate = "Fri Oct  9 10:00:00 UTC 2026"
+
+		s := readFiles(t, fixtureFiles(t, "standalone")).Snapshot
+		assert.Equal(t, time.Date(2026, time.October, 9, 10, 0, 0, 0, time.UTC), s.Version.BuildDate.UTC())
+
+		findings := evaluate(t, s)
+		assert.Contains(t, findings, finding{Code: "VERSION_EOL", State: healthcheck.StateFiring, Subject: versionSubject})
+		assert.NotContains(t, findings, finding{Code: "VERSION_EOL_UNVERIFIED", State: healthcheck.StateFiring, Subject: versionSubject})
+	})
+
+	t.Run("a dev build has no build date", func(t *testing.T) {
+		model.BuildDate = ""
+
+		s := readFiles(t, fixtureFiles(t, "standalone")).Snapshot
+		assert.True(t, s.Version.BuildDate.IsZero())
+	})
 }
 
 func TestReadHALayout(t *testing.T) {

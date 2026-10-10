@@ -180,6 +180,26 @@ func TestBuildHealthSnapshotLatestVersionTimeout(t *testing.T) {
 }
 
 // Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
+func TestBuildHealthSnapshotLatestVersionDropsTagPrefix(t *testing.T) {
+	th := Setup(t)
+
+	err := th.App.clearLatestVersionCache()
+	require.NoError(t, err)
+
+	body, err := json.Marshal(&model.GithubReleaseInfo{Id: 1, TagName: "v11.11.1", Name: "v11.11.1", Url: "https://github.com/mattermost/mattermost/releases/tag/v11.11.1"})
+	require.NoError(t, err)
+	release := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, writeErr := w.Write(body)
+		assert.NoError(t, writeErr)
+	}))
+	t.Cleanup(release.Close)
+
+	snapshot, err := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context, release.URL)
+	require.NoError(t, err)
+	assert.Equal(t, "11.11.1", snapshot.Version.Latest)
+}
+
+// Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
 func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 	th := Setup(t)
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -209,6 +229,12 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 	offline, err := packet.Read(bytes.NewReader(zipped.Bytes()), int64(zipped.Len()))
 	require.NoError(t, err)
 	assert.Empty(t, offline.Warnings)
+
+	// Offline has no feed and dates the packet by its generation time; align them so only the
+	// rules are compared.
+	offline.Snapshot.Version.Latest = live.Version.Latest
+	offline.Snapshot.Version.BuildDate = live.Version.BuildDate
+	offline.Snapshot.CollectedAt = live.CollectedAt
 
 	evaluatedAt := time.Now()
 	engine := healthcheck.NewEngine(healthcheck.EngineOpts{
