@@ -33,13 +33,27 @@ export async function ensureServerEnv(key: string, value: string): Promise<void>
     }
 }
 
+/** Restarts the server with the baseline internal SiteURL if a prior override set it to something else. */
+export async function ensureInternalSiteUrl(): Promise<void> {
+    if (!testConfig.useTestContainers) {
+        return;
+    }
+
+    const override = testConfig.bootEnvOverrides.MM_SERVICESETTINGS_SITEURL;
+    if (override === undefined || override === testConfig.internalBaseURL) {
+        return;
+    }
+
+    await restartMattermostContainer({MM_SERVICESETTINGS_SITEURL: testConfig.internalBaseURL});
+}
+
 /**
  * Restarts the server with ServiceSettings.SiteURL set to the host-reachable baseURL, if it
  * isn't already, and confirms the running server reports that value, skipping the test otherwise.
  *
  * This persists once set: restartMattermostContainer() merges env, so every spec sharing this
  * reused server afterward also sees the host-facing SiteURL. Only call this when a spec genuinely
- * needs a host-reachable SiteURL.
+ * needs a host-reachable SiteURL. Undo with ensureInternalSiteUrl().
  */
 export async function ensureSiteUrl(): Promise<void> {
     if (!testConfig.useTestContainers) {

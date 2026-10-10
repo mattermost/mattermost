@@ -19,6 +19,7 @@ export {
     UPGRADE_FROM_SERVER_IMAGE_ENV,
 } from './upgrade_env';
 export {baseGlobalSetup} from './global_setup';
+export {clearGlobalSetupFailure, readGlobalSetupFailure, recordGlobalSetupFailure} from './global_setup_failure';
 export {TestBrowser} from './browser_context';
 export {assetPath, getBlobFromAsset, getFileFromAsset, getFileData, getBlobData} from './file';
 export {setupFileServer} from './file_server';
@@ -29,7 +30,6 @@ export {LicenseSkus, appsPluginId, callsPluginId, playbooksPluginId} from './con
 
 export {
     getAdminClient,
-    getOnPremServerConfig,
     getRecentEmail,
     extractEmailLink,
     isWebhookTestServerReachable,
@@ -140,7 +140,6 @@ export {
     disableChannelAutotranslation,
     setUserChannelAutotranslation,
     setMockSourceLanguage,
-    ensureAutotranslationPermissions,
 } from './autotranslation_helpers';
 export type {EnableAutotranslationOptions} from './autotranslation_helpers';
 export {

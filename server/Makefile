@@ -442,9 +442,10 @@ pluginapi: setup-go-work ## Generates api and hooks glue code for plugins
 	cd ./public && $(GO) generate $(GOFLAGS) ./plugin
 
 .PHONY: default-roles-permissions
-default-roles-permissions: setup-go-work start-docker ## Generates default_roles_permissions.js by snapshotting a live database.
+default-roles-permissions: setup-go-work start-docker ## Generates the Cypress and Playwright default_roles_permissions files from a live database.
 	$(GO) run $(GOFLAGS) ./scripts/default_permissions_generator \
-		-out ../e2e-tests/cypress/tests/support/api/default_roles_permissions.js
+		-out ../e2e-tests/cypress/tests/support/api/default_roles_permissions.js \
+		-out ../e2e-tests/playwright/lib/src/server/default_roles_permissions.ts
 
 .PHONY: mocks
 mocks: store-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks mmctl-mocks mocks-public cache-mocks

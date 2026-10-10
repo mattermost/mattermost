@@ -55,6 +55,7 @@
     "globals": "17.11.0",
     "luxon": "3.7.2",
     "pg": "8.23.0",
+    "playwright-core": "1.62.1",
     "prettier": "3.9.6",
     "typescript": "6.0.3",
     "zod": "4.4.3"

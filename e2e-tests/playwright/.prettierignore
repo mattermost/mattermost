@@ -12,3 +12,4 @@ logs
 .env.testcontainers
 specs/**/*.yml
 specs/**/*.yaml
+lib/src/server/default_roles_permissions.ts

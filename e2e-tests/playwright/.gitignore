@@ -17,6 +17,7 @@ dist
 
 # testcontainers ("full" mode) — generated per-run, see docs/testcontainers/testcontainers_plan.md
 .env.testcontainers
+.global-setup-failure.json
 
 # upgrade-path tests
 .mattermost_data

@@ -7,6 +7,8 @@ import type {AxeResults} from 'axe-core';
 import {AxeBuilder} from '@axe-core/playwright';
 
 import {TestBrowser} from './browser_context';
+import {isUpgradePathProjectSelected} from './upgrade_env';
+import {readGlobalSetupFailure} from './global_setup_failure';
 import {
     ensureLicense,
     ensurePluginsLoaded,
@@ -31,12 +33,12 @@ import {
     createUserWithAttributes,
     deleteKeycloakUser,
     deleteLdapUser,
-    disableMfa,
     elasticsearchServerConfig,
     enableAIBridgeTestMode,
     ensureAzurite,
     ensureElasticsearch,
     ensureFeatureFlag,
+    ensureInternalSiteUrl,
     ensureKeycloak,
     ensureKeycloakOpenId,
     ensureLocalFile,
@@ -51,6 +53,7 @@ import {
     generateKeycloakUser,
     generateLdapUser,
     getAdminClient,
+    getAdminClientHealing,
     getAIBridgeMock,
     initSetup,
     installAndEnablePlugin,
@@ -66,6 +69,9 @@ import {
     opensearchServerConfig,
     recapCompletion,
     resetAIBridgeMock,
+    resetConfig,
+    resetRoles,
+    restorePendingConfigPatches,
     rewriteCompletion,
     runMmctl,
     samlServerConfig,
@@ -100,6 +106,7 @@ export {expect} from '@playwright/test';
 export type ExtendedFixtures = {
     axe: AxeBuilderExtended;
     pw: PlaywrightExtended;
+    resetConfigAndRoles: void;
 };
 
 type AxeBuilderOptions = {
@@ -117,6 +124,29 @@ export const test = base.extend<ExtendedFixtures>({
         await use(pw);
         await pw.testBrowser.close();
     },
+    // Reset config and roles before every test. Role defaults are generated from current
+    // master and can reference permissions an upgrade-path from-image predates, so skip the
+    // role reset there -- those projects verify an unmodified upgrade, not role content.
+    resetConfigAndRoles: [
+        async ({}, use) => {
+            // globalSetup() records here instead of throwing when it fails, so Playwright still
+            // attempts this spec's tests. Fail them loudly with the recorded reason rather than
+            // silently proceeding against a server that never got into a known-good state.
+            const globalSetupFailure = readGlobalSetupFailure();
+            if (globalSetupFailure) {
+                throw new Error(globalSetupFailure);
+            }
+
+            const {adminClient} = await getAdminClientHealing();
+            await resetConfig(adminClient);
+            if (!isUpgradePathProjectSelected()) {
+                await resetRoles(adminClient);
+            }
+            await use();
+            await restorePendingConfigPatches();
+        },
+        {auto: true},
+    ],
 });
 
 export class PlaywrightExtended {
@@ -138,6 +168,8 @@ export class PlaywrightExtended {
     // ./server
     readonly ensurePluginsLoaded;
     readonly getAdminClient;
+    readonly resetConfig;
+    readonly resetRoles;
     readonly initSetup;
     readonly enableAIBridgeTestMode;
     readonly configureAIBridgeMock;
@@ -166,8 +198,8 @@ export class PlaywrightExtended {
     readonly ensureOpenldap;
     readonly ensureOpensearch;
     readonly ensurePostgresSearch;
-    readonly disableMfa;
     readonly enableUserMfa;
+    readonly ensureInternalSiteUrl;
     readonly ensureServerEnv;
     readonly ensureSiteUrl;
     readonly generateKeycloakUser;
@@ -264,6 +296,8 @@ export class PlaywrightExtended {
         this.ensurePluginsLoaded = ensurePluginsLoaded;
         this.initSetup = initSetup;
         this.getAdminClient = getAdminClient;
+        this.resetConfig = resetConfig;
+        this.resetRoles = resetRoles;
         this.enableAIBridgeTestMode = enableAIBridgeTestMode;
         this.configureAIBridgeMock = configureAIBridgeMock;
         this.getAIBridgeMock = getAIBridgeMock;
@@ -292,8 +326,8 @@ export class PlaywrightExtended {
         this.ensureOpenldap = ensureOpenldap;
         this.ensureOpensearch = ensureOpensearch;
         this.ensurePostgresSearch = ensurePostgresSearch;
-        this.disableMfa = disableMfa;
         this.enableUserMfa = enableUserMfa;
+        this.ensureInternalSiteUrl = ensureInternalSiteUrl;
         this.ensureServerEnv = ensureServerEnv;
         this.ensureSiteUrl = ensureSiteUrl;
         this.generateKeycloakUser = generateKeycloakUser;
