@@ -941,6 +941,7 @@ export type ElasticsearchSettings = {
     Trace: string;
     IgnoredPurgeIndexes: string;
     EnableSearchPublicChannelsWithoutMembership: boolean;
+    EnableFileIndexing: boolean;
 };
 
 export type DataRetentionSettings = {

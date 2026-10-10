@@ -4911,6 +4911,14 @@
     "defaultMessage": "Enable Elasticsearch for autocomplete queries:",
     "description": "Toggle setting name on the Elasticsearch admin page for using Elasticsearch in autocomplete; ends with a colon."
   },
+  "admin.elasticsearch.enableFileIndexingDescription": {
+    "defaultMessage": "When false, new or updated file attachments are not indexed. File search continues to return previously indexed files, but files uploaded while this setting is false are not searchable until a bulk index is run after re-enabling it.",
+    "description": "Help text under the file indexing toggle on the Elasticsearch admin page, explaining that turning it off stops indexing new or updated file attachments while file search keeps returning previously indexed files."
+  },
+  "admin.elasticsearch.enableFileIndexingTitle": {
+    "defaultMessage": "Enable file indexing:",
+    "description": "Toggle setting name on the Elasticsearch admin page for indexing file attachments; ends with a colon."
+  },
   "admin.elasticsearch.enableIndexingDescription": {
     "defaultMessage": "When true, indexing of new posts occurs automatically. Search queries will use database search until \"Enable Elasticsearch for search queries\" is enabled. <link>Learn more about Elasticsearch in our documentation.</link>",
     "description": "Admin console help text for the Enable Elasticsearch Indexing toggle; <link></link> wraps the sentence linking to documentation, the quoted setting name refers to a sibling setting."
