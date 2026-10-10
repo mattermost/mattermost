@@ -36,8 +36,13 @@ function* walk(dir) {
 }
 
 function attr(openTag, name) {
-  const match = openTag.match(new RegExp(`\\b${name}=["']([^"']*)["']`, 'i'));
-  return match ? match[1] : null;
+  // Docusaurus/React HTML often omits quotes when the value has no spaces.
+  const quoted = openTag.match(new RegExp(`\\b${name}=["']([^"']*)["']`, 'i'));
+  if (quoted) {
+    return quoted[1];
+  }
+  const unquoted = openTag.match(new RegExp(`\\b${name}=([^\\s"'=<>]+)`, 'i'));
+  return unquoted ? unquoted[1] : null;
 }
 
 function hasFlag(openTag, name) {
@@ -50,7 +55,10 @@ function labelledByText(html, id) {
   }
   const escaped = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const match = html.match(
-    new RegExp(`<([a-zA-Z][\\w:-]*)\\b[^>]*\\sid=["']${escaped}["'][^>]*>([\\s\\S]*?)</\\1>`, 'i'),
+    new RegExp(
+      `<([a-zA-Z][\\w:-]*)\\b[^>]*\\sid=(?:["']${escaped}["']|${escaped})(?:\\s[^>]*)?>([\\s\\S]*?)</\\1>`,
+      'i',
+    ),
   );
   return match ? match[2].replace(/<[^>]+>/g, '').trim() : '';
 }
