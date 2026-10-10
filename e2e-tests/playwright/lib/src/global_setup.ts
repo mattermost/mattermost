@@ -136,8 +136,19 @@ async function createDefaultTeam(client: PlaywrightClient4): Promise<void> {
         // clearAdminLockout() only overwrites the one setting that caused the lockout, leaving the
         // rest of whatever the leaked patch changed in place. Restore the full on-prem baseline
         // right away instead of leaving that to the first test's resetConfigAndRoles fixture, so a
-        // fatal error anywhere between here and that fixture can't strand the server mid-fix.
-        await resetConfig(client);
+        // fatal error anywhere between here and that fixture can't strand the server mid-fix. The
+        // team is already created at this point, so a failure here is a best-effort safety net, not
+        // a reason to fail the whole spec file loudly: resetConfigAndRoles calls resetConfig() again
+        // with a fresh client before the first test anyway, and will retry it there.
+        try {
+            await resetConfig(client);
+        } catch (resetError) {
+            // eslint-disable-next-line no-console
+            console.warn(
+                'Global setup: full config reset after lockout recovery failed; the per-test fixture will retry.',
+                resetError,
+            );
+        }
     }
 }
 
