@@ -33,16 +33,18 @@ export async function ensureServerEnv(key: string, value: string): Promise<void>
     }
 }
 
-/** Restarts the server with the baseline internal SiteURL if it differs. */
+/** Restarts the server with the baseline internal SiteURL if a prior override set it to something else. */
 export async function ensureInternalSiteUrl(): Promise<void> {
     if (!testConfig.useTestContainers) {
         return;
     }
 
-    const env = {MM_SERVICESETTINGS_SITEURL: testConfig.internalBaseURL};
-    if (!bootEnvMatches(env)) {
-        await restartMattermostContainer(env);
+    const override = testConfig.bootEnvOverrides.MM_SERVICESETTINGS_SITEURL;
+    if (override === undefined || override === testConfig.internalBaseURL) {
+        return;
     }
+
+    await restartMattermostContainer({MM_SERVICESETTINGS_SITEURL: testConfig.internalBaseURL});
 }
 
 /**

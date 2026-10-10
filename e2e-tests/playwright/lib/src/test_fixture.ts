@@ -7,6 +7,7 @@ import type {AxeResults} from 'axe-core';
 import {AxeBuilder} from '@axe-core/playwright';
 
 import {TestBrowser} from './browser_context';
+import {isUpgradePathProjectSelected} from './upgrade_env';
 import {
     ensureLicense,
     ensurePluginsLoaded,
@@ -122,12 +123,16 @@ export const test = base.extend<ExtendedFixtures>({
         await use(pw);
         await pw.testBrowser.close();
     },
-    // Reset config and roles before every test.
+    // Reset config and roles before every test. Role defaults are generated from current
+    // master and can reference permissions an upgrade-path from-image predates, so skip the
+    // role reset there -- those projects verify an unmodified upgrade, not role content.
     resetConfigAndRoles: [
         async ({}, use) => {
             const {adminClient} = await getAdminClientHealing();
             await resetConfig(adminClient);
-            await resetRoles(adminClient);
+            if (!isUpgradePathProjectSelected()) {
+                await resetRoles(adminClient);
+            }
             await use();
             await restorePendingConfigPatches();
         },
