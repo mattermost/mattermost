@@ -1,0 +1,36 @@
+/* Sizing mirrors the authored-image rule in custom.css (720px cap, 640px max
+ * height, centred) so a GIF replaced by a video renders at the same size. The
+ * 640px cap matters most for the `mobile-*` portrait captures, which would
+ * otherwise fill the viewport. */
+.wrapper {
+  margin: 1.5rem auto;
+}
+
+.video {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 640px;
+  margin-inline: auto;
+  border-radius: 4px;
+  border: 1px solid var(--mm-border-subtle);
+  /* Letterboxing when `max-height` binds — the element box is sized by
+   * `width: 100%`, so the frame is contained inside it rather than shrinking
+   * the box. Matching the page surface keeps the bars invisible. */
+  background: var(--mm-bg-subtle);
+}
+
+/* Clipped rather than `display: none`: engines are inconsistent about
+ * traversing display:none subtrees for accessible-name computation, and real
+ * DOM text (unlike an aria-label) survives machine translation. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
