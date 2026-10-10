@@ -11,6 +11,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"syscall"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -83,7 +84,10 @@ func docsCmdF(command *cobra.Command, args []string) error {
 	url := fmt.Sprintf("http://%s/%s/", addr, web.DocsURLPrefix)
 	_, _ = CommandPrintln("Serving documentation at " + url + " — press Ctrl-C to stop")
 
-	srv := &http.Server{Handler: mux}
+	srv := &http.Server{
+		Handler:           mux,
+		ReadHeaderTimeout: 10 * time.Second,
+	}
 	errCh := make(chan error, 1)
 	go func() {
 		errCh <- srv.Serve(ln)

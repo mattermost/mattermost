@@ -211,7 +211,8 @@ package-prep: setup-go-work
 	@if [ -z "$(DOCS_BUNDLE)" ]; then \
 		echo "DOCS_BUNDLE unset; skipping docs packaging"; \
 	elif [ ! -f "$(DOCS_BUNDLE)" ]; then \
-		echo "DOCS_BUNDLE=$(DOCS_BUNDLE) not found; skipping docs packaging"; \
+		echo "DOCS_BUNDLE=$(DOCS_BUNDLE) not found" >&2; \
+		exit 1; \
 	else \
 		echo "Packaging documentation from $(DOCS_BUNDLE)"; \
 		mkdir -p $(DIST_PATH)/client; \

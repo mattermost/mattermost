@@ -66,8 +66,30 @@ def hardlink_dedup(build_dir: str) -> tuple[int, int, int]:
             dup_st = os.lstat(dup)
             if (dup_st.st_dev, dup_st.st_ino) == (canon_st.st_dev, canon_st.st_ino):
                 continue  # already the same inode
-            os.unlink(dup)
-            os.link(canonical, dup)
+            # Link to a temp name in dup's directory, then atomically replace.
+            # Never unlink(dup) before a successful link — a failed link would
+            # leave the duplicate permanently deleted.
+            tmp = os.path.join(
+                os.path.dirname(dup),
+                f".{os.path.basename(dup)}.{os.getpid()}.hl.tmp",
+            )
+            try:
+                try:
+                    os.unlink(tmp)
+                except FileNotFoundError:
+                    pass
+                os.link(canonical, tmp)
+                os.replace(tmp, dup)
+            except OSError as exc:
+                try:
+                    os.unlink(tmp)
+                except OSError:
+                    pass
+                print(
+                    f"[build-offline-bundle] WARN: hardlink failed for {dup}: {exc}",
+                    file=sys.stderr,
+                )
+                continue
             links += 1
             saved += dup_st.st_size
     return groups, links, saved

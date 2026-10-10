@@ -26,6 +26,7 @@ func writeDocsFixture(t *testing.T) string {
 		"administration-guide/manage/scale.html": "<html><body>deep page</body></html>",
 		"assets/css/styles.abcd1234.css":         "body{color:red}",
 		"manage/command-line-tools/index.html":   "<html><body>redirect stub</body></html>",
+		"releases/v10.5.html":                    "<html><body>release v10.5</body></html>",
 	}
 	for name, body := range files {
 		full := filepath.Join(docsDir, name)
@@ -120,6 +121,7 @@ func TestDocsHandlerCleanURLs(t *testing.T) {
 		name         string
 		target       string
 		expectedCode int
+		expectedBody string
 	}{
 		{
 			name:         "bundle root as linked by the server route",
@@ -141,12 +143,22 @@ func TestDocsHandlerCleanURLs(t *testing.T) {
 			target:       "/_documentation/manage/command-line-tools",
 			expectedCode: http.StatusOK,
 		},
+		{
+			// path.Ext("v10.5") == ".5"; must still resolve v10.5.html
+			name:         "extensionless page whose basename contains a period",
+			target:       "/_documentation/releases/v10.5",
+			expectedCode: http.StatusOK,
+			expectedBody: "release v10.5",
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			rec := doDocsRequest(t, staticDir, tc.target)
 			require.Equal(t, tc.expectedCode, rec.Code)
+			if tc.expectedBody != "" {
+				require.Contains(t, rec.Body.String(), tc.expectedBody)
+			}
 		})
 	}
 }
@@ -170,6 +182,11 @@ func TestDocsHandlerSecurityHeaders(t *testing.T) {
 	require.Equal(t, http.StatusOK, rec.Code)
 	require.Equal(t, "nosniff", rec.Header().Get("X-Content-Type-Options"))
 	require.Equal(t, "no-referrer", rec.Header().Get("Referrer-Policy"))
-	require.Equal(t, "max-age=31556926, public", rec.Header().Get("Cache-Control"))
+	require.Equal(t, "no-cache, public", rec.Header().Get("Cache-Control"))
 	require.Contains(t, rec.Header().Get("Content-Type"), "text/html")
+
+	// Hashed static assets keep the long-lived cache from setStaticSecurityHeaders.
+	asset := doDocsRequest(t, staticDir, "/_documentation/assets/css/styles.abcd1234.css")
+	require.Equal(t, http.StatusOK, asset.Code)
+	require.Equal(t, "max-age=31556926, public", asset.Header().Get("Cache-Control"))
 }

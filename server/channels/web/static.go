@@ -35,6 +35,23 @@ const (
 	DocsURLPrefix = "_documentation"
 )
 
+// docsStaticExts are real asset/page suffixes. path.Ext treats "v10.5" as
+// having extension ".5", so clean-URL .html fallback must key off this set
+// rather than "Ext == \"\"".
+var docsStaticExts = map[string]bool{
+	".html": true, ".htm": true,
+	".css": true, ".js": true, ".mjs": true, ".map": true, ".json": true,
+	".png": true, ".jpg": true, ".jpeg": true, ".gif": true, ".svg": true,
+	".webp": true, ".ico": true, ".avif": true,
+	".woff": true, ".woff2": true, ".ttf": true, ".eot": true, ".otf": true,
+	".mp4": true, ".webm": true,
+	".txt": true, ".xml": true, ".pdf": true,
+}
+
+func hasDocsStaticExt(name string) bool {
+	return docsStaticExts[strings.ToLower(path.Ext(name))]
+}
+
 // docsFileSystem maps clean URLs to trailingSlash:false Docusaurus output
 // (<path>.html / <path>/index.html). The hosted site does this in CDN; http.FileServer does not.
 type docsFileSystem struct {
@@ -56,8 +73,9 @@ func (d docsFileSystem) Open(name string) (http.File, error) {
 	}
 
 	// Try "<name>.html" before "<name>/index.html" so a sibling directory of
-	// the same name does not shadow the content page.
-	if path.Ext(name) == "" {
+	// the same name does not shadow the content page. Skip when name already
+	// has a real static extension so we do not probe "styles.css.html".
+	if !hasDocsStaticExt(name) {
 		if f, err := d.root.Open(name + ".html"); err == nil {
 			return f, nil
 		}
@@ -100,6 +118,12 @@ func NewDocsHandlerForDir(docsDir, subpath string) http.Handler {
 		if err != nil || st.IsDir() {
 			http.NotFound(w, r)
 			return
+		}
+
+		// Docs HTML must not inherit the year-long asset cache; hashed static
+		// assets keep the default from setStaticSecurityHeaders.
+		if strings.HasSuffix(strings.ToLower(st.Name()), ".html") {
+			w.Header().Set("Cache-Control", "no-cache, public")
 		}
 
 		// Use the resolved filename so Content-Type follows the real extension.
