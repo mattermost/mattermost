@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"html"
+	"io/fs"
 	"net/http"
 	"os"
 	"path"
@@ -25,6 +26,87 @@ import (
 
 var robotsTxt = []byte("User-agent: *\nDisallow: /\n")
 
+const (
+	// DocsDir is the client subdirectory for the offline docs bundle.
+	DocsDir = "_documentation"
+
+	// DocsURLPrefix matches BASE_URL=/_documentation/ (not configurable).
+	// Leading underscore keeps it out of the webapp team-URL namespace.
+	DocsURLPrefix = "_documentation"
+)
+
+// docsFileSystem maps clean URLs to trailingSlash:false Docusaurus output
+// (<path>.html / <path>/index.html). The hosted site does this in CDN; http.FileServer does not.
+type docsFileSystem struct {
+	root http.FileSystem
+}
+
+func (d docsFileSystem) Open(name string) (http.File, error) {
+	// No FileServer in front — normalize containment ourselves (root is an interface).
+	if strings.Contains(name, "..") {
+		return nil, fs.ErrNotExist
+	}
+
+	if f, err := d.root.Open(name); err == nil {
+		st, statErr := f.Stat()
+		if statErr == nil && !st.IsDir() {
+			return f, nil
+		}
+		f.Close()
+	}
+
+	// Try "<name>.html" before "<name>/index.html" so a sibling directory of
+	// the same name does not shadow the content page.
+	if path.Ext(name) == "" {
+		if f, err := d.root.Open(name + ".html"); err == nil {
+			return f, nil
+		}
+	}
+
+	if f, err := d.root.Open(path.Join(name, "index.html")); err == nil {
+		return f, nil
+	}
+
+	return nil, fs.ErrNotExist
+}
+
+// NewDocsHandler serves <staticDir>/_documentation. Shared with `mattermost docs`.
+func NewDocsHandler(staticDir, subpath string) http.Handler {
+	return NewDocsHandlerForDir(filepath.Join(staticDir, DocsDir), subpath)
+}
+
+// NewDocsHandlerForDir serves a bundle at docsDir (e.g. an unpackaged Docusaurus build via --dir).
+func NewDocsHandlerForDir(docsDir, subpath string) http.Handler {
+	docsFS := docsFileSystem{root: http.Dir(docsDir)}
+	prefix := path.Join(subpath, DocsURLPrefix)
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w = &notFoundNoCacheResponseWriter{ResponseWriter: w}
+		setStaticSecurityHeaders(w)
+
+		upath := strings.TrimPrefix(r.URL.Path, prefix)
+		if upath == "" || upath[0] != '/' {
+			upath = "/" + upath
+		}
+
+		f, err := docsFS.Open(upath)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		defer f.Close()
+
+		st, err := f.Stat()
+		if err != nil || st.IsDir() {
+			http.NotFound(w, r)
+			return
+		}
+
+		// Use the resolved filename so Content-Type follows the real extension.
+		http.ServeContent(w, r, st.Name(), st.ModTime(), f)
+	})
+}
+
 func (w *Web) InitStatic() {
 	if *w.srv.Config().ServiceSettings.WebserverMode != "disabled" {
 		if err := utils.UpdateAssetsSubpathFromConfig(w.srv.Config()); err != nil {
@@ -38,14 +120,17 @@ func (w *Web) InitStatic() {
 
 		staticHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(staticDir))))
 		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.srv.Config().PluginSettings.ClientDirectory))))
+		docsHandler := NewDocsHandler(staticDir, subpath)
 
 		if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 			staticHandler = gzhttp.GzipHandler(staticHandler)
 			pluginHandler = gzhttp.GzipHandler(pluginHandler)
+			docsHandler = gzhttp.GzipHandler(docsHandler)
 		}
 
 		w.MainRouter.PathPrefix("/static/plugins/").Handler(pluginHandler)
 		w.MainRouter.PathPrefix("/static/").Handler(staticHandler)
+		w.MainRouter.PathPrefix("/" + DocsURLPrefix + "/").Handler(docsHandler)
 		w.MainRouter.Handle("/robots.txt", http.HandlerFunc(robotsHandler))
 		w.MainRouter.Handle("/unsupported_browser.js", http.HandlerFunc(unsupportedBrowserScriptHandler))
 		w.MainRouter.Handle("/{anything:.*}", w.NewStaticHandler(root)).Methods(http.MethodGet, http.MethodHead)
@@ -127,21 +212,23 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// setStaticSecurityHeaders applies defaults shared by static and docs handlers.
+func setStaticSecurityHeaders(w http.ResponseWriter) {
+	w.Header().Set("Cache-Control", "max-age=31556926, public")
+	w.Header().Set("Permissions-Policy", "")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Referrer-Policy", "no-referrer")
+}
+
 func staticFilesHandler(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//wrap our ResponseWriter with our no-cache 404-handler
 		w = &notFoundNoCacheResponseWriter{ResponseWriter: w}
 
+		setStaticSecurityHeaders(w)
 		if path.Base(r.URL.Path) == "remote_entry.js" {
 			w.Header().Set("Cache-Control", "no-cache, max-age=31556926, public")
-		} else {
-			w.Header().Set("Cache-Control", "max-age=31556926, public")
 		}
-
-		// Hardcoded sensible default values for these security headers. Feel free to override in proxy or ingress
-		w.Header().Set("Permissions-Policy", "")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		w.Header().Set("Referrer-Policy", "no-referrer")
 
 		if strings.HasSuffix(r.URL.Path, "/") {
 			http.NotFound(w, r)
