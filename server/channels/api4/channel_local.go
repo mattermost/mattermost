@@ -422,8 +422,10 @@ func localDeleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
 
 	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
-		c.Err = model.NewAppError("localDeleteChannel", "api.channel.delete_channel.type.invalid", nil, "", http.StatusBadRequest)
-		return
+		if !c.Params.Permanent {
+			c.Err = model.NewAppError("localDeleteChannel", "api.channel.delete_channel.type.invalid", nil, "", http.StatusBadRequest)
+			return
+		}
 	}
 
 	if c.Params.Permanent {
