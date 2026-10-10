@@ -14312,6 +14312,186 @@
     "description": "Health dashboard reason shown when a health check could not run because the usage statistics it inspects (for example user or post counts) were not collected, so the check's status is unknown."
   },
   {
+    "id": "health.rule.db_connection_is_ip.message",
+    "translation": "{{.setting}} references the database host by IP address rather than a DNS name. Database failover and DNS-based high availability stop working transparently.",
+    "description": "Health dashboard finding detail when a database connection string uses an IP address as its host; {{.setting}} is the config setting name (for example SqlSettings.DataSource) and should not be translated."
+  },
+  {
+    "id": "health.rule.db_connection_is_ip.remediation",
+    "translation": "Replace the IP address with the database service's DNS name.",
+    "description": "Health dashboard fix-it step for a database connection string that uses an IP address as its host."
+  },
+  {
+    "id": "health.rule.db_connection_is_ip.title",
+    "translation": "Raw IP address in database connection string",
+    "description": "Health dashboard finding title when a database connection string uses an IP address instead of a host name."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.message",
+    "translation": "Each node opens one connection pool per data source, up to MaxOpenConns each. With {{.nodes}} nodes, MaxOpenConns={{.max_open}}, and {{.data_sources}} data sources, a database failover can produce up to {{.burst}} simultaneous connection attempts to the newly promoted primary, and the DataSource host does not look like a connection pooler. If that exceeds the database's max_connections, it rejects connections ('sorry, too many clients already') and recovery takes longer.",
+    "description": "Health dashboard finding detail for the risk of a reconnection burst after a database failover in a cluster; {{.nodes}}, {{.max_open}}, {{.data_sources}} and {{.burst}} are numbers. 'MaxOpenConns', 'DataSource' and 'max_connections' are setting names and 'sorry, too many clients already' is a literal PostgreSQL error; do not translate them."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.remediation",
+    "translation": "Size every layer against this burst. The most durable fix is to lower SqlSettings.MaxOpenConns per node and/or put PgBouncer (transaction mode) in front of the database to absorb reconnection bursts, rather than only raising max_connections: each connection costs database memory, so a high ceiling risks running out of memory. If max_connections is raised, keep headroom above the burst for replication, monitoring, and admin sessions. Staggering node startup during a failover also keeps the burst below the ceiling.",
+    "description": "Health dashboard fix-it step for the risk of a reconnection burst after a database failover. 'SqlSettings.MaxOpenConns' and 'max_connections' are setting names and 'PgBouncer' is a product name; do not translate them."
+  },
+  {
+    "id": "health.rule.db_ha_failover_storm_risk.title",
+    "translation": "Database failover can cause a connection storm",
+    "description": "Health dashboard finding title when a database failover could make every cluster node reconnect at once and exceed the database's connection limit."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.message",
+    "translation": "SqlSettings.MaxIdleConns ({{.max_idle}}) is set higher than MaxOpenConns ({{.max_open}}). Go's database/sql layer silently caps the idle pool at MaxOpenConns, so the extra idle capacity has no effect. Nothing is broken, but the value is misleading and usually indicates the pool was tuned without knowing that idle can never exceed open.",
+    "description": "Health dashboard finding detail when the idle connection limit is above the open connection limit; {{.max_idle}} and {{.max_open}} are numbers. 'SqlSettings.MaxIdleConns', 'MaxOpenConns' and 'database/sql' are technical names and should not be translated."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.remediation",
+    "translation": "Set MaxIdleConns to a value at or below MaxOpenConns (a common guideline is 25-50% of MaxOpenConns).",
+    "description": "Health dashboard fix-it step when the idle connection limit is above the open connection limit. 'MaxIdleConns' and 'MaxOpenConns' are setting names and should not be translated."
+  },
+  {
+    "id": "health.rule.db_idle_exceeds_open.title",
+    "translation": "MaxIdleConns exceeds MaxOpenConns",
+    "description": "Health dashboard finding title when the idle database connection limit is set above the open connection limit. 'MaxIdleConns' and 'MaxOpenConns' are setting names and should not be translated."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.message",
+    "translation": "With {{.users}} users and MaxOpenConns={{.max_open}}, request queueing on the app side is possible under burst load. The current default is 100 (MaxIdleConns 50, a 2:1 ratio).",
+    "description": "Health dashboard finding detail when the database connection limit is low for the number of users; {{.users}} and {{.max_open}} are numbers. 'MaxOpenConns' and 'MaxIdleConns' are setting names and should not be translated."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.remediation",
+    "translation": "If app-side request queueing is observed, raise SqlSettings.MaxOpenConns based on monitored need (the 100/50 defaults are the baseline). The real database ceiling is MaxOpenConns x nodes x data sources, so confirm the database's max_connections covers that total before raising it.",
+    "description": "Health dashboard fix-it step when the database connection limit is low for the number of users. 'SqlSettings.MaxOpenConns', 'MaxOpenConns' and 'max_connections' are setting names and should not be translated."
+  },
+  {
+    "id": "health.rule.db_max_open_conns_low.title",
+    "translation": "MaxOpenConns may be low for this user base",
+    "description": "Health dashboard finding title when the database connection limit may be too low for the number of users. 'MaxOpenConns' is a setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.message",
+    "translation": "SqlSettings.DataSourceReplicas is empty. With {{.users}} users, all reads hit the primary. Read replicas are recommended for larger deployments.",
+    "description": "Health dashboard finding detail when no database read replica is configured on a large deployment; {{.users}} is the number of registered users. 'SqlSettings.DataSourceReplicas' is a setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.remediation",
+    "translation": "Consider provisioning a read replica and adding it to SqlSettings.DataSourceReplicas.",
+    "description": "Health dashboard fix-it step when no database read replica is configured. 'SqlSettings.DataSourceReplicas' is a setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_no_read_replica.title",
+    "translation": "No read replicas configured",
+    "description": "Health dashboard finding title when no database read replica is configured."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.message",
+    "translation": "With {{.posts}} posts and database search, the primary and replicas absorb full-text scans. This causes CPU pressure and search timeouts at this scale.",
+    "description": "Health dashboard finding detail when search runs on the database without a search replica on a large deployment; {{.posts}} is the number of posts."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.remediation",
+    "translation": "Enable Elasticsearch search (preferred) or configure SqlSettings.DataSourceSearchReplicas.",
+    "description": "Health dashboard fix-it step when search runs on the database without a search replica. 'Elasticsearch' is a product name and 'SqlSettings.DataSourceSearchReplicas' is a setting name; do not translate them."
+  },
+  {
+    "id": "health.rule.db_no_search_replica.title",
+    "translation": "No search replica and Elasticsearch search disabled",
+    "description": "Health dashboard finding title when there is no database search replica and Elasticsearch is not used for search. 'Elasticsearch' is a product name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.message",
+    "translation": "{{.in_use}} of {{.max_open}} primary database connections are in use ({{.percent}}%), at or above 90% of MaxOpenConns. New queries will queue and HTTP latency rises.",
+    "description": "Health dashboard finding detail when the primary database connection pool is nearly full; {{.in_use}}, {{.max_open}} and {{.percent}} are numbers. 'MaxOpenConns' is a setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.remediation",
+    "translation": "Raise SqlSettings.MaxOpenConns and the database's max_connections. Also investigate long-running queries.",
+    "description": "Health dashboard fix-it step when the primary database connection pool is nearly full. 'SqlSettings.MaxOpenConns' and 'max_connections' are setting names and should not be translated."
+  },
+  {
+    "id": "health.rule.db_pool_saturated.title",
+    "translation": "Database primary pool near saturation",
+    "description": "Health dashboard finding title when most connections in the primary database connection pool are in use."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.message",
+    "translation": "PostgreSQL {{.version}} is below the minimum supported version. Mattermost requires PostgreSQL {{.minimum}} or later.",
+    "description": "Health dashboard finding detail when the database runs an unsupported PostgreSQL version; {{.version}} is the reported server version and {{.minimum}} is the minimum major version. 'PostgreSQL' is a product name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.remediation",
+    "translation": "Plan an upgrade. Newer versions also ship better parallel query and JSONB performance.",
+    "description": "Health dashboard fix-it step when the database runs an unsupported PostgreSQL version. 'JSONB' is a PostgreSQL data type and should not be translated."
+  },
+  {
+    "id": "health.rule.db_postgres_unsupported.title",
+    "translation": "PostgreSQL version is below the minimum supported",
+    "description": "Health dashboard finding title when the database runs a PostgreSQL version older than Mattermost supports. 'PostgreSQL' is a product name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.message",
+    "translation": "QueryTimeout is set to {{.timeout}} seconds. Long timeouts let runaway queries hold locks for the full duration, blocking autovacuum, schema migrations, and writers behind the same row. This compounds risk on busy databases without read replicas.",
+    "description": "Health dashboard finding detail when the database query timeout is high; {{.timeout}} is a number of seconds. 'QueryTimeout' is a setting name and 'autovacuum' is a PostgreSQL process; do not translate them."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.remediation",
+    "translation": "Reduce SqlSettings.QueryTimeout to 30. Investigate any specific slow queries separately rather than raising the global ceiling.",
+    "description": "Health dashboard fix-it step when the database query timeout is high. 'SqlSettings.QueryTimeout' is a setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_query_timeout_high.title",
+    "translation": "SqlSettings.QueryTimeout is high (default is 30s)",
+    "description": "Health dashboard finding title when the database query timeout is well above its 30 second default. 'SqlSettings.QueryTimeout' is a setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_replica_lag_unmonitored.message",
+    "translation": "Read replicas and metrics are enabled, but no replica lag queries are defined, so you can't alert when a replica falls behind and starts serving stale reads.",
+    "description": "Health dashboard finding detail when read replicas are configured without replica lag monitoring."
+  },
+  {
+    "id": "health.rule.db_replica_lag_unmonitored.remediation",
+    "translation": "Configure ReplicaLagSettings with a per-replica lag query, and scrape it via Prometheus.",
+    "description": "Health dashboard fix-it step when read replicas are configured without replica lag monitoring. 'ReplicaLagSettings' is a setting name and 'Prometheus' is a product name; do not translate them."
+  },
+  {
+    "id": "health.rule.db_replica_lag_unmonitored.title",
+    "translation": "SqlSettings.ReplicaLagSettings not configured",
+    "description": "Health dashboard finding title when read replicas are configured without replica lag monitoring. 'SqlSettings.ReplicaLagSettings' is a setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_replica_unused.message",
+    "translation": "DataSourceReplicas is set but no replica is connected. The replica is unreachable or misconfigured, and reads are falling back to the primary.",
+    "description": "Health dashboard finding detail when read replicas are configured but none is connected. 'DataSourceReplicas' is a setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_replica_unused.remediation",
+    "translation": "Verify the replica DSN, network reachability, and authentication. Check the server logs for replica connection warnings.",
+    "description": "Health dashboard fix-it step when read replicas are configured but none is connected; 'DSN' means the database connection string."
+  },
+  {
+    "id": "health.rule.db_replica_unused.title",
+    "translation": "Read replicas configured but no active connections",
+    "description": "Health dashboard finding title when read replicas are configured but none is connected."
+  },
+  {
+    "id": "health.rule.db_trace_on.message",
+    "translation": "Every SQL statement is logged. This is intended for debugging only: leaving it on fills the disk and writes query payloads to the log files.",
+    "description": "Health dashboard finding detail when SQL statement tracing is enabled."
+  },
+  {
+    "id": "health.rule.db_trace_on.remediation",
+    "translation": "Set SqlSettings.Trace to false unless actively debugging.",
+    "description": "Health dashboard fix-it step when SQL statement tracing is enabled. 'SqlSettings.Trace' is a setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_trace_on.title",
+    "translation": "SqlSettings.Trace is enabled",
+    "description": "Health dashboard finding title when SQL statement tracing is enabled. 'SqlSettings.Trace' is a setting name and should not be translated."
+  },
+  {
     "id": "health.rule.push_bad_scheme.message.http",
     "translation": "PushNotificationServer {{.url}} uses http://, so push notifications are sent in cleartext.",
     "description": "Health dashboard finding detail when the push notification server URL starts with http:// instead of https://; {{.url}} is the configured URL. 'PushNotificationServer' is a config setting name and should not be translated."
