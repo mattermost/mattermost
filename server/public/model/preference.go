@@ -129,6 +129,14 @@ type Preference struct {
 
 type Preferences []Preference
 
+// PreferenceTombstone represents a preference that was deleted.
+type PreferenceTombstone struct {
+	UserId   string `json:"user_id"`
+	Category string `json:"category"`
+	Name     string `json:"name"`
+	DeleteAt int64  `json:"delete_at"`
+}
+
 func (o *Preference) IsValid() *AppError {
 	if !IsValidId(o.UserId) {
 		return NewAppError("Preference.IsValid", "model.preference.is_valid.id.app_error", nil, "user_id="+o.UserId, http.StatusBadRequest)

@@ -95,10 +95,8 @@ func (a *App) DeletePreferences(rctx request.CTX, userID string, preferences mod
 		}
 	}
 
-	for _, preference := range preferences {
-		if err := a.Srv().Store().Preference().Delete(userID, preference.Category, preference.Name); err != nil {
-			return model.NewAppError("DeletePreferences", "app.preference.delete.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		}
+	if err := a.Srv().Store().Preference().DeletePreferences(preferences); err != nil {
+		return model.NewAppError("DeletePreferences", "app.preference.delete.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	if err := a.Srv().Store().Channel().DeleteSidebarChannelsByPreferences(preferences); err != nil {
