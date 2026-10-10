@@ -34,13 +34,15 @@ var usage = `Mattermost testing commands to help configure the system
 		Example:
 			/test setup teams fuzz 10 20 50
 
-	Users - Add a specified number of random users with fuzz text to current team, at the specified Unix timestamp in milliseconds.
-		/test users [fuzz] [range=min[,max]] [time=user_join_timestamp]
+	Users - Add a specified number of random users to current team, at the specified Unix timestamp in milliseconds.
+		/test users [fuzz] [names] [range=min[,max]] [time=user_join_timestamp]
 
 		Default: range=2,5 time=
+		Use 'names' for realistic first/last names instead of GUID usernames.
 
 		Examples:
 			/test users fuzz range=3,8 time=1565076128000
+			/test users names range=5
 			/test users range=1
 
 	Channels - Add a specified number of random public (o) or private (p) channels with fuzz text to current team, at the specified Unix timestamp in milliseconds.
@@ -110,6 +112,7 @@ var (
 	channelRE = regexp.MustCompile(`c=~([^\s]+)`)
 	messageRE = regexp.MustCompile(`"(.*)"`)
 	fuzzRE    = regexp.MustCompile(`fuzz`)
+	namesRE   = regexp.MustCompile(`names`)
 	rangeRE   = regexp.MustCompile(`range=([^\s]+)`)
 	timeRE    = regexp.MustCompile(`time=([^\s]+)`)
 	imagesRE  = regexp.MustCompile(`images=([^\s]+)`)
@@ -321,6 +324,11 @@ func (*LoadTestProvider) UsersCommand(a *app.App, rctx request.CTX, args *model.
 		doFuzz = true
 	}
 
+	doNames := false
+	if namesRE.MatchString(cmd) {
+		doNames = true
+	}
+
 	var err error
 	rng := utils.Range{Begin: 2, End: 5}
 	rangeParam := getMatch(rangeRE, cmd)
@@ -348,6 +356,7 @@ func (*LoadTestProvider) UsersCommand(a *app.App, rctx request.CTX, args *model.
 	client := model.NewAPIv4Client(args.SiteURL)
 	userCreator := NewAutoUserCreator(a, client, team)
 	userCreator.Fuzzy = doFuzz
+	userCreator.RealisticNames = doNames
 	userCreator.JoinTime = time
 	if _, err := userCreator.CreateTestUsers(rctx, rng); err != nil {
 		return &model.CommandResponse{Text: "Failed to add users: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
