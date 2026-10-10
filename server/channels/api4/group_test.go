@@ -2705,6 +2705,9 @@ func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 	require.Contains(t, apiGroups, groups[2])
 }
 
+// TestAddMembersToGroup verifies the addGroupMembers API endpoint, covering
+// authorization, input validation (invalid and duplicate user IDs), and
+// error handling for LDAP-synced groups.
 func TestAddMembersToGroup(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -2852,6 +2855,19 @@ func TestAddMembersToGroup(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, response)
 		require.Contains(t, err.Error(), fmt.Sprintf(`User with username "%s" could not be found.`, nonExistentID))
+	})
+
+	t.Run("duplicate user IDs", func(t *testing.T) {
+		group, users := setup(t)
+
+		duplicateMembers := &model.GroupModifyMembers{
+			UserIds: []string{users[0].Id, users[0].Id},
+		}
+
+		_, response, err := th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, duplicateMembers)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, response)
+		require.Contains(t, err.Error(), fmt.Sprintf(`UserID %s is duplicated`, users[0].Id))
 	})
 
 	t.Run("ldap group rejects adding members", func(t *testing.T) {
