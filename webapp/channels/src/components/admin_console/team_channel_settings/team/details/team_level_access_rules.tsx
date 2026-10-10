@@ -2,20 +2,27 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
-import {FormattedMessage, defineMessage} from 'react-intl';
+import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {Team} from '@mattermost/types/teams';
 
+import {Client4} from 'mattermost-redux/client';
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
 
-import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
-import AdminPanelWithButton from 'components/widgets/admin_console/admin_panel_with_button';
+import CELEditor from 'components/admin_console/access_control/editors/cel_editor/editor';
+import {excludeSessionAttributes, hasUsableAttributes, isSimpleExpression, toCELEditorAttributes} from 'components/admin_console/access_control/editors/shared';
+import TableEditor, {findFirstAvailableAttributeFromList} from 'components/admin_console/access_control/editors/table_editor/table_editor';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 
 import type {GlobalState} from 'types/store';
+
+import {teamRuleGuardErrorId} from './team_rule_guards';
 
 import './team_level_access_rules.scss';
 
@@ -30,6 +37,13 @@ interface TeamLevelAccessRulesProps {
 
     // Keeps the auto-add toggle reachable for a parent-only team (no custom expression).
     hasParentPolicies?: boolean;
+
+    // Server rules carry masked values the admin can't see; CEL mode is then read-only.
+    hasMaskedRows?: boolean;
+    onValidityChange?: (isValid: boolean) => void;
+
+    // False until the attribute fetch settles; an empty list only means "none" after that.
+    attributesLoaded?: boolean;
 }
 
 const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
@@ -41,7 +55,11 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
     isDisabled = false,
     syncFooter,
     hasParentPolicies = false,
+    hasMaskedRows,
+    onValidityChange,
+    attributesLoaded = true,
 }) => {
+    const {formatMessage} = useIntl();
     const accessControlSettings = useSelector((state: GlobalState) => getAccessControlSettings(state));
 
     const [expression, setExpression] = useState(initialExpression);
@@ -52,7 +70,23 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
 
     const [formError, setFormError] = useState('');
 
+    const [editorMode, setEditorMode] = useState<'table' | 'cel'>('table');
+    const [celValid, setCelValid] = useState(true);
+
+    const enableUserManaged = accessControlSettings?.EnableUserManagedAttributes || false;
+    const membershipAttributes = useMemo(() => excludeSessionAttributes(userAttributes), [userAttributes]);
+    const celAttributes = useMemo(() => toCELEditorAttributes(membershipAttributes, enableUserManaged), [membershipAttributes, enableUserManaged]);
+    const noUsableAttributes = attributesLoaded && !hasUsableAttributes(membershipAttributes, enableUserManaged);
+
     const actions = useChannelAccessControlActions(undefined, team.id);
+
+    // Validate in the team's context so a team admin without manage_system isn't refused.
+    const celActions = useMemo(() => ({
+        checkExpression: (expr: string) => Client4.checkAccessControlExpression(expr, undefined, team.id),
+    }), [team.id]);
+
+    // The last value this editor emitted; the parent echoes it back as initialExpression.
+    const lastEmittedExpression = useRef<string | null>(null);
 
     const originalValuesInitialized = useRef(false);
 
@@ -66,6 +100,17 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
             originalValuesInitialized.current = true;
         }
     }, [initialExpression, initialAutoSync]);
+
+    // A loaded rule the table can't represent opens in Advanced. Echoes of our own edits
+    // are skipped, so a table value containing && or || can't flip the mode mid-edit.
+    useEffect(() => {
+        if (initialExpression === lastEmittedExpression.current) {
+            return;
+        }
+        if (initialExpression && !isSimpleExpression(initialExpression)) {
+            setEditorMode('cel');
+        }
+    }, [initialExpression]);
 
     // Any membership rule — custom expression or imported parent policy — gates auto-add.
     const hasMembershipRule = expression.trim() !== '' || hasParentPolicies;
@@ -84,6 +129,7 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
     }, [hasChanges, expression, effectiveAutoSync, onRulesChange]);
 
     const handleExpressionChange = useCallback((newExpression: string) => {
+        lastEmittedExpression.current = newExpression;
         setExpression(newExpression);
         setFormError('');
     }, []);
@@ -95,9 +141,74 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
         setAutoSyncMembers((prev) => !prev);
     }, [isDisabled, hasMembershipRule]);
 
+    // TableEditor reuses onParseError when it has no attribute to add a row with;
+    // only a real parse failure means the rule needs the Advanced editor.
     const handleParseError = useCallback((error: string) => {
-        setFormError(error);
+        if (!findFirstAvailableAttributeFromList(membershipAttributes, enableUserManaged)) {
+            setFormError(error);
+            return;
+        }
+        setEditorMode('cel');
+    }, [membershipAttributes, enableUserManaged]);
+
+    const guardError = useMemo(() => {
+        switch (teamRuleGuardErrorId(expression)) {
+        case 'resource_attributes':
+            return formatMessage({id: 'admin.team_settings.team_detail.rules.error.resource_attributes', defaultMessage: 'Team membership rules can\'t reference resource attributes.'});
+        case 'session_attributes':
+            return formatMessage({id: 'admin.team_settings.team_detail.rules.error.session_attributes', defaultMessage: 'Team membership rules can\'t reference session attributes.'});
+        default:
+            return '';
+        }
+    }, [expression, formatMessage]);
+
+    const isValid = (editorMode === 'table' || celValid) && !guardError;
+    useEffect(() => {
+        onValidityChange?.(isValid);
+    }, [isValid, onValidityChange]);
+    useEffect(() => () => onValidityChange?.(true), [onValidityChange]);
+
+    const complexInCel = editorMode === 'cel' && !isSimpleExpression(expression);
+    const toggleDisabled = isDisabled || noUsableAttributes || complexInCel;
+    let toggleTooltip = '';
+    if (noUsableAttributes) {
+        toggleTooltip = formatMessage({id: 'admin.access_control.policy.edit_policy.no_usable_attributes_tooltip', defaultMessage: 'Please configure user attributes to use the editor.'});
+    } else if (complexInCel) {
+        toggleTooltip = formatMessage({id: 'admin.access_control.policy.edit_policy.complex_expression_tooltip', defaultMessage: 'Complex expression detected. Simple expressions editor is not available at the moment.'});
+    }
+
+    const handleToggleMode = useCallback(() => {
+        setEditorMode((mode) => (mode === 'table' ? 'cel' : 'table'));
+        setCelValid(true);
+        setFormError('');
     }, []);
+
+    // Always wrapped so the button node is stable across disabled/enabled and keeps focus.
+    const toggleButton = (
+        <WithTooltip
+            title={toggleTooltip}
+            disabled={!toggleDisabled || !toggleTooltip}
+        >
+            <Button
+                emphasis='primary'
+                disabled={toggleDisabled}
+                onClick={handleToggleMode}
+                data-testid='team-rules-editor-mode-toggle'
+            >
+                {editorMode === 'table' ? (
+                    <FormattedMessage
+                        id='admin.access_control.policy.edit_policy.switch_to_advanced'
+                        defaultMessage='Switch to Advanced Mode'
+                    />
+                ) : (
+                    <FormattedMessage
+                        id='admin.access_control.policy.edit_policy.switch_to_simple'
+                        defaultMessage='Switch to Simple Mode'
+                    />
+                )}
+            </Button>
+        </WithTooltip>
+    );
 
     const autoSyncDisabled = isDisabled || !hasMembershipRule;
 
@@ -149,7 +260,7 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
 
     return (
         <>
-            <AdminPanelWithButton
+            <AdminPanel
                 id='team_level_access_rules'
                 title={defineMessage({
                     id: 'admin.team_settings.team_detail.rules.title',
@@ -160,36 +271,53 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
                     defaultMessage: 'User attributes and values as additional rules to restrict team membership',
                 })}
                 className='team-level-access-rules'
+                button={toggleButton}
             >
                 <div className='team-access-rules__editor'>
-                    <TableEditor
-                        value={expression}
-                        onChange={handleExpressionChange}
-                        onValidate={() => setFormError('')}
-                        userAttributes={userAttributes}
-                        onParseError={handleParseError}
+                    {editorMode === 'cel' ? (
+                        <CELEditor
+                            value={expression}
+                            onChange={handleExpressionChange}
+                            onValidate={setCelValid}
+                            disabled={isDisabled || noUsableAttributes}
+                            hasMaskedRows={hasMaskedRows}
+                            userAttributes={celAttributes}
+                            actions={celActions}
 
-                        // No teamId: passing it scopes "Test access rule" to current team
-                        // members; the test must preview workspace-wide matches like the
-                        // policy and channel editors.
-                        actions={{
-                            getVisualAST: actions.getVisualAST,
-                        }}
-                        enableUserManagedAttributes={accessControlSettings?.EnableUserManagedAttributes || false}
-                        disabled={isDisabled}
-                    />
+                            // No teamId (see TableEditor) or resourceAttributes: team rules can't use them.
+                        />
+                    ) : (
+                        <TableEditor
+                            value={expression}
+                            onChange={handleExpressionChange}
+                            onValidate={() => setFormError('')}
+                            userAttributes={membershipAttributes}
+                            onParseError={handleParseError}
 
-                    {formError && (
-                        <div className='team-access-rules__error'>
+                            // No teamId: it would scope "Test access rule" to current members
+                            // instead of workspace-wide matches.
+                            actions={{
+                                getVisualAST: actions.getVisualAST,
+                            }}
+                            enableUserManagedAttributes={enableUserManaged}
+                            disabled={isDisabled}
+                        />
+                    )}
+
+                    {(guardError || formError) && (
+                        <div
+                            className='team-access-rules__error'
+                            role='alert'
+                        >
                             <i className='icon icon-alert-outline'/>
-                            <span>{formError}</span>
+                            <span>{guardError || formError}</span>
                         </div>
                     )}
                 </div>
 
                 {renderAutoSyncSection()}
                 {syncFooter}
-            </AdminPanelWithButton>
+            </AdminPanel>
         </>
     );
 };

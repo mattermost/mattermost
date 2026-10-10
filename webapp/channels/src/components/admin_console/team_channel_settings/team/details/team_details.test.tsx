@@ -3,13 +3,26 @@
 
 import React from 'react';
 
+import type {CELExpressionError} from '@mattermost/types/access_control';
+
+import {Client4} from 'mattermost-redux/client';
+
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import TeamDetails from './team_details';
 
 jest.mock('./team_members/index', () => {
-    return () => <div>{'TeamMembers'}</div>;
+    const {TestHelper: mockTestHelper} = jest.requireActual('utils/test_helper');
+    return (props: any) => (
+        <div>
+            {'TeamMembers'}
+            <button
+                data-testid='remove-member'
+                onClick={() => props.onRemoveCallback(mockTestHelper.getUserMock({id: 'u1'}))}
+            >{'remove-member'}</button>
+        </div>
+    );
 });
 
 // Lightweight stand-in that mirrors the real TeamProfile's name/description
@@ -78,6 +91,24 @@ jest.mock('./team_level_access_rules', () => {
                     data-testid='enable-autoadd-same-expr-button'
                     onClick={() => props.onRulesChange(true, props.initialExpression ?? '', true)}
                 >{'enable-autoadd'}</button>
+
+                <button
+                    data-testid='rules-invalid'
+                    onClick={() => props.onValidityChange?.(false)}
+                >{'rules-invalid'}</button>
+                <button
+                    data-testid='rules-valid'
+                    onClick={() => props.onValidityChange?.(true)}
+                >{'rules-valid'}</button>
+                <button
+                    data-testid='set-cel-rule'
+                    onClick={() => props.onRulesChange(true, '(user.attributes.Location == "US" || user.attributes.Location == "EU")', false)}
+                >{'set-cel-rule'}</button>
+                <button
+                    data-testid='set-session-rule'
+                    onClick={() => props.onRulesChange(true, 'user.session.ip == "1.2.3.4"', false)}
+                >{'set-session-rule'}</button>
+                <span data-testid='has-masked'>{String(props.hasMaskedRows)}</span>
                 {props.syncFooter}
             </div>
         );
@@ -148,6 +179,12 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             searchUsersForExpression: jest.fn().mockResolvedValue({data: {users: [], total: 0}}),
         },
     };
+
+    let checkExpressionSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+        checkExpressionSpy = jest.spyOn(Client4, 'checkAccessControlExpression').mockResolvedValue([]);
+    });
 
     test('should match snapshot', () => {
         const {container} = renderWithContext(
@@ -1499,5 +1536,221 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         renderWithContext(<TeamDetails {...props}/>);
 
         await waitFor(() => expect(screen.getByTestId('team-membership-sync-footer')).toBeInTheDocument());
+    });
+
+    describe('team rules validation on save', () => {
+        const celRule = '(user.attributes.Location == "US" || user.attributes.Location == "EU")';
+        const invalidRulesMessage = 'Fix the errors in the team-specific membership rules before saving.';
+
+        const renderEnforced = (rules: any[] = []) => {
+            const actions = {
+                ...baseProps.actions,
+                getTeamAccessControlPolicy: jest.fn().mockResolvedValue({data: {policy: {id: '123', type: 'team', imports: [], rules}, enforced: true}}),
+                saveTeamAccessPolicy: jest.fn().mockResolvedValue({data: {}}),
+                assignTeamToAccessControlPolicy: jest.fn().mockResolvedValue({data: {status: 'OK'}}),
+                unassignTeamsFromAccessControlPolicy: jest.fn().mockResolvedValue({data: {status: 'OK'}}),
+                searchUsersForExpression: jest.fn().mockResolvedValue({data: {users: [], total: 0}}),
+                createAccessControlTeamSyncJob: jest.fn().mockResolvedValue({data: {}}),
+                removeUserFromTeam: jest.fn().mockResolvedValue({data: {}}),
+                patchTeam: jest.fn().mockResolvedValue({data: {}}),
+            };
+            renderWithContext(
+                <TeamDetails
+                    {...baseProps}
+                    abacSupported={true}
+                    team={{...baseProps.team, policy_enforced: true}}
+                    actions={actions}
+                />,
+            );
+            return actions;
+        };
+
+        const expectNoWrites = (actions: ReturnType<typeof renderEnforced>) => {
+            expect(actions.saveTeamAccessPolicy).not.toHaveBeenCalled();
+            expect(actions.assignTeamToAccessControlPolicy).not.toHaveBeenCalled();
+            expect(actions.unassignTeamsFromAccessControlPolicy).not.toHaveBeenCalled();
+            expect(actions.searchUsersForExpression).not.toHaveBeenCalled();
+            expect(screen.queryByText('Apply membership policy')).not.toBeInTheDocument();
+        };
+
+        test('blocks the save while the editor reports invalid rules', async () => {
+            const actions = renderEnforced();
+            await screen.findByTestId('team-level-access-rules');
+
+            await userEvent.click(screen.getByTestId('rules-invalid'));
+            await userEvent.click(screen.getByTestId('set-cel-rule'));
+            await userEvent.click(screen.getByText('Save'));
+
+            expect(await screen.findByText(invalidRulesMessage)).toBeInTheDocument();
+            expect(checkExpressionSpy).not.toHaveBeenCalled();
+            expectNoWrites(actions);
+        });
+
+        test('blocks the save when the server reports expression errors', async () => {
+            checkExpressionSpy.mockResolvedValue([{message: 'bad', line: 1, column: 0}]);
+            const actions = renderEnforced();
+            await screen.findByTestId('team-level-access-rules');
+
+            await userEvent.click(screen.getByTestId('set-cel-rule'));
+            await userEvent.click(screen.getByText('Save'));
+
+            expect(await screen.findByText(invalidRulesMessage)).toBeInTheDocument();
+            expect(checkExpressionSpy).toHaveBeenCalledWith(celRule, undefined, '123');
+            expectNoWrites(actions);
+        });
+
+        test('blocks the save when the expression check fails', async () => {
+            checkExpressionSpy.mockRejectedValue(new Error('network'));
+            const actions = renderEnforced();
+            await screen.findByTestId('team-level-access-rules');
+
+            await userEvent.click(screen.getByTestId('set-cel-rule'));
+            await userEvent.click(screen.getByText('Save'));
+
+            expect(await screen.findByText(invalidRulesMessage)).toBeInTheDocument();
+            expectNoWrites(actions);
+        });
+
+        test('saves a valid advanced expression like a simple one', async () => {
+            const actions = renderEnforced();
+            await screen.findByTestId('team-level-access-rules');
+
+            await userEvent.click(screen.getByTestId('set-cel-rule'));
+            await userEvent.click(screen.getByText('Save'));
+            await screen.findByText('Apply membership policy');
+            await userEvent.click(screen.getByText('Apply'));
+
+            await waitFor(() => {
+                expect(actions.createAccessControlTeamSyncJob).toHaveBeenCalledWith({policy_id: '123'});
+            });
+            expect(checkExpressionSpy).toHaveBeenCalledWith(celRule, undefined, '123');
+            expect(actions.searchUsersForExpression).toHaveBeenCalledWith(celRule, '', '', 1000);
+            expect(actions.saveTeamAccessPolicy).toHaveBeenCalledWith(expect.objectContaining({
+                id: '123',
+                rules: [expect.objectContaining({expression: celRule})],
+            }));
+        });
+
+        test('does not re-check an unchanged expression', async () => {
+            renderEnforced([{actions: ['membership'], expression: 'user.attributes.Department == "Engineering"'}]);
+            await screen.findByTestId('team-level-access-rules');
+
+            await userEvent.click(screen.getByTestId('enable-autoadd-same-expr-button'));
+            await userEvent.click(screen.getByText('Save'));
+
+            await screen.findByText('Apply membership policy');
+            expect(checkExpressionSpy).not.toHaveBeenCalled();
+        });
+
+        // The pre-check blocks resource attributes in the team rule, so these come from a parent.
+        test.each([
+            ['app.pap.save_policy.team_resource_attributes', 'A linked membership policy references resource attributes, which team membership rules can\'t use.'],
+            ['app.pap.save_policy.resource_attributes_disabled', 'A linked membership policy references resource attributes, which team membership rules can\'t use.'],
+            ['model.access_policy.is_valid.session_attribute_on_membership.app_error', 'Team membership rules can\'t reference session attributes.'],
+            ['app.pap.save_policy.self_exclusion', 'You do not satisfy one or more conditions in this policy. Contact a System Admin for assistance.'],
+            ['some.unknown.error', 'raw'],
+        ])('maps team policy save error %s to friendly copy', async (serverErrorId, expectedText) => {
+            const actions = renderEnforced();
+            actions.saveTeamAccessPolicy.mockResolvedValue({error: {server_error_id: serverErrorId, message: 'raw'}});
+            await screen.findByTestId('team-level-access-rules');
+
+            await userEvent.click(screen.getByTestId('set-cel-rule'));
+            await userEvent.click(screen.getByText('Save'));
+            await screen.findByText('Apply membership policy');
+            await userEvent.click(screen.getByText('Apply'));
+
+            expect(await screen.findByText(expectedText)).toBeInTheDocument();
+            if (expectedText !== 'raw') {
+                expect(screen.queryByText('raw')).not.toBeInTheDocument();
+            }
+        });
+
+        test('flags masked values in the saved rule', async () => {
+            renderEnforced([{actions: ['membership'], expression: 'user.attributes.Department == "--------"'}]);
+
+            await waitFor(() => expect(screen.getByTestId('has-masked')).toHaveTextContent('true'));
+        });
+
+        test('does not flag masked values when the saved rule has none', async () => {
+            renderEnforced([{actions: ['membership'], expression: 'user.attributes.Department == "Engineering"'}]);
+            await screen.findByTestId('team-level-access-rules');
+
+            expect(screen.getByTestId('has-masked')).toHaveTextContent('false');
+        });
+
+        test('blocks the save before the remove-members confirmation', async () => {
+            const actions = renderEnforced();
+            await screen.findByTestId('team-level-access-rules');
+
+            await userEvent.click(screen.getByTestId('remove-member'));
+            await userEvent.click(screen.getByTestId('rules-invalid'));
+            await userEvent.click(screen.getByTestId('set-cel-rule'));
+            await userEvent.click(screen.getByText('Save'));
+
+            expect(await screen.findByText(invalidRulesMessage)).toBeInTheDocument();
+            expect(screen.queryByText('Save and remove 1 user?')).not.toBeInTheDocument();
+            expect(actions.removeUserFromTeam).not.toHaveBeenCalled();
+            expectNoWrites(actions);
+        });
+
+        test('blocks a session attribute rule without calling the server check', async () => {
+            const actions = renderEnforced();
+            await screen.findByTestId('team-level-access-rules');
+
+            await userEvent.click(screen.getByTestId('set-session-rule'));
+            await userEvent.click(screen.getByText('Save'));
+
+            expect(await screen.findByText(invalidRulesMessage)).toBeInTheDocument();
+            expect(checkExpressionSpy).not.toHaveBeenCalled();
+            expectNoWrites(actions);
+        });
+
+        test('an unchanged rule does not block the save even if the editor reports it invalid', async () => {
+            renderEnforced([{actions: ['membership'], expression: 'user.attributes.Department == "Engineering"'}]);
+            await screen.findByTestId('team-level-access-rules');
+
+            await userEvent.click(screen.getByTestId('rules-invalid'));
+            await userEvent.click(screen.getByTestId('enable-autoadd-same-expr-button'));
+            await userEvent.click(screen.getByText('Save'));
+
+            expect(await screen.findByText('Apply membership policy')).toBeInTheDocument();
+            expect(screen.queryByText(invalidRulesMessage)).not.toBeInTheDocument();
+        });
+
+        test('re-validates an expression edited while the check was in flight', async () => {
+            let resolveCheck: (errors: CELExpressionError[]) => void = () => {};
+            checkExpressionSpy.mockImplementation(() => new Promise<CELExpressionError[]>((resolve) => {
+                resolveCheck = resolve;
+            }));
+            const actions = renderEnforced();
+            await screen.findByTestId('team-level-access-rules');
+
+            await userEvent.click(screen.getByTestId('set-cel-rule'));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('set-session-rule'));
+            resolveCheck([]);
+
+            expect(await screen.findByText(invalidRulesMessage)).toBeInTheDocument();
+            expect(checkExpressionSpy).toHaveBeenCalledTimes(1);
+            expectNoWrites(actions);
+        });
+
+        test('ignores a second save while the expression check is in flight', async () => {
+            let resolveCheck: (errors: CELExpressionError[]) => void = () => {};
+            checkExpressionSpy.mockImplementation(() => new Promise<CELExpressionError[]>((resolve) => {
+                resolveCheck = resolve;
+            }));
+            renderEnforced();
+            await screen.findByTestId('team-level-access-rules');
+
+            await userEvent.click(screen.getByTestId('set-cel-rule'));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            expect(checkExpressionSpy).toHaveBeenCalledTimes(1);
+
+            resolveCheck([]);
+            await screen.findByText('Apply membership policy');
+        });
     });
 });

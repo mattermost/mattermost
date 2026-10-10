@@ -1067,6 +1067,10 @@
     "defaultMessage": "Common Expression Language (CEL)",
     "description": "Title of the help modal explaining Common Expression Language; CEL is a technology name and should stay as-is."
   },
+  "admin.access_control.cel.editor_aria_label": {
+    "defaultMessage": "CEL expression editor",
+    "description": "Accessible name read by screen readers for the code editor where admins type a CEL access rule expression (advanced mode of the access policy editors in the System Console)."
+  },
   "admin.access_control.cel.help_text": {
     "defaultMessage": "Write rules like `user.attributes.{lessThan}attribute{greaterThan} == {lessSign}value{greaterSign}`. Use `&&` / `||` (and/or) for multiple conditions. Group conditions with `()`.",
     "description": "Help text (markdown) under the advanced CEL expression editor for access policies; the placeholders all resolve to literal angle-bracket characters, and backticked fragments are code."
@@ -16163,6 +16167,22 @@
     "defaultMessage": "Remove policy",
     "description": "Accessibility label for the trash icon button on a policy row; opens a confirmation to unlink the policy from the team."
   },
+  "admin.team_settings.team_detail.rules.error.invalid_expression": {
+    "defaultMessage": "Fix the errors in the team-specific membership rules before saving.",
+    "description": "Error shown in the save bar of the System Console per-team page when Save is clicked while the Team-specific membership rules expression is invalid or can't be saved; nothing is saved."
+  },
+  "admin.team_settings.team_detail.rules.error.parent_resource_attributes": {
+    "defaultMessage": "A linked membership policy references resource attributes, which team membership rules can't use.",
+    "description": "Save bar error on the System Console per-team page when the server rejects the save because a parent membership policy linked to the team references resource.attributes.*; team membership rules can't use those."
+  },
+  "admin.team_settings.team_detail.rules.error.resource_attributes": {
+    "defaultMessage": "Team membership rules can't reference resource attributes.",
+    "description": "Error on the System Console per-team page, shown inline under the Team-specific membership rules editor and in the save bar when the server rejects the save, because the rule references resource.attributes.*, which team membership rules can't use."
+  },
+  "admin.team_settings.team_detail.rules.error.session_attributes": {
+    "defaultMessage": "Team membership rules can't reference session attributes.",
+    "description": "Error on the System Console per-team page, shown inline under the Team-specific membership rules editor and in the save bar when the server rejects the save, because the rule references user.session.* attributes, which team membership rules can't use."
+  },
   "admin.team_settings.team_detail.rules.subtitle": {
     "defaultMessage": "User attributes and values as additional rules to restrict team membership",
     "description": "Subtitle of the Custom access rules panel on the admin console team configuration page (attribute-based membership)."
@@ -30686,6 +30706,14 @@
   "team_settings.discoverability.title": {
     "defaultMessage": "Discoverability",
     "description": "Section title in team settings for choosing whether the team is public or private."
+  },
+  "team_settings.membership_tab.advanced_rules_locked": {
+    "defaultMessage": "These rules use advanced logic and can only be edited in the System Console. Contact a System Admin to change them.",
+    "description": "Notice on the Team Membership tab of Team Settings, shown above a read-only copy of the team's membership rule when a System Admin wrote it in the System Console's Advanced (CEL) editor, which this tab's simple rule table can't display or edit."
+  },
+  "team_settings.membership_tab.advanced_rules_locked_admin": {
+    "defaultMessage": "These rules use advanced logic and can only be edited in the <link>System Console</link>.",
+    "description": "Notice on the Team Membership tab of Team Settings, shown to System Admins above a read-only copy of a membership rule written in the System Console's Advanced (CEL) editor. <link> wraps \"System Console\" and opens that team's page in the System Console, where the rule can be edited."
   },
   "team_settings.membership_tab.auto_add": {
     "defaultMessage": "Auto-add members based on access rules",

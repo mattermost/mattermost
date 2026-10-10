@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import type {Client4} from '@mattermost/client';
-import type {Locator, Page} from '@playwright/test';
 
 import {expect, newTestPassword, test} from '@mattermost/playwright-lib';
 
@@ -17,7 +16,14 @@ import {
     waitForAttributeViewToInclude,
 } from '../../../channels/team_settings/helpers';
 
-import {assignTeamsToPolicy, createTeamMembershipParentPolicy, enableTeamMembershipPolicies} from './helpers';
+import {
+    assignTeamsToPolicy,
+    createTeamMembershipParentPolicy,
+    enableTeamMembershipPolicies,
+    findPolicyRow,
+    openTeamConfig,
+    setToggle,
+} from './helpers';
 
 /**
  * ABAC — Team Membership (per-team System Console page)
@@ -60,53 +66,6 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
             await client.updateUserActive(id, false).catch(() => {});
         }
     });
-
-    /**
-     * Navigate to a team's configuration page from the Teams list and wait for it to load.
-     */
-    async function openTeamConfig(page: Page, teamDisplayName: string): Promise<void> {
-        await page.goto('/admin_console/user_management/teams');
-        await page.waitForLoadState('networkidle');
-
-        const search = page.locator('input[placeholder*="Search" i]').first();
-        await search.fill(teamDisplayName);
-        await page.waitForTimeout(1000);
-
-        const row = page.locator('.DataGrid_row').filter({hasText: teamDisplayName}).first();
-        await row.waitFor({state: 'visible', timeout: 10000});
-        await row.getByText('Edit').click();
-        await page.waitForLoadState('networkidle');
-    }
-
-    /**
-     * Search a policy DataGrid (modal or full page) and return the matching row.
-     *
-     * The PolicyList fires an unfiltered fetch on mount; we wait for that to land
-     * before typing so our search isn't overwritten by the late-resolving initial
-     * load (which would otherwise show the first page of unrelated policies).
-     */
-    async function findPolicyRow(scope: Page | Locator, policyName: string): Promise<Locator> {
-        await scope
-            .locator('.DataGrid_row')
-            .first()
-            .waitFor({state: 'visible', timeout: 15000})
-            .catch(() => {
-                // Empty list is fine — the search below will populate it.
-            });
-        await scope.locator('[data-testid="searchInput"]').fill(policyName);
-        const row = scope.locator('.DataGrid_row').filter({hasText: policyName}).first();
-        await expect(row).toBeVisible({timeout: 15000});
-        return row;
-    }
-
-    async function setToggle(page: Page, on: boolean): Promise<void> {
-        const toggle = page.locator('[data-testid="policy-enforce-toggle-button"]');
-        await toggle.waitFor({state: 'visible', timeout: 10000});
-        const pressed = (await toggle.getAttribute('aria-pressed')) === 'true';
-        if (pressed !== on) {
-            await toggle.click();
-        }
-    }
 
     /**
      * Assign a membership policy to a team from the per-team page, verify the team

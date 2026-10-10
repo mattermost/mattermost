@@ -2,6 +2,9 @@
 // See LICENSE.txt for license information.
 
 import type {Client4} from '@mattermost/client';
+import type {Locator, Page} from '@playwright/test';
+
+import {expect} from '@mattermost/playwright-lib';
 
 /**
  * Enable team-membership ABAC end to end: the umbrella attribute-based access
@@ -107,4 +110,107 @@ export async function assignTeamsToPolicy(client: Client4, policyId: string, tea
     if (!response.ok) {
         throw new Error(`assignTeamsToPolicy failed: ${response.status}`);
     }
+}
+
+/**
+ * Navigate to a team's configuration page from the Teams list and wait for it to load.
+ */
+export async function openTeamConfig(page: Page, teamDisplayName: string): Promise<void> {
+    await page.goto('/admin_console/user_management/teams');
+    await page.waitForLoadState('networkidle');
+
+    const search = page.locator('input[placeholder*="Search" i]').first();
+    await search.fill(teamDisplayName);
+    await page.waitForTimeout(1000);
+
+    const row = page.locator('.DataGrid_row').filter({hasText: teamDisplayName}).first();
+    await row.waitFor({state: 'visible', timeout: 10000});
+    await row.getByText('Edit').click();
+    await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Search a policy DataGrid (modal or full page) and return the matching row.
+ *
+ * The PolicyList fires an unfiltered fetch on mount; we wait for that to land
+ * before typing so our search isn't overwritten by the late-resolving initial
+ * load (which would otherwise show the first page of unrelated policies).
+ */
+export async function findPolicyRow(scope: Page | Locator, policyName: string): Promise<Locator> {
+    await scope
+        .locator('.DataGrid_row')
+        .first()
+        .waitFor({state: 'visible', timeout: 15000})
+        .catch(() => {
+            // Empty list is fine — the search below will populate it.
+        });
+    await scope.locator('[data-testid="searchInput"]').fill(policyName);
+    const row = scope.locator('.DataGrid_row').filter({hasText: policyName}).first();
+    await expect(row).toBeVisible({timeout: 15000});
+    return row;
+}
+
+export async function setToggle(page: Page, on: boolean): Promise<void> {
+    const toggle = page.locator('[data-testid="policy-enforce-toggle-button"]');
+    await toggle.waitFor({state: 'visible', timeout: 10000});
+    const pressed = (await toggle.getAttribute('aria-pressed')) === 'true';
+    if (pressed !== on) {
+        await toggle.click();
+    }
+}
+
+// Raw fetch wrapper — returns status + body so tests can assert on both success and rejection
+// without doFetch swallowing the error.
+export async function addTeamMemberRaw(
+    token: string | null,
+    baseRoute: string,
+    teamId: string,
+    userId: string,
+): Promise<{status: number; body: any}> {
+    const res = await fetch(`${baseRoute}/teams/${teamId}/members`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', Authorization: `Bearer ${token}`},
+        body: JSON.stringify({team_id: teamId, user_id: userId}),
+    });
+    let body: any = {};
+    try {
+        body = await res.json();
+    } catch {
+        // empty body is fine
+    }
+    return {status: res.status, body};
+}
+
+// Log in via raw REST to obtain the user's OWN session token, so a self-join can be
+// attempted with the requesting user's session rather than the admin's (which would
+// bypass the attribute gate). The token is returned in the response 'Token' header.
+export async function loginRaw(baseRoute: string, loginId: string, password: string): Promise<string> {
+    const res = await fetch(`${baseRoute}/users/login`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({login_id: loginId, password}),
+    });
+    return res.headers.get('Token') ?? '';
+}
+
+export async function switchTeamRulesMode(page: Page): Promise<void> {
+    const toggle = page.getByTestId('team-rules-editor-mode-toggle');
+    await expect(toggle).toBeEnabled({timeout: 60_000});
+    await toggle.click();
+}
+
+export async function typeTeamRulesCel(page: Page, expression: string): Promise<void> {
+    const panel = page.locator('#team_level_access_rules');
+    await panel.locator('.monaco-editor').waitFor({state: 'visible', timeout: 10_000});
+    await panel.locator('.monaco-editor .view-lines').click({force: true});
+    await page.keyboard.press('ControlOrMeta+a');
+    await page.keyboard.type(expression, {delay: 10});
+}
+
+export async function waitForTeamRulesValidation(page: Page, state: 'validated' | 'error'): Promise<void> {
+    await expect(page.locator('#team_level_access_rules .cel-editor__status-bar')).toHaveAttribute(
+        'data-validation-state',
+        state,
+        {timeout: 10_000},
+    );
 }
