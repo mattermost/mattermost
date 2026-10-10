@@ -209,12 +209,15 @@ function searchTerms(state = '', action: MMAction) {
     }
 }
 
-function searchTeam(state = null, action: MMAction) {
+function searchTeam(state: string | null = null, action: MMAction) {
     switch (action.type) {
     case ActionTypes.UPDATE_RHS_SEARCH_TEAM:
         return action.teamId;
     case ActionTypes.UPDATE_RHS_STATE:
-        if (action.state !== RHSStates.SEARCH) {
+
+        // Mention searches keep their team so that a mention search scoped to a single channel stays
+        // scoped. showMentions clears the team explicitly when opening an all-teams mention search.
+        if (action.state !== RHSStates.SEARCH && action.state !== RHSStates.MENTION) {
             return null;
         }
         return state;
