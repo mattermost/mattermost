@@ -1,0 +1,206 @@
+[
+    {
+        "id": "app.user.run.update_status.title",
+        "translation": "ステータスの更新"
+    },
+    {
+        "id": "app.user.run.update_status.submit_label",
+        "translation": "投稿"
+    },
+    {
+        "id": "app.user.run.update_status.reminder_for_next_update",
+        "translation": "次回更新のお知らせ"
+    },
+    {
+        "id": "app.user.run.update_status.num_channel",
+        "translation": {
+            "other": "関係者に最新情報を提供します。この投稿は {{.Count}} チャンネルにブロードキャストされます。"
+        }
+    },
+    {
+        "id": "app.user.run.update_status.finish_run.placeholder",
+        "translation": "また、実行を終了としてマークする"
+    },
+    {
+        "id": "app.user.run.update_status.finish_run",
+        "translation": "実行を終了する"
+    },
+    {
+        "id": "app.user.run.status_enable",
+        "translation": "@{{.Username}} は [{{.RunName}}]({{.RunURL}}) のステータス更新を有効化しました"
+    },
+    {
+        "id": "app.user.run.update_status.change_since_last_update",
+        "translation": "前回更新時からの変更点"
+    },
+    {
+        "id": "app.user.run.status_disable",
+        "translation": "@{{.Username}} は [{{.RunName}}]({{.RunURL}}) のステータス更新を無効化しました"
+    },
+    {
+        "id": "app.user.run.request_update",
+        "translation": "@here — @{{.Name}} は [{{.RunName}}]({{.RunURL}}) のステータス変更を要求しました。 \n"
+    },
+    {
+        "id": "app.user.run.request_join_channel",
+        "translation": "@{{.Name}} は実行の参加者で、このチャンネルに参加したいようです。チャンネルのメンバーなら誰でも招待できます。\n"
+    },
+    {
+        "id": "app.user.run.confirm_finish.title",
+        "translation": "終了の確認"
+    },
+    {
+        "id": "app.user.run.confirm_finish.submit_label",
+        "translation": "実行を終了する"
+    },
+    {
+        "id": "app.user.run.confirm_finish.num_outstanding",
+        "translation": {
+            "other": "**{{.Count}} 個の未処理のタスク**があります。 すべての参加者の実行 *{{.RunName}}* を終了してもよろしいですか?"
+        }
+    },
+    {
+        "id": "app.user.run.add_to_timeline.title",
+        "translation": "実行タイムラインに追加する"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.placeholder",
+        "translation": "タイムラインに表示される短い要約"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.help",
+        "translation": "最大 64 文字"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.description",
+        "translation": "説明"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary",
+        "translation": "概要"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.submit_label",
+        "translation": "実行タイムラインに追加する"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.playbook_run",
+        "translation": "Playbookを実行"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.title",
+        "translation": "新しいタスクを追加"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.submit_label",
+        "translation": "タスクを追加"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.name",
+        "translation": "名前"
+    },
+    {
+        "id": "app.user.new_run.title",
+        "translation": "Playbookを実行"
+    },
+    {
+        "id": "app.user.new_run.submit_label",
+        "translation": "実行開始"
+    },
+    {
+        "id": "app.user.new_run.run_name",
+        "translation": "実行名"
+    },
+    {
+        "id": "app.user.new_run.playbook",
+        "translation": "Playbook"
+    },
+    {
+        "id": "app.user.new_run.new_playbook",
+        "translation": "[ここ]({{.RunURL}}) をクリックして、独自のPlaybookを作成することができます。"
+    },
+    {
+        "id": "app.user.new_run.intro",
+        "translation": "**オーナー** {{.Username}}"
+    },
+    {
+        "id": "app.user.digest.tasks.zero_assigned",
+        "translation": "割り当てられたタスクは0件です。"
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned",
+        "translation": {
+            "other": "割り当てられたタスクは合計で {{.Count}} 件です:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned_due_until_today",
+        "translation": {
+            "other": "現在、期限切れのタスクが {{.Count}} 件割り当てられています:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.heading",
+        "translation": "あなたに割り当てられたタスク"
+    },
+    {
+        "id": "app.user.digest.tasks.due_yesterday",
+        "translation": "期限は昨日まででした"
+    },
+    {
+        "id": "app.user.digest.tasks.due_x_days_ago",
+        "translation": "期限 {{.Count}} 日前"
+    },
+    {
+        "id": "app.user.digest.tasks.due_today",
+        "translation": "期限は本日までです"
+    },
+    {
+        "id": "app.user.digest.tasks.due_in_x_days",
+        "translation": {
+            "other": "{{.Count}} 日後に期限切れになります"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.due_after_today",
+        "translation": {
+            "other": "今日以降に期限切れとなるタスクが **{{.Count}} 件割り当てられています**。"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.all_tasks_command",
+        "translation": "`/playbook todo`を使用して、すべてのタスクを見ることができます。"
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.zero_in_progress",
+        "translation": "進行中の実行は 0 です。"
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.num_in_progress",
+        "translation": {
+            "other": "現在、 {{.Count}} の実行が進行中です:"
+        }
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.heading",
+        "translation": "進行中の実行"
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.num_overdue",
+        "translation": {
+            "other": "ステータス更新の期日が過ぎた実行が {{.Count}} あります:"
+        }
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.zero_overdue",
+        "translation": "期限切れの実行は 0 です。"
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.heading",
+        "translation": "期限切れステータスの更新"
+    },
+    {
+        "id": "app.command.execute.error",
+        "translation": "コマンドを実行できませんでした。"
+    }
+]
