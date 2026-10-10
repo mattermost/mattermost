@@ -31,6 +31,12 @@ import (
 const (
 	pushSubject    = "EmailSettings.PushNotificationServer"
 	siteURLSubject = "ServiceSettings.SiteURL"
+
+	expiresAtSubject  = "license.expires_at"
+	trialSubject      = "license.is_trial"
+	seatsSubject      = "license.users"
+	engagementSubject = "stats.monthly_active_users"
+	workflowSubject   = "plugins.enabled"
 )
 
 type finding struct {
@@ -127,12 +133,18 @@ func TestReadGoldenPackets(t *testing.T) {
 			expected: []finding{
 				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateFiring, Subject: pushSubject},
 				{Code: "SITE_URL_HTTP", State: healthcheck.StateFiring, Subject: siteURLSubject},
+				{Code: "LICENSE_EXPIRED", State: healthcheck.StateUnknown, Subject: expiresAtSubject},
+				{Code: "LICENSE_EXPIRING", State: healthcheck.StateUnknown, Subject: expiresAtSubject},
+				{Code: "SEATS_LIMIT_REACHED", State: healthcheck.StateUnknown, Subject: seatsSubject},
+				{Code: "WORKFLOW_USAGE_CHAT_ONLY", State: healthcheck.StateFiring, Subject: workflowSubject},
 			},
 		},
 		{
 			name: "ha",
 			expected: []finding{
 				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject},
+				{Code: "LICENSE_EXPIRING", State: healthcheck.StateFiring, Subject: expiresAtSubject},
+				{Code: "WORKFLOW_USAGE_CHAT_ONLY", State: healthcheck.StateFiring, Subject: workflowSubject},
 			},
 		},
 	}
@@ -155,8 +167,13 @@ func TestReadSnapshotFields(t *testing.T) {
 	assert.Equal(t, time.Date(2026, time.September, 25, 10, 0, 0, 0, time.UTC), s.CollectedAt)
 	assert.Equal(t, "11.0.4", s.Version.Current)
 	assert.Empty(t, s.Version.Latest)
-	assert.Nil(t, s.License)
 	assert.False(t, s.Deployment.IsCloud)
+
+	seats, ok := s.LicenseSeats()
+	require.True(t, ok)
+	assert.Equal(t, 500, seats)
+	_, ok = s.LicenseExpiresAt()
+	assert.False(t, ok)
 
 	for _, section := range []model.WorkspaceSection{model.SectionConfig, model.SectionStats, model.SectionJobs, model.SectionPlugins} {
 		assert.True(t, s.Has(section), "section %q", section)
@@ -287,7 +304,62 @@ func TestReadCloud(t *testing.T) {
 	for _, f := range evaluate(t, snapshot) {
 		codes = append(codes, f.Code)
 	}
-	assert.ElementsMatch(t, []string{"PUSH_TEST_PROXY"}, codes)
+	assert.ElementsMatch(t, []string{"PUSH_TEST_PROXY", "WORKFLOW_USAGE_CHAT_ONLY"}, codes)
+}
+
+func TestReadLicense(t *testing.T) {
+	t.Run("maps the license summary", func(t *testing.T) {
+		files := fixtureFiles(t, "standalone")
+		files[model.SupportPacketDiagnosticsFileName] = bytes.Replace(files[model.SupportPacketDiagnosticsFileName],
+			[]byte("  sku_short_name: enterprise\n"),
+			[]byte("  sku_short_name: enterprise\n  is_trial: true\n  expires_at: 1792058400000\n  is_seat_count_enforced: true\n  extra_users: 5\n"), 1)
+
+		s := readFiles(t, files).Snapshot
+
+		assert.Equal(t, &model.License{
+			Features:            &model.Features{Users: new(500)},
+			SkuShortName:        model.LicenseShortSkuEnterprise,
+			IsTrial:             true,
+			ExpiresAt:           1792058400000,
+			IsSeatCountEnforced: true,
+			ExtraUsers:          new(5),
+		}, s.License)
+		expiresAt, ok := s.LicenseExpiresAt()
+		require.True(t, ok)
+		assert.Equal(t, time.Date(2026, time.October, 15, 10, 0, 0, 0, time.UTC), expiresAt)
+	})
+
+	t.Run("an older packet has no expiry but keeps its seats", func(t *testing.T) {
+		s := readFiles(t, fixtureFiles(t, "standalone")).Snapshot
+
+		require.NotNil(t, s.License)
+		assert.False(t, s.License.IsSeatCountEnforced)
+		assert.Nil(t, s.License.ExtraUsers)
+		_, ok := s.LicenseExpiresAt()
+		assert.False(t, ok)
+		seats, ok := s.LicenseSeats()
+		require.True(t, ok)
+		assert.Equal(t, 500, seats)
+	})
+
+	t.Run("the leader's summary is read", func(t *testing.T) {
+		s := readFiles(t, fixtureFiles(t, "ha")).Snapshot
+
+		require.NotNil(t, s.License)
+		assert.True(t, s.License.IsSeatCountEnforced)
+		expiresAt, ok := s.LicenseExpiresAt()
+		require.True(t, ok)
+		assert.Equal(t, time.Date(2026, time.October, 15, 10, 0, 0, 0, time.UTC), expiresAt)
+	})
+
+	t.Run("an unlicensed server has no license", func(t *testing.T) {
+		files := fixtureFiles(t, "standalone")
+		files[model.SupportPacketDiagnosticsFileName] = bytes.Replace(files[model.SupportPacketDiagnosticsFileName],
+			[]byte("  company: Example Corp\n  users: 500\n  sku_short_name: enterprise\n"),
+			[]byte("  company: \"\"\n  users: 0\n  sku_short_name: \"\"\n"), 1)
+
+		assert.Nil(t, readFiles(t, files).Snapshot.License)
+	})
 }
 
 func TestReadMissingStats(t *testing.T) {

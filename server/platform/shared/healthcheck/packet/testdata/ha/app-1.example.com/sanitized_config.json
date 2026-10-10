@@ -1,4 +1,7 @@
 {
+    "GuestAccountsSettings": {
+        "Enable": true
+    },
     "ServiceSettings": {
         "SiteURL": "http://app-1.internal.example.com",
         "WebsocketURL": "",

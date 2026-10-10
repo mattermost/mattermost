@@ -93,6 +93,7 @@ func readPacket(z *budgetedZip) (*Packet, error) {
 
 	if diag, ok := leader.Diag(); ok {
 		snapshot.Deployment.IsCloud = diag.License.IsCloud
+		snapshot.License = licenseFromSummary(diag)
 	}
 
 	var metadata model.PacketMetadata
@@ -209,6 +210,23 @@ func selectLeader(nodes []*healthcheck.NodeSnapshot) (leader *healthcheck.NodeSn
 
 	leader.IsLeader = true
 	return leader, reported
+}
+
+// An unlicensed server writes an empty summary, which reads as no license.
+func licenseFromSummary(diag *model.SupportPacketDiagnostics) *model.License {
+	summary := diag.License
+	if summary == (model.SupportPacketDiagnostics{}).License {
+		return nil
+	}
+
+	return &model.License{
+		Features:            &model.Features{Users: new(summary.Users)},
+		SkuShortName:        summary.SkuShortName,
+		IsTrial:             summary.IsTrial,
+		ExpiresAt:           summary.ExpiresAt,
+		IsSeatCountEnforced: summary.IsSeatCountEnforced,
+		ExtraUsers:          summary.ExtraUsers,
+	}
 }
 
 // readSection decodes a workspace section file. A present file records its section, with the

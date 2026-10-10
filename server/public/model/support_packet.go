@@ -28,6 +28,10 @@ type SupportPacketDiagnostics struct {
 		IsGovSKU        bool   `yaml:"is_gov_sku,omitempty"`
 		IsNonProduction bool   `yaml:"is_non_production,omitempty"`
 		IsCloud         bool   `yaml:"is_cloud,omitempty"`
+		// ExpiresAt is in epoch milliseconds.
+		ExpiresAt           int64 `yaml:"expires_at,omitempty"`
+		IsSeatCountEnforced bool  `yaml:"is_seat_count_enforced,omitempty"`
+		ExtraUsers          *int  `yaml:"extra_users,omitempty"`
 	} `yaml:"license"`
 
 	Server struct {

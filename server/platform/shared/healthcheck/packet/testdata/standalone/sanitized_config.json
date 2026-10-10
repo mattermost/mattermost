@@ -1,4 +1,7 @@
 {
+    "GuestAccountsSettings": {
+        "Enable": true
+    },
     "ServiceSettings": {
         "SiteURL": "http://chat.example.com",
         "WebsocketURL": "",

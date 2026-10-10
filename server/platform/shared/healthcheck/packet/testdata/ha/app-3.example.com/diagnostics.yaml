@@ -3,6 +3,8 @@ license:
   company: Example Corp
   users: 500
   sku_short_name: enterprise
+  expires_at: 1792058400000
+  is_seat_count_enforced: true
 server:
   # Machine
   os: linux
