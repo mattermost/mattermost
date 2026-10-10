@@ -330,9 +330,12 @@ func healthTestPacketFiles() map[string]string {
 		model.PacketMetadataFileName:           "version: 1\ntype: support-packet\ngenerated_at: 1790330400000\nserver_version: 11.0.4\n",
 		model.SupportPacketDiagnosticsFileName: "version: 2\nserver:\n  hostname: mm.example.com\n  version: 11.0.4\n",
 		model.SupportPacketConfigFileName: `{
-    "ServiceSettings": {"SiteURL": "https://chat.example.com"},
-    "EmailSettings": {"SendPushNotifications": true, "PushNotificationServer": "http://push.example.com"}
+    "ServiceSettings": {"SiteURL": "https://chat.example.com", "ExtendSessionLengthWithActivity": true},
+    "EmailSettings": {"SendPushNotifications": true, "PushNotificationServer": "http://push.example.com"},
+    "LdapSettings": {"Enable": false, "EnableSync": false},
+    "SamlSettings": {"Enable": false}
 }`,
+		model.SupportPacketStatsFileName: "registered_users: 40\n",
 	}
 }
 
