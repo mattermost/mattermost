@@ -17,6 +17,21 @@
         "MaxIdleConns": 10,
         "MaxOpenConns": 100
     },
+    "LogSettings": {
+        "EnableConsole": true,
+        "ConsoleLevel": "INFO",
+        "ConsoleJson": true,
+        "EnableFile": true,
+        "FileLevel": "INFO",
+        "FileJson": true,
+        "FileLocation": ""
+    },
+    "FileSettings": {
+        "DriverName": "local",
+        "Directory": "/mnt/mattermost/data/",
+        "AmazonS3Bucket": "",
+        "AmazonS3SSL": true
+    },
     "EmailSettings": {
         "SendEmailNotifications": true,
         "SMTPServer": "smtp.example.com",
@@ -37,6 +52,23 @@
         "EnableGossipCompression": true,
         "ReadOnlyConfig": true,
         "GossipPort": 8074
+    },
+    "MetricsSettings": {
+        "Enable": true,
+        "ListenAddress": ":8067"
+    },
+    "PluginSettings": {
+        "Enable": true,
+        "EnableUploads": false,
+        "EnableHealthCheck": true,
+        "PluginStates": {
+            "com.github.manland.mattermost-plugin-gitlab": {
+                "Enable": false
+            },
+            "com.mattermost.calls": {
+                "Enable": true
+            }
+        }
     },
     "FeatureFlags": {
         "TestFeature": "off",
