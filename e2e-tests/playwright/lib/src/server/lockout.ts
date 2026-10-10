@@ -46,6 +46,15 @@ const LOCKOUT_FIXES: Record<string, LockoutFix> = {
             'ServiceSettings.EnforceMultifactorAuthentication': 'false',
         },
     },
+    // Team creation/join: restricted to domains that exclude the admin's own email. A spec that
+    // patches this directly (bypassing patchConfig()'s restore) can leave it set on this worker's
+    // reused server, so the next spec file it leases hits this during its own global setup --
+    // which creates/joins the admin's baseline team -- before that spec even starts.
+    'api.team.is_team_creation_allowed.domain.app_error': {
+        reason: 'team creation is restricted to domains that exclude the admin account',
+        risk: 'blocks the admin from creating or joining teams needed by setup for a worker on an excluded domain',
+        settings: {'TeamSettings.RestrictCreationToDomains': ''},
+    },
 };
 
 /** Risk of setting `key` to `value`, or undefined if safe. */

@@ -8,6 +8,7 @@ import {AxeBuilder} from '@axe-core/playwright';
 
 import {TestBrowser} from './browser_context';
 import {isUpgradePathProjectSelected} from './upgrade_env';
+import {readGlobalSetupFailure} from './global_setup_failure';
 import {
     ensureLicense,
     ensurePluginsLoaded,
@@ -128,6 +129,14 @@ export const test = base.extend<ExtendedFixtures>({
     // role reset there -- those projects verify an unmodified upgrade, not role content.
     resetConfigAndRoles: [
         async ({}, use) => {
+            // globalSetup() records here instead of throwing when it fails, so Playwright still
+            // attempts this spec's tests. Fail them loudly with the recorded reason rather than
+            // silently proceeding against a server that never got into a known-good state.
+            const globalSetupFailure = readGlobalSetupFailure();
+            if (globalSetupFailure) {
+                throw new Error(globalSetupFailure);
+            }
+
             const {adminClient} = await getAdminClientHealing();
             await resetConfig(adminClient);
             if (!isUpgradePathProjectSelected()) {

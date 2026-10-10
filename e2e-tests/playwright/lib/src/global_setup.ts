@@ -7,6 +7,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import type {PlaywrightClient4} from './server';
 import {
+    clearAdminLockout,
     clearAdminLoginLockout,
     createNewTeam,
     disableUnexpectedPlugins,
@@ -88,7 +89,7 @@ async function sysadminSetup(client: PlaywrightClient4, user: UserProfile | null
     const myTeams = await client.getMyTeams();
     const myDefaultTeam = myTeams && myTeams.length > 0 && myTeams.find((team) => team.name === defaultTeam.name);
     if (!myDefaultTeam) {
-        await createNewTeam(client, {name: defaultTeam.name, displayName: defaultTeam.displayName});
+        await createDefaultTeam(client);
     } else if (myDefaultTeam && testConfig.resetBeforeTest) {
         await Promise.all(
             myTeams.filter((team) => team.name !== defaultTeam.name).map((team) => client.deleteTeam(team.id)),
@@ -113,6 +114,24 @@ async function sysadminSetup(client: PlaywrightClient4, user: UserProfile | null
 
     await resetPluginState(client);
     await printPluginDetails(client);
+}
+
+/**
+ * Creates the baseline team. An earlier spec leased by this worker can leave a server-wide
+ * setting -- e.g. a domain restriction -- patched directly (bypassing patchConfig()'s restore) on
+ * this worker's reused server, so the very next spec's global setup hits it here before that spec
+ * even starts; clears the lockout that causes and retries once, rather than failing every
+ * subsequent spec this worker leases.
+ */
+async function createDefaultTeam(client: PlaywrightClient4): Promise<void> {
+    try {
+        await createNewTeam(client, {name: defaultTeam.name, displayName: defaultTeam.displayName});
+    } catch (error) {
+        if (!(await clearAdminLockout(error))) {
+            throw error;
+        }
+        await createNewTeam(client, {name: defaultTeam.name, displayName: defaultTeam.displayName});
+    }
 }
 
 /**
