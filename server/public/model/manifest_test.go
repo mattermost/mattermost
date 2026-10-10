@@ -603,7 +603,7 @@ func TestManifestClientManifest(t *testing.T) {
 	assert.Equal(t, manifest.Id, sanitized.Id)
 	assert.Equal(t, manifest.Version, sanitized.Version)
 	assert.Equal(t, manifest.MinServerVersion, sanitized.MinServerVersion)
-	assert.Equal(t, "/static/theid/theid_000102030405060708090a0b0c0d0e0f_bundle.js", sanitized.Webapp.BundlePath)
+	assert.Equal(t, "/static/plugins/theid/theid_000102030405060708090a0b0c0d0e0f_bundle.js", sanitized.Webapp.BundlePath)
 	assert.Equal(t, manifest.Webapp.BundleHash, sanitized.Webapp.BundleHash)
 	assert.Equal(t, manifest.SettingsSchema, sanitized.SettingsSchema)
 	assert.Empty(t, sanitized.Description)
@@ -613,10 +613,16 @@ func TestManifestClientManifest(t *testing.T) {
 	assert.NotEmpty(t, manifest.Version)
 	assert.NotEmpty(t, manifest.MinServerVersion)
 	assert.NotEmpty(t, manifest.Webapp)
+	assert.Equal(t, "thebundlepath", manifest.Webapp.BundlePath)
 	assert.NotEmpty(t, manifest.Name)
 	assert.NotEmpty(t, manifest.Description)
 	assert.NotEmpty(t, manifest.Server)
 	assert.NotEmpty(t, manifest.SettingsSchema)
+
+	t.Run("no webapp", func(t *testing.T) {
+		sanitized := (&Manifest{Id: "theid"}).ClientManifest()
+		assert.Nil(t, sanitized.Webapp)
+	})
 }
 
 func TestManifestGetExecutableForRuntime(t *testing.T) {
