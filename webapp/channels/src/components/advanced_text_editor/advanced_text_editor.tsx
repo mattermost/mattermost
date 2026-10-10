@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Editor} from '@tiptap/react';
 import classNames from 'classnames';
 import React, {lazy, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
@@ -29,6 +28,7 @@ import {connectionErrorCount} from 'selectors/views/system';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import PostBoxIndicator from 'components/advanced_text_editor/post_box_indicator/post_box_indicator';
+import {applyWysiwygFormatting} from 'components/advanced_text_editor/wysiwyg_editor/apply_wysiwyg_formatting';
 import WysiwygEditor from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
 import type {WysiwygEditorHandle} from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
 import {makeAsyncComponent} from 'components/async_load';
@@ -335,58 +335,6 @@ const AdvancedTextEditor = ({
         storedDrafts.current[draftToChange.rootId || draftToChange.channelId] = draftToChange;
     }, [dispatch, isInEditMode, storageKey]);
 
-    const applyWysiwygFormatting = useCallback((editor: Editor, mode: MarkdownMode) => {
-        const isInlineMark = mode === 'bold' || mode === 'italic' || mode === 'strike';
-        if (isInlineMark && editor.state.selection.empty) {
-            const $from = editor.state.selection.$from;
-            const text = $from.parent.textContent;
-            const offset = $from.parentOffset;
-            if (text && offset >= 0) {
-                const isWordChar = (/\S/);
-                let start = offset;
-                while (start > 0 && isWordChar.test(text[start - 1])) {
-                    start--;
-                }
-                let end = offset;
-                while (end < text.length && isWordChar.test(text[end])) {
-                    end++;
-                }
-                if (start < end) {
-                    const parentStart = $from.pos - offset;
-                    editor.chain().focus().setTextSelection({from: parentStart + start, to: parentStart + end}).run();
-                }
-            }
-        }
-
-        const chain = editor.chain().focus();
-        switch (mode) {
-        case 'bold':
-            chain.toggleBold().run();
-            break;
-        case 'italic':
-            chain.toggleItalic().run();
-            break;
-        case 'strike':
-            chain.toggleStrike().run();
-            break;
-        case 'heading':
-            chain.toggleHeading({level: 3}).run();
-            break;
-        case 'code':
-            chain.toggleCodeBlock().run();
-            break;
-        case 'quote':
-            chain.toggleBlockquote().run();
-            break;
-        case 'ul':
-            chain.toggleBulletList().run();
-            break;
-        case 'ol':
-            chain.toggleOrderedList().run();
-            break;
-        }
-    }, []);
-
     const applyFormatting = useCallback((mode: MarkdownMode) => {
         if (showPreview) {
             return;
@@ -427,7 +375,7 @@ const AdvancedTextEditor = ({
                 Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
             }
         });
-    }, [showPreview, wysiwygEnabled, handleDraftChange, applyWysiwygFormatting]);
+    }, [showPreview, wysiwygEnabled, handleDraftChange]);
 
     const toggleAdvanceTextEditor = useCallback(() => {
         dispatch(savePreferences(currentUserId, [{

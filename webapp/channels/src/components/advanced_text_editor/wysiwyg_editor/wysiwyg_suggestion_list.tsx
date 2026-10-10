@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Editor} from '@tiptap/react';
+import isEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -33,8 +34,11 @@ import type {ProviderResults, SuggestionResults} from 'components/suggestion/sug
 import {normalizeResultsFromProvider, countResults} from 'components/suggestion/suggestion_results';
 
 import Constants from 'utils/constants';
+import {getPxToSubstract} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
+
+import {parseMentionTerm} from './wysiwyg_mention';
 
 const EXECUTE_CURRENT_COMMAND_ITEM_ID = Constants.Integrations.EXECUTE_CURRENT_COMMAND_ITEM_ID;
 const OPEN_COMMAND_IN_MODAL_ITEM_ID = Constants.Integrations.OPEN_COMMAND_IN_MODAL_ITEM_ID;
@@ -70,6 +74,40 @@ function getAllTerms(results: SuggestionResults): string[] {
     return [];
 }
 
+type SuggestionBoxAlgn = {
+    lineHeight?: number;
+    pixelsToMoveX?: number;
+    pixelsToMoveY?: number;
+};
+
+function getTriggerPos(editor: Editor, matchedPretext: string): number {
+    return Math.max(0, editor.state.selection.from - matchedPretext.length);
+}
+
+function getCaretAlignment(editor: Editor, matchedPretext: string, triggerPos: number): SuggestionBoxAlgn | undefined {
+    const {view} = editor;
+
+    let coords;
+    try {
+        coords = view.coordsAtPos(triggerPos);
+    } catch {
+        return undefined;
+    }
+
+    const container = (view.dom.offsetParent ?? view.dom) as HTMLElement;
+    const containerRect = container.getBoundingClientRect();
+
+    const listWidth = Math.min(containerRect.width, Constants.SUGGESTION_LIST_MAXWIDTH);
+    const maxOffsetX = Math.max(0, containerRect.width - listWidth);
+    const offsetX = coords.left - containerRect.left - getPxToSubstract(matchedPretext[0]);
+
+    return {
+        lineHeight: parseInt(getComputedStyle(view.dom).lineHeight, 10) || 0,
+        pixelsToMoveX: Math.round(Math.min(Math.max(0, offsetX), maxOffsetX)),
+        pixelsToMoveY: Math.round(coords.top - containerRect.top),
+    };
+}
+
 function getTextBeforeCursor(editor: Editor): string {
     const {state} = editor;
     const {from} = state.selection;
@@ -86,9 +124,12 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
     const [pretext, setPretext] = useState('');
     const [selection, setSelection] = useState('');
     const [isOpen, setIsOpen] = useState(false);
+    const [suggestionBoxAlgn, setSuggestionBoxAlgn] = useState<SuggestionBoxAlgn | undefined>(undefined);
 
     const editorDomRef = useRef<HTMLDivElement | null>(null);
+    const editorInstanceRef = useRef<Editor | null>(null);
     useEffect(() => {
+        editorInstanceRef.current = editor;
         if (editor && !editor.isDestroyed) {
             editorDomRef.current = editor.view.dom as HTMLDivElement;
         }
@@ -142,16 +183,24 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
     const handleReceivedSuggestions = useCallback((suggestions: ProviderResults) => {
         const normalized = normalizeResultsFromProvider(suggestions);
         const terms = getAllTerms(normalized);
+        const matchedPretext = suggestions.matchedPretext || '';
 
         setResults(normalized);
-        setPretext(suggestions.matchedPretext || '');
-        matchedPretextRef.current = suggestions.matchedPretext || '';
+        setPretext(matchedPretext);
+        matchedPretextRef.current = matchedPretext;
 
         if (countResults(normalized) > 0 && terms.length > 0) {
             setSelection(terms[0]);
+
+            const ed = editorInstanceRef.current;
+            if (ed && !ed.isDestroyed) {
+                const next = getCaretAlignment(ed, matchedPretext, getTriggerPos(ed, matchedPretext));
+                setSuggestionBoxAlgn((prev) => (isEqual(prev, next) ? prev : next));
+            }
             setIsOpen(true);
         } else {
             setIsOpen(false);
+            setSuggestionBoxAlgn(undefined);
         }
     }, []);
 
@@ -173,6 +222,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
             if (!handled) {
                 setIsOpen(false);
                 setResults(EMPTY_RESULTS);
+                setSuggestionBoxAlgn(undefined);
             }
         };
 
@@ -188,6 +238,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
     const closeSuggestions = useCallback(() => {
         setIsOpen(false);
         setResults(EMPTY_RESULTS);
+        setSuggestionBoxAlgn(undefined);
     }, []);
 
     const handleCompleteWord = useCallback((term: string, matchedPretext: string) => {
@@ -232,9 +283,10 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
         const deleteFrom = startOfLine + matchIndex;
         const deleteTo = from;
 
-        const completedText = `${term} `;
+        const mention = parseMentionTerm(term);
+        const completedContent = mention ? [{type: 'mention', attrs: mention}, {type: 'text', text: ' '}] : `${term} `;
 
-        editor.chain().focus().deleteRange({from: deleteFrom, to: deleteTo}).insertContent(completedText).run();
+        editor.chain().focus().deleteRange({from: deleteFrom, to: deleteTo}).insertContent(completedContent).run();
 
         closeSuggestions();
         return true;
@@ -308,6 +360,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
                 event.preventDefault();
                 event.stopPropagation();
                 setIsOpen(false);
+                setSuggestionBoxAlgn(undefined);
             }
         };
 
@@ -330,6 +383,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
             cleared={false}
             results={results}
             selection={selection}
+            suggestionBoxAlgn={suggestionBoxAlgn}
             onCompleteWord={handleCompleteWord}
             onItemHover={handleItemHover}
             position='top'

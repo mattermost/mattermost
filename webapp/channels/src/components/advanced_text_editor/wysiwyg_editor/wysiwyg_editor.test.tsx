@@ -67,6 +67,11 @@ jest.mock('@tiptap/react', () => {
             const hasMarkdownExt = (config?.extensions ?? []).some((e: any) => (e.name || e.config?.name) === 'markdown');
             if (hasMarkdownExt) {
                 base.getMarkdown = () => 'hi';
+                base.schema = {nodes: {}};
+                base.markdown = {
+                    parse: (md: string) => ({type: 'doc', content: [{type: 'paragraph', content: [{type: 'text', text: md}]}]}),
+                    serialize: () => 'hi',
+                };
             }
 
             // Tiptap emits contentError synchronously inside the Editor
@@ -409,6 +414,53 @@ describe('WysiwygEditor', () => {
 
         const result = mockCapturedConfig.current?.editorProps?.handlePaste?.({} as any, mkEvent());
         expect(result).toBe(true);
+    });
+
+    describe('handlePaste and the text/html flavour', () => {
+        const paste = (text: string, html: string) => {
+            renderWithContext(<WysiwygEditor {...baseProps}/>);
+            return mockCapturedConfig.current?.editorProps?.handlePaste?.({} as any, {
+                preventDefault: jest.fn(),
+                clipboardData: {getData: (type: string) => (type === 'text/plain' ? text : html)},
+            } as any);
+        };
+
+        test('parses markdown even when the clipboard also carries HTML', () => {
+            expect(paste('# heading', '<meta charset="utf-8"><span># heading</span>')).toBe(true);
+        });
+
+        test('defers to ProseMirror when the HTML came from another editor', () => {
+            expect(paste('# heading', '<div data-pm-slice="1 1 []"><h1>heading</h1></div>')).toBe(false);
+        });
+
+        test('defers to ProseMirror when the text is not markdown', () => {
+            expect(paste('just words', '<b>just words</b>')).toBe(false);
+        });
+    });
+
+    describe('handlePaste with clipboard files', () => {
+        const paste = (text: string, files: File[]) => {
+            renderWithContext(<WysiwygEditor {...baseProps}/>);
+            return mockCapturedConfig.current?.editorProps?.handlePaste?.({} as any, {
+                preventDefault: jest.fn(),
+                clipboardData: {
+                    getData: (type: string) => (type === 'text/plain' ? text : '<img src="blob:image">'),
+                    files,
+                },
+            } as any);
+        };
+
+        test('swallows image-only pastes so the image is attached, not embedded', () => {
+            expect(paste('', [new File([''], 'image.png', {type: 'image/png'})])).toBe(true);
+        });
+
+        test('lets ProseMirror handle pastes with neither text nor files', () => {
+            expect(paste('', [])).toBe(false);
+        });
+
+        test('lets text win when the clipboard also carries files', () => {
+            expect(paste('just words', [new File([''], 'image.png', {type: 'image/png'})])).toBe(false);
+        });
     });
 
     test('getEditor() on the handle returns the underlying Tiptap Editor instance', () => {
