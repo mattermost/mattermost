@@ -2132,7 +2132,25 @@ func (a *App) UpdateUserRolesWithUser(rctx request.CTX, user *model.User, newRol
 		a.Publish(message)
 	}
 
+	a.notifyUserRolesHaveBeenUpdated(rctx, ruser, result.Data.Old.Roles)
+
 	return ruser, nil
+}
+
+// notifyUserRolesHaveBeenUpdated invokes the UserRolesHaveBeenUpdated plugin hook unless the
+// roles ended up unchanged.
+func (a *App) notifyUserRolesHaveBeenUpdated(rctx request.CTX, user *model.User, previousRoles string) {
+	if user.Roles == previousRoles {
+		return
+	}
+
+	pluginContext := pluginContext(rctx)
+	a.Srv().Go(func() {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+			hooks.UserRolesHaveBeenUpdated(pluginContext, user, previousRoles)
+			return true
+		}, plugin.UserRolesHaveBeenUpdatedID)
+	})
 }
 
 func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.AppError {
@@ -2790,6 +2808,8 @@ func (a *App) GetViewUsersRestrictions(rctx request.CTX, userID string) (*model.
 // PromoteGuestToUser Convert user's roles and all his membership's roles from
 // guest roles to regular user roles.
 func (a *App) PromoteGuestToUser(rctx request.CTX, user *model.User, requestorId string) *model.AppError {
+	previousRoles := user.Roles
+
 	nErr := a.ch.srv.userService.PromoteGuestToUser(rctx, user)
 	a.InvalidateCacheForUser(user.Id)
 	if nErr != nil {
@@ -2815,6 +2835,7 @@ func (a *App) PromoteGuestToUser(rctx request.CTX, user *model.User, requestorId
 		if uErr := a.ch.srv.platform.UpdateSessionsIsGuest(rctx, promotedUser, promotedUser.IsGuest()); uErr != nil {
 			rctx.Logger().Warn("Unable to update user sessions", mlog.String("user_id", promotedUser.Id), mlog.Err(uErr))
 		}
+		a.notifyUserRolesHaveBeenUpdated(rctx, promotedUser, previousRoles)
 	}
 
 	teamMembers, err := a.GetTeamMembersForUser(rctx, user.Id, "", true)
@@ -2856,6 +2877,8 @@ func (a *App) DemoteUserToGuest(rctx request.CTX, user *model.User) *model.AppEr
 		return model.NewAppError("DemoteUserToGuest", "api.user.demote_user_to_guest.bot_not_allowed.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	previousRoles := user.Roles
+
 	demotedUser, nErr := a.ch.srv.userService.DemoteUserToGuest(rctx, user)
 	a.InvalidateCacheForUser(user.Id)
 	if nErr != nil {
@@ -2866,6 +2889,7 @@ func (a *App) DemoteUserToGuest(rctx request.CTX, user *model.User) *model.AppEr
 	if uErr := a.ch.srv.platform.UpdateSessionsIsGuest(rctx, demotedUser, demotedUser.IsGuest()); uErr != nil {
 		rctx.Logger().Warn("Unable to update user sessions", mlog.String("user_id", demotedUser.Id), mlog.Err(uErr))
 	}
+	a.notifyUserRolesHaveBeenUpdated(rctx, demotedUser, previousRoles)
 
 	teamMembers, err := a.GetTeamMembersForUser(rctx, user.Id, "", true)
 	if err != nil {
