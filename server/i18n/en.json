@@ -9371,6 +9371,10 @@
     "description": "Bulk-import validation error when an emoji reaction entry's timestamp is zero; 'CreateAt' is a literal field name."
   },
   {
+    "id": "app.import.validate_reaction_import_data.emoji_name_invalid.error",
+    "translation": "Reaction EmojiName property is invalid. It must be 1 to 64 ASCII letters and numbers, +, -, or _."
+  },
+  {
     "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
     "translation": "Reaction EmojiName property is longer than the maximum permitted length.",
     "description": "Bulk-import validation error when an emoji reaction's emoji name exceeds the maximum length; 'EmojiName' is a literal field name."
