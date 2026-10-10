@@ -48,6 +48,10 @@ jobs:
         working-directory: docs/site
         run: npm run typecheck
 
+      - name: Egress-check unit tests
+        working-directory: docs/site
+        run: npm run test:egress
+
       - name: Build docs site (includes OpenAPI prebuild)
         working-directory: docs/site
         run: npm run build
