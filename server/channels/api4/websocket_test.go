@@ -442,6 +442,188 @@ func TestWebSocketPresence(t *testing.T) {
 	require.Equal(t, resp.SeqReply, wsClient.Sequence-1, "bad sequence number")
 }
 
+func TestWebSocketNotificationAckParamTypes(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	testCases := []struct {
+		name     string
+		data     map[string]any
+		binary   bool
+		okStatus bool
+	}{
+		{
+			name: "status as a string",
+			data: map[string]any{
+				"status":     string(model.NotificationStatusSuccess),
+				"post_id":    model.NewId(),
+				"user_agent": "test-agent",
+			},
+			okStatus: true,
+		},
+		{
+			name: "status and reason as strings",
+			data: map[string]any{
+				"status":     string(model.NotificationStatusSuccess),
+				"reason":     string(model.NotificationReasonFetchError),
+				"post_id":    model.NewId(),
+				"user_agent": "test-agent",
+			},
+			okStatus: true,
+		},
+		{
+			name: "status of unexpected type",
+			data: map[string]any{
+				"status":     map[string]any{"nested": "value"},
+				"post_id":    model.NewId(),
+				"user_agent": "test-agent",
+			},
+		},
+		{
+			name: "status as a number",
+			data: map[string]any{
+				"status":     1,
+				"post_id":    model.NewId(),
+				"user_agent": "test-agent",
+			},
+		},
+		{
+			name: "status as a boolean",
+			data: map[string]any{
+				"status":     true,
+				"post_id":    model.NewId(),
+				"user_agent": "test-agent",
+			},
+		},
+		{
+			name: "reason of unexpected type",
+			data: map[string]any{
+				"status":     string(model.NotificationStatusSuccess),
+				"reason":     []any{"one", "two"},
+				"post_id":    model.NewId(),
+				"user_agent": "test-agent",
+			},
+		},
+		{
+			// a client that sends no status is answered without an error
+			name: "status omitted",
+			data: map[string]any{
+				"post_id":    model.NewId(),
+				"user_agent": "test-agent",
+			},
+			okStatus: true,
+		},
+		{
+			// an explicit null is treated the same as an omitted status
+			name: "status as a null",
+			data: map[string]any{
+				"status":     nil,
+				"post_id":    model.NewId(),
+				"user_agent": "test-agent",
+			},
+			okStatus: true,
+		},
+		{
+			// the set of accepted statuses is not narrowed to the known values
+			name: "status outside the known values",
+			data: map[string]any{
+				"status":     "some-other-status",
+				"post_id":    model.NewId(),
+				"user_agent": "test-agent",
+			},
+			okStatus: true,
+		},
+		{
+			// an explicit null is treated the same as an omitted reason
+			name: "reason as a null",
+			data: map[string]any{
+				"status":     string(model.NotificationStatusSuccess),
+				"reason":     nil,
+				"post_id":    model.NewId(),
+				"user_agent": "test-agent",
+			},
+			okStatus: true,
+		},
+		{
+			// reason is answered on its own terms, whatever the status says
+			name: "reason of unexpected type alongside a non-success status",
+			data: map[string]any{
+				"status":     string(model.NotificationStatusError),
+				"reason":     map[string]any{"nested": "value"},
+				"post_id":    model.NewId(),
+				"user_agent": "test-agent",
+			},
+		},
+		{
+			name: "status as a string on a binary frame",
+			data: map[string]any{
+				"status":     string(model.NotificationStatusSuccess),
+				"post_id":    model.NewId(),
+				"user_agent": "test-agent",
+			},
+			binary:   true,
+			okStatus: true,
+		},
+		{
+			// a binary frame carries types a text frame cannot, and they are
+			// answered the same way
+			name: "status of unexpected type on a binary frame",
+			data: map[string]any{
+				"status":     []byte(model.NotificationStatusSuccess),
+				"post_id":    model.NewId(),
+				"user_agent": "test-agent",
+			},
+			binary: true,
+		},
+	}
+
+	// readResponse returns the next response on the connection, failing the test
+	// if the connection was closed instead of answering.
+	readResponse := func(t *testing.T, ws *model.WebSocketClient) *model.WebSocketResponse {
+		t.Helper()
+		select {
+		case resp, open := <-ws.ResponseChannel:
+			require.True(t, open, "the connection should stay open and answer the request")
+			require.NotNil(t, resp)
+			return resp
+		case <-time.After(5 * time.Second):
+			require.FailNow(t, "timed out waiting for a response")
+			return nil
+		}
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ws := th.CreateConnectedWebSocketClient(t)
+			resp := readResponse(t, ws)
+			require.Equal(t, model.StatusOk, resp.Status, "should have responded OK to authentication challenge")
+
+			if tc.binary {
+				require.NoError(t, ws.SendBinaryMessage(string(model.WebsocketPostedNotifyAck), tc.data))
+			} else {
+				ws.SendMessage(string(model.WebsocketPostedNotifyAck), tc.data)
+			}
+			resp = readResponse(t, ws)
+			require.Equal(t, ws.Sequence-1, resp.SeqReply, "bad sequence number")
+
+			if tc.okStatus {
+				require.Nil(t, resp.Error)
+				require.Equal(t, model.StatusOk, resp.Status)
+			} else {
+				require.NotNil(t, resp.Error, "the request should be answered with an error")
+				require.Equal(t, "api.websocket_handler.invalid_param.app_error", resp.Error.Id)
+			}
+
+			// the connection remains usable after the request is answered
+			ws.SendMessage("ping", nil)
+			resp = readResponse(t, ws)
+			require.Nil(t, resp.Error)
+			require.Equal(t, ws.Sequence-1, resp.SeqReply, "bad sequence number")
+			require.Equal(t, "pong", resp.Data["text"])
+		})
+	}
+}
+
 func TestWebSocketUpgrade(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
