@@ -4,7 +4,17 @@ on:
   push:
     branches:
       - master
+    paths:
+      - 'api/**'
+      - '.github/workflows/api.yml'
   pull_request:
+    paths:
+      - 'api/**'
+      - '.github/workflows/api.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -12,6 +22,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: ./api
