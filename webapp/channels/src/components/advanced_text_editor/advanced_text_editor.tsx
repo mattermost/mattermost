@@ -244,6 +244,7 @@ const AdvancedTextEditor = ({
     const loggedInAriaLabelTimeout = useRef<NodeJS.Timeout>(undefined);
     const saveDraftFrame = useRef<NodeJS.Timeout>(undefined);
     const draftRef = useRef(draftFromStore);
+    const draftRevision = useRef(0);
     const storedDrafts = useRef<Record<string, PostDraft | undefined>>({});
     const lastBlurAt = useRef(0);
     const messageStatusRef = useRef<HTMLDivElement | null>(null);
@@ -278,6 +279,9 @@ const AdvancedTextEditor = ({
     }, [channelId, rootId]);
 
     const handleDraftChange = useCallback((draftToChange: PostDraft, options: {instant?: boolean; show?: boolean} = {instant: false, show: false}) => {
+        // Bump the revision on every draft mutation (including history navigation) so an
+        // in-flight submission's post-submit clear can detect it is now stale and skip itself.
+        draftRevision.current += 1;
         if (saveDraftFrame.current) {
             clearTimeout(saveDraftFrame.current);
         }
@@ -505,6 +509,7 @@ const AdvancedTextEditor = ({
         undefined,
         isInEditMode,
         postId,
+        draftRevision,
     );
 
     const handleSubmitWithErrorHandling = useCallback((submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
