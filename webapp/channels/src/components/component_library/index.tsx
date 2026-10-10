@@ -10,6 +10,7 @@ import {applyTheme} from 'utils/utils';
 
 import ButtonComponentLibrary from './button.cl';
 import MmBlocksComponentLibrary from './mm_blocks.cl';
+import QuickSwitcherRankingComponentLibrary from './quick_switcher_ranking.cl';
 import SectionNoticeComponentLibrary from './section_notice.cl';
 
 import './component_library.scss';
@@ -18,6 +19,7 @@ const componentMap = {
     'MM blocks': MmBlocksComponentLibrary,
     Button: ButtonComponentLibrary,
     'Section Notice': SectionNoticeComponentLibrary,
+    'Quick Switcher Ranking': QuickSwitcherRankingComponentLibrary,
 };
 
 type ComponentName = keyof typeof componentMap;

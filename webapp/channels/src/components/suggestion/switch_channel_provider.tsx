@@ -71,6 +71,7 @@ import type {GlobalState} from 'types/store';
 
 import Provider from './provider';
 import type {ResultsCallback} from './provider';
+import {makeQuickSwitchSorter} from './quick_switch_ranking';
 import {SuggestionContainer} from './suggestion';
 import type {SuggestionProps} from './suggestion';
 import type {ProviderResults} from './suggestion_results';
@@ -506,117 +507,8 @@ function sortChannelsByRecencyAndTypeAndDisplayName(wrappedA: WrappedChannel, wr
     return sortChannelsByTypeAndDisplayName('en', wrappedA.channel as Channel, wrappedB.channel as Channel);
 }
 
-// Results are ranked on one additive scale so that comparing any two of them is consistent with
-// comparing them through a third. Each weight is larger than the sum of every weaker one, so a
-// stronger reason to demote always outranks any combination of weaker reasons.
-const ARCHIVED_RANK_PENALTY = 72;
-const DEACTIVATED_RANK_PENALTY = 36;
+export {makeQuickSwitchSorter};
 
-// How recently the user engaged with a conversation is the primary signal: one opened within the
-// last month leads, a staler one comes next, and one that was never opened trails both. This is what
-// keeps an exact but long-abandoned match below conversations the user actually uses.
-const RECENT_ACTIVITY_WINDOW = 30 * 24 * 60 * 60 * 1000;
-const STALE_ACTIVITY_RANK_PENALTY = 12;
-const NO_ACTIVITY_RANK_PENALTY = 24;
-
-// Within a recency band a name the search term is a prefix of beats one that only contains it
-// somewhere in the middle, so a channel directly named for the term is not buried under direct
-// messages that merely mention it.
-const NON_PREFIX_MATCH_RANK_PENALTY = 6;
-
-// Within a recency band and prefix tier a direct message outranks a group message, which outranks a
-// channel.
-const GROUP_MESSAGE_RANK_PENALTY = 2;
-const CHANNEL_RANK_PENALTY = 4;
-
-const HIDDEN_IN_SIDEBAR_RANK_PENALTY = 1;
-
-// The search term is compared against lower cased display names and usernames, neither of which
-// carries the leading @ of a mention.
-function normalizeSearchTerm(searchTerm: string) {
-    const lowerCased = searchTerm.toLowerCase();
-    return lowerCased.startsWith('@') ? lowerCased.substring(1) : lowerCased;
-}
-
-// A group message has no name of its own: its display name is its members listed alphabetically, so
-// it starts with a searched username only when that member happens to sort first. That is
-// coincidental rather than a real prefix match, so group messages never count as one.
-function startsWithSearchTerm(wrapped: WrappedChannel, searchTerm: string) {
-    const channel = wrapped.channel;
-
-    if (channel.type === Constants.GM_CHANNEL) {
-        return false;
-    }
-
-    let displayName = channel.display_name.toLowerCase();
-    if (channel.type === Constants.DM_CHANNEL && displayName.startsWith('@')) {
-        displayName = displayName.substring(1);
-    }
-
-    return displayName.startsWith(searchTerm) || wrapped.name.toLowerCase().startsWith(searchTerm);
-}
-
-function activityRankPenalty(wrapped: WrappedChannel) {
-    if (!wrapped.last_viewed_at) {
-        return NO_ACTIVITY_RANK_PENALTY;
-    }
-
-    if (Date.now() - wrapped.last_viewed_at > RECENT_ACTIVITY_WINDOW) {
-        return STALE_ACTIVITY_RANK_PENALTY;
-    }
-
-    return 0;
-}
-
-function typeRankPenalty(channel: ChannelItem) {
-    if (channel.type === Constants.DM_CHANNEL) {
-        return 0;
-    }
-
-    if (channel.type === Constants.GM_CHANNEL) {
-        return GROUP_MESSAGE_RANK_PENALTY;
-    }
-
-    return CHANNEL_RANK_PENALTY;
-}
-
-function rankPenalties(wrapped: WrappedChannel, searchTerm: string) {
-    const channel = wrapped.channel;
-
-    return {
-        archived: channel.delete_at ? ARCHIVED_RANK_PENALTY : 0,
-        deactivated: wrapped.deactivated ? DEACTIVATED_RANK_PENALTY : 0,
-        activity: activityRankPenalty(wrapped),
-        nonPrefixMatch: startsWithSearchTerm(wrapped, searchTerm) ? 0 : NON_PREFIX_MATCH_RANK_PENALTY,
-        type: typeRankPenalty(channel),
-        hiddenInSidebar: wrapped.hiddenInSidebar ? HIDDEN_IN_SIDEBAR_RANK_PENALTY : 0,
-    };
-}
-
-function searchRank(wrapped: WrappedChannel, searchTerm: string) {
-    const penalties = rankPenalties(wrapped, searchTerm);
-
-    return penalties.archived +
-        penalties.deactivated +
-        penalties.activity +
-        penalties.nonPrefixMatch +
-        penalties.type +
-        penalties.hiddenInSidebar;
-}
-
-export function makeQuickSwitchSorter(searchTerm: string) {
-    const normalizedTerm = normalizeSearchTerm(searchTerm);
-
-    return (wrappedA: WrappedChannel, wrappedB: WrappedChannel) => {
-        const rankDifference = searchRank(wrappedA, normalizedTerm) - searchRank(wrappedB, normalizedTerm);
-
-        if (rankDifference !== 0) {
-            return rankDifference;
-        }
-
-        return sortChannelsByRecencyAndTypeAndDisplayName(wrappedA, wrappedB);
-    };
-}
 
 function makeChannelSearchFilter(curState: GlobalState, channelPrefix: string) {
     const channelPrefixLower = channelPrefix.toLowerCase();
