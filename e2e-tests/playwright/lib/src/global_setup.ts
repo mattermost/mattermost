@@ -14,6 +14,7 @@ import {
     getAdminClient,
     getDefaultAdminUser,
     makeClient,
+    resetConfig,
     runMmctlLocal,
     setDefaultOnboardingPreferences,
 } from './server';
@@ -131,6 +132,12 @@ async function createDefaultTeam(client: PlaywrightClient4): Promise<void> {
             throw error;
         }
         await createNewTeam(client, {name: defaultTeam.name, displayName: defaultTeam.displayName});
+
+        // clearAdminLockout() only overwrites the one setting that caused the lockout, leaving the
+        // rest of whatever the leaked patch changed in place. Restore the full on-prem baseline
+        // right away instead of leaving that to the first test's resetConfigAndRoles fixture, so a
+        // fatal error anywhere between here and that fixture can't strand the server mid-fix.
+        await resetConfig(client);
     }
 }
 
