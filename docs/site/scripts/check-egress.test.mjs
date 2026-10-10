@@ -101,6 +101,18 @@ describe('scanBuild fixtures', () => {
     assert.equal(hits[0].found, 'https://evil.example/template');
   });
 
+  it('js-fetch-template-interp/ flags remote prefix before ${', () => {
+    const hits = scanBuild(fixture('js-fetch-template-interp'));
+    assert.equal(hits.length, 1);
+    assert.equal(hits[0].kind, 'fetch()');
+    assert.equal(hits[0].found, 'https://api.example/');
+  });
+
+  it('data-src-attr/ ignores data-src and xlink:href false positives', () => {
+    const hits = scanBuild(fixture('data-src-attr'));
+    assert.equal(hits.length, 0);
+  });
+
   it('js-fetch-feed/ allows the security bulletin URL', () => {
     const hits = scanBuild(fixture('js-fetch-feed'));
     assert.equal(hits.length, 0);

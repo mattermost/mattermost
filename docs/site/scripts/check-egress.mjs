@@ -16,14 +16,16 @@ export const EMPTY_BUILD_MESSAGE =
   'docs/site/build is missing or empty; run npm run build first';
 
 const TEXT_EXT = new Set(['.html', '.css', '.js']);
+// Attribute-name boundary: \b matches after - and :, so data-src / xlink:href
+// must not count as src / href. Require whitespace, quote, or / before the name.
 const ATTR =
-  /\b(src|href|poster|data|srcset|content)=(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi;
+  /(?<=[\s"'\/])(src|href|poster|data|srcset|content)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi;
 const CSS_URL =
   /(?:@import\s+(?:url\s*\()?['"]?(?:https?:)?\/\/[^'")\s]+)|(?:url\(\s*['"]?(?:https?:)?\/\/[^'")\s]+)/gi;
-// Quoted or template-literal URL. Template form stops before ` or ${ so
-// interpolated strings are not treated as a complete remote literal.
+// Quoted URL, complete template literal, or template with a remote prefix
+// before ${ (e.g. fetch(`https://api.example/${path}`)).
 const JS_FETCH =
-  /\b(?:fetch|import)\s*\(\s*(?:['"]((?:https?:)?\/\/[^'"]+)['"]|`((?:https?:)?\/\/(?:(?!\$\{)[^`])+)`)/g;
+  /\b(?:fetch|import)\s*\(\s*(?:['"]((?:https?:)?\/\/[^'"]+)['"]|`((?:https?:)?\/\/(?:(?!\$\{)[^`])+)`|`((?:https?:)?\/\/[^`$]*)\$\{)/g;
 const STYLE_BLOCK = /<style\b[^>]*>([\s\S]*?)<\/style>/gi;
 const SCRIPT_BLOCK = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
 
@@ -94,7 +96,7 @@ function attrValue(match) {
 
 function getAttr(tagOpen, name) {
   const re = new RegExp(
-    `\\b${name}=(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`,
+    `(?<=[\\s"'\\/])${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`,
     'i',
   );
   const m = tagOpen.match(re);
@@ -266,7 +268,7 @@ function scanJs(text, file, violations, fullFile, bodyStart) {
   JS_FETCH.lastIndex = 0;
   let match;
   while ((match = JS_FETCH.exec(text))) {
-    const raw = match[1] ?? match[2];
+    const raw = match[1] ?? match[2] ?? match[3];
     if (!isRemoteUrl(raw)) {
       continue;
     }
