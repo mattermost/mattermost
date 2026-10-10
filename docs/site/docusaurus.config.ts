@@ -74,19 +74,9 @@ const config: Config = {
     locales: ['en'],
   },
 
-  // Google Fonts: Inter (body) + Archivo Black (headings, free Trade Gothic Heavy fallback).
-  // Replace with Adobe Fonts kit once Trade Gothic Next licensing is confirmed
-  // — see PLAN.md §12 open items.
-  stylesheets: [
-    {
-      href: 'https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap',
-      type: 'text/css',
-    },
-  ],
-  headTags: [
-    {tagName: 'link', attributes: {rel: 'preconnect', href: 'https://fonts.googleapis.com'}},
-    {tagName: 'link', attributes: {rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: 'anonymous'}},
-  ],
+  // Fonts are self-hosted from src/css/fonts (see the README there) rather
+  // than loaded from Google Fonts, so the offline documentation bundle in the
+  // release tarball renders identically without internet access.
 
   // Use the classic preset for the default Documentation instance.
   // Developers and API are added as separate plugin instances below
@@ -104,7 +94,7 @@ const config: Config = {
         },
         blog: false,
         theme: {
-          customCss: ['./src/css/tokens.css', './src/css/custom.css'],
+          customCss: ['./src/css/fonts.css', './src/css/tokens.css', './src/css/custom.css'],
         },
       } satisfies Preset.Options,
     ],

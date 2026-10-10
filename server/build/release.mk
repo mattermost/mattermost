@@ -207,6 +207,21 @@ package-prep: setup-go-work
 	mkdir -p $(DIST_PATH)/client
 	cp -RL $(BUILD_WEBAPP_DIR)/channels/dist/* $(DIST_PATH)/client
 
+	@# Package documentation (airgapped offline docs). DOCS_BUNDLE is the
+	@# .tar.gz emitted by docs/scripts/build-offline-bundle.py, extracted
+	@# rather than copied: the bundle hardlinks ~172 MB of duplicate images,
+	@# and only tar preserves those links on both Linux and macOS. An unset or
+	@# missing bundle is a no-op so a local `make package` still succeeds.
+	@if [ -z "$(DOCS_BUNDLE)" ]; then \
+		echo "DOCS_BUNDLE unset; skipping docs packaging"; \
+	elif [ ! -f "$(DOCS_BUNDLE)" ]; then \
+		echo "DOCS_BUNDLE=$(DOCS_BUNDLE) not found; skipping docs packaging"; \
+	else \
+		echo "Packaging documentation from $(DOCS_BUNDLE)"; \
+		mkdir -p $(DIST_PATH)/client; \
+		tar -xzf "$(DOCS_BUNDLE)" -C $(DIST_PATH)/client; \
+	fi
+
 	@# Help files
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	cp $(BUILD_ENTERPRISE_DIR)/ENTERPRISE-EDITION-LICENSE.txt $(DIST_PATH)
