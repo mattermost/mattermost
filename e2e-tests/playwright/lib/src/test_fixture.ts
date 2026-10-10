@@ -31,12 +31,12 @@ import {
     createUserWithAttributes,
     deleteKeycloakUser,
     deleteLdapUser,
-    disableMfa,
     elasticsearchServerConfig,
     enableAIBridgeTestMode,
     ensureAzurite,
     ensureElasticsearch,
     ensureFeatureFlag,
+    ensureInternalSiteUrl,
     ensureKeycloak,
     ensureKeycloakOpenId,
     ensureLocalFile,
@@ -51,6 +51,7 @@ import {
     generateKeycloakUser,
     generateLdapUser,
     getAdminClient,
+    getAdminClientHealing,
     getAIBridgeMock,
     initSetup,
     installAndEnablePlugin,
@@ -66,6 +67,9 @@ import {
     opensearchServerConfig,
     recapCompletion,
     resetAIBridgeMock,
+    resetConfig,
+    resetRoles,
+    restorePendingConfigPatches,
     rewriteCompletion,
     runMmctl,
     samlServerConfig,
@@ -100,6 +104,7 @@ export {expect} from '@playwright/test';
 export type ExtendedFixtures = {
     axe: AxeBuilderExtended;
     pw: PlaywrightExtended;
+    resetConfigAndRoles: void;
 };
 
 type AxeBuilderOptions = {
@@ -117,6 +122,17 @@ export const test = base.extend<ExtendedFixtures>({
         await use(pw);
         await pw.testBrowser.close();
     },
+    // Reset config and roles before every test.
+    resetConfigAndRoles: [
+        async ({}, use) => {
+            const {adminClient} = await getAdminClientHealing();
+            await resetConfig(adminClient);
+            await resetRoles(adminClient);
+            await use();
+            await restorePendingConfigPatches();
+        },
+        {auto: true},
+    ],
 });
 
 export class PlaywrightExtended {
@@ -138,6 +154,8 @@ export class PlaywrightExtended {
     // ./server
     readonly ensurePluginsLoaded;
     readonly getAdminClient;
+    readonly resetConfig;
+    readonly resetRoles;
     readonly initSetup;
     readonly enableAIBridgeTestMode;
     readonly configureAIBridgeMock;
@@ -166,8 +184,8 @@ export class PlaywrightExtended {
     readonly ensureOpenldap;
     readonly ensureOpensearch;
     readonly ensurePostgresSearch;
-    readonly disableMfa;
     readonly enableUserMfa;
+    readonly ensureInternalSiteUrl;
     readonly ensureServerEnv;
     readonly ensureSiteUrl;
     readonly generateKeycloakUser;
@@ -264,6 +282,8 @@ export class PlaywrightExtended {
         this.ensurePluginsLoaded = ensurePluginsLoaded;
         this.initSetup = initSetup;
         this.getAdminClient = getAdminClient;
+        this.resetConfig = resetConfig;
+        this.resetRoles = resetRoles;
         this.enableAIBridgeTestMode = enableAIBridgeTestMode;
         this.configureAIBridgeMock = configureAIBridgeMock;
         this.getAIBridgeMock = getAIBridgeMock;
@@ -292,8 +312,8 @@ export class PlaywrightExtended {
         this.ensureOpenldap = ensureOpenldap;
         this.ensureOpensearch = ensureOpensearch;
         this.ensurePostgresSearch = ensurePostgresSearch;
-        this.disableMfa = disableMfa;
         this.enableUserMfa = enableUserMfa;
+        this.ensureInternalSiteUrl = ensureInternalSiteUrl;
         this.ensureServerEnv = ensureServerEnv;
         this.ensureSiteUrl = ensureSiteUrl;
         this.generateKeycloakUser = generateKeycloakUser;

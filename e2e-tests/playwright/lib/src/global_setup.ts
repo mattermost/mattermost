@@ -5,7 +5,9 @@ import {Client4} from '@mattermost/client';
 import type {PluginManifest} from '@mattermost/types/plugins';
 import type {UserProfile} from '@mattermost/types/users';
 
+import type {PlaywrightClient4} from './server';
 import {
+    clearAdminLoginLockout,
     createNewTeam,
     disableUnexpectedPlugins,
     getAdminClient,
@@ -19,9 +21,14 @@ import {isUpgradePathProjectSelected} from './upgrade_env';
 import {defaultTeam} from './util';
 
 export async function baseGlobalSetup() {
-    let adminClient: Client4;
+    let adminClient: PlaywrightClient4;
     let adminUser: UserProfile | null;
     ({adminClient, adminUser} = await getAdminClient({skipLog: true}));
+
+    // Clear a leftover admin lockout before concluding there is no admin.
+    if (!adminUser && (await clearAdminLoginLockout())) {
+        ({adminClient, adminUser} = await getAdminClient({skipLog: true}));
+    }
 
     if (!adminUser) {
         await enableEmailNotifications();
@@ -66,10 +73,10 @@ async function enableEmailNotifications(): Promise<void> {
     }
 }
 
-async function sysadminSetup(client: Client4, user: UserProfile | null) {
-    // Ensure admin's email is verified.
-    if (!user) {
-        await client.verifyUserEmail(client.token);
+async function sysadminSetup(client: PlaywrightClient4, user: UserProfile | null) {
+    // Verify the admin email so RequireEmailVerification cannot lock it out.
+    if (user) {
+        await client.verifyUserEmailById(user.id);
     }
 
     // Log license and config info

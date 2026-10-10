@@ -36,7 +36,7 @@ test('MM-T1778 sends an unenrolled user to MFA setup when MFA is enforced', {tag
         // * Verify the MFA setup page is shown
         await pw.mfaSetupPage.toBeVisible();
     } finally {
-        await pw.disableMfa(adminClient);
+        await pw.resetConfig(adminClient);
     }
 });
 
@@ -53,11 +53,11 @@ test('MM-T1781 lets an admin remove MFA from an enrolled user', {tag: '@authenti
     const {adminUser, adminClient} = await pw.initSetup();
     const user = await pw.createNewUserProfile(adminClient);
 
+    // # Enable MFA and enroll the user
+    const {restore} = await adminClient.patchConfig({
+        ServiceSettings: {EnableMultifactorAuthentication: true, EnforceMultifactorAuthentication: false},
+    });
     try {
-        // # Enable MFA and enroll the user
-        await adminClient.patchConfig({
-            ServiceSettings: {EnableMultifactorAuthentication: true, EnforceMultifactorAuthentication: false},
-        });
         await pw.enableUserMfa(adminClient, user.id);
 
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -77,7 +77,7 @@ test('MM-T1781 lets an admin remove MFA from an enrolled user', {tag: '@authenti
         await pw.mfaSetupPage.toBeHidden();
         await pw.selectTeamPage.toBeVisible();
     } finally {
-        await pw.disableMfa(adminClient);
+        await restore();
     }
 });
 
@@ -94,12 +94,11 @@ test('MM-T1782 hides Remove MFA for a user who has not enrolled', {tag: '@authen
     const {adminUser, adminClient} = await pw.initSetup();
     const user = await pw.createNewUserProfile(adminClient);
 
+    // # Enable MFA without enrolling the user
+    const {restore} = await adminClient.patchConfig({
+        ServiceSettings: {EnableMultifactorAuthentication: true, EnforceMultifactorAuthentication: false},
+    });
     try {
-        // # Enable MFA without enrolling the user
-        await adminClient.patchConfig({
-            ServiceSettings: {EnableMultifactorAuthentication: true, EnforceMultifactorAuthentication: false},
-        });
-
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
         // # Open the user's action menu
@@ -109,6 +108,6 @@ test('MM-T1782 hides Remove MFA for a user who has not enrolled', {tag: '@authen
         // * Verify Remove MFA is not offered
         await actions.expectRemoveMfaHidden();
     } finally {
-        await pw.disableMfa(adminClient);
+        await restore();
     }
 });

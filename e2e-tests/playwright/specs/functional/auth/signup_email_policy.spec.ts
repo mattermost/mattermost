@@ -12,29 +12,25 @@ test(
     async ({pw}) => {
         const {adminClient} = await pw.initSetup();
 
-        try {
-            await adminClient.patchConfig({EmailSettings: {RequireEmailVerification: false}});
+        await adminClient.patchConfig({EmailSettings: {RequireEmailVerification: false}});
 
-            const username = `Test${pw.random.id()}`;
-            const email = `${username.toLowerCase()}@example.com`;
-            const started = new Date();
+        const username = `Test${pw.random.id()}`;
+        const email = `${username.toLowerCase()}@example.com`;
+        const started = new Date();
 
-            await pw.hasSeenLandingPage();
-            await pw.signupPage.goto();
-            await pw.signupPage.toBeVisible();
+        await pw.hasSeenLandingPage();
+        await pw.signupPage.goto();
+        await pw.signupPage.toBeVisible();
 
-            // # Create an account while verification is not required
-            await pw.signupPage.create({email, username, password: pw.newTestPassword()});
+        // # Create an account while verification is not required
+        await pw.signupPage.create({email, username, password: pw.newTestPassword()});
 
-            // * Verify the team-join page is shown
-            await pw.selectTeamPage.toBeVisible();
+        // * Verify the team-join page is shown
+        await pw.selectTeamPage.toBeVisible();
 
-            // * Verify a join email was still sent
-            const mail = await getRecentEmail(email, {receivedAfter: started});
-            expect(mail.subject).toContain('You joined');
-        } finally {
-            await adminClient.patchConfig({EmailSettings: {RequireEmailVerification: false}});
-        }
+        // * Verify a join email was still sent
+        const mail = await getRecentEmail(email, {receivedAfter: started});
+        expect(mail.subject).toContain('You joined');
     },
 );
 
@@ -44,27 +40,20 @@ test(
 test('MM-T1765 hides email signup when email account creation is disabled', {tag: '@authentication'}, async ({pw}) => {
     const {adminClient, team} = await pw.initSetup();
 
-    try {
-        await adminClient.patchConfig({
-            EmailSettings: {EnableSignUpWithEmail: false},
-            GitLabSettings: {Enable: true},
-        });
+    await adminClient.patchConfig({
+        EmailSettings: {EnableSignUpWithEmail: false},
+        GitLabSettings: {Enable: true},
+    });
 
-        await pw.hasSeenLandingPage();
-        await pw.signupPage.goto(`/signup_user_complete/?id=${team.invite_id}`);
+    await pw.hasSeenLandingPage();
+    await pw.signupPage.goto(`/signup_user_complete/?id=${team.invite_id}`);
 
-        // # Open signup while email account creation is disabled
-        // * Verify GitLab is offered and email signup fields are hidden
-        await expect(pw.signupPage.createAccountWithFollowing).toBeVisible();
-        await expect(pw.signupPage.gitlabButton).toBeVisible();
-        await expect(pw.signupPage.emailAddressLabel).toBeHidden();
-        await expect(pw.signupPage.choosePasswordPlaceholder).toBeHidden();
-    } finally {
-        await adminClient.patchConfig({
-            EmailSettings: {EnableSignUpWithEmail: true},
-            GitLabSettings: {Enable: false},
-        });
-    }
+    // # Open signup while email account creation is disabled
+    // * Verify GitLab is offered and email signup fields are hidden
+    await expect(pw.signupPage.createAccountWithFollowing).toBeVisible();
+    await expect(pw.signupPage.gitlabButton).toBeVisible();
+    await expect(pw.signupPage.emailAddressLabel).toBeHidden();
+    await expect(pw.signupPage.choosePasswordPlaceholder).toBeHidden();
 });
 
 /**
@@ -73,24 +62,20 @@ test('MM-T1765 hides email signup when email account creation is disabled', {tag
 test('MM-T1752 creates an account when user creation is enabled', {tag: '@authentication'}, async ({pw}) => {
     const {adminClient} = await pw.initSetup();
 
-    try {
-        await adminClient.patchConfig({TeamSettings: {EnableUserCreation: true}});
+    await adminClient.patchConfig({TeamSettings: {EnableUserCreation: true}});
 
-        const username = `Test${pw.random.id()}`;
-        await pw.hasSeenLandingPage();
-        await pw.signupPage.goto();
-        await pw.signupPage.toBeVisible();
+    const username = `Test${pw.random.id()}`;
+    await pw.hasSeenLandingPage();
+    await pw.signupPage.goto();
+    await pw.signupPage.toBeVisible();
 
-        // # Create an account
-        await pw.signupPage.create({
-            email: `${username.toLowerCase()}@example.com`,
-            username,
-            password: pw.newTestPassword(),
-        });
+    // # Create an account
+    await pw.signupPage.create({
+        email: `${username.toLowerCase()}@example.com`,
+        username,
+        password: pw.newTestPassword(),
+    });
 
-        // * Verify the team-join page is shown
-        await pw.selectTeamPage.toBeVisible();
-    } finally {
-        await adminClient.patchConfig({TeamSettings: {EnableUserCreation: true}});
-    }
+    // * Verify the team-join page is shown
+    await pw.selectTeamPage.toBeVisible();
 });

@@ -29,7 +29,6 @@ export {LicenseSkus, appsPluginId, callsPluginId, playbooksPluginId} from './con
 
 export {
     getAdminClient,
-    getOnPremServerConfig,
     getRecentEmail,
     extractEmailLink,
     isWebhookTestServerReachable,
@@ -140,7 +139,6 @@ export {
     disableChannelAutotranslation,
     setUserChannelAutotranslation,
     setMockSourceLanguage,
-    ensureAutotranslationPermissions,
 } from './autotranslation_helpers';
 export type {EnableAutotranslationOptions} from './autotranslation_helpers';
 export {

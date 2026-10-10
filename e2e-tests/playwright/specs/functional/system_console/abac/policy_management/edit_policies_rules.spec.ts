@@ -3,7 +3,6 @@
 
 import {
     expect,
-    getAdminClient,
     test,
     navigateToABACPage,
     verifyUserInChannel,
@@ -21,23 +20,6 @@ import {
     enableUserManagedAttributes,
 } from '../support';
 import {deleteFieldFromDB} from '../masking/masking_db_setup';
-
-// Restore AccessControlSettings to the shared baseline expected by
-// `specs/test_setup.ts` (ABAC enabled) after this file's tests complete, so
-// later files on the same worker see the expected setup-state.
-test.afterAll(async () => {
-    try {
-        const {adminClient} = await getAdminClient({skipLog: true});
-        await adminClient.patchConfig({
-            AccessControlSettings: {
-                EnableAttributeBasedAccessControl: true,
-                EnableUserManagedAttributes: true,
-            },
-        } as any);
-    } catch {
-        // Best-effort cleanup.
-    }
-});
 
 /**
  * MM-T5791: Editing existing access policy to add another attribute applies access control as specified (with auto-add)

@@ -117,28 +117,3 @@ export async function setUserChannelAutotranslation(
 ): Promise<void> {
     await client.setMyChannelAutotranslation(channelId, enabled);
 }
-
-const AUTO_TRANSLATION_PERMISSIONS = [
-    'manage_public_channel_auto_translation',
-    'manage_private_channel_auto_translation',
-];
-
-/**
- * Call this after enableAutotranslationConfig and before any UI test that relies on
- * the autotranslation toggle appearing in Channel Settings.
- */
-export async function ensureAutotranslationPermissions(adminClient: Client4): Promise<void> {
-    const roleNames = ['channel_admin', 'team_admin', 'system_admin'];
-
-    await Promise.all(
-        roleNames.map(async (roleName) => {
-            const role = await adminClient.getRoleByName(roleName);
-            const missing = AUTO_TRANSLATION_PERMISSIONS.filter((p) => !role.permissions.includes(p));
-            if (missing.length > 0) {
-                await adminClient.patchRole(role.id, {
-                    permissions: [...role.permissions, ...missing],
-                });
-            }
-        }),
-    );
-}
