@@ -14312,6 +14312,36 @@
     "description": "Health dashboard reason shown when a health check could not run because the usage statistics it inspects (for example user or post counts) were not collected, so the check's status is unknown."
   },
   {
+    "id": "health.rule.link_previews_disabled.message",
+    "translation": "Users paste URLs and see only raw text, no preview cards.",
+    "description": "Health dashboard finding detail when website link previews are turned off; 'preview cards' are the title, description and image shown under a pasted link."
+  },
+  {
+    "id": "health.rule.link_previews_disabled.remediation",
+    "translation": "Enable ServiceSettings.EnableLinkPreviews. If previews are off on purpose (for example, on an air-gapped server or for privacy reasons), mute this finding.",
+    "description": "Health dashboard fix-it step for disabled link previews; 'ServiceSettings.EnableLinkPreviews' is the config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.link_previews_disabled.title",
+    "translation": "Link previews disabled",
+    "description": "Health dashboard finding title when website link previews are turned off."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.message",
+    "translation": "A single @channel in a large channel fans out thousands of notifications at once, which causes latency spikes.",
+    "description": "Health dashboard finding detail when the per-channel notification limit is above 5000; '@channel' is a Mattermost mention and should not be translated."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.remediation",
+    "translation": "Keep TeamSettings.MaxNotificationsPerChannel at or below 1000 (the default) unless the user population demands otherwise. The same limit also governs typing indicators: clients stop sending typing events in channels with at least this many members, so raising it also raises typing event fan-out.",
+    "description": "Health dashboard fix-it step for a high per-channel notification limit; 'TeamSettings.MaxNotificationsPerChannel' is the config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.max_notifications_per_channel.title",
+    "translation": "TeamSettings.MaxNotificationsPerChannel is above 5000",
+    "description": "Health dashboard finding title when the per-channel notification limit is above 5000; 'TeamSettings.MaxNotificationsPerChannel' is the config setting path and should not be translated."
+  },
+  {
     "id": "health.rule.push_bad_scheme.message.http",
     "translation": "PushNotificationServer {{.url}} uses http://, so push notifications are sent in cleartext.",
     "description": "Health dashboard finding detail when the push notification server URL starts with http:// instead of https://; {{.url}} is the configured URL. 'PushNotificationServer' is a config setting name and should not be translated."
@@ -14345,6 +14375,21 @@
     "id": "health.rule.push_empty_url.title",
     "translation": "Push notifications enabled but PushNotificationServer is blank",
     "description": "Health dashboard finding title when push notifications are turned on but the push notification server URL is empty; 'PushNotificationServer' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.push_id_only.message",
+    "translation": "PushNotificationContents is set to full, so the message text and sender are included in the push payload, which travels through the Apple and Google push services.",
+    "description": "Health dashboard finding detail when push notifications carry the full message text; 'PushNotificationContents' is a config setting name and 'full' is its value, neither should be translated."
+  },
+  {
+    "id": "health.rule.push_id_only.remediation",
+    "translation": "For maximum push privacy, set EmailSettings.PushNotificationContents to id_loaded. Only a message ID is sent, and the mobile app fetches the message content from the server.",
+    "description": "Health dashboard fix-it step for push notifications that carry the full message text; 'EmailSettings.PushNotificationContents' is the config setting path and 'id_loaded' is its value, neither should be translated."
+  },
+  {
+    "id": "health.rule.push_id_only.title",
+    "translation": "Push notifications include the full message text",
+    "description": "Health dashboard finding title when push notification payloads contain the message text and sender."
   },
   {
     "id": "health.rule.push_test_proxy.message",
@@ -14390,6 +14435,36 @@
     "id": "health.rule.site_url_http.title",
     "translation": "SiteURL uses http:// (not https)",
     "description": "Health dashboard finding title when the Site URL starts with http:// instead of https://; 'SiteURL' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message",
+    "translation": "The connection test to the SMTP server failed: {{.error}}",
+    "description": "Health dashboard finding detail when the server could not connect to its SMTP server; {{.error}} is the error returned by the connection test and should not be translated."
+  },
+  {
+    "id": "health.rule.smtp_unreachable.remediation",
+    "translation": "Email notifications, invitations and password reset emails may not be delivered. Check the SMTP server, port, connection security and credentials in the System Console, confirm the Mattermost server can reach the SMTP host, then use Test Connection to verify.",
+    "description": "Health dashboard fix-it step when the SMTP connection test failed; 'Test Connection' is the name of the button on the SMTP page of the System Console."
+  },
+  {
+    "id": "health.rule.smtp_unreachable.title",
+    "translation": "SMTP server connection test failed",
+    "description": "Health dashboard finding title when the server could not connect to its SMTP server while email notifications are enabled."
+  },
+  {
+    "id": "health.rule.typing_messages_at_scale.message",
+    "translation": "Typing events are the leading cause of 'websocket.slow: dropping message' errors and websocket churn on large deployments.",
+    "description": "Health dashboard finding detail when typing indicators are on in a workspace with 5000 or more active users; 'websocket.slow: dropping message' is a literal log message and should not be translated."
+  },
+  {
+    "id": "health.rule.typing_messages_at_scale.remediation",
+    "translation": "Consider disabling ServiceSettings.EnableUserTypingMessages. To keep typing indicators, raise ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds (default 5000 ms) so clients send typing events less often, or lower TeamSettings.MaxNotificationsPerChannel, since clients stop sending typing events in channels with at least that many members.",
+    "description": "Health dashboard fix-it step for typing indicators in a large workspace; the 'ServiceSettings.' and 'TeamSettings.' values are config setting paths and should not be translated."
+  },
+  {
+    "id": "health.rule.typing_messages_at_scale.title",
+    "translation": "Typing indicators enabled with 5000 or more active users",
+    "description": "Health dashboard finding title when typing indicators are on in a workspace with 5000 or more active users."
   },
   {
     "id": "humanize.list_join",
