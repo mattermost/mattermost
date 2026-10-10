@@ -79,6 +79,30 @@ x^2 + y^2 = z^2
             const output = format(input);
             expect(output).toBe(expected);
         });
+
+        test('should start a new bullet list after an ordered list with a single blank line', () => {
+            const input = `1. First
+   1. Nested ordered
+
+- [x] Completed task
+- [ ] Incomplete task`;
+
+            const output = format(input);
+
+            expect(output).toContain('<ol class="markdown__list" start="1">');
+            expect(output).toContain('<ul class="markdown__list">');
+            expect(output).not.toMatch(/<ol[\s\S]*\[x\] Completed task/);
+            expect(output).toContain('class="list-item--task-list"');
+            expect(output).toContain('checked="checked"');
+            expect(output).toContain('Completed task');
+            expect(output).toContain('Incomplete task');
+
+            // Root-level children must be an OL followed by a sibling UL (not nested).
+            const parsed = new DOMParser().parseFromString(`<div id="root">${output}</div>`, 'text/html');
+            const rootChildren = Array.from(parsed.querySelector('#root')?.children ?? []);
+            expect(rootChildren.map((el) => el.tagName)).toEqual(['OL', 'UL']);
+            expect(rootChildren[0].querySelector('ul')).toBeNull();
+        });
     });
 
     test('should not wrap code with a valid language tag', () => {

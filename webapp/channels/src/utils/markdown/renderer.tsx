@@ -236,13 +236,17 @@ export default class Renderer extends marked.Renderer {
     }
 
     public listitem(text: string, bullet = '') { // eslint-disable-line @typescript-eslint/no-unused-vars
-        const taskListReg = /^\[([ |xX])] /;
+        // Loose items wrap content in <p>; still treat leading [x]/[ ] as a task checkbox.
+        // Character class is space/x/X only — a bare "|" inside [] is a literal pipe, not OR.
+        const taskListReg = /^(<p>)?\[([ xX])] /;
         const isTaskList = taskListReg.exec(text);
 
         if (isTaskList) {
-            return `<li class="list-item--task-list">${'<input type="checkbox" disabled="disabled" ' +
-        (isTaskList[1] === ' ' ? '' : 'checked="checked" ') +
-        '/> '}${text.replace(taskListReg, '')}</li>`;
+            const paragraphOpen = isTaskList[1] || '';
+            const checked = isTaskList[2] === ' ' ? '' : 'checked="checked" ';
+            const content = text.replace(taskListReg, paragraphOpen);
+
+            return `<li class="list-item--task-list"><input type="checkbox" disabled="disabled" ${checked}/> ${content}</li>`;
         }
 
         return `<li>${text}</li>`;
