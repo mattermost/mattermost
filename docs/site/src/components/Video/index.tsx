@@ -1,4 +1,4 @@
-import React, {useEffect, useId, useRef} from 'react';
+import React, {useEffect, useId, useState} from 'react';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './styles.module.css';
 
@@ -40,6 +40,10 @@ type Props = {
  * measured at 3.75 MB across the set to save a 1–2 second blank frame and were dropped
  * (29 Sep 2026). Do not add either.
  *
+ * `loop` defaults to false in SSR markup and until hydration. After mount, it is set
+ * from `prefers-reduced-motion` so reduced-motion users never get a looping attribute
+ * in HTML before JS runs (or if JS fails). Normal users get `loop` after hydration.
+ *
  * Usage:
  *   <Video
  *     src={useBaseUrl('/images/message-formatting-toolbar.mp4')}
@@ -59,18 +63,17 @@ export default function Video({
 }: Props): React.ReactElement {
   const url = useBaseUrl(src);
   const labelId = useId();
-  const ref = useRef<HTMLVideoElement>(null);
+  // Default false so SSR / no-JS never ships `loop`; enabled after hydration when
+  // the reader has not requested reduced motion.
+  const [loop, setLoop] = useState(false);
 
   // Reduced motion drops the loop, not playback: nothing moves until the reader
   // presses play, so suppressing a deliberate action would be wrong — but an
-  // endless repeat after one click is motion they did not ask for. Applied as a
-  // DOM property after hydration because `matchMedia` does not exist during SSR.
+  // endless repeat after one click is motion they did not ask for.
   useEffect(() => {
     const query = window.matchMedia('(prefers-reduced-motion: reduce)');
     const apply = () => {
-      if (ref.current) {
-        ref.current.loop = !query.matches;
-      }
+      setLoop(!query.matches);
     };
     apply();
     query.addEventListener('change', apply);
@@ -82,11 +85,10 @@ export default function Video({
       {/* eslint-disable-next-line jsx-a11y/media-has-caption -- silent video; the
           accessible name is supplied by aria-labelledby. See .planning/phase-2. */}
       <video
-        ref={ref}
         className={styles.video}
         src={url}
         controls
-        loop
+        loop={loop}
         muted
         playsInline
         preload="metadata"
