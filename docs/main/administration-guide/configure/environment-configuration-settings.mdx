@@ -4072,8 +4072,8 @@ Adding a prefix to all Redis cache keys reduces key collisions, simplifies debug
 </colgroup>
 <tbody>
 <tr>
-<td><p>Control the performance of websocket broadcasting in channels.</p><p>When enabled, improves websocket broadcasting performance; however, performance may decrease when users join or leave a channel.</p><p>Not recommended unless you have at least 200,000 concurrent users actively using Mattermost.</p><p>Disabled by default.</p></td>
-<td><ul><li>System Config path: <strong>N/A</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableWebHubChannelIteration,</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLEWEBHUBCHANNELITERATION</code></li></ul></td>
+<td><p>Control the performance of websocket broadcasting in channels.</p><p>When enabled, the server keeps an index of the connections in each channel and delivers a channel event to those connections only. When disabled, the server checks every connection's channel membership for every channel event.</p><p>Enabled by default.</p><p>Changes to this setting require a server restart before taking effect.</p></td>
+<td><ul><li>System Config path: <strong>N/A</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableWebHubChannelIteration,</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLEWEBHUBCHANNELITERATION</code></li></ul></td>
 </tr>
 </tbody>
 </table>

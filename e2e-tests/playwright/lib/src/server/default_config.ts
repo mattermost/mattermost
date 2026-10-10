@@ -242,7 +242,7 @@ const defaultServerConfig: AdminConfig = {
         MaximumPayloadSizeBytes: 300000,
         MaximumURLLength: 2048,
         ScheduledPosts: true,
-        EnableWebHubChannelIteration: false,
+        EnableWebHubChannelIteration: true,
         FrameAncestors: '',
         DeleteAccountLink: '',
     },

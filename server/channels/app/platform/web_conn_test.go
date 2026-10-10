@@ -14,10 +14,12 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	platform_mocks "github.com/mattermost/mattermost/server/v8/channels/app/platform/mocks"
 )
 
 type hookRunner struct {
@@ -281,5 +283,194 @@ func TestWebConnRejectBinaryFrameUnauthenticated(t *testing.T) {
 	case <-readPumpDone:
 	case <-time.After(5 * time.Second):
 		require.Fail(t, "readPump did not exit after receiving binary frame")
+	}
+}
+
+// newShouldSendEventBenchConn builds an authenticated WebConn for a normal user whose
+// channel membership cache is warm with memberChannels entries, so that ShouldSendEvent
+// exercises only the in-memory decision path (no store lookups, no cache refresh).
+func newShouldSendEventBenchConn(tb testing.TB, th *TestHelper, memberChannels int) (*WebConn, []string) {
+	tb.Helper()
+
+	session := model.Session{
+		Id:        model.NewId(),
+		Token:     model.NewId(),
+		UserId:    model.NewId(),
+		Roles:     model.SystemUserRoleId,
+		ExpiresAt: model.GetMillis() + 24*60*60*1000,
+		Props:     map[string]string{},
+	}
+	wc := th.Service.NewWebConn(&WebConnConfig{
+		WebSocket:    &websocket.Conn{},
+		Session:      session,
+		ConnectionID: model.NewId(),
+		Active:       true,
+	}, th.Suite, &hookRunner{})
+
+	channelIDs := make([]string, 0, memberChannels)
+	members := make(map[string]string, memberChannels)
+	for range memberChannels {
+		id := model.NewId()
+		channelIDs = append(channelIDs, id)
+		members[id] = model.ChannelUserRoleId
+	}
+	wc.allChannelMembers = newChannelSet(members)
+	wc.lastAllChannelMembersTime = model.GetMillis()
+
+	return wc, channelIDs
+}
+
+type shouldSendEventBenchCase struct {
+	name     string
+	event    *model.WebSocketEvent
+	expected bool
+}
+
+// shouldSendEventBenchCases returns the four event shapes that dominate hub traffic:
+// channel-scoped events for a channel the connection is not a member of (posted and typing),
+// a channel-scoped event for a member channel, and a user-scoped event for another user.
+func shouldSendEventBenchCases(memberChannelID string) []shouldSendEventBenchCase {
+	nonMemberChannelID := model.NewId()
+	return []shouldSendEventBenchCase{
+		{"posted_non_member", model.NewWebSocketEvent(model.WebsocketEventPosted, "", nonMemberChannelID, "", nil, ""), false},
+		{"typing_non_member", model.NewWebSocketEvent(model.WebsocketEventTyping, "", nonMemberChannelID, "", nil, ""), false},
+		{"posted_member", model.NewWebSocketEvent(model.WebsocketEventPosted, "", memberChannelID, "", nil, ""), true},
+		{"user_scoped_other_user", model.NewWebSocketEvent(model.WebsocketEventPreferencesChanged, "", "", model.NewId(), nil, ""), false},
+	}
+}
+
+// restartHubsWithChannelIteration sets EnableWebHubChannelIteration and restarts the hubs, which read it when they start.
+func restartHubsWithChannelIteration(tb testing.TB, th *TestHelper, on bool) {
+	tb.Helper()
+	th.Service.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableWebHubChannelIteration = on
+	})
+	th.Service.HubStop()
+	th.Service.hubStart(nil)
+}
+
+// TestWebConnShouldSendEventDecisions pins the decisions ShouldSendEvent makes on the
+// in-memory path (warm membership cache, EnableWebHubChannelIteration off), using a mock
+// suite so that permission denials can be exercised.
+func TestWebConnShouldSendEventDecisions(t *testing.T) {
+	th := Setup(t)
+	restartHubsWithChannelIteration(t, th, false)
+
+	const grantedPermission = "granted_permission"
+	const deniedPermission = "denied_permission"
+	roles := []string{model.SystemUserRoleId}
+
+	mockSuite := platform_mocks.NewSuiteIFace(t)
+	mockSuite.On("MFARequired", mock.Anything, http.MethodGet).Return(nil)
+	mockSuite.On("RolesGrantPermission", roles, model.PermissionManageSystem.Id).Return(false)
+	mockSuite.On("RolesGrantPermission", roles, grantedPermission).Return(true)
+	mockSuite.On("RolesGrantPermission", roles, deniedPermission).Return(false)
+	th.Suite = mockSuite
+
+	wc, channelIDs := newShouldSendEventBenchConn(t, th, 200)
+	memberChannelID := channelIDs[0]
+	nonMemberChannelID := model.NewId()
+	otherUserID := model.NewId()
+
+	viewNothing := func() {
+		wc.SetActiveChannelID(UnsetPresenceIndicator)
+		wc.SetActiveRHSThreadChannelID(UnsetPresenceIndicator)
+		wc.SetActiveThreadViewThreadChannelID(UnsetPresenceIndicator)
+	}
+	viewOtherChannel := func() {
+		wc.SetActiveChannelID(nonMemberChannelID)
+		wc.SetActiveRHSThreadChannelID(nonMemberChannelID)
+		wc.SetActiveThreadViewThreadChannelID(nonMemberChannelID)
+	}
+	viewMemberChannel := func() {
+		wc.SetActiveChannelID(memberChannelID)
+		wc.SetActiveRHSThreadChannelID(UnsetPresenceIndicator)
+		wc.SetActiveThreadViewThreadChannelID(UnsetPresenceIndicator)
+	}
+
+	cases := []struct {
+		name     string
+		event    *model.WebSocketEvent
+		view     func()
+		expected bool
+	}{
+		{"posted to non-member channel", model.NewWebSocketEvent(model.WebsocketEventPosted, "", nonMemberChannelID, "", nil, ""), viewNothing, false},
+		{"posted to member channel", model.NewWebSocketEvent(model.WebsocketEventPosted, "", memberChannelID, "", nil, ""), viewNothing, true},
+		{"typing in non-member channel, nothing viewed", model.NewWebSocketEvent(model.WebsocketEventTyping, "", nonMemberChannelID, "", nil, ""), viewNothing, false},
+		{"typing in member channel, nothing viewed", model.NewWebSocketEvent(model.WebsocketEventTyping, "", memberChannelID, "", nil, ""), viewNothing, true},
+		{"typing in member channel while viewing another channel and threads", model.NewWebSocketEvent(model.WebsocketEventTyping, "", memberChannelID, "", nil, ""), viewOtherChannel, false},
+		{"typing in member channel while viewing it", model.NewWebSocketEvent(model.WebsocketEventTyping, "", memberChannelID, "", nil, ""), viewMemberChannel, true},
+		{"reaction in member channel while viewing another channel and threads", model.NewWebSocketEvent(model.WebsocketEventReactionAdded, "", memberChannelID, "", nil, ""), viewOtherChannel, false},
+		{"posted to member channel while viewing another channel", model.NewWebSocketEvent(model.WebsocketEventPosted, "", memberChannelID, "", nil, ""), viewOtherChannel, true},
+		{"scoped to this connection", model.NewWebSocketEvent(model.WebsocketEventHello, "", "", "", nil, "").SetBroadcast(&model.WebsocketBroadcast{ConnectionId: wc.GetConnectionID()}), viewNothing, true},
+		{"scoped to another connection", model.NewWebSocketEvent(model.WebsocketEventHello, "", "", "", nil, "").SetBroadcast(&model.WebsocketBroadcast{ConnectionId: model.NewId()}), viewNothing, false},
+		{"scoped to this user", model.NewWebSocketEvent(model.WebsocketEventPreferencesChanged, "", "", wc.UserId, nil, ""), viewNothing, true},
+		{"scoped to another user", model.NewWebSocketEvent(model.WebsocketEventPreferencesChanged, "", "", otherUserID, nil, ""), viewNothing, false},
+		{"this user omitted", model.NewWebSocketEvent(model.WebsocketEventPosted, "", memberChannelID, "", map[string]bool{wc.UserId: true}, ""), viewNothing, false},
+		{"another user omitted", model.NewWebSocketEvent(model.WebsocketEventPosted, "", memberChannelID, "", map[string]bool{otherUserID: true}, ""), viewNothing, true},
+		{"this connection omitted", model.NewWebSocketEvent(model.WebsocketEventPosted, "", memberChannelID, "", nil, "").SetBroadcast(&model.WebsocketBroadcast{ChannelId: memberChannelID, OmitConnectionId: wc.GetConnectionID()}), viewNothing, false},
+		{"required permission granted", model.NewWebSocketEvent(model.WebsocketEventPosted, "", memberChannelID, "", nil, "").SetBroadcast(&model.WebsocketBroadcast{ChannelId: memberChannelID, RequiredPermissions: []string{grantedPermission}}), viewNothing, true},
+		{"required permission denied", model.NewWebSocketEvent(model.WebsocketEventPosted, "", memberChannelID, "", nil, "").SetBroadcast(&model.WebsocketBroadcast{ChannelId: memberChannelID, RequiredPermissions: []string{deniedPermission}}), viewNothing, false},
+		{"all required permissions must be granted", model.NewWebSocketEvent(model.WebsocketEventPosted, "", memberChannelID, "", nil, "").SetBroadcast(&model.WebsocketBroadcast{ChannelId: memberChannelID, RequiredPermissions: []string{grantedPermission, deniedPermission}}), viewNothing, false},
+		{"sanitized data goes to non-admin", model.NewWebSocketEvent(model.WebsocketEventPosted, "", memberChannelID, "", nil, "").SetBroadcast(&model.WebsocketBroadcast{ChannelId: memberChannelID, ContainsSanitizedData: true}), viewNothing, true},
+		{"sensitive data does not go to non-admin", model.NewWebSocketEvent(model.WebsocketEventPosted, "", memberChannelID, "", nil, "").SetBroadcast(&model.WebsocketBroadcast{ChannelId: memberChannelID, ContainsSensitiveData: true}), viewNothing, false},
+		{"sensitive data with granted required permission takes precedence", model.NewWebSocketEvent(model.WebsocketEventPosted, "", memberChannelID, "", nil, "").SetBroadcast(&model.WebsocketBroadcast{ChannelId: memberChannelID, ContainsSensitiveData: true, RequiredPermissions: []string{grantedPermission}}), viewNothing, true},
+		{"team the session is not a member of", model.NewWebSocketEvent(model.WebsocketEventUpdateTeam, model.NewId(), "", "", nil, ""), viewNothing, false},
+		{"unscoped event", model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil, ""), viewNothing, true},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.view()
+			assert.Equal(t, tc.expected, wc.ShouldSendEvent(tc.event, decodeChannelID(tc.event.GetBroadcast().ChannelId)))
+		})
+	}
+}
+
+// TestWebConnShouldSendEventAllocs asserts that the per-connection filtering the hub does
+// for every broadcast event does not allocate once the membership cache is warm.
+func TestWebConnShouldSendEventAllocs(t *testing.T) {
+	th := Setup(t)
+	restartHubsWithChannelIteration(t, th, false)
+
+	wc, channelIDs := newShouldSendEventBenchConn(t, th, 200)
+	memberChannelID := channelIDs[len(channelIDs)/2]
+
+	cases := shouldSendEventBenchCases(memberChannelID)
+	cases = append(cases,
+		shouldSendEventBenchCase{"required_permission_granted", model.NewWebSocketEvent(model.WebsocketEventPosted, "", memberChannelID, "", nil, "").SetBroadcast(&model.WebsocketBroadcast{ChannelId: memberChannelID, RequiredPermissions: []string{model.PermissionReadChannel.Id}}), true},
+		shouldSendEventBenchCase{"sensitive_data_admin", model.NewWebSocketEvent(model.WebsocketEventPosted, "", memberChannelID, "", nil, "").SetBroadcast(&model.WebsocketBroadcast{ChannelId: memberChannelID, ContainsSensitiveData: true}), true},
+	)
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			channelKey := decodeChannelID(tc.event.GetBroadcast().ChannelId)
+			require.Equal(t, tc.expected, wc.ShouldSendEvent(tc.event, channelKey))
+			// Background goroutines started by Setup may allocate; AllocsPerRun averages
+			// (with integer division) over the runs, so a large run count absorbs that noise.
+			allocs := testing.AllocsPerRun(5000, func() {
+				wc.ShouldSendEvent(tc.event, channelKey)
+			})
+			assert.Zero(t, allocs, "ShouldSendEvent should not allocate")
+		})
+	}
+}
+
+func BenchmarkShouldSendEvent(b *testing.B) {
+	th := Setup(b)
+	restartHubsWithChannelIteration(b, th, false)
+
+	wc, channelIDs := newShouldSendEventBenchConn(b, th, 200)
+
+	for _, tc := range shouldSendEventBenchCases(channelIDs[len(channelIDs)/2]) {
+		b.Run(tc.name, func(b *testing.B) {
+			channelKey := decodeChannelID(tc.event.GetBroadcast().ChannelId)
+			require.Equal(b, tc.expected, wc.ShouldSendEvent(tc.event, channelKey))
+			b.ReportAllocs()
+			b.ResetTimer()
+			for b.Loop() {
+				wc.ShouldSendEvent(tc.event, channelKey)
+			}
+		})
 	}
 }
