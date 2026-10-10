@@ -20,8 +20,10 @@ const ATTR =
   /\b(src|href|poster|data|srcset|content)=(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi;
 const CSS_URL =
   /(?:@import\s+(?:url\s*\()?['"]?(?:https?:)?\/\/[^'")\s]+)|(?:url\(\s*['"]?(?:https?:)?\/\/[^'")\s]+)/gi;
+// Quoted or template-literal URL. Template form stops before ` or ${ so
+// interpolated strings are not treated as a complete remote literal.
 const JS_FETCH =
-  /\b(?:fetch|import)\s*\(\s*['"]((?:https?:)?\/\/[^'"]+)['"]/g;
+  /\b(?:fetch|import)\s*\(\s*(?:['"]((?:https?:)?\/\/[^'"]+)['"]|`((?:https?:)?\/\/(?:(?!\$\{)[^`])+)`)/g;
 const STYLE_BLOCK = /<style\b[^>]*>([\s\S]*?)<\/style>/gi;
 const SCRIPT_BLOCK = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
 
@@ -264,7 +266,7 @@ function scanJs(text, file, violations, fullFile, bodyStart) {
   JS_FETCH.lastIndex = 0;
   let match;
   while ((match = JS_FETCH.exec(text))) {
-    const raw = match[1];
+    const raw = match[1] ?? match[2];
     if (!isRemoteUrl(raw)) {
       continue;
     }

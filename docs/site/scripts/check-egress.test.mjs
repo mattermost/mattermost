@@ -94,6 +94,13 @@ describe('scanBuild fixtures', () => {
     assert.equal(hits[0].found, 'https://evil.example/x');
   });
 
+  it('js-fetch-template/ flags fetch() with a template literal', () => {
+    const hits = scanBuild(fixture('js-fetch-template'));
+    assert.equal(hits.length, 1);
+    assert.equal(hits[0].kind, 'fetch()');
+    assert.equal(hits[0].found, 'https://evil.example/template');
+  });
+
   it('js-fetch-feed/ allows the security bulletin URL', () => {
     const hits = scanBuild(fixture('js-fetch-feed'));
     assert.equal(hits.length, 0);
