@@ -17047,6 +17047,14 @@
     "defaultMessage": "Start typing to search for users...",
     "description": "Placeholder text of the async user picker input prompting the admin to type a search term."
   },
+  "admin.webserverModeBrotli": {
+    "defaultMessage": "brotli",
+    "description": "Dropdown option and help-table row label for the 'Webserver Mode' admin setting; 'brotli' is the compression format name and is typically left untranslated."
+  },
+  "admin.webserverModeBrotliDescription": {
+    "defaultMessage": "The Mattermost server will serve static files compressed with gzip, and API responses compressed with Brotli to clients that support it.",
+    "description": "Description of the 'brotli' option in the Webserver Mode dropdown on the System Console Web Server page; Brotli is a compression format (keep name)."
+  },
   "admin.webserverModeDisabled": {
     "defaultMessage": "Disabled",
     "description": "Dropdown option and help-table row label for the 'Webserver Mode' admin setting; means the server serves no static files."
@@ -17064,7 +17072,7 @@
     "description": "Description of the 'gzip' option in the Webserver Mode dropdown on the System Console Web Server page; gzip is a compression format (keep name)."
   },
   "admin.webserverModeHelpText": {
-    "defaultMessage": "gzip compression applies to static content files. It is recommended to enable gzip to improve performance unless your environment has specific restrictions, such as a web proxy that distributes gzip files poorly.",
+    "defaultMessage": "gzip compression applies to static content files. Brotli additionally compresses API responses for clients that support it. It is recommended to enable compression to improve performance unless your environment has specific restrictions, such as a web proxy that distributes compressed files poorly.",
     "description": "Help paragraph shown below the Webserver Mode option table in the admin console; explains when to use gzip compression."
   },
   "admin.webserverModeTitle": {

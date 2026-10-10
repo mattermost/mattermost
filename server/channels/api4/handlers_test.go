@@ -68,7 +68,7 @@ func testAPIHandlerNoGzipMode(t *testing.T, name string, h http.Handler, token s
 	})
 }
 
-func TestAPIHandlersWithGzip(t *testing.T) {
+func TestAPIHandlersWithCompression(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
@@ -94,5 +94,85 @@ func TestAPIHandlersWithGzip(t *testing.T) {
 		testAPIHandlerNoGzipMode(t, "ApiSessionRequiredMfa", api.APISessionRequiredMfa(handlerForGzip(t)), session.Token)
 		testAPIHandlerNoGzipMode(t, "ApiHandlerTrustRequester", api.APIHandlerTrustRequester(handlerForGzip(t)), "")
 		testAPIHandlerNoGzipMode(t, "ApiSessionRequiredTrustRequester", api.APISessionRequiredTrustRequester(handlerForGzip(t)), session.Token)
+	})
+
+	t.Run("with WebserverMode == \"brotli\" and Accept-Encoding: br", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.WebserverMode = "brotli" })
+
+		for _, tc := range []struct {
+			name    string
+			handler http.Handler
+		}{
+			{"ApiHandler", api.APIHandler(handlerForBrotli(t))},
+			{"ApiSessionRequired", api.APISessionRequired(handlerForBrotli(t))},
+			{"ApiSessionRequiredMfa", api.APISessionRequiredMfa(handlerForBrotli(t))},
+			{"ApiHandlerTrustRequester", api.APIHandlerTrustRequester(handlerForBrotli(t))},
+			{"ApiSessionRequiredTrustRequester", api.APISessionRequiredTrustRequester(handlerForBrotli(t))},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				resp := httptest.NewRecorder()
+				req := httptest.NewRequest(http.MethodGet, "/api/v4/test", nil)
+				req.Header.Set("Accept-Encoding", "br, gzip")
+				if tc.name != "ApiHandler" && tc.name != "ApiHandlerTrustRequester" {
+					req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+				}
+				tc.handler.ServeHTTP(resp, req)
+				assert.Equal(t, http.StatusOK, resp.Code)
+				assert.Equal(t, "br", resp.Header().Get("Content-Encoding"), "handler %s should use brotli", tc.name)
+			})
+		}
+	})
+
+	t.Run("with WebserverMode == \"brotli\" and Accept-Encoding: gzip", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.WebserverMode = "brotli" })
+
+		for _, tc := range []struct {
+			name    string
+			handler http.Handler
+		}{
+			{"ApiHandler", api.APIHandler(handlerForGzip(t))},
+			{"ApiSessionRequired", api.APISessionRequired(handlerForGzip(t))},
+			{"ApiSessionRequiredMfa", api.APISessionRequiredMfa(handlerForGzip(t))},
+			{"ApiHandlerTrustRequester", api.APIHandlerTrustRequester(handlerForGzip(t))},
+			{"ApiSessionRequiredTrustRequester", api.APISessionRequiredTrustRequester(handlerForGzip(t))},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				resp := httptest.NewRecorder()
+				req := httptest.NewRequest(http.MethodGet, "/api/v4/test", nil)
+				req.Header.Set("Accept-Encoding", "gzip")
+				if tc.name != "ApiHandler" && tc.name != "ApiHandlerTrustRequester" {
+					req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+				}
+				tc.handler.ServeHTTP(resp, req)
+				assert.Equal(t, http.StatusOK, resp.Code)
+				assert.Equal(t, "gzip", resp.Header().Get("Content-Encoding"), "handler %s should fall back to gzip", tc.name)
+			})
+		}
+	})
+
+	t.Run("with WebserverMode == \"brotli\", the Gzip handler variants never use brotli", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.WebserverMode = "brotli" })
+
+		for _, tc := range []struct {
+			name    string
+			handler http.Handler
+		}{
+			{"ApiHandlerGzip", api.APIHandlerGzip(handlerForGzip(t))},
+			{"ApiSessionRequiredGzip", api.APISessionRequiredGzip(handlerForGzip(t))},
+			{"ApiSessionRequiredTrustRequesterGzip", api.APISessionRequiredTrustRequesterGzip(handlerForGzip(t))},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				resp := httptest.NewRecorder()
+				req := httptest.NewRequest(http.MethodGet, "/api/v4/test", nil)
+				req.Header.Set("Accept-Encoding", "br, gzip")
+				req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+
+				tc.handler.ServeHTTP(resp, req)
+
+				assert.Equal(t, http.StatusOK, resp.Code)
+				assert.Equal(t, "gzip", resp.Header().Get("Content-Encoding"),
+					"handler %s must fall back to gzip even when the client accepts brotli", tc.name)
+			})
+		}
 	})
 }

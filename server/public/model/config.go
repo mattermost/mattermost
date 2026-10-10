@@ -529,6 +529,15 @@ type ServiceSettings struct {
 
 var MattermostGiphySdkKey string
 
+// "brotli" is a superset of "gzip": gzip everywhere, plus Brotli on API responses.
+func (s *ServiceSettings) CompressResponses() bool {
+	return *s.WebserverMode == "gzip" || *s.WebserverMode == "brotli"
+}
+
+func (s *ServiceSettings) CompressResponsesWithBrotli() bool {
+	return *s.WebserverMode == "brotli"
+}
+
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableEmailInvitations == nil {
 		// If the site URL is also not present then assume this is a clean install
@@ -5080,7 +5089,7 @@ func (s *ServiceSettings) isValid() *AppError {
 		return appErr
 	}
 
-	if !(*s.WebserverMode == "gzip" || *s.WebserverMode == "nogzip" || *s.WebserverMode == "disabled") {
+	if !(*s.WebserverMode == "gzip" || *s.WebserverMode == "brotli" || *s.WebserverMode == "nogzip" || *s.WebserverMode == "disabled") {
 		return NewAppError("Config.IsValid", "model.config.is_valid.webserver_mode.app_error", map[string]any{"Value": *s.WebserverMode}, "", http.StatusBadRequest)
 	}
 

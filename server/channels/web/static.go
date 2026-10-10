@@ -39,7 +39,7 @@ func (w *Web) InitStatic() {
 		staticHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(staticDir))))
 		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.srv.Config().PluginSettings.ClientDirectory))))
 
-		if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
+		if w.srv.Config().ServiceSettings.CompressResponses() {
 			staticHandler = gzhttp.GzipHandler(staticHandler)
 			pluginHandler = gzhttp.GzipHandler(pluginHandler)
 		}
