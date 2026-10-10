@@ -583,6 +583,83 @@ func TestGetNotificationEmailBodyFullNotificationWithMessageAttachments(t *testi
 	require.Contains(t, body, "message attachment 2 text")
 }
 
+func TestGetNotificationEmailBodyFullNotificationAttachmentOnlyPost(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupWithStoreMock(t)
+
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
+	post := &model.Post{
+		Id:      "test-post-id",
+		Message: "",
+	}
+	model.ParseMessageAttachment(post, []*model.MessageAttachment{
+		{
+			Title: "Attachment-only notification test",
+			Text:  "@recipient MM-EMAIL-ATTACHMENT-TEST",
+		},
+	})
+
+	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
+		DisplayName: "ChannelName",
+		Type:        model.ChannelTypeOpen,
+	}
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
+
+	storeMock := th.App.Srv().Store().(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
+	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
+
+	setupPreferenceMocks(th, recipient.Id, true)
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "")
+	require.NoError(t, err)
+	require.Contains(t, body, "Attachment-only notification test")
+	require.Contains(t, body, "MM-EMAIL-ATTACHMENT-TEST")
+}
+
+func TestGetNotificationEmailBodyGenericNotificationAttachmentOnlyPost(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	th.App.Srv().SetLicense(model.NewTestLicense())
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.EmailNotificationContentsType = model.EmailNotificationContentsGeneric
+	})
+
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
+	post := &model.Post{
+		Id:      "test-post-id",
+		Message: "",
+	}
+	model.ParseMessageAttachment(post, []*model.MessageAttachment{
+		{
+			Title: "Attachment-only notification test",
+			Text:  "@recipient MM-EMAIL-ATTACHMENT-TEST",
+		},
+	})
+
+	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
+		DisplayName: "ChannelName",
+		Type:        model.ChannelTypeOpen,
+	}
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "")
+	require.NoError(t, err)
+	require.NotContains(t, body, "Attachment-only notification test")
+	require.NotContains(t, body, "MM-EMAIL-ATTACHMENT-TEST")
+}
+
 // from here
 func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) {
 	mainHelper.Parallel(t)
