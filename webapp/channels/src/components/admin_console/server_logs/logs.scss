@@ -1,0 +1,11 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// The log viewer fills the console instead of being capped at the settings
+// width, since log lines are wide and there are a lot of them.
+.admin-console .admin-console__wrapper .admin-console__container.ServerLogs {
+    display: flex;
+    overflow: hidden;
+    height: 100%;
+    flex-direction: column;
+}

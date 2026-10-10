@@ -3131,10 +3131,6 @@
     "defaultMessage": "No channels found",
     "description": "Empty-state placeholder in the admin console Channels list when no channels match the search or filters."
   },
-  "admin.channel_settings.channel_list.no_logs_found": {
-    "defaultMessage": "No logs found. Ensure log files are within the logging root directory (configured via MM_LOG_PATH or the default logs directory).",
-    "description": "Empty-state text in the System Console > Server Logs table when no log entries are found; MM_LOG_PATH is an environment variable name and must not be translated."
-  },
   "admin.channel_settings.channel_list.search_channels_errored": {
     "defaultMessage": "Something went wrong. Try again",
     "description": "Error placeholder shown in the admin console Channels list when the channel search request fails."
@@ -9315,10 +9311,6 @@
     "defaultMessage": "When true, logged events are written in a machine readable JSON format. Otherwise they are printed as plain text. Changing this setting requires a server restart before taking effect.",
     "description": "Admin console help text under a JSON log output toggle on the Logging page."
   },
-  "admin.log.Level": {
-    "defaultMessage": "Level",
-    "description": "Column header in the Server Logs table for the log severity level (Debug/Info/Warn/Error)."
-  },
   "admin.log.levelDescription": {
     "defaultMessage": "This setting determines the level of detail at which log events are written to the console. ERROR: Outputs only error messages. INFO: Outputs error messages and information around startup and initialization. DEBUG: Prints high detail for developers working on debugging issues.",
     "description": "Admin console help text under the Console Log Level dropdown; ERROR, INFO, and DEBUG are literal log level values and must not be translated."
@@ -9359,77 +9351,341 @@
     "defaultMessage": "Log Level",
     "description": "Name of the Log Level setting, inserted in bold into the Enable Webhook Debugging help text to refer the admin to that other setting."
   },
-  "admin.logs.Alllevels": {
+  "admin.logs.allLevels": {
     "defaultMessage": "All levels",
-    "description": "Default option in the log level filter dropdown on the Server Logs page; shows entries of every severity."
+    "description": "Option in the log level filter on the System Console Server Logs page; shows entries of every level."
   },
-  "admin.logs.bannerDesc": {
-    "defaultMessage": "To look up users by User ID or Token ID, go to User Management > Users and paste the ID into the search filter.",
-    "description": "Informational banner on the Server Logs page telling admins how to look up user or token IDs found in logs; 'User Management > Users' is a System Console menu path."
+  "admin.logs.clearFilters": {
+    "defaultMessage": "Clear filters",
+    "description": "Link shown when no log entries match the filters on the System Console Server Logs page; resets all filters."
   },
-  "admin.logs.caller": {
+  "admin.logs.copied": {
+    "defaultMessage": "Copied!",
+    "description": "Confirmation shown briefly on a copy button on the System Console Server Logs page after the text was copied to the clipboard."
+  },
+  "admin.logs.copiedLine": {
+    "defaultMessage": "Copied!",
+    "description": "Confirmation shown briefly on the \"Copy log line\" button on the System Console Server Logs page after the line was copied."
+  },
+  "admin.logs.copyAll": {
+    "defaultMessage": "Copy all",
+    "description": "Button label in the plain text log viewer on the System Console Server Logs page; copies all visible log lines to the clipboard."
+  },
+  "admin.logs.copyFailed": {
+    "defaultMessage": "Copy failed",
+    "description": "Message shown on a copy button on the System Console Server Logs page when copying to the clipboard did not work."
+  },
+  "admin.logs.copyJson": {
+    "defaultMessage": "Copy JSON",
+    "description": "Button label in an expanded log entry on the System Console Server Logs page; copies the entry as JSON to the clipboard."
+  },
+  "admin.logs.copyLine": {
+    "defaultMessage": "Copy log line",
+    "description": "Button label in an expanded log entry on the System Console Server Logs page; copies the raw log line to the clipboard."
+  },
+  "admin.logs.copyToClipboard": {
+    "defaultMessage": "Copy to clipboard",
+    "description": "Accessible label for the icon button that copies a field value of a log entry on the System Console Server Logs page."
+  },
+  "admin.logs.detail.caller": {
     "defaultMessage": "Caller",
-    "description": "Column header in the Server Logs table for the code location (file:line) that emitted the log entry."
+    "description": "Field label in an expanded log entry on the System Console Server Logs page; the source file and line that wrote the log follows."
   },
-  "admin.logs.Debug": {
-    "defaultMessage": "Debug",
-    "description": "Log severity level shown in the Server Logs table and its level filter; keep short."
+  "admin.logs.detail.level": {
+    "defaultMessage": "Level",
+    "description": "Field label in an expanded log entry on the System Console Server Logs page; the log level (e.g. Error, Info) follows."
+  },
+  "admin.logs.detail.message": {
+    "defaultMessage": "Message",
+    "description": "Field label in an expanded log entry on the System Console Server Logs page; the log message follows."
+  },
+  "admin.logs.detail.timestamp": {
+    "defaultMessage": "Timestamp",
+    "description": "Field label in an expanded log entry on the System Console Server Logs page; the date and time of the entry follows."
+  },
+  "admin.logs.download": {
+    "defaultMessage": "Download",
+    "description": "Button label in the plain text log viewer on the System Console Server Logs page; downloads the log file."
   },
   "admin.logs.DownloadLogs": {
-    "defaultMessage": "Download Logs",
+    "defaultMessage": "Download",
     "description": "Button label on the System Console Server Logs page; downloads the log files."
   },
-  "admin.logs.Error": {
+  "admin.logs.duration": {
+    "defaultMessage": "Duration",
+    "description": "Label of the time range filter on the System Console Server Logs page; limits entries to a recent period."
+  },
+  "admin.logs.duration.dropdownAriaLabel": {
+    "defaultMessage": "Time range menu",
+    "description": "Accessible label for the time range dropdown menu on the System Console Server Logs page."
+  },
+  "admin.logs.duration.menuButtonAriaLabel": {
+    "defaultMessage": "Open menu to select a time range",
+    "description": "Accessible label for the button that opens the time range menu on the System Console Server Logs page."
+  },
+  "admin.logs.firstPage": {
+    "defaultMessage": "First page",
+    "description": "Accessible label for the pagination button that jumps to the first page of log entries on the System Console Server Logs page."
+  },
+  "admin.logs.go": {
+    "defaultMessage": "Go",
+    "description": "Button label next to the page number input on the System Console Server Logs page; jumps to the entered page."
+  },
+  "admin.logs.goToPage": {
+    "defaultMessage": "Go to page",
+    "description": "Accessible label for the button that opens the \"go to page\" input on the System Console Server Logs page."
+  },
+  "admin.logs.goToPageLabel": {
+    "defaultMessage": "Go to page:",
+    "description": "Label for the page number input on the System Console Server Logs page; ends with a colon."
+  },
+  "admin.logs.header.caller": {
+    "defaultMessage": "Caller",
+    "description": "Column header in the log entry list on the System Console Server Logs page; the column shows the source file and line that wrote each log."
+  },
+  "admin.logs.header.level": {
+    "defaultMessage": "Level",
+    "description": "Column header in the log entry list on the System Console Server Logs page; the column shows the log level."
+  },
+  "admin.logs.header.message": {
+    "defaultMessage": "Message",
+    "description": "Column header in the log entry list on the System Console Server Logs page; the column shows the log message."
+  },
+  "admin.logs.header.time": {
+    "defaultMessage": "Time",
+    "description": "Column header in the log entry list on the System Console Server Logs page; the column shows when each entry was written."
+  },
+  "admin.logs.keyboardHints": {
+    "defaultMessage": "Keyboard shortcuts: Up and Down arrows navigate entries, Enter expands the selected entry, E jumps to the next error, and / focuses the search box.",
+    "description": "Help text on the System Console Server Logs page listing the keyboard shortcuts for the log entry list; \"E\" and \"/\" are literal keys and must not be translated."
+  },
+  "admin.logs.keyboardHintsLabel": {
+    "defaultMessage": "Keyboard shortcuts",
+    "description": "Accessible label for the keyboard shortcuts help button on the System Console Server Logs page."
+  },
+  "admin.logs.level.debug": {
+    "defaultMessage": "Debug",
+    "description": "Log level name shown as a badge and filter option on the System Console Server Logs page."
+  },
+  "admin.logs.level.error": {
     "defaultMessage": "Error",
-    "description": "Log severity level shown in the Server Logs table and its level filter; a noun, keep short."
+    "description": "Log level name shown as a badge and filter option on the System Console Server Logs page."
   },
-  "admin.logs.fullEvent": {
-    "defaultMessage": "Full Log event",
-    "description": "Button label in a Server Logs table row that opens a modal showing the complete JSON log event."
-  },
-  "admin.logs.Info": {
+  "admin.logs.level.info": {
     "defaultMessage": "Info",
-    "description": "Log severity level shown in the Server Logs table and its level filter; keep short."
+    "description": "Log level name shown as a badge and filter option on the System Console Server Logs page; short for \"Information\"."
   },
-  "admin.logs.logFormatJson": {
-    "defaultMessage": "JSON",
-    "description": "Option in the log format toggle on the Server Logs page; shows logs as structured JSON. 'JSON' should usually remain untranslated."
+  "admin.logs.level.warn": {
+    "defaultMessage": "Warn",
+    "description": "Log level name shown as a badge and filter option on the System Console Server Logs page; short for \"Warning\"."
+  },
+  "admin.logs.levels": {
+    "defaultMessage": "Levels",
+    "description": "Label of the log level filter on the System Console Server Logs page."
+  },
+  "admin.logs.levels.dropdownAriaLabel": {
+    "defaultMessage": "Log levels menu",
+    "description": "Accessible label for the log level dropdown menu on the System Console Server Logs page."
+  },
+  "admin.logs.levels.menuButtonAriaLabel": {
+    "defaultMessage": "Open menu to select which log levels to show",
+    "description": "Accessible label for the button that opens the log level menu on the System Console Server Logs page."
+  },
+  "admin.logs.levels.selectAll": {
+    "defaultMessage": "Select all levels",
+    "description": "Option in the log level menu on the System Console Server Logs page; selects every level."
+  },
+  "admin.logs.levels.selected": {
+    "defaultMessage": "{count} selected",
+    "description": "Summary in the log level filter on the System Console Server Logs page when several levels are chosen; {count} is the number of selected levels."
+  },
+  "admin.logs.lineNumbers": {
+    "defaultMessage": "Lines",
+    "description": "Toggle button label in the plain text log viewer on the System Console Server Logs page; shows or hides line numbers."
+  },
+  "admin.logs.listLabel": {
+    "defaultMessage": "Server log entries",
+    "description": "Accessible label for the list of log entries on the System Console Server Logs page."
+  },
+  "admin.logs.liveTail": {
+    "defaultMessage": "Live tail",
+    "description": "Label of the live tail selector on the System Console Server Logs page; when on, new log entries are fetched automatically."
+  },
+  "admin.logs.liveTail.dropdownAriaLabel": {
+    "defaultMessage": "Live tail menu",
+    "description": "Accessible label for the live tail dropdown menu on the System Console Server Logs page."
+  },
+  "admin.logs.liveTail.menuButtonAriaLabel": {
+    "defaultMessage": "Open menu to turn live tail on or off",
+    "description": "Accessible label for the button that opens the live tail menu on the System Console Server Logs page."
+  },
+  "admin.logs.liveTail.off": {
+    "defaultMessage": "Off",
+    "description": "Option in the live tail selector on the System Console Server Logs page; turns automatic refreshing off."
+  },
+  "admin.logs.loading": {
+    "defaultMessage": "Loading logs",
+    "description": "Text next to a loading spinner on the System Console Server Logs page while log entries are fetched."
+  },
+  "admin.logs.logFormat.dropdownAriaLabel": {
+    "defaultMessage": "Log format menu",
+    "description": "Accessible label for the log format dropdown menu on the System Console Server Logs page."
+  },
+  "admin.logs.logFormat.menuButtonAriaLabel": {
+    "defaultMessage": "Open menu to select the log format",
+    "description": "Accessible label for the button that opens the log format menu on the System Console Server Logs page."
   },
   "admin.logs.logFormatPlain": {
     "defaultMessage": "Plain text",
     "description": "Option in the log format toggle on the Server Logs page; shows logs as unformatted plain text."
   },
+  "admin.logs.logFormatStructured": {
+    "defaultMessage": "Structured",
+    "description": "Option in the log format menu on the System Console Server Logs page; shows logs as a table of parsed entries rather than raw text."
+  },
   "admin.logs.logFormatTitle": {
-    "defaultMessage": "Log Format:",
-    "description": "Label for the log format toggle (JSON vs. plain text) on the Server Logs page; ends with a colon."
+    "defaultMessage": "Log format",
+    "description": "Label of the log format menu on the System Console Server Logs page; switches between structured and plain text views."
   },
-  "admin.logs.next": {
-    "defaultMessage": "Next",
-    "description": "Pagination button label on the plain-text server logs view; goes to the next page of log lines."
+  "admin.logs.newestFirst": {
+    "defaultMessage": "Newest",
+    "description": "Sort button label in the plain text log viewer on the System Console Server Logs page; shown while the newest lines are listed first."
   },
-  "admin.logs.options": {
-    "defaultMessage": "Options",
-    "description": "Column header in the Server Logs table for the per-row actions column."
+  "admin.logs.nextPage": {
+    "defaultMessage": "Next page",
+    "description": "Accessible label for the pagination button that goes to the next page of log entries on the System Console Server Logs page."
   },
-  "admin.logs.prev": {
-    "defaultMessage": "Previous",
-    "description": "Pagination button label on the plain-text server logs view; goes to the previous page of log lines."
+  "admin.logs.noLogs": {
+    "defaultMessage": "No logs found. Ensure log files are within the logging root directory.",
+    "description": "Empty state on the System Console Server Logs page when no log entries could be read."
+  },
+  "admin.logs.noMatchingLogs": {
+    "defaultMessage": "No logs match your filters. {clearLink}",
+    "description": "Empty state on the System Console Server Logs page when no entries match the filters; {clearLink} is the \"Clear filters\" link."
+  },
+  "admin.logs.oldestFirst": {
+    "defaultMessage": "Oldest",
+    "description": "Sort button label in the plain text log viewer on the System Console Server Logs page; shown while the oldest lines are listed first."
+  },
+  "admin.logs.pageOf": {
+    "defaultMessage": "Page {page, number} of {total, number}",
+    "description": "Pagination status on the System Console Server Logs page, e.g. \"Page 2 of 10\"."
+  },
+  "admin.logs.plain.loading": {
+    "defaultMessage": "Loading logs",
+    "description": "Text next to a loading spinner in the plain text log viewer on the System Console Server Logs page."
+  },
+  "admin.logs.plain.noLogs": {
+    "defaultMessage": "No logs to display.",
+    "description": "Empty state in the plain text log viewer on the System Console Server Logs page."
+  },
+  "admin.logs.plain.pageInfo": {
+    "defaultMessage": "Showing page {page, number} · {count, plural, one {# line} other {# lines}}",
+    "description": "Status line in the plain text log viewer on the System Console Server Logs page; shows the current page and how many log lines it holds."
+  },
+  "admin.logs.pollInterval.10s": {
+    "defaultMessage": "Every 10 seconds",
+    "description": "Option in the live tail selector on the System Console Server Logs page; fetches new entries every 10 seconds."
+  },
+  "admin.logs.pollInterval.30s": {
+    "defaultMessage": "Every 30 seconds",
+    "description": "Option in the live tail selector on the System Console Server Logs page; fetches new entries every 30 seconds."
+  },
+  "admin.logs.pollInterval.5s": {
+    "defaultMessage": "Every 5 seconds",
+    "description": "Option in the live tail selector on the System Console Server Logs page; fetches new entries every 5 seconds."
+  },
+  "admin.logs.pollInterval.60s": {
+    "defaultMessage": "Every 60 seconds",
+    "description": "Option in the live tail selector on the System Console Server Logs page; fetches new entries every 60 seconds."
+  },
+  "admin.logs.prevPage": {
+    "defaultMessage": "Previous page",
+    "description": "Accessible label for the pagination button that goes to the previous page of log entries on the System Console Server Logs page."
+  },
+  "admin.logs.refreshing": {
+    "defaultMessage": "Refreshing…",
+    "description": "Status text on the System Console Server Logs page while new log entries are being fetched in the background."
+  },
+  "admin.logs.reload": {
+    "defaultMessage": "Reload",
+    "description": "Button label on the System Console Server Logs page; re-fetches the latest log entries from the server."
   },
   "admin.logs.ReloadLogs": {
-    "defaultMessage": "Reload Logs",
+    "defaultMessage": "Reload",
     "description": "Button label on the Server Logs page; re-fetches the latest log entries from the server."
   },
-  "admin.logs.showErrors": {
-    "defaultMessage": "Show last {n} errors",
-    "description": "Filter button on the Server Logs page that shows only recent error entries; {n} is the number of errors to display."
+  "admin.logs.rowsPerPage": {
+    "defaultMessage": "Show",
+    "description": "Text before the page size dropdown on the System Console Server Logs page; reads together with \"rows per page\", e.g. \"Show [50] rows per page\"."
+  },
+  "admin.logs.rowsPerPageSuffix": {
+    "defaultMessage": "rows per page",
+    "description": "Text after the page size dropdown on the System Console Server Logs page; reads together with \"Show\", e.g. \"Show [50] rows per page\"."
+  },
+  "admin.logs.scrollToBottom": {
+    "defaultMessage": "Scroll to bottom",
+    "description": "Accessible label for the button that scrolls the log list to the bottom on the System Console Server Logs page."
+  },
+  "admin.logs.scrollToTop": {
+    "defaultMessage": "Scroll to top",
+    "description": "Accessible label for the button that scrolls the log list to the top on the System Console Server Logs page."
+  },
+  "admin.logs.search.clear": {
+    "defaultMessage": "Clear search",
+    "description": "Accessible label for the button that clears the log search box on the System Console Server Logs page."
+  },
+  "admin.logs.search.placeholder": {
+    "defaultMessage": "Search logs",
+    "description": "Placeholder text in the log search box on the System Console Server Logs page."
+  },
+  "admin.logs.showing": {
+    "defaultMessage": "Showing {start, number} - {end, number} of {total, number}",
+    "description": "Pagination summary on the System Console Server Logs page, e.g. \"Showing 1 - 50 of 1,200\"."
+  },
+  "admin.logs.showingMatching": {
+    "defaultMessage": "Showing {start, number} - {end, number} of {matches, number} entries matching your filters ({total, number} total)",
+    "description": "Pagination summary on the System Console Server Logs page when filters are applied; shows the range, the number of matching entries and the total."
+  },
+  "admin.logs.sortNewestFirst": {
+    "defaultMessage": "Sort newest first",
+    "description": "Tooltip for the sort button in the plain text log viewer on the System Console Server Logs page; clicking lists the newest lines first."
+  },
+  "admin.logs.sortOldestFirst": {
+    "defaultMessage": "Sort oldest first",
+    "description": "Tooltip for the sort button in the plain text log viewer on the System Console Server Logs page; clicking lists the oldest lines first."
+  },
+  "admin.logs.time.15m": {
+    "defaultMessage": "Last 15 minutes",
+    "description": "Option in the time range filter on the System Console Server Logs page."
+  },
+  "admin.logs.time.1h": {
+    "defaultMessage": "Last hour",
+    "description": "Option in the time range filter on the System Console Server Logs page."
+  },
+  "admin.logs.time.24h": {
+    "defaultMessage": "Last 24 hours",
+    "description": "Option in the time range filter on the System Console Server Logs page."
+  },
+  "admin.logs.time.5m": {
+    "defaultMessage": "Last 5 minutes",
+    "description": "Option in the time range filter on the System Console Server Logs page."
+  },
+  "admin.logs.time.allTime": {
+    "defaultMessage": "All time",
+    "description": "Option in the time range filter on the System Console Server Logs page; shows entries regardless of age."
   },
   "admin.logs.title": {
     "defaultMessage": "Server Logs",
     "description": "Page title of the Server Logs page in the System Console."
   },
-  "admin.logs.Warn": {
-    "defaultMessage": "Warn",
-    "description": "Log severity level (warning) shown in the Server Logs table and its level filter; keep short."
+  "admin.logs.viewInAdmin": {
+    "defaultMessage": "View in admin console",
+    "description": "Tooltip on a user or team ID link in an expanded log entry on the System Console Server Logs page; opens that item in the System Console."
+  },
+  "admin.logs.wrap": {
+    "defaultMessage": "Wrap text",
+    "description": "Toggle button label in the plain text log viewer on the System Console Server Logs page; wraps long log lines instead of scrolling horizontally."
   },
   "admin.manage_roles.additionalRoles": {
     "defaultMessage": "Select additional permissions for the account. <link>Read more about roles and permissions</link>.",
