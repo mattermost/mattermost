@@ -339,7 +339,7 @@ func TestUploadFiles(t *testing.T) {
 			blobs:                    [][]byte{fileBytes(t, "test-search.md")},
 			skipPayloadValidation:    true,
 			expectedCreatorId:        th.BasicUser.Id,
-			expectedImageMiniPreview: []bool{false},
+			expectedImageMiniPreview: []bool{true},
 		},
 		// Simple POST, chunked encoding
 		{
