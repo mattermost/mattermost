@@ -10142,7 +10142,7 @@
   },
   {
     "id": "app.pap.expression_to_visual_ast.app_error",
-    "translation": "Could not genereate visual AST from expression.",
+    "translation": "Could not generate visual AST from expression.",
     "description": "API error for admins when an access control policy expression cannot be converted into the visual rule-editor representation; AST means abstract syntax tree."
   },
   {
