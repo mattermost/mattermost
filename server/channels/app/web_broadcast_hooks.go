@@ -419,7 +419,7 @@ func (h *burnOnReadReactionBroadcastHook) Process(msg *platform.HookedWebSocketE
 
 	// If no receipt or receipt expired, remove reaction data
 	if receipt == nil || receipt.ExpireAt < model.GetMillis() {
-		msg.Event().Reject()
+		msg.Reject()
 		return nil
 	}
 
@@ -511,7 +511,7 @@ func (h *abacFilesBroadcastHook) stripFilesFromMessage(msg *platform.HookedWebSo
 	post, err := getPostFromMessage(msg)
 	if err != nil {
 		mlog.Warn("abacFilesBroadcastHook: failed to parse post in fallback strip; rejecting event", mlog.Err(err))
-		msg.Event().Reject()
+		msg.Reject()
 		return nil
 	}
 	if post.Metadata == nil {
@@ -524,7 +524,7 @@ func (h *abacFilesBroadcastHook) stripFilesFromMessage(msg *platform.HookedWebSo
 		msg.Add("post", postJSON)
 	} else {
 		mlog.Warn("abacFilesBroadcastHook: failed to marshal post in fallback strip; rejecting event", mlog.Err(jsonErr))
-		msg.Event().Reject()
+		msg.Reject()
 	}
 	return nil
 }
@@ -595,7 +595,7 @@ func (h *abacBookmarksBroadcastHook) Process(msg *platform.HookedWebSocketEvent,
 			mlog.String("user_id", webConn.UserId),
 			mlog.String("field", field),
 		)
-		msg.Event().Reject()
+		msg.Reject()
 		return nil
 	}
 
@@ -605,7 +605,7 @@ func (h *abacBookmarksBroadcastHook) Process(msg *platform.HookedWebSocketEvent,
 			mlog.String("user_id", webConn.UserId),
 			mlog.Err(jsonErr),
 		)
-		msg.Event().Reject()
+		msg.Reject()
 		return nil
 	}
 
@@ -617,7 +617,7 @@ func (h *abacBookmarksBroadcastHook) Process(msg *platform.HookedWebSocketEvent,
 			mlog.String("user_id", webConn.UserId),
 			mlog.Err(jsonErr),
 		)
-		msg.Event().Reject()
+		msg.Reject()
 		return nil
 	}
 
@@ -666,7 +666,7 @@ func (h *onlyChannelAdminsBroadcastHook) Process(msg *platform.HookedWebSocketEv
 	}
 
 	if !slices.Contains(adminUserIDs, webConn.UserId) {
-		msg.Event().Reject()
+		msg.Reject()
 	}
 	return nil
 }
