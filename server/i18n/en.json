@@ -14312,6 +14312,51 @@
     "description": "Health dashboard reason shown when a health check could not run because the usage statistics it inspects (for example user or post counts) were not collected, so the check's status is unknown."
   },
   {
+    "id": "health.rule.audit_log_off.message",
+    "translation": "No audit log target is active and this workspace has {{.users}} registered users. Administrative actions, logins and configuration changes leave no separate audit trail. This is a compliance and forensic gap, not a stability risk.",
+    "description": "Health dashboard finding detail when audit logging is off on a large workspace; {{.users}} is the number of registered users. An 'audit log target' is a destination (such as a file) that audit records are written to."
+  },
+  {
+    "id": "health.rule.audit_log_off.remediation",
+    "translation": "If your organization has audit requirements (financial services, healthcare, defense, regulated public sector), enable audit logging in System Console > Compliance > Audit Logging, or add a target for the audit levels to ExperimentalAuditSettings.AdvancedLoggingJSON, and configure rotation. Otherwise this can be ignored.",
+    "description": "Health dashboard fix-it step for disabled audit logging; 'System Console > Compliance > Audit Logging' is a navigation path and 'ExperimentalAuditSettings.AdvancedLoggingJSON' is a config setting path that should not be translated."
+  },
+  {
+    "id": "health.rule.audit_log_off.title",
+    "translation": "Audit logging disabled",
+    "description": "Health dashboard finding title when no audit log target is active."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.message",
+    "translation": "ComplianceSettings.Directory is empty, so compliance reports are written to a compliance folder under the server's working directory. They are lost when the server is upgraded or its container is rebuilt.",
+    "description": "Health dashboard finding detail when compliance monitoring is on but its report directory is empty; 'ComplianceSettings.Directory' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.remediation",
+    "translation": "Set Compliance Report Directory in System Console > Compliance > Compliance Monitoring (ComplianceSettings.Directory) to a persistent, writable path.",
+    "description": "Health dashboard fix-it step for an empty compliance report directory; 'System Console > Compliance > Compliance Monitoring' is a navigation path and 'ComplianceSettings.Directory' is a config setting path that should not be translated."
+  },
+  {
+    "id": "health.rule.compliance_no_dir.title",
+    "translation": "Compliance monitoring enabled but Directory is empty",
+    "description": "Health dashboard finding title when compliance monitoring is turned on but the compliance report directory is empty."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.message",
+    "translation": "GlobalRelaySettings.SMTPServerTimeout is {{.value}} seconds. It limits how long the export waits to connect to the Global Relay SMTP server, and under 30 seconds a slow connection fails the delivery.",
+    "description": "Health dashboard finding detail when the Global Relay SMTP connection timeout is under 30 seconds; {{.value}} is the configured timeout in seconds. 'GlobalRelaySettings.SMTPServerTimeout' is a config setting path and 'Global Relay' is a product name; neither should be translated."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.remediation",
+    "translation": "Raise MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout to at least 30 seconds. The default is 1800.",
+    "description": "Health dashboard fix-it step for a low Global Relay SMTP timeout; 'MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.export_gr_timeout_low.title",
+    "translation": "Global Relay SMTPServerTimeout is under 30 seconds",
+    "description": "Health dashboard finding title when the Global Relay message export SMTP timeout is under 30 seconds; 'Global Relay' is a product name and 'SMTPServerTimeout' is a config setting name, neither should be translated."
+  },
+  {
     "id": "health.rule.push_bad_scheme.message.http",
     "translation": "PushNotificationServer {{.url}} uses http://, so push notifications are sent in cleartext.",
     "description": "Health dashboard finding detail when the push notification server URL starts with http:// instead of https://; {{.url}} is the configured URL. 'PushNotificationServer' is a config setting name and should not be translated."
@@ -14360,6 +14405,21 @@
     "id": "health.rule.push_test_proxy.title",
     "translation": "PushNotificationServer points at push-test.mattermost.com",
     "description": "Health dashboard finding title when the push notification server is Mattermost's test push proxy; 'PushNotificationServer' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.message",
+    "translation": "TimeBetweenBatchesMilliseconds is {{.value}}. The data retention job pauses this long between delete batches to give the database time to serve live traffic. Under 100 ms, large deletions can slow the database for everyone.",
+    "description": "Health dashboard finding detail when the data retention pause between delete batches is under 100 milliseconds; {{.value}} is the configured pause in milliseconds. 'TimeBetweenBatchesMilliseconds' is a config setting name and should not be translated."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.remediation",
+    "translation": "Raise DataRetentionSettings.TimeBetweenBatchesMilliseconds to at least 100 (the default) in the configuration.",
+    "description": "Health dashboard fix-it step for a data retention batch pause under 100 milliseconds; 'DataRetentionSettings.TimeBetweenBatchesMilliseconds' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.retention_tight_batches.title",
+    "translation": "Data retention TimeBetweenBatchesMilliseconds is under 100",
+    "description": "Health dashboard finding title when the data retention pause between delete batches is under 100 milliseconds; 'TimeBetweenBatchesMilliseconds' is a config setting name and should not be translated."
   },
   {
     "id": "health.rule.site_url_empty.message",
