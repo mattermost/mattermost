@@ -39,7 +39,8 @@ test('should open right-hand sidebar when demo plugin App Bar button is clicked'
     await expect(rhsPanel.getByRole('button', {name: 'Pop Out RHS'})).toBeVisible();
     await expect(rhsPanel.getByRole('button', {name: 'Pop Out via useEffect'})).toBeVisible();
 
-    // 6. Verify pop-out buttons are present and enabled (but do NOT click — pop-out crashes in test env)
+    // 6. Verify pop-out buttons are present and enabled. Clicking them is covered by the
+    // dedicated pop-out tests below.
     await expect(rhsPanel.getByRole('button', {name: 'Pop Out RHS'})).toBeEnabled();
     await expect(rhsPanel.getByRole('button', {name: 'Pop Out via useEffect'})).toBeEnabled();
 
@@ -53,4 +54,64 @@ test('should open right-hand sidebar when demo plugin App Bar button is clicked'
     const rhsPanelAfterNav = channelsPage.page.getByRole('region', {name: 'Demo Plugin'});
     await rhsPanelAfterNav.getByRole('button', {name: 'Close'}).click();
     await expect(rhsPanelAfterNav).not.toBeVisible();
+});
+
+test('should pop out the RHS into a new window without crashing', async ({pw}) => {
+    // 1. Setup
+    const {adminClient, user, team} = await pw.initSetup();
+    await setupDemoPlugin(adminClient, pw);
+
+    // 2. Login, navigate to Town Square, open the RHS
+    const {channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, 'town-square');
+    await channelsPage.toBeVisible();
+    await channelsPage.appBar.demoPluginButton.click();
+    const rhsPanel = channelsPage.page.getByRole('region', {name: 'Demo Plugin'});
+    await expect(rhsPanel).toBeVisible();
+
+    // 3. Click "Pop Out RHS" and capture the new window it opens
+    const [popup] = await Promise.all([
+        channelsPage.page.context().waitForEvent('page'),
+        rhsPanel.getByRole('button', {name: 'Pop Out RHS'}).click(),
+    ]);
+    await popup.waitForLoadState();
+
+    // 4. Verify the pop-out window renders the RHS content without a plugin error.
+    // Prior to the demo plugin's null-guard fix, team/channel being briefly undefined during
+    // the pop-out's initial render crashed this page.
+    await expect(popup).toHaveURL(new RegExp(`/_popout/rhs/${team.name}/plugin/com\\.mattermost\\.demo-plugin`));
+    await expect(
+        popup.getByText('You have triggered the right-hand sidebar component of the demo plugin.', {exact: true}),
+    ).toBeVisible();
+
+    await popup.close();
+});
+
+test('should pop out the RHS via the useEffect-triggered button', async ({pw}) => {
+    // 1. Setup
+    const {adminClient, user, team} = await pw.initSetup();
+    await setupDemoPlugin(adminClient, pw);
+
+    // 2. Login, navigate to Town Square, open the RHS
+    const {channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, 'town-square');
+    await channelsPage.toBeVisible();
+    await channelsPage.appBar.demoPluginButton.click();
+    const rhsPanel = channelsPage.page.getByRole('region', {name: 'Demo Plugin'});
+    await expect(rhsPanel).toBeVisible();
+
+    // 3. Click "Pop Out via useEffect" and capture the new window it opens
+    const [popup] = await Promise.all([
+        channelsPage.page.context().waitForEvent('page'),
+        rhsPanel.getByRole('button', {name: 'Pop Out via useEffect'}).click(),
+    ]);
+    await popup.waitForLoadState();
+
+    // 4. Verify the pop-out window renders the RHS content without a plugin error
+    await expect(popup).toHaveURL(new RegExp(`/_popout/rhs/${team.name}/plugin/com\\.mattermost\\.demo-plugin`));
+    await expect(
+        popup.getByText('You have triggered the right-hand sidebar component of the demo plugin.', {exact: true}),
+    ).toBeVisible();
+
+    await popup.close();
 });
