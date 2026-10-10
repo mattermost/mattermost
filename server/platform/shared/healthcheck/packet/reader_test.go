@@ -133,6 +133,7 @@ func TestReadGoldenPackets(t *testing.T) {
 			name: "ha",
 			expected: []finding{
 				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject},
+				{Code: "ES_LIVE_BATCH_SYNC", State: healthcheck.StateFiring, Subject: "ElasticsearchSettings.LiveIndexingBatchSize"},
 			},
 		},
 	}
