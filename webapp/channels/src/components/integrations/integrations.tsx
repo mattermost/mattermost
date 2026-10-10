@@ -8,16 +8,16 @@ import type {Team} from '@mattermost/types/teams';
 
 import {Permissions} from 'mattermost-redux/constants';
 
+import BotAccountsSvg from 'components/common/svg_images_components/bot_accounts_svg';
+import IncomingWebhookSvg from 'components/common/svg_images_components/incoming_webhook_svg';
+import OauthApplicationsSvg from 'components/common/svg_images_components/oauth_applications_svg';
+import OutgoingOauthConnectionsSvg from 'components/common/svg_images_components/outgoing_oauth_connections_svg';
+import OutgoingWebhookSvg from 'components/common/svg_images_components/outgoing_webhook_svg';
+import SlashCommandsSvg from 'components/common/svg_images_components/slash_commands_svg';
 import ExternalLink from 'components/external_link';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 
-import BotAccountsIcon from 'images/bot_default_icon.png';
-import IncomingWebhookIcon from 'images/incoming_webhook.jpg';
-import OAuthIcon from 'images/oauth_icon.png';
-import OutgoingOAuthConnectionsIcon from 'images/outgoing_oauth_connection.png';
-import OutgoingWebhookIcon from 'images/outgoing_webhook.jpg';
-import SlashCommandIcon from 'images/slash_command_icon.jpg';
 import * as Utils from 'utils/utils';
 
 import IntegrationOption from './integration_option';
@@ -54,7 +54,7 @@ export default class Integrations extends React.PureComponent <Props> {
                 >
                     <IntegrationOption
                         key='incomingWebhook'
-                        image={IncomingWebhookIcon}
+                        image={<IncomingWebhookSvg/>}
                         title={
                             <FormattedMessage
                                 id='integrations.incomingWebhook.title'
@@ -82,7 +82,7 @@ export default class Integrations extends React.PureComponent <Props> {
                 >
                     <IntegrationOption
                         key='outgoingWebhook'
-                        image={OutgoingWebhookIcon}
+                        image={<OutgoingWebhookSvg/>}
                         title={
                             <FormattedMessage
                                 id='integrations.outgoingWebhook.title'
@@ -110,7 +110,7 @@ export default class Integrations extends React.PureComponent <Props> {
                 >
                     <IntegrationOption
                         key='command'
-                        image={SlashCommandIcon}
+                        image={<SlashCommandsSvg/>}
                         title={
                             <FormattedMessage
                                 id='integrations.command.title'
@@ -137,7 +137,7 @@ export default class Integrations extends React.PureComponent <Props> {
                 >
                     <IntegrationOption
                         key='oauth2Apps'
-                        image={OAuthIcon}
+                        image={<OauthApplicationsSvg/>}
                         title={
                             <FormattedMessage
                                 id='integrations.oauthApps.title'
@@ -165,7 +165,7 @@ export default class Integrations extends React.PureComponent <Props> {
                 >
                     <IntegrationOption
                         key='outgoingOAuthConnections'
-                        image={OutgoingOAuthConnectionsIcon}
+                        image={<OutgoingOauthConnectionsSvg/>}
                         title={
                             <FormattedMessage
                                 id='integrations.outgoingOAuthConnections.title'
@@ -190,7 +190,7 @@ export default class Integrations extends React.PureComponent <Props> {
                 key='botsPermissions'
             >
                 <IntegrationOption
-                    image={BotAccountsIcon}
+                    image={<BotAccountsSvg/>}
                     title={
                         <FormattedMessage
                             id='bots.manage.header'
@@ -237,7 +237,7 @@ export default class Integrations extends React.PureComponent <Props> {
                         }}
                     />
                 </div>
-                <div className='integrations-list d-flex flex-wrap'>
+                <div className='integrations-list'>
                     {options}
                 </div>
             </div>

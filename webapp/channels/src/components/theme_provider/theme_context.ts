@@ -2,21 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React, {useContext, useEffect} from 'react';
-import {useLocation} from 'react-router-dom';
-
-import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 
 export const ThemeContext = React.createContext({
     startUsingUserTheme: () => {},
     stopUsingUserTheme: () => {},
 });
-
-// Exclude System Console's integrations pages from team backstage routes.
-const BACKSTAGE_ROUTE_PATTERN = new RegExp(`^/(?!admin_console)${TEAM_NAME_PATH_PATTERN}/(?:integrations|emoji)(?:/|$)`);
-
-function isBackstageRoute(pathname: string): boolean {
-    return BACKSTAGE_ROUTE_PATTERN.test(pathname);
-}
 
 /**
  * useUserTheme makes it so that the app will apply the user's theme instead of the default one for as long as the
@@ -36,24 +26,16 @@ export function useUserTheme() {
 
 /**
  * useAppBodyClass manages the `app__body` class on the document body for the current route while the calling
- * component remains mounted. That class is required for much of our CSS to apply the user's theme, so it is
- * omitted on backstage routes (e.g. integrations, custom emoji) that intentionally render a static light theme.
+ * component remains mounted. That class is required for theme CSS, including on integrations and custom emoji.
  */
 export function useAppBodyClass() {
-    const {pathname} = useLocation();
-    const themed = !isBackstageRoute(pathname);
-
     useEffect(() => {
-        if (!themed) {
-            return undefined;
-        }
-
         document.body.classList.add('app__body');
 
         return () => {
             document.body.classList.remove('app__body');
         };
-    }, [themed]);
+    }, []);
 }
 
 /**

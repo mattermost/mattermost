@@ -50,8 +50,26 @@
         }
     }
 
-    .integration-option {
-        flex: 0 0 45%;
+    .integrations-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media screen and (max-width: 960px) {
+    .backstage-content {
+        max-width: 100%;
+        padding: 0;
+        margin: 30px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .integrations-list {
+        grid-template-columns: 1fr;
+    }
+
+    .backstage-content {
+        margin: 16px;
     }
 }
 
