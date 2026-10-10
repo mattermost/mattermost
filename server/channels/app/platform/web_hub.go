@@ -10,6 +10,7 @@ import (
 	"maps"
 	"runtime"
 	"runtime/debug"
+	"slices"
 	"strconv"
 	"sync/atomic"
 	"time"
@@ -556,11 +557,11 @@ func (h *Hub) recordPostDelivery(marker *model.PostDeliveryMarker, userID string
 // should receive the event. A post delivery is recorded only when the event is actually
 // enqueued onto the connection's send buffer — never before the ShouldSendEvent check, and
 // never on the default branch where the buffer is full and the connection is dropped.
-func (h *Hub) broadcastToConn(connIndex *hubConnectionIndex, webConn *WebConn, msg *model.WebSocketEvent, marker *model.PostDeliveryMarker, broadcastHooks []string, broadcastHookArgs []map[string]any) {
+func (h *Hub) broadcastToConn(connIndex *hubConnectionIndex, webConn *WebConn, msg *model.WebSocketEvent, channelKey [16]byte, marker *model.PostDeliveryMarker, broadcastHooks []string, broadcastHookArgs []map[string]any) {
 	if !connIndex.Has(webConn) {
 		return
 	}
-	if webConn.ShouldSendEvent(msg) {
+	if webConn.ShouldSendEvent(msg, channelKey) {
 		select {
 		case webConn.send <- h.runBroadcastHooks(msg, webConn, broadcastHooks, broadcastHookArgs):
 			h.recordPostDelivery(marker, webConn.UserId)
@@ -769,8 +770,10 @@ func (h *Hub) Start() {
 
 				msg = msg.PrecomputeJSON()
 
+				// Decoded once here; each connection's ShouldSendEvent uses it to check channel membership.
+				channelKey := decodeChannelID(msg.GetBroadcast().ChannelId)
 				broadcast := func(webConn *WebConn) {
-					h.broadcastToConn(connIndex, webConn, msg, deliveryMarker, broadcastHooks, broadcastHookArgs)
+					h.broadcastToConn(connIndex, webConn, msg, channelKey, deliveryMarker, broadcastHooks, broadcastHookArgs)
 				}
 
 				// Quick return for a single connection.
@@ -784,7 +787,7 @@ func (h *Hub) Start() {
 				if userID := msg.GetBroadcast().UserId; userID != "" {
 					targetConns = connIndex.ForUser(userID)
 				} else if channelID := msg.GetBroadcast().ChannelId; channelID != "" && fastIteration {
-					targetConns = connIndex.ForChannel(channelID)
+					targetConns = connIndex.ForChannel(channelID, channelKey)
 				}
 				if targetConns != nil {
 					for webConn := range targetConns {
@@ -868,11 +871,13 @@ func closeAndRemoveConn(connIndex *hubConnectionIndex, conn *WebConn) {
 type hubConnectionIndex struct {
 	// byUserId stores the set of connections for a given userID
 	byUserId map[string]map[*WebConn]struct{}
-	// byChannelID stores the set of connections for a given channelID
-	byChannelID map[string]map[*WebConn]struct{}
+	// byChannelKey stores the set of connections for each channel, by the channel ID's decoded key
+	byChannelKey map[[16]byte]connSet
+	// byUndecodableChannelID holds the channels whose IDs model.DecodeId rejects
+	byUndecodableChannelID map[string]connSet
 	// byConnection serves the dual purpose of storing the channelIDs
 	// and also to get all connections
-	byConnection   map[*WebConn][]string
+	byConnection   map[*WebConn]channelList
 	byConnectionId map[string]*WebConn
 	// staleThreshold is the limit beyond which inactive connections
 	// will be deleted.
@@ -889,36 +894,27 @@ func newHubConnectionIndex(interval time.Duration,
 	fastIteration bool,
 ) *hubConnectionIndex {
 	return &hubConnectionIndex{
-		byUserId:       make(map[string]map[*WebConn]struct{}),
-		byChannelID:    make(map[string]map[*WebConn]struct{}),
-		byConnection:   make(map[*WebConn][]string),
-		byConnectionId: make(map[string]*WebConn),
-		staleThreshold: interval,
-		store:          store,
-		logger:         logger,
-		fastIteration:  fastIteration,
+		byUserId:               make(map[string]map[*WebConn]struct{}),
+		byChannelKey:           make(map[[16]byte]connSet),
+		byUndecodableChannelID: make(map[string]connSet),
+		byConnection:           make(map[*WebConn]channelList),
+		byConnectionId:         make(map[string]*WebConn),
+		staleThreshold:         interval,
+		store:                  store,
+		logger:                 logger,
+		fastIteration:          fastIteration,
 	}
 }
 
 func (i *hubConnectionIndex) Add(wc *WebConn) error {
-	var channelIDs []string
+	var channels channelList
 	if i.fastIteration {
 		cm, err := i.store.Channel().GetAllChannelMembersForUser(request.EmptyContext(i.logger), wc.UserId, false, false)
 		if err != nil {
 			return fmt.Errorf("error getChannelMembersForUser: %v", err)
 		}
-
-		// Store channel IDs and add to byChannelID
-		channelIDs = make([]string, 0, len(cm))
-		for chID := range cm {
-			channelIDs = append(channelIDs, chID)
-
-			// Initialize the channel's map if it doesn't exist
-			if _, ok := i.byChannelID[chID]; !ok {
-				i.byChannelID[chID] = make(map[*WebConn]struct{})
-			}
-			i.byChannelID[chID][wc] = struct{}{}
-		}
+		channels = newChannelList(cm)
+		i.addToChannels(channels, wc)
 	}
 
 	// Initialize the user's map if it doesn't exist
@@ -926,13 +922,13 @@ func (i *hubConnectionIndex) Add(wc *WebConn) error {
 		i.byUserId[wc.UserId] = make(map[*WebConn]struct{})
 	}
 	i.byUserId[wc.UserId][wc] = struct{}{}
-	i.byConnection[wc] = channelIDs
+	i.byConnection[wc] = channels
 	i.byConnectionId[wc.GetConnectionID()] = wc
 	return nil
 }
 
 func (i *hubConnectionIndex) Remove(wc *WebConn) {
-	channelIDs, ok := i.byConnection[wc]
+	channels, ok := i.byConnection[wc]
 	if !ok {
 		return
 	}
@@ -943,12 +939,7 @@ func (i *hubConnectionIndex) Remove(wc *WebConn) {
 	}
 
 	if i.fastIteration {
-		// Remove from byChannelID for each channel
-		for _, chID := range channelIDs {
-			if channelConns, ok := i.byChannelID[chID]; ok {
-				delete(channelConns, wc)
-			}
-		}
+		i.removeFromChannels(channels, wc)
 	}
 
 	delete(i.byConnection, wc)
@@ -967,31 +958,17 @@ func (i *hubConnectionIndex) InvalidateCMCacheForUser(userID string) error {
 
 	// Remove all user connections from existing channels
 	for conn := range conns {
-		if channelIDs, ok := i.byConnection[conn]; ok {
-			// Remove from old channels
-			for _, chID := range channelIDs {
-				if channelConns, ok := i.byChannelID[chID]; ok {
-					delete(channelConns, conn)
-				}
-			}
+		if channels, ok := i.byConnection[conn]; ok {
+			i.removeFromChannels(channels, conn)
 		}
 	}
 
-	// Add connections to new channels
+	// Add connections to new channels; the user's connections share the list, which is never modified in place.
+	channels := newChannelList(cm)
 	for conn := range conns {
-		newChannelIDs := make([]string, 0, len(cm))
-		for chID := range cm {
-			newChannelIDs = append(newChannelIDs, chID)
-			// Initialize channel map if needed
-			if _, ok := i.byChannelID[chID]; !ok {
-				i.byChannelID[chID] = make(map[*WebConn]struct{})
-			}
-			i.byChannelID[chID][conn] = struct{}{}
-		}
-
-		// Update connection metadata
+		i.addToChannels(channels, conn)
 		if _, ok := i.byConnection[conn]; ok {
-			i.byConnection[conn] = newChannelIDs
+			i.byConnection[conn] = channels
 		}
 	}
 
@@ -1008,9 +985,134 @@ func (i *hubConnectionIndex) ForUser(id string) iter.Seq[*WebConn] {
 	return maps.Keys(i.byUserId[id])
 }
 
-// ForChannel returns all connections for a channelID.
-func (i *hubConnectionIndex) ForChannel(channelID string) iter.Seq[*WebConn] {
-	return maps.Keys(i.byChannelID[channelID])
+// ForChannel returns all connections for a channelID, whose key is channelKey.
+func (i *hubConnectionIndex) ForChannel(channelID string, channelKey [16]byte) iter.Seq[*WebConn] {
+	var set connSet
+	if channelKey != undecodableChannelKey {
+		set = i.byChannelKey[channelKey]
+	} else {
+		set = i.byUndecodableChannelID[channelID]
+	}
+	return set.all()
+}
+
+// removeFromChannel removes wc from the channel's set and drops the set once it is empty.
+func (i *hubConnectionIndex) addToChannels(channels channelList, wc *WebConn) {
+	for _, channelKey := range channels.keys {
+		addToConnSet(i.byChannelKey, channelKey, wc)
+	}
+	for _, channelID := range channels.undecodableIDs {
+		addToConnSet(i.byUndecodableChannelID, channelID, wc)
+	}
+}
+
+func (i *hubConnectionIndex) removeFromChannels(channels channelList, wc *WebConn) {
+	for _, channelKey := range channels.keys {
+		removeFromConnSet(i.byChannelKey, channelKey, wc)
+	}
+	for _, channelID := range channels.undecodableIDs {
+		removeFromConnSet(i.byUndecodableChannelID, channelID, wc)
+	}
+}
+
+func addToConnSet[K comparable](m map[K]connSet, k K, wc *WebConn) {
+	set := m[k]
+	set.add(wc)
+	m[k] = set
+}
+
+// removeFromConnSet removes wc from the channel's set and drops the set once it is empty.
+func removeFromConnSet[K comparable](m map[K]connSet, k K, wc *WebConn) {
+	set, ok := m[k]
+	if !ok {
+		return
+	}
+	set.remove(wc)
+	if set.len() == 0 {
+		delete(m, k)
+		return
+	}
+	m[k] = set
+}
+
+// channelList is a connection's channels: decoded keys, plus the IDs that do not decode.
+type channelList struct {
+	keys           [][16]byte
+	undecodableIDs []string
+}
+
+func newChannelList(cm map[string]string) channelList {
+	l := channelList{keys: make([][16]byte, 0, len(cm))}
+	for channelID := range cm {
+		if channelKey := decodeChannelID(channelID); channelKey != undecodableChannelKey {
+			l.keys = append(l.keys, channelKey)
+		} else {
+			l.undecodableIDs = append(l.undecodableIDs, channelID)
+		}
+	}
+	return l
+}
+
+const connSetSmallMax = 64
+
+// connSet holds a channel's connections: a slice while there are at most connSetSmallMax, a map beyond that.
+type connSet struct {
+	small []*WebConn
+	large map[*WebConn]struct{}
+}
+
+func (s *connSet) add(wc *WebConn) {
+	if s.large != nil {
+		s.large[wc] = struct{}{}
+		return
+	}
+	if slices.Contains(s.small, wc) {
+		return
+	}
+	if len(s.small) < connSetSmallMax {
+		s.small = append(s.small, wc)
+		return
+	}
+	s.large = make(map[*WebConn]struct{}, 2*connSetSmallMax)
+	for _, c := range s.small {
+		s.large[c] = struct{}{}
+	}
+	s.large[wc] = struct{}{}
+	s.small = nil
+}
+
+func (s *connSet) remove(wc *WebConn) {
+	if s.large != nil {
+		delete(s.large, wc)
+		return
+	}
+	if i := slices.Index(s.small, wc); i >= 0 {
+		last := len(s.small) - 1
+		s.small[i] = s.small[last]
+		s.small[last] = nil
+		s.small = s.small[:last]
+	}
+}
+
+func (s *connSet) len() int {
+	return len(s.small) + len(s.large)
+}
+
+// all yields the set's connections. The slice is walked from the end, so the hub can remove the
+// connection it is visiting: remove moves the last element, already visited, into its place.
+func (s *connSet) all() iter.Seq[*WebConn] {
+	if s.large != nil {
+		return maps.Keys(s.large)
+	}
+	small := s.small
+	return func(yield func(*WebConn) bool) {
+		// slices.Backward would be a second closure on every channel event, 36 allocations more per event.
+		for i := len(small) - 1; i >= 0; i-- { //nolint:modernize
+			if wc := small[i]; wc != nil && !yield(wc) {
+				return
+			}
+		}
+	}
 }
 
 // clearChannels empties the channel-routing index in one shot. Intended
@@ -1020,7 +1122,8 @@ func (i *hubConnectionIndex) ForChannel(channelID string) iter.Seq[*WebConn] {
 // until conns either re-handshake or fully reconnect (both of which
 // repopulate the index via Add).
 func (i *hubConnectionIndex) clearChannels() {
-	clear(i.byChannelID)
+	clear(i.byChannelKey)
+	clear(i.byUndecodableChannelID)
 }
 
 // ForUserActiveCount returns the number of active connections for a userID
@@ -1040,7 +1143,7 @@ func (i *hubConnectionIndex) ForConnection(id string) *WebConn {
 }
 
 // All returns the full webConn index.
-func (i *hubConnectionIndex) All() map[*WebConn][]string {
+func (i *hubConnectionIndex) All() map[*WebConn]channelList {
 	return i.byConnection
 }
 
