@@ -10,6 +10,17 @@ import ListItem from './list_item';
 
 const atBottomMargin = 10;
 
+// After a "center" scroll request (e.g. opening a permalink) the requested item is kept centered
+// while rows above it finish measuring (images, link previews, attachments). The hold ends on user
+// input or after this time.
+const centeredItemHoldMs = 30000;
+
+// Wait for the burst of row measurements (and any pending relative scroll correction) to settle
+// before re-centering.
+const recenterDebounceMs = 80;
+
+const userInteractionEvents = ['wheel', 'touchstart', 'mousedown', 'keydown'] as const;
+
 export type InitialScrollIndex = {
     index: number;
     position: 'start' | 'center' | 'end';
@@ -99,6 +110,10 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
     private _keepScrollToBottom = false;
     private _mountingCorrections = 0;
     private _correctedInstances = 0;
+    private _centeredItemId: string | null = null;
+    private _centeredItemSince = 0;
+    private _userInteracted = false;
+    private _recenterTimer: ReturnType<typeof setTimeout> | null = null;
 
     static defaultProps = {
         itemData: undefined,
@@ -137,6 +152,14 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
     };
 
     public scrollTo(scrollOffset: number, scrollByValue?: number, useAnimationFrame = false) {
+        if (scrollByValue !== undefined && this._isCenteredItemHeld()) {
+            // A relative correction (e.g. for rows that were added above, requested by this list or by
+            // its parent) is applied in an animation frame, i.e. after the held item has been re-centered,
+            // and would move the list away from it again. The held item is re-centered instead.
+            this._recenterHeldItem();
+            return;
+        }
+
         this._scrollCorrectionInProgress = true;
         this.setState(
             (prevState) => ({
@@ -174,6 +197,12 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
             return;
         }
 
+        if (align === 'center' && index >= 0) {
+            this._centeredItemId = this.props.itemData[index];
+            this._centeredItemSince = Date.now();
+            this._userInteracted = false;
+        }
+
         if (index === 0 && align === 'end') {
             this.scrollTo(element.scrollHeight - this.props.height);
             return;
@@ -199,6 +228,10 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
     }
 
     componentDidMount() {
+        userInteractionEvents.forEach((eventName) => {
+            this._outerRef?.addEventListener(eventName, this._markUserInteracted, {passive: true});
+        });
+
         this._commitHook();
     }
 
@@ -295,6 +328,15 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         if (this._scrollByCorrection) {
             window.cancelAnimationFrame(this._scrollByCorrection);
         }
+
+        if (this._recenterTimer) {
+            clearTimeout(this._recenterTimer);
+            this._recenterTimer = null;
+        }
+
+        userInteractionEvents.forEach((eventName) => {
+            this._outerRef?.removeEventListener(eventName, this._markUserInteracted);
+        });
     }
 
     _callOnItemsRendered = memoizeOne((overscanStartIndex, overscanStopIndex, visibleStartIndex, visibleStopIndex) =>
@@ -569,6 +611,14 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
             return;
         }
 
+        if (this._isCenteredItemHeld()) {
+            // A "center" request is still being honored: keep the item centered instead of
+            // applying the keep-at-bottom or relative corrections below.
+            this._generateOffsetMeasurements();
+            this._recenterHeldItem();
+            return;
+        }
+
         const wasAtBottom =
             this.props.height + element.scrollTop >=
             this._listMetaData.totalMeasuredSize - atBottomMargin;
@@ -621,6 +671,49 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         }
 
         this._generateOffsetMeasurements();
+    };
+
+    _markUserInteracted = () => {
+        this._userInteracted = true;
+    };
+
+    _isCenteredItemHeld = () => {
+        return Boolean(this._centeredItemId) &&
+            !this._userInteracted &&
+            (Date.now() - this._centeredItemSince) < centeredItemHoldMs;
+    };
+
+    // Re-centers the held item once the measurements have settled.
+    // This intentionally writes the absolute offset to scrollTop instead of going through scrollTo():
+    // scrollTo() is also used for relative corrections (scrollBy), and several queued calls would
+    // be applied on top of each other.
+    _recenterHeldItem = () => {
+        if (!this._isCenteredItemHeld()) {
+            return;
+        }
+
+        if (this._recenterTimer) {
+            clearTimeout(this._recenterTimer);
+        }
+
+        this._recenterTimer = setTimeout(() => {
+            this._recenterTimer = null;
+
+            const element = this._outerRef;
+            if (!element || !this._centeredItemId || !this._isCenteredItemHeld()) {
+                return;
+            }
+
+            const index = this.props.itemData.indexOf(this._centeredItemId);
+            if (index < 0) {
+                return;
+            }
+
+            const offset = getOffsetForIndexAndAlignment(this.props, index, 'center', element.scrollTop, this._listMetaData);
+            if (Number.isFinite(offset) && Math.abs(element.scrollTop - offset) > 1) {
+                element.scrollTop = offset;
+            }
+        }, recenterDebounceMs);
     };
 
     _onItemRowUnmount = (itemId: string, index: number) => {
