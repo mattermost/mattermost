@@ -19,6 +19,7 @@ The following Mattermost configuration settings are deprecated and are no longer
 - [Integrations settings](#integrations-settings)
 - [Permission policy settings](#permission-policy-settings)
 - [Image settings](#image-settings)
+- [Image proxy settings](#image-proxy-settings)
 - [Experimental display settings](#experimental-display-settings)
 - [Experimental API endpoint settings](#experimental-api-endpoint-settings)
 - [Shared channels settings](#shared-channels-settings)
@@ -1134,6 +1135,50 @@ The height to which profile pictures are resized after being uploaded via **Acco
 <tbody>
 <tr>
 <td>This feature's <code>config.json</code> setting is <code>"ProfileHeight": 128</code> with numerical input.</td>
+</tr>
+</tbody>
+</table>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Image proxy settings
+
+*The `atmos/camo` image proxy type has been removed from Mattermost v12.0. If `ImageProxySettings.ImageProxyType` is set to `atmos/camo`, the server automatically changes it to `local` on startup and logs a warning. See the [image proxy](/deployment-guide/server/image-proxy) documentation for details.*
+
+### Remote image proxy URL
+
+*Removed in Mattermost v12.0*
+
+This setting was available in the System Console by going to **Environment \> Image Proxy**, or by editing the `config.json` file.
+
+The URL of the `atmos/camo` image proxy. This setting wasn't needed when using the **local** image proxy.
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"RemoteImageProxyURL": ""</code> with string input.</td>
+</tr>
+</tbody>
+</table>
+
+### Remote image proxy options
+
+*Removed in Mattermost v12.0*
+
+This setting was available in the System Console by going to **Environment \> Image Proxy**, or by editing the `config.json` file.
+
+The URL signing key passed to an `atmos/camo` image proxy. This setting wasn't needed when using the **local** image proxy.
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"RemoteImageProxyOptions": ""</code> with string input.</td>
 </tr>
 </tbody>
 </table>

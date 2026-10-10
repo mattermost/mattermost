@@ -2391,40 +2391,8 @@ See the [image proxy](/deployment-guide/server/image-proxy) documentation to lea
 </colgroup>
 <tbody>
 <tr>
-<td><p>The type of image proxy used by Mattermost.</p><ul><li><strong>local</strong>: <strong>(Default)</strong> The Mattermost server itself acts as the image proxy.</li><li><strong>atmos/camo</strong>: An external atmos/camo image proxy is used.</li></ul></td>
+<td><p>The type of image proxy used by Mattermost.</p><ul><li><strong>local</strong>: <strong>(Default)</strong> The Mattermost server itself acts as the image proxy.</li></ul><p>From Mattermost v12.0, <code>atmos/camo</code> is no longer supported. If this setting is set to <code>atmos/camo</code>, the server automatically changes it to <code>local</code> on startup and logs a warning.</p></td>
 <td><ul><li>System Config path: <strong>Environment &gt; Image Proxy</strong></li><li><code>config.json</code> setting: <code>ImageProxySettings</code> &gt; <code>ImageProxyType</code> &gt; <code>"local"</code></li><li>Environment variable: <code>MM_IMAGEPROXYSETTINGS_IMAGEPROXYTYPE</code></li></ul></td>
-</tr>
-</tbody>
-</table>
-
-See the [image proxy](/deployment-guide/server/image-proxy) documentation to learn more.
-
-### Remote image proxy URL
-
-<table>
-<colgroup>
-<col style={{width: '45%'}} />
-<col style={{width: '54%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>The URL of the atmos/camo proxy. This setting isn't needed when using the <strong>local</strong> image proxy.</td>
-<td><ul><li>System Config path: <strong>Environment &gt; Image Proxy</strong></li><li><code>config.json</code> setting: <code>ImageProxySettings</code> &gt; <code>RemoteImageProxyURL</code></li><li>Environment variable: <code>MM_IMAGEPROXYSETTINGS_REMOTEIMAGEPROXYURL</code></li></ul></td>
-</tr>
-</tbody>
-</table>
-
-### Remote image proxy options
-
-<table>
-<colgroup>
-<col style={{width: '43%'}} />
-<col style={{width: '56%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>The URL signing key passed to an atmos/camo image proxy. This setting isn't needed when using the <strong>local</strong> image proxy type.</td>
-<td><ul><li>System Config path: <strong>Environment &gt; Image Proxy</strong></li><li><code>config.json</code> setting: <code>ImageProxySettings</code> &gt; <code>RemoteImageProxyOptions</code></li><li>Environment variable: <code>MM_IMAGEPROXYSETTINGS_REMOTEIMAGEPROXYOPTIONS</code></li></ul></td>
 </tr>
 </tbody>
 </table>

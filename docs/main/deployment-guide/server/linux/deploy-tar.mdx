@@ -23,7 +23,7 @@ If you're on **Ubuntu / Debian**, use the [APT-based install](./deploy-ubuntu) f
 
 - **Operating system**: any 64-bit Linux distribution with `systemd` (or a comparable service manager).
 - **Hardware**: 1 vCPU and 2 GB RAM (supports up to ~1,000 users).
-- **Database**: [PostgreSQL 14+](/administration-guide/manage/admin/postgres-migration).
+- **Database**: [PostgreSQL 15+](/administration-guide/manage/admin/postgres-migration).
 - **Network**: TCP 80/443 inbound (TLS), 8065 inbound (System Console), 10025 outbound (SMTP relay if used).
 
 </Note>
@@ -48,7 +48,7 @@ SSH onto the target host and download the release. Replace `amd64` with `arm64` 
 <TabItem value="latest" label="Latest release" default>
 
 ```sh
-wget https://releases.mattermost.com/11.11.1/mattermost-11.11.1-linux-amd64.tar.gz
+wget https://releases.mattermost.com/12.0.0/mattermost-12.0.0-linux-amd64.tar.gz
 ```
 
 </TabItem>
