@@ -7,6 +7,8 @@ import (
 	"bytes"
 	"crypto/subtle"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"mime"
 	"mime/multipart"
@@ -28,7 +30,26 @@ const (
 	ThumbnailImageType = "image/jpeg"
 )
 
-const maxMultipartFormDataBytes = 10 * 1024 // 10Kb
+const (
+	maxMultipartFormDataBytes = 10 * 1024 // 10Kb
+
+	// maxMultipartPrebufferBytes is the number of bytes of a multipart upload
+	// that are held in memory: the part of the request body kept while the
+	// upload is read up to its channel_id value or up to its first file part,
+	// and the form values of the request as a whole.
+	maxMultipartPrebufferBytes = 100 * maxMultipartFormDataBytes // 1Mb
+
+	// multipartFormValueOverheadBytes is charged against
+	// maxMultipartPrebufferBytes for each form value that is retained, so that
+	// what holding a value costs beyond its own bytes is accounted for.
+	multipartFormValueOverheadBytes = 200
+
+	// multipartReadFormReservedBytes is the number of bytes
+	// multipart.Reader.ReadForm holds for the values of non-file parts on top of
+	// the budget it is given, as documented on that method. A budget is offset
+	// by it to arrive at the number of bytes those values are held to.
+	multipartReadFormReservedBytes = 10 << 20
+)
 
 func (api *API) InitFile() {
 	api.BaseRoutes.Files.Handle("", api.APISessionRequired(uploadFileStream, handlerParamFileAPI)).Methods(http.MethodPost)
@@ -202,6 +223,60 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 	return fileUploadResponse
 }
 
+// prebufferedBody reads a request body, mirroring what it reads into buf until
+// either limit bytes have been mirrored or stopMirroring is called.
+type prebufferedBody struct {
+	limited   *io.LimitedReader
+	mirrored  io.Reader
+	mirroring bool
+}
+
+func newPrebufferedBody(body io.Reader, buf *bytes.Buffer, limit int64) *prebufferedBody {
+	// Read one byte past the limit so a body that has more data than limit can
+	// be distinguished from one that has exactly limit.
+	limited := &io.LimitedReader{R: body, N: limit + 1}
+
+	return &prebufferedBody{
+		limited:   limited,
+		mirrored:  io.TeeReader(limited, buf),
+		mirroring: true,
+	}
+}
+
+func (p *prebufferedBody) Read(b []byte) (int, error) {
+	if !p.mirroring {
+		return p.limited.R.Read(b)
+	}
+
+	return p.mirrored.Read(b)
+}
+
+// full reports whether the body held more data than buf is allowed to mirror.
+func (p *prebufferedBody) full() bool {
+	return p.mirroring && p.limited.N <= 0
+}
+
+func (p *prebufferedBody) stopMirroring() {
+	p.mirroring = false
+}
+
+// readMultipartFormValue copies the value of a form field part into w and
+// returns the number of bytes it holds. It fails if the part holds more than
+// maxMultipartFormDataBytes.
+func readMultipartFormValue(w io.Writer, part io.Reader) (int64, error) {
+	// Read one byte past the limit so a value that has more data than the limit
+	// can be distinguished from one that has exactly the limit.
+	n, err := io.CopyN(w, part, maxMultipartFormDataBytes+1)
+	if err != nil && err != io.EOF {
+		return n, err
+	}
+	if n > maxMultipartFormDataBytes {
+		return n, fmt.Errorf("value is longer than the limit of %d bytes", maxMultipartFormDataBytes)
+	}
+
+	return n, nil
+}
+
 // uploadFileMultipart parses and uploads file(s) from a mime/multipart
 // request.  It pre-buffers up to the first part which is either the (a)
 // `channel_id` value, or (b) a file. Then in case of (a) it re-processes the
@@ -216,12 +291,14 @@ func uploadFileMultipart(c *Context, r *http.Request, asStream io.Reader, timest
 	}
 
 	var buf *bytes.Buffer
+	var body *prebufferedBody
 	var mr *multipart.Reader
 	var err error
 	if asStream == nil {
 		// We need to buffer until we get the channel_id, or the first file.
 		buf = &bytes.Buffer{}
-		mr, err = multipartReader(r, io.TeeReader(r.Body, buf))
+		body = newPrebufferedBody(r.Body, buf, maxMultipartPrebufferBytes)
+		mr, err = multipartReader(r, body)
 	} else {
 		mr, err = multipartReader(r, asStream)
 	}
@@ -233,9 +310,17 @@ func uploadFileMultipart(c *Context, r *http.Request, asStream io.Reader, timest
 	}
 
 	nFiles := 0
+	formDataBytes := int64(0)
 NextPart:
 	for {
 		part, err := mr.NextPart()
+		if body != nil && body.full() {
+			c.Err = model.NewAppError("uploadFileMultipart",
+				"api.file.upload_file.read_request.app_error",
+				nil, fmt.Sprintf("Form data is longer than the limit of %d bytes", maxMultipartPrebufferBytes),
+				http.StatusBadRequest)
+			return nil
+		}
 		if err == io.EOF {
 			break
 		}
@@ -248,20 +333,40 @@ NextPart:
 
 		// Parse any form fields in the multipart.
 		formname := part.FormName()
+		filename := part.FileName()
 		if formname == "" {
+			// A part without a form name holds no value to parse, and is read
+			// up to the same limit as one that does.
+			if _, err = readMultipartFormValue(io.Discard, part); err != nil {
+				c.Err = model.NewAppError("uploadFileMultipart",
+					"api.file.upload_file.read_request.app_error",
+					nil, err.Error(), http.StatusBadRequest)
+				return nil
+			}
+
 			continue
 		}
-		filename := part.FileName()
 		if filename == "" {
 			var b bytes.Buffer
-			_, err = io.CopyN(&b, part, maxMultipartFormDataBytes)
-			if err != nil && err != io.EOF {
+			var n int64
+			n, err = readMultipartFormValue(&b, part)
+			if err != nil {
 				c.Err = model.NewAppError("uploadFileMultipart",
 					"api.file.upload_file.read_form_value.app_error",
 					map[string]any{"Formname": formname},
 					err.Error(), http.StatusBadRequest)
 				return nil
 			}
+
+			formDataBytes += n + multipartFormValueOverheadBytes
+			if formDataBytes > maxMultipartPrebufferBytes {
+				c.Err = model.NewAppError("uploadFileMultipart",
+					"api.file.upload_file.read_request.app_error",
+					nil, fmt.Sprintf("Form data is longer than the limit of %d bytes", maxMultipartPrebufferBytes),
+					http.StatusBadRequest)
+				return nil
+			}
+
 			v := b.String()
 
 			switch formname {
@@ -315,6 +420,11 @@ NextPart:
 			}
 
 			return uploadFileMultipartLegacy(c, mr, timestamp, isBookmark)
+		}
+
+		// The buffered part of the body is no longer needed from here on.
+		if body != nil {
+			body.stopMirroring()
 		}
 
 		c.RequireChannelId()
@@ -419,14 +529,24 @@ NextPart:
 // *model.FileUploadResponse filled in with the individual model.FileInfo's.
 func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 	timestamp time.Time, isBookmark bool) *model.FileUploadResponse {
-	// Parse the entire form.
-	form, err := mr.ReadForm(*c.App.Config().FileSettings.MaxFileSize)
+	// Parse the entire form, holding its values to maxMultipartPrebufferBytes
+	// and writing its file parts to temporary files.
+	form, err := mr.ReadForm(maxMultipartPrebufferBytes - multipartReadFormReservedBytes)
 	if err != nil {
+		status := http.StatusInternalServerError
+		if errors.Is(err, multipart.ErrMessageTooLarge) {
+			status = http.StatusBadRequest
+		}
 		c.Err = model.NewAppError("uploadFileMultipartLegacy",
 			"api.file.upload_file.read_request.app_error",
-			nil, err.Error(), http.StatusInternalServerError)
+			nil, err.Error(), status)
 		return nil
 	}
+	defer func() {
+		if err := form.RemoveAll(); err != nil {
+			c.Logger.Warn("Failed to remove temporary multipart files", mlog.Err(err))
+		}
+	}()
 
 	// get and validate the channel Id, permission to upload there.
 	if len(form.Value["channel_id"]) == 0 {
