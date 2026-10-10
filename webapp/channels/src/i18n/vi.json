@@ -1642,7 +1642,6 @@
   "admin.global_attributes.attribute_details.title": "Thuộc tính mới",
   "admin.global_attributes.attribute_details.type.field_aria_label": "Loại: {value}",
   "admin.global_attributes.attribute_details.type.field_locked_applies_to_aria_label": "Loại: {value}. Bị khóa khi thuộc tính này đang áp dụng cho một tài nguyên.",
-  "admin.global_attributes.attribute_details.type.field_locked_aria_label": "Loại: Văn bản. Bị khóa khi đang liên kết với một nguồn bên ngoài.",
   "admin.global_attributes.attribute_details.type.field_locked_graph_aria_label": "Loại: {value}. Bị khóa vì không thể chuyển đổi thuộc tính phân cấp sang loại khác.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label": "Loại: {value}. Bị khóa vì thuộc tính này được quản lý bởi một plugin.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label": "Loại: {value}. Bị khóa vì thuộc tính này từng được quản lý bởi một plugin hiện không còn được cài đặt.",

@@ -137,6 +137,25 @@ func TestUpsertPropertyValues_Invariants(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
 	})
 
+	t.Run("rejects a deleted field as not found", func(t *testing.T) {
+		deletedField, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "upsert-deleted-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}, false, "")
+		require.Nil(t, appErr)
+		require.Nil(t, th.App.DeletePropertyField(th.Context, groupID, deletedField.ID, false, ""))
+
+		v := []*model.PropertyValue{makeValue(deletedField.ID)}
+		result, err := th.App.UpsertPropertyValues(th.Context, v, model.PropertyFieldObjectTypeUser, th.BasicUser.Id, "")
+		require.NotNil(t, err)
+		assert.Nil(t, result)
+		assert.Equal(t, "app.property_value.upsert.field_not_found.app_error", err.Id)
+		assert.Equal(t, http.StatusNotFound, err.StatusCode)
+	})
+
 	t.Run("rejects ObjectType mismatch when objectType is non-empty", func(t *testing.T) {
 		// Field is ObjectType=user; request specifies channel.
 		v := []*model.PropertyValue{makeValue(createdField.ID)}

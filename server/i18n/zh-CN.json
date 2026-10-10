@@ -9994,14 +9994,6 @@
     "translation": "添加证书失败。"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "获取 CPA 字段失败"
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "空的 LDAP 属性值"
-  },
-  {
     "id": "model.access_policy.is_valid.rules.app_error",
     "translation": "规则无效。"
   },
@@ -10052,10 +10044,6 @@
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
     "translation": "AD/LDAP ID 无效"
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "无法检索 CPA 字段"
   },
   {
     "id": "model.access_policy.is_valid.id.app_error",

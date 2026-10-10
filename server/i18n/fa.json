@@ -12551,20 +12551,12 @@
     "translation": "آزمایش اتصال LDAP ناموفق بود. سرور: {{.Server}}:{{.Port}}، ConnectionSecurity: {{.ConnectionType}}، PrivateKeyFilename: {{.PrivateKeyFilename}}، PublicCertificateFilename: {{.PublicCertFilename}}، BindUsername: {{.BindUsername}}. خطا: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "بازیابی فیلدهای CPA ناموفق بود"
-  },
-  {
     "id": "ent.ldap.do_login.invalid_id",
     "translation": "شناسه AD/LDAP نامعتبر است"
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
     "translation": "دریافت کاربر ناموفق بود."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "مقدار ویژگی LDAP خالی است"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -12705,10 +12697,6 @@
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
     "translation": "SAML نتوانست گواهی عمومی ارائه‌دهنده هویت را بارگیری کند؛ لطفاً با مدیر سیستم خود تماس بگیرید."
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "بازیابی فیلد(های) CPA ناموفق بود"
   },
   {
     "id": "ent.saml.login.ldap_user_missing",

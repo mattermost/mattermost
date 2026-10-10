@@ -1644,7 +1644,6 @@
   "admin.global_attributes.attribute_details.title": "Новый атрибут",
   "admin.global_attributes.attribute_details.type.field_aria_label": "Тип: {value}",
   "admin.global_attributes.attribute_details.type.field_locked_applies_to_aria_label": "Тип: {value}. Заблокировано, пока этот атрибут применяется к ресурсу.",
-  "admin.global_attributes.attribute_details.type.field_locked_aria_label": "Тип: Текст. Заблокировано, пока атрибут связан с внешним источником.",
   "admin.global_attributes.attribute_details.type.field_locked_graph_aria_label": "Тип: {value}. Заблокировано, так как иерархический атрибут нельзя преобразовать в другой тип.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label": "Тип: {value}. Заблокировано, так как этот атрибут управляется плагином.",
   "admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label": "Тип: {value}. Заблокировано, так как этот атрибут управлялся плагином, который больше не установлен.",

@@ -130,6 +130,22 @@ func (t PropertyFieldType) SupportsOptions() bool {
 	return slices.Contains(optionFieldTypes, t)
 }
 
+var externallySyncableFieldTypes = []PropertyFieldType{
+	PropertyFieldTypeText,
+	PropertyFieldTypeSelect,
+	PropertyFieldTypeMultiselect,
+}
+
+// SupportsExternalSync reports whether values of this field type can be
+// populated from an external identity source (AD/LDAP, SAML). Text and select
+// store the first value the source delivers; multiselect stores all of them.
+// Rank and graph are excluded because their option order and hierarchy are
+// authored by an admin, and the remaining types have no meaningful mapping
+// from an attribute value.
+func (t PropertyFieldType) SupportsExternalSync() bool {
+	return slices.Contains(externallySyncableFieldTypes, t)
+}
+
 // creatorPermissionObjectTypes are the object types whose target entity has an
 // established creator, and therefore the only ones on which
 // PermissionLevelCreator is meaningful. Fields of any other object type reject

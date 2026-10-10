@@ -21,6 +21,7 @@ import {ModalIdentifiers} from 'utils/constants';
 import type {ExternalSource} from './external_source';
 import {ALL_EXTERNAL_SOURCES, externalSourceMessages as sourceMessages, externalSourceValue as sourceValue} from './external_source';
 
+import {toServerFieldType} from '../attribute_type';
 import type {AttributeTypeId} from '../utils';
 
 import './attribute_external_source.scss';
@@ -34,12 +35,13 @@ type Props = {
     onLink: (source: ExternalSource, value: string) => void;
     disabled?: boolean;
 
-    // Linking a new source forces fieldType to 'text' (see attribute_details.tsx's
-    // handleLink) -- while this attribute is applied to a resource, that would
-    // change its type out from under the server's type_change_with_dependents
-    // guard the same way the Type menu itself is locked for. Only gates the
-    // "add" trigger below: editing or removing an already-linked source never
-    // touches fieldType, so those stay enabled.
+    // Linking a new source to an attribute whose type cannot be synced forces
+    // fieldType to 'text' (see attribute_details.tsx's handleLink) -- while this
+    // attribute is applied to a resource, that would change its type out from
+    // under the server's type_change_with_dependents guard the same way the Type
+    // menu itself is locked for. Only gates the "add" trigger below: editing or
+    // removing an already-linked source never touches fieldType, so those stay
+    // enabled.
     disableAdding?: boolean;
 };
 
@@ -53,24 +55,26 @@ function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink, disable
 
     // Distinguishes a Type switch clearing link(s) from an admin-driven chip
     // removal -- NOT by how many links were cleared (a Type switch can clear
-    // just one, if only one was ever set), but by `fieldType`: linking always
-    // forces it to 'text' (see attribute_details.tsx's handleLink), and a
-    // chip's own remove action never touches it, so fieldType stays 'text'
-    // through any chip-driven removal; a Type switch always changes it in the
-    // same batch as clearing the link(s). The switch case needs an explicit
-    // announcement (aria-live on a region whose content is merely removed,
-    // with nothing left behind, is not reliably announced by screen readers);
-    // the chip-removal case needs focus moved to the trigger instead, since
-    // the admin's own click already tells them what happened -- moving focus
-    // there too would instead steal it from the Type menu they just used.
+    // just one, if only one was ever set), but by whether `fieldType` changed
+    // along with them: a chip's own remove action never touches it, while a
+    // Type switch to a type that cannot be synced changes it in the same batch
+    // as clearing the link(s). The switch case needs an explicit announcement
+    // (aria-live on a region whose content is merely removed, with nothing
+    // left behind, is not reliably announced by screen readers); the
+    // chip-removal case needs focus moved to the trigger instead, since the
+    // admin's own click already tells them what happened -- moving focus there
+    // too would instead steal it from the Type menu they just used.
     const prevCountRef = useRef(linkedCount);
+    const prevFieldTypeRef = useRef(fieldType);
     useEffect(() => {
         const prevCount = prevCountRef.current;
+        const fieldTypeChanged = fieldType !== prevFieldTypeRef.current;
+        prevFieldTypeRef.current = fieldType;
         if (linkedCount < prevCount) {
-            if (fieldType === 'text') {
-                document.getElementById(TRIGGER_ID)?.focus();
-            } else {
+            if (fieldTypeChanged) {
                 setStatusMessage(formatMessage(messages.linksRemoved, {count: prevCount}));
+            } else {
+                document.getElementById(TRIGGER_ID)?.focus();
             }
         } else if (linkedCount > 0) {
             // Reset so a later, semantically-identical announcement (link
@@ -88,7 +92,7 @@ function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink, disable
             dialogType: AttributeModal,
             dialogProps: {
                 initialValue: sourceValue(source, ldapAttr, samlAttr),
-                fieldType,
+                fieldType: toServerFieldType(fieldType),
                 onExited: () => {},
                 onSave: async (value: string) => {
                     onLink(source, value);
