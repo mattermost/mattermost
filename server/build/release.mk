@@ -306,6 +306,8 @@ package-freebsd: package-freebsd-amd64 package-freebsd-arm64
 package-linux-amd64: package-prep
 	DIST_PATH_GENERIC=$(DIST_PATH_LIN_AMD64) PLUGIN_ARCH=linux-amd64 $(MAKE) package-plugins
 	DIST_PATH_GENERIC=$(DIST_PATH_LIN_AMD64) CURRENT_PACKAGE_ARCH=linux_amd64 MM_BIN_NAME=mattermost MMCTL_BIN_NAME=mmctl $(MAKE) package-general
+	@# Strip world-write permissions that may have been inherited from a permissive build umask.
+	chmod -R o-w $(DIST_PATH_LIN_AMD64) $(DIST_PATH)
 	@# Package
 	tar -C $(DIST_PATH_LIN_AMD64)/.. -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-amd64.tar.gz mattermost ../mattermost
 	@# Cleanup
@@ -317,6 +319,8 @@ ifeq ($(FIPS_ENABLED),true)
 	@echo Skipping package linux arm64 for FIPS
 else
 	DIST_PATH_GENERIC=$(DIST_PATH_LIN_ARM64) CURRENT_PACKAGE_ARCH=linux_arm64 MM_BIN_NAME=mattermost MMCTL_BIN_NAME=mmctl $(MAKE) package-general
+	@# Strip world-write permissions that may have been inherited from a permissive build umask.
+	chmod -R o-w $(DIST_PATH_LIN_ARM64) $(DIST_PATH)
 	@# Package
 	tar -C $(DIST_PATH_LIN_ARM64)/.. -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-arm64.tar.gz mattermost ../mattermost
 	@# Cleanup
