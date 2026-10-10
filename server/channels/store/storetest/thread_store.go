@@ -28,6 +28,7 @@ func TestThreadStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore)
 	t.Run("MarkAllAsReadByChannels", func(t *testing.T) { testMarkAllAsReadByChannels(t, rctx, ss) })
 	t.Run("MarkAllAsReadByTeam", func(t *testing.T) { testMarkAllAsReadByTeam(t, rctx, ss) })
 	t.Run("DeleteMembershipsForChannel", func(t *testing.T) { testDeleteMembershipsForChannel(t, rctx, ss) })
+	t.Run("ThreadQueriesRequireChannelMembership", func(t *testing.T) { testThreadQueriesRequireChannelMembership(t, rctx, ss) })
 	t.Run("SaveMultipleMemberships", func(t *testing.T) { testSaveMultipleMemberships(t, ss) })
 	t.Run("MaintainMultipleFromImport", func(t *testing.T) { testMaintainMultipleFromImport(t, rctx, ss) })
 	t.Run("UpdateTeamIdForChannelThreads", func(t *testing.T) { testUpdateTeamIdForChannelThreads(t, rctx, ss) })
@@ -924,6 +925,14 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 		Type:        model.ChannelTypeGroup,
 	}, -1)
 	require.NoError(t, err)
+	for _, userID := range []string{user1ID, user2ID} {
+		_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			ChannelId:   gm1.Id,
+			UserId:      userID,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+	}
 
 	team1channel1post1, err := ss.Post().Save(rctx, &model.Post{
 		ChannelId: team1channel1.Id,
@@ -1848,6 +1857,187 @@ func testDeleteMembershipsForChannel(t *testing.T, rctx request.CTX, ss store.St
 
 		require.Len(t, membershipsB, 1)
 		require.ElementsMatch(t, []*model.ThreadMembership{memB1}, membershipsB)
+	})
+}
+
+// testThreadQueriesRequireChannelMembership proves that every thread listing /
+// unread-count query agrees with channel membership: once the ChannelMembers row
+// is gone the user cannot infer thread activity anymore, regardless of channel
+// type (private channel vs. group message) and regardless of whether the
+// ThreadMemberships row was already cleaned up.
+func testThreadQueriesRequireChannelMembership(t *testing.T, rctx request.CTX, ss store.Store) {
+	addMember := func(channelID, userID string) {
+		t.Helper()
+		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			ChannelId:   channelID,
+			UserId:      userID,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+	}
+	follow := func(userID, postID string) {
+		t.Helper()
+		_, err := ss.Thread().MaintainMembership(userID, postID, store.ThreadMembershipOpts{
+			Following:       true,
+			UpdateFollowing: true,
+		})
+		require.NoError(t, err)
+		// Bump the mention counter so mention totals are observable too.
+		_, err = ss.Thread().MaintainMembership(userID, postID, store.ThreadMembershipOpts{
+			Following:         true,
+			IncrementMentions: true,
+		})
+		require.NoError(t, err)
+	}
+	threadIDs := func(userID, teamID string, opts model.GetUserThreadsOpts) []string {
+		t.Helper()
+		threads, err := ss.Thread().GetThreadsForUser(rctx, userID, teamID, opts)
+		require.NoError(t, err)
+		ids := make([]string, 0, len(threads))
+		for _, thread := range threads {
+			ids = append(ids, thread.PostId)
+		}
+		return ids
+	}
+	assertCounts := func(userID, teamID string, total, unread, mentions int64) {
+		t.Helper()
+		gotTotal, err := ss.Thread().GetTotalThreads(userID, teamID, model.GetUserThreadsOpts{})
+		require.NoError(t, err)
+		require.Equal(t, total, gotTotal, "total threads")
+		gotUnread, err := ss.Thread().GetTotalUnreadThreads(userID, teamID, model.GetUserThreadsOpts{})
+		require.NoError(t, err)
+		require.Equal(t, unread, gotUnread, "unread threads")
+		gotMentions, err := ss.Thread().GetTotalUnreadMentions(userID, teamID, model.GetUserThreadsOpts{})
+		require.NoError(t, err)
+		require.Equal(t, mentions, gotMentions, "unread mentions")
+	}
+	teamThreadCount := func(userID, teamID string) int64 {
+		t.Helper()
+		teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{teamID}, false)
+		require.NoError(t, err)
+		if tu, ok := teamsUnread[teamID]; ok && tu != nil {
+			return tu.ThreadCount
+		}
+		return 0
+	}
+
+	poster, err := ss.User().Save(rctx, &model.User{Username: "poster" + model.NewId(), Email: MakeEmail()})
+	require.NoError(t, err)
+	userA, err := ss.User().Save(rctx, &model.User{Username: "usera" + model.NewId(), Email: MakeEmail()})
+	require.NoError(t, err)
+	userB, err := ss.User().Save(rctx, &model.User{Username: "userb" + model.NewId(), Email: MakeEmail()})
+	require.NoError(t, err)
+
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: "Team",
+		Name:        "team" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+
+	privateChannel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "Private",
+		Name:        "private" + model.NewId(),
+		Type:        model.ChannelTypePrivate,
+	}, -1)
+	require.NoError(t, err)
+	gm, err := ss.Channel().Save(rctx, &model.Channel{
+		DisplayName: "GM",
+		Name:        "gm" + model.NewId(),
+		Type:        model.ChannelTypeGroup,
+	}, -1)
+	require.NoError(t, err)
+
+	for _, channel := range []*model.Channel{privateChannel, gm} {
+		addMember(channel.Id, poster.Id)
+		addMember(channel.Id, userA.Id)
+		addMember(channel.Id, userB.Id)
+	}
+
+	privateRoot, err := ss.Post().Save(rctx, &model.Post{ChannelId: privateChannel.Id, UserId: poster.Id, Message: "root"})
+	require.NoError(t, err)
+	gmRoot, err := ss.Post().Save(rctx, &model.Post{ChannelId: gm.Id, UserId: poster.Id, Message: "root"})
+	require.NoError(t, err)
+
+	for _, userID := range []string{userA.Id, userB.Id} {
+		follow(userID, privateRoot.Id)
+		follow(userID, gmRoot.Id)
+	}
+	threadStoreCreateReply(t, rctx, ss, privateChannel.Id, privateRoot.Id, poster.Id, model.GetMillis())
+	threadStoreCreateReply(t, rctx, ss, gm.Id, gmRoot.Id, poster.Id, model.GetMillis())
+
+	// Sanity: both users are members of both channels, so both see everything.
+	for _, userID := range []string{userA.Id, userB.Id} {
+		require.ElementsMatch(t, []string{privateRoot.Id, gmRoot.Id}, threadIDs(userID, team.Id, model.GetUserThreadsOpts{}))
+		require.ElementsMatch(t, []string{privateRoot.Id, gmRoot.Id}, threadIDs(userID, "", model.GetUserThreadsOpts{}))
+		assertCounts(userID, team.Id, 2, 2, 2)
+		require.EqualValues(t, 1, teamThreadCount(userID, team.Id))
+	}
+
+	t.Run("removal from a private channel hides its thread even if the thread membership lingers", func(t *testing.T) {
+		require.NoError(t, ss.Channel().RemoveMember(rctx, privateChannel.Id, userA.Id))
+
+		// The ThreadMemberships row deliberately still exists (stale state), but
+		// no listing or counter may surface it anymore.
+		_, err := ss.Thread().GetMembershipForUser(userA.Id, privateRoot.Id)
+		require.NoError(t, err)
+
+		require.ElementsMatch(t, []string{gmRoot.Id}, threadIDs(userA.Id, team.Id, model.GetUserThreadsOpts{}))
+		require.ElementsMatch(t, []string{gmRoot.Id}, threadIDs(userA.Id, team.Id, model.GetUserThreadsOpts{Unread: true}))
+		require.ElementsMatch(t, []string{gmRoot.Id}, threadIDs(userA.Id, team.Id, model.GetUserThreadsOpts{Deleted: true}))
+		require.Empty(t, threadIDs(userA.Id, team.Id, model.GetUserThreadsOpts{ExcludeDirect: true}))
+		assertCounts(userA.Id, team.Id, 1, 1, 1)
+		require.Zero(t, teamThreadCount(userA.Id, team.Id))
+
+		// The remaining member is unaffected.
+		require.ElementsMatch(t, []string{privateRoot.Id, gmRoot.Id}, threadIDs(userB.Id, team.Id, model.GetUserThreadsOpts{}))
+		assertCounts(userB.Id, team.Id, 2, 2, 2)
+		require.EqualValues(t, 1, teamThreadCount(userB.Id, team.Id))
+	})
+
+	t.Run("removal from a group message hides its thread the same way", func(t *testing.T) {
+		require.NoError(t, ss.Channel().RemoveMember(rctx, gm.Id, userA.Id))
+
+		_, err := ss.Thread().GetMembershipForUser(userA.Id, gmRoot.Id)
+		require.NoError(t, err)
+
+		require.Empty(t, threadIDs(userA.Id, team.Id, model.GetUserThreadsOpts{}))
+		require.Empty(t, threadIDs(userA.Id, "", model.GetUserThreadsOpts{}))
+		require.Empty(t, threadIDs(userA.Id, team.Id, model.GetUserThreadsOpts{Unread: true, Deleted: true}))
+		assertCounts(userA.Id, team.Id, 0, 0, 0)
+		assertCounts(userA.Id, "", 0, 0, 0)
+
+		require.ElementsMatch(t, []string{privateRoot.Id, gmRoot.Id}, threadIDs(userB.Id, team.Id, model.GetUserThreadsOpts{}))
+		assertCounts(userB.Id, team.Id, 2, 2, 2)
+	})
+
+	t.Run("thread membership cleanup is idempotent and scoped to the removed user", func(t *testing.T) {
+		for i := 0; i < 2; i++ {
+			require.NoError(t, ss.Thread().DeleteMembershipsForChannel(userA.Id, privateChannel.Id))
+			require.NoError(t, ss.Thread().DeleteMembershipsForChannel(userA.Id, gm.Id))
+		}
+
+		var nfErr *store.ErrNotFound
+		_, err := ss.Thread().GetMembershipForUser(userA.Id, privateRoot.Id)
+		require.ErrorAs(t, err, &nfErr)
+		_, err = ss.Thread().GetMembershipForUser(userA.Id, gmRoot.Id)
+		require.ErrorAs(t, err, &nfErr)
+
+		_, err = ss.Thread().GetMembershipForUser(userB.Id, privateRoot.Id)
+		require.NoError(t, err)
+		_, err = ss.Thread().GetMembershipForUser(userB.Id, gmRoot.Id)
+		require.NoError(t, err)
+		assertCounts(userB.Id, team.Id, 2, 2, 2)
+	})
+
+	t.Run("a re-added member sees the threads they follow again", func(t *testing.T) {
+		addMember(privateChannel.Id, userA.Id)
+		follow(userA.Id, privateRoot.Id)
+
+		require.ElementsMatch(t, []string{privateRoot.Id}, threadIDs(userA.Id, team.Id, model.GetUserThreadsOpts{}))
+		assertCounts(userA.Id, team.Id, 1, 1, 1)
 	})
 }
 
