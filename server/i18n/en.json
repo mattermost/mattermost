@@ -10291,6 +10291,11 @@
     "description": "Generic API error shown to system admins when saving an attribute-based access control policy fails."
   },
   {
+    "id": "app.pap.save_policy.dm_gm_resource_attributes",
+    "translation": "Rules for direct and group messages can't use channel attributes. Remove the channel attributes from this rule before saving.",
+    "description": "API error (400) shown to a system admin saving a permission policy whose rule for the Start, Read or Write Direct and Group Messages actions references channel (resource) attributes. These actions are evaluated without a channel, so such a rule is refused."
+  },
+  {
     "id": "app.pap.save_policy.forbidden",
     "translation": "You do not have permission to make this change to the policy.",
     "description": "API error when an admin tries to make a change to an access control policy they are not permitted to make."
