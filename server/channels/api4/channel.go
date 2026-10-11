@@ -423,6 +423,10 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("updateChannel", "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
+		// The header is conversation content, so changing it is a write.
+		if !requireChannelWriteAccess(c, oldChannel) {
+			return
+		}
 
 	default:
 		c.Err = model.NewAppError("updateChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)
@@ -674,6 +678,10 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.auto_translation_restricted.app_error", nil, "", http.StatusForbidden)
 			return
 		}
+		// The header and auto-translation are conversation content, so changing them is a write.
+		if !requireChannelWriteAccess(c, oldChannel) {
+			return
+		}
 
 	default:
 		c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)
@@ -889,6 +897,10 @@ func readAllMessages(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	if !requireDMGMAccess(c, model.AccessControlPolicyActionDMGMReadAccess, model.PermissionReadChannel) {
 		return
 	}
 
@@ -1151,6 +1163,17 @@ func requireChannelManagementAccessByID(c *Context, channelID string) bool {
 		return true
 	}
 	c.SetPermissionError(model.PermissionManageChannelRoles)
+	return false
+}
+
+// requireDMGMAccess gates a direct and group message action for the session user. The
+// action is the same for every conversation, so no channel is needed; rbacPermission is
+// what SetPermissionError reports if no denial was recorded.
+func requireDMGMAccess(c *Context, action string, rbacPermission *model.Permission) bool {
+	if c.App.EnforceDMGMAccess(c.AppContext, c.AppContext.Session().UserId, action) {
+		return true
+	}
+	c.SetPermissionError(rbacPermission)
 	return false
 }
 
@@ -3517,6 +3540,10 @@ func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Req
 	// The channel id the payload must be the same one as indicated in the URL.
 	if gmConversionRequest.ChannelID != c.Params.ChannelId {
 		c.SetInvalidParam("channel_id")
+		return
+	}
+
+	if !requireChannelWriteAccessByID(c, c.Params.ChannelId) {
 		return
 	}
 

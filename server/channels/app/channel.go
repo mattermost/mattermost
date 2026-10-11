@@ -3647,7 +3647,7 @@ func (a *App) SearchChannelsForUser(rctx request.CTX, userID, teamID, term strin
 }
 
 func (a *App) SearchGroupChannels(rctx request.CTX, userID, term string) (model.ChannelList, *model.AppError) {
-	if term == "" {
+	if term == "" || a.DirectAndGroupHidden(rctx, userID) {
 		return model.ChannelList{}, nil
 	}
 

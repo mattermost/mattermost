@@ -34,6 +34,9 @@ type dmGmAccessFixture struct {
 	dm     *model.Channel
 	gm     *model.Channel
 	dmPost *model.Post
+	gmPost *model.Post
+	// One bookmark per conversation, keyed by channel id.
+	bookmarks map[string]*model.ChannelBookmarkWithFileInfo
 }
 
 type dmGmAccessSurface struct {
@@ -49,10 +52,15 @@ func setupDMGMAccessAPI(t *testing.T, allowRead, allowWrite bool) (*dmGmAccessFi
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.EnableShiftEscapeToMarkAllRead = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+		*cfg.ServiceSettings.ScheduledPosts = true
+		// Conversation posts push asynchronously; a push must not reach the access
+		// control service after the test has restored it.
+		*cfg.EmailSettings.SendPushNotifications = false
 	})
 
 	// Created before the mock is installed: a bare mock panics on the broadcast
@@ -61,6 +69,34 @@ func setupDMGMAccessAPI(t *testing.T, allowRead, allowWrite bool) (*dmGmAccessFi
 	gm, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}, th.BasicUser.Id)
 	require.Nil(t, appErr)
 	dmPost := th.CreatePostWithClient(t, th.Client, dm)
+	gmPost := th.CreatePostWithClient(t, th.Client, gm)
+
+	bookmarks := map[string]*model.ChannelBookmarkWithFileInfo{}
+	for _, channel := range []*model.Channel{dm, gm} {
+		bookmark, _, err := th.Client.CreateChannelBookmark(context.Background(), &model.ChannelBookmark{
+			ChannelId:   channel.Id,
+			DisplayName: "bookmark",
+			Type:        model.ChannelBookmarkLink,
+			LinkUrl:     "https://mattermost.com",
+		})
+		require.NoError(t, err)
+		bookmarks[channel.Id] = bookmark
+	}
+
+	// A saved post and a scheduled post in the DM, for the lists that leave hidden
+	// conversations out.
+	_, err := th.Client.UpdatePreferences(context.Background(), th.BasicUser.Id, model.Preferences{{
+		UserId:   th.BasicUser.Id,
+		Category: model.PreferenceCategoryFlaggedPost,
+		Name:     dmPost.Id,
+		Value:    "true",
+	}})
+	require.NoError(t, err)
+	_, _, err = th.Client.CreateScheduledPost(context.Background(), &model.ScheduledPost{
+		Draft:       model.Draft{ChannelId: dm.Id, Message: "scheduled"},
+		ScheduledAt: model.GetMillis() + 100000,
+	})
+	require.NoError(t, err)
 
 	mockACS := installMockACS(t, th)
 	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
@@ -71,7 +107,7 @@ func setupDMGMAccessAPI(t *testing.T, allowRead, allowWrite bool) (*dmGmAccessFi
 	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
 		Return(model.AccessDecision{Decision: true}, nil)
 
-	return &dmGmAccessFixture{th: th, dm: dm, gm: gm, dmPost: dmPost}, mockACS
+	return &dmGmAccessFixture{th: th, dm: dm, gm: gm, dmPost: dmPost, gmPost: gmPost, bookmarks: bookmarks}, mockACS
 }
 
 func dmGmReadSurfaces() []dmGmAccessSurface {
@@ -280,4 +316,190 @@ func TestDMGMBotAccessTokenIsEvaluated(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 	require.Equal(t, dmGmWriteDeniedErrorID, err.(*model.AppError).Id)
+}
+
+// dmGmExplicitWriteSurfaces are the conversation writes that check membership rather
+// than a write permission, so they carry their own gate. Each runs on the DM and the GM.
+func dmGmExplicitWriteSurfaces() []dmGmAccessSurface {
+	var surfaces []dmGmAccessSurface
+	for _, conv := range []struct {
+		name    string
+		channel func(f *dmGmAccessFixture) *model.Channel
+		post    func(f *dmGmAccessFixture) *model.Post
+	}{
+		{"DM", func(f *dmGmAccessFixture) *model.Channel { return f.dm }, func(f *dmGmAccessFixture) *model.Post { return f.dmPost }},
+		{"GM", func(f *dmGmAccessFixture) *model.Channel { return f.gm }, func(f *dmGmAccessFixture) *model.Post { return f.gmPost }},
+	} {
+		surfaces = append(surfaces,
+			dmGmAccessSurface{conv.name + " update header", func(t *testing.T, f *dmGmAccessFixture) (*model.Response, error) {
+				channel := conv.channel(f).DeepCopy()
+				channel.Header = "updated " + model.NewId()
+				_, resp, err := f.th.Client.UpdateChannel(context.Background(), channel)
+				return resp, err
+			}},
+			dmGmAccessSurface{conv.name + " patch header", func(t *testing.T, f *dmGmAccessFixture) (*model.Response, error) {
+				header := "patched " + model.NewId()
+				_, resp, err := f.th.Client.PatchChannel(context.Background(), conv.channel(f).Id, &model.ChannelPatch{Header: &header})
+				return resp, err
+			}},
+			dmGmAccessSurface{conv.name + " create bookmark", func(t *testing.T, f *dmGmAccessFixture) (*model.Response, error) {
+				_, resp, err := f.th.Client.CreateChannelBookmark(context.Background(), &model.ChannelBookmark{
+					ChannelId:   conv.channel(f).Id,
+					DisplayName: "another",
+					Type:        model.ChannelBookmarkLink,
+					LinkUrl:     "https://mattermost.com",
+				})
+				return resp, err
+			}},
+			dmGmAccessSurface{conv.name + " update bookmark", func(t *testing.T, f *dmGmAccessFixture) (*model.Response, error) {
+				name := "renamed"
+				channelID := conv.channel(f).Id
+				_, resp, err := f.th.Client.UpdateChannelBookmark(context.Background(), channelID, f.bookmarks[channelID].Id, &model.ChannelBookmarkPatch{DisplayName: &name})
+				return resp, err
+			}},
+			dmGmAccessSurface{conv.name + " sort bookmark", func(t *testing.T, f *dmGmAccessFixture) (*model.Response, error) {
+				channelID := conv.channel(f).Id
+				_, resp, err := f.th.Client.UpdateChannelBookmarkSortOrder(context.Background(), channelID, f.bookmarks[channelID].Id, 0)
+				return resp, err
+			}},
+			dmGmAccessSurface{conv.name + " acknowledge post", func(t *testing.T, f *dmGmAccessFixture) (*model.Response, error) {
+				_, resp, err := f.th.Client.AcknowledgePost(context.Background(), conv.post(f).Id, f.th.BasicUser.Id)
+				return resp, err
+			}},
+			dmGmAccessSurface{conv.name + " unacknowledge post", func(t *testing.T, f *dmGmAccessFixture) (*model.Response, error) {
+				return f.th.Client.UnacknowledgePost(context.Background(), conv.post(f).Id, f.th.BasicUser.Id)
+			}},
+			// Last for each conversation: it removes the bookmark the surfaces above use.
+			dmGmAccessSurface{conv.name + " delete bookmark", func(t *testing.T, f *dmGmAccessFixture) (*model.Response, error) {
+				channelID := conv.channel(f).Id
+				_, resp, err := f.th.Client.DeleteChannelBookmark(context.Background(), channelID, f.bookmarks[channelID].Id)
+				return resp, err
+			}},
+		)
+	}
+	return surfaces
+}
+
+func TestDMGMWriteAccessGatesExplicitWrites(t *testing.T) {
+	t.Run("denied", func(t *testing.T) {
+		f, _ := setupDMGMAccessAPI(t, true, false)
+		requireDMGMDenial(t, f, dmGmExplicitWriteSurfaces(), dmGmWriteDeniedErrorID)
+	})
+
+	t.Run("allowed", func(t *testing.T) {
+		f, _ := setupDMGMAccessAPI(t, true, true)
+		requireDMGMAllowed(t, f, dmGmExplicitWriteSurfaces())
+	})
+}
+
+// Acknowledgements in channels stay read-gated: only conversations treat them as writes.
+func TestDMGMAcknowledgementsInChannelsAreNotWriteGated(t *testing.T) {
+	f, _ := setupDMGMAccessAPI(t, true, false)
+
+	_, _, err := f.th.Client.AcknowledgePost(context.Background(), f.th.BasicPost.Id, f.th.BasicUser.Id)
+	require.NoError(t, err)
+}
+
+func TestDMGMWriteAccessGatesGroupMessageConversion(t *testing.T) {
+	convert := func(f *dmGmAccessFixture) error {
+		_, err := f.th.Client.DoAPIPostJSON(context.Background(), "/channels/"+f.gm.Id+"/convert_to_channel", &model.GroupMessageConversionRequestBody{
+			ChannelID:   f.gm.Id,
+			TeamID:      f.th.BasicTeam.Id,
+			Name:        "converted-" + model.NewId(),
+			DisplayName: "Converted",
+		})
+		return err
+	}
+
+	t.Run("denied", func(t *testing.T) {
+		f, _ := setupDMGMAccessAPI(t, true, false)
+		err := convert(f)
+		require.Error(t, err)
+		require.Equal(t, dmGmWriteDeniedErrorID, err.(*model.AppError).Id)
+	})
+
+	t.Run("allowed gets past the gate", func(t *testing.T) {
+		f, _ := setupDMGMAccessAPI(t, true, true)
+		// The system admin in the GM isn't on the team, so the conversion itself fails;
+		// what matters is that the gate doesn't.
+		if err := convert(f); err != nil {
+			require.NotEqual(t, dmGmWriteDeniedErrorID, err.(*model.AppError).Id)
+		}
+	})
+}
+
+func TestDMGMReadAccessGatesMarkAllRead(t *testing.T) {
+	t.Run("denied", func(t *testing.T) {
+		f, _ := setupDMGMAccessAPI(t, false, true)
+		_, resp, err := f.th.Client.ReadAllMessages(context.Background(), f.th.BasicUser.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		require.Equal(t, dmGmReadDeniedErrorID, err.(*model.AppError).Id)
+	})
+
+	t.Run("allowed", func(t *testing.T) {
+		f, _ := setupDMGMAccessAPI(t, true, true)
+		_, _, err := f.th.Client.ReadAllMessages(context.Background(), f.th.BasicUser.Id)
+		require.NoError(t, err)
+	})
+}
+
+// The lists that leave hidden conversations out rather than refusing. Each returns how
+// many of the fixture's conversation items it returned.
+func dmGmHiddenListSurfaces() map[string]func(t *testing.T, f *dmGmAccessFixture) int {
+	return map[string]func(t *testing.T, f *dmGmAccessFixture) int{
+		"group channel search": func(t *testing.T, f *dmGmAccessFixture) int {
+			channels, _, err := f.th.Client.SearchGroupChannels(context.Background(), &model.ChannelSearch{Term: f.th.BasicUser2.Username})
+			require.NoError(t, err)
+			return len(channels)
+		},
+		"users in group channels": func(t *testing.T, f *dmGmAccessFixture) int {
+			users, _, err := f.th.Client.GetUsersByGroupChannelIds(context.Background(), []string{f.gm.Id})
+			require.NoError(t, err)
+			return len(users[f.gm.Id])
+		},
+		"scheduled posts in conversations": func(t *testing.T, f *dmGmAccessFixture) int {
+			posts, _, err := f.th.Client.GetUserScheduledPosts(context.Background(), f.th.BasicTeam.Id, true)
+			require.NoError(t, err)
+			directChannels, ok := posts["directChannels"]
+			require.True(t, ok, "the key is still returned")
+			return len(directChannels)
+		},
+		"saved posts in a conversation": func(t *testing.T, f *dmGmAccessFixture) int {
+			posts, _, err := f.th.Client.GetFlaggedPostsForUserInChannel(context.Background(), f.th.BasicUser.Id, f.dm.Id, 0, 60)
+			require.NoError(t, err)
+			return len(posts.Order)
+		},
+		"direct messages sidebar category": func(t *testing.T, f *dmGmAccessFixture) int {
+			categories, _, err := f.th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), f.th.BasicUser.Id, f.th.BasicTeam.Id, "")
+			require.NoError(t, err)
+			for _, category := range categories.Categories {
+				if category.Type == model.SidebarCategoryDirectMessages {
+					return len(category.Channels)
+				}
+			}
+			require.Fail(t, "the Direct Messages category is still returned")
+			return 0
+		},
+	}
+}
+
+func TestDMGMReadAccessHidesConversationsFromLists(t *testing.T) {
+	t.Run("denied", func(t *testing.T) {
+		f, _ := setupDMGMAccessAPI(t, false, true)
+		for name, list := range dmGmHiddenListSurfaces() {
+			t.Run(name, func(t *testing.T) {
+				require.Zero(t, list(t, f))
+			})
+		}
+	})
+
+	t.Run("allowed", func(t *testing.T) {
+		f, _ := setupDMGMAccessAPI(t, true, true)
+		for name, list := range dmGmHiddenListSurfaces() {
+			t.Run(name, func(t *testing.T) {
+				require.NotZero(t, list(t, f))
+			})
+		}
+	})
 }

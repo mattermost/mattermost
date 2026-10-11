@@ -907,6 +907,10 @@ func (a *App) GetUsersByIds(rctx request.CTX, userIDs []string, options *store.U
 }
 
 func (a *App) GetUsersByGroupChannelIds(rctx request.CTX, channelIDs []string, asAdmin bool) (map[string][]*model.User, *model.AppError) {
+	if a.DirectAndGroupHidden(rctx, rctx.Session().UserId) {
+		return map[string][]*model.User{}, nil
+	}
+
 	usersByChannelId, err := a.Srv().Store().User().GetProfileByGroupChannelIdsForUser(rctx.Session().UserId, channelIDs)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersByGroupChannelIds", "app.user.get_profile_by_group_channel_ids_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

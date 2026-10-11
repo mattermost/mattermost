@@ -1366,6 +1366,10 @@ func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post,
 		return appErr
 	}
 
+	if a.conversationPreviewWithheld(rctx, permalinkPreviewedChannel) {
+		return nil
+	}
+
 	// Add metadata back to post for HTTP response if post author has permission
 	// Note: This is only for the return value to the post creator
 	// WebSocket recipients get per-recipient filtering via the hook
@@ -1906,6 +1910,13 @@ func (a *App) GetFlaggedPostsForTeam(rctx request.CTX, userID, teamID string, of
 }
 
 func (a *App) GetFlaggedPostsForChannel(rctx request.CTX, userID, channelID string, offset int, limit int) (*model.PostList, *model.AppError) {
+	// Every post of a hidden conversation would be filtered out, so skip the paging.
+	if a.DirectAndGroupHidden(rctx, userID) {
+		if channel, appErr := a.GetChannel(rctx, channelID); appErr == nil && channel.IsGroupOrDirect() {
+			return model.NewPostList(), nil
+		}
+	}
+
 	postList, err := a.fillFlaggedPostPage(rctx, userID, offset, limit, func(off, lim int) (*model.PostList, error) {
 		return a.Srv().Store().Post().GetFlaggedPostsForChannel(userID, channelID, off, lim)
 	})

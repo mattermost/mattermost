@@ -75,6 +75,14 @@ func (a *App) DirectAndGroupHidden(rctx request.CTX, userID string) bool {
 		!a.HasDMGMAccess(rctx, userID, model.AccessControlPolicyActionDMGMReadAccess)
 }
 
+// conversationPreviewWithheld reports whether a permalink preview of a post in channel
+// must not be unfurled: a conversation post is never embedded while a policy governs
+// reading conversations, which avoids evaluating every recipient.
+func (a *App) conversationPreviewWithheld(rctx request.CTX, channel *model.Channel) bool {
+	return channel.IsGroupOrDirect() && a.ChannelAccessEnforcementActive() &&
+		a.dmGmActionGoverned(rctx, model.AccessControlPolicyActionDMGMReadAccess)
+}
+
 // HasChannelWriteAccess reports whether the user may write in channel, without
 // recording a denial.
 func (a *App) HasChannelWriteAccess(rctx request.CTX, userID string, channel *model.Channel) bool {

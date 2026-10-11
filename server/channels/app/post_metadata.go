@@ -379,7 +379,9 @@ func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, us
 
 			if previewedChannel != nil {
 				var hasPermission bool
-				hasPermission, isMemberForPreviews = a.HasPermissionToReadChannel(rctx, userID, previewedChannel)
+				if !a.conversationPreviewWithheld(rctx, previewedChannel) {
+					hasPermission, isMemberForPreviews = a.HasPermissionToReadChannel(rctx, userID, previewedChannel)
+				}
 				if !hasPermission {
 					removePermalinkMetadataFromPost(post)
 					// Since we remove the permalink metadata, we return true for isMember

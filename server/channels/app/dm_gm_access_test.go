@@ -6,6 +6,7 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"slices"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -67,6 +68,11 @@ type dmGmFixture struct {
 func setupDMGMAccessTest(t *testing.T) *dmGmFixture {
 	t.Helper()
 	h := setupChannelReadAccessTest(t)
+	// A post in a conversation pushes to the other members asynchronously; that push
+	// must not reach the access control service after a test has restored it.
+	h.th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.SendPushNotifications = false
+	})
 	return &dmGmFixture{
 		channelReadAccessHarness: h,
 		dm:                       h.th.CreateDmChannel(t, h.th.BasicUser2),
@@ -446,4 +452,69 @@ func TestSearchAllowedActionsDMGM(t *testing.T) {
 			}
 		})
 	}
+}
+
+// A conversation post linked from a channel post is never unfurled while reading
+// conversations is governed, so no recipient has to be evaluated for the embed.
+func TestDMGMPermalinkPreviewWithheld(t *testing.T) {
+	setup := func(t *testing.T, readGoverned bool) (*dmGmFixture, *model.Post) {
+		f := setupDMGMAccessTest(t)
+		dmPost, _, appErr := f.th.App.CreatePost(f.th.Context, &model.Post{
+			UserId:    f.th.BasicUser.Id,
+			ChannelId: f.dm.Id,
+			Message:   "linked",
+		}, f.dm, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		mockACS := f.mockACS(t)
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionDMGMReadAccess).Return(readGoverned, nil)
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(false, nil)
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).Return(model.AccessDecision{Decision: true}, nil)
+		return f, dmPost
+	}
+	hostPost := func(f *dmGmFixture, dmPost *model.Post) *model.Post {
+		return &model.Post{
+			UserId:    f.th.BasicUser.Id,
+			ChannelId: f.th.BasicChannel.Id,
+			Metadata: &model.PostMetadata{Embeds: []*model.PostEmbed{{
+				Type: model.PostEmbedPermalink,
+				Data: &model.PreviewPost{PostID: dmPost.Id, Post: dmPost},
+			}}},
+		}
+	}
+	hooked := func(t *testing.T, f *dmGmFixture, dmPost *model.Post) (*model.Post, bool) {
+		t.Helper()
+		post := hostPost(f, dmPost)
+		post.Metadata.Embeds = nil
+		message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", f.th.BasicChannel.Id, "", nil, "")
+		appErr := f.th.App.setupBroadcastHookForPermalink(f.rctx, post, message, &model.PreviewPost{PostID: dmPost.Id, Post: dmPost}, dmPost.Id)
+		require.Nil(t, appErr)
+		return post, slices.Contains(message.GetBroadcast().BroadcastHooks, broadcastPermalink)
+	}
+
+	t.Run("withheld while governed", func(t *testing.T) {
+		f, dmPost := setup(t, true)
+
+		sanitized, _, appErr := f.th.App.SanitizePostMetadataForUser(f.rctx, hostPost(f, dmPost), f.th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Nil(t, sanitized.GetPreviewPost(), "no embed over REST")
+
+		post, hasHook := hooked(t, f, dmPost)
+		require.False(t, hasHook, "no permalink hook on the WebSocket event")
+		require.Empty(t, post.Metadata.Embeds)
+		mockACS := f.th.App.Srv().ch.AccessControl.(*eMocks.AccessControlServiceInterface)
+		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+	})
+
+	t.Run("unfurled while ungoverned", func(t *testing.T) {
+		f, dmPost := setup(t, false)
+
+		sanitized, _, appErr := f.th.App.SanitizePostMetadataForUser(f.rctx, hostPost(f, dmPost), f.th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, sanitized.GetPreviewPost())
+
+		post, hasHook := hooked(t, f, dmPost)
+		require.True(t, hasHook)
+		require.Len(t, post.Metadata.Embeds, 1)
+	})
 }
