@@ -348,6 +348,36 @@ function extOf(file) {
   return '';
 }
 
+/** Scan in-memory sources. Keys are relative paths; values are file text. */
+export function scanSources({html = {}, css = {}, js = {}} = {}) {
+  const violations = [];
+  const stats = {html: 0, css: 0, js: 0};
+
+  for (const [file, text] of Object.entries(html)) {
+    stats.html++;
+    scanHtml(text, file, violations);
+  }
+  for (const [file, text] of Object.entries(css)) {
+    stats.css++;
+    if (text.includes('://') || text.includes('url(//')) {
+      scanCssIn(text, file, violations, text, 0);
+    }
+  }
+  for (const [file, text] of Object.entries(js)) {
+    stats.js++;
+    if (text.includes('fetch(') || text.includes('import(')) {
+      scanJs(text, file, violations, text, 0);
+    }
+  }
+
+  if (stats.html === 0) {
+    throw new Error(EMPTY_BUILD_MESSAGE);
+  }
+
+  violations.stats = stats;
+  return violations;
+}
+
 export function scanBuild(root) {
   const abs = resolve(root);
   try {
@@ -364,8 +394,9 @@ export function scanBuild(root) {
     throw err;
   }
 
-  const violations = [];
-  const stats = {html: 0, css: 0, js: 0};
+  const html = {};
+  const css = {};
+  const js = {};
 
   for (const file of walk(abs)) {
     if (file.endsWith('.map')) {
@@ -378,27 +409,15 @@ export function scanBuild(root) {
     const rel = relative(abs, file).split('\\').join('/');
     const text = readFileSync(file, 'utf8');
     if (ext === '.html') {
-      stats.html++;
-      scanHtml(text, rel, violations);
+      html[rel] = text;
     } else if (ext === '.css') {
-      stats.css++;
-      if (text.includes('://') || text.includes('url(//')) {
-        scanCssIn(text, rel, violations, text, 0);
-      }
+      css[rel] = text;
     } else {
-      stats.js++;
-      if (text.includes('fetch(') || text.includes('import(')) {
-        scanJs(text, rel, violations, text, 0);
-      }
+      js[rel] = text;
     }
   }
 
-  if (stats.html === 0) {
-    throw new Error(EMPTY_BUILD_MESSAGE);
-  }
-
-  violations.stats = stats;
-  return violations;
+  return scanSources({html, css, js});
 }
 
 function fixHint(kind, found) {

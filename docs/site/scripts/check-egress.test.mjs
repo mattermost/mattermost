@@ -1,18 +1,21 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
+import {mkdirSync, mkdtempSync, rmSync, writeFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';
 import {dirname, join} from 'node:path';
-import {describe, it} from 'node:test';
+import {after, describe, it} from 'node:test';
 import {fileURLToPath} from 'node:url';
 
-import {EMPTY_BUILD_MESSAGE, main, scanBuild} from './check-egress.mjs';
+import {
+  EMPTY_BUILD_MESSAGE,
+  FEED_URL,
+  main,
+  scanBuild,
+  scanSources,
+} from './check-egress.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const FIXTURES = join(HERE, 'fixtures', 'egress');
 const SCRIPT = join(HERE, 'check-egress.mjs');
-
-function fixture(name) {
-  return join(FIXTURES, name);
-}
 
 function kinds(hits) {
   return hits.map((h) => h.kind);
@@ -22,153 +25,274 @@ function found(hits) {
   return hits.map((h) => h.found);
 }
 
-function runCli(dir) {
-  return spawnSync(process.execPath, [SCRIPT, dir], {encoding: 'utf8'});
+function stubHtml(extra = '') {
+  return `<!DOCTYPE html><html><body>${extra}</body></html>`;
 }
 
-describe('scanBuild fixtures', () => {
-  it('clean/ has 0 violations', () => {
-    const hits = scanBuild(fixture('clean'));
+describe('scanSources', () => {
+  it('clean sources have 0 violations', () => {
+    const hits = scanSources({
+      html: {
+        'index.html': `<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="/_documentation/assets/css/x.css">
+  <link rel="canonical" href="https://docs.mattermost.com/_documentation/">
+  <meta property="og:image" content="https://docs.mattermost.com/_documentation/img/x.svg">
+  <script src="/_documentation/assets/js/x.js"></script>
+</head>
+<body>
+  <a href="https://github.com/mattermost/mattermost/tree/master/docs/main/foo.mdx">edit</a>
+  <img src="/_documentation/images/x.png">
+</body>
+</html>`,
+      },
+      css: {'main.css': '@font-face { src: url(./fonts/inter.woff2); }'},
+      js: {'app.js': `fetch("${FEED_URL}");`},
+    });
     assert.equal(hits.length, 0);
   });
 
-  it('script-cdn/ flags script[src]', () => {
-    const hits = scanBuild(fixture('script-cdn'));
+  it('flags script[src]', () => {
+    const hits = scanSources({
+      html: {'index.html': '<script src="https://cdn.example.com/foo.js"></script>'},
+    });
     assert.equal(hits.length, 1);
     assert.equal(hits[0].kind, 'script[src]');
     assert.equal(hits[0].found, 'https://cdn.example.com/foo.js');
   });
 
-  it('preconnect-fonts/ flags link[rel=preconnect]', () => {
-    const hits = scanBuild(fixture('preconnect-fonts'));
+  it('flags link[rel=preconnect]', () => {
+    const hits = scanSources({
+      html: {
+        'index.html':
+          '<link rel="preconnect" href="https://fonts.googleapis.com">',
+      },
+    });
     assert.equal(hits.length, 1);
     assert.equal(hits[0].kind, 'link[rel=preconnect]');
     assert.equal(hits[0].found, 'https://fonts.googleapis.com');
   });
 
-  it('stylesheet-google/ flags link[rel=stylesheet]', () => {
-    const hits = scanBuild(fixture('stylesheet-google'));
+  it('flags link[rel=stylesheet]', () => {
+    const hits = scanSources({
+      html: {
+        'index.html':
+          '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter">',
+      },
+    });
     assert.equal(hits.length, 1);
     assert.equal(hits[0].kind, 'link[rel=stylesheet]');
   });
 
-  it('algolia-preconnect/ flags SearchBar preconnect', () => {
-    const hits = scanBuild(fixture('algolia-preconnect'));
+  it('flags SearchBar preconnect', () => {
+    const hits = scanSources({
+      html: {
+        'index.html':
+          '<link rel="preconnect" href="https://ABC-dsn.algolia.net" crossorigin>',
+      },
+    });
     assert.equal(hits.length, 1);
     assert.equal(hits[0].kind, 'link[rel=preconnect]');
     assert.equal(hits[0].found, 'https://ABC-dsn.algolia.net');
   });
 
-  it('remote-img/ flags img[src]', () => {
-    const hits = scanBuild(fixture('remote-img'));
+  it('flags img[src]', () => {
+    const hits = scanSources({
+      html: {'index.html': '<img src="https://cdn.example.com/x.png">'},
+    });
     assert.equal(hits.length, 1);
     assert.equal(hits[0].kind, 'img[src]');
   });
 
-  it('srcset/ flags only the https candidate', () => {
-    const hits = scanBuild(fixture('srcset'));
+  it('flags only the https srcset candidate', () => {
+    const hits = scanSources({
+      html: {
+        'index.html':
+          '<img srcset="https://cdn.example.com/a.png 1x, /_documentation/b.png 2x">',
+      },
+    });
     assert.equal(hits.length, 1);
     assert.equal(hits[0].kind, 'img[srcset]');
     assert.equal(hits[0].found, 'https://cdn.example.com/a.png');
   });
 
-  it('protocol-relative/ flags script[src] as https', () => {
-    const hits = scanBuild(fixture('protocol-relative'));
+  it('flags protocol-relative script[src] as https', () => {
+    const hits = scanSources({
+      html: {'index.html': '<script src="//cdn.example.com/x.js"></script>'},
+    });
     assert.equal(hits.length, 1);
     assert.equal(hits[0].kind, 'script[src]');
     assert.equal(hits[0].found, 'https://cdn.example.com/x.js');
   });
 
-  it('css-import/ flags @import and url()', () => {
-    const hits = scanBuild(fixture('css-import'));
+  it('flags css @import and url()', () => {
+    const hits = scanSources({
+      html: {'index.html': stubHtml()},
+      css: {
+        'main.css':
+          '@import url("https://fonts.googleapis.com/css");\n' +
+          'body { background: url("https://fonts.gstatic.com/s/x.woff2"); }',
+      },
+    });
     assert.equal(hits.length, 2);
     assert.deepEqual(kinds(hits).sort(), ['css @import', 'css url()']);
     assert.ok(found(hits).includes('https://fonts.googleapis.com/css'));
     assert.ok(found(hits).includes('https://fonts.gstatic.com/s/x.woff2'));
   });
 
-  it('js-fetch-other/ flags fetch()', () => {
-    const hits = scanBuild(fixture('js-fetch-other'));
+  it('flags fetch()', () => {
+    const hits = scanSources({
+      html: {'index.html': stubHtml()},
+      js: {'app.js': 'fetch("https://evil.example/x");'},
+    });
     assert.equal(hits.length, 1);
     assert.equal(hits[0].kind, 'fetch()');
     assert.equal(hits[0].found, 'https://evil.example/x');
   });
 
-  it('js-fetch-template/ flags fetch() with a template literal', () => {
-    const hits = scanBuild(fixture('js-fetch-template'));
+  it('flags fetch() with a template literal', () => {
+    const hits = scanSources({
+      html: {'index.html': stubHtml()},
+      js: {'app.js': 'fetch(`https://evil.example/template`);'},
+    });
     assert.equal(hits.length, 1);
     assert.equal(hits[0].kind, 'fetch()');
     assert.equal(hits[0].found, 'https://evil.example/template');
   });
 
-  it('js-fetch-template-interp/ flags remote prefix before ${', () => {
-    const hits = scanBuild(fixture('js-fetch-template-interp'));
+  it('flags remote prefix before ${', () => {
+    const hits = scanSources({
+      html: {'index.html': stubHtml()},
+      js: {'app.js': 'fetch(`https://api.example/${path}`);'},
+    });
     assert.equal(hits.length, 1);
     assert.equal(hits[0].kind, 'fetch()');
     assert.equal(hits[0].found, 'https://api.example/');
   });
 
-  it('data-src-attr/ ignores data-src and xlink:href false positives', () => {
-    const hits = scanBuild(fixture('data-src-attr'));
+  it('ignores data-src and xlink:href false positives', () => {
+    const hits = scanSources({
+      html: {
+        'index.html': `<img data-src="https://cdn.example.com/x.png" src="./local.png">
+<svg><use xlink:href="https://cdn.example.com/icons.svg#x"></use></svg>
+<link data-rel="stylesheet" href="./local.css">
+<script data-type="module" src="./ok.js"></script>`,
+      },
+    });
     assert.equal(hits.length, 0);
   });
 
-  it('js-fetch-feed/ allows the security bulletin URL', () => {
-    const hits = scanBuild(fixture('js-fetch-feed'));
+  it('allows the security bulletin URL', () => {
+    const hits = scanSources({
+      html: {'index.html': stubHtml()},
+      js: {'app.js': `fetch("${FEED_URL}");`},
+    });
     assert.equal(hits.length, 0);
   });
 
-  it('anchor-only/ ignores <a href> and <area href>', () => {
-    const hits = scanBuild(fixture('anchor-only'));
+  it('ignores <a href> and <area href>', () => {
+    const hits = scanSources({
+      html: {
+        'index.html': `<a href="https://forum.mattermost.com">forum</a>
+<a href="https://github.com/mattermost/mattermost">github</a>
+<a href="https://mattermost.com/pricing">pricing</a>
+<area href="https://example.com/map" alt="map">`,
+      },
+    });
     assert.equal(hits.length, 0);
   });
 
-  it('json-state/ does not parse application/json as JS', () => {
-    const hits = scanBuild(fixture('json-state'));
+  it('does not parse application/json as JS', () => {
+    const hits = scanSources({
+      html: {
+        'index.html':
+          '<script type="application/json">{"x":"https://cdn.example.com/x.js"}</script>',
+      },
+    });
     assert.equal(hits.length, 0);
   });
 
-  it('xmlns/ ignores SVG xmlns', () => {
-    const hits = scanBuild(fixture('xmlns'));
+  it('ignores SVG xmlns', () => {
+    const hits = scanSources({
+      html: {
+        'index.html': '<svg xmlns="http://www.w3.org/2000/svg"></svg>',
+      },
+    });
     assert.equal(hits.length, 0);
   });
 
-  it('og-cdn/ flags og:image off docs.mattermost.com', () => {
-    const hits = scanBuild(fixture('og-cdn'));
+  it('flags og:image off docs.mattermost.com', () => {
+    const hits = scanSources({
+      html: {
+        'index.html':
+          '<meta property="og:image" content="https://cdn.example.com/share.png">',
+      },
+    });
     assert.equal(hits.length, 1);
     assert.equal(hits[0].found, 'https://cdn.example.com/share.png');
   });
 
-  it('empty-dir/ throws', () => {
-    assert.throws(() => scanBuild(fixture('empty-dir')), {
+  it('throws when no HTML is present', () => {
+    assert.throws(() => scanSources({css: {'a.css': 'body{}'}}), {
       message: EMPTY_BUILD_MESSAGE,
     });
   });
 });
 
-describe('CLI', () => {
-  it('exits 0 on clean/', () => {
-    const result = runCli(fixture('clean'));
+describe('CLI smoke (temp dir)', () => {
+  const root = mkdtempSync(join(tmpdir(), 'check-egress-'));
+  const cleanDir = join(root, 'clean');
+  const dirtyDir = join(root, 'dirty');
+  const emptyDir = join(root, 'empty');
+
+  mkdirSync(cleanDir);
+  mkdirSync(dirtyDir);
+  mkdirSync(emptyDir);
+  writeFileSync(
+    join(cleanDir, 'index.html'),
+    '<!DOCTYPE html><html><body><img src="/local.png"></body></html>',
+  );
+  writeFileSync(
+    join(dirtyDir, 'index.html'),
+    '<script src="https://cdn.example.com/foo.js"></script>',
+  );
+
+  after(() => {
+    rmSync(root, {recursive: true, force: true});
+  });
+
+  function runCli(dir) {
+    return spawnSync(process.execPath, [SCRIPT, dir], {encoding: 'utf8'});
+  }
+
+  it('scanBuild matches scanSources on a temp tree', () => {
+    assert.equal(scanBuild(cleanDir).length, 0);
+    assert.equal(scanBuild(dirtyDir).length, 1);
+  });
+
+  it('exits 0 on a clean tree', () => {
+    const result = runCli(cleanDir);
     assert.equal(result.status, 0, result.stderr);
   });
 
   it('exits 1 when violations exist', () => {
-    const result = runCli(fixture('script-cdn'));
+    const result = runCli(dirtyDir);
     assert.equal(result.status, 1);
     assert.match(result.stderr, /script\[src\]/);
   });
 
   it('exits 1 on an empty tree', () => {
-    const result = runCli(fixture('empty-dir'));
+    const result = runCli(emptyDir);
     assert.equal(result.status, 1);
     assert.match(result.stderr, /missing or empty/);
   });
 
   it('main() returns 1 on violations', () => {
-    assert.equal(main([fixture('remote-img')]), 1);
+    assert.equal(main([dirtyDir]), 1);
   });
 
-  it('main() returns 0 on clean/', () => {
-    assert.equal(main([fixture('clean')]), 0);
+  it('main() returns 0 on clean', () => {
+    assert.equal(main([cleanDir]), 0);
   });
 });
