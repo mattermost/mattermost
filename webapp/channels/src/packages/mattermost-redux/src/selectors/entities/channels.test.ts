@@ -545,6 +545,45 @@ describe('Selectors.Channels.getChannelByName', () => {
     });
 });
 
+describe('Selectors.Channels.hasDirectChannelWithUser', () => {
+    const currentUserId = 'current_user_id';
+    const team = TestHelper.fakeTeamWithId();
+    const dm = {
+        ...TestHelper.fakeChannelWithId(''),
+        type: General.DM_CHANNEL,
+        name: getDirectChannelName(currentUserId, 'partner_id'),
+    };
+    const channel = {
+        ...TestHelper.fakeChannelWithId(team.id),
+        name: getDirectChannelName(currentUserId, 'stranger_id'),
+    };
+
+    const makeState = (directChannelIds: string[]) => deepFreezeAndThrowOnMutation({
+        entities: {
+            users: {currentUserId},
+            channels: {
+                channels: {[dm.id]: dm, [channel.id]: channel},
+                channelsInTeam: {'': new Set(directChannelIds), [team.id]: new Set([channel.id])},
+            },
+        },
+    });
+
+    it('finds only DMs the user has', () => {
+        const state = makeState([dm.id]);
+
+        expect(Selectors.hasDirectChannelWithUser(state, 'partner_id')).toBe(true);
+        expect(Selectors.hasDirectChannelWithUser(state, 'stranger_id')).toBe(false);
+        expect(Selectors.hasDirectOrGroupChannels(state)).toBe(true);
+    });
+
+    it('reports no conversations when there are none', () => {
+        const state = makeState([]);
+
+        expect(Selectors.hasDirectChannelWithUser(state, 'partner_id')).toBe(false);
+        expect(Selectors.hasDirectOrGroupChannels(state)).toBe(false);
+    });
+});
+
 describe('Selectors.Channels.getChannelByTeamIdAndChannelName', () => {
     const team1 = TestHelper.fakeTeamWithId();
     const team2 = TestHelper.fakeTeamWithId();

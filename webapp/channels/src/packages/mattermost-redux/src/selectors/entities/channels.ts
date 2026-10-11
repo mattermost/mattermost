@@ -63,6 +63,7 @@ import {
     completeDirectGroupInfo,
     filterChannelsMatchingTerm,
     getChannelByName as getChannelByNameHelper,
+    getDirectChannelName,
     getUserIdFromChannelName,
     isChannelMuted,
     isDefault,
@@ -149,6 +150,29 @@ export const getDirectChannelsSet: (state: GlobalState) => Set<string> = createS
         return new Set(channelsInTeam['']);
     },
 );
+
+// Lets a caller find whether a DM with a user exists without scanning every channel.
+export const getDirectChannelNamesSet: (state: GlobalState) => Set<string> = createSelector(
+    'getDirectChannelNamesSet',
+    getAllChannels,
+    getDirectChannelsSet,
+    (channels: IDMappedObjects<Channel>, channelSet: Set<string>): Set<string> => {
+        const names = new Set<string>();
+        channelSet.forEach((id) => {
+            names.add(channels[id].name);
+        });
+        return names;
+    },
+);
+
+export function hasDirectChannelWithUser(state: GlobalState, userId: string): boolean {
+    return getDirectChannelNamesSet(state).has(getDirectChannelName(getCurrentUserId(state), userId));
+}
+
+// Covers both DMs and GMs.
+export function hasDirectOrGroupChannels(state: GlobalState): boolean {
+    return getDirectChannelsSet(state).size > 0;
+}
 
 export function getChannelMembersInChannels(state: GlobalState): RelationOneToOne<Channel, Record<string, ChannelMembership>> {
     return state.entities.channels.membersInChannel;

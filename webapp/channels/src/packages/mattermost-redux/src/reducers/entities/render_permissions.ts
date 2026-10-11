@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ACCESS_CONTROL_RESOURCE_TYPE_PERMISSION} from '@mattermost/types/access_control';
 import type {RenderPermissionsState, RenderPermissionEntry} from '@mattermost/types/render_permissions';
 
 import {RenderPermissionTypes, UserTypes} from 'mattermost-redux/action_types';
@@ -113,7 +114,16 @@ export function byResource(
             [CHANNEL_RESOURCE_TYPE]: nextChannels,
         };
     }
-    case RenderPermissionTypes.CLEAR_RENDER_DECISIONS:
+    case RenderPermissionTypes.CLEAR_RENDER_DECISIONS: {
+        // The session's DM/GM decisions are kept until their refetch lands. Dropping them would
+        // briefly re-enable Write and Start, and make a Read denial look like a regain.
+        const sessionDecisions = state[ACCESS_CONTROL_RESOURCE_TYPE_PERMISSION];
+        if (action.data?.includeSessionDecisions || !sessionDecisions) {
+            return {};
+        }
+
+        return {[ACCESS_CONTROL_RESOURCE_TYPE_PERMISSION]: sessionDecisions};
+    }
     case UserTypes.LOGOUT_SUCCESS:
         return {};
     default:

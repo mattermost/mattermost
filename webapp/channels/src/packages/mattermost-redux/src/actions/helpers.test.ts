@@ -125,5 +125,56 @@ describe('Actions.Helpers', () => {
             expect(Client4.token).toEqual(token);
             expect(dispatch.actions).toEqual([]);
         });
+
+        it.each([
+            ['api.channel.dm_gm_start.abac_denied.app_error', 'dm_gm_start'],
+            ['api.channel.dm_gm_read_access.abac_denied.app_error', 'dm_gm_read_access'],
+            ['api.channel.dm_gm_write_access.abac_denied.app_error', 'dm_gm_write_access'],
+        ])('should record a DM/GM denial when passed %s', (serverErrorId, action) => {
+            const store = configureStore({
+                entities: {
+                    general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+                    users: {
+                        currentUserId: 'user',
+                    },
+                },
+            });
+            const dispatch = mockDispatch(store.dispatch);
+
+            const error = new ClientError(Client4.getUrl(), {
+                message: 'Failed to do something',
+                server_error_id: serverErrorId,
+                status_code: 403,
+                url: '/api/v4/foo/bar',
+            });
+
+            forceLogoutIfNecessary(error, dispatch as any, store.getState);
+
+            expect(Client4.token).toEqual(token);
+            expect(dispatch.actions).toHaveLength(1);
+            expect(store.getState().entities.renderPermissions.byResource.permission[''][action]).toMatchObject({allowed: false, evaluated: true});
+        });
+
+        it('should not record a denial for another 403', () => {
+            const store = configureStore({
+                entities: {
+                    users: {
+                        currentUserId: 'user',
+                    },
+                },
+            });
+            const dispatch = mockDispatch(store.dispatch);
+
+            const error = new ClientError(Client4.getUrl(), {
+                message: 'Failed to do something',
+                server_error_id: 'api.channel.channel_write_access.abac_denied.app_error',
+                status_code: 403,
+                url: '/api/v4/foo/bar',
+            });
+
+            forceLogoutIfNecessary(error, dispatch as any, store.getState);
+
+            expect(dispatch.actions).toEqual([]);
+        });
     });
 });

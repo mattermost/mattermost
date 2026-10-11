@@ -110,6 +110,28 @@ export const ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS = 'channel_read_access';
 export const ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS = 'channel_write_access';
 export const ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS = 'channel_management_access';
 export const ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ = 'create_burn_on_read_post';
+export const ACCESS_CONTROL_ACTION_DM_GM_START = 'dm_gm_start';
+export const ACCESS_CONTROL_ACTION_DM_GM_READ_ACCESS = 'dm_gm_read_access';
+export const ACCESS_CONTROL_ACTION_DM_GM_WRITE_ACCESS = 'dm_gm_write_access';
+
+// Evaluated against the system resource only, so each session has one decision per action that
+// applies to every direct and group message.
+export const ACCESS_CONTROL_DM_GM_ACTIONS: string[] = [
+    ACCESS_CONTROL_ACTION_DM_GM_START,
+    ACCESS_CONTROL_ACTION_DM_GM_READ_ACCESS,
+    ACCESS_CONTROL_ACTION_DM_GM_WRITE_ACCESS,
+];
+
+// Matches the server's AccessControlPolicyTypePermission and the system resource's empty id.
+export const ACCESS_CONTROL_RESOURCE_TYPE_PERMISSION = 'permission';
+export const ACCESS_CONTROL_SYSTEM_RESOURCE_ID = '';
+
+// The 403 a request gets when one of the DM/GM actions denies it, keyed to that action.
+export const ACCESS_CONTROL_DM_GM_DENIAL_ERROR_IDS: Record<string, string> = {
+    'api.channel.dm_gm_start.abac_denied.app_error': ACCESS_CONTROL_ACTION_DM_GM_START,
+    'api.channel.dm_gm_read_access.abac_denied.app_error': ACCESS_CONTROL_ACTION_DM_GM_READ_ACCESS,
+    'api.channel.dm_gm_write_access.abac_denied.app_error': ACCESS_CONTROL_ACTION_DM_GM_WRITE_ACCESS,
+};
 
 export const ACCESS_CONTROL_PERMISSION_ACTIONS: string[] = [
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
@@ -118,6 +140,9 @@ export const ACCESS_CONTROL_PERMISSION_ACTIONS: string[] = [
     ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
     ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
     ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
+    ACCESS_CONTROL_ACTION_DM_GM_START,
+    ACCESS_CONTROL_ACTION_DM_GM_READ_ACCESS,
+    ACCESS_CONTROL_ACTION_DM_GM_WRITE_ACCESS,
 ];
 
 // The channel-access actions share one feature flag, so pickers filter them together.

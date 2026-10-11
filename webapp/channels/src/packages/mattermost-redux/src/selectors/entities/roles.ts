@@ -10,6 +10,7 @@ import {General, Permissions} from 'mattermost-redux/constants';
 import {CHANNEL_MANAGEMENT_PERMISSIONS, CHANNEL_WRITE_PERMISSIONS} from 'mattermost-redux/constants/permissions';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {isDmGmWriteDenied} from 'mattermost-redux/selectors/entities/render_permissions';
 import type {PermissionsOptions} from 'mattermost-redux/selectors/entities/roles_helpers';
 import {
     getMySystemPermissions as getMySystemPermissionsInternal,
@@ -223,7 +224,14 @@ function isChannelActionDenied(state: GlobalState, channelId: string, action: st
     return Boolean(decision?.evaluated && !decision.allowed);
 }
 
+// Conversations are governed by the session's dm_gm_write_access decision instead; channel
+// policies never apply to them.
 export function isChannelWriteDenied(state: GlobalState, channelId: string): boolean {
+    const channelType = state.entities.channels.channels[channelId]?.type;
+    if (channelType === General.DM_CHANNEL || channelType === General.GM_CHANNEL) {
+        return isDmGmWriteDenied(state);
+    }
+
     return isChannelActionDenied(state, channelId, ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS);
 }
 

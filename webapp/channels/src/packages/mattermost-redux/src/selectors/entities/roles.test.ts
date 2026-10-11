@@ -398,3 +398,79 @@ describe('Selectors.Roles.channelWriteAccess', () => {
         expect(Selectors.haveIChannelPermission(state, teamId, otherChannelId, Permissions.CREATE_POST)).toBe(true);
     });
 });
+
+describe('Selectors.Roles.dmGmWriteAccess', () => {
+    const teamId = 'team_id';
+    const dmId = 'dm_id';
+    const channelId = 'channel_id';
+    const writePermissions = [
+        Permissions.CREATE_POST,
+        Permissions.ADD_REACTION,
+        Permissions.UPLOAD_FILE,
+        Permissions.USE_SLASH_COMMANDS,
+    ];
+
+    function makeState({sessionDecision, channelDecision}: {
+        sessionDecision?: {allowed: boolean; evaluated: boolean};
+        channelDecision?: {allowed: boolean; evaluated: boolean};
+    } = {}) {
+        const channelRoles: Record<string, Set<string>> = {
+            [dmId]: new Set(['channel_user']),
+            [channelId]: new Set(['channel_user']),
+        };
+
+        return {
+            entities: {
+                general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+                users: {currentUserId: 'user_id', profiles: {user_id: {id: 'user_id', roles: ''}}},
+                teams: {currentTeamId: teamId, myMembers: {}},
+                channels: {
+                    currentChannelId: dmId,
+                    channels: {
+                        [dmId]: {id: dmId, type: General.DM_CHANNEL, team_id: ''},
+                        [channelId]: {id: channelId, type: General.OPEN_CHANNEL, team_id: teamId},
+                    },
+                    roles: channelRoles,
+                },
+                groups: {groups: {}, myGroups: []},
+                roles: {
+                    roles: {
+                        channel_user: {
+                            permissions: [...writePermissions, Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS],
+                        },
+                    },
+                },
+                renderPermissions: {
+                    byResource: {
+                        ...(sessionDecision ? {permission: {'': {dm_gm_write_access: {...sessionDecision, generation: 1}}}} : {}),
+                        ...(channelDecision ? {channel: {[dmId]: {channel_write_access: {...channelDecision, generation: 1}}}} : {}),
+                    },
+                },
+            },
+        } as unknown as Parameters<typeof Selectors.haveIChannelPermission>[0];
+    }
+
+    it('denies write permissions in a DM, and only there, when the session decision denies', () => {
+        const state = makeState({sessionDecision: {allowed: false, evaluated: true}});
+
+        expect(Selectors.isChannelWriteDenied(state, dmId)).toBe(true);
+        for (const permission of writePermissions) {
+            expect(Selectors.haveIChannelPermission(state, teamId, dmId, permission)).toBe(false);
+            expect(Selectors.haveIChannelPermission(state, teamId, channelId, permission)).toBe(true);
+        }
+    });
+
+    it('ignores a channel write decision cached for a DM', () => {
+        const state = makeState({channelDecision: {allowed: false, evaluated: true}});
+
+        expect(Selectors.isChannelWriteDenied(state, dmId)).toBe(false);
+        expect(Selectors.haveIChannelPermission(state, teamId, dmId, Permissions.CREATE_POST)).toBe(true);
+    });
+
+    it('leaves management permissions in a DM alone when the session decision denies', () => {
+        const state = makeState({sessionDecision: {allowed: false, evaluated: true}});
+
+        expect(Selectors.isChannelManagementDenied(state, dmId)).toBe(false);
+        expect(Selectors.haveIChannelPermission(state, teamId, dmId, Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS)).toBe(true);
+    });
+});

@@ -47,15 +47,40 @@ describe('reducers.entities.renderPermissions', () => {
         expect(state.byResource.channel.chan2).toBeDefined();
     });
 
-    test('CLEAR_RENDER_DECISIONS and LOGOUT_SUCCESS reset to initial', () => {
+    describe('session decisions', () => {
         const seeded: RenderPermissionsState = {
-            byResource: {channel: {chan1: {upload_file_attachment: {allowed: true, evaluated: true, generation: 1}}}},
+            byResource: {
+                channel: {chan1: {upload_file_attachment: {allowed: true, evaluated: true, generation: 1}}},
+                permission: {'': {dm_gm_write_access: {allowed: false, evaluated: true, generation: 1}}},
+            },
             invalidatedAt: 0,
             invalidatedAtByResource: {},
         };
 
-        expect(reducer(seeded, {type: RenderPermissionTypes.CLEAR_RENDER_DECISIONS, data: {generation: 1}}).byResource).toEqual({});
-        expect(reducer(seeded, {type: UserTypes.LOGOUT_SUCCESS, data: {}}).byResource).toEqual({});
+        test('CLEAR_RENDER_DECISIONS keeps them and drops channel entries', () => {
+            const state = reducer(seeded, {type: RenderPermissionTypes.CLEAR_RENDER_DECISIONS, data: {generation: 1}});
+
+            expect(state.byResource).toEqual({permission: seeded.byResource.permission});
+        });
+
+        test('CLEAR_RENDER_DECISIONS with includeSessionDecisions and LOGOUT_SUCCESS drop everything', () => {
+            expect(reducer(seeded, {type: RenderPermissionTypes.CLEAR_RENDER_DECISIONS, data: {generation: 1, includeSessionDecisions: true}}).byResource).toEqual({});
+            expect(reducer(seeded, {type: UserTypes.LOGOUT_SUCCESS, data: {}}).byResource).toEqual({});
+        });
+
+        test('a recorded denial survives a later completion from an older generation', () => {
+            const sessionDecisions = (actions: Record<string, {allowed: boolean; evaluated: boolean}>, generation: number) => ({
+                type: RenderPermissionTypes.RECEIVED_RENDER_DECISIONS,
+                data: {resourceType: 'permission', resourceId: '', actions, generation},
+            });
+
+            // The 403 lands while the fetch started at generation 2 is still in flight.
+            let state = reducer(undefined, sessionDecisions({dm_gm_write_access: {allowed: false, evaluated: true}}, 3));
+            state = reducer(state, sessionDecisions({dm_gm_write_access: {allowed: true, evaluated: true}, dm_gm_start: {allowed: true, evaluated: true}}, 2));
+
+            expect(state.byResource.permission[''].dm_gm_write_access).toEqual({allowed: false, evaluated: true, generation: 3});
+            expect(state.byResource.permission[''].dm_gm_start).toEqual({allowed: true, evaluated: true, generation: 2});
+        });
     });
 
     describe('a completion that lands after an invalidation is discarded', () => {
