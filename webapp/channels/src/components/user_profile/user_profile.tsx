@@ -25,6 +25,7 @@ export default function UserProfile({
     displayUsername = false,
     hideStatus = false,
     hideGuestTag = false,
+    fromWebhook = false,
     overwriteName = '',
     colorize = false,
     user,
@@ -89,6 +90,7 @@ export default function UserProfile({
                 src={profileImg}
                 channelId={channelId}
                 hideStatus={hideStatus}
+                fromWebhook={fromWebhook}
                 overwriteIcon={overwriteIcon}
                 overwriteName={overwriteName}
             >
