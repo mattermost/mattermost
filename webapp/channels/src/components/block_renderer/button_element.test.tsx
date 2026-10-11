@@ -55,6 +55,8 @@ describe('ButtonElement', () => {
 
         const button = screen.getByRole('button', {name: 'Approve'});
         expect(button.className).toEqual(expect.stringContaining('_button--emphasis-primary'));
+        expect(button.className).toEqual(expect.stringContaining('_button--size-medium'));
+        expect(button).toHaveClass('mm-blocks-button');
         expect(button).not.toBeDisabled();
 
         await user.click(button);

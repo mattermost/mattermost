@@ -50,7 +50,7 @@ export const ButtonElement = ({element, onAction}: ButtonElementProps) => {
     const button = (
         <Button
             type='button'
-            size='small'
+            size='medium'
             emphasis={element.style === 'primary' ? 'primary' : 'tertiary'}
             destructive={element.style === 'danger'}
             className={mmBlocksButtonClassName(element.style)}

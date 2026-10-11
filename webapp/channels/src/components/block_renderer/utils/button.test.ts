@@ -58,20 +58,20 @@ describe('isMmButtonHexColor', () => {
 });
 
 describe('mmBlocksButtonClassName', () => {
-    it('returns empty string when style is omitted, primary, danger, or default', () => {
-        expect(mmBlocksButtonClassName(undefined)).toBe('');
-        expect(mmBlocksButtonClassName('primary')).toBe('');
-        expect(mmBlocksButtonClassName('danger')).toBe('');
-        expect(mmBlocksButtonClassName('default')).toBe('');
+    it('returns base class when style is omitted, primary, danger, or default', () => {
+        expect(mmBlocksButtonClassName(undefined)).toBe('mm-blocks-button');
+        expect(mmBlocksButtonClassName('primary')).toBe('mm-blocks-button');
+        expect(mmBlocksButtonClassName('danger')).toBe('mm-blocks-button');
+        expect(mmBlocksButtonClassName('default')).toBe('mm-blocks-button');
     });
 
     it('returns good classes for good and success styles', () => {
-        expect(mmBlocksButtonClassName('good')).toBe('mm-blocks-button--good');
-        expect(mmBlocksButtonClassName('success')).toBe('mm-blocks-button--success');
+        expect(mmBlocksButtonClassName('good')).toBe('mm-blocks-button mm-blocks-button--good');
+        expect(mmBlocksButtonClassName('success')).toBe('mm-blocks-button mm-blocks-button--success');
     });
 
     it('returns warning classes for warning style', () => {
-        expect(mmBlocksButtonClassName('warning')).toBe('mm-blocks-button--warning');
+        expect(mmBlocksButtonClassName('warning')).toBe('mm-blocks-button mm-blocks-button--warning');
     });
 });
 

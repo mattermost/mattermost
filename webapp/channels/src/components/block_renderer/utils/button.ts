@@ -45,17 +45,17 @@ export function isMmButtonHexColor(style: string | undefined): boolean {
     return Boolean(style && MM_BUTTON_HEX_COLOR.test(style));
 }
 
-/** Extra class names for semantic colors that Compass Button does not express (good/success/warning). */
+/** Base class plus extras for semantic colors Compass Button does not express (good/success/warning). */
 export function mmBlocksButtonClassName(style: string | undefined): string {
     switch (style) {
     case 'good':
-        return 'mm-blocks-button--good';
+        return 'mm-blocks-button mm-blocks-button--good';
     case 'success':
-        return 'mm-blocks-button--success';
+        return 'mm-blocks-button mm-blocks-button--success';
     case 'warning':
-        return 'mm-blocks-button--warning';
+        return 'mm-blocks-button mm-blocks-button--warning';
     default:
-        return '';
+        return 'mm-blocks-button';
     }
 }
 
