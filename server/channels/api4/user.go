@@ -3753,6 +3753,10 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// Conversations share one decision, so a denial leaves them out of the query and
+	// the pages stay full. Evaluated for the session, like the filters below.
+	hidden := c.App.DirectAndGroupHidden(c.AppContext, c.AppContext.Session().UserId)
+
 	// For backward compatibility purposes
 	if c.Params.Page != -1 {
 		currentUserId := c.AppContext.Session().UserId
@@ -3765,8 +3769,9 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 		members, truncated, err := putils.FetchUntil(page, c.Params.PerPage,
 			func(from int) ([]model.ChannelMemberWithTeamData, error) {
 				cursor := &model.ChannelMemberCursor{
-					Page:    from,
-					PerPage: c.Params.PerPage,
+					Page:                  from,
+					PerPage:               c.Params.PerPage,
+					ExcludeDirectAndGroup: hidden,
 				}
 				m, appErr := c.App.GetChannelMembersWithTeamDataForUserWithPagination(c.AppContext, c.Params.UserId, cursor)
 				if appErr != nil {
@@ -3823,9 +3828,10 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 
 	for {
 		cursor := &model.ChannelMemberCursor{
-			Page:          -1,
-			PerPage:       pageSize,
-			FromChannelID: fromChannelID,
+			Page:                  -1,
+			PerPage:               pageSize,
+			FromChannelID:         fromChannelID,
+			ExcludeDirectAndGroup: hidden,
 		}
 
 		members, err := c.App.GetChannelMembersWithTeamDataForUserWithPagination(c.AppContext, c.Params.UserId, cursor)
@@ -4280,7 +4286,8 @@ func updateReadStateAllThreadsByUser(c *Context, w http.ResponseWriter, r *http.
 		return
 	}
 
-	err := c.App.UpdateThreadsReadForUser(c.Params.UserId, c.Params.TeamId)
+	// A hidden conversation's threads keep their read state.
+	err := c.App.UpdateThreadsReadForUser(c.Params.UserId, c.Params.TeamId, c.App.DirectAndGroupHidden(c.AppContext, c.Params.UserId))
 	if err != nil {
 		c.Err = err
 		return

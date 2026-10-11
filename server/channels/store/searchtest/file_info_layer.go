@@ -21,6 +21,11 @@ var searchFileInfoStoreTests = []searchTest{
 		Tags: []string{EngineAll},
 	},
 	{
+		Name: "Should leave out files in direct and group messages when asked",
+		Fn:   testFileInfoSearchExcludingDirectAndGroupChannels,
+		Tags: []string{EngineAll},
+	},
+	{
 		Name: "Should be able to search posts using pagination",
 		Fn:   testFileInfoSearchFileInfosWithPagination,
 		Tags: []string{EngineElasticSearch},
@@ -215,6 +220,51 @@ func TestSearchFileInfoStore(t *testing.T, s store.Store, testEngine *SearchTest
 	defer th.CleanFixtures()
 
 	runTestSearch(t, testEngine, searchFileInfoStoreTests, th)
+}
+
+func testFileInfoSearchExcludingDirectAndGroupChannels(t *testing.T, th *SearchTestHelper) {
+	direct, err := th.createDirectChannel(th.Team.Id, "direct-"+th.Team.Id, []*model.User{th.User, th.UserAnotherTeam})
+	require.NoError(t, err)
+	defer th.deleteChannel(direct)
+
+	dmPost, err := th.createPost(th.User.Id, direct.Id, "dm test", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	channelPost, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "channel test", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	dmFile, err := th.createFileInfo(th.User.Id, dmPost.Id, dmPost.ChannelId, "dm test filename", "dm test", "jpg", "image/jpeg", 0, 1)
+	require.NoError(t, err)
+	channelFile, err := th.createFileInfo(th.User.Id, channelPost.Id, channelPost.ChannelId, "channel test filename", "channel test", "jpg", "image/jpeg", 0, 1)
+	require.NoError(t, err)
+	defer th.deleteUserFileInfos(th.User.Id)
+
+	search := func(t *testing.T, userID string, exclude bool) map[string]*model.FileInfo {
+		t.Helper()
+		params := &model.SearchParams{Terms: "test", ExcludeDirectAndGroupChannels: exclude}
+		results, err := th.Store.FileInfo().Search(th.Context, []*model.SearchParams{params}, userID, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+		return results.FileInfos
+	}
+
+	t.Run("conversations are left out", func(t *testing.T) {
+		results := search(t, th.User.Id, true)
+		require.Len(t, results, 1)
+		th.checkFileInfoInSearchResults(t, channelFile.Id, results)
+	})
+
+	t.Run("conversations are found otherwise", func(t *testing.T) {
+		results := search(t, th.User.Id, false)
+		require.Len(t, results, 2)
+		th.checkFileInfoInSearchResults(t, dmFile.Id, results)
+	})
+
+	// This user is in no channel of the team, so only conversations are left to search;
+	// an engine must not take the empty channel list to mean every channel.
+	t.Run("nothing is found when only conversations remain", func(t *testing.T) {
+		require.Empty(t, search(t, th.UserAnotherTeam.Id, true))
+		require.Len(t, search(t, th.UserAnotherTeam.Id, false), 1)
+	})
 }
 
 func testFileInfoSearchFileInfosIncludingDMs(t *testing.T, th *SearchTestHelper) {

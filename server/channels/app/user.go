@@ -2991,6 +2991,10 @@ func (a *App) ConvertBotToUser(rctx request.CTX, bot *model.Bot, userPatch *mode
 }
 
 func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError) {
+	if a.DirectAndGroupHidden(rctx, userID) {
+		options.ExcludeDirect = true
+	}
+
 	var result model.Threads
 	var eg errgroup.Group
 	postPriorityIsEnabled := a.IsPostPriorityEnabled()
@@ -3167,8 +3171,8 @@ func (a *App) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadM
 }
 
 // sanitizeThreadResponse removes server-only data from a thread response before it is sent to clients.
-func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {
-	nErr := a.Srv().Store().Thread().MarkAllAsReadByTeam(userID, teamID)
+func (a *App) UpdateThreadsReadForUser(userID, teamID string, excludeDirect bool) *model.AppError {
+	nErr := a.Srv().Store().Thread().MarkAllAsReadByTeam(userID, teamID, excludeDirect)
 	if nErr != nil {
 		return model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}

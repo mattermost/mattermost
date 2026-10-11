@@ -124,6 +124,7 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("GetMembersForUser", func(t *testing.T) { testChannelStoreGetMembersForUser(t, rctx, ss) })
 	t.Run("GetMembersForUserWithPagination", func(t *testing.T) { testChannelStoreGetMembersForUserWithPagination(t, rctx, ss) })
 	t.Run("GetMembersForUserWithCursorPagination", func(t *testing.T) { testChannelStoreGetMembersForUserWithCursorPagination(t, rctx, ss) })
+	t.Run("GetMembersForUserExcludingDirectAndGroup", func(t *testing.T) { testChannelStoreGetMembersForUserExcludingDirectAndGroup(t, rctx, ss) })
 	t.Run("CountPostsAfter", func(t *testing.T) { testCountPostsAfter(t, rctx, ss) })
 	t.Run("CountUrgentPostsAfter", func(t *testing.T) { testCountUrgentPostsAfter(t, rctx, ss) })
 	t.Run("UpdateLastViewedAt", func(t *testing.T) { testChannelStoreUpdateLastViewedAt(t, rctx, ss) })
@@ -4902,7 +4903,7 @@ func testChannelStoreGetMembersForUserWithPagination(t *testing.T, rctx request.
 	_, err = ss.Channel().SaveMember(rctx, &m2)
 	require.NoError(t, err)
 
-	members, err := ss.Channel().GetMembersForUserWithPagination(m1.UserId, 0, 2)
+	members, err := ss.Channel().GetMembersForUserWithPagination(m1.UserId, 0, 2, false)
 	require.NoError(t, err)
 	assert.Len(t, members, 2)
 	teamNames := make([]string, 0, 2)
@@ -4911,9 +4912,76 @@ func testChannelStoreGetMembersForUserWithPagination(t *testing.T, rctx request.
 	}
 	assert.ElementsMatch(t, teamNames, []string{t1.DisplayName, t2.DisplayName})
 
-	members, err = ss.Channel().GetMembersForUserWithPagination(m1.UserId, 1, 1)
+	members, err = ss.Channel().GetMembersForUserWithPagination(m1.UserId, 1, 1, false)
 	require.NoError(t, err)
 	assert.Len(t, members, 1)
+}
+
+func testChannelStoreGetMembersForUserExcludingDirectAndGroup(t *testing.T, rctx request.CTX, ss store.Store) {
+	userID := model.NewId()
+	member := func(channelID, userID string) *model.ChannelMember {
+		return &model.ChannelMember{ChannelId: channelID, UserId: userID, NotifyProps: model.GetDefaultChannelNotifyProps()}
+	}
+
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Channel",
+		Name:        NewTestID(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+	_, err = ss.Channel().SaveMember(rctx, member(channel.Id, userID))
+	require.NoError(t, err)
+	channelIDs := []string{channel.Id}
+
+	for range 2 {
+		other := model.NewId()
+		dm, dmErr := ss.Channel().SaveDirectChannel(rctx, &model.Channel{
+			Name: model.GetDMNameFromIds(userID, other),
+			Type: model.ChannelTypeDirect,
+		}, member("", userID), member("", other))
+		require.NoError(t, dmErr)
+		channelIDs = append(channelIDs, dm.Id)
+	}
+
+	gm, err := ss.Channel().Save(rctx, &model.Channel{
+		Name:        model.GetGroupNameFromUserIds([]string{userID, model.NewId(), model.NewId()}),
+		DisplayName: "GM",
+		Type:        model.ChannelTypeGroup,
+	}, -1)
+	require.NoError(t, err)
+	_, err = ss.Channel().SaveMember(rctx, member(gm.Id, userID))
+	require.NoError(t, err)
+	channelIDs = append(channelIDs, gm.Id)
+
+	t.Cleanup(func() {
+		for _, channelID := range channelIDs {
+			_ = ss.Channel().PermanentDeleteMembersByChannel(rctx, channelID)
+			_ = ss.Channel().PermanentDelete(rctx, channelID)
+		}
+	})
+
+	ids := func(members model.ChannelMembersWithTeamData) []string {
+		var got []string
+		for _, m := range members {
+			got = append(got, m.ChannelId)
+		}
+		return got
+	}
+
+	paged, err := ss.Channel().GetMembersForUserWithPagination(userID, 0, 1, true)
+	require.NoError(t, err)
+	require.Equal(t, []string{channel.Id}, ids(paged), "the first page is full despite the conversations")
+	paged, err = ss.Channel().GetMembersForUserWithPagination(userID, 0, 10, false)
+	require.NoError(t, err)
+	require.ElementsMatch(t, channelIDs, ids(paged))
+
+	cursored, err := ss.Channel().GetMembersForUserWithCursorPagination(userID, 10, "", true)
+	require.NoError(t, err)
+	require.Equal(t, []string{channel.Id}, ids(cursored))
+	cursored, err = ss.Channel().GetMembersForUserWithCursorPagination(userID, 10, "", false)
+	require.NoError(t, err)
+	require.ElementsMatch(t, channelIDs, ids(cursored))
 }
 
 func testChannelStoreGetMembersForUserWithCursorPagination(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -4948,7 +5016,7 @@ func testChannelStoreGetMembersForUserWithCursorPagination(t *testing.T, rctx re
 		require.NoError(t, err)
 	}
 
-	members, err := ss.Channel().GetMembersForUserWithCursorPagination(userID, 200, "")
+	members, err := ss.Channel().GetMembersForUserWithCursorPagination(userID, 200, "", false)
 	require.NoError(t, err)
 	assert.Len(t, members, 20)
 
@@ -4957,7 +5025,7 @@ func testChannelStoreGetMembersForUserWithCursorPagination(t *testing.T, rctx re
 	numPages := 0
 	var gotChannelIDs []string
 	for {
-		members, err := ss.Channel().GetMembersForUserWithCursorPagination(userID, pageSize, channelID)
+		members, err := ss.Channel().GetMembersForUserWithCursorPagination(userID, pageSize, channelID, false)
 		require.NoError(t, err)
 		numPages++
 		for _, m := range members {
@@ -4982,7 +5050,7 @@ func testChannelStoreGetMembersForUserWithCursorPagination(t *testing.T, rctx re
 	numPages = 0
 	gotChannelIDs = []string{}
 	for {
-		members, err := ss.Channel().GetMembersForUserWithCursorPagination(userID, pageSize, channelID)
+		members, err := ss.Channel().GetMembersForUserWithCursorPagination(userID, pageSize, channelID, false)
 		numPages++
 		if numPages < 5 {
 			channelID = members[len(members)-1].ChannelId
@@ -10057,12 +10125,12 @@ func testChannelStoreSpaceExclusion(t *testing.T, rctx request.CTX, ss store.Sto
 		return func(m model.ChannelMemberWithTeamData) bool { return m.ChannelId == channelID }
 	}
 
-	paged, err := ss.Channel().GetMembersForUserWithPagination(userID, 0, 100)
+	paged, err := ss.Channel().GetMembersForUserWithPagination(userID, 0, 100, false)
 	require.NoError(t, err)
 	require.False(t, slices.ContainsFunc(paged, hasChannel(space.Id)), "GetMembersForUserWithPagination must exclude space channels")
 	require.True(t, slices.ContainsFunc(paged, hasChannel(open.Id)))
 
-	cursored, err := ss.Channel().GetMembersForUserWithCursorPagination(userID, 100, "")
+	cursored, err := ss.Channel().GetMembersForUserWithCursorPagination(userID, 100, "", false)
 	require.NoError(t, err)
 	require.False(t, slices.ContainsFunc(cursored, hasChannel(space.Id)), "GetMembersForUserWithCursorPagination must exclude space channels")
 	require.True(t, slices.ContainsFunc(cursored, hasChannel(open.Id)))

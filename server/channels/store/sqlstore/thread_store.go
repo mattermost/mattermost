@@ -133,6 +133,25 @@ func (s *SqlThreadStore) Get(id string) (*model.Thread, error) {
 	return &thread, nil
 }
 
+// threadTeamPredicate constrains threads to a team and, unless excluded, the direct and
+// group messages, which have no team. Without a team it only drops those conversations,
+// and only when excluded. It returns nil when there is nothing to constrain.
+func threadTeamPredicate(teamId string, excludeDirect bool) sq.Sqlizer {
+	switch {
+	case teamId != "" && excludeDirect:
+		return sq.Eq{"Threads.ThreadTeamId": teamId}
+	case teamId != "":
+		return sq.Or{
+			sq.Eq{"Threads.ThreadTeamId": teamId},
+			sq.Eq{"Threads.ThreadTeamId": ""},
+		}
+	case excludeDirect:
+		return sq.NotEq{"Threads.ThreadTeamId": ""}
+	default:
+		return nil
+	}
+}
+
 func (s *SqlThreadStore) getTotalThreadsQuery(userId, teamId string, opts model.GetUserThreadsOpts) sq.SelectBuilder {
 	query := s.getQueryBuilder().
 		Select("COUNT(ThreadMemberships.PostId)").
@@ -144,17 +163,8 @@ func (s *SqlThreadStore) getTotalThreadsQuery(userId, teamId string, opts model.
 		}).
 		Where(channelMembershipPredicate())
 
-	if teamId != "" {
-		if opts.ExcludeDirect {
-			query = query.Where(sq.Eq{"Threads.ThreadTeamId": teamId})
-		} else {
-			query = query.Where(
-				sq.Or{
-					sq.Eq{"Threads.ThreadTeamId": teamId},
-					sq.Eq{"Threads.ThreadTeamId": ""},
-				},
-			)
-		}
+	if predicate := threadTeamPredicate(teamId, opts.ExcludeDirect); predicate != nil {
+		query = query.Where(predicate)
 	}
 
 	if !opts.Deleted {
@@ -212,17 +222,8 @@ func (s *SqlThreadStore) GetTotalUnreadMentions(userId, teamId string, opts mode
 		}).
 		Where(channelMembershipPredicate())
 
-	if teamId != "" {
-		if opts.ExcludeDirect {
-			query = query.Where(sq.Eq{"Threads.ThreadTeamId": teamId})
-		} else {
-			query = query.Where(
-				sq.Or{
-					sq.Eq{"Threads.ThreadTeamId": teamId},
-					sq.Eq{"Threads.ThreadTeamId": ""},
-				},
-			)
-		}
+	if predicate := threadTeamPredicate(teamId, opts.ExcludeDirect); predicate != nil {
+		query = query.Where(predicate)
 	}
 
 	if !opts.Deleted {
@@ -254,17 +255,8 @@ func (s *SqlThreadStore) GetTotalUnreadUrgentMentions(userId, teamId string, opt
 		}).
 		Where(channelMembershipPredicate())
 
-	if teamId != "" {
-		if opts.ExcludeDirect {
-			query = query.Where(sq.Eq{"Threads.ThreadTeamId": teamId})
-		} else {
-			query = query.Where(
-				sq.Or{
-					sq.Eq{"Threads.ThreadTeamId": teamId},
-					sq.Eq{"Threads.ThreadTeamId": ""},
-				},
-			)
-		}
+	if predicate := threadTeamPredicate(teamId, opts.ExcludeDirect); predicate != nil {
+		query = query.Where(predicate)
 	}
 
 	if !opts.Deleted {
@@ -322,19 +314,8 @@ func (s *SqlThreadStore) GetThreadsForUser(rctx request.CTX, userId, teamId stri
 			LeftJoin("PostsPriority ON PostsPriority.PostId = Threads.PostId")
 	}
 
-	// If a team is specified, constrain to channels in that team and if not excluded also return DMs/GMs without
-	// a team at all.
-	if teamId != "" {
-		if opts.ExcludeDirect {
-			query = query.Where(sq.Eq{"Threads.ThreadTeamId": teamId})
-		} else {
-			query = query.Where(
-				sq.Or{
-					sq.Eq{"Threads.ThreadTeamId": teamId},
-					sq.Eq{"Threads.ThreadTeamId": ""},
-				},
-			)
-		}
+	if predicate := threadTeamPredicate(teamId, opts.ExcludeDirect); predicate != nil {
+		query = query.Where(predicate)
 	}
 
 	if !opts.Deleted {
@@ -675,13 +656,15 @@ func (s *SqlThreadStore) MarkAllAsRead(userId string, threadIds []string) error 
 
 // MarkAllAsReadByTeam marks all threads for the given user in the given team as read from the
 // current time.
-func (s *SqlThreadStore) MarkAllAsReadByTeam(userId, teamId string) error {
+// MarkAllAsReadByTeam marks the user's threads in the team read, along with their direct
+// and group message threads unless excludeDirect is set.
+func (s *SqlThreadStore) MarkAllAsReadByTeam(userId, teamId string, excludeDirect bool) error {
 	timestamp := model.GetMillis()
 
 	query := s.getQueryBuilder().Update("ThreadMemberships").From("Threads").
 		Where("Threads.PostId = ThreadMemberships.PostId").
 		Where(sq.Eq{"ThreadMemberships.UserId": userId}).
-		Where(sq.Or{sq.Eq{"Threads.ThreadTeamId": teamId}, sq.Eq{"Threads.ThreadTeamId": ""}}).
+		Where(threadTeamPredicate(teamId, excludeDirect)).
 		Set("LastViewed", timestamp).
 		Set("UnreadMentions", 0).
 		Set("LastUpdated", timestamp)

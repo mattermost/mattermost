@@ -2726,7 +2726,7 @@ func (a *App) GetChannelMembersForUser(rctx request.CTX, teamID string, userID s
 }
 
 func (a *App) GetChannelMembersForUserWithPagination(rctx request.CTX, userID string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
-	m, err := a.Srv().Store().Channel().GetMembersForUserWithPagination(userID, page, perPage)
+	m, err := a.Srv().Store().Channel().GetMembersForUserWithPagination(userID, page, perPage, false)
 	if err != nil {
 		return nil, model.NewAppError("GetChannelMembersForUserWithPagination", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2743,10 +2743,10 @@ func (a *App) GetChannelMembersWithTeamDataForUserWithPagination(rctx request.CT
 	var err error
 	var method string
 	if cursor.Page == -1 {
-		m, err = a.Srv().Store().Channel().GetMembersForUserWithCursorPagination(userID, cursor.PerPage, cursor.FromChannelID)
+		m, err = a.Srv().Store().Channel().GetMembersForUserWithCursorPagination(userID, cursor.PerPage, cursor.FromChannelID, cursor.ExcludeDirectAndGroup)
 		method = "GetMembersForUserWithCursorPagination"
 	} else {
-		m, err = a.Srv().Store().Channel().GetMembersForUserWithPagination(userID, cursor.Page, cursor.PerPage)
+		m, err = a.Srv().Store().Channel().GetMembersForUserWithPagination(userID, cursor.Page, cursor.PerPage, cursor.ExcludeDirectAndGroup)
 		method = "GetMembersForUserWithPagination"
 	}
 	if err != nil {

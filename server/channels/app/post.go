@@ -1854,8 +1854,9 @@ func (a *App) fillFlaggedPostPage(rctx request.CTX, userID string, offset, limit
 }
 
 func (a *App) GetFlaggedPosts(rctx request.CTX, userID string, offset int, limit int) (*model.PostList, *model.AppError) {
+	hidden := a.DirectAndGroupHidden(rctx, userID)
 	postList, err := a.fillFlaggedPostPage(rctx, userID, offset, limit, func(off, lim int) (*model.PostList, error) {
-		return a.Srv().Store().Post().GetFlaggedPosts(userID, off, lim)
+		return a.Srv().Store().Post().GetFlaggedPosts(userID, off, lim, hidden)
 	})
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPosts", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1882,8 +1883,9 @@ func (a *App) GetFlaggedPosts(rctx request.CTX, userID string, offset int, limit
 }
 
 func (a *App) GetFlaggedPostsForTeam(rctx request.CTX, userID, teamID string, offset int, limit int) (*model.PostList, *model.AppError) {
+	hidden := a.DirectAndGroupHidden(rctx, userID)
 	postList, err := a.fillFlaggedPostPage(rctx, userID, offset, limit, func(off, lim int) (*model.PostList, error) {
-		return a.Srv().Store().Post().GetFlaggedPostsForTeam(userID, teamID, off, lim)
+		return a.Srv().Store().Post().GetFlaggedPostsForTeam(userID, teamID, off, lim, hidden)
 	})
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPostsForTeam", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -2596,10 +2598,12 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 	}
 
 	finalParamsList := []*model.SearchParams{}
+	hidden := a.DirectAndGroupHidden(rctx, userID)
 
 	for _, params := range paramsList {
 		params.OrTerms = isOrSearch
 		params.IncludeDeletedChannels = includeDeletedChannels
+		params.ExcludeDirectAndGroupChannels = hidden
 		// Don't allow users to search for "*"
 		if params.Terms != "*" {
 			// TODO: we have to send channel ids

@@ -104,7 +104,8 @@ func (a *App) GetDraftsForUser(rctx request.CTX, userID, teamID string) ([]*mode
 		return nil, model.NewAppError("GetDraftsForUser", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	drafts, err := a.Srv().Store().Draft().GetDraftsForUser(userID, teamID)
+	// A hidden conversation's drafts stay stored; they are only left out of the list.
+	drafts, err := a.Srv().Store().Draft().GetDraftsForUser(userID, teamID, a.DirectAndGroupHidden(rctx, userID))
 
 	if err != nil {
 		return nil, model.NewAppError("GetDraftsForUser", "app.draft.get_drafts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

@@ -501,6 +501,7 @@ func TestGetFlaggedPostsFillsPagesPastDeniedChannels(t *testing.T) {
 			deniedPostID := all.Order[deniedIndex]
 			mockACS := h.mockACS(t)
 			governed(mockACS)
+			dmGmReadUngoverned(mockACS)
 			deniesChannel(mockACS, all.Posts[deniedPostID].ChannelId)
 
 			seen := map[string]bool{}
@@ -546,6 +547,7 @@ func TestGetFlaggedPostsGivesUpAfterMaxFillRounds(t *testing.T) {
 
 	mockACS := h.mockACS(t)
 	governed(mockACS)
+	dmGmReadUngoverned(mockACS)
 	decides(mockACS, false)
 
 	got, appErr := h.th.App.GetFlaggedPosts(h.rctx, h.th.BasicUser.Id, 0, 2)
@@ -566,6 +568,7 @@ func TestSearchPostsForUserDropsDeniedChannels(t *testing.T) {
 
 	mockACS := h.mockACS(t)
 	governed(mockACS)
+	dmGmReadUngoverned(mockACS)
 	deniesChannel(mockACS, deniedChannel.Id)
 
 	results, _, appErr := h.th.App.SearchPostsForUser(h.rctx, term, h.th.BasicUser.Id, h.th.BasicTeam.Id, false, false, 0, 0, 20)
@@ -590,6 +593,7 @@ func TestSearchPostsForUserDoesNotTruncateAnOverlongStorePage(t *testing.T) {
 
 	mockACS := h.mockACS(t)
 	governed(mockACS)
+	dmGmReadUngoverned(mockACS)
 	decides(mockACS, true)
 
 	results, _, appErr := h.th.App.SearchPostsForUser(h.rctx, term, h.th.BasicUser.Id, h.th.BasicTeam.Id, false, false, 0, 0, perPage)

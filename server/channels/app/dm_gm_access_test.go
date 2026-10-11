@@ -42,6 +42,12 @@ func allDMGMGoverned(mockACS *eMocks.AccessControlServiceInterface) {
 	}
 }
 
+// dmGmReadUngoverned leaves reading conversations ungoverned, for channel tests whose
+// lists also ask whether the user's conversations are hidden.
+func dmGmReadUngoverned(mockACS *eMocks.AccessControlServiceInterface) {
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionDMGMReadAccess).Return(false, nil)
+}
+
 // requireEvaluatedOnly asserts every evaluation was of action on the system resource.
 func requireEvaluatedOnly(t *testing.T, mockACS *eMocks.AccessControlServiceInterface, action string) {
 	t.Helper()

@@ -87,7 +87,7 @@ func testSaveDraft(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.Equal(t, draft2.Message, draftResp.Message)
 		assert.Equal(t, draft2.ChannelId, draftResp.ChannelId)
 
-		drafts, err := ss.Draft().GetDraftsForUser(user.Id, "")
+		drafts, err := ss.Draft().GetDraftsForUser(user.Id, "", false)
 		assert.NoError(t, err)
 		assert.Len(t, drafts, 2)
 	})
@@ -120,7 +120,7 @@ func testUpdateDraft(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, err := ss.Draft().Upsert(draft)
 		assert.NoError(t, err)
 
-		drafts, err := ss.Draft().GetDraftsForUser(user.Id, "")
+		drafts, err := ss.Draft().GetDraftsForUser(user.Id, "", false)
 		assert.NoError(t, err)
 		assert.Len(t, drafts, 1)
 		draft1 := drafts[0]
@@ -138,7 +138,7 @@ func testUpdateDraft(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, err = ss.Draft().Upsert(updatedDraft)
 		assert.NoError(t, err)
 
-		drafts, err = ss.Draft().GetDraftsForUser(user.Id, "")
+		drafts, err = ss.Draft().GetDraftsForUser(user.Id, "", false)
 		assert.NoError(t, err)
 		assert.Len(t, drafts, 1)
 		draft2 := drafts[0]
@@ -265,7 +265,7 @@ func testPermanentDeleteDraftsByUser(t *testing.T, rctx request.CTX, ss store.St
 		_, err = ss.Draft().Upsert(draft2)
 		require.NoError(t, err)
 
-		draftsResp, err := ss.Draft().GetDraftsForUser(userId, "")
+		draftsResp, err := ss.Draft().GetDraftsForUser(userId, "", false)
 		assert.NoError(t, err)
 		assert.Len(t, draftsResp, 2)
 
@@ -274,7 +274,7 @@ func testPermanentDeleteDraftsByUser(t *testing.T, rctx request.CTX, ss store.St
 		assert.NoError(t, err)
 
 		// Verify that no drafts exist for the user
-		draftsResp, err = ss.Draft().GetDraftsForUser(userId, "")
+		draftsResp, err = ss.Draft().GetDraftsForUser(userId, "", false)
 		assert.NoError(t, err)
 		assert.Len(t, draftsResp, 0)
 	})
@@ -412,7 +412,7 @@ func testGetDraftsForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 		draft1 := newDraftForUser(t, user)
 		draft2 := newDraftForUser(t, user)
 
-		draftResp, err := ss.Draft().GetDraftsForUser(user.Id, "")
+		draftResp, err := ss.Draft().GetDraftsForUser(user.Id, "", false)
 		assert.NoError(t, err)
 		assert.Len(t, draftResp, 2)
 
@@ -430,13 +430,56 @@ func testGetDraftsForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, err := ss.GetInternalMasterDB().Exec(query, user.Id)
 		require.NoError(t, err)
 
-		draftResp, err := ss.Draft().GetDraftsForUser(user.Id, "")
+		draftResp, err := ss.Draft().GetDraftsForUser(user.Id, "", false)
 		assert.NoError(t, err)
 		assert.Len(t, draftResp, 1)
 
 		assert.ElementsMatch(t, []*model.Draft{draft}, draftResp)
 
 		clearDrafts(t, rctx, ss)
+	})
+
+	t.Run("conversations can be left out", func(t *testing.T) {
+		t.Cleanup(func() { clearDrafts(t, rctx, ss) })
+
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Drafts",
+			Name:        NewTestID(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+		_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, NotifyProps: model.GetDefaultChannelNotifyProps()})
+		require.NoError(t, err)
+		other := model.NewId()
+		dm, err := ss.Channel().SaveDirectChannel(rctx, &model.Channel{
+			Name: model.GetDMNameFromIds(user.Id, other),
+			Type: model.ChannelTypeDirect,
+		}, &model.ChannelMember{UserId: user.Id, NotifyProps: model.GetDefaultChannelNotifyProps()},
+			&model.ChannelMember{UserId: other, NotifyProps: model.GetDefaultChannelNotifyProps()})
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			for _, channelID := range []string{channel.Id, dm.Id} {
+				_ = ss.Channel().PermanentDeleteMembersByChannel(rctx, channelID)
+				_ = ss.Channel().PermanentDelete(rctx, channelID)
+			}
+		})
+
+		channelDraft, err := ss.Draft().Upsert(&model.Draft{UserId: user.Id, ChannelId: channel.Id, Message: "in a channel"})
+		require.NoError(t, err)
+		dmDraft, err := ss.Draft().Upsert(&model.Draft{UserId: user.Id, ChannelId: dm.Id, Message: "in a DM"})
+		require.NoError(t, err)
+
+		for _, teamID := range []string{"", teamID} {
+			drafts, err := ss.Draft().GetDraftsForUser(user.Id, teamID, true)
+			require.NoError(t, err)
+			require.Equal(t, []*model.Draft{channelDraft}, drafts, "team %q", teamID)
+
+			drafts, err = ss.Draft().GetDraftsForUser(user.Id, teamID, false)
+			require.NoError(t, err)
+			require.ElementsMatch(t, []*model.Draft{channelDraft, dmDraft}, drafts, "team %q", teamID)
+		}
 	})
 }
 

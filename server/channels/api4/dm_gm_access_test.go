@@ -7,6 +7,7 @@ import (
 	"context"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
@@ -884,4 +885,195 @@ func TestDMGMStartSearchInUser(t *testing.T) {
 			require.NotNil(t, channel)
 		})
 	}
+}
+
+type dmGmListsFixture struct {
+	th            *TestHelper
+	dm            *model.Channel
+	dmRoot        *model.Post
+	channelRoot   *model.Post
+	conversations []string
+}
+
+// setupDMGMListsAPI seeds a DM and a channel with a searchable root post, a reply that
+// makes it a followed thread, a saved post and a draft each, plus a few more DMs for the
+// member pages; then installs a policy that decides Read.
+func setupDMGMListsAPI(t *testing.T, allowRead bool) *dmGmListsFixture {
+	t.Helper()
+
+	th := setupDMGMServer(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+	})
+	ctx := context.Background()
+
+	dm := th.CreateDmChannel(t, th.BasicUser2)
+	f := &dmGmListsFixture{th: th, dm: dm, conversations: []string{dm.Id}}
+	f.dmRoot = th.CreateMessagePostWithClient(t, th.Client, dm, "needle in a conversation")
+	f.channelRoot = th.CreateMessagePostWithClient(t, th.Client, th.BasicChannel, "needle in a channel")
+	for _, root := range []*model.Post{f.dmRoot, f.channelRoot} {
+		_, _, err := th.Client.CreatePost(ctx, &model.Post{ChannelId: root.ChannelId, RootId: root.Id, Message: "reply"})
+		require.NoError(t, err)
+		_, err = th.Client.UpdatePreferences(ctx, th.BasicUser.Id, model.Preferences{{
+			UserId:   th.BasicUser.Id,
+			Category: model.PreferenceCategoryFlaggedPost,
+			Name:     root.Id,
+			Value:    "true",
+		}})
+		require.NoError(t, err)
+		_, _, err = th.Client.UpsertDraft(ctx, &model.Draft{UserId: th.BasicUser.Id, ChannelId: root.ChannelId, Message: "draft"})
+		require.NoError(t, err)
+	}
+	for range 4 {
+		f.conversations = append(f.conversations, th.CreateDmChannel(t, th.CreateUser(t)).Id)
+	}
+
+	installDMGMDecisions(t, th, map[string]bool{model.AccessControlPolicyActionDMGMReadAccess: allowRead})
+	return f
+}
+
+func postIDs(list *model.PostList) []string {
+	ids := []string{}
+	for _, post := range list.Posts {
+		if post.RootId == "" {
+			ids = append(ids, post.Id)
+		}
+	}
+	return ids
+}
+
+func TestDMGMReadAccessExcludesConversationsFromLists(t *testing.T) {
+	ctx := context.Background()
+
+	for _, allowRead := range []bool{false, true} {
+		name := "denied"
+		if allowRead {
+			name = "allowed"
+		}
+		t.Run(name, func(t *testing.T) {
+			f := setupDMGMListsAPI(t, allowRead)
+			th := f.th
+			want := []string{f.channelRoot.Id}
+			if allowRead {
+				want = []string{f.channelRoot.Id, f.dmRoot.Id}
+			}
+
+			t.Run("post search", func(t *testing.T) {
+				list, _, err := th.Client.SearchPosts(ctx, th.BasicTeam.Id, "needle", false)
+				require.NoError(t, err)
+				require.ElementsMatch(t, want, postIDs(list))
+
+				list, _, err = th.Client.SearchPosts(ctx, th.BasicTeam.Id, "needle in:@"+th.BasicUser2.Username, false)
+				require.NoError(t, err)
+				if allowRead {
+					require.Equal(t, []string{f.dmRoot.Id}, postIDs(list))
+				} else {
+					require.Empty(t, list.Order)
+				}
+			})
+
+			t.Run("saved posts", func(t *testing.T) {
+				list, _, err := th.Client.GetFlaggedPostsForUser(ctx, th.BasicUser.Id, 0, 60)
+				require.NoError(t, err)
+				require.ElementsMatch(t, want, list.Order)
+
+				list, _, err = th.Client.GetFlaggedPostsForUserInTeam(ctx, th.BasicUser.Id, th.BasicTeam.Id, 0, 60)
+				require.NoError(t, err)
+				require.ElementsMatch(t, want, list.Order)
+			})
+
+			t.Run("threads", func(t *testing.T) {
+				threadIDs := func(threads *model.Threads) []string {
+					ids := []string{}
+					for _, thread := range threads.Threads {
+						ids = append(ids, thread.PostId)
+					}
+					return ids
+				}
+
+				threads, _, err := th.Client.GetUserThreads(ctx, th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+				require.NoError(t, err)
+				require.ElementsMatch(t, want, threadIDs(threads))
+
+				totals, _, err := th.Client.GetUserThreads(ctx, th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{TotalsOnly: true})
+				require.NoError(t, err)
+				require.EqualValues(t, len(want), totals.Total)
+
+				// No REST route lists threads across teams; the push badge does.
+				threads, appErr := th.App.GetThreadsForUser(th.Context, th.BasicUser.Id, "", model.GetUserThreadsOpts{})
+				require.Nil(t, appErr)
+				require.ElementsMatch(t, want, threadIDs(threads))
+				require.EqualValues(t, len(want), threads.Total)
+			})
+
+			t.Run("drafts", func(t *testing.T) {
+				drafts, _, err := th.Client.GetDrafts(ctx, th.BasicUser.Id, th.BasicTeam.Id)
+				require.NoError(t, err)
+				got := []string{}
+				for _, draft := range drafts {
+					got = append(got, draft.ChannelId)
+				}
+				wantChannels := []string{th.BasicChannel.Id}
+				if allowRead {
+					wantChannels = append(wantChannels, f.dm.Id)
+				}
+				require.ElementsMatch(t, wantChannels, got)
+
+				_, err = th.App.Srv().Store().Draft().Get(th.BasicUser.Id, f.dm.Id, "", false)
+				require.NoError(t, err, "a hidden conversation's draft stays stored")
+			})
+
+			t.Run("channel members for the user", func(t *testing.T) {
+				var paged []string
+				for page := 0; ; page++ {
+					members, _, err := th.Client.GetChannelMembersWithTeamData(ctx, th.BasicUser.Id, page, 1)
+					require.NoError(t, err)
+					if len(members) == 0 {
+						break
+					}
+					require.Len(t, members, 1, "every page before the end is full")
+					paged = append(paged, members[0].ChannelId)
+				}
+
+				streamed, _, err := th.Client.GetChannelMembersWithTeamData(ctx, th.BasicUser.Id, -1, 0)
+				require.NoError(t, err)
+				var streamedIDs []string
+				for _, member := range streamed {
+					streamedIDs = append(streamedIDs, member.ChannelId)
+				}
+
+				for _, ids := range [][]string{paged, streamedIDs} {
+					require.Contains(t, ids, th.BasicChannel.Id)
+					for _, conversation := range f.conversations {
+						if allowRead {
+							require.Contains(t, ids, conversation)
+						} else {
+							require.NotContains(t, ids, conversation)
+						}
+					}
+				}
+			})
+		})
+	}
+}
+
+func TestDMGMMarkAllThreadsReadLeavesHiddenConversations(t *testing.T) {
+	f := setupDMGMListsAPI(t, false)
+	th := f.th
+	lastViewed := func(postID string) int64 {
+		t.Helper()
+		membership, err := th.App.Srv().Store().Thread().GetMembershipForUser(th.BasicUser.Id, postID)
+		require.NoError(t, err)
+		return membership.LastViewed
+	}
+	dmBefore, channelBefore := lastViewed(f.dmRoot.Id), lastViewed(f.channelRoot.Id)
+	// Mark-all-read stamps the current time; make sure it differs from the replies'.
+	time.Sleep(2 * time.Millisecond)
+
+	_, err := th.Client.UpdateThreadsReadForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id)
+	require.NoError(t, err)
+
+	require.Equal(t, dmBefore, lastViewed(f.dmRoot.Id), "a hidden conversation's threads keep their read state")
+	require.Greater(t, lastViewed(f.channelRoot.Id), channelBefore)
 }

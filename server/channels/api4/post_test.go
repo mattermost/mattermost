@@ -3865,7 +3865,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 
 	mockStore := mocks.Store{}
 	mockPostStore := mocks.PostStore{}
-	mockPostStore.On("GetFlaggedPosts", mock.AnythingOfType("string"), mock.AnythingOfType("int"), mock.AnythingOfType("int")).Return(nil, errors.New("some-error"))
+	mockPostStore.On("GetFlaggedPosts", mock.AnythingOfType("string"), mock.AnythingOfType("int"), mock.AnythingOfType("int"), false).Return(nil, errors.New("some-error"))
 	mockPostStore.On("ClearCaches").Return()
 	mockStore.On("Team").Return(th.App.Srv().Store().Team())
 	mockStore.On("Channel").Return(th.App.Srv().Store().Channel())

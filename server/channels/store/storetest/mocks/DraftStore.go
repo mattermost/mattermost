@@ -116,9 +116,9 @@ func (_m *DraftStore) Get(userID string, channelID string, rootID string, includ
 	return r0, r1
 }
 
-// GetDraftsForUser provides a mock function with given fields: userID, teamID
-func (_m *DraftStore) GetDraftsForUser(userID string, teamID string) ([]*model.Draft, error) {
-	ret := _m.Called(userID, teamID)
+// GetDraftsForUser provides a mock function with given fields: userID, teamID, excludeDirectAndGroup
+func (_m *DraftStore) GetDraftsForUser(userID string, teamID string, excludeDirectAndGroup bool) ([]*model.Draft, error) {
+	ret := _m.Called(userID, teamID, excludeDirectAndGroup)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetDraftsForUser")
@@ -126,19 +126,19 @@ func (_m *DraftStore) GetDraftsForUser(userID string, teamID string) ([]*model.D
 
 	var r0 []*model.Draft
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string) ([]*model.Draft, error)); ok {
-		return rf(userID, teamID)
+	if rf, ok := ret.Get(0).(func(string, string, bool) ([]*model.Draft, error)); ok {
+		return rf(userID, teamID, excludeDirectAndGroup)
 	}
-	if rf, ok := ret.Get(0).(func(string, string) []*model.Draft); ok {
-		r0 = rf(userID, teamID)
+	if rf, ok := ret.Get(0).(func(string, string, bool) []*model.Draft); ok {
+		r0 = rf(userID, teamID, excludeDirectAndGroup)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Draft)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userID, teamID)
+	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
+		r1 = rf(userID, teamID, excludeDirectAndGroup)
 	} else {
 		r1 = ret.Error(1)
 	}

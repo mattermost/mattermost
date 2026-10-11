@@ -1476,10 +1476,12 @@ func (a *App) SearchFilesInTeamForUser(rctx request.CTX, terms string, userId st
 	}
 
 	finalParamsList := []*model.SearchParams{}
+	hidden := a.DirectAndGroupHidden(rctx, userId)
 
 	for _, params := range paramsList {
 		params.OrTerms = isOrSearch
 		params.IncludeDeletedChannels = includeDeletedChannels
+		params.ExcludeDirectAndGroupChannels = hidden
 		// Don't allow users to search for "*"
 		if params.Terms != "*" {
 			// Convert channel names to channel IDs

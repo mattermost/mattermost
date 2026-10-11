@@ -567,6 +567,10 @@ func (fs SqlFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchPa
 			query = query.Where(sq.Eq{"C.DeleteAt": 0})
 		}
 
+		if params.ExcludeDirectAndGroupChannels {
+			query = query.Where(sq.NotEq{"C.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}})
+		}
+
 		if !params.SearchWithoutUserId {
 			query = query.Where(sq.Eq{"CM.UserId": userId})
 		}

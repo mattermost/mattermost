@@ -2382,10 +2382,10 @@ func (s *TimerLayerChannelStore) GetMembersForUser(teamID string, userID string)
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetMembersForUserWithCursorPagination(userId string, perPage int, fromChanneID string) (model.ChannelMembersWithTeamData, error) {
+func (s *TimerLayerChannelStore) GetMembersForUserWithCursorPagination(userId string, perPage int, fromChanneID string, excludeDirectAndGroup bool) (model.ChannelMembersWithTeamData, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetMembersForUserWithCursorPagination(userId, perPage, fromChanneID)
+	result, err := s.ChannelStore.GetMembersForUserWithCursorPagination(userId, perPage, fromChanneID, excludeDirectAndGroup)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -2398,10 +2398,10 @@ func (s *TimerLayerChannelStore) GetMembersForUserWithCursorPagination(userId st
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetMembersForUserWithPagination(userID string, page int, perPage int) (model.ChannelMembersWithTeamData, error) {
+func (s *TimerLayerChannelStore) GetMembersForUserWithPagination(userID string, page int, perPage int, excludeDirectAndGroup bool) (model.ChannelMembersWithTeamData, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetMembersForUserWithPagination(userID, page, perPage)
+	result, err := s.ChannelStore.GetMembersForUserWithPagination(userID, page, perPage, excludeDirectAndGroup)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -4564,10 +4564,10 @@ func (s *TimerLayerDraftStore) Get(userID string, channelID string, rootID strin
 	return result, err
 }
 
-func (s *TimerLayerDraftStore) GetDraftsForUser(userID string, teamID string) ([]*model.Draft, error) {
+func (s *TimerLayerDraftStore) GetDraftsForUser(userID string, teamID string, excludeDirectAndGroup bool) ([]*model.Draft, error) {
 	start := time.Now()
 
-	result, err := s.DraftStore.GetDraftsForUser(userID, teamID)
+	result, err := s.DraftStore.GetDraftsForUser(userID, teamID, excludeDirectAndGroup)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -7329,10 +7329,10 @@ func (s *TimerLayerPostStore) GetEtag(channelID string, allowFromCache bool, col
 	return result
 }
 
-func (s *TimerLayerPostStore) GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, error) {
+func (s *TimerLayerPostStore) GetFlaggedPosts(userID string, offset int, limit int, excludeDirectAndGroup bool) (*model.PostList, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.GetFlaggedPosts(userID, offset, limit)
+	result, err := s.PostStore.GetFlaggedPosts(userID, offset, limit, excludeDirectAndGroup)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -7361,10 +7361,10 @@ func (s *TimerLayerPostStore) GetFlaggedPostsForChannel(userID string, channelID
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetFlaggedPostsForTeam(userID string, teamID string, offset int, limit int) (*model.PostList, error) {
+func (s *TimerLayerPostStore) GetFlaggedPostsForTeam(userID string, teamID string, offset int, limit int, excludeDirectAndGroup bool) (*model.PostList, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.GetFlaggedPostsForTeam(userID, teamID, offset, limit)
+	result, err := s.PostStore.GetFlaggedPostsForTeam(userID, teamID, offset, limit, excludeDirectAndGroup)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -13516,10 +13516,10 @@ func (s *TimerLayerThreadStore) MarkAllAsReadByChannels(userID string, channelID
 	return err
 }
 
-func (s *TimerLayerThreadStore) MarkAllAsReadByTeam(userID string, teamID string) error {
+func (s *TimerLayerThreadStore) MarkAllAsReadByTeam(userID string, teamID string, excludeDirect bool) error {
 	start := time.Now()
 
-	err := s.ThreadStore.MarkAllAsReadByTeam(userID, teamID)
+	err := s.ThreadStore.MarkAllAsReadByTeam(userID, teamID, excludeDirect)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

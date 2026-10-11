@@ -1068,6 +1068,9 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 			{"all teams, user1", user1ID, "", model.GetUserThreadsOpts{}, []*model.Post{
 				team1channel1post2, team1channel1post3, gm1post1,
 			}},
+			{"all teams, user1, exclude direct", user1ID, "", model.GetUserThreadsOpts{ExcludeDirect: true}, []*model.Post{
+				team1channel1post2, team1channel1post3,
+			}},
 			{"team1, user1", user1ID, team1.Id, model.GetUserThreadsOpts{}, []*model.Post{
 				team1channel1post2, team1channel1post3, gm1post1,
 			}},
@@ -1103,6 +1106,9 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 		}{
 			{"all teams, user1", user1ID, "", model.GetUserThreadsOpts{}, []*model.Post{
 				team1channel1post1, team1channel1post2, team1channel1post3, team2channel1post1, dm1post1, gm1post1,
+			}},
+			{"all teams, user1, exclude direct", user1ID, "", model.GetUserThreadsOpts{ExcludeDirect: true}, []*model.Post{
+				team1channel1post1, team1channel1post2, team1channel1post3, team2channel1post1,
 			}},
 			{"team1, user1", user1ID, team1.Id, model.GetUserThreadsOpts{}, []*model.Post{
 				team1channel1post1, team1channel1post2, team1channel1post3, dm1post1, gm1post1,
@@ -1140,6 +1146,9 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 			{"all teams, user1", user1ID, "", model.GetUserThreadsOpts{}, []*model.Post{
 				team1channel1post3, gm1post1,
 			}},
+			{"all teams, user1, exclude direct", user1ID, "", model.GetUserThreadsOpts{ExcludeDirect: true}, []*model.Post{
+				team1channel1post3,
+			}},
 			{"team1, user1", user1ID, team1.Id, model.GetUserThreadsOpts{}, []*model.Post{
 				team1channel1post3, gm1post1,
 			}},
@@ -1171,6 +1180,9 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 		}{
 			{"all teams, user1", user1ID, "", model.GetUserThreadsOpts{}, []*model.Post{
 				team1channel1post3, gm1post1,
+			}},
+			{"all teams, user1, exclude direct", user1ID, "", model.GetUserThreadsOpts{ExcludeDirect: true}, []*model.Post{
+				team1channel1post3,
 			}},
 			{"team1, user1", user1ID, team1.Id, model.GetUserThreadsOpts{}, []*model.Post{
 				team1channel1post3, gm1post1,
@@ -1228,6 +1240,9 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 		}{
 			{"all teams, user1", user1ID, "", model.GetUserThreadsOpts{}, []*model.Post{
 				team1channel1post1, team1channel1post2, team1channel1post3, team2channel1post1, dm1post1, gm1post1,
+			}},
+			{"all teams, user1, exclude direct", user1ID, "", model.GetUserThreadsOpts{ExcludeDirect: true}, []*model.Post{
+				team1channel1post1, team1channel1post2, team1channel1post3, team2channel1post1,
 			}},
 			{"team1, user1", user1ID, team1.Id, model.GetUserThreadsOpts{}, []*model.Post{
 				team1channel1post1, team1channel1post2, team1channel1post3, dm1post1, gm1post1,
@@ -1687,12 +1702,12 @@ func testMarkAllAsReadByTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	t.Run("empty team", func(t *testing.T) {
-		err = ss.Thread().MarkAllAsReadByTeam(model.NewId(), "")
+		err = ss.Thread().MarkAllAsReadByTeam(model.NewId(), "", false)
 		require.NoError(t, err)
 	})
 
 	t.Run("unknown team", func(t *testing.T) {
-		err = ss.Thread().MarkAllAsReadByTeam(model.NewId(), model.NewId())
+		err = ss.Thread().MarkAllAsReadByTeam(model.NewId(), model.NewId(), false)
 		require.NoError(t, err)
 	})
 
@@ -1715,7 +1730,7 @@ func testMarkAllAsReadByTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 		assertThreadReplyCount(t, userAID, team2.Id, 1, "expected 1 unread message in team2 for userA")
 		assertThreadReplyCount(t, userBID, team2.Id, 1, "expected 1 unread message in team2 for userB")
 
-		err = ss.Thread().MarkAllAsReadByTeam(userAID, team1.Id)
+		err = ss.Thread().MarkAllAsReadByTeam(userAID, team1.Id, false)
 		require.NoError(t, err)
 
 		assertThreadReplyCount(t, userAID, team1.Id, 0, "expected 0 unread messages in team1 for userA")
@@ -1723,13 +1738,33 @@ func testMarkAllAsReadByTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 		assertThreadReplyCount(t, userAID, team2.Id, 1, "expected 1 unread message in team2 for userA")
 		assertThreadReplyCount(t, userBID, team2.Id, 1, "expected 1 unread message in team2 for userB")
 
-		err = ss.Thread().MarkAllAsReadByTeam(userBID, team1.Id)
+		err = ss.Thread().MarkAllAsReadByTeam(userBID, team1.Id, false)
 		require.NoError(t, err)
 
 		assertThreadReplyCount(t, userAID, team1.Id, 0, "expected 0 unread messages in team1 for userA")
 		assertThreadReplyCount(t, userBID, team1.Id, 0, "expected 0 unread messages in team1 for userB")
 		assertThreadReplyCount(t, userAID, team2.Id, 1, "expected 1 unread message in team2 for userA")
 		assertThreadReplyCount(t, userBID, team2.Id, 1, "expected 1 unread message in team2 for userB")
+	})
+
+	// A conversation hidden from the user keeps its read state.
+	t.Run("conversation threads can be left alone", func(t *testing.T) {
+		userID := model.NewId()
+		createThreadMembership(userID, team2channel1post1.Id)
+		createThreadMembership(userID, gm2post1.Id)
+		lastViewed := func(postID string) int64 {
+			t.Helper()
+			membership, err := ss.Thread().GetMembershipForUser(userID, postID)
+			require.NoError(t, err)
+			return membership.LastViewed
+		}
+
+		require.NoError(t, ss.Thread().MarkAllAsReadByTeam(userID, team2.Id, true))
+		require.NotZero(t, lastViewed(team2channel1post1.Id))
+		require.Zero(t, lastViewed(gm2post1.Id))
+
+		require.NoError(t, ss.Thread().MarkAllAsReadByTeam(userID, team2.Id, false))
+		require.NotZero(t, lastViewed(gm2post1.Id))
 	})
 }
 
