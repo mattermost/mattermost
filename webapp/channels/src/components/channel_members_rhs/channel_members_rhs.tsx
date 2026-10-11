@@ -11,6 +11,7 @@ import type {Channel, ChannelJoinRequest} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {ProfilesInChannelSortBy} from 'mattermost-redux/actions/users';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {areChannelAccessControlIndicatorsEnabled, getConnectionId} from 'selectors/general';
 
@@ -56,7 +57,7 @@ export interface Props {
 
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
-        openDirectChannelToUserId: (userId: string) => Promise<{data: Channel}>;
+        openDirectChannelToUserId: (userId: string) => Promise<ActionResult<Channel>>;
         closeRightHandSide: () => void;
         goBack: () => void;
         setChannelMembersRhsSearchTerm: (terms: string) => void;
@@ -256,7 +257,10 @@ export default function ChannelMembersRHS({
 
     const openDirectMessage = useCallback(async (user: UserProfile) => {
         // we first prepare the DM channel...
-        await actions.openDirectChannelToUserId(user.id);
+        const {error} = await actions.openDirectChannelToUserId(user.id);
+        if (error) {
+            return;
+        }
 
         // ... and then redirect to it
         history.push(teamUrl + '/messages/@' + user.username);

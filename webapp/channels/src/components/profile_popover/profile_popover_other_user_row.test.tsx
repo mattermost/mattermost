@@ -148,4 +148,52 @@ describe('components/ProfilePopoverOtherUserRow', () => {
         expect(screen.getByText('Message')).toBeInTheDocument();
         expect(mockCanUserDirectMessage).not.toHaveBeenCalled();
     });
+
+    describe('DM/GM permission policies', () => {
+        const dmId = 'currentUser__user1';
+
+        function makeState(decisions: Record<string, boolean>, hasDM = false) {
+            const entries = Object.fromEntries(Object.entries(decisions).map(([action, allowed]) => [action, {allowed, evaluated: true, generation: 1}]));
+            return {
+                entities: {
+                    general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+                    users: {currentUserId: 'currentUser'},
+                    channels: {
+                        channels: hasDM ? {[dmId]: TestHelper.getChannelMock({id: dmId, name: dmId, type: 'D', team_id: ''})} : {},
+                        channelsInTeam: {'': new Set(hasDM ? [dmId] : [])},
+                    },
+                    renderPermissions: {byResource: {permission: {'': entries}}},
+                },
+            } as unknown as GlobalState;
+        }
+
+        test('should not offer messaging at all while Read is denied', () => {
+            renderWithContext(
+                <ProfilePopoverOtherUserRow {...baseProps}/>,
+                makeState({dm_gm_read_access: false}),
+            );
+
+            expect(screen.queryByText('Message')).not.toBeInTheDocument();
+        });
+
+        test('should disable messaging someone without a DM while Start is denied', () => {
+            renderWithContext(
+                <ProfilePopoverOtherUserRow {...baseProps}/>,
+                makeState({dm_gm_start: false}),
+            );
+
+            const button = screen.getByRole('button', {name: `Cannot message ${baseProps.user.username}. You can't start new direct messages.`});
+            expect(button).toBeDisabled();
+            expect(button).toHaveAttribute('title', 'You can\'t start new direct messages');
+        });
+
+        test('should still message someone with an existing DM while Start is denied', () => {
+            renderWithContext(
+                <ProfilePopoverOtherUserRow {...baseProps}/>,
+                makeState({dm_gm_start: false}, true),
+            );
+
+            expect(screen.getByRole('button', {name: `Send message to ${baseProps.user.username}`})).toBeEnabled();
+        });
+    });
 });

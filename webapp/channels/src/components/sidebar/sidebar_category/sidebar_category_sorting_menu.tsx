@@ -23,6 +23,7 @@ import {setCategorySorting} from 'mattermost-redux/actions/channel_categories';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Preferences} from 'mattermost-redux/constants';
 import {getVisibleDmGmLimit} from 'mattermost-redux/selectors/entities/preferences';
+import {canStartDmGm} from 'mattermost-redux/selectors/entities/render_permissions';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import * as Menu from 'components/menu';
@@ -44,6 +45,7 @@ const SidebarCategorySortingMenu = ({
     const dispatch = useDispatch();
     const selectedDmNumber = useSelector(getVisibleDmGmLimit);
     const currentUserId = useSelector(getCurrentUserId);
+    const canStartConversation = useSelector(canStartDmGm);
 
     function handleSortDirectMessages(sorting: CategorySorting) {
         dispatch(setCategorySorting(category.id, sorting));
@@ -206,8 +208,8 @@ const SidebarCategorySortingMenu = ({
             >
                 {sortDirectMessagesMenuItem}
                 {showMessagesCountMenuItem}
-                <Menu.Separator/>
-                {openDirectMessageMenuItem}
+                {canStartConversation ? <Menu.Separator/> : null}
+                {canStartConversation ? openDirectMessageMenuItem : null}
             </Menu.Container>
         </div>
     );

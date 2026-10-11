@@ -48,6 +48,7 @@ type Props = {
     isMobileView: boolean;
     isKeyBoardShortcutModalOpen: boolean;
     canCreateCustomGroups: boolean;
+    canStartDmGm: boolean;
     rhsState?: RhsState;
     rhsOpen?: boolean;
 };
@@ -174,8 +175,13 @@ export default class Sidebar extends React.PureComponent<Props, State> {
         });
     };
 
+    // Also what the Ctrl/Cmd+Shift+K shortcut calls.
     handleOpenMoreDirectChannelsModal = (e?: Event) => {
         e?.preventDefault();
+        if (!this.props.canStartDmGm) {
+            return;
+        }
+
         if (this.state.showDirectChannelsModal) {
             this.hideMoreDirectChannelsModal();
         } else {
@@ -194,7 +200,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
 
     renderModals = () => {
         let moreDirectChannelsModal;
-        if (this.state.showDirectChannelsModal) {
+        if (this.state.showDirectChannelsModal && this.props.canStartDmGm) {
             moreDirectChannelsModal = (
                 <MoreDirectChannels
                     onModalDismissed={this.hideMoreDirectChannelsModal}

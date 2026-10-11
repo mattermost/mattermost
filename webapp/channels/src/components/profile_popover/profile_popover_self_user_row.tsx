@@ -3,10 +3,14 @@
 
 import React, {useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import type {GlobalState} from '@mattermost/types/store';
+
+import {hasDirectChannelWithUser} from 'mattermost-redux/selectors/entities/channels';
+import {canStartDmGm, isDmGmReadDenied} from 'mattermost-redux/selectors/entities/render_permissions';
 
 import {openModal} from 'actions/views/modals';
 
@@ -35,6 +39,9 @@ const ProfilePopoverSelfUserRow = ({
 }: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
+
+    // Hidden rather than disabled: there is no one else to explain the restriction to.
+    const canOpenSelfDM = useSelector((state: GlobalState) => !isDmGmReadDenied(state) && (hasDirectChannelWithUser(state, userId) || canStartDmGm(state)));
 
     const handleEditAccountSettings = useCallback(() => {
         hide?.();
@@ -69,21 +76,23 @@ const ProfilePopoverSelfUserRow = ({
                     defaultMessage='Edit Profile'
                 />
             </Button>
-            <WithTooltip
-                title={formatMessage({id: 'user_profile.send.dm.yourself', defaultMessage: 'Send yourself a message'})}
-            >
-                <button
-                    type='button'
-                    className='btn btn-icon btn-sm'
-                    onClick={handleShowDirectChannel}
-                    aria-label={formatMessage({id: 'user_profile.send.dm.yourself', defaultMessage: 'Send yourself a message'})}
+            {canOpenSelfDM && (
+                <WithTooltip
+                    title={formatMessage({id: 'user_profile.send.dm.yourself', defaultMessage: 'Send yourself a message'})}
                 >
-                    <i
-                        className='icon icon-send'
-                        aria-hidden='true'
-                    />
-                </button>
-            </WithTooltip>
+                    <button
+                        type='button'
+                        className='btn btn-icon btn-sm'
+                        onClick={handleShowDirectChannel}
+                        aria-label={formatMessage({id: 'user_profile.send.dm.yourself', defaultMessage: 'Send yourself a message'})}
+                    >
+                        <i
+                            className='icon icon-send'
+                            aria-hidden='true'
+                        />
+                    </button>
+                </WithTooltip>
+            )}
         </div>
     );
 };

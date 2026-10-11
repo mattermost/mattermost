@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import SidebarCategorySortingMenu from './sidebar_category_sorting_menu';
@@ -36,5 +36,27 @@ describe('components/sidebar/sidebar_category/sidebar_category_sorting_menu', ()
         );
 
         expect(container).toMatchSnapshot();
+    });
+
+    test.each([
+        ['allowed', true, true],
+        ['denied', false, false],
+    ])('should offer Open a direct message only while dm_gm_start is %s', async (_, allowed, expected) => {
+        renderWithContext(
+            <SidebarCategorySortingMenu {...baseProps}/>,
+            {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+                    renderPermissions: {byResource: {permission: {'': {dm_gm_start: {allowed, evaluated: true, generation: 1}}}}},
+                },
+            },
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: `${baseProps.category.display_name} category options`}));
+
+        expect(screen.getByRole('menuitem', {name: /Sort/})).toBeInTheDocument();
+        expect(Boolean(screen.queryByRole('menuitem', {name: 'Open a direct message'}))).toBe(expected);
     });
 });

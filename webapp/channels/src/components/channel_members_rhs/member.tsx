@@ -4,12 +4,16 @@
 import classNames from 'classnames';
 import React, {useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel} from '@mattermost/types/channels';
+import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
+import {hasDirectChannelWithUser} from 'mattermost-redux/selectors/entities/channels';
+import {canStartDmGm, isDmGmReadDenied} from 'mattermost-redux/selectors/entities/render_permissions';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import ChannelMembersDropdown from 'components/channel_members_dropdown';
@@ -35,6 +39,10 @@ interface Props {
 
 const Member = ({channel, member, index, totalUsers, editing, actions}: Props) => {
     const {formatMessage} = useIntl();
+    const dmGmReadDenied = useSelector(isDmGmReadDenied);
+
+    // Messaging a member the user has no DM with yet starts a conversation.
+    const startDenied = useSelector((state: GlobalState) => !hasDirectChannelWithUser(state, member.user.id) && !canStartDmGm(state));
 
     // Fetch remote info when component mounts for remote users
     useEffect(() => {
@@ -133,16 +141,20 @@ const Member = ({channel, member, index, totalUsers, editing, actions}: Props) =
                     />
                 )}
             </div>
-            {!editing && (
+            {!editing && !dmGmReadDenied && (
                 <WithTooltip
-                    title={formatMessage({
+                    title={startDenied ? formatMessage({
+                        id: 'user_profile.send.dm.start_denied',
+                        defaultMessage: 'You can\'t start new direct messages',
+                    }) : formatMessage({
                         id: 'channel_members_rhs.member.send_message',
                         defaultMessage: 'Send message',
                     })}
                 >
                     <button
                         className='channel-members-rhs__send-message'
-                        onClick={() => actions.openDirectMessage(member.user)}
+                        aria-disabled={startDenied || undefined}
+                        onClick={startDenied ? undefined : () => actions.openDirectMessage(member.user)}
                     >
                         <i className='icon icon-send'/>
                     </button>

@@ -15,6 +15,8 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {hasDirectChannelWithUser} from 'mattermost-redux/selectors/entities/channels';
+import {canStartDmGm, isDmGmReadDenied} from 'mattermost-redux/selectors/entities/render_permissions';
 import {getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -156,6 +158,10 @@ const GroupMemberList = (props: Props) => {
 
     const Item = ({index, style}: ListChildComponentProps) => {
         const status = useSelector((state: GlobalState) => getStatusForUserId(state, members[index]?.user?.id) || UserStatuses.OFFLINE);
+        const dmGmReadDenied = useSelector(isDmGmReadDenied);
+
+        // Messaging a member the user has no DM with yet starts a conversation.
+        const startDenied = useSelector((state: GlobalState) => !hasDirectChannelWithUser(state, members[index]?.user?.id ?? '') && !canStartDmGm(state));
 
         // Remove explicit height provided by VariableSizeList
         style.height = undefined;
@@ -195,23 +201,29 @@ const GroupMemberList = (props: Props) => {
                             <Gap className='group-member-list_gap'/>
                         </UserButton>
                     </ProfilePopover>
-                    <DMContainer className='group-member-list_dm-button'>
-                        <WithTooltip
-                            title={formatMessage({id: 'group_member_list.sendMessageTooltip', defaultMessage: 'Send message'})}
-                        >
-                            <DMButton
-                                className='btn btn-icon btn-xs'
-                                aria-label={formatMessage(
-                                    {id: 'group_member_list.sendMessageButton', defaultMessage: 'Send message to {user}'},
-                                    {user: name})}
-                                onClick={() => showDirectChannel(user)}
+                    {!dmGmReadDenied && (
+                        <DMContainer className='group-member-list_dm-button'>
+                            <WithTooltip
+                                title={startDenied ? formatMessage({
+                                    id: 'user_profile.send.dm.start_denied',
+                                    defaultMessage: 'You can\'t start new direct messages',
+                                }) : formatMessage({id: 'group_member_list.sendMessageTooltip', defaultMessage: 'Send message'})}
                             >
-                                <i
-                                    className='icon icon-send'
-                                />
-                            </DMButton>
-                        </WithTooltip>
-                    </DMContainer>
+                                <DMButton
+                                    className='btn btn-icon btn-xs'
+                                    aria-label={formatMessage(
+                                        {id: 'group_member_list.sendMessageButton', defaultMessage: 'Send message to {user}'},
+                                        {user: name})}
+                                    aria-disabled={startDenied || undefined}
+                                    onClick={startDenied ? undefined : () => showDirectChannel(user)}
+                                >
+                                    <i
+                                        className='icon icon-send'
+                                    />
+                                </DMButton>
+                            </WithTooltip>
+                        </DMContainer>
+                    )}
                 </UserListItem>
             );
         }

@@ -3,9 +3,12 @@
 
 import React from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
+import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
+import {canStartDmGm} from 'mattermost-redux/selectors/entities/render_permissions';
 
 import useCopyText from 'components/common/hooks/useCopyText';
 
@@ -114,12 +117,15 @@ export default function TopButtons({
 }: Props) {
     const {formatMessage} = useIntl();
 
+    // Adding people to a GM creates a new GM.
+    const canStartConversation = useSelector(canStartDmGm);
+
     const copyLink = useCopyText({
         text: channelURL || '',
         successCopyTimeout: 1000,
     });
 
-    const canAddPeople = !isArchived && (([Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(channelType) && propsCanAddPeople) || channelType === Constants.GM_CHANNEL);
+    const canAddPeople = !isArchived && (([Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(channelType) && propsCanAddPeople) || (channelType === Constants.GM_CHANNEL && canStartConversation));
 
     const canCopyLink = [Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(channelType);
 

@@ -14,6 +14,7 @@ import {
     AccountOutlineIcon,
 } from '@mattermost/compass-icons/components';
 
+import {canStartDmGm} from 'mattermost-redux/selectors/entities/render_permissions';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {getSidebarBrowseOrAddChannelMenuPluginComponents} from 'selectors/plugins';
@@ -42,6 +43,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
     const {formatMessage} = useIntl();
     const currentTeamId = useSelector(getCurrentTeamId);
     const pluginMenuItems = useSelector(getSidebarBrowseOrAddChannelMenuPluginComponents);
+    const canStartConversation = useSelector(canStartDmGm);
 
     const showCreateAndJoinChannelsTutorialTip = useShowOnboardingTutorialStep(OnboardingTourSteps.CREATE_AND_JOIN_CHANNELS);
     const showInvitePeopleTutorialTip = useShowOnboardingTutorialStep(OnboardingTourSteps.INVITE_PEOPLE);
@@ -83,20 +85,23 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
         );
     }
 
-    const createDirectMessageMenuItem = (
-        <Menu.Item
-            id='openDirectMessageMenuItem'
-            onClick={props.onOpenDirectMessageClick}
-            leadingElement={<AccountOutlineIcon size={18}/>}
-            labels={(
-                <FormattedMessage
-                    id='sidebarLeft.browserOrCreateChannelMenu.openDirectMessageMenuItem.primaryLabel'
-                    defaultMessage='Open a direct message'
-                />
-            )}
-            aria-haspopup='true'
-        />
-    );
+    let createDirectMessageMenuItem: JSX.Element | null = null;
+    if (canStartConversation) {
+        createDirectMessageMenuItem = (
+            <Menu.Item
+                id='openDirectMessageMenuItem'
+                onClick={props.onOpenDirectMessageClick}
+                leadingElement={<AccountOutlineIcon size={18}/>}
+                labels={(
+                    <FormattedMessage
+                        id='sidebarLeft.browserOrCreateChannelMenu.openDirectMessageMenuItem.primaryLabel'
+                        defaultMessage='Open a direct message'
+                    />
+                )}
+                aria-haspopup='true'
+            />
+        );
+    }
 
     let createUserGroupMenuItem: JSX.Element | null = null;
     if (props.canCreateCustomGroups) {

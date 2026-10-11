@@ -252,6 +252,67 @@ describe('components/channel_members_rhs/Member', () => {
         expect(screen.getByText('Guest')).toBeInTheDocument();
     });
 
+    describe('the send message button under DM/GM permission policies', () => {
+        const withDecisions = (decisions: Record<string, boolean>) => ({
+            entities: {
+                ...initialState.entities,
+                general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+                users: {currentUserId: 'current_user_id'},
+                renderPermissions: {
+                    byResource: {permission: {'': Object.fromEntries(Object.entries(decisions).map(([action, allowed]) => [action, {allowed, evaluated: true, generation: 1}]))}},
+                },
+            },
+        });
+
+        // An icon button with no accessible name of its own; its tooltip carries the label.
+        const sendMessageButton = () => document.querySelector('.channel-members-rhs__send-message');
+
+        test('should not render while Read is denied', () => {
+            renderWithContext(
+                <Member
+                    {...baseProps}
+                    member={baseMember}
+                />,
+                withDecisions({dm_gm_read_access: false}),
+            );
+
+            expect(sendMessageButton()).not.toBeInTheDocument();
+        });
+
+        test('should do nothing for a member without a DM while Start is denied', async () => {
+            const openDirectMessage = jest.fn();
+            renderWithContext(
+                <Member
+                    {...baseProps}
+                    actions={{...baseProps.actions, openDirectMessage}}
+                    member={baseMember}
+                />,
+                withDecisions({dm_gm_start: false}),
+            );
+
+            const button = sendMessageButton()!;
+            expect(button).toHaveAttribute('aria-disabled', 'true');
+
+            await userEvent.click(button);
+            expect(openDirectMessage).not.toHaveBeenCalled();
+        });
+
+        test('should open the DM while both are allowed', async () => {
+            const openDirectMessage = jest.fn();
+            renderWithContext(
+                <Member
+                    {...baseProps}
+                    actions={{...baseProps.actions, openDirectMessage}}
+                    member={baseMember}
+                />,
+                withDecisions({dm_gm_start: true, dm_gm_read_access: true}),
+            );
+
+            await userEvent.click(sendMessageButton()!);
+            expect(openDirectMessage).toHaveBeenCalledWith(baseMember.user);
+        });
+    });
+
     afterEach(() => {
         jest.clearAllTimers();
         jest.useRealTimers();

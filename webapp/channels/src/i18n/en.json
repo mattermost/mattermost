@@ -31903,6 +31903,14 @@
     "defaultMessage": "Cannot message {user}. Their server is not directly connected.",
     "description": "Accessible label for the disabled message button in the profile popover when a remote user cannot be messaged; {user} is their username."
   },
+  "user_profile.send.dm.start_denied": {
+    "defaultMessage": "You can't start new direct messages",
+    "description": "Tooltip on the disabled message or call button for someone the user has no direct message with yet, when a permission policy stops the user starting direct and group messages. Shown in the profile popover and member lists."
+  },
+  "user_profile.send.dm.start_denied.aria_label": {
+    "defaultMessage": "Cannot message {user}. You can't start new direct messages.",
+    "description": "Accessible label for the disabled message button in the profile popover when a permission policy stops the user starting direct messages; {user} is the other person's username."
+  },
   "user_profile.send.dm.yourself": {
     "defaultMessage": "Send yourself a message",
     "description": "Tooltip and accessible label on the send-message icon button in the user's own profile popover; opens a direct message channel with themselves."

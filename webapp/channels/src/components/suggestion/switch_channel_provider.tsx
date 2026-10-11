@@ -33,6 +33,7 @@ import {
 } from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getMyPreferences, isGroupChannelManuallyVisible, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {canStartDmGm} from 'mattermost-redux/selectors/entities/render_permissions';
 import {
     getActiveTeamsList,
     getCurrentTeamId,
@@ -947,6 +948,11 @@ export default class SwitchChannelProvider extends Provider {
 
             const channelName = Utils.getDirectChannelName(currentUserId, user.id);
             const channel = getChannelByName(state, channelName);
+
+            // Picking a user with no DM yet would start one.
+            if (!channel && !canStartDmGm(state)) {
+                continue;
+            }
 
             const wrappedChannel = this.userWrappedChannel(user, channel);
 

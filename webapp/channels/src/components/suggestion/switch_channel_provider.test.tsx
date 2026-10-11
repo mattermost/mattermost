@@ -1644,6 +1644,29 @@ describe('components/SwitchChannelProvider', () => {
             expect(mergedResults.terms).toEqual([recentMatch.id, delphine.id]);
         });
 
+        describe('while dm_gm_start denies', () => {
+            const withStartDenied = (state: ReturnType<typeof makeState>) => ({
+                ...state,
+                entities: {
+                    ...state.entities,
+                    general: {...state.entities.general, config: {...state.entities.general.config, FeatureFlagPermissionPolicies: 'true'}},
+                    renderPermissions: {byResource: {permission: {'': {dm_gm_start: {allowed: false, evaluated: true, generation: 1}}}}},
+                },
+            });
+
+            it('leaves out a person the user has no direct message with', async () => {
+                const [, mergedResults] = await search('delp', withStartDenied(makeState()));
+
+                expect(mergedResults.terms).toEqual(['gm_channel_2', 'gm_channel_1', 'gm_channel_0']);
+            });
+
+            it('keeps a person the user already has a direct message with', async () => {
+                const [, mergedResults] = await search('delp', withStartDenied(makeState({existingDmLastViewedAt: 1})));
+
+                expect(mergedResults.terms).toEqual([delphine.id, 'gm_channel_2', 'gm_channel_1', 'gm_channel_0']);
+            });
+        });
+
         it('keeps a group message hidden from the sidebar below an equally relevant visible one', async () => {
             const state = makeState({hiddenGmMembers: ['delphine', 'wanda.pryor']});
 

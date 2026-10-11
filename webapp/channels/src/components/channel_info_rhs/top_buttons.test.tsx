@@ -144,6 +144,27 @@ describe('channel_info_rhs/top_buttons', () => {
         expect(screen.queryByText('Add People')).not.toBeInTheDocument();
     });
 
+    test.each([
+        ['allowed', true],
+        ['denied', false],
+    ])('should offer Add People in a GM only while starting conversations is %s', (_, allowed) => {
+        renderWithContext(
+            <TopButtons
+                {...topButtonDefaultProps}
+                channelType={Constants.GM_CHANNEL}
+                canAddPeople={false}
+            />,
+            {
+                entities: {
+                    general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+                    renderPermissions: {byResource: {permission: {'': {dm_gm_start: {allowed, evaluated: true, generation: 1}}}}},
+                },
+            },
+        );
+
+        expect(Boolean(screen.queryByText('Add People'))).toBe(allowed);
+    });
+
     test('should not Add People without permission', () => {
         const testProps: Props = {
             ...topButtonDefaultProps,

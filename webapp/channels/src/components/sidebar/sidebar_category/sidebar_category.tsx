@@ -45,6 +45,7 @@ type Props = {
 
     // Kept in the category list rather than filtered out, so drag-and-drop indexes still match the server's.
     hideCategory: boolean;
+    canStartDmGm: boolean;
     actions: {
         setCategoryCollapsed: (categoryId: string, collapsed: boolean) => void;
         setCategorySorting: (categoryId: string, sorting: CategorySorting) => void;
@@ -300,27 +301,29 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                         category={category}
                         handleOpenDirectMessagesModal={this.handleOpenDirectMessagesModal}
                     />
-                    <WithTooltip
-                        title={
-                            <>
-                                {addHelpLabel}
-                                <KeyboardShortcutSequence
-                                    shortcut={KEYBOARD_SHORTCUTS.navDMMenu}
-                                    hideDescription={true}
-                                    isInsideTooltip={true}
-                                />
-                            </>
-                        }
-                    >
-                        <button
-                            id='newDirectMessageButton'
-                            className='SidebarChannelGroupHeader_addButton'
-                            onClick={this.handleOpenDirectMessagesModal}
-                            aria-label={addHelpLabel}
+                    {this.props.canStartDmGm && (
+                        <WithTooltip
+                            title={
+                                <>
+                                    {addHelpLabel}
+                                    <KeyboardShortcutSequence
+                                        shortcut={KEYBOARD_SHORTCUTS.navDMMenu}
+                                        hideDescription={true}
+                                        isInsideTooltip={true}
+                                    />
+                                </>
+                            }
                         >
-                            <i className='icon-plus'/>
-                        </button>
-                    </WithTooltip>
+                            <button
+                                id='newDirectMessageButton'
+                                className='SidebarChannelGroupHeader_addButton'
+                                onClick={this.handleOpenDirectMessagesModal}
+                                aria-label={addHelpLabel}
+                            >
+                                <i className='icon-plus'/>
+                            </button>
+                        </WithTooltip>
+                    )}
                 </>
             );
 

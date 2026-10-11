@@ -9,7 +9,9 @@ import {Button} from '@mattermost/shared/components/button';
 import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {hasDirectChannelWithUser} from 'mattermost-redux/selectors/entities/channels';
 import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {canStartDmGm, isDmGmReadDenied} from 'mattermost-redux/selectors/entities/render_permissions';
 
 import {canUserDirectMessage} from 'actions/user_actions';
 
@@ -46,6 +48,11 @@ const ProfilePopoverOtherUserRow = ({
     const isSharedChannelsDMsEnabled = useSelector((state: GlobalState) => {
         return getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true';
     });
+
+    const dmGmReadDenied = useSelector(isDmGmReadDenied);
+
+    // Messaging someone the user has no DM with yet starts a conversation.
+    const startDenied = useSelector((state: GlobalState) => !hasDirectChannelWithUser(state, user.id) && !canStartDmGm(state));
 
     // Check if this user can be messaged directly using server-side validation
     useEffect(() => {
@@ -87,7 +94,22 @@ const ProfilePopoverOtherUserRow = ({
 
     // For remote users, we need to check permissions; for local users, always show
     const isRemoteUser = Boolean(user.remote_id);
-    const shouldShowButton = !isRemoteUser || (isSharedChannelsDMsEnabled && canMessage !== null);
+    const shouldShowButton = !dmGmReadDenied && (!isRemoteUser || (isSharedChannelsDMsEnabled && canMessage !== null));
+
+    const disabledTitle = canMessage ? intl.formatMessage({
+        id: 'user_profile.send.dm.start_denied',
+        defaultMessage: 'You can\'t start new direct messages',
+    }) : intl.formatMessage({
+        id: 'user_profile.send.dm.no_connection',
+        defaultMessage: 'Cannot message users from indirectly connected servers',
+    });
+    const disabledAriaLabel = canMessage ? intl.formatMessage({
+        id: 'user_profile.send.dm.start_denied.aria_label',
+        defaultMessage: 'Cannot message {user}. You can\'t start new direct messages.',
+    }, {user: user.username}) : intl.formatMessage({
+        id: 'user_profile.send.dm.no_connection.aria_label',
+        defaultMessage: 'Cannot message {user}. Their server is not directly connected.',
+    }, {user: user.username});
 
     return (
         <div className='user-popover__bottom-row-container'>
@@ -112,7 +134,7 @@ const ProfilePopoverOtherUserRow = ({
                         </Button>
                     ) : (
                         <>
-                            {canMessage ? (
+                            {canMessage && !startDenied ? (
                                 <Button
                                     type='button'
                                     emphasis='primary'
@@ -139,14 +161,8 @@ const ProfilePopoverOtherUserRow = ({
                                     size='sm'
                                     className='disabled'
                                     disabled={true}
-                                    title={intl.formatMessage({
-                                        id: 'user_profile.send.dm.no_connection',
-                                        defaultMessage: 'Cannot message users from indirectly connected servers',
-                                    })}
-                                    aria-label={intl.formatMessage({
-                                        id: 'user_profile.send.dm.no_connection.aria_label',
-                                        defaultMessage: 'Cannot message {user}. Their server is not directly connected.',
-                                    }, {user: user.username})}
+                                    title={disabledTitle}
+                                    aria-label={disabledAriaLabel}
                                 >
                                     <i
                                         className='icon icon-send'

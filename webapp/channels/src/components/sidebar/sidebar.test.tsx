@@ -17,6 +17,8 @@ import type {GlobalState} from 'types/store';
 
 import Sidebar from './sidebar';
 
+jest.mock('components/more_direct_channels', () => () => <div data-testid='more-direct-channels'/>);
+
 describe('components/sidebar', () => {
     const currentTeam = TestHelper.getTeamMock({
         id: 'current_team_id',
@@ -80,6 +82,7 @@ describe('components/sidebar', () => {
         isKeyBoardShortcutModalOpen: false,
         userGroupsEnabled: false,
         canCreateCustomGroups: true,
+        canStartDmGm: true,
         actions: {
             createCategory: jest.fn(),
             fetchMyCategories: jest.fn(),
@@ -404,6 +407,39 @@ describe('components/sidebar', () => {
 
             // Should not call openModal
             expect(openModalSpy).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('the direct messages modal', () => {
+        // Ctrl/Cmd+Shift+K, which the sidebar list routes to handleOpenMoreDirectChannelsModal.
+        const pressShortcut = () => fireEvent.keyDown(document, {
+            key: 'K',
+            code: 'KeyK',
+            keyCode: Constants.KeyCodes.K[1],
+            ctrlKey: true,
+            shiftKey: true,
+        });
+
+        test('should open from the shortcut while starting conversations is allowed', async () => {
+            renderWithContext(<Sidebar {...baseProps}/>, initialState);
+
+            pressShortcut();
+
+            expect(await screen.findByTestId('more-direct-channels')).toBeInTheDocument();
+        });
+
+        test('should not open from the shortcut while starting conversations is blocked', async () => {
+            renderWithContext(
+                <Sidebar
+                    {...baseProps}
+                    canStartDmGm={false}
+                />,
+                initialState,
+            );
+
+            pressShortcut();
+
+            await expect(screen.findByTestId('more-direct-channels', {}, {timeout: 200})).rejects.toThrow();
         });
     });
 });
