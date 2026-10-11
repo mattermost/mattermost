@@ -9,6 +9,7 @@ import {CogOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {isDmGmWriteDenied} from 'mattermost-redux/selectors/entities/render_permissions';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {canAccessChannelSettings} from 'selectors/views/channel_settings';
@@ -43,6 +44,9 @@ interface Props extends Menu.FirstMenuItemProps {
 const ChannelHeaderDirectMenu = ({channel, user, isMuted, isMobile, isFavorite, pluginItems, isChannelBookmarksEnabled, isChannelAutotranslated, ...rest}: Props) => {
     const canAccessChannelSettingsForChannel = useSelector((state: GlobalState) => canAccessChannelSettings(state, channel.id));
 
+    // Editing the header changes the conversation, which is writing.
+    const writeDenied = useSelector(isDmGmWriteDenied);
+
     return (
         <>
             <MenuItemToggleInfo
@@ -69,7 +73,7 @@ const ChannelHeaderDirectMenu = ({channel, user, isMuted, isMobile, isFavorite, 
                 <MenuItemChannelSettings
                     channel={channel}
                 />
-            ) : (
+            ) : !writeDenied && (
                 <EditConversationHeader
                     leadingElement={<CogOutlineIcon size='18px'/>}
                     channel={channel}

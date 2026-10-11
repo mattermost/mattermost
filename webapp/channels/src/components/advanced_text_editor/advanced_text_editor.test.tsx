@@ -1205,4 +1205,81 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.getByRole('button', {name: 'Save'})).toBeEnabled();
         });
     });
+
+    describe('dm_gm_write_access policy', () => {
+        const dmGmWritePlaceholder = 'You do not have permission to send direct or group messages.';
+
+        const withConversation = (type: 'D' | 'G', allowed: boolean) => mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        FeatureFlagPermissionPolicies: 'true',
+                    },
+                },
+                channels: {
+                    channels: {
+                        [channelId]: {type, team_id: '', name: type === 'D' ? `${currentUserId}__teammate_id` : 'gm_name'},
+                    },
+                },
+                renderPermissions: {
+                    byResource: {
+                        permission: {
+                            '': {
+                                dm_gm_write_access: {allowed, evaluated: true, generation: 1},
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        it.each(['D', 'G'] as const)('disables the %s editor and explains why when the policy denies', (type) => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withConversation(type, false),
+            );
+
+            expect(screen.getByPlaceholderText(dmGmWritePlaceholder)).toBeDisabled();
+        });
+
+        it('leaves a DM editor alone when the policy allows', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withConversation('D', true),
+            );
+
+            expect(screen.queryByPlaceholderText(dmGmWritePlaceholder)).not.toBeInTheDocument();
+            expect(screen.getByRole('textbox')).toBeEnabled();
+        });
+
+        it('disables the edit Save button in a DM when the policy denies', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    isInEditMode={true}
+                    rootId={'post_id_1'}
+                />,
+                withConversation('D', false),
+            );
+
+            expect(screen.getByRole('button', {name: 'Save'})).toBeDisabled();
+        });
+
+        it('leaves a channel editor alone when the policy denies', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                mergeObjects(withConversation('D', false), {
+                    entities: {channels: {channels: {[channelId]: {type: 'O', team_id: 'current_team_id', name: 'test-channel'}}}},
+                }),
+            );
+
+            expect(screen.getByPlaceholderText('Write to Test Channel')).toBeEnabled();
+        });
+    });
 });

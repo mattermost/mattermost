@@ -15,6 +15,7 @@ import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {get, getBool, getInt, getWysiwygEditorPreference} from 'mattermost-redux/selectors/entities/preferences';
+import {isDmGmWriteDenied} from 'mattermost-redux/selectors/entities/render_permissions';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, getUser, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
@@ -219,6 +220,9 @@ const AdvancedTextEditor = ({
     });
 
     const writeAllowedByPolicy = useChannelWriteAccess(channelId);
+
+    // Already folded into canPost; read here only to name the cause in the placeholder.
+    const dmGmWriteDenied = useSelector((state: GlobalState) => (channelType === Constants.DM_CHANNEL || channelType === Constants.GM_CHANNEL) && isDmGmWriteDenied(state));
 
     // Fetched here, alongside the write decision, only so it is cached: the management
     // controls around the channel (members, bookmarks, header menu, Channel Settings)
@@ -798,6 +802,13 @@ const AdvancedTextEditor = ({
                 defaultMessage: 'Write to {channelDisplayName}',
             },
             {channelDisplayName},
+        );
+    } else if (dmGmWriteDenied) {
+        createMessage = formatMessage(
+            {
+                id: 'create_post.dm_gm_write_access_denied',
+                defaultMessage: 'You do not have permission to send direct or group messages.',
+            },
         );
     } else if (!writeAllowedByPolicy) {
         createMessage = formatMessage(

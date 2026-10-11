@@ -37,6 +37,7 @@ type Props = {
     list?: Array<{user: UserProfile; acknowledgedAt: PostAcknowledgement['acknowledged_at']}>;
     postId: Post['id'];
     showDivider?: boolean;
+    writeDenied: boolean;
 };
 
 function moreThan5minAgo(time: number) {
@@ -52,6 +53,7 @@ function PostAcknowledgements({
     list,
     postId,
     showDivider = true,
+    writeDenied,
 }: Props) {
     let acknowledgedAt = 0;
     const headingId = useId();
@@ -65,7 +67,7 @@ function PostAcknowledgements({
             acknowledgedAt = ack.acknowledgedAt;
         }
     }
-    const buttonDisabled = (Boolean(acknowledgedAt) && moreThan5minAgo(acknowledgedAt)) || isCurrentAuthor;
+    const buttonDisabled = (Boolean(acknowledgedAt) && moreThan5minAgo(acknowledgedAt)) || isCurrentAuthor || writeDenied;
 
     const {x, y, strategy, context, refs: {setReference, setFloating}} = useFloating({
         open,

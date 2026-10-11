@@ -17,6 +17,7 @@ import type {Channel} from '@mattermost/types/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getLicense, isChannelPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
+import {isDmGmWriteDenied} from 'mattermost-redux/selectors/entities/render_permissions';
 import {haveIChannelPermissionRBACOnly, haveISystemPermission, isChannelManagementDenied} from 'mattermost-redux/selectors/entities/roles';
 
 import {
@@ -205,8 +206,11 @@ function ChannelSettingsModalBody({channel, isOpen, onExited, focusOriginElement
     // Reads the cached decision rather than fetching one: an unfetched channel falls open
     // and the server's 403 is the backstop. In practice the composer for the channel you
     // are viewing has already fetched it, and Channel Settings opens from that channel.
+    //
+    // DMs and GMs reach the modal when auto-translation is on. Management there is governed by
+    // dm_gm_write_access rather than channel_management_access.
     const isReadOnly = useSelector((state: GlobalState) =>
-        isChannelManagementDenied(state, channel.id),
+        isChannelManagementDenied(state, channel.id) || (isDMorGM && isDmGmWriteDenied(state)),
     );
 
     const basePath = useSelector(getBasePath);

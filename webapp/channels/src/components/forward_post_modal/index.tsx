@@ -12,6 +12,7 @@ import type {Post, PostPreviewMetadata} from '@mattermost/types/posts';
 
 import {General, Permissions} from 'mattermost-redux/constants';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
+import {canWriteDmGm} from 'mattermost-redux/selectors/entities/render_permissions';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -46,6 +47,8 @@ type Props = {
 
 const noop = () => {};
 
+const CHANNEL_TYPES_ONLY = [Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL];
+
 const ForwardPostModal = ({onExited, post}: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -54,6 +57,7 @@ const ForwardPostModal = ({onExited, post}: Props) => {
 
     const channel = useSelector((state: GlobalState) => getChannel(state, post.channel_id));
     const currentTeam = useSelector(getCurrentTeam);
+    const dmGmWritable = useSelector(canWriteDmGm);
 
     const relativePermaLink = useSelector((state: GlobalState) => (currentTeam ? getPermalinkURL(state, currentTeam.id, post.id) : ''));
     const permaLink = `${getSiteURL()}${relativePermaLink}`;
@@ -86,7 +90,9 @@ const ForwardPostModal = ({onExited, post}: Props) => {
     const canPostInSelectedChannel = useSelector(
         (state: GlobalState) => {
             const channelId = isPrivateConversation ? post.channel_id : selectedChannelId;
-            const isDMChannel = selectedChannel?.details?.type === Constants.DM_CHANNEL;
+
+            // A DM option can be a user with no channel yet, leaving no channel permission to check.
+            const isDMChannel = selectedChannel?.details?.type === Constants.DM_CHANNEL && dmGmWritable;
             const teamId = isPrivateConversation ? currentTeam?.id : selectedChannel?.details?.team_id;
 
             const hasChannelPermission = haveIChannelPermission(
@@ -276,6 +282,7 @@ const ForwardPostModal = ({onExited, post}: Props) => {
                         onSelect={handleChannelSelect}
                         value={selectedChannel}
                         currentBodyHeight={bodyHeight}
+                        validChannelTypes={dmGmWritable ? undefined : CHANNEL_TYPES_ONLY}
                     />
                 )}
                 <ForwardPostCommentInput

@@ -3,13 +3,14 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Permissions} from 'mattermost-redux/constants';
+import {isDmGmWriteDenied} from 'mattermost-redux/selectors/entities/render_permissions';
 
 import {openModal} from 'actions/views/modals';
 
@@ -38,6 +39,7 @@ export default function ChannelHeaderText(props: Props) {
     const isPrivateChannel = props.channel.type === Constants.PRIVATE_CHANNEL;
     const headerText = isBotDMChannel ? props.dmUser?.bot_description ?? '' : props.channel?.header ?? '';
     const hasHeaderText = headerText.trim().length > 0;
+    const dmGmWriteDenied = useSelector(isDmGmWriteDenied);
 
     // If it has a channel then show the channel irrespective of the channel type/state etc
     if (hasHeaderText) {
@@ -63,7 +65,7 @@ export default function ChannelHeaderText(props: Props) {
     }
 
     if (isDirectChannel || isGroupChannel) {
-        return <AddChannelHeaderTextButton channel={props.channel}/>;
+        return dmGmWriteDenied ? null : <AddChannelHeaderTextButton channel={props.channel}/>;
     }
 
     // should show option to add channel header text for any channel

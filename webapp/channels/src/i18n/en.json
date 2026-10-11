@@ -21275,6 +21275,10 @@
     "defaultMessage": "Send Now",
     "description": "Tooltip and accessibility label of the send button when the message can also be scheduled; sends immediately."
   },
+  "create_post.dm_gm_write_access_denied": {
+    "defaultMessage": "You do not have permission to send direct or group messages.",
+    "description": "Placeholder in the disabled message box of a direct or group message when a permission policy denies the user writing to direct and group messages."
+  },
   "create_post.dm_or_gm_remote": {
     "defaultMessage": "Direct Messages and Group Messages with remote users are not supported.",
     "description": "Placeholder in the disabled message box when the DM/GM includes remote (shared channel) users and such messages are not enabled."

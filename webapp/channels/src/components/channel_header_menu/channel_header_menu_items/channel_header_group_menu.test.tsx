@@ -174,4 +174,38 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
 
         expect(screen.queryByText('Settings')).not.toBeInTheDocument();
     });
+
+    describe('while dm_gm_write_access denies', () => {
+        const withWriteDenied = (state: DeepPartial<GlobalState>): DeepPartial<GlobalState> => ({
+            ...state,
+            entities: {
+                ...state.entities,
+                general: {config: {...state.entities?.general?.config, FeatureFlagPermissionPolicies: 'true'}},
+                renderPermissions: {byResource: {permission: {'': {dm_gm_write_access: {allowed: false, evaluated: true, generation: 1}}}}},
+            },
+        });
+
+        it('does not offer conversion to a private channel', () => {
+            renderWithContext(
+                <WithTestMenuContext>
+                    <ChannelHeaderGroupMenu {...defaultProps}/>
+                </WithTestMenuContext>,
+                withWriteDenied(getBaseState()),
+            );
+
+            expect(screen.getByText('Channel Settings')).toBeInTheDocument();
+            expect(screen.queryByText('Convert to Private Channel')).not.toBeInTheDocument();
+        });
+
+        it('drops the Settings submenu, whose items all change the conversation', () => {
+            renderWithContext(
+                <WithTestMenuContext>
+                    <ChannelHeaderGroupMenu {...defaultProps}/>
+                </WithTestMenuContext>,
+                withWriteDenied(getStateWithRestrictedDMAndGM()),
+            );
+
+            expect(screen.queryByText('Settings')).not.toBeInTheDocument();
+        });
+    });
 });
