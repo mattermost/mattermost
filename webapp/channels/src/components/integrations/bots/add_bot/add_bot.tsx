@@ -818,14 +818,15 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                 errors={[this.state.error]}
                             />
                             <Button
-                                type='button'
+                                asChild={true}
                                 emphasis='tertiary'
-                                onClick={() => getHistory().push(`/${this.props.team.name}/integrations/bots`)}
                             >
-                                <FormattedMessage
-                                    id='bots.manage.add.cancel'
-                                    defaultMessage='Cancel'
-                                />
+                                <Link to={`/${this.props.team.name}/integrations/bots`}>
+                                    <FormattedMessage
+                                        id='bots.manage.add.cancel'
+                                        defaultMessage='Cancel'
+                                    />
+                                </Link>
                             </Button>
                             <SpinnerButton
                                 type='submit'

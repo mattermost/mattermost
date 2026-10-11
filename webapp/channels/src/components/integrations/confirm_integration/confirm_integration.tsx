@@ -494,15 +494,16 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                 {tokenText}
                 <div className='backstage-form__footer'>
                     <Button
-                        type='button'
+                        asChild={true}
                         emphasis='primary'
                         id='doneButton'
-                        onClick={() => history.push('/' + team.name + '/integrations/' + type)}
                     >
-                        <FormattedMessage
-                            id='integrations.done'
-                            defaultMessage='Done'
-                        />
+                        <Link to={'/' + team.name + '/integrations/' + type}>
+                            <FormattedMessage
+                                id='integrations.done'
+                                defaultMessage='Done'
+                            />
+                        </Link>
                     </Button>
                 </div>
             </div>

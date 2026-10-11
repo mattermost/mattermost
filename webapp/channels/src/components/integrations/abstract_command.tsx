@@ -16,7 +16,6 @@ import FormError from 'components/form_error';
 import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 import SpinnerButton from 'components/spinner_button';
 
-import {getHistory} from 'utils/browser_history';
 import {Constants, DeveloperLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
@@ -680,14 +679,15 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 errors={[this.props.serverError, this.state.clientError]}
                             />
                             <Button
-                                type='button'
+                                asChild={true}
                                 emphasis='tertiary'
-                                onClick={() => getHistory().push('/' + this.props.team.name + '/integrations/commands')}
                             >
-                                <FormattedMessage
-                                    id='add_command.cancel'
-                                    defaultMessage='Cancel'
-                                />
+                                <Link to={'/' + this.props.team.name + '/integrations/commands'}>
+                                    <FormattedMessage
+                                        id='add_command.cancel'
+                                        defaultMessage='Cancel'
+                                    />
+                                </Link>
                             </Button>
                             <SpinnerButton
                                 type='submit'

@@ -16,8 +16,6 @@ import ChannelSelect from 'components/channel_select';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
 
-import {getHistory} from 'utils/browser_history';
-
 interface State {
     displayName: string;
     description: string;
@@ -380,14 +378,15 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                 errors={[this.props.serverError, this.state.clientError]}
                             />
                             <Button
-                                type='button'
+                                asChild={true}
                                 emphasis='tertiary'
-                                onClick={() => getHistory().push(`/${this.props.team.name}/integrations/incoming_webhooks`)}
                             >
-                                <FormattedMessage
-                                    id='add_incoming_webhook.cancel'
-                                    defaultMessage='Cancel'
-                                />
+                                <Link to={`/${this.props.team.name}/integrations/incoming_webhooks`}>
+                                    <FormattedMessage
+                                        id='add_incoming_webhook.cancel'
+                                        defaultMessage='Cancel'
+                                    />
+                                </Link>
                             </Button>
                             <SpinnerButton
                                 type='submit'

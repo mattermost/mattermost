@@ -4,6 +4,7 @@
 import React, {useState} from 'react';
 import type {ChangeEvent, JSX, ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import {Button} from '@mattermost/compass-ui/components/button';
 
@@ -11,8 +12,6 @@ import LoadingScreen from 'components/loading_screen';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 import SearchIcon from 'components/widgets/icons/fa_search_icon';
-
-import {getHistory} from 'utils/browser_history';
 
 import './backstage_list.scss';
 
@@ -119,14 +118,15 @@ const BackstageList = (remainingProps: Props) => {
     if (addLinkPath && remainingProps.addText) {
         addLink = (
             <Button
-                type='button'
+                asChild={true}
                 emphasis='primary'
                 id={remainingProps.addButtonId}
-                onClick={() => getHistory().push(addLinkPath)}
             >
-                <span>
-                    {remainingProps.addText}
-                </span>
+                <Link to={addLinkPath}>
+                    <span>
+                        {remainingProps.addText}
+                    </span>
+                </Link>
             </Button>
         );
     }

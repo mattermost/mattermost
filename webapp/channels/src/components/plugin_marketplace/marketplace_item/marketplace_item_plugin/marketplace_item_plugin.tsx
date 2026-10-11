@@ -4,16 +4,16 @@
 import classNames from 'classnames';
 import React, {type JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
+import {Link} from 'react-router-dom';
 import semver from 'semver';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {MarketplaceLabel} from '@mattermost/types/marketplace';
 import type {PluginStatusRedux} from '@mattermost/types/plugins';
 
 import ConfirmModal from 'components/confirm_modal';
 import ExternalLink from 'components/external_link';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
-
-import {getHistory} from 'utils/browser_history';
 
 import MarketplaceItem from '../marketplace_item';
 
@@ -274,7 +274,6 @@ export default class MarketplaceItemPlugin extends React.PureComponent <Marketpl
 
     onConfigure = (): void => {
         this.props.actions.closeMarketplaceModal();
-        getHistory().push('/admin_console/plugins/plugin_' + this.props.id);
     };
 
     onUpdate = (): void => {
@@ -285,15 +284,21 @@ export default class MarketplaceItemPlugin extends React.PureComponent <Marketpl
     getItemButton(): JSX.Element {
         if (this.props.installedVersion !== '' && !this.props.installing && !this.props.error) {
             return (
-                <button
-                    onClick={this.onConfigure}
+                <Button
+                    asChild={true}
+                    emphasis='tertiary'
                     className='plugin-configure'
                 >
-                    <FormattedMessage
-                        id='marketplace_modal.list.configure'
-                        defaultMessage='Configure'
-                    />
-                </button>
+                    <Link
+                        to={'/admin_console/plugins/plugin_' + this.props.id}
+                        onClick={this.onConfigure}
+                    >
+                        <FormattedMessage
+                            id='marketplace_modal.list.configure'
+                            defaultMessage='Configure'
+                        />
+                    </Link>
+                </Button>
             );
         }
 

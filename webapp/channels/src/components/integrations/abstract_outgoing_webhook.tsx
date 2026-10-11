@@ -17,7 +17,6 @@ import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
 
-import {getHistory} from 'utils/browser_history';
 import {DocLinks} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 
@@ -584,14 +583,15 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                 errors={[this.props.serverError, this.state.clientError]}
                             />
                             <Button
-                                type='button'
+                                asChild={true}
                                 emphasis='tertiary'
-                                onClick={() => getHistory().push(`/${this.props.team.name}/integrations/outgoing_webhooks`)}
                             >
-                                <FormattedMessage
-                                    id='add_outgoing_webhook.cancel'
-                                    defaultMessage='Cancel'
-                                />
+                                <Link to={`/${this.props.team.name}/integrations/outgoing_webhooks`}>
+                                    <FormattedMessage
+                                        id='add_outgoing_webhook.cancel'
+                                        defaultMessage='Cancel'
+                                    />
+                                </Link>
                             </Button>
                             <SpinnerButton
                                 type='submit'

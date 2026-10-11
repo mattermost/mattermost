@@ -22,8 +22,6 @@ import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {getHistory} from 'utils/browser_history';
-
 type Props = {
     team: Team;
     header: MessageDescriptor;
@@ -475,14 +473,15 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             errors={[props.serverError, storedError]}
                         />
                         <Button
-                            type='button'
+                            asChild={true}
                             emphasis='tertiary'
-                            onClick={() => getHistory().push(`/${props.team.name}/integrations/outgoing-oauth2-connections`)}
                         >
-                            <FormattedMessage
-                                id='add_outgoing_oauth_connection.cancel'
-                                defaultMessage='Cancel'
-                            />
+                            <Link to={`/${props.team.name}/integrations/outgoing-oauth2-connections`}>
+                                <FormattedMessage
+                                    id='add_outgoing_oauth_connection.cancel'
+                                    defaultMessage='Cancel'
+                                />
+                            </Link>
                         </Button>
                         <SpinnerButton
                             type='submit'

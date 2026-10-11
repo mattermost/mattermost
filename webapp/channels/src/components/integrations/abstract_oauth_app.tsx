@@ -18,8 +18,6 @@ import FormError from 'components/form_error';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import SpinnerButton from 'components/spinner_button';
 
-import {getHistory} from 'utils/browser_history';
-
 type Props = {
 
     /**
@@ -533,14 +531,15 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                                 errors={[this.props.serverError, this.state.clientError]}
                             />
                             <Button
-                                type='button'
+                                asChild={true}
                                 emphasis='tertiary'
-                                onClick={() => getHistory().push(`/${this.props.team.name}/integrations/oauth2-apps`)}
                             >
-                                <FormattedMessage
-                                    id='installed_oauth_apps.cancel'
-                                    defaultMessage='Cancel'
-                                />
+                                <Link to={`/${this.props.team.name}/integrations/oauth2-apps`}>
+                                    <FormattedMessage
+                                        id='installed_oauth_apps.cancel'
+                                        defaultMessage='Cancel'
+                                    />
+                                </Link>
                             </Button>
                             <SpinnerButton
                                 type='submit'

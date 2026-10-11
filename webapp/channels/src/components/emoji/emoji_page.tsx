@@ -3,14 +3,13 @@
 
 import React, {useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import {Button} from '@mattermost/compass-ui/components/button';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import AnyTeamPermissionGate from 'components/permissions_gates/any_team_permission_gate';
-
-import {getHistory} from 'utils/browser_history';
 
 import EmojiList from './emoji_list';
 
@@ -60,14 +59,15 @@ export default function EmojiPage({
                 </h1>
                 <AnyTeamPermissionGate permissions={CREATE_EMOJIS_PERMISSIONS}>
                     <Button
-                        type='button'
+                        asChild={true}
                         emphasis='primary'
-                        onClick={() => getHistory().push('/' + teamName + '/emoji/add')}
                     >
-                        <FormattedMessage
-                            id='emoji_list.add'
-                            defaultMessage='Add Custom Emoji'
-                        />
+                        <Link to={'/' + teamName + '/emoji/add'}>
+                            <FormattedMessage
+                                id='emoji_list.add'
+                                defaultMessage='Add Custom Emoji'
+                            />
+                        </Link>
                     </Button>
                 </AnyTeamPermissionGate>
             </div>

@@ -376,14 +376,15 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                                 error={this.state.error}
                             />
                             <Button
-                                type='button'
+                                asChild={true}
                                 emphasis='tertiary'
-                                onClick={() => getHistory().push('/' + this.props.team.name + '/emoji')}
                             >
-                                <FormattedMessage
-                                    id='add_emoji.cancel'
-                                    defaultMessage='Cancel'
-                                />
+                                <Link to={'/' + this.props.team.name + '/emoji'}>
+                                    <FormattedMessage
+                                        id='add_emoji.cancel'
+                                        defaultMessage='Cancel'
+                                    />
+                                </Link>
                             </Button>
                             <SpinnerButton
                                 data-testid='save-button'
