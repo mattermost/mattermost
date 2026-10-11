@@ -16,6 +16,9 @@ import {
     ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
     ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
     ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
+    ACCESS_CONTROL_ACTION_DM_GM_START,
+    ACCESS_CONTROL_ACTION_DM_GM_READ_ACCESS,
+    ACCESS_CONTROL_ACTION_DM_GM_WRITE_ACCESS,
 } from '@mattermost/types/access_control';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -74,6 +77,13 @@ const permissionMessages = defineMessages({
     channelManagementAccessDescription: {id: 'admin.permission_policies.permission.channel_management_access.description', defaultMessage: "Allow users to change the channel's settings, bookmarks, members and access rules"},
     createBorLabel: {id: 'admin.permission_policies.permission.create_bor.label', defaultMessage: 'Create Burn-on-Read Message'},
     createBorDescription: {id: 'admin.permission_policies.permission.create_bor.description', defaultMessage: 'Allow users to send burn-on-read messages'},
+    dmGmStartLabel: {id: 'admin.permission_policies.permission.dm_gm_start.label', defaultMessage: 'Start Direct and Group Messages'},
+    dmGmStartDescription: {id: 'admin.permission_policies.permission.dm_gm_start.description', defaultMessage: 'Allow users to start new direct and group messages'},
+    dmGmReadAccessLabel: {id: 'admin.permission_policies.permission.dm_gm_read_access.label', defaultMessage: 'Read Direct and Group Messages'},
+    dmGmReadAccessDescription: {id: 'admin.permission_policies.permission.dm_gm_read_access.description', defaultMessage: 'Allow users to read direct and group messages and their content'},
+    dmGmWriteAccessLabel: {id: 'admin.permission_policies.permission.dm_gm_write_access.label', defaultMessage: 'Write Direct and Group Messages'},
+    dmGmWriteAccessDescription: {id: 'admin.permission_policies.permission.dm_gm_write_access.description', defaultMessage: 'Allow users to post in direct and group messages and change their content'},
+    dmGmHeading: {id: 'admin.permission_policies.edit.permissions.dm_gm_heading', defaultMessage: 'Direct and Group Messages'},
 });
 
 const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
@@ -107,7 +117,27 @@ const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
         label: permissionMessages.createBorLabel,
         description: permissionMessages.createBorDescription,
     },
+    {
+        value: ACCESS_CONTROL_ACTION_DM_GM_START,
+        label: permissionMessages.dmGmStartLabel,
+        description: permissionMessages.dmGmStartDescription,
+        group: 'dm_gm',
+    },
+    {
+        value: ACCESS_CONTROL_ACTION_DM_GM_READ_ACCESS,
+        label: permissionMessages.dmGmReadAccessLabel,
+        description: permissionMessages.dmGmReadAccessDescription,
+        group: 'dm_gm',
+    },
+    {
+        value: ACCESS_CONTROL_ACTION_DM_GM_WRITE_ACCESS,
+        label: permissionMessages.dmGmWriteAccessLabel,
+        description: permissionMessages.dmGmWriteAccessDescription,
+        group: 'dm_gm',
+    },
 ];
+
+const DM_GM_PERMISSIONS = new Set(AVAILABLE_PERMISSIONS.filter((p) => p.group === 'dm_gm').map((p) => p.value));
 
 interface RoleDefinition {
     value: string;
@@ -119,6 +149,9 @@ interface PermissionDefinition {
     value: string;
     label: MessageDescriptor;
     description: MessageDescriptor;
+
+    // Listed under their own heading. These are evaluated against the system, never a channel.
+    group?: 'dm_gm';
 }
 
 interface PolicyActions {
@@ -339,12 +372,14 @@ function PermissionPolicyDetails({
         }
     };
 
-    // Channel Read Access hides channels from users without telling them, and Manage
-    // Channel can take editing away from the people maintaining them, so either gets a
-    // confirmation step. Other policies save straight through.
+    // Channel Read Access and Read Direct and Group Messages hide content from users
+    // without telling them, and Manage Channel can take editing away from the people
+    // maintaining channels, so any of them gets a confirmation step. Other policies save
+    // straight through.
     const confirmableActions = useMemo(() => selectedPermissions.filter((permission) =>
         permission === ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS ||
-        permission === ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
+        permission === ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS ||
+        permission === ACCESS_CONTROL_ACTION_DM_GM_READ_ACCESS,
     ), [selectedPermissions]);
 
     const handleSubmit = async () => {
@@ -397,6 +432,51 @@ function PermissionPolicyDetails({
 
     const availableToAdd = AVAILABLE_PERMISSIONS.filter(
         (p) => !selectedPermissions.includes(p.value),
+    );
+    const channelPermissionsToAdd = availableToAdd.filter((p) => !p.group);
+    const dmGmPermissionsToAdd = availableToAdd.filter((p) => p.group === 'dm_gm');
+
+    const selectedChannelPermissions = selectedPermissions.filter((p) => !DM_GM_PERMISSIONS.has(p));
+    const selectedDmGmPermissions = selectedPermissions.filter((p) => DM_GM_PERMISSIONS.has(p));
+
+    const actionLabels = useMemo(() => Object.fromEntries(AVAILABLE_PERMISSIONS.map((p) => [p.value, formatMessage(p.label)])), [formatMessage]);
+
+    const renderPermissionRow = (permValue: string) => {
+        const permDef = AVAILABLE_PERMISSIONS.find((p) => p.value === permValue);
+        return (
+            <div
+                key={permValue}
+                className='pp-permissions-table-row'
+            >
+                <span className='pp-permission-label'>
+                    {permDef ? formatMessage(permDef.label) : permValue}
+                </span>
+                <button
+                    className='pp-permission-remove'
+                    onClick={() => removePermission(permValue)}
+                    aria-label={formatMessage({
+                        id: 'admin.permission_policies.edit.permissions.remove_aria',
+                        defaultMessage: 'Remove permission',
+                    })}
+                >
+                    <i className='icon icon-trash-can-outline'/>
+                </button>
+            </div>
+        );
+    };
+
+    const renderAddPermissionItem = (perm: PermissionDefinition) => (
+        <Menu.Item
+            key={perm.value}
+            id={`pp-add-permission-${perm.value}`}
+            onClick={() => addPermission(perm.value)}
+            labels={
+                <>
+                    <span>{formatMessage(perm.label)}</span>
+                    <span>{formatMessage(perm.description)}</span>
+                </>
+            }
+        />
     );
 
     return (
@@ -763,29 +843,15 @@ function PermissionPolicyDetails({
                                                 />
                                             </div>
                                         ) : (
-                                            selectedPermissions.map((permValue) => {
-                                                const permDef = AVAILABLE_PERMISSIONS.find((p) => p.value === permValue);
-                                                return (
-                                                    <div
-                                                        key={permValue}
-                                                        className='pp-permissions-table-row'
-                                                    >
-                                                        <span className='pp-permission-label'>
-                                                            {permDef ? formatMessage(permDef.label) : permValue}
-                                                        </span>
-                                                        <button
-                                                            className='pp-permission-remove'
-                                                            onClick={() => removePermission(permValue)}
-                                                            aria-label={formatMessage({
-                                                                id: 'admin.permission_policies.edit.permissions.remove_aria',
-                                                                defaultMessage: 'Remove permission',
-                                                            })}
-                                                        >
-                                                            <i className='icon icon-trash-can-outline'/>
-                                                        </button>
+                                            <>
+                                                {selectedChannelPermissions.map(renderPermissionRow)}
+                                                {selectedDmGmPermissions.length > 0 && (
+                                                    <div className='pp-permissions-table-group-header'>
+                                                        {formatMessage(permissionMessages.dmGmHeading)}
                                                     </div>
-                                                );
-                                            })
+                                                )}
+                                                {selectedDmGmPermissions.map(renderPermissionRow)}
+                                            </>
                                         )}
                                     </div>
 
@@ -812,19 +878,14 @@ function PermissionPolicyDetails({
                                                 }),
                                             }}
                                         >
-                                            {availableToAdd.map((perm) => (
-                                                <Menu.Item
-                                                    key={perm.value}
-                                                    id={`pp-add-permission-${perm.value}`}
-                                                    onClick={() => addPermission(perm.value)}
-                                                    labels={
-                                                        <>
-                                                            <span>{formatMessage(perm.label)}</span>
-                                                            <span>{formatMessage(perm.description)}</span>
-                                                        </>
-                                                    }
-                                                />
-                                            ))}
+                                            {channelPermissionsToAdd.map(renderAddPermissionItem)}
+                                            {channelPermissionsToAdd.length > 0 && dmGmPermissionsToAdd.length > 0 && <Menu.Separator/>}
+                                            {dmGmPermissionsToAdd.length > 0 && (
+                                                <Menu.Title role='presentation'>
+                                                    {formatMessage(permissionMessages.dmGmHeading)}
+                                                </Menu.Title>
+                                            )}
+                                            {dmGmPermissionsToAdd.map(renderAddPermissionItem)}
                                         </Menu.Container>
                                     )}
                                 </Card.Body>
@@ -903,14 +964,7 @@ function PermissionPolicyDetails({
                             }}
                             actions={selectedPermissions}
                             ruleName={policyName}
-                            actionLabels={{
-                                [ACCESS_CONTROL_ACTION_UPLOAD_FILE]: formatMessage(permissionMessages.uploadLabel),
-                                [ACCESS_CONTROL_ACTION_DOWNLOAD_FILE]: formatMessage(permissionMessages.downloadLabel),
-                                [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS]: formatMessage(permissionMessages.channelReadAccessLabel),
-                                [ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS]: formatMessage(permissionMessages.channelWriteAccessLabel),
-                                [ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS]: formatMessage(permissionMessages.channelManagementAccessLabel),
-                                [ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ]: formatMessage(permissionMessages.createBorLabel),
-                            }}
+                            actionLabels={actionLabels}
                             targetRole={selectedRole}
                             targetScope='system'
                             accessControlFields={mergedAttributes}

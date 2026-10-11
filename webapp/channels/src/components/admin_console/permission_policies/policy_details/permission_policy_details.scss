@@ -118,6 +118,15 @@
         text-transform: uppercase;
     }
 
+    .pp-permissions-table-group-header {
+        padding: 8px 16px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
     .pp-permissions-table-empty {
         padding: 24px 16px;
         color: rgba(var(--center-channel-color-rgb), 0.48);

@@ -8,7 +8,7 @@ import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {useEnabledSessionAttributeFields} from 'hooks/useEnabledSessionAttributeFields';
-import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor, userEvent, within} from 'tests/react_testing_utils';
 
 import PermissionPolicyDetails from './permission_policy_details';
 
@@ -473,6 +473,58 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
 
         expect(mockCreatePolicy).not.toHaveBeenCalled();
+    });
+
+    describe('Direct and Group Messages', () => {
+        test('lists the three actions under their own heading, after the channel and file ones', async () => {
+            await renderAndOpenMenu();
+
+            const menu = screen.getByRole('menu');
+            expect(within(menu).getByText('Direct and Group Messages')).toBeInTheDocument();
+
+            const ids = within(menu).getAllByRole('menuitem').map((item) => item.id);
+            expect(ids.slice(-3)).toEqual([
+                'pp-add-permission-dm_gm_start',
+                'pp-add-permission-dm_gm_read_access',
+                'pp-add-permission-dm_gm_write_access',
+            ]);
+        });
+
+        test('groups a selected action under the heading in the permissions table', async () => {
+            await renderAndOpenMenu();
+            await pickPermission('Write Direct and Group Messages');
+
+            const groupHeader = document.querySelector('.pp-permissions-table-group-header');
+            expect(groupHeader).toHaveTextContent('Direct and Group Messages');
+            expect(groupHeader?.nextElementSibling).toHaveTextContent('Write Direct and Group Messages');
+        });
+
+        test('confirms before saving a policy that carries dm_gm_read_access', async () => {
+            await renderAndOpenMenu();
+            await pickPermission('Read Direct and Group Messages');
+
+            await userEvent.click(screen.getByText('Save'));
+
+            expect(await screen.findByText('Save this policy?')).toBeInTheDocument();
+            expect(screen.getByText('This policy controls Read Direct and Group Messages across the workspace.')).toBeInTheDocument();
+            expect(screen.queryByText(/This policy controls Channel Read Access/)).not.toBeInTheDocument();
+            expect(mockCreatePolicy).not.toHaveBeenCalled();
+        });
+
+        test.each([
+            'Start Direct and Group Messages',
+            'Write Direct and Group Messages',
+        ])('saves %s without the confirmation', async (label) => {
+            await renderAndOpenMenu();
+            await pickPermission(label);
+
+            await userEvent.click(screen.getByText('Save'));
+
+            await waitFor(() => {
+                expect(mockCreatePolicy).toHaveBeenCalledTimes(1);
+            });
+            expect(screen.queryByText('Save this policy?')).not.toBeInTheDocument();
+        });
     });
 
     test('a file-only policy saves without the confirmation', async () => {

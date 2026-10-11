@@ -3,7 +3,11 @@
 
 import React from 'react';
 
-import {ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS, ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS} from '@mattermost/types/access_control';
+import {
+    ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
+    ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+    ACCESS_CONTROL_ACTION_DM_GM_READ_ACCESS,
+} from '@mattermost/types/access_control';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
@@ -134,5 +138,32 @@ describe('components/admin_console/permission_policies/modals/ChannelAccessConfi
         await userEvent.click(screen.getByRole('button', {name: 'Save policy'}));
 
         expect(baseProps.onConfirm).toHaveBeenCalledTimes(1);
+    });
+
+    test('explains a Read Direct and Group Messages policy, with the simulate prompt once', () => {
+        renderWithContext(
+            <ChannelAccessConfirmModal
+                {...baseProps}
+                actions={[ACCESS_CONTROL_ACTION_DM_GM_READ_ACCESS]}
+            />,
+        );
+
+        expect(screen.getByText('This policy controls Read Direct and Group Messages across the workspace.')).toBeInTheDocument();
+        expect(screen.getByText('Any session that does not meet the conditions will stop seeing direct and group messages, including messages from bots.')).toBeInTheDocument();
+        expect(screen.queryByText(workspaceScopeCopy)).not.toBeInTheDocument();
+        expect(screen.getAllByText('Run Simulate rules first if you have not confirmed who this affects.')).toHaveLength(1);
+    });
+
+    test('explains each confirmable action a policy carries', () => {
+        renderWithContext(
+            <ChannelAccessConfirmModal
+                {...baseProps}
+                actions={[ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS, ACCESS_CONTROL_ACTION_DM_GM_READ_ACCESS]}
+            />,
+        );
+
+        expect(screen.getByText(workspaceScopeCopy)).toBeInTheDocument();
+        expect(screen.getByText('This policy controls Read Direct and Group Messages across the workspace.')).toBeInTheDocument();
+        expect(screen.getAllByText('Run Simulate rules first if you have not confirmed who this affects.')).toHaveLength(1);
     });
 });

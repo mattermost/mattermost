@@ -10099,6 +10099,14 @@
     "defaultMessage": "Create policies to control what users can do, based on their attributes.",
     "description": "Description under the page title on the System Console > Permission Policies page."
   },
+  "admin.permission_policies.dm_gm_read_access_confirm.body_effect": {
+    "defaultMessage": "Any session that does not meet the conditions will stop seeing direct and group messages, including messages from bots.",
+    "description": "System Console > Permission Policies > save confirmation. Explains what a Read Direct and Group Messages policy does to sessions that fail its conditions."
+  },
+  "admin.permission_policies.dm_gm_read_access_confirm.body_scope": {
+    "defaultMessage": "This policy controls Read Direct and Group Messages across the workspace.",
+    "description": "System Console > Permission Policies > save confirmation. States that a Read Direct and Group Messages policy applies across the whole workspace."
+  },
   "admin.permission_policies.edit": {
     "defaultMessage": "Edit",
     "description": "Menu item that opens a permission policy for editing; used in the policy actions menu and the channel settings permissions tab."
@@ -10198,6 +10206,10 @@
   "admin.permission_policies.edit.permissions.column_header": {
     "defaultMessage": "Permission",
     "description": "Table column header for the permission name in the permissions table of the permission policy edit page; compact space."
+  },
+  "admin.permission_policies.edit.permissions.dm_gm_heading": {
+    "defaultMessage": "Direct and Group Messages",
+    "description": "System Console > Permission Policies > policy editor. Heading that groups the direct and group message permissions in the add-permission menu and the selected list."
   },
   "admin.permission_policies.edit.permissions.empty": {
     "defaultMessage": "Add a permission to this policy",
@@ -10322,6 +10334,30 @@
   "admin.permission_policies.permission.create_bor.label": {
     "defaultMessage": "Create Burn-on-Read Message",
     "description": "Name of the Send Burn-On-Read permission toggle in the permission policy editor; also used as a column value in the policies table."
+  },
+  "admin.permission_policies.permission.dm_gm_read_access.description": {
+    "defaultMessage": "Allow users to read direct and group messages and their content",
+    "description": "System Console > Permission Policies > add-permission menu. Description of the Read Direct and Group Messages permission."
+  },
+  "admin.permission_policies.permission.dm_gm_read_access.label": {
+    "defaultMessage": "Read Direct and Group Messages",
+    "description": "System Console > Permission Policies. Name of the permission that controls reading direct and group messages."
+  },
+  "admin.permission_policies.permission.dm_gm_start.description": {
+    "defaultMessage": "Allow users to start new direct and group messages",
+    "description": "System Console > Permission Policies > add-permission menu. Description of the Start Direct and Group Messages permission."
+  },
+  "admin.permission_policies.permission.dm_gm_start.label": {
+    "defaultMessage": "Start Direct and Group Messages",
+    "description": "System Console > Permission Policies. Name of the permission that controls starting new direct and group messages."
+  },
+  "admin.permission_policies.permission.dm_gm_write_access.description": {
+    "defaultMessage": "Allow users to post in direct and group messages and change their content",
+    "description": "System Console > Permission Policies > add-permission menu. Description of the Write Direct and Group Messages permission."
+  },
+  "admin.permission_policies.permission.dm_gm_write_access.label": {
+    "defaultMessage": "Write Direct and Group Messages",
+    "description": "System Console > Permission Policies. Name of the permission that controls posting in direct and group messages."
   },
   "admin.permission_policies.permission.download_file.description": {
     "defaultMessage": "Allow users to download files to their device",

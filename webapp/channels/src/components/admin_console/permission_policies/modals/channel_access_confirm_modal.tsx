@@ -6,7 +6,11 @@ import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 import {Button} from '@mattermost/shared/components/button';
-import {ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS, ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS} from '@mattermost/types/access_control';
+import {
+    ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
+    ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+    ACCESS_CONTROL_ACTION_DM_GM_READ_ACCESS,
+} from '@mattermost/types/access_control';
 
 import type {TargetScope} from 'components/admin_console/access_control/modals/simulate_access/role_applicability';
 
@@ -19,8 +23,8 @@ type Props = {
     isSaving?: boolean;
     targetScope: TargetScope;
 
-    // The confirmable actions the policy carries: channel_read_access,
-    // channel_management_access or both. Each gets its own scope and effect copy.
+    // The confirmable actions the policy carries: any of channel_read_access,
+    // channel_management_access and dm_gm_read_access. Each gets its own scope and effect copy.
     actions: string[];
 
     // Set when opened from inside another modal (Channel Settings) so this
@@ -29,11 +33,12 @@ type Props = {
 };
 
 /**
- * Save confirmation for a permission policy that carries the `channel_read_access` or
- * `channel_management_access` action. Denying the first hides the channel and its
- * contents from a session without telling the user; denying the second can take away
- * the author's own ability to edit the policy. Either way the save needs an explicit
- * confirmation. Policies with only other actions save without one.
+ * Save confirmation for a permission policy that carries the `channel_read_access`,
+ * `channel_management_access` or `dm_gm_read_access` action. Denying the first hides the
+ * channel and its contents from a session without telling the user; denying the second can
+ * take away the author's own ability to edit the policy; denying the third hides every
+ * direct and group message. Any of them needs an explicit confirmation. Policies with only
+ * other actions save without one.
  */
 export default function ChannelAccessConfirmModal({
     show,
@@ -127,6 +132,22 @@ export default function ChannelAccessConfirmModal({
                             <FormattedMessage
                                 id='admin.permission_policies.channel_management_access_confirm.body_effect'
                                 defaultMessage='Anyone who does not meet the conditions will no longer be able to change the settings, bookmarks, members or access rules of channels covered by this policy. System admins are not affected.'
+                            />
+                        </p>
+                    </>
+                )}
+                {actions.includes(ACCESS_CONTROL_ACTION_DM_GM_READ_ACCESS) && (
+                    <>
+                        <p>
+                            <FormattedMessage
+                                id='admin.permission_policies.dm_gm_read_access_confirm.body_scope'
+                                defaultMessage='This policy controls Read Direct and Group Messages across the workspace.'
+                            />
+                        </p>
+                        <p>
+                            <FormattedMessage
+                                id='admin.permission_policies.dm_gm_read_access_confirm.body_effect'
+                                defaultMessage='Any session that does not meet the conditions will stop seeing direct and group messages, including messages from bots.'
                             />
                         </p>
                     </>
