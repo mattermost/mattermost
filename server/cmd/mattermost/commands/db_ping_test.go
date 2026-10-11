@@ -87,9 +87,9 @@ func TestDBPingInvalidDSN(t *testing.T) {
 		"--timeout", "2s", "--retry-interval", "500ms")
 	require.Error(t, err, "command should fail on malformed DSN; output: %s", output)
 	require.Contains(t, output, "invalid database DSN",
-		"expected sanitized DSN parse error; got: %s", output)
-	require.Contains(t, output, "missing ']' in host",
-		"expected malformed DSN reason; got: %s", output)
+		"expected generic DSN parse error; got: %s", output)
+	require.NotContains(t, output, "missing ']' in host",
+		"parse-error details must not appear in command output; got: %s", output)
 	require.NotContains(t, output, "supersecret",
 		"malformed DSN errors must not leak credentials; got: %s", output)
 	require.NotContains(t, output, "leakyuser",
