@@ -4,7 +4,6 @@
 import React, {memo, useCallback} from 'react';
 import styled, {css} from 'styled-components';
 
-import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
 
@@ -12,6 +11,7 @@ import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
+import {Button} from 'components/compass_ui_button';
 import Markdown from 'components/markdown';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 

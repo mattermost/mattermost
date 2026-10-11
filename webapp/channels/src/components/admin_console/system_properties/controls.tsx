@@ -5,7 +5,7 @@ import type {ReactNode} from 'react';
 import React from 'react';
 import styled, {css} from 'styled-components';
 
-import {Button} from '@mattermost/compass-ui/components/button';
+import {Button} from 'components/compass_ui_button';
 
 export const SectionHeading = styled.h3`
     &&& {
