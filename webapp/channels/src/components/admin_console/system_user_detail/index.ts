@@ -10,7 +10,9 @@ import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general'
 import {getUserPreferences} from 'mattermost-redux/actions/preferences';
 import {addUserToTeam} from 'mattermost-redux/actions/teams';
 import {updateUserActive, updateUserAuth, getUser, patchUser, updateUserMfa, getCustomProfileAttributeValues, saveCustomProfileAttribute, uploadProfileImage, setDefaultProfileImage} from 'mattermost-redux/actions/users';
+import {Permissions} from 'mattermost-redux/constants';
 import {getConfig, getCustomProfileAttributes, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
@@ -21,7 +23,7 @@ import {isEnterpriseLicense} from 'utils/license_utils';
 
 import SystemUserDetail from './system_user_detail';
 
-function mapStateToProps(state: GlobalState) {
+export function mapStateToProps(state: GlobalState) {
     const license = getLicense(state);
     const config = getConfig(state);
     const customProfileAttributeEnabled = isEnterpriseLicense(license);
@@ -37,6 +39,7 @@ function mapStateToProps(state: GlobalState) {
         ldapPictureAttributeSet: config?.LdapPictureAttributeSet === 'true',
         customProfileAttributeEnabled,
         customProfileAttributeFields,
+        canEditAdminManaged: haveISystemPermission(state, {permission: Permissions.MANAGE_SYSTEM}),
         showManageUserSettings,
         showLockedManageUserSettings,
     };

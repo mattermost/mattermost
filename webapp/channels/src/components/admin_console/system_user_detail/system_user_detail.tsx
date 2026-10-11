@@ -7,37 +7,31 @@ import classNames from 'classnames';
 import React, {PureComponent} from 'react';
 import type {ChangeEvent, KeyboardEvent, MouseEvent} from 'react';
 import type {IntlShape, WrappedComponentProps} from 'react-intl';
-import {FormattedList, FormattedMessage, defineMessage, injectIntl, useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {FormattedMessage, defineMessage, injectIntl, useIntl} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
-import ReactSelect from 'react-select';
 
-import {SyncIcon, PowerPlugOutlineIcon, CheckIcon, ChevronDownIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ServerError} from '@mattermost/types/errors';
-import {valueRefersToOptions, type PropertyFieldOption} from '@mattermost/types/properties';
+import {valueRefersToOptions} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
-import {isEmail, getInputTypeFromValueType} from 'mattermost-redux/utils/helpers';
-
-import {getPluginDisplayName} from 'selectors/plugins';
+import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import AdminUserCard from 'components/admin_console/admin_user_card/admin_user_card';
 import BlockableLink from 'components/admin_console/blockable_link';
 import ResetPasswordModal from 'components/admin_console/reset_password_modal';
-import RankBadge from 'components/admin_console/system_properties/rank_badge';
 import TeamList from 'components/admin_console/system_user_detail/team_list';
 import ConfirmManageUserSettingsModal from 'components/admin_console/system_users/system_users_list_actions/confirm_manage_user_settings_modal';
 import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
-import * as Menu from 'components/menu';
 import {asGraphValueIds} from 'components/property_fields/graph';
 import {useGraphOptionNames} from 'components/property_fields/graph/use_graph_option_names';
-import {AssignmentGraphPicker} from 'components/property_fields/hierarchical_value_menu';
+import {UserAttributeField, getVisibleUserAttributeFields, isSameUserAttributeValue, validateUserAttributeValue} from 'components/property_fields/user_attribute_fields';
+import type {UserAttributeValue} from 'components/property_fields/user_attribute_fields';
 import SaveButton from 'components/save_button';
 import TeamSelectorModal from 'components/team_selector_modal';
 import UserSettingsModal from 'components/user_settings/modal';
@@ -49,147 +43,11 @@ import ShieldOutlineIcon from 'components/widgets/icons/shield_outline_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {AcceptedProfileImageTypes, Constants, ModalIdentifiers} from 'utils/constants';
-import {getUserPropertyFieldLabel} from 'utils/properties';
-import {validHttpUrl} from 'utils/url';
 import {fileSizeToString, toTitleCase} from 'utils/utils';
-
-import type {GlobalState} from 'types/store';
 
 import type {PropsFromRedux} from './index';
 
 import './system_user_detail.scss';
-
-// Private component for CPA multiselect fields
-type CPAMultiSelectProps = {
-    options: Array<{id: string; name: string}>;
-    selectedValues: string[];
-    onChange: (values: string[]) => void;
-    disabled: boolean;
-    placeholder: string;
-    noOptionsMessage: string;
-};
-
-const CPAMultiSelect: React.FC<CPAMultiSelectProps> = ({
-    options,
-    selectedValues,
-    onChange,
-    disabled,
-    placeholder,
-    noOptionsMessage,
-}) => {
-    // Transform options to ReactSelect format
-    const selectOptions = options.map((option) => ({
-        value: option.id,
-        label: option.name,
-    }));
-
-    // Keep assigned ids even when the option is gone; dropping them shrinks the saved value.
-    const selectedOptions = selectedValues.map((selectedId) => {
-        const option = options.find((opt) => opt.id === selectedId);
-        return {value: selectedId, label: option?.name ?? selectedId};
-    });
-
-    return (
-        <ReactSelect
-            isMulti={true}
-            options={selectOptions}
-            value={selectedOptions}
-            onChange={(selectedOptions) => {
-                const selectedIds = selectedOptions ? selectedOptions.map((opt) => opt.value) : [];
-                onChange(selectedIds);
-            }}
-            isDisabled={disabled}
-            isClearable={false}
-            placeholder={placeholder}
-            noOptionsMessage={() => noOptionsMessage}
-            styles={{
-                container: (provided) => ({
-                    ...provided,
-                    maxWidth: '320px',
-                }),
-            }}
-        />
-    );
-};
-
-// Private component for CPA ranked fields. Renders a menu of the field's options
-// in descending rank order (highest first), each prefixed with its rank badge and
-// a trailing checkmark on the selected value. The set of options is
-// already filtered server-side per the viewer's authorization; this component does
-// not apply the visibility rule itself.
-type CPARankSelectProps = {
-    fieldId: string;
-    options: PropertyFieldOption[];
-    value: string;
-    onChange: (optionId: string) => void;
-    disabled: boolean;
-    placeholder: string;
-};
-
-const CPARankSelect: React.FC<CPARankSelectProps> = ({fieldId, options, value, onChange, disabled, placeholder}) => {
-    // Highest rank first. Options missing a rank (shouldn't happen on a ranked
-    // field) sort to the bottom.
-    const orderedOptions = [...options].sort((a, b) => (b.rank ?? -Infinity) - (a.rank ?? -Infinity));
-    const selectedOption = options.find((option) => option.id === value);
-
-    return (
-        <Menu.Container
-            menuButton={{
-                id: `cpa-rank-button-${fieldId}`,
-                class: classNames('cpa-rank-select__button', {disabled}),
-                children: (
-                    <span className='cpa-rank-select__button-inner'>
-                        {selectedOption ? (
-                            <span className='cpa-rank-select__value'>
-                                <RankBadge rank={selectedOption.rank}/>
-                                <span>{selectedOption.name}</span>
-                            </span>
-                        ) : (
-                            <span className='cpa-rank-select__placeholder'>{placeholder}</span>
-                        )}
-                        <ChevronDownIcon
-                            size={18}
-                            color='rgba(var(--center-channel-color-rgb), 0.5)'
-                        />
-                    </span>
-                ),
-                dataTestId: `cpa-rank-select-${fieldId}`,
-                disabled,
-            }}
-            menu={{
-                id: `cpa-rank-menu-${fieldId}`,
-                'aria-label': placeholder,
-            }}
-        >
-            {orderedOptions.map((option) => {
-                const isSelected = option.id === value;
-                return (
-                    <Menu.Item
-                        id={`cpa-rank-option-${option.id}`}
-                        key={option.id}
-                        role='menuitemradio'
-                        forceCloseOnSelect={true}
-                        aria-checked={isSelected}
-                        onClick={() => onChange(option.id)}
-                        leadingElement={<RankBadge rank={option.rank}/>}
-                        labels={<span>{option.name}</span>}
-                        trailingElements={isSelected ? <CheckIcon/> : undefined}
-                    />
-                );
-            })}
-        </Menu.Container>
-    );
-};
-
-// Private component to get plugin display name
-type PluginDisplayNameProps = {
-    pluginId?: string;
-};
-
-const PluginDisplayName: React.FC<PluginDisplayNameProps> = ({pluginId}) => {
-    const displayName = useSelector((state: GlobalState) => getPluginDisplayName(state, pluginId));
-    return <>{displayName}</>;
-};
 
 function GraphConfirmLabels({field, ids}: {field: UserPropertyField; ids: string[]}) {
     const {formatMessage, formatList} = useIntl();
@@ -209,122 +67,6 @@ function GraphConfirmLabels({field, ids}: {field: UserPropertyField; ids: string
         });
     }));
 }
-
-type CpaFieldManagementIndicatorProps = {
-    field: UserPropertyField;
-
-    omitLocksField: boolean;
-};
-
-const CpaFieldManagementIndicator: React.FC<CpaFieldManagementIndicatorProps> = ({field, omitLocksField}) => {
-    const pluginsById = useSelector((state: GlobalState) => state.plugins?.plugins ?? {});
-    const owners = field.attrs?.owners ?? [];
-    const hasSyncedSources = Boolean(field.attrs?.ldap || field.attrs?.saml || owners.length > 0);
-    const isProtected = Boolean(field.attrs?.protected);
-
-    if (hasSyncedSources) {
-        const ownerPills = owners.map((owner, idx) => {
-            const provenance = owner.type === 'plugin' ? (pluginsById[owner.id]?.name || owner.id) : owner.id;
-            const key = `${field.name}-owner-${owner.type}-${owner.id}-${idx}`;
-
-            let content: React.ReactNode;
-            if (owner.scopes?.length) {
-                content = (
-                    <FormattedMessage
-                        id='admin.system_properties.user_properties.table.values.owner.scoped'
-                        defaultMessage='{provenance}: {scopes}'
-                        values={{provenance, scopes: owner.scopes.join(', ')}}
-                    />
-                );
-            } else {
-                content = provenance;
-            }
-
-            return (
-                <span
-                    className='user-detail-cpa-field__chip'
-                    key={key}
-                    data-testid={`user-detail-cpa-field__owner-${field.name}-${owner.id}`}
-                >
-                    {content}
-                </span>
-            );
-        });
-
-        const syncedProperties = [
-            field.attrs?.ldap && (
-                <span
-                    className='user-detail-cpa-field__chip'
-                    key={`${field.name}-ldap`}
-                    data-testid={`user-detail-cpa-field__ldap-${field.name}`}
-                >
-                    <FormattedMessage
-                        id='admin.userManagement.userDetail.ldap'
-                        defaultMessage='AD/LDAP: {propertyName}'
-                        values={{propertyName: field.attrs.ldap}}
-                    />
-                </span>
-            ),
-            field.attrs?.saml && (
-                <span
-                    className='user-detail-cpa-field__chip'
-                    key={`${field.name}-saml`}
-                    data-testid={`user-detail-cpa-field__saml-${field.name}`}
-                >
-                    <FormattedMessage
-                        id='admin.userManagement.userDetail.saml'
-                        defaultMessage='SAML: {propertyName}'
-                        values={{propertyName: field.attrs.saml}}
-                    />
-                </span>
-            ),
-            ...ownerPills,
-        ].filter(Boolean);
-
-        return (
-            <div className='user-property-field-values__sync-indicator'>
-                <SyncIcon size={18}/>
-                <span>
-                    <FormattedMessage
-                        id='admin.system_properties.user_properties.table.values.synced_with'
-                        defaultMessage='Synced with: {syncedProperties}'
-                        values={{syncedProperties: <FormattedList value={syncedProperties}/>}}
-                    />
-                </span>
-            </div>
-        );
-    }
-
-    if (isProtected) {
-        return (
-            <div className='user-property-field-values__sync-indicator'>
-                <PowerPlugOutlineIcon size={18}/>
-                <span>
-                    <FormattedMessage
-                        id='admin.userManagement.userDetail.managedByPlugin'
-                        defaultMessage='Managed by plugin: {pluginId}'
-                        values={{
-                            pluginId: <PluginDisplayName pluginId={field.attrs?.source_plugin_id}/>,
-                        }}
-                    />
-                </span>
-            </div>
-        );
-    }
-
-    if (omitLocksField) {
-        return (
-            <div className='user-property-field-values__sync-indicator'>
-                <FormattedMessage
-                    id='admin.userManagement.userDetail.field_options_omitted'
-                    defaultMessage='This field has too many options to be edited here.'
-                />
-            </div>
-        );
-    }
-
-    return null;
-};
 
 export type Params = {
     user_id?: UserProfile['id'];
@@ -688,26 +430,14 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         });
     };
 
-    handleCpaValueChange = (fieldId: string, value: string | string[]) => {
-        // Validate CPA values if changed
+    handleCpaValueChange = (fieldId: string, value: UserAttributeValue) => {
         let cpaError;
         const field = this.props.customProfileAttributeFields.find((f) => f.id === fieldId);
 
-        if (field) {
-            const valueType = field.attrs?.value_type;
-            const originalValue = this.state.originalCpaValues[fieldId];
-            if (valueType && value !== originalValue) {
-                if (valueType === 'email') {
-                    const stringValue = String(value);
-                    if (!isEmail(stringValue)) {
-                        cpaError = this.props.intl.formatMessage({id: 'admin.user_item.invalidEmail', defaultMessage: 'Invalid email address'});
-                    }
-                } else if (valueType === 'url') {
-                    const stringValue = String(value);
-                    if (validHttpUrl(stringValue) === null) {
-                        cpaError = this.props.intl.formatMessage({id: 'admin.user_item.invalidUrl', defaultMessage: 'Invalid URL'});
-                    }
-                }
+        if (field && !isSameUserAttributeValue(value, this.state.originalCpaValues[fieldId])) {
+            const message = validateUserAttributeValue(field, value);
+            if (message) {
+                cpaError = this.props.intl.formatMessage(message);
             }
         }
 
@@ -858,204 +588,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             }
         }
         return res;
-    };
-
-    renderCpaField = (field: UserPropertyField, error: string | undefined) => {
-        const value = this.state.customProfileAttributeValues[field.id] || '';
-        const isSynced = Boolean(field.attrs?.ldap || field.attrs?.saml);
-        const isOwnerManaged = Boolean(field.attrs?.owners?.length);
-        const isProtected = Boolean(field.attrs?.protected);
-        const optionsOmitted = Boolean(field.attrs?.options_omitted);
-
-        const omitLocksField = optionsOmitted && field.type !== 'graph';
-        const isLockedFromEditing = isSynced || isProtected || isOwnerManaged || omitLocksField;
-        const isDisabled = this.state.isSaving || this.state.isLoading || isLockedFromEditing;
-
-        const fieldContent = (() => {
-            if (omitLocksField && valueRefersToOptions(field)) {
-                const display = Array.isArray(value) ?
-                    value.join(this.props.intl.formatMessage({
-                        id: 'admin.userManagement.userDetail.arrayValueSeparator',
-                        defaultMessage: ', ',
-                    })) :
-                    String(value);
-                return (
-                    <input
-                        className='form-control'
-                        type='text'
-                        value={display}
-                        disabled={true}
-                        readOnly={true}
-                    />
-                );
-            }
-
-            switch (field.type) {
-            case 'select': {
-                const options = field.attrs?.options || [];
-                return (
-                    <select
-                        className='form-control'
-                        value={Array.isArray(value) ? value[0] || '' : value}
-                        onChange={(e) => this.handleCpaValueChange(field.id, e.target.value)}
-                        disabled={isDisabled}
-                    >
-                        <option value=''>
-                            {this.props.intl.formatMessage({
-                                id: 'admin.userManagement.userDetail.selectOption',
-                                defaultMessage: 'Select an option',
-                            })}
-                        </option>
-                        {options.map((option) => (
-                            <option
-                                key={option.id}
-                                value={option.id}
-                            >
-                                {option.name}
-                            </option>
-                        ))}
-                    </select>
-                );
-            }
-            case 'rank': {
-                const options = field.attrs?.options || [];
-                return (
-                    <CPARankSelect
-                        fieldId={field.id}
-                        options={options}
-                        value={Array.isArray(value) ? value[0] || '' : value}
-                        onChange={(optionId) => this.handleCpaValueChange(field.id, optionId)}
-                        disabled={isDisabled}
-                        placeholder={this.props.intl.formatMessage({
-                            id: 'admin.userManagement.userDetail.selectOption',
-                            defaultMessage: 'Select an option',
-                        })}
-                    />
-                );
-            }
-            case 'graph': {
-                const selectedValues = asGraphValueIds(value);
-                return (
-                    <AssignmentGraphPicker
-                        field={field}
-                        ids={selectedValues}
-                        onIdsChange={(values) => this.handleCpaValueChange(field.id, values)}
-                        disabled={isDisabled}
-                        menuId={`cpa-graph-menu-${field.id}`}
-                        buttonId={`cpa-graph-button-${field.id}`}
-                        buttonDataTestId={`cpa-graph-select-${field.id}`}
-                        placeholder={this.props.intl.formatMessage({
-                            id: 'admin.user.selectOptions',
-                            defaultMessage: 'Select options...',
-                        })}
-                        ariaLabel={getUserPropertyFieldLabel(field)}
-                    />
-                );
-            }
-            case 'multiselect': {
-                const options = field.attrs?.options || [];
-                const selectedValues = Array.isArray(value) ? value : [];
-
-                return (
-                    <CPAMultiSelect
-                        options={options}
-                        selectedValues={selectedValues}
-                        onChange={(values) => this.handleCpaValueChange(field.id, values)}
-                        disabled={isDisabled}
-                        placeholder={this.props.intl.formatMessage({
-                            id: 'admin.user.selectOptions',
-                            defaultMessage: 'Select options...',
-                        })}
-                        noOptionsMessage={this.props.intl.formatMessage({
-                            id: 'admin.userManagement.userDetail.noOptions',
-                            defaultMessage: 'No options available',
-                        })}
-                    />
-                );
-            }
-
-            // Only text elements can have errors
-            case 'text':
-            default: {
-                const inputType = getInputTypeFromValueType(field.attrs?.value_type);
-
-                return (
-                    <>
-                        <input
-                            className={classNames('form-control', {
-                                error,
-                            })}
-                            type={inputType}
-                            value={Array.isArray(value) ? value.join(this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.arrayValueSeparator', defaultMessage: ', '})) : value}
-                            onChange={(e) => this.handleCpaValueChange(field.id, e.target.value)}
-                            disabled={isDisabled}
-                            aria-describedby={field.id + '-error'}
-                            aria-invalid={error ? 'true' : 'false'}
-                        />
-                        {error && (
-                            <div
-                                id={field.id + '-error'}
-                                className='field-error'
-                                data-testid='fieldError'
-                                role='alert'
-                                aria-live='polite'
-                            >
-                                {error}
-                            </div>
-                        )}
-                    </>
-                );
-            }
-            }
-        })();
-
-        const fieldName = (
-            <FormattedMessage
-                id='admin.userManagement.userDetail.cpaField'
-                defaultMessage='{fieldName}'
-                values={{fieldName: getUserPropertyFieldLabel(field)}}
-            />
-        );
-
-        const fieldBody = (
-            <>
-                {field.type === 'graph' ? (
-                    <label htmlFor={`cpa-graph-button-${field.id}`}>
-                        {fieldName}
-                    </label>
-                ) : fieldName}
-                {fieldContent}
-                <CpaFieldManagementIndicator
-                    field={field}
-                    omitLocksField={omitLocksField}
-                />
-            </>
-        );
-
-        // A graph picker is a button with chip-remove controls inside it. Wrapping
-        // that in <label> forwards chip clicks to the trigger, so the X opens the
-        // menu instead of removing the value. Point the name at the trigger instead.
-        if (field.type === 'graph') {
-            return (
-                <div
-                    key={field.id}
-                    className='cpa-field'
-                    data-testid={`user-detail-custom-attribute-label-${field.id}`}
-                >
-                    {fieldBody}
-                </div>
-            );
-        }
-
-        return (
-            <label
-                key={field.id}
-                className='cpa-field'
-                data-testid={`user-detail-custom-attribute-label-${field.id}`}
-            >
-                {fieldBody}
-            </label>
-        );
     };
 
     renderTwoColumnLayout = () => {
@@ -1309,12 +841,19 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
         // Add CPA fields separately
         const cpaFields: Array<React.ReactNode | null> = [];
-        const sortedCpaFields = [...this.props.customProfileAttributeFields].
-            filter((field) => field.attrs?.access_mode !== 'source_only').
-            sort((a, b) => (a.attrs?.sort_order || 0) - (b.attrs?.sort_order || 0));
         const cpaErrors = this.state.customProfileAttributeErrors;
-        for (const field of sortedCpaFields) {
-            cpaFields.push(this.renderCpaField(field, cpaErrors[field.id]));
+        for (const field of getVisibleUserAttributeFields(this.props.customProfileAttributeFields)) {
+            cpaFields.push(
+                <UserAttributeField
+                    key={field.id}
+                    field={field}
+                    value={this.state.customProfileAttributeValues[field.id]}
+                    error={cpaErrors[field.id]}
+                    onChange={this.handleCpaValueChange}
+                    disabled={this.state.isSaving || this.state.isLoading}
+                    canEditAdminManaged={this.props.canEditAdminManaged}
+                />,
+            );
         }
 
         // Pad CPA fields for even number
