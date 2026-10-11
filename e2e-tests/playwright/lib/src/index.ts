@@ -18,6 +18,7 @@ export {
     UPGRADE_FROM_SERVER_IMAGE_ENV,
 } from './upgrade_env';
 export {baseGlobalSetup} from './global_setup';
+export {clearGlobalSetupFailure, readGlobalSetupFailure, recordGlobalSetupFailure} from './global_setup_failure';
 export {bindPageToLiveBaseURL, TestBrowser} from './browser_context';
 export {assetPath, getBlobFromAsset, getFileFromAsset, getFileData, getBlobData} from './file';
 export {decomposeKorean, koreanTestPhrase, typeHangulCharacterWithIme, typeHangulWithIme} from './ime';
@@ -26,8 +27,6 @@ export {LicenseSkus, appsPluginId, callsPluginId, playbooksPluginId} from './con
 
 export {
     getAdminClient,
-    mergeWithOnPremServerConfig,
-    getOnPremServerConfig,
     PlaywrightClient4,
     generateLdapUser,
     createLdapUser,
@@ -61,7 +60,7 @@ export {
 } from './server';
 export type {LdapUser, KeycloakUser, MmctlResult, UpgradeLogPhase} from './server';
 
-export {startStack, stopStack} from './containers';
+export {startStack, stopStack, withStackLock} from './containers';
 
 export {
     ChannelsPage,
@@ -128,7 +127,6 @@ export {
     disableChannelAutotranslation,
     setUserChannelAutotranslation,
     setMockSourceLanguage,
-    ensureAutotranslationPermissions,
 } from './autotranslation_helpers';
 export type {EnableAutotranslationOptions} from './autotranslation_helpers';
 export {
