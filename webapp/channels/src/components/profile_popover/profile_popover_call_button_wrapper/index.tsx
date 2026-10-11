@@ -88,6 +88,11 @@ const CallButton = ({
         return null;
     }
 
+    const startDeniedMessage = formatMessage({
+        id: 'user_profile.send.dm.start_denied',
+        defaultMessage: 'You can\'t start new direct messages',
+    });
+
     if (phoneAction && phones.length > 0) {
         return (
             <CallOptionsMenu
@@ -97,6 +102,7 @@ const CallButton = ({
                 phones={phones}
                 onStartCall={handleStartCall}
                 onPhoneCall={handlePhoneCall}
+                startCallDisabledReason={startDenied ? startDeniedMessage : undefined}
                 anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
                 transformOrigin={{vertical: 'top', horizontal: 'right'}}
             />
@@ -104,11 +110,6 @@ const CallButton = ({
     }
 
     if (startDenied) {
-        const startDeniedMessage = formatMessage({
-            id: 'user_profile.send.dm.start_denied',
-            defaultMessage: 'You can\'t start new direct messages',
-        });
-
         // aria-disabled rather than disabled, so the button stays focusable and its tooltip
         // can explain why.
         return (

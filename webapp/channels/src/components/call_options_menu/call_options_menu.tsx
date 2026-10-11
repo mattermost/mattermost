@@ -8,6 +8,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import HeadphonesIcon from '@mattermost/compass-icons/components/headphones';
 import PhoneInTalkIcon from '@mattermost/compass-icons/components/phone-in-talk';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import * as Menu from 'components/menu';
 import type {MenuButtonComponentProps} from 'components/menu';
@@ -24,6 +25,9 @@ type Props = {
     phones: DialablePhone[];
     onStartCall: () => void;
     onPhoneCall: (phone: DialablePhone) => void;
+
+    // Disables the call through the calls plugin, explaining why; phone calls stay available.
+    startCallDisabledReason?: string;
     anchorOrigin?: PopoverOrigin;
     transformOrigin?: PopoverOrigin;
 };
@@ -40,11 +44,37 @@ const CallOptionsMenu = ({
     phones,
     onStartCall,
     onPhoneCall,
+    startCallDisabledReason,
     anchorOrigin,
     transformOrigin,
 }: Props) => {
     const {formatMessage} = useIntl();
     const ariaLabel = formatMessage({id: 'call_options.aria_label', defaultMessage: 'Call options'});
+
+    const audioCallItem = (
+        <Menu.Item
+            id={`${menuId}-audio`}
+            leadingElement={<HeadphonesIcon size={18}/>}
+            labels={
+                <>
+                    <span>
+                        <FormattedMessage
+                            id='call_options.audio'
+                            defaultMessage='Start an Audio Call'
+                        />
+                    </span>
+                    <span>
+                        <FormattedMessage
+                            id='call_options.audio_sub'
+                            defaultMessage='Mattermost Call'
+                        />
+                    </span>
+                </>
+            }
+            onClick={onStartCall}
+            disabled={Boolean(startCallDisabledReason)}
+        />
+    );
 
     return (
         <Menu.Container
@@ -62,27 +92,14 @@ const CallOptionsMenu = ({
             anchorOrigin={anchorOrigin}
             transformOrigin={transformOrigin}
         >
-            <Menu.Item
-                id={`${menuId}-audio`}
-                leadingElement={<HeadphonesIcon size={18}/>}
-                labels={
-                    <>
-                        <span>
-                            <FormattedMessage
-                                id='call_options.audio'
-                                defaultMessage='Start an Audio Call'
-                            />
-                        </span>
-                        <span>
-                            <FormattedMessage
-                                id='call_options.audio_sub'
-                                defaultMessage='Mattermost Call'
-                            />
-                        </span>
-                    </>
-                }
-                onClick={onStartCall}
-            />
+            {/* A disabled item gets no pointer events, so the tooltip goes on a wrapper, as in ChannelMoveToSubMenu. */}
+            {startCallDisabledReason ? (
+                <WithTooltip title={startCallDisabledReason}>
+                    <div>
+                        {audioCallItem}
+                    </div>
+                </WithTooltip>
+            ) : audioCallItem}
             {phones.map((phone) => (
                 <Menu.Item
                     key={phone.fieldId}

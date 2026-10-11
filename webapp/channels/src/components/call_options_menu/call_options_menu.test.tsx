@@ -103,7 +103,7 @@ describe('getDialablePhones', () => {
 });
 
 describe('profile popover call button', () => {
-    const renderPopoverButton = (state: ReturnType<typeof makeState>, hide = jest.fn()) => renderWithContext(
+    const renderPopoverButton = (state: Parameters<typeof renderWithContext>[1], hide = jest.fn()) => renderWithContext(
         <ProfilePopoverCallButtonWrapper
             userId={userId}
             currentUserId={currentUserId}
@@ -169,6 +169,53 @@ describe('profile popover call button', () => {
 
         expect(screen.queryByRole('button', {name: 'Call options'})).not.toBeInTheDocument();
         expect(screen.getByLabelText('Call with Leonard Riley is ongoing')).toBeDisabled();
+    });
+
+    describe('under DM/GM permission policies', () => {
+        const withDecisions = (decisions: Record<string, boolean>, hasDM: boolean) => {
+            const state = makeState({callButtons: [makeCallButton()]});
+            return {
+                ...state,
+                entities: {
+                    ...state.entities,
+                    general: {...state.entities.general, config: {FeatureFlagPermissionPolicies: 'true'}},
+                    channels: hasDM ? state.entities.channels : {channels: {}, myMembers: {}},
+                    renderPermissions: {
+                        byResource: {permission: {'': Object.fromEntries(Object.entries(decisions).map(([action, allowed]) => [action, {allowed, evaluated: true, generation: 1}]))}},
+                    },
+                },
+            };
+        };
+
+        test('hides the call options while Read is denied', () => {
+            renderPopoverButton(withDecisions({dm_gm_read_access: false}, true));
+
+            expect(screen.queryByRole('button', {name: 'Call options'})).not.toBeInTheDocument();
+        });
+
+        test('disables the call and explains why when there is no DM and Start is denied', async () => {
+            const state = withDecisions({dm_gm_start: false}, false);
+            renderPopoverButton(state);
+
+            await userEvent.click(screen.getByRole('button', {name: 'Call options'}));
+
+            const startCall = screen.getByRole('menuitem', {name: /Start an Audio Call/});
+            expect(startCall).toHaveAttribute('aria-disabled', 'true');
+
+            await userEvent.hover(startCall.parentElement!);
+            expect(await screen.findByText('You can\'t start new direct messages')).toBeInTheDocument();
+
+            // Phone calls don't need a DM.
+            expect(screen.getByRole('menuitem', {name: /Call DSN/})).not.toHaveAttribute('aria-disabled');
+        });
+
+        test('keeps the call available into an existing DM while Start is denied', async () => {
+            renderPopoverButton(withDecisions({dm_gm_start: false}, true));
+
+            await userEvent.click(screen.getByRole('button', {name: 'Call options'}));
+
+            expect(screen.getByRole('menuitem', {name: /Start an Audio Call/})).not.toHaveAttribute('aria-disabled');
+        });
     });
 });
 
