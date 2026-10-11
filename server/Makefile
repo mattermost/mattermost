@@ -447,6 +447,11 @@ default-roles-permissions: setup-go-work start-docker ## Generates the Cypress a
 		-out ../e2e-tests/cypress/tests/support/api/default_roles_permissions.js \
 		-out ../e2e-tests/playwright/lib/src/server/default_roles_permissions.ts
 
+.PHONY: default-feature-flags
+default-feature-flags: setup-go-work ## Generates the Playwright default_feature_flags file from the model defaults.
+	$(GO) run $(GOFLAGS) ./scripts/default_feature_flags_generator \
+		-out ../e2e-tests/playwright/lib/src/server/default_feature_flags.ts
+
 .PHONY: mocks
 mocks: store-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks mmctl-mocks mocks-public cache-mocks
 
@@ -454,7 +459,7 @@ mocks: store-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks sea
 layers: store-layers pluginapi
 
 .PHONY: generated
-generated: mocks layers gen-serialized migrations-extract build-templates mmctl-docs modules-tidy default-roles-permissions ## Regenerate every committed generated asset checked by the check-generated CI job.
+generated: mocks layers gen-serialized migrations-extract build-templates mmctl-docs modules-tidy default-roles-permissions default-feature-flags ## Regenerate every committed generated asset checked by the check-generated CI job.
 
 .PHONY: check-prereqs-enterprise
 check-prereqs-enterprise: setup-go-work ## Checks prerequisite software status for enterprise.

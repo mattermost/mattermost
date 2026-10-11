@@ -13,3 +13,4 @@ logs
 specs/**/*.yml
 specs/**/*.yaml
 lib/src/server/default_roles_permissions.ts
+lib/src/server/default_feature_flags.ts

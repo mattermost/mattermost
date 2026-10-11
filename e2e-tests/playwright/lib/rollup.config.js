@@ -41,6 +41,7 @@ export default {
         'node:path',
         'node:fs',
         'node:fs/promises',
+        'node:net',
         'node:os',
         'node:url',
         'node:util',

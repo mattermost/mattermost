@@ -67,7 +67,7 @@ export {
 } from './server';
 export type {InbucketEmail, LdapUser, KeycloakUser, MmctlResult, UpgradeLogPhase} from './server';
 
-export {startStack, stopStack} from './containers';
+export {startStack, stopStack, withStackLock} from './containers';
 
 export {
     ChannelsPage,

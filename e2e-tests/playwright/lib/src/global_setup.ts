@@ -12,6 +12,7 @@ import {
     createNewTeam,
     disableUnexpectedPlugins,
     getAdminClient,
+    defaultFeatureFlags,
     getDefaultAdminUser,
     makeClient,
     resetConfig,
@@ -218,7 +219,10 @@ async function printClientInfo(client: Client4) {
     // eslint-disable-next-line no-console
     console.log(
         Object.entries(FeatureFlags)
-            .map(([key, value]) => `  - ${key} = ${value}`)
+            .map(([key, value]) => {
+                const isOverridden = key in defaultFeatureFlags && defaultFeatureFlags[key] !== String(value);
+                return `  - ${key} = ${value}${isOverridden ? ` (default - ${defaultFeatureFlags[key]})` : ''}`;
+            })
             .join('\n'),
     );
 

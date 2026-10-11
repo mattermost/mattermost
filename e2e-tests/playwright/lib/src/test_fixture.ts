@@ -38,7 +38,9 @@ import {
     ensureAzurite,
     ensureElasticsearch,
     ensureFeatureFlag,
+    ensureDefaultServerEnv,
     ensureInternalSiteUrl,
+    ensurePhase2MigrationCompleted,
     ensureKeycloak,
     ensureKeycloakOpenId,
     ensureLocalFile,
@@ -106,6 +108,7 @@ export {expect} from '@playwright/test';
 export type ExtendedFixtures = {
     axe: AxeBuilderExtended;
     pw: PlaywrightExtended;
+    cleanServerEnv: void;
     resetConfigAndRoles: void;
 };
 
@@ -113,6 +116,8 @@ type AxeBuilderOptions = {
     disableColorContrast?: boolean;
     disableLinkInTextBlock?: boolean;
 };
+
+let lastSpecFile: string | undefined;
 
 export const test = base.extend<ExtendedFixtures>({
     axe: async ({}, use) => {
@@ -127,8 +132,20 @@ export const test = base.extend<ExtendedFixtures>({
     // Reset config and roles before every test. Role defaults are generated from current
     // master and can reference permissions an upgrade-path from-image predates, so skip the
     // role reset there -- those projects verify an unmodified upgrade, not role content.
+    // Once per spec file, so a spec only sees the server env it sets itself (ensureFeatureFlag(), ensureMinio(), ...).
+    cleanServerEnv: [
+        async ({}, use, testInfo) => {
+            if (testInfo.file !== lastSpecFile && !readGlobalSetupFailure()) {
+                lastSpecFile = testInfo.file;
+                await ensureDefaultServerEnv();
+            }
+            await use();
+        },
+        {auto: true},
+    ],
     resetConfigAndRoles: [
-        async ({}, use) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars -- listed so it runs before this fixture
+        async ({cleanServerEnv}, use) => {
             // globalSetup() records here instead of throwing when it fails, so Playwright still
             // attempts this spec's tests. Fail them loudly with the recorded reason rather than
             // silently proceeding against a server that never got into a known-good state.
@@ -200,6 +217,7 @@ export class PlaywrightExtended {
     readonly ensurePostgresSearch;
     readonly enableUserMfa;
     readonly ensureInternalSiteUrl;
+    readonly ensurePhase2MigrationCompleted;
     readonly ensureServerEnv;
     readonly ensureSiteUrl;
     readonly generateKeycloakUser;
@@ -328,6 +346,7 @@ export class PlaywrightExtended {
         this.ensurePostgresSearch = ensurePostgresSearch;
         this.enableUserMfa = enableUserMfa;
         this.ensureInternalSiteUrl = ensureInternalSiteUrl;
+        this.ensurePhase2MigrationCompleted = ensurePhase2MigrationCompleted;
         this.ensureServerEnv = ensureServerEnv;
         this.ensureSiteUrl = ensureSiteUrl;
         this.generateKeycloakUser = generateKeycloakUser;

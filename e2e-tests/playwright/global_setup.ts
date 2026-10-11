@@ -10,6 +10,7 @@ import {
     startStack,
     stopStack,
     testConfig,
+    withStackLock,
 } from '@mattermost/playwright-lib';
 
 async function globalSetup() {
@@ -20,8 +21,12 @@ async function globalSetup() {
     try {
         // With PW_USE_TESTCONTAINERS=true, bring up the server + dependencies via Testcontainers
         // before pinging it. No-op otherwise, when a server is expected to already be running.
-        await startStack();
-        await baseGlobalSetup();
+        // Under a lock so a second invocation waits, then reuses the stack and the admin the first one set up.
+        const setUpServer = async () => {
+            await startStack();
+            await baseGlobalSetup();
+        };
+        await (testConfig.useTestContainers ? withStackLock('set up the server', setUpServer) : setUpServer());
     } catch (error: unknown) {
         // eslint-disable-next-line no-console
         console.error(chalk.cyan('[testcontainers]'), error);
