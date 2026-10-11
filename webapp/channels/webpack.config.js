@@ -130,6 +130,20 @@ var config = {
 
             // This alias restricts single version of styled components across all packages
             'styled-components': path.resolve(__dirname, '..', 'node_modules', 'styled-components'),
+
+            // Prefer the package entry that exposes the named `Button` export. Without this,
+            // some resolutions land on Button.js (default-only), which breaks
+            // `import {Button}` and `styled(Button)` (styled-components error #1 / invalid element types).
+            '@mattermost/compass-ui/components/button': path.resolve(
+                __dirname,
+                '..',
+                'node_modules',
+                '@mattermost/compass-ui',
+                'dist',
+                'components',
+                'button',
+                'index.js',
+            ),
         },
         extensions: ['.ts', '.tsx', '.js', '.jsx'],
         fallback: {

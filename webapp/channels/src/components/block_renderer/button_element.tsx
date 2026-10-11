@@ -4,12 +4,12 @@
 import React, {useCallback, useContext, useState} from 'react';
 import {useSelector} from 'react-redux';
 
-import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {MmButtonBlock} from '@mattermost/types/mm_blocks';
 
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
+import {Button} from 'components/compass_ui_button';
 import Markdown from 'components/markdown';
 
 import {MmBlocksInteractionsDisabledContext} from './context';

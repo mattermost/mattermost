@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback} from 'react';
-import styled, {css} from 'styled-components';
+import React, {memo, useCallback, useMemo} from 'react';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
@@ -13,7 +12,6 @@ import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
 import {Button} from 'components/compass_ui_button';
 import Markdown from 'components/markdown';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 const getStatusColors = (theme: Theme) => {
     return {
@@ -44,7 +42,7 @@ const ActionButton = ({
     handleAction,
     disabled,
     theme,
-    actionExecuting,
+    actionExecuting = false,
     actionExecutingMessage,
 }: Props) => {
     const handleActionClick = useCallback((e: React.MouseEvent) => handleAction(e, action.options), [action.options, handleAction]);
@@ -59,48 +57,46 @@ const ActionButton = ({
     }
 
     const name = action.name || action.id || '';
+    const label = actionExecuting && actionExecutingMessage ? actionExecutingMessage : name;
+
+    const colorStyle = useMemo(() => {
+        if (!hexColor) {
+            return undefined;
+        }
+        return {
+            backgroundColor: changeOpacity(hexColor, 0.08),
+            color: hexColor,
+        } as React.CSSProperties;
+    }, [hexColor]);
+
+    const button = (
+        <Button
+            data-action-id={action.id}
+            data-action-cookie={action.cookie}
+            disabled={disabled || actionExecuting}
+            onClick={handleActionClick}
+            size='small'
+            emphasis='tertiary'
+            loading={actionExecuting}
+            aria-busy={actionExecuting || undefined}
+            style={colorStyle}
+        >
+            <Markdown
+                message={label}
+                options={markdownOptions}
+            />
+        </Button>
+    );
+
+    if (!action.tooltip) {
+        return button;
+    }
 
     return (
-        <WithTooltip
-            title={action.tooltip}
-            disabled={!action.tooltip}
-        >
-            <ActionBtn
-                data-action-id={action.id}
-                data-action-cookie={action.cookie}
-                disabled={disabled}
-                key={action.id}
-                onClick={handleActionClick}
-                size='small'
-                emphasis='tertiary'
-                $hexColor={hexColor}
-            >
-                <LoadingWrapper
-                    loading={actionExecuting}
-                    text={actionExecutingMessage}
-                >
-                    <Markdown
-                        message={name}
-                        options={markdownOptions}
-                    />
-                </LoadingWrapper>
-            </ActionBtn>
+        <WithTooltip title={action.tooltip}>
+            {button}
         </WithTooltip>
     );
 };
-
-type ActionBtnProps = {$hexColor: string | null | undefined};
-const ActionBtn = styled(Button)<ActionBtnProps>`
-    ${({$hexColor}) => $hexColor && css`
-        background-color: ${changeOpacity($hexColor, 0.08)} !important;
-        color: ${$hexColor} !important;
-        &:hover {
-            background-color: ${changeOpacity($hexColor, 0.12)} !important;
-        }
-        &:active {
-            background-color: ${changeOpacity($hexColor, 0.16)} !important;
-        }
-    `}
-`;
 
 export default memo(ActionButton);

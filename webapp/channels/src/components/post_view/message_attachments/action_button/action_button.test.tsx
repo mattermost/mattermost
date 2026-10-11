@@ -21,12 +21,25 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
     test('should match default component state with given props', () => {
         renderWithContext(<ActionButton {...baseProps}/>);
 
-        const button = screen.getByRole('button');
+        const button = screen.getByRole('button', {name: 'action_name_1'});
         expect(button).toHaveAttribute('data-action-cookie', 'cookie-contents');
         expect(button).toHaveAttribute('data-action-id', 'action_id_1');
+        expect(button.querySelector('[role="status"][aria-label="Loading"]')).not.toBeInTheDocument();
+    });
 
-        const loadingIcon = screen.getByTitle('Loading Icon');
-        expect(loadingIcon).toHaveClass('fa fa-spinner fa-fw fa-pulse spinner');
+    test('should show Compass loading spinner while actionExecuting', () => {
+        renderWithContext(
+            <ActionButton
+                {...baseProps}
+                actionExecuting={true}
+                actionExecutingMessage='Working...'
+            />,
+        );
+
+        const button = screen.getByRole('button', {name: 'Working...'});
+        expect(button).toBeDisabled();
+        expect(button).toHaveAttribute('aria-busy', 'true');
+        expect(button.querySelector('[role="status"][aria-label="Loading"]')).toBeInTheDocument();
     });
 
     test('should call handleAction on click', async () => {
