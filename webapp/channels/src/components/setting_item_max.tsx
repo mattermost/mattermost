@@ -92,13 +92,17 @@ const SettingItemMax = ({
             if (shiftEnter && isKeyPressed(e, Constants.KeyCodes.ENTER) && e.shiftKey) {
                 return;
             }
+            const isTertiaryButton = Boolean(
+                target.closest('button')?.className.includes('button--emphasis-tertiary'),
+            );
+
             if (disableEnterSubmit !== true &&
                 isKeyPressed(e, Constants.KeyCodes.ENTER) &&
                 submitFromProps &&
                 target.tagName !== 'SELECT' &&
                 target.parentElement &&
                 target.parentElement.className !== 'react-select__input' &&
-                !target.classList.contains('btn-tertiary') &&
+                !isTertiaryButton &&
                 target.id !== 'cancelSetting' &&
                 settingList.current &&
                 settingList.current.contains(target)) {
@@ -107,7 +111,8 @@ const SettingItemMax = ({
         };
 
         if (settingList.current) {
-            const focusableElements: NodeListOf<HTMLElement> = settingList.current.querySelectorAll('.btn:not(.save-button):not(.btn-tertiary), input.form-control, input[type="radio"][checked], input[type="checkbox"], select, textarea, [tabindex]:not([tabindex="-1"])');
+            // Prefer form controls over footer Save/Cancel (Compass Buttons no longer use .btn).
+            const focusableElements: NodeListOf<HTMLElement> = settingList.current.querySelectorAll('button:not(#saveSetting):not(#cancelSetting), input.form-control, input[type="radio"][checked], input[type="checkbox"], select, textarea, [tabindex]:not([tabindex="-1"])');
             if (focusableElements.length > 0) {
                 a11yFocus(focusableElements[0]);
             } else {
