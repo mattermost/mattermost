@@ -5,7 +5,6 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/compass-ui/components/button';
-import {buttonClassNames} from '@mattermost/shared/components/button';
 
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import CloudTrialSvg from 'components/common/svg_images_components/cloud_trial_svg';
@@ -141,17 +140,21 @@ const ContactSalesCard = (props: Props) => {
                     {description}
                 </div>
                 {(isFreeTrial || subscriptionPlan === CloudProducts.ENTERPRISE || isCloudLegacyPlan) &&
-                    <ExternalLink
-                        location='contact_sales_card'
-                        href={contactSalesLink}
-                        className={buttonClassNames({emphasis: 'tertiary'}, 'PrivateCloudCard__actionButton')}
+                    <Button
+                        asChild={true}
+                        emphasis='tertiary'
+                        className='PrivateCloudCard__actionButton'
                     >
-                        <FormattedMessage
-                            id='admin.billing.subscription.privateCloudCard.contactSales'
-                            defaultMessage='Contact Sales'
-                        />
-
-                    </ExternalLink>
+                        <ExternalLink
+                            location='contact_sales_card'
+                            href={contactSalesLink}
+                        >
+                            <FormattedMessage
+                                id='admin.billing.subscription.privateCloudCard.contactSales'
+                                defaultMessage='Contact Sales'
+                            />
+                        </ExternalLink>
+                    </Button>
                 }
                 {(!isFreeTrial && subscriptionPlan !== CloudProducts.ENTERPRISE && subscriptionPlan !== CloudProducts.LEGACY) &&
                     <Button

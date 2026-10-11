@@ -64,23 +64,27 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
               </label>
             </div>
             <button
-              class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
               type="submit"
             >
               <span
-                class="_button__label_doayp_24"
+                class="_button__label_aa8j5_31"
               >
                 Reload Logs
               </span>
             </button>
             <a
-              class="btn btn-primary"
+              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
               href="/api/v4/logs/download"
               location="download_logs"
               rel="noopener noreferrer"
               target="_blank"
             >
-              Download Logs
+              <span
+                class="_button__label_aa8j5_31"
+              >
+                Download Logs
+              </span>
             </a>
           </div>
         </div>
@@ -226,12 +230,12 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                     </div>
                   </div>
                   <button
-                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-small_doayp_40 Filter_apply"
+                    class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49 Filter_apply"
                     disabled=""
                     type="button"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       Apply
                     </span>
@@ -239,11 +243,11 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                 </div>
               </div>
               <button
-                class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-small_doayp_40 ml-2"
+                class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 ml-2"
                 type="button"
               >
                 <span
-                  class="_button__label_doayp_24"
+                  class="_button__label_aa8j5_31"
                 >
                   Show last 0 errors
                 </span>
@@ -365,11 +369,11 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                   style="flex-grow: 1; text-align: left;"
                 >
                   <button
-                    class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-small_doayp_40"
+                    class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-small_aa8j5_49"
                     type="submit"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       Full Log event
                     </span>
@@ -436,11 +440,11 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                   style="flex-grow: 1; text-align: left;"
                 >
                   <button
-                    class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-small_doayp_40"
+                    class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-small_aa8j5_49"
                     type="submit"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       Full Log event
                     </span>
@@ -507,11 +511,11 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                   style="flex-grow: 1; text-align: left;"
                 >
                   <button
-                    class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-small_doayp_40"
+                    class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-small_aa8j5_49"
                     type="submit"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       Full Log event
                     </span>

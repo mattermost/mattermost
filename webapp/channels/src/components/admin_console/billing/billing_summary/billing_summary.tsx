@@ -7,7 +7,6 @@ import {useDispatch} from 'react-redux';
 
 import {CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Invoice, InvoiceLineItem, Product} from '@mattermost/types/cloud';
 
@@ -53,16 +52,21 @@ export const noBillingHistory = (
                 defaultMessage='In the future, this is where your most recent bill summary will show.'
             />
         </div>
-        <ExternalLink
-            location='billing_summary'
-            href={CloudLinks.BILLING_DOCS}
-            className={buttonClassNames({emphasis: 'primary'}, 'BillingSummary__noBillingHistory-link')}
+        <Button
+            asChild={true}
+            emphasis='primary'
+            className='BillingSummary__noBillingHistory-link'
         >
-            <FormattedMessage
-                id='admin.billing.subscriptions.billing_summary.noBillingHistory.link'
-                defaultMessage='See how billing works'
-            />
-        </ExternalLink>
+            <ExternalLink
+                location='billing_summary'
+                href={CloudLinks.BILLING_DOCS}
+            >
+                <FormattedMessage
+                    id='admin.billing.subscriptions.billing_summary.noBillingHistory.link'
+                    defaultMessage='See how billing works'
+                />
+            </ExternalLink>
+        </Button>
     </div>
 );
 

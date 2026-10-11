@@ -5,7 +5,7 @@ import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
@@ -29,16 +29,21 @@ function EmojiPickerCustomEmojiButton({customEmojisEnabled, currentTeamName, onC
     return (
         <AnyTeamPermissionGate permissions={[Permissions.CREATE_EMOJIS]}>
             <div className='emoji-picker__custom'>
-                <Link
-                    className={buttonClassNames({emphasis: 'tertiary', size: 'sm'})}
-                    to={`/${currentTeamName}/emoji`}
-                    onClick={onClick}
+                <Button
+                    asChild={true}
+                    emphasis='tertiary'
+                    size='small'
                 >
-                    <FormattedMessage
-                        id='emoji_picker.custom_emoji'
-                        defaultMessage='Custom Emoji'
-                    />
-                </Link>
+                    <Link
+                        to={`/${currentTeamName}/emoji`}
+                        onClick={onClick}
+                    >
+                        <FormattedMessage
+                            id='emoji_picker.custom_emoji'
+                            defaultMessage='Custom Emoji'
+                        />
+                    </Link>
+                </Button>
             </div>
         </AnyTeamPermissionGate>
     );

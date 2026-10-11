@@ -8,7 +8,7 @@ import type {IntlShape} from 'react-intl';
 import {FormattedDate, FormattedMessage, FormattedTime, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {OAuthApp} from '@mattermost/types/integrations';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -544,22 +544,26 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                 if (this.props.enableSignUpWithGitLab) {
                     gitlabOption = (
                         <div className='pb-3'>
-                            <Link
-                                className={buttonClassNames({emphasis: 'primary'})}
-                                to={
-                                    '/claim/email_to_oauth?email=' +
-                                    encodeURIComponent(user.email) +
-                                    '&old_type=' +
-                                    user.auth_service +
-                                    '&new_type=' +
-                                    Constants.GITLAB_SERVICE
-                                }
+                            <Button
+                                asChild={true}
+                                emphasis='primary'
                             >
-                                <FormattedMessage
-                                    id='user.settings.security.switchGitlab'
-                                    defaultMessage='Switch to Using GitLab SSO'
-                                />
-                            </Link>
+                                <Link
+                                    to={
+                                        '/claim/email_to_oauth?email=' +
+                                        encodeURIComponent(user.email) +
+                                        '&old_type=' +
+                                        user.auth_service +
+                                        '&new_type=' +
+                                        Constants.GITLAB_SERVICE
+                                    }
+                                >
+                                    <FormattedMessage
+                                        id='user.settings.security.switchGitlab'
+                                        defaultMessage='Switch to Using GitLab SSO'
+                                    />
+                                </Link>
+                            </Button>
                             <br/>
                         </div>
                     );
@@ -568,22 +572,26 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                 if (this.props.enableSignUpWithGoogle) {
                     googleOption = (
                         <div className='pb-3'>
-                            <Link
-                                className={buttonClassNames({emphasis: 'primary'})}
-                                to={
-                                    '/claim/email_to_oauth?email=' +
-                                    encodeURIComponent(user.email) +
-                                    '&old_type=' +
-                                    user.auth_service +
-                                    '&new_type=' +
-                                    Constants.GOOGLE_SERVICE
-                                }
+                            <Button
+                                asChild={true}
+                                emphasis='primary'
                             >
-                                <FormattedMessage
-                                    id='user.settings.security.switchGoogle'
-                                    defaultMessage='Switch to Using Google SSO'
-                                />
-                            </Link>
+                                <Link
+                                    to={
+                                        '/claim/email_to_oauth?email=' +
+                                        encodeURIComponent(user.email) +
+                                        '&old_type=' +
+                                        user.auth_service +
+                                        '&new_type=' +
+                                        Constants.GOOGLE_SERVICE
+                                    }
+                                >
+                                    <FormattedMessage
+                                        id='user.settings.security.switchGoogle'
+                                        defaultMessage='Switch to Using Google SSO'
+                                    />
+                                </Link>
+                            </Button>
                             <br/>
                         </div>
                     );
@@ -592,22 +600,26 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                 if (this.props.enableSignUpWithOffice365) {
                     office365Option = (
                         <div className='pb-3'>
-                            <Link
-                                className={buttonClassNames({emphasis: 'primary'})}
-                                to={
-                                    '/claim/email_to_oauth?email=' +
-                                    encodeURIComponent(user.email) +
-                                    '&old_type=' +
-                                    user.auth_service +
-                                    '&new_type=' +
-                                    Constants.OFFICE365_SERVICE
-                                }
+                            <Button
+                                asChild={true}
+                                emphasis='primary'
                             >
-                                <FormattedMessage
-                                    id='user.settings.security.switchOffice365'
-                                    defaultMessage='Switch to Using Entra ID SSO'
-                                />
-                            </Link>
+                                <Link
+                                    to={
+                                        '/claim/email_to_oauth?email=' +
+                                        encodeURIComponent(user.email) +
+                                        '&old_type=' +
+                                        user.auth_service +
+                                        '&new_type=' +
+                                        Constants.OFFICE365_SERVICE
+                                    }
+                                >
+                                    <FormattedMessage
+                                        id='user.settings.security.switchOffice365'
+                                        defaultMessage='Switch to Using Entra ID SSO'
+                                    />
+                                </Link>
+                            </Button>
                             <br/>
                         </div>
                     );
@@ -616,22 +628,26 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                 if (this.props.enableSignUpWithOpenId) {
                     openidOption = (
                         <div className='pb-3'>
-                            <Link
-                                className={buttonClassNames({emphasis: 'primary'})}
-                                to={
-                                    '/claim/email_to_oauth?email=' +
-                                    encodeURIComponent(user.email) +
-                                    '&old_type=' +
-                                    user.auth_service +
-                                    '&new_type=' +
-                                    Constants.OPENID_SERVICE
-                                }
+                            <Button
+                                asChild={true}
+                                emphasis='primary'
                             >
-                                <FormattedMessage
-                                    id='user.settings.security.switchOpenId'
-                                    defaultMessage='Switch to Using OpenID SSO'
-                                />
-                            </Link>
+                                <Link
+                                    to={
+                                        '/claim/email_to_oauth?email=' +
+                                        encodeURIComponent(user.email) +
+                                        '&old_type=' +
+                                        user.auth_service +
+                                        '&new_type=' +
+                                        Constants.OPENID_SERVICE
+                                    }
+                                >
+                                    <FormattedMessage
+                                        id='user.settings.security.switchOpenId'
+                                        defaultMessage='Switch to Using OpenID SSO'
+                                    />
+                                </Link>
+                            </Button>
                             <br/>
                         </div>
                     );
@@ -640,18 +656,22 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                 if (this.props.enableLdap) {
                     ldapOption = (
                         <div className='pb-3'>
-                            <Link
-                                className={buttonClassNames({emphasis: 'primary'})}
-                                to={
-                                    '/claim/email_to_ldap?email=' +
-                                    encodeURIComponent(user.email)
-                                }
+                            <Button
+                                asChild={true}
+                                emphasis='primary'
                             >
-                                <FormattedMessage
-                                    id='user.settings.security.switchLdap'
-                                    defaultMessage='Switch to Using AD/LDAP'
-                                />
-                            </Link>
+                                <Link
+                                    to={
+                                        '/claim/email_to_ldap?email=' +
+                                        encodeURIComponent(user.email)
+                                    }
+                                >
+                                    <FormattedMessage
+                                        id='user.settings.security.switchLdap'
+                                        defaultMessage='Switch to Using AD/LDAP'
+                                    />
+                                </Link>
+                            </Button>
                             <br/>
                         </div>
                     );
@@ -660,22 +680,26 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                 if (this.props.enableSaml) {
                     samlOption = (
                         <div className='pb-3'>
-                            <Link
-                                className={buttonClassNames({emphasis: 'primary'})}
-                                to={
-                                    '/claim/email_to_oauth?email=' +
-                                    encodeURIComponent(user.email) +
-                                    '&old_type=' +
-                                    user.auth_service +
-                                    '&new_type=' +
-                                    Constants.SAML_SERVICE
-                                }
+                            <Button
+                                asChild={true}
+                                emphasis='primary'
                             >
-                                <FormattedMessage
-                                    id='user.settings.security.switchSaml'
-                                    defaultMessage='Switch to Using SAML SSO'
-                                />
-                            </Link>
+                                <Link
+                                    to={
+                                        '/claim/email_to_oauth?email=' +
+                                        encodeURIComponent(user.email) +
+                                        '&old_type=' +
+                                        user.auth_service +
+                                        '&new_type=' +
+                                        Constants.SAML_SERVICE
+                                    }
+                                >
+                                    <FormattedMessage
+                                        id='user.settings.security.switchSaml'
+                                        defaultMessage='Switch to Using SAML SSO'
+                                    />
+                                </Link>
+                            </Button>
                             <br/>
                         </div>
                     );
@@ -696,15 +720,17 @@ export class SecurityTab extends React.PureComponent<Props, State> {
 
                 emailOption = (
                     <div className='pb-3'>
-                        <Link
-                            className={buttonClassNames({emphasis: 'primary'})}
-                            to={link}
+                        <Button
+                            asChild={true}
+                            emphasis='primary'
                         >
-                            <FormattedMessage
-                                id='user.settings.security.switchEmail'
-                                defaultMessage='Switch to Using Email and Password'
-                            />
-                        </Link>
+                            <Link to={link}>
+                                <FormattedMessage
+                                    id='user.settings.security.switchEmail'
+                                    defaultMessage='Switch to Using Email and Password'
+                                />
+                            </Link>
+                        </Button>
                         <br/>
                     </div>
                 );

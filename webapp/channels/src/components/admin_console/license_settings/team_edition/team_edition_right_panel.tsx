@@ -5,7 +5,6 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {Button} from '@mattermost/compass-ui/components/button';
-import {buttonClassNames} from '@mattermost/shared/components/button';
 
 import SetupSystemSvg from 'components/common/svg_images_components/setup_system_svg';
 import ExternalLink from 'components/external_link';
@@ -61,17 +60,21 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
         upgradeButton = (
             <div>
                 <p>
-                    <ExternalLink
-                        href={LicenseLinks.UNSUPPORTED_UPGRADE_LINK}
-                        location='team_edition_right_panel'
-                        className={buttonClassNames({emphasis: 'tertiary'})}
-                        role='button'
+                    <Button
+                        asChild={true}
+                        emphasis='tertiary'
                     >
-                        <FormattedMessage
-                            id='admin.licenseSettings.teamEdition.teamEditionRightPanel.learnMore'
-                            defaultMessage='Learn more'
-                        />
-                    </ExternalLink>
+                        <ExternalLink
+                            href={LicenseLinks.UNSUPPORTED_UPGRADE_LINK}
+                            location='team_edition_right_panel'
+                            role='button'
+                        >
+                            <FormattedMessage
+                                id='admin.licenseSettings.teamEdition.teamEditionRightPanel.learnMore'
+                                defaultMessage='Learn more'
+                            />
+                        </ExternalLink>
+                    </Button>
                 </p>
             </div>
         );

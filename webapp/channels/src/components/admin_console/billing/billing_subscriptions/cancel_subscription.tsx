@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import {useOpenCloudZendeskSupportForm} from 'components/common/hooks/useOpenZendeskForm';
 import ExternalLink from 'components/external_link';
@@ -28,16 +28,23 @@ const CancelSubscription = () => {
                         defaultMessage='At this time, deleting a workspace can only be done with the help of a customer support representative.'
                     />
                 </div>
-                <ExternalLink
-                    location='cancel_subscription'
-                    href={contactSupportURL}
-                    className={buttonClassNames({emphasis: 'secondary', size: 'sm', variant: 'destructive'}, 'cancelSubscriptionSection__contactUs')}
+                <Button
+                    asChild={true}
+                    emphasis='secondary'
+                    size='small'
+                    destructive={true}
+                    className='cancelSubscriptionSection__contactUs'
                 >
-                    <FormattedMessage
-                        id='admin.billing.subscription.cancelSubscriptionSection.contactUs'
-                        defaultMessage='Contact Us'
-                    />
-                </ExternalLink>
+                    <ExternalLink
+                        location='cancel_subscription'
+                        href={contactSupportURL}
+                    >
+                        <FormattedMessage
+                            id='admin.billing.subscription.cancelSubscriptionSection.contactUs'
+                            defaultMessage='Contact Us'
+                        />
+                    </ExternalLink>
+                </Button>
             </div>
         </div>
     );

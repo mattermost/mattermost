@@ -10,7 +10,6 @@ import {Link} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
 import {ChevronLeftIcon, OpenInNewIcon, SortAscendingIcon} from '@mattermost/compass-icons/components';
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
@@ -485,17 +484,21 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                                             <div className='ClassificationAttribute__markingsFooter'>
                                                 <p className='ClassificationAttribute__markingsCopy'>
                                                     <FormattedMessage {...messages.markingsFooter}/>
-                                                    <Link
-                                                        to={CLASSIFICATIONS_MARKINGS_ADMIN_URL}
-                                                        className={buttonClassNames({emphasis: 'tertiary', size: 'sm'}, 'ClassificationAttribute__markingsOpen')}
+                                                    <Button
+                                                        asChild={true}
+                                                        emphasis='tertiary'
+                                                        size='small'
+                                                        className='ClassificationAttribute__markingsOpen'
                                                         data-testid='classificationAttributeMarkingsLink'
                                                     >
-                                                        <FormattedMessage {...messages.openMarkings}/>
-                                                        <OpenInNewIcon
-                                                            size={12}
-                                                            aria-hidden={true}
-                                                        />
-                                                    </Link>
+                                                        <Link to={CLASSIFICATIONS_MARKINGS_ADMIN_URL}>
+                                                            <FormattedMessage {...messages.openMarkings}/>
+                                                            <OpenInNewIcon
+                                                                size={12}
+                                                                aria-hidden={true}
+                                                            />
+                                                        </Link>
+                                                    </Button>
                                                 </p>
                                             </div>
                                         </div>

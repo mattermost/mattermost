@@ -6,7 +6,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import AdminPanel from './admin_panel';
 
@@ -34,16 +34,18 @@ const AdminPanelWithLink = ({
     subtitleValues,
 }: Props) => {
     const button = (
-        <Link
+        <Button
+            asChild={true}
+            emphasis='primary'
+            disabled={disabled}
             data-testid={`${id}-link`}
-            className={buttonClassNames({emphasis: 'primary'}, {disabled})}
-            to={url}
-            onClick={disabled ? (e) => e.preventDefault() : () => null}
         >
-            <FormattedMessage
-                {...linkText}
-            />
-        </Link>
+            <Link to={url}>
+                <FormattedMessage
+                    {...linkText}
+                />
+            </Link>
+        </Button>
     );
 
     return (

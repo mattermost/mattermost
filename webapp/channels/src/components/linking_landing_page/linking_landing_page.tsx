@@ -4,7 +4,7 @@
 import React, {PureComponent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import * as UserAgent from '@mattermost/shared/utils/user_agent';
 
 import BrowserStore from 'stores/browser_store';
@@ -196,30 +196,36 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
 
     renderGoNativeAppMessage = () => {
         return (
-            <a
-                href={UserAgent.isMobile() ? '#' : this.state.nativeLocation}
-                onMouseDown={() => {
-                    this.setPreference(LandingPreferenceTypes.MATTERMOSTAPP, true);
-                }}
-                onClick={() => {
-                    this.setPreference(LandingPreferenceTypes.MATTERMOSTAPP, true);
-                    this.setState({redirectPage: true, navigating: true});
-                    if (UserAgent.isMobile()) {
-                        if (UserAgent.isAndroid()) {
-                            const timeout = setTimeout(() => {
-                                window.location.replace(this.getDownloadLink()!);
-                            }, 2000);
-                            window.addEventListener('blur', () => {
-                                clearTimeout(timeout);
-                            });
-                        }
-                        window.location.replace(this.state.nativeLocation);
-                    }
-                }}
-                className={buttonClassNames({emphasis: 'primary', size: 'lg'}, 'get-app__download')}
+            <Button
+                asChild={true}
+                emphasis='primary'
+                size='large'
+                className='get-app__download'
             >
-                {this.renderSystemDialogMessage()}
-            </a>
+                <a
+                    href={UserAgent.isMobile() ? '#' : this.state.nativeLocation}
+                    onMouseDown={() => {
+                        this.setPreference(LandingPreferenceTypes.MATTERMOSTAPP, true);
+                    }}
+                    onClick={() => {
+                        this.setPreference(LandingPreferenceTypes.MATTERMOSTAPP, true);
+                        this.setState({redirectPage: true, navigating: true});
+                        if (UserAgent.isMobile()) {
+                            if (UserAgent.isAndroid()) {
+                                const timeout = setTimeout(() => {
+                                    window.location.replace(this.getDownloadLink()!);
+                                }, 2000);
+                                window.addEventListener('blur', () => {
+                                    clearTimeout(timeout);
+                                });
+                            }
+                            window.location.replace(this.state.nativeLocation);
+                        }
+                    }}
+                >
+                    {this.renderSystemDialogMessage()}
+                </a>
+            </Button>
         );
     };
 
@@ -408,22 +414,27 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
                 {this.renderDialogHeader()}
                 <div className='get-app__buttons'>
                     {this.renderGoNativeAppMessage()}
-                    <a
-                        href={this.state.location}
-                        onMouseDown={() => {
-                            this.setPreference(LandingPreferenceTypes.BROWSER, true);
-                        }}
-                        onClick={() => {
-                            this.setPreference(LandingPreferenceTypes.BROWSER, true);
-                            this.setState({navigating: true});
-                        }}
-                        className={buttonClassNames({emphasis: 'tertiary', size: 'lg'})}
+                    <Button
+                        asChild={true}
+                        emphasis='tertiary'
+                        size='large'
                     >
-                        <FormattedMessage
-                            id='get_app.continueToBrowser'
-                            defaultMessage='View in Browser'
-                        />
-                    </a>
+                        <a
+                            href={this.state.location}
+                            onMouseDown={() => {
+                                this.setPreference(LandingPreferenceTypes.BROWSER, true);
+                            }}
+                            onClick={() => {
+                                this.setPreference(LandingPreferenceTypes.BROWSER, true);
+                                this.setState({navigating: true});
+                            }}
+                        >
+                            <FormattedMessage
+                                id='get_app.continueToBrowser'
+                                defaultMessage='View in Browser'
+                            />
+                        </a>
+                    </Button>
                 </div>
                 <label className='get-app__preference'>
                     <input
