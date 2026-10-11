@@ -13,6 +13,7 @@ import {
     ExperimentalSettings,
     LogSettings,
     PasswordSettings,
+    PrivacySettings,
     ServiceSettings,
     TeamSettings,
 } from '@mattermost/types/config';
@@ -41,6 +42,7 @@ type TestAdminConfig = {
     ExperimentalSettings: Partial<ExperimentalSettings>;
     LogSettings: Partial<LogSettings>;
     PasswordSettings: Partial<PasswordSettings>;
+    PrivacySettings: Partial<PrivacySettings>;
     ServiceSettings: Partial<ServiceSettings>;
     TeamSettings: Partial<TeamSettings>;
 };
@@ -72,6 +74,10 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
         },
         EmailSettings: {
             PushNotificationServer: testConfig.pushNotificationServer,
+            EnableSignUpWithEmail: true,
+            EnableSignInWithEmail: true,
+            EnableSignInWithUsername: true,
+            RequireEmailVerification: false,
         },
         LogSettings: {
             EnableDiagnostics: false,
@@ -84,6 +90,9 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             Symbol: false,
             EnableForgotLink: true,
         },
+        PrivacySettings: {
+            UseAnonymousURLs: false,
+        },
         ServiceSettings: {
             // SiteURL is the server's own view of itself (e.g. for building plugin callback
             // URLs), so it must use an address the server can reach itself with. In `testcontainers` mode
@@ -95,10 +104,18 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             EnableSecurityFixAlert: false,
             GiphySdkKey: 's0glxvzVg9azvPipKxcPLpXV0q1x1fVP',
             EnableTesting: true,
+            EnableMultifactorAuthentication: false,
+            EnforceMultifactorAuthentication: false,
+            MaximumLoginAttempts: 10,
+            ExperimentalEnableAuthenticationTransfer: true,
+            EnableEmailInvitations: false,
+            MaximumPersonalAccessTokenLifetimeDays: 0,
         },
         TeamSettings: {
             EnableOpenServer: true,
             MaxUsersPerTeam: 2000,
+            EnableUserCreation: true,
+            RestrictCreationToDomains: '',
         },
     };
 };

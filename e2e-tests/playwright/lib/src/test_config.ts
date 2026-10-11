@@ -307,3 +307,9 @@ function parseTestContainersServices(actualValue: string | undefined): TestConta
     }
     return requested as TestContainersServiceName[];
 }
+
+/** Re-reads .env.testcontainers, which another process may have written since this one started. */
+export function reloadTestConfig(): void {
+    dotenv.config({path: '.env.testcontainers', quiet: true, override: true});
+    Object.assign(testConfig, new TestConfig());
+}
