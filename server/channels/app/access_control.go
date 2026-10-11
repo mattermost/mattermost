@@ -2403,6 +2403,15 @@ func (a *App) publishPermissionPolicyUpdate(rctx request.CTX) {
 	a.Publish(messageWs)
 }
 
+// publishPermissionPolicyUpdateToSession tells one session that its own permission policy
+// decisions have changed, so that it fetches them again. A broadcast can't address a session,
+// so the event goes to the user and the hook drops it on their other sessions.
+func (a *App) publishPermissionPolicyUpdateToSession(userID, sessionID string) {
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventPermissionPolicyUpdated, "", "", userID, nil, "")
+	useOnlySessionHook(messageWs, sessionID)
+	a.Publish(messageWs)
+}
+
 // publishTeamPolicyEnforcedUpdate reloads the team, hydrates its policy
 // actions, and broadcasts a team_access_control_updated websocket event so
 // connected clients can refresh their view of the team's access control state

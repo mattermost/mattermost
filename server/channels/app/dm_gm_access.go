@@ -10,6 +10,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -288,8 +291,14 @@ func (a *App) evaluateDMGMAccess(rctx request.CTX, userID, action string) (bool,
 		return false, appErr
 	}
 
+	return a.evaluateDMGMSubject(rctx, *subject, action)
+}
+
+// evaluateDMGMSubject evaluates a direct and group message action for subject against the
+// system permission resource. A PDP error denies and is returned.
+func (a *App) evaluateDMGMSubject(rctx request.CTX, subject model.Subject, action string) (bool, *model.AppError) {
 	decision, appErr := a.Srv().Channels().AccessControl.AccessEvaluation(rctx, model.AccessRequest{
-		Subject: *subject,
+		Subject: subject,
 		Resource: model.Resource{
 			Type: model.AccessControlPolicyTypePermission,
 			ID:   "",
@@ -299,11 +308,130 @@ func (a *App) evaluateDMGMAccess(rctx request.CTX, userID, action string) (bool,
 	if appErr != nil {
 		rctx.Logger().Warn("ABAC direct and group message evaluation failed; denying",
 			mlog.String("action", action),
-			mlog.String("user_id", userID),
+			mlog.String("user_id", subject.ID),
 			mlog.Err(appErr),
 		)
 		return false, appErr
 	}
 
 	return decision.Decision, nil
+}
+
+// dmGmPolicySearchPageSize is the page size for listing the permission policies. The store's
+// default page is 10, so a search that doesn't set one sees only the first few policies.
+const dmGmPolicySearchPageSize = 1000
+
+// dmGmSessionReferences records whether any direct and group message rule references session
+// attributes, as of a permission-policy epoch.
+type dmGmSessionReferences struct {
+	epoch string
+	refs  bool
+}
+
+// dmGmPoliciesReferenceSessionAttributes reports whether a session's own attributes can change
+// one of its direct and group message decisions: some rule for those actions references
+// user.session. The answer is cached until the permission policies change.
+func (a *App) dmGmPoliciesReferenceSessionAttributes(rctx request.CTX) bool {
+	if !a.ChannelAccessEnforcementActive() || !a.sessionAttributesEnabled() {
+		return false
+	}
+
+	epoch, err := a.Srv().Store().AccessControlPolicy().GetEtagEpoch(rctx, "")
+	if err != nil {
+		rctx.Logger().Debug("Failed to read the permission policy epoch; assuming direct and group message rules reference the session", mlog.Err(err))
+		return true
+	}
+	if cached := a.ch.dmGmSessionReferences.Load(); cached != nil && cached.epoch == epoch {
+		return cached.refs
+	}
+
+	refs, err := a.searchDMGMSessionReferences(rctx)
+	if err != nil {
+		rctx.Logger().Debug("Failed to search the permission policies; assuming direct and group message rules reference the session", mlog.Err(err))
+		return true
+	}
+	a.ch.dmGmSessionReferences.Store(&dmGmSessionReferences{epoch: epoch, refs: refs})
+	return refs
+}
+
+func (a *App) searchDMGMSessionReferences(rctx request.CTX) (bool, error) {
+	cursor := model.AccessControlPolicyCursor{}
+	for {
+		policies, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			Type:    model.AccessControlPolicyTypePermission,
+			Actions: model.DMGMActions(),
+			Cursor:  cursor,
+			Limit:   dmGmPolicySearchPageSize,
+		})
+		if err != nil {
+			return false, err
+		}
+
+		for _, policy := range policies {
+			for _, rule := range policy.Rules {
+				// The same lexical check the membership validator uses.
+				if slices.ContainsFunc(rule.Actions, model.IsDMGMAction) && strings.Contains(rule.Expression, "user.session") {
+					return true, nil
+				}
+			}
+		}
+
+		if len(policies) < dmGmPolicySearchPageSize {
+			return false, nil
+		}
+		cursor = model.AccessControlPolicyCursor{ID: policies[len(policies)-1].ID}
+	}
+}
+
+// notifySessionIfDMGMDecisionsChanged tells the session in rctx to fetch its direct and group
+// message decisions again when its attributes, which were before until this request refreshed
+// them, flip one of them. Both snapshots are evaluated here, so the answer doesn't depend on
+// which node saw the session's earlier decisions.
+func (a *App) notifySessionIfDMGMDecisionsChanged(rctx request.CTX, before map[string]any) {
+	session := rctx.Session()
+
+	after, appErr := a.GetSessionAttributes(rctx, session.Id)
+	if appErr != nil {
+		// Nothing to compare, so the session fetches its decisions again.
+		rctx.Logger().Debug("Failed to read the refreshed session attributes", mlog.Err(appErr))
+	} else if reflect.DeepEqual(before, after) || !a.dmGmDecisionsChanged(rctx, before, after) {
+		return
+	}
+
+	a.publishPermissionPolicyUpdateToSession(session.UserId, session.Id)
+}
+
+// dmGmDecisionsChanged reports whether any governed direct and group message action is decided
+// differently for the session in rctx with the before and after session attributes. An error
+// counts as a change.
+func (a *App) dmGmDecisionsChanged(rctx request.CTX, before, after map[string]any) bool {
+	session := rctx.Session()
+	subject, appErr := a.BuildAccessControlSubject(rctx, session.UserId, session.Roles, "")
+	if appErr != nil {
+		rctx.Logger().Info("Failed to build ABAC subject to compare direct and group message decisions", mlog.Err(appErr))
+		return true
+	}
+
+	withSession := func(attrs map[string]any) model.Subject {
+		s := *subject
+		if attrs != nil {
+			s.Session = attrs
+		}
+		return s
+	}
+
+	for _, action := range model.DMGMActions() {
+		if !a.dmGmActionGoverned(rctx, action) {
+			continue
+		}
+		was, appErr := a.evaluateDMGMSubject(rctx, withSession(before), action)
+		if appErr != nil {
+			return true
+		}
+		is, appErr := a.evaluateDMGMSubject(rctx, withSession(after), action)
+		if appErr != nil || was != is {
+			return true
+		}
+	}
+	return false
 }

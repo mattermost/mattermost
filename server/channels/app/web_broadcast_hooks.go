@@ -29,6 +29,7 @@ const (
 	broadcastOnlyChannelAdmins  = "only_channel_admins"
 	broadcastChannelReadAccess  = "channel_read_access"
 	broadcastDMGMReadAccess     = "dm_gm_read_access"
+	broadcastOnlySession        = "only_session"
 )
 
 func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
@@ -45,6 +46,7 @@ func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 		broadcastOnlyChannelAdmins:  &onlyChannelAdminsBroadcastHook{},
 		broadcastChannelReadAccess:  &channelReadAccessBroadcastHook{},
 		broadcastDMGMReadAccess:     &dmGmReadAccessBroadcastHook{},
+		broadcastOnlySession:        &onlySessionBroadcastHook{},
 	}
 }
 
@@ -730,6 +732,30 @@ func (h *dmGmReadAccessBroadcastHook) Process(msg *platform.HookedWebSocketEvent
 
 	rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
 	if !webConn.Suite.HasDirectAndGroupReadAccessForSession(rctx) {
+		msg.Reject()
+	}
+	return nil
+}
+
+// onlySessionBroadcastHook narrows an event addressed to a user down to one of their sessions.
+// A broadcast can name a user or a connection but not a session, so the event goes to the user
+// and every connection on another session drops it. The args carry the session id, never the
+// token, since they cross the cluster.
+type onlySessionBroadcastHook struct{}
+
+func useOnlySessionHook(message *model.WebSocketEvent, sessionID string) {
+	message.GetBroadcast().AddHook(broadcastOnlySession, map[string]any{
+		"session_id": sessionID,
+	})
+}
+
+func (h *onlySessionBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	sessionID, err := getTypedArg[string](args, "session_id")
+	if err != nil {
+		return errors.Wrap(err, "Invalid session_id value passed to onlySessionBroadcastHook")
+	}
+
+	if session := webConn.GetSession(); session == nil || session.Id != sessionID {
 		msg.Reject()
 	}
 	return nil

@@ -88,6 +88,9 @@ type Channels struct {
 	// dmGmReadDecisions caches each session's dm_gm_read_access decision for the
 	// WebSocket hook, keyed by session id. See HasDirectAndGroupReadAccessForSession.
 	dmGmReadDecisions cache.Cache
+	// dmGmSessionReferences caches whether the direct and group message rules reference
+	// session attributes. See dmGmPoliciesReferenceSessionAttributes.
+	dmGmSessionReferences atomic.Pointer[dmGmSessionReferences]
 
 	attributeViewRefreshMut   sync.Mutex
 	attributeViewRefreshLast  time.Time

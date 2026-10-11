@@ -1336,6 +1336,48 @@ func TestDMGMReadAccessBroadcastHook_Process(t *testing.T) {
 	})
 }
 
+func TestOnlySessionBroadcastHook_Process(t *testing.T) {
+	mainHelper.Parallel(t)
+	hook := &onlySessionBroadcastHook{}
+
+	userID := model.NewId()
+	sessionID := model.NewId()
+
+	makeMessage := func() *platform.HookedWebSocketEvent {
+		return platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPermissionPolicyUpdated, "", "", userID, nil, ""))
+	}
+	makeWebConn := func(session *model.Session) *platform.WebConn {
+		wc := &platform.WebConn{UserId: userID, Platform: &platform.PlatformService{}}
+		if session != nil {
+			wc.SetSession(session)
+		}
+		return wc
+	}
+	args := map[string]any{"session_id": sessionID}
+
+	t.Run("the named session receives the event", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(&model.Session{Id: sessionID, UserId: userID}), args))
+		assert.False(t, msg.IsRejected())
+	})
+
+	t.Run("the user's other sessions have it dropped", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(&model.Session{Id: model.NewId(), UserId: userID}), args))
+		assert.True(t, msg.IsRejected())
+	})
+
+	t.Run("a connection with no session has it dropped", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(nil), args))
+		assert.True(t, msg.IsRejected())
+	})
+
+	t.Run("a malformed arg is an error", func(t *testing.T) {
+		require.Error(t, hook.Process(makeMessage(), makeWebConn(&model.Session{Id: sessionID, UserId: userID}), map[string]any{"session_id": 42}))
+	})
+}
+
 func TestAbacBookmarksBroadcastHook_Process(t *testing.T) {
 	mainHelper.Parallel(t)
 	hook := &abacBookmarksBroadcastHook{}

@@ -202,11 +202,23 @@ func (a *App) ProcessSessionAttributesRequest(rctx request.CTX, r *http.Request)
 	}
 
 	if len(attrsToMerge) > 0 {
+		// Snapshot the attributes as the policy sees them, TTL and grace applied, before the
+		// refresh: re-reporting an expired value unchanged doesn't move the store's epoch,
+		// yet it can flip a decision.
+		watchDMGM := a.dmGmPoliciesReferenceSessionAttributes(rctx)
+		var before map[string]any
+		if watchDMGM {
+			before, _ = a.GetSessionAttributes(rctx, rctx.Session().Id)
+		}
+
 		refreshAt := model.GetMillis()
 		if err := a.Srv().Store().SessionAttribute().Refresh(rctx.Session().Id, attrsToMerge, refreshAt); err != nil {
 			rctx.Logger().Warn("Failed to refresh session attributes", mlog.Err(err))
 		} else {
 			a.broadcastSessionAttributes(rctx, rctx.Session().Id, attrsToMerge, refreshAt)
+			if watchDMGM {
+				a.notifySessionIfDMGMDecisionsChanged(rctx, before)
+			}
 		}
 	}
 }
