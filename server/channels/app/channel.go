@@ -494,6 +494,7 @@ func (a *App) handleCreationEvent(rctx request.CTX, userID, otherUserID string, 
 	message := model.NewWebSocketEvent(model.WebsocketEventDirectAdded, "", channel.Id, "", nil, "")
 	message.Add("creator_id", userID)
 	message.Add("teammate_id", otherUserID)
+	a.setupBroadcastHookForDirectAndGroupReadAccess(channel, message)
 	a.Publish(message)
 }
 
@@ -615,6 +616,7 @@ func (a *App) CreateGroupChannel(rctx request.CTX, userIDs []string, creatorId s
 
 		message := model.NewWebSocketEvent(model.WebsocketEventGroupAdded, "", channel.Id, userID, nil, "")
 		message.Add("teammate_ids", jsonIDs)
+		a.setupBroadcastHookForDirectAndGroupReadAccess(channel, message)
 		a.Publish(message)
 	}
 
@@ -1400,6 +1402,7 @@ func (a *App) PatchChannelModerationsForChannel(rctx request.CTX, channel *model
 			return jsonErr
 		}
 		evt.Add("channelMember", string(memberJSON))
+		a.setupBroadcastHookForDirectAndGroupReadAccess(channel, evt)
 		a.Publish(evt)
 
 		return nil
@@ -1712,6 +1715,7 @@ func (a *App) sendUpdateChannelMemberEvent(member *model.ChannelMember) error {
 		return jsonErr
 	}
 	evt.Add("channelMember", string(memberJSON))
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(member.ChannelId, evt)
 	a.Publish(evt)
 
 	return nil
@@ -1741,6 +1745,7 @@ func (a *App) updateChannelMember(rctx request.CTX, member *model.ChannelMember)
 		return nil, model.NewAppError("updateChannelMember", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	evt.Add("channelMember", string(memberJSON))
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(member.ChannelId, evt)
 	a.Publish(evt)
 
 	return member, nil
@@ -3457,6 +3462,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(rctx request.CTX, postID
 			message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, channel.TeamId, "", userID, nil, "")
 			message.Add("thread", string(payload))
 			a.markPostDeliveryForBroadcast(rctx, message, thread.Post)
+			a.setupBroadcastHookForDirectAndGroupReadAccess(channel, message)
 			a.Publish(message)
 		}
 	}
@@ -3479,6 +3485,7 @@ func (a *App) sendWebSocketPostUnreadEvent(rctx request.CTX, channelUnread *mode
 	message.Add("urgent_mention_count", channelUnread.UrgentMentionCount)
 	message.Add("last_viewed_at", channelUnread.LastViewedAt)
 	message.Add("post_id", postID)
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(channelUnread.ChannelId, message)
 	a.Publish(message)
 }
 
@@ -3781,6 +3788,7 @@ func (a *App) MarkAllDirectAndGroupMessagesViewed(rctx request.CTX, userID strin
 		if *a.Config().ServiceSettings.EnableChannelViewedMessages {
 			message := model.NewWebSocketEvent(model.WebsocketEventMultipleChannelsViewed, "", "", userID, nil, "")
 			message.Add("channel_times", times)
+			a.setupBroadcastHookForConversationReadAccess(message)
 			a.Publish(message)
 		}
 	}
@@ -3797,6 +3805,7 @@ func (a *App) MarkAllDirectAndGroupMessagesViewed(rctx request.CTX, userID strin
 		for _, channelID := range allChannelIDs {
 			message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, "", channelID, userID, nil, "")
 			message.Add("timestamp", timestamp)
+			a.setupBroadcastHookForConversationReadAccess(message)
 			a.Publish(message)
 		}
 	}
@@ -3856,6 +3865,7 @@ func (a *App) MarkChannelsAsViewed(rctx request.CTX, channelIDs []string, userID
 		for _, channelID := range channelsToView {
 			message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, "", channelID, userID, nil, "")
 			message.Add("timestamp", timestamp)
+			a.setupBroadcastHookForDirectAndGroupReadAccessByID(channelID, message)
 			a.Publish(message)
 		}
 	}
@@ -4211,6 +4221,7 @@ func (a *App) setChannelsMuted(rctx request.CTX, channelIDs []string, userID str
 		}
 
 		evt.Add("channelMember", string(memberJSON))
+		a.setupBroadcastHookForDirectAndGroupReadAccessByID(member.ChannelId, evt)
 		a.Publish(evt)
 	}
 
@@ -4322,6 +4333,7 @@ func (a *App) ClearChannelMembersCache(rctx request.CTX, channelID string) error
 			return jsonErr
 		}
 		message.Add("channelMember", string(memberJSON))
+		a.setupBroadcastHookForDirectAndGroupReadAccessByID(channelMember.ChannelId, message)
 		a.Publish(message)
 		return nil
 	}

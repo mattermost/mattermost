@@ -173,5 +173,6 @@ func (a *App) PublishScheduledPostEvent(rctx request.CTX, eventType model.Websoc
 		return
 	}
 	message.Add("scheduledPost", string(scheduledPostJSON))
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(scheduledPost.ChannelId, message)
 	a.Publish(message)
 }

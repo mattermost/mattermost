@@ -4,8 +4,13 @@
 package app
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -110,6 +115,126 @@ func (a *App) DirectAndGroupHidden(rctx request.CTX, userID string) bool {
 func (a *App) conversationPreviewWithheld(rctx request.CTX, channel *model.Channel) bool {
 	return channel.IsGroupOrDirect() && a.ChannelAccessEnforcementActive() &&
 		a.dmGmActionGoverned(rctx, model.AccessControlPolicyActionDMGMReadAccess)
+}
+
+// dmGmReadDecisionTTL bounds how long a cached session decision lives, for the
+// invalidations core can't see, such as a change made inside the policy engine.
+const dmGmReadDecisionTTL = time.Minute
+
+// dmGmReadDecision is a session's cached dm_gm_read_access decision and a digest of
+// the inputs it was evaluated from.
+type dmGmReadDecision struct {
+	Inputs  string
+	Allowed bool
+}
+
+// HasDirectAndGroupReadAccessForSession reports whether the session in rctx may read
+// direct and group messages. Only the WebSocket hook uses it: it runs for every
+// recipient of every conversation event, so the decision is cached per session and
+// reused while the inputs it was evaluated from are unchanged. REST requests always
+// evaluate live, through HasDMGMAccess.
+func (a *App) HasDirectAndGroupReadAccessForSession(rctx request.CTX) bool {
+	session := rctx.Session()
+	if session.UserId == "" || !a.ChannelAccessEnforcementActive() {
+		return true
+	}
+
+	inputs, err := a.dmGmReadDecisionInputs(rctx)
+	if err != nil {
+		rctx.Logger().Debug("Failed to read the inputs of the cached direct and group message decision; evaluating without the cache",
+			mlog.String("user_id", session.UserId),
+			mlog.Err(err),
+		)
+		allowed, _ := a.evaluateDMGMAccess(rctx, session.UserId, model.AccessControlPolicyActionDMGMReadAccess)
+		return allowed
+	}
+
+	var cached dmGmReadDecision
+	if a.ch.dmGmReadDecisions.Get(session.Id, &cached) == nil && cached.Inputs == inputs {
+		return cached.Allowed
+	}
+
+	allowed, appErr := a.evaluateDMGMAccess(rctx, session.UserId, model.AccessControlPolicyActionDMGMReadAccess)
+	if appErr != nil {
+		// Denied, and not cached, so the next event evaluates again.
+		return false
+	}
+	if err := a.ch.dmGmReadDecisions.SetWithDefaultExpiry(session.Id, dmGmReadDecision{Inputs: inputs, Allowed: allowed}); err != nil {
+		rctx.Logger().Debug("Failed to cache the direct and group message decision", mlog.Err(err))
+	}
+	return allowed
+}
+
+// dmGmReadDecisionInputs digests what a session's direct and group message decision
+// is evaluated from: its session attributes as the policy sees them (TTL and grace
+// applied), the user's property values, the session roles, the user record and the
+// permission policies. Any change to them misses the cache.
+func (a *App) dmGmReadDecisionInputs(rctx request.CTX) (string, error) {
+	session := rctx.Session()
+
+	attrs, appErr := a.GetSessionAttributes(rctx, session.Id)
+	if appErr != nil {
+		return "", appErr
+	}
+	attrsJSON, err := json.Marshal(attrs)
+	if err != nil {
+		return "", err
+	}
+
+	propertyEpoch, err := a.Srv().Store().Attributes().GetUserPropertyValuesEpoch(rctx, session.UserId)
+	if err != nil {
+		return "", err
+	}
+
+	user, appErr := a.GetUser(rctx, session.UserId)
+	if appErr != nil {
+		return "", appErr
+	}
+
+	policyEpoch, err := a.Srv().Store().AccessControlPolicy().GetEtagEpoch(rctx, "")
+	if err != nil {
+		return "", err
+	}
+
+	digest := sha256.New()
+	fmt.Fprintf(digest, "%s\x00%s\x00%s\x00%d\x00%s", attrsJSON, propertyEpoch, session.Roles, user.UpdateAt, policyEpoch)
+	return hex.EncodeToString(digest.Sum(nil)), nil
+}
+
+// setupBroadcastHookForDirectAndGroupReadAccess registers dmGmReadAccessBroadcastHook on an
+// event about a direct or group message channel, so it reaches only sessions that may read
+// conversations. It does nothing for any other channel.
+func (a *App) setupBroadcastHookForDirectAndGroupReadAccess(channel *model.Channel, message *model.WebSocketEvent) {
+	if channel.IsGroupOrDirect() {
+		a.setupBroadcastHookForConversationReadAccess(message)
+	}
+}
+
+// setupBroadcastHookForDirectAndGroupReadAccessByID is setupBroadcastHookForDirectAndGroupReadAccess
+// for a channel id. A channel that can't be loaded gets the channel read hook, which loads it
+// again per recipient and evaluates whichever action governs it.
+func (a *App) setupBroadcastHookForDirectAndGroupReadAccessByID(channelID string, message *model.WebSocketEvent) {
+	if channelID == "" || !a.ChannelAccessEnforcementActive() {
+		return
+	}
+
+	channel, appErr := a.Srv().getChannel(request.EmptyContext(a.Log()), channelID)
+	if appErr != nil {
+		useChannelReadAccessHook(message, channelID)
+		return
+	}
+	a.setupBroadcastHookForDirectAndGroupReadAccess(channel, message)
+}
+
+// setupBroadcastHookForConversationReadAccess registers dmGmReadAccessBroadcastHook on an
+// event that only concerns direct and group messages. The hook is left off while no policy
+// governs reading them, so the event costs nothing then.
+func (a *App) setupBroadcastHookForConversationReadAccess(message *model.WebSocketEvent) {
+	if !a.ChannelAccessEnforcementActive() ||
+		!a.dmGmActionGoverned(request.EmptyContext(a.Log()), model.AccessControlPolicyActionDMGMReadAccess) {
+		return
+	}
+	useDMGMReadAccessHook(message)
 }
 
 // HasChannelWriteAccess reports whether the user may write in channel, without

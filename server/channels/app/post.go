@@ -851,6 +851,7 @@ func (a *App) SendEphemeralPost(rctx request.CTX, userID string, post *model.Pos
 		rctx.Logger().Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
 	}
 	message.Add("post", postJSON)
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(post.ChannelId, message)
 	a.Publish(message)
 
 	return post, isMemberForPreviews
@@ -885,6 +886,7 @@ func (a *App) UpdateEphemeralPost(rctx request.CTX, userID string, post *model.P
 		rctx.Logger().Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
 	}
 	message.Add("post", postJSON)
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(post.ChannelId, message)
 	a.Publish(message)
 
 	return post, isMemberForPreviews
@@ -1264,6 +1266,10 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 
 	message.Add("post", postJSON)
 
+	// Ahead of the permalink, mention and file hooks, so a recipient who may not read the
+	// channel is dropped before they run.
+	a.setupBroadcastHookForChannelReadAccess(post.ChannelId, message)
+
 	// Setup broadcast hooks with extracted metadata
 	appErr := a.setupBroadcastHookForPermalink(rctx, post, message, permalinkPreviewedPost, previewProp)
 	if appErr != nil {
@@ -1283,7 +1289,6 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 	}
 
 	a.setupBroadcastHookForAbacFiles(post, message)
-	a.setupBroadcastHookForChannelReadAccess(post.ChannelId, message)
 
 	a.Publish(message)
 	return nil
@@ -3357,6 +3362,7 @@ func (a *App) SetPostReminder(rctx request.CTX, postID, userID string, targetTim
 		rctx.Logger().Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
 	}
 	message.Add("post", postJSON)
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(ephemeralPost.ChannelId, message)
 	a.Publish(message)
 
 	return nil
@@ -4460,6 +4466,7 @@ func (a *App) publishPostRevealedEventToAuthor(rctx request.CTX, post *model.Pos
 		event.Add("recipients", []string{})
 	}
 
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(post.ChannelId, event)
 	a.Publish(event)
 
 	return nil
@@ -4484,6 +4491,7 @@ func (a *App) publishPostRevealedEventToUser(rctx request.CTX, post *model.Post,
 
 	event.Add("post", postJSON)
 
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(post.ChannelId, event)
 	a.Publish(event)
 
 	return nil
@@ -4501,6 +4509,7 @@ func (a *App) publishPostBurnedEvent(postID string, channelID string, userID str
 	)
 
 	event.Add("post_id", postID)
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(channelID, event)
 	a.Publish(event)
 
 	return nil
@@ -4520,6 +4529,7 @@ func (a *App) publishAllRecipientsRevealedEvent(rctx request.CTX, post *model.Po
 	event.Add("post_id", post.Id)
 	event.Add("sender_expire_at", senderExpireAt)
 
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(post.ChannelId, event)
 	a.Publish(event)
 
 	return nil

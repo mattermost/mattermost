@@ -2846,6 +2846,7 @@ func (a *App) PromoteGuestToUser(rctx request.CTX, user *model.User, requestorId
 				return model.NewAppError("PromoteGuestToUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 			}
 			evt.Add("channelMember", string(memberJSON))
+			a.setupBroadcastHookForDirectAndGroupReadAccessByID(member.ChannelId, evt)
 			a.Publish(evt)
 		}
 	}
@@ -2897,6 +2898,7 @@ func (a *App) DemoteUserToGuest(rctx request.CTX, user *model.User) *model.AppEr
 				return model.NewAppError("DemoteUserToGuest", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 			}
 			evt.Add("channelMember", string(memberJSON))
+			a.setupBroadcastHookForDirectAndGroupReadAccessByID(member.ChannelId, evt)
 			a.Publish(evt)
 		}
 	}
@@ -3205,6 +3207,9 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 	message.Add("thread_id", threadID)
 	message.Add("state", state)
 	message.Add("reply_count", replyCount)
+	if thread != nil {
+		a.setupBroadcastHookForDirectAndGroupReadAccessByID(thread.ChannelId, message)
+	}
 	a.Publish(message)
 	return nil
 }
@@ -3277,6 +3282,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, 
 	}
 	auditRec.Success()
 
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(post.ChannelId, message)
 	a.Publish(message)
 	return nil
 }
@@ -3349,6 +3355,7 @@ func (a *App) UpdateThreadReadForUser(rctx request.CTX, currentSessionId, userID
 	message.Add("previous_unread_mentions", previousUnreadMentions)
 	message.Add("previous_unread_replies", previousUnreadReplies)
 	message.Add("channel_id", post.ChannelId)
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(post.ChannelId, message)
 	a.Publish(message)
 	return thread, nil
 }

@@ -28,6 +28,7 @@ const (
 	broadcastAbacBookmarks      = "abac_bookmarks"
 	broadcastOnlyChannelAdmins  = "only_channel_admins"
 	broadcastChannelReadAccess  = "channel_read_access"
+	broadcastDMGMReadAccess     = "dm_gm_read_access"
 )
 
 func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
@@ -43,6 +44,7 @@ func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 		broadcastAbacBookmarks:      &abacBookmarksBroadcastHook{},
 		broadcastOnlyChannelAdmins:  &onlyChannelAdminsBroadcastHook{},
 		broadcastChannelReadAccess:  &channelReadAccessBroadcastHook{},
+		broadcastDMGMReadAccess:     &dmGmReadAccessBroadcastHook{},
 	}
 }
 
@@ -703,6 +705,31 @@ func (h *channelReadAccessBroadcastHook) Process(msg *platform.HookedWebSocketEv
 
 	rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
 	if !webConn.Suite.HasChannelReadAccessByID(rctx, webConn.UserId, channelID) {
+		msg.Reject()
+	}
+	return nil
+}
+
+// dmGmReadAccessBroadcastHook drops an event about direct or group messages for any session
+// the dm_gm_read_access policy denies. The decision is the same for every conversation, so
+// it is taken once per session and cached; see HasDirectAndGroupReadAccessForSession.
+type dmGmReadAccessBroadcastHook struct{}
+
+func useDMGMReadAccessHook(message *model.WebSocketEvent) {
+	message.GetBroadcast().AddHook(broadcastDMGMReadAccess, map[string]any{})
+}
+
+func (h *dmGmReadAccessBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	// A rule may reference the session's device or network, so the evaluation needs
+	// this connection's session; without one there is nothing to evaluate.
+	session := webConn.GetSession()
+	if session == nil {
+		msg.Reject()
+		return nil
+	}
+
+	rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
+	if !webConn.Suite.HasDirectAndGroupReadAccessForSession(rctx) {
 		msg.Reject()
 	}
 	return nil

@@ -94,6 +94,7 @@ func (a *App) UpsertDraft(rctx request.CTX, draft *model.Draft, connectionID str
 		rctx.Logger().Warn("Failed to encode draft to JSON", mlog.Err(jsonErr))
 	}
 	message.Add("draft", string(draftJSON))
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(dt.ChannelId, message)
 	a.Publish(message)
 
 	return dt, nil
@@ -187,6 +188,7 @@ func (a *App) DeleteDraft(rctx request.CTX, draft *model.Draft, connectionID str
 
 	message := model.NewWebSocketEvent(model.WebsocketEventDraftDeleted, "", draft.ChannelId, draft.UserId, nil, connectionID)
 	message.Add("draft", string(draftJSON))
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(draft.ChannelId, message)
 	a.Publish(message)
 
 	return nil

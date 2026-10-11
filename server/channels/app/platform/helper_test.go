@@ -72,6 +72,10 @@ func (ms *mockSuite) HasChannelReadAccessByID(rctx request.CTX, userID string, c
 	return true
 }
 
+func (ms *mockSuite) HasDirectAndGroupReadAccessForSession(rctx request.CTX) bool {
+	return true
+}
+
 func (ms *mockSuite) MFARequired(rctx request.CTX, method string) *model.AppError {
 	return nil
 }

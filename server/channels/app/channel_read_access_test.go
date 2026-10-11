@@ -1119,9 +1119,29 @@ func TestChannelReadAccessHookOnlyWhereAccessCanBeDenied(t *testing.T) {
 		require.True(t, hooked(t, h, model.NewId()))
 	})
 
-	t.Run("not for a direct message channel", func(t *testing.T) {
+	t.Run("a direct message channel gets the conversation hook instead", func(t *testing.T) {
 		h := setupChannelReadAccessTest(t)
-		governed(h.mockACS(t))
-		require.False(t, hooked(t, h, h.th.CreateDmChannel(t, h.th.BasicUser2).Id))
+		dm := h.th.CreateDmChannel(t, h.th.BasicUser2)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionDMGMReadAccess).
+			Return(true, nil)
+
+		message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", dm.Id, "", nil, "")
+		h.th.App.setupBroadcastHookForChannelReadAccess(dm.Id, message)
+		require.Equal(t, []string{broadcastDMGMReadAccess}, message.GetBroadcast().BroadcastHooks)
+	})
+
+	t.Run("not for a direct message channel while reading conversations is ungoverned", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		dm := h.th.CreateDmChannel(t, h.th.BasicUser2)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionDMGMReadAccess).
+			Return(false, nil)
+
+		message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", dm.Id, "", nil, "")
+		h.th.App.setupBroadcastHookForChannelReadAccess(dm.Id, message)
+		require.Empty(t, message.GetBroadcast().BroadcastHooks)
 	})
 }

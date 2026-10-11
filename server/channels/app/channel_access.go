@@ -251,8 +251,9 @@ func (a *App) ChannelAccessEnforcementActive() bool {
 }
 
 // setupBroadcastHookForChannelReadAccess registers channelReadAccessBroadcastHook so each
-// recipient's channel_read_access policy is evaluated before the event reaches them. The hook is
-// left off when that evaluation would allow every recipient.
+// recipient's channel_read_access policy is evaluated before the event reaches them, or, for a
+// direct or group message channel, dmGmReadAccessBroadcastHook. The hook is left off when that
+// evaluation would allow every recipient.
 func (a *App) setupBroadcastHookForChannelReadAccess(channelID string, message *model.WebSocketEvent) {
 	if channelID == "" || !a.ChannelAccessEnforcementActive() {
 		return
@@ -261,8 +262,11 @@ func (a *App) setupBroadcastHookForChannelReadAccess(channelID string, message *
 	rctx := request.EmptyContext(a.Log())
 	// A channel that can't be loaded here keeps the hook, which loads it again per recipient.
 	channel, appErr := a.Srv().getChannel(rctx, channelID)
-	if appErr == nil && (channel.IsGroupOrDirect() ||
-		!a.channelAccessGoverned(rctx, channel, model.AccessControlPolicyActionChannelReadAccess)) {
+	if appErr == nil && channel.IsGroupOrDirect() {
+		a.setupBroadcastHookForDirectAndGroupReadAccess(channel, message)
+		return
+	}
+	if appErr == nil && !a.channelAccessGoverned(rctx, channel, model.AccessControlPolicyActionChannelReadAccess) {
 		return
 	}
 

@@ -1077,3 +1077,54 @@ func TestDMGMMarkAllThreadsReadLeavesHiddenConversations(t *testing.T) {
 	require.Equal(t, dmBefore, lastViewed(f.dmRoot.Id), "a hidden conversation's threads keep their read state")
 	require.Greater(t, lastViewed(f.channelRoot.Id), channelBefore)
 }
+
+// postedEvents reads ws until a posted event for untilChannelID arrives, and returns the
+// channel ids of every posted event read on the way, that one included.
+func postedEvents(t *testing.T, ws *model.WebSocketClient, untilChannelID string) []string {
+	t.Helper()
+	var channelIDs []string
+	timeout := time.After(10 * time.Second)
+	for {
+		select {
+		case event := <-ws.EventChannel:
+			if event.EventType() != model.WebsocketEventPosted {
+				continue
+			}
+			channelIDs = append(channelIDs, event.GetBroadcast().ChannelId)
+			if event.GetBroadcast().ChannelId == untilChannelID {
+				return channelIDs
+			}
+		case <-timeout:
+			require.FailNow(t, "timed out waiting for a posted event", "channel %s", untilChannelID)
+		}
+	}
+}
+
+func TestDMGMReadAccessWebSocket(t *testing.T) {
+	th := setupDMGMServer(t)
+	dm := th.CreateDmChannel(t, th.BasicUser2)
+
+	client2 := th.CreateClient()
+	th.LoginBasic2WithClient(t, client2)
+	denied := th.CreateConnectedWebSocketClient(t)
+	allowed := th.CreateConnectedWebSocketClientWithClient(t, client2)
+
+	// BasicUser may not read conversations; everyone else may.
+	mockACS := installMockACS(t, th)
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Action == model.AccessControlPolicyActionDMGMReadAccess && req.Subject.ID == th.BasicUser.Id
+	})).Return(model.AccessDecision{Decision: false}, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).Return(model.AccessDecision{Decision: true}, nil)
+
+	_, _, err := client2.CreatePost(context.Background(), &model.Post{ChannelId: dm.Id, Message: "in the conversation"})
+	require.NoError(t, err)
+	require.Equal(t, []string{dm.Id}, postedEvents(t, allowed, dm.Id), "the other participant still gets the post")
+
+	// Events reach a connection in order, so the conversation post was dropped if this
+	// later channel post arrives without it.
+	_, _, err = client2.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, Message: "in the channel"})
+	require.NoError(t, err)
+	require.Equal(t, []string{th.BasicChannel.Id}, postedEvents(t, denied, th.BasicChannel.Id),
+		"the session that may not read conversations gets no conversation post")
+}

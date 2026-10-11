@@ -66,6 +66,24 @@ func (_m *SuiteIFace) HasChannelReadAccessByID(rctx request.CTX, userID string, 
 	return r0
 }
 
+// HasDirectAndGroupReadAccessForSession provides a mock function with given fields: rctx
+func (_m *SuiteIFace) HasDirectAndGroupReadAccessForSession(rctx request.CTX) bool {
+	ret := _m.Called(rctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for HasDirectAndGroupReadAccessForSession")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(request.CTX) bool); ok {
+		r0 = rf(rctx)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // HasPermissionToChannelAction provides a mock function with given fields: rctx, userID, roles, channelID, action
 func (_m *SuiteIFace) HasPermissionToChannelAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
 	ret := _m.Called(rctx, userID, roles, channelID, action)
