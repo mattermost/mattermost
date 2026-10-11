@@ -33,6 +33,10 @@ func (h *Hub) runBroadcastHooks(msg *model.WebSocketEvent, webConn *WebConn, hoo
 		if err != nil {
 			mlog.Warn("runBroadcastHooks: Error processing hook", mlog.String("hook_id", hookID), mlog.Err(err))
 		}
+
+		if hookedEvent.IsRejected() {
+			break
+		}
 	}
 
 	return hookedEvent.Event()
@@ -79,6 +83,22 @@ func (he *HookedWebSocketEvent) copyIfNecessary() {
 	if he.copy == nil {
 		he.copy = he.original.RemovePrecomputedJSON()
 	}
+}
+
+// Reject marks the event as rejected for this connection only. The original event is shared by every connection the
+// hub sends it to, so the rejection is applied to the copy.
+func (he *HookedWebSocketEvent) Reject() {
+	he.copyIfNecessary()
+
+	he.copy.Reject()
+}
+
+func (he *HookedWebSocketEvent) IsRejected() bool {
+	if he.copy == nil {
+		return he.original.IsRejected()
+	}
+
+	return he.copy.IsRejected()
 }
 
 func (he *HookedWebSocketEvent) Event() *model.WebSocketEvent {

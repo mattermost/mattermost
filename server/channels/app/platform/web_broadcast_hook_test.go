@@ -11,7 +11,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const broadcastTest = "test_broadcast_hook"
+const (
+	broadcastTest       = "test_broadcast_hook"
+	broadcastRejectTest = "test_reject_broadcast_hook"
+)
 
 type testBroadcastHook struct{}
 
@@ -24,14 +27,56 @@ func (h *testBroadcastHook) Process(msg *HookedWebSocketEvent, webConn *WebConn,
 	return nil
 }
 
+type testRejectBroadcastHook struct{}
+
+func (h *testRejectBroadcastHook) Process(msg *HookedWebSocketEvent, webConn *WebConn, args map[string]any) error {
+	if webConn.UserId == args["denied_user_id"] {
+		msg.Reject()
+	}
+
+	return nil
+}
+
 func TestRunBroadcastHooks(t *testing.T) {
 	mainHelper.Parallel(t)
 	hub := &Hub{
 		broadcastHooks: map[string]BroadcastHook{
-			broadcastTest: &testBroadcastHook{},
+			broadcastTest:       &testBroadcastHook{},
+			broadcastRejectTest: &testRejectBroadcastHook{},
 		},
 	}
 	webConn := &WebConn{}
+
+	t.Run("should reject only for the connection the hook rejects", func(t *testing.T) {
+		event := model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, "")
+		deniedConn := &WebConn{UserId: "denied"}
+		allowedConn := &WebConn{UserId: "allowed"}
+
+		hookIDs := []string{broadcastRejectTest}
+		hookArgs := []map[string]any{{"denied_user_id": "denied"}}
+
+		deniedResult := hub.runBroadcastHooks(event, deniedConn, hookIDs, hookArgs)
+		allowedResult := hub.runBroadcastHooks(event, allowedConn, hookIDs, hookArgs)
+
+		assert.NotSame(t, event, deniedResult)
+		assert.True(t, deniedResult.IsRejected())
+		assert.False(t, event.IsRejected())
+		assert.Same(t, event, allowedResult)
+		assert.False(t, allowedResult.IsRejected())
+	})
+
+	t.Run("should not run later hooks once the event is rejected", func(t *testing.T) {
+		event := model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, "")
+		deniedConn := &WebConn{UserId: "denied"}
+
+		hookIDs := []string{broadcastRejectTest, broadcastTest}
+		hookArgs := []map[string]any{{"denied_user_id": "denied"}, {"makes_changes": true}}
+
+		result := hub.runBroadcastHooks(event, deniedConn, hookIDs, hookArgs)
+
+		assert.True(t, result.IsRejected())
+		assert.Equal(t, map[string]any{}, result.GetData())
+	})
 
 	t.Run("should not allocate a new object when no hooks are passed", func(t *testing.T) {
 		event := model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, "")
