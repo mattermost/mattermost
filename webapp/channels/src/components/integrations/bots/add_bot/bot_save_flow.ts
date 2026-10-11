@@ -83,7 +83,7 @@ export const botSaveMessages = defineMessages({
         defaultMessage: 'The bot was updated, but its role and post permissions could not be saved. {error}',
     },
     attributesFailed: {
-        id: 'bots.attributes.save_failed',
+        id: 'bots.manage.edit.attributes_failed',
         defaultMessage: 'The bot was updated, but its attributes could not be saved. {error}',
     },
 });
