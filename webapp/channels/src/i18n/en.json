@@ -18671,6 +18671,10 @@
     "defaultMessage": "this channel",
     "description": ""
   },
+  "channel_access_denied.dm_gm.body": {
+    "defaultMessage": "You no longer have access to direct and group messages. They will reappear if access is restored.",
+    "description": "Body of the modal shown when a permission policy stops the user reading direct and group messages while one is open; they are hidden, not left."
+  },
   "channel_access_denied.okay": {
     "defaultMessage": "Okay",
     "description": ""
