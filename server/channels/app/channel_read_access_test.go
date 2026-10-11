@@ -271,16 +271,6 @@ func TestHasChannelReadAccessShortCircuits(t *testing.T) {
 			h.th.App.Srv().SetLicense(nil)
 			return h.th.BasicChannel
 		},
-		"direct message": func(t *testing.T, h *channelReadAccessHarness) *model.Channel {
-			channel := h.th.BasicChannel.DeepCopy()
-			channel.Type = model.ChannelTypeDirect
-			return channel
-		},
-		"group message": func(t *testing.T, h *channelReadAccessHarness) *model.Channel {
-			channel := h.th.BasicChannel.DeepCopy()
-			channel.Type = model.ChannelTypeGroup
-			return channel
-		},
 		"nil channel": func(t *testing.T, h *channelReadAccessHarness) *model.Channel {
 			return nil
 		},

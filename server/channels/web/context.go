@@ -55,7 +55,10 @@ func (c *Context) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
 		if c.Err.Id == "api.context.permissions.app_error" ||
 			c.Err.Id == "api.channel.channel_read_access.abac_denied.app_error" ||
 			c.Err.Id == "api.channel.channel_write_access.abac_denied.app_error" ||
-			c.Err.Id == "api.channel.channel_management_access.abac_denied.app_error" {
+			c.Err.Id == "api.channel.channel_management_access.abac_denied.app_error" ||
+			c.Err.Id == "api.channel.dm_gm_start.abac_denied.app_error" ||
+			c.Err.Id == "api.channel.dm_gm_read_access.abac_denied.app_error" ||
+			c.Err.Id == "api.channel.dm_gm_write_access.abac_denied.app_error" {
 			level = app.LevelPerms
 		}
 		rec.Fail()
@@ -285,12 +288,26 @@ func NewJSONEncodingError(err error) *model.AppError {
 }
 
 func (c *Context) SetPermissionError(permissions ...*model.Permission) {
-	if channelID, action := app.ChannelAccessEnforcementDenial(c.AppContext); channelID != "" {
+	// A direct and group message denial may carry no channel: the action is the same
+	// for every conversation.
+	if channelID, action := app.ChannelAccessEnforcementDenial(c.AppContext); action != "" {
 		// The ids are spelled out rather than computed: mmgotool i18n extract only
 		// collects literals passed to NewAppError, so routing them through a helper
 		// drops them from en.json.
-		details := "userId=" + c.AppContext.Session().UserId + ", channelId=" + channelID
+		details := "userId=" + c.AppContext.Session().UserId
+		if channelID != "" {
+			details += ", channelId=" + channelID
+		}
 		switch action {
+		case model.AccessControlPolicyActionDMGMStart:
+			c.Err = model.NewAppError("Permissions", "api.channel.dm_gm_start.abac_denied.app_error", nil,
+				details, http.StatusForbidden)
+		case model.AccessControlPolicyActionDMGMReadAccess:
+			c.Err = model.NewAppError("Permissions", "api.channel.dm_gm_read_access.abac_denied.app_error", nil,
+				details, http.StatusForbidden)
+		case model.AccessControlPolicyActionDMGMWriteAccess:
+			c.Err = model.NewAppError("Permissions", "api.channel.dm_gm_write_access.abac_denied.app_error", nil,
+				details, http.StatusForbidden)
 		case model.AccessControlPolicyActionChannelWriteAccess:
 			c.Err = model.NewAppError("Permissions", "api.channel.channel_write_access.abac_denied.app_error", nil,
 				details, http.StatusForbidden)

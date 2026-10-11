@@ -153,18 +153,35 @@ func TestChannelWriteAccessDecision(t *testing.T) {
 		require.False(t, h.th.App.EnforceChannelWriteAccess(h.rctx, h.th.BasicUser.Id, h.th.BasicChannel))
 	})
 
-	t.Run("allows DMs and GMs without evaluating", func(t *testing.T) {
+	t.Run("evaluates dm_gm_write_access in DMs and GMs", func(t *testing.T) {
 		h := setupChannelReadAccessTest(t)
 		mockACS := h.mockACS(t)
 		writeGoverned(mockACS, true)
-		decidesPerAction(mockACS, false, false, false)
+		decidesDMGM(mockACS, map[string]bool{model.AccessControlPolicyActionDMGMWriteAccess: false})
 
 		for _, channelType := range []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup} {
 			channel := h.th.BasicChannel.DeepCopy()
 			channel.Type = channelType
-			require.True(t, h.th.App.EnforceChannelWriteAccess(h.rctx, h.th.BasicUser.Id, channel), string(channelType))
+			require.False(t, h.th.App.EnforceChannelWriteAccess(h.rctx, h.th.BasicUser.Id, channel), string(channelType))
 		}
-		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+		requireEvaluatedOnly(t, mockACS, model.AccessControlPolicyActionDMGMWriteAccess)
+		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 1)
+	})
+
+	t.Run("evaluates a bot session in a conversation", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		writeGoverned(mockACS, true)
+		decidesDMGM(mockACS, map[string]bool{model.AccessControlPolicyActionDMGMWriteAccess: false})
+
+		session := h.rctx.Session().DeepCopy()
+		session.Props[model.SessionPropIsBot] = model.SessionPropIsBotValue
+		rctx := WithChannelAccessMemo(h.th.Context.WithSession(session))
+		channel := h.th.BasicChannel.DeepCopy()
+		channel.Type = model.ChannelTypeDirect
+
+		require.False(t, h.th.App.EnforceChannelWriteAccess(rctx, session.UserId, channel),
+			"there is no bot exemption in conversations; admins exempt bots in the rule with user.isbot")
 	})
 
 	t.Run("allows a bot session without evaluating", func(t *testing.T) {
@@ -317,18 +334,34 @@ func TestChannelManagementAccessDecision(t *testing.T) {
 		require.False(t, h.th.App.EnforceChannelManagementAccess(h.rctx, h.th.BasicUser.Id, channel))
 	})
 
-	t.Run("allows DMs and GMs without evaluating", func(t *testing.T) {
+	t.Run("evaluates dm_gm_write_access in DMs and GMs", func(t *testing.T) {
 		h := setupChannelReadAccessTest(t)
 		mockACS := h.mockACS(t)
 		managementGoverned(mockACS, true)
-		decidesPerAction(mockACS, false, false, false)
+		decidesDMGM(mockACS, map[string]bool{model.AccessControlPolicyActionDMGMWriteAccess: false})
 
 		for _, channelType := range []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup} {
 			channel := h.th.BasicChannel.DeepCopy()
 			channel.Type = channelType
-			require.True(t, h.th.App.EnforceChannelManagementAccess(h.rctx, h.th.BasicUser.Id, channel), string(channelType))
+			require.False(t, h.th.App.EnforceChannelManagementAccess(h.rctx, h.th.BasicUser.Id, channel), string(channelType))
 		}
-		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+		requireEvaluatedOnly(t, mockACS, model.AccessControlPolicyActionDMGMWriteAccess)
+	})
+
+	t.Run("binds a system admin in a conversation", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		managementGoverned(mockACS, true)
+		decidesDMGM(mockACS, map[string]bool{model.AccessControlPolicyActionDMGMWriteAccess: false})
+
+		session := h.rctx.Session().DeepCopy()
+		session.Roles = model.SystemAdminRoleId + " " + model.SystemUserRoleId
+		rctx := WithChannelAccessMemo(h.th.Context.WithSession(session))
+		channel := h.th.BasicChannel.DeepCopy()
+		channel.Type = model.ChannelTypeGroup
+
+		require.False(t, h.th.App.EnforceChannelManagementAccess(rctx, session.UserId, channel),
+			"managing a conversation is writing to it, and dm_gm_write_access binds manage_system")
 	})
 
 	t.Run("evaluates a bot session", func(t *testing.T) {
@@ -459,6 +492,18 @@ func TestHasPermissionToChannelDoesNotEvaluatePolicy(t *testing.T) {
 			mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
 		})
 	}
+
+	t.Run("in a direct message", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		dm := h.th.CreateDmChannel(t, h.th.BasicUser2)
+		mockACS := h.mockACS(t)
+		allDMGMGoverned(mockACS)
+		decides(mockACS, false)
+
+		hasPermission, _ := h.th.App.HasPermissionToChannel(h.rctx, h.th.BasicUser.Id, dm.Id, model.PermissionCreatePost)
+		require.True(t, hasPermission)
+		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+	})
 }
 
 // Inert until ABAC is enabled and licensed — checked one precondition at a time

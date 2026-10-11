@@ -3148,6 +3148,10 @@ func (a *App) GetPostIfAuthorized(rctx request.CTX, postID string, session *mode
 	}
 
 	if !a.HasChannelReadAccess(rctx, session.UserId, channel) {
+		if channel.IsGroupOrDirect() {
+			return nil, model.NewAppError("GetPostIfAuthorized", "api.channel.dm_gm_read_access.abac_denied.app_error", nil,
+				"userId="+session.UserId+", channelId="+channel.Id, http.StatusForbidden), false
+		}
 		return nil, model.NewAppError("GetPostIfAuthorized", "api.channel.channel_read_access.abac_denied.app_error", nil,
 			"userId="+session.UserId+", channelId="+channel.Id, http.StatusForbidden), false
 	}

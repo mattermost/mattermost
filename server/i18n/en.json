@@ -655,6 +655,21 @@
     "description": "API error when a join request targets a shared channel (a channel connected across servers), which does not support discoverable join requests."
   },
   {
+    "id": "api.channel.dm_gm_read_access.abac_denied.app_error",
+    "translation": "You do not currently have access to direct and group messages.",
+    "description": "API error (403) when a permission policy denies the user the Read Direct and Group Messages action, so they cannot open or read a direct or group message."
+  },
+  {
+    "id": "api.channel.dm_gm_start.abac_denied.app_error",
+    "translation": "You can't start new direct or group messages.",
+    "description": "API error (403) when a permission policy denies the user the Start Direct and Group Messages action, so they cannot create a new direct or group message."
+  },
+  {
+    "id": "api.channel.dm_gm_write_access.abac_denied.app_error",
+    "translation": "You do not have permission to send direct or group messages.",
+    "description": "API error (403) when a permission policy denies the user the Write Direct and Group Messages action, so they cannot post in, react in or change the content of a direct or group message."
+  },
+  {
     "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
     "translation": "Channel ID does not match the channel ID of the flagged post.",
     "description": "API error in the content-flagging (post review) flow when the channel ID in the request differs from the flagged post's channel."

@@ -193,7 +193,7 @@ func (a *App) channelAccessExemptByID(rctx request.CTX, channelID string) bool {
 	if appErr != nil {
 		return false
 	}
-	return channelAccessExempt(channel)
+	return channel.IsGroupOrDirect()
 }
 
 // renderDecisionOnError returns the conservative decision for an action whose

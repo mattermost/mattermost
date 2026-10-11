@@ -176,22 +176,19 @@ func isChannelManagementPermission(permission *model.Permission) bool {
 	}
 }
 
+// The enforcement gates record the action that governs the channel, so a denial in a
+// conversation is reported as the direct and group message action.
 func (a *App) EnforceChannelReadAccess(rctx request.CTX, userID string, channel *model.Channel) bool {
 	if a.HasChannelReadAccess(rctx, userID, channel) {
 		return true
 	}
 
-	a.noteChannelAccessEnforcementDenial(rctx, userID, channel.Id, model.AccessControlPolicyActionChannelReadAccess)
+	a.noteChannelAccessEnforcementDenial(rctx, userID, channel.Id, governingAction(channel, model.AccessControlPolicyActionChannelReadAccess))
 	return false
 }
 
 func (a *App) EnforceChannelReadAccessByID(rctx request.CTX, userID, channelID string) bool {
-	if a.HasChannelReadAccessByID(rctx, userID, channelID) {
-		return true
-	}
-
-	a.noteChannelAccessEnforcementDenial(rctx, userID, channelID, model.AccessControlPolicyActionChannelReadAccess)
-	return false
+	return a.enforceChannelAccessByID(rctx, userID, channelID, model.AccessControlPolicyActionChannelReadAccess, a.EnforceChannelReadAccess)
 }
 
 func (a *App) EnforceChannelWriteAccess(rctx request.CTX, userID string, channel *model.Channel) bool {
@@ -199,17 +196,12 @@ func (a *App) EnforceChannelWriteAccess(rctx request.CTX, userID string, channel
 		return true
 	}
 
-	a.noteChannelAccessEnforcementDenial(rctx, userID, channel.Id, model.AccessControlPolicyActionChannelWriteAccess)
+	a.noteChannelAccessEnforcementDenial(rctx, userID, channel.Id, governingAction(channel, model.AccessControlPolicyActionChannelWriteAccess))
 	return false
 }
 
 func (a *App) EnforceChannelWriteAccessByID(rctx request.CTX, userID, channelID string) bool {
-	if a.channelWriteAccessDecisionByID(rctx, userID, channelID) {
-		return true
-	}
-
-	a.noteChannelAccessEnforcementDenial(rctx, userID, channelID, model.AccessControlPolicyActionChannelWriteAccess)
-	return false
+	return a.enforceChannelAccessByID(rctx, userID, channelID, model.AccessControlPolicyActionChannelWriteAccess, a.EnforceChannelWriteAccess)
 }
 
 func (a *App) EnforceChannelManagementAccess(rctx request.CTX, userID string, channel *model.Channel) bool {
@@ -217,21 +209,33 @@ func (a *App) EnforceChannelManagementAccess(rctx request.CTX, userID string, ch
 		return true
 	}
 
-	a.noteChannelAccessEnforcementDenial(rctx, userID, channel.Id, model.AccessControlPolicyActionChannelManagementAccess)
+	a.noteChannelAccessEnforcementDenial(rctx, userID, channel.Id, governingAction(channel, model.AccessControlPolicyActionChannelManagementAccess))
 	return false
 }
 
 func (a *App) EnforceChannelManagementAccessByID(rctx request.CTX, userID, channelID string) bool {
-	if a.channelManagementAccessDecisionByID(rctx, userID, channelID) {
-		return true
-	}
-
-	a.noteChannelAccessEnforcementDenial(rctx, userID, channelID, model.AccessControlPolicyActionChannelManagementAccess)
-	return false
+	return a.enforceChannelAccessByID(rctx, userID, channelID, model.AccessControlPolicyActionChannelManagementAccess, a.EnforceChannelManagementAccess)
 }
 
+// enforceChannelAccessByID resolves the channel and hands it to enforce, which records
+// the action that governs it. A channel that can't be loaded denies with action itself.
+func (a *App) enforceChannelAccessByID(rctx request.CTX, userID, channelID, action string, enforce func(request.CTX, string, *model.Channel) bool) bool {
+	evaluated := false
+	allowed := a.hasChannelAccessByID(rctx, userID, channelID, func(channel *model.Channel) bool {
+		evaluated = true
+		return enforce(rctx, userID, channel)
+	})
+	if !allowed && !evaluated {
+		a.noteChannelAccessEnforcementDenial(rctx, userID, channelID, action)
+	}
+	return allowed
+}
+
+// noteChannelAccessEnforcementDenial records a denial for the session user. A direct
+// and group message action is the same for every conversation, so it may be recorded
+// without a channel.
 func (a *App) noteChannelAccessEnforcementDenial(rctx request.CTX, userID, channelID, action string) {
-	if channelID == "" || userID != rctx.Session().UserId {
+	if (channelID == "" && !model.IsDMGMAction(action)) || userID != rctx.Session().UserId {
 		return
 	}
 
@@ -257,7 +261,7 @@ func (a *App) setupBroadcastHookForChannelReadAccess(channelID string, message *
 	rctx := request.EmptyContext(a.Log())
 	// A channel that can't be loaded here keeps the hook, which loads it again per recipient.
 	channel, appErr := a.Srv().getChannel(rctx, channelID)
-	if appErr == nil && (channelAccessExempt(channel) ||
+	if appErr == nil && (channel.IsGroupOrDirect() ||
 		!a.channelAccessGoverned(rctx, channel, model.AccessControlPolicyActionChannelReadAccess)) {
 		return
 	}
@@ -276,10 +280,15 @@ func (a *App) HasChannelReadAccess(rctx request.CTX, userID string, channel *mod
 }
 
 // channelWriteAccessDecision evaluates channel_write_access alone: a channel_read_access
-// denial does not refuse a write.
+// denial does not refuse a write. In a conversation it evaluates dm_gm_write_access,
+// bot sessions included.
 func (a *App) channelWriteAccessDecision(rctx request.CTX, userID string, channel *model.Channel) bool {
 	if !a.channelAccessGateApplies(userID, channel) {
 		return true
+	}
+
+	if channel.IsGroupOrDirect() {
+		return a.HasDMGMAccess(rctx, userID, model.AccessControlPolicyActionDMGMWriteAccess)
 	}
 
 	// Integrations are out of scope. A bot has no interactive session, so a rule
@@ -298,10 +307,19 @@ func (a *App) channelWriteAccessDecision(rctx request.CTX, userID string, channe
 }
 
 // channelManagementAccessDecision evaluates channel_management_access alone. Unlike
-// writes, bot sessions are evaluated too; system admins are never bound.
+// writes, bot sessions are evaluated too; system admins are never bound. Managing a
+// conversation is writing to it, so there it evaluates dm_gm_write_access, which binds
+// system admins too.
 func (a *App) channelManagementAccessDecision(rctx request.CTX, userID string, channel *model.Channel) bool {
-	if !a.channelAccessGateApplies(userID, channel) ||
-		!a.channelActionGoverned(rctx, channel, model.AccessControlPolicyActionChannelManagementAccess) {
+	if !a.channelAccessGateApplies(userID, channel) {
+		return true
+	}
+
+	if channel.IsGroupOrDirect() {
+		return a.HasDMGMAccess(rctx, userID, model.AccessControlPolicyActionDMGMWriteAccess)
+	}
+
+	if !a.channelActionGoverned(rctx, channel, model.AccessControlPolicyActionChannelManagementAccess) {
 		return true
 	}
 
@@ -378,16 +396,8 @@ func isChannelAccessAction(action string) bool {
 		action == model.AccessControlPolicyActionChannelManagementAccess
 }
 
-func channelAccessExempt(channel *model.Channel) bool {
-	return channel.IsGroupOrDirect()
-}
-
 func (a *App) channelAccessGateApplies(userID string, channel *model.Channel) bool {
 	if channel == nil || userID == "" {
-		return false
-	}
-
-	if channelAccessExempt(channel) {
 		return false
 	}
 
@@ -397,6 +407,12 @@ func (a *App) channelAccessGateApplies(userID string, channel *model.Channel) bo
 func (a *App) hasChannelAccess(rctx request.CTX, userID string, channel *model.Channel, action string) bool {
 	if !a.channelAccessGateApplies(userID, channel) {
 		return true
+	}
+
+	// Channel policies never apply to a conversation; the system-level direct and
+	// group message action does.
+	if channel.IsGroupOrDirect() {
+		return a.HasDMGMAccess(rctx, userID, conversationAction(action))
 	}
 
 	memo := getChannelAccessMemo(rctx)
@@ -489,6 +505,9 @@ func (a *App) FilterChannelIDsByReadAccess(rctx request.CTX, userID string, chan
 		return channelIDs
 	}
 
+	// A memo makes one evaluation cover every conversation in the list.
+	rctx = WithChannelAccessMemo(rctx)
+
 	filtered := make([]string, 0, len(channelIDs))
 	for _, channelID := range channelIDs {
 		if a.HasChannelReadAccessByID(rctx, userID, channelID) {
@@ -506,6 +525,8 @@ func (a *App) FilterChannelIDsByManagementAccess(rctx request.CTX, userID string
 		return channelIDs
 	}
 
+	rctx = WithChannelAccessMemo(rctx)
+
 	filtered := make([]string, 0, len(channelIDs))
 	for _, channelID := range channelIDs {
 		if a.channelManagementAccessDecisionByID(rctx, userID, channelID) {
@@ -520,6 +541,8 @@ func (a *App) FilterChannelMembersByReadAccess(rctx request.CTX, userID string, 
 		return members
 	}
 
+	rctx = WithChannelAccessMemo(rctx)
+
 	filtered := make(model.ChannelMembers, 0, len(members))
 	for _, member := range members {
 		if a.HasChannelReadAccessByID(rctx, userID, member.ChannelId) {
@@ -533,6 +556,8 @@ func (a *App) FilterChannelsByReadAccess(rctx request.CTX, userID string, channe
 	if len(channels) == 0 || !a.ChannelAccessEnforcementActive() {
 		return channels
 	}
+
+	rctx = WithChannelAccessMemo(rctx)
 
 	filtered := make([]*model.Channel, 0, len(channels))
 	for _, channel := range channels {
@@ -551,6 +576,8 @@ func (a *App) FilterChannelListWithTeamDataByReadAccess(rctx request.CTX, userID
 	if len(channels) == 0 || !a.ChannelAccessEnforcementActive() {
 		return channels, 0
 	}
+
+	rctx = WithChannelAccessMemo(rctx)
 
 	filtered := make(model.ChannelListWithTeamData, 0, len(channels))
 	for _, channel := range channels {
@@ -585,12 +612,6 @@ func (a *App) hasChannelAccessByID(rctx request.CTX, userID, channelID string, c
 	}
 
 	return check(channel)
-}
-
-func (a *App) channelWriteAccessDecisionByID(rctx request.CTX, userID, channelID string) bool {
-	return a.hasChannelAccessByID(rctx, userID, channelID, func(channel *model.Channel) bool {
-		return a.channelWriteAccessDecision(rctx, userID, channel)
-	})
 }
 
 func (a *App) channelManagementAccessDecisionByID(rctx request.CTX, userID, channelID string) bool {
