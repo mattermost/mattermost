@@ -2355,3 +2355,82 @@ func TestCreateBurnOnReadPostAction(t *testing.T) {
 		require.Nil(t, policy.accessPolicyVersionV0_4())
 	})
 }
+
+// TestDMGMActions covers how the direct and group message actions validate.
+// They are evaluated only against the system permission resource, so they are
+// accepted on a system permission policy and rejected on every other type.
+func TestDMGMActions(t *testing.T) {
+	t.Run("are policy actions but not v0.4 channel-rule actions", func(t *testing.T) {
+		require.Equal(t, []string{
+			AccessControlPolicyActionDMGMStart,
+			AccessControlPolicyActionDMGMReadAccess,
+			AccessControlPolicyActionDMGMWriteAccess,
+		}, DMGMActions())
+		for _, action := range DMGMActions() {
+			require.True(t, IsDMGMAction(action))
+			require.True(t, IsValidPolicyAction(action))
+			require.True(t, allowedActionsV0_3[action])
+			require.False(t, IsPermissionAction(action))
+		}
+		require.False(t, IsDMGMAction(AccessControlPolicyActionChannelReadAccess))
+	})
+
+	for _, expression := range []string{
+		`user.attributes.dept == "eng"`,
+		`user.session.ip_address.inCIDR("10.0.0.0/8")`,
+		`!user.isbot`,
+	} {
+		t.Run("accepted on a v0.3 system permission policy: "+expression, func(t *testing.T) {
+			policy := &AccessControlPolicy{
+				ID:       NewId(),
+				Type:     AccessControlPolicyTypePermission,
+				Name:     "Conversations for engineering",
+				Revision: 0,
+				Version:  AccessControlPolicyVersionV0_3,
+				Roles:    []string{SystemUserRoleId},
+				Rules: []AccessControlPolicyRule{{
+					Actions:    DMGMActions(),
+					Expression: expression,
+				}},
+			}
+			require.Nil(t, policy.IsValid())
+		})
+	}
+
+	for _, policyType := range []string{AccessControlPolicyTypeChannel, AccessControlPolicyTypeParent, AccessControlPolicyTypeTeam} {
+		t.Run("rejected on a v0.3 "+policyType+" policy", func(t *testing.T) {
+			policy := &AccessControlPolicy{
+				ID:       NewId(),
+				Type:     policyType,
+				Name:     "Not a system policy",
+				Revision: 0,
+				Version:  AccessControlPolicyVersionV0_3,
+				Rules: []AccessControlPolicyRule{{
+					Actions:    []string{AccessControlPolicyActionDMGMReadAccess},
+					Expression: "true",
+				}},
+			}
+			err := policy.IsValid()
+			require.NotNil(t, err)
+			require.Equal(t, "model.access_policy.is_valid.actions.dm_gm_type.app_error", err.Id)
+		})
+	}
+
+	t.Run("rejected on a v0.4 channel policy with name and channel role", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeChannel,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_4,
+			Rules: []AccessControlPolicyRule{{
+				Name:       "Members may message",
+				Role:       ChannelUserRoleId,
+				Actions:    []string{AccessControlPolicyActionDMGMWriteAccess},
+				Expression: "true",
+			}},
+		}
+		err := policy.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.actions.dm_gm_type.app_error", err.Id)
+	})
+}

@@ -14642,6 +14642,11 @@
     "description": ""
   },
   {
+    "id": "model.access_policy.is_valid.actions.dm_gm_type.app_error",
+    "translation": "The direct and group message actions are only allowed on system permission policies.",
+    "description": "Validation error when an access control policy rule uses the Start, Read or Write Direct and Group Messages action on a channel, parent or team policy instead of a system permission policy."
+  },
+  {
     "id": "model.access_policy.is_valid.actions.membership_combined.app_error",
     "translation": "Membership cannot be combined with other actions in the same rule.",
     "description": "Validation error for an access control policy rule; 'Membership' is a specific action type that must appear alone in a rule."

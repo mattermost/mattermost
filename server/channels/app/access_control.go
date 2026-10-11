@@ -156,6 +156,11 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		}
 	}
 
+	// Model validation runs only in the store, where its error surfaces as a 500.
+	if appErr := policy.ValidateDMGMRules(); appErr != nil {
+		return nil, appErr
+	}
+
 	callerID := ""
 	if session := rctx.Session(); session != nil {
 		callerID = session.UserId
