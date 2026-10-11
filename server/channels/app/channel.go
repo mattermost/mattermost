@@ -1402,7 +1402,6 @@ func (a *App) PatchChannelModerationsForChannel(rctx request.CTX, channel *model
 			return jsonErr
 		}
 		evt.Add("channelMember", string(memberJSON))
-		a.setupBroadcastHookForDirectAndGroupReadAccess(channel, evt)
 		a.Publish(evt)
 
 		return nil
