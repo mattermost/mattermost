@@ -281,19 +281,36 @@ describe('DynamicVirtualizedList: centered item', () => {
         expect(listRef.current!._isCenteredItemHeld()).toBe(false);
     });
 
-    test('releases the hold when a request for another position replaces it, but not for the bottom', () => {
+    test('releases the hold when the owner requests another position', () => {
         const {listRef} = setup();
-
-        // The list requests 'end' itself whenever it measures that it is at the bottom
-        act(() => {
-            listRef.current!.scrollToItem(0, 'end');
-        });
-        expect(listRef.current!._isCenteredItemHeld()).toBe(true);
 
         act(() => {
             listRef.current!.scrollToItem(2, 'start');
         });
+
         expect(listRef.current!._isCenteredItemHeld()).toBe(false);
+    });
+
+    test('releases the hold when the owner requests the bottom, e.g. after sending a message', () => {
+        const {listRef} = setup();
+        expect(listRef.current!._isCenteredItemHeld()).toBe(true);
+
+        act(() => {
+            listRef.current!.scrollToItem(0, 'end');
+        });
+
+        expect(listRef.current!._isCenteredItemHeld()).toBe(false);
+    });
+
+    test('keeps the hold when the list itself keeps the bottom', () => {
+        const {listRef} = setup();
+
+        // The list requests the bottom itself whenever it measures that it is at the bottom
+        act(() => {
+            listRef.current!._heightChange(listHeight, Number.MAX_SAFE_INTEGER);
+        });
+
+        expect(listRef.current!._isCenteredItemHeld()).toBe(true);
     });
 
     test('stops re-centering after the user interacts with the list', () => {

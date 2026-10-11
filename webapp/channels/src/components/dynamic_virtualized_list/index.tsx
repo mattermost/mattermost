@@ -189,6 +189,12 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
     }
 
     scrollToItem(index: number, align: string, offset = 0) {
+        this._scrollToItem(index, align, offset, false);
+    }
+
+    // Requests made by the list itself to keep the bottom (see _scrollToBottom) are internal. Unlike the
+    // requests made by the owner of the list, they do not end the hold of a centered item.
+    _scrollToItem(index: number, align: string, offset: number, internal: boolean) {
         const {scrollOffset} = this.state;
 
         //Ideally the below scrollTo works fine but firefox has 6px issue and stays 6px from bottom when corrected
@@ -203,9 +209,9 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
             this._centeredItemOffset = offset;
             this._centeredItemSince = Date.now();
             this._userInteracted = false;
-        } else if (align !== 'end') {
-            // A newer request for another position replaces the centered one. 'end' is requested by the
-            // list itself whenever it measures that it is at the bottom, so it does not end the hold.
+        } else if (!(internal && align === 'end')) {
+            // A newer request from the owner replaces the centered one. The list itself requests 'end'
+            // whenever it measures that it is at the bottom, which must not end the hold.
             this._releaseCenteredItem();
         }
 
@@ -470,7 +476,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
             this._listMetaData.totalMeasuredSize - atBottomMargin;
 
         if (wasAtBottom) {
-            this.scrollToItem(0, 'end');
+            this._scrollToBottom();
         }
     };
 
@@ -480,7 +486,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
             this._listMetaData.totalMeasuredSize - atBottomMargin;
 
         if (wasAtBottom) {
-            this.scrollToItem(0, 'end');
+            this._scrollToBottom();
         }
     };
 
@@ -634,7 +640,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
             this.props.correctScrollToBottom
         ) {
             this._generateOffsetMeasurements();
-            this.scrollToItem(0, 'end');
+            this._scrollToBottom();
             this.forceUpdate();
             return;
         }
@@ -681,6 +687,10 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
 
     _markUserInteracted = () => {
         this._userInteracted = true;
+    };
+
+    _scrollToBottom = () => {
+        this._scrollToItem(0, 'end', 0, true);
     };
 
     _releaseCenteredItem = () => {
@@ -755,7 +765,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
             this._generateOffsetMeasurements();
 
             if (atBottom) {
-                this.scrollToItem(0, 'end');
+                this._scrollToBottom();
             }
 
             this.forceUpdate();
