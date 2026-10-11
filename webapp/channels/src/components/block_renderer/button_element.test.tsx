@@ -134,12 +134,14 @@ describe('ButtonElement', () => {
 
         expect(button).toBeDisabled();
         expect(button).toHaveAttribute('aria-busy', 'true');
-        expect(screen.getByRole('status', {name: 'Loading'})).toBeInTheDocument();
+
+        // Compass Spinner is nested under an aria-hidden icon slot, so query the DOM directly.
+        expect(button.querySelector('[role="status"][aria-label="Loading"]')).toBeInTheDocument();
         expect(screen.getByText('Approve')).toBeInTheDocument();
 
         resolveAction();
         await waitFor(() => expect(button).not.toBeDisabled());
-        expect(screen.queryByRole('status', {name: 'Loading'})).not.toBeInTheDocument();
+        expect(button.querySelector('[role="status"][aria-label="Loading"]')).not.toBeInTheDocument();
     });
 
     it('renders emoticons in button text', () => {

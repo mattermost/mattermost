@@ -78,16 +78,23 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
                 src="test-file-stub"
               />
             </div>
-            <div
-              class="btn btn-primary btn-file"
+            <input
+              accept=".jpeg,.jpg,.png,.bmp"
+              aria-hidden="true"
+              class="hidden"
+              tabindex="-1"
+              type="file"
+            />
+            <button
+              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              type="button"
             >
-              Upload Image
-              <input
-                accept=".jpeg,.jpg,.png,.bmp"
-                class="btn-file__input"
-                type="file"
-              />
-            </div>
+              <span
+                class="_button__label_aa8j5_31"
+              >
+                Upload Image
+              </span>
+            </button>
           </div>
         </div>
         <div
@@ -320,23 +327,23 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
         <div
           class="backstage-form__footer"
         >
-          <button
-            class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
-            type="button"
+          <a
+            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+            href="/DN/integrations/bots"
           >
             <span
-              class="_button__label_doayp_24"
+              class="_button__label_aa8j5_31"
             >
               Cancel
             </span>
-          </button>
+          </a>
           <button
-            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
             id="saveBot"
             type="submit"
           >
             <span
-              class="_button__label_doayp_24"
+              class="_button__label_aa8j5_31"
             >
               Create Bot Account
             </span>
