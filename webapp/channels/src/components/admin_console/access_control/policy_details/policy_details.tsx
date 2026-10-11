@@ -3,6 +3,8 @@
 
 import cloneDeep from 'lodash/cloneDeep';
 import React, {useState, useEffect, useMemo, type JSX} from 'react';
+
+import {Button} from '@mattermost/compass-ui/components/button';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
@@ -17,7 +19,6 @@ import type {Team} from '@mattermost/types/teams';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import BlockableButton from 'components/admin_console/blockable_button';
 import BlockableLink from 'components/admin_console/blockable_link';
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
@@ -904,12 +905,17 @@ function PolicyDetails({
                         />
                     }
                 />
-                <BlockableButton to='/admin_console/system_attributes/membership_policies'>
-                    <FormattedMessage
-                        id='admin.access_control.edit_policy.cancel'
-                        defaultMessage='Cancel'
-                    />
-                </BlockableButton>
+                <Button
+                    asChild={true}
+                    emphasis='tertiary'
+                    >
+                    <BlockableLink to='/admin_console/system_attributes/membership_policies'>
+                        <FormattedMessage
+                            id='admin.access_control.edit_policy.cancel'
+                            defaultMessage='Cancel'
+                        />
+'Cancel'
+                </Button>
                 {serverError && (
                     <span className='EditPolicy__error'>
                         <i className='icon icon-alert-outline'/>

@@ -12,7 +12,6 @@ import type {Role} from '@mattermost/types/roles';
 import GeneralConstants from 'mattermost-redux/constants/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import BlockableButton from 'components/admin_console/blockable_button';
 import BlockableLink from 'components/admin_console/blockable_link';
 import ConfirmModal from 'components/confirm_modal';
 import ExternalLink from 'components/external_link';
@@ -544,15 +543,18 @@ export class PermissionSystemSchemeSettings extends React.PureComponent<Props, S
                         onClick={this.handleSubmit}
                         savingMessage={this.props.intl.formatMessage({id: 'admin.saving', defaultMessage: 'Saving Config...'})}
                     />
-                    <BlockableButton
-                        to='/admin_console/user_management/permissions'
-                        data-testid='permission-scheme-cancel-button'
-                    >
-                        <FormattedMessage
-                            id='admin.permissions.permissionSchemes.cancel'
-                            defaultMessage='Cancel'
-                        />
-                    </BlockableButton>
+                                        <Button
+                                            asChild={true}
+                                            emphasis='tertiary'
+                                            data-testid='permission-scheme-cancel-button'
+                                            >
+                                            <BlockableLink to='/admin_console/user_management/permissions'>
+                                                <FormattedMessage
+                                                    id='admin.permissions.permissionSchemes.cancel'
+                                                    defaultMessage='Cancel'
+                                                />
+'Cancel'
+                                        </Button>
                     <Button
                         data-testid='resetPermissionsToDefault'
                         onClick={() => this.setState({showResetDefaultModal: true})}

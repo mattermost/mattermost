@@ -3,6 +3,8 @@
 
 import classNames from 'classnames';
 import React, {useCallback, useEffect, useMemo, useRef, useState, type JSX, type ReactNode} from 'react';
+
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
@@ -17,7 +19,6 @@ import type {PropertyFieldOwner} from '@mattermost/types/properties_user';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
-import BlockableButton from 'components/admin_console/blockable_button';
 import BlockableLink from 'components/admin_console/blockable_link';
 import {findRankCollision, isValidRank} from 'components/admin_console/system_properties/rank_utils';
 import Card from 'components/card/card';
@@ -1816,12 +1817,15 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     onClick={handleSave}
                     defaultMessage={<FormattedMessage {...messages.save}/>}
                 />
-                <BlockableButton
-                    to={LIST_ROUTE}
-                    data-testid='attributeCancelLink'
-                >
-                    <FormattedMessage {...messages.cancel}/>
-                </BlockableButton>
+                                <Button
+                                    asChild={true}
+                                    emphasis='tertiary'
+                                    data-testid='attributeCancelLink'
+                                    >
+                                    <BlockableLink to={LIST_ROUTE}>
+                                        <FormattedMessage {...messages.cancel}/>
+                                    </BlockableLink>
+                                </Button>
                 {errorKind && (
                     <span
                         id='attribute-save-error'

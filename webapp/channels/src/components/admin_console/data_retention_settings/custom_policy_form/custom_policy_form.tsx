@@ -2,6 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX} from 'react';
+
+import {Button} from '@mattermost/compass-ui/components/button';
 import {defineMessages, FormattedMessage} from 'react-intl';
 
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
@@ -15,7 +17,6 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import BlockableButton from 'components/admin_console/blockable_button';
 import BlockableLink from 'components/admin_console/blockable_link';
 import ChannelList from 'components/admin_console/data_retention_settings/channel_list';
 import {keepForeverOption, yearsOption, daysOption, FOREVER, YEARS} from 'components/admin_console/data_retention_settings/dropdown_options/dropdown_options';
@@ -535,12 +536,17 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                             />
                         )}
                     />
-                    <BlockableButton to='/admin_console/compliance/data_retention_settings'>
-                        <FormattedMessage
-                            id='admin.data_retention.custom_policy.cancel'
-                            defaultMessage='Cancel'
-                        />
-                    </BlockableButton>
+                    <Button
+                        asChild={true}
+                        emphasis='tertiary'
+                        >
+                        <BlockableLink to='/admin_console/compliance/data_retention_settings'>
+                            <FormattedMessage
+                                id='admin.data_retention.custom_policy.cancel'
+                                defaultMessage='Cancel'
+                            />
+'Cancel'
+                    </Button>
                     {serverError &&
                         <span className='CustomPolicy__error'>
                             <i className='icon icon-alert-outline'/>

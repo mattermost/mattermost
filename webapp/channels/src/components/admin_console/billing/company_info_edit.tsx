@@ -3,15 +3,17 @@
 
 import {getName} from 'country-list';
 import React, {useCallback, useEffect, useState} from 'react';
+
 import {defineMessage, FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
+
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import {getCloudCustomer, updateCloudCustomer, updateCloudCustomerAddress} from 'mattermost-redux/actions/cloud';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
-import BlockableButton from 'components/admin_console/blockable_button';
 import BlockableLink from 'components/admin_console/blockable_link';
 import CountrySelector from 'components/payment_form/country_selector';
 import StateSelector from 'components/payment_form/state_selector';
@@ -284,12 +286,17 @@ const CompanyInfoEdit: React.FC<Props> = () => {
                         />
                     )}
                 />
-                <BlockableButton to='/admin_console/billing/company_info'>
-                    <FormattedMessage
-                        id='admin.billing.company_info_edit.cancel'
-                        defaultMessage='Cancel'
-                    />
-                </BlockableButton>
+                <Button
+                    asChild={true}
+                    emphasis='tertiary'
+                    >
+                    <BlockableLink to='/admin_console/billing/company_info'>
+                        <FormattedMessage
+                            id='admin.billing.company_info_edit.cancel'
+                            defaultMessage='Cancel'
+                        />
+'Cancel'
+                </Button>
             </div>
         </div>
     );

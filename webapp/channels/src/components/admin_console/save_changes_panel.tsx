@@ -6,7 +6,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import {Button} from '@mattermost/compass-ui/components/button';
 
-import BlockableButton from 'components/admin_console/blockable_button';
+import BlockableLink from 'components/admin_console/blockable_link';
 import SaveButton from 'components/save_button';
 
 type Props = {
@@ -44,12 +44,15 @@ const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink,
             />
             {showCancel && (
                 cancelLink ? (
-                    <BlockableButton
+                    <Button
+                        asChild={true}
+                        emphasis='tertiary'
                         id='cancelButtonSettings'
-                        to={cancelLink}
                     >
-                        {cancelLabel}
-                    </BlockableButton>
+                        <BlockableLink to={cancelLink}>
+                            {cancelLabel}
+                        </BlockableLink>
+                    </Button>
                 ) : (
                     <Button
                         id='cancelButtonSettings'

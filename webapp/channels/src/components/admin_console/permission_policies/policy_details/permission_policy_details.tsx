@@ -2,6 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect, useCallback, useMemo, type JSX} from 'react';
+
+import {Button} from '@mattermost/compass-ui/components/button';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -16,7 +18,6 @@ import {isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/gen
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SimulateAccessModal from 'components/admin_console/access_control/modals/simulate_access/simulate_access_modal';
-import BlockableButton from 'components/admin_console/blockable_button';
 import BlockableLink from 'components/admin_console/blockable_link';
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
@@ -867,12 +868,17 @@ function PermissionPolicyDetails({
                                 />
                             }
                         />
-                        <BlockableButton to='/admin_console/system_attributes/permission_policies'>
-                            <FormattedMessage
-                                id='admin.permission_policies.edit.cancel'
-                                defaultMessage='Cancel'
-                            />
-                        </BlockableButton>
+                        <Button
+                            asChild={true}
+                            emphasis='tertiary'
+                            >
+                            <BlockableLink to='/admin_console/system_attributes/permission_policies'>
+                                <FormattedMessage
+                                    id='admin.permission_policies.edit.cancel'
+                                    defaultMessage='Cancel'
+                                />
+'Cancel'
+                        </Button>
                         {serverError && (
                             <span className='pp-error'>
                                 <i className='icon icon-alert-outline'/>
