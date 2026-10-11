@@ -56,6 +56,23 @@ var renderableABACActions = map[string]renderableActionConfig{
 		DefaultWhenInactive: true,
 		FailClosedOnError:   true,
 	},
+	// The direct and group message actions are asked about the system resource
+	// {permission, ""}: their answer is the same for every conversation.
+	model.AccessControlPolicyActionDMGMStart: {
+		ResourceType:        model.AccessControlPolicyTypePermission,
+		DefaultWhenInactive: true,
+		FailClosedOnError:   true,
+	},
+	model.AccessControlPolicyActionDMGMReadAccess: {
+		ResourceType:        model.AccessControlPolicyTypePermission,
+		DefaultWhenInactive: true,
+		FailClosedOnError:   true,
+	},
+	model.AccessControlPolicyActionDMGMWriteAccess: {
+		ResourceType:        model.AccessControlPolicyTypePermission,
+		DefaultWhenInactive: true,
+		FailClosedOnError:   true,
+	},
 }
 
 // SearchAllowedActionsForCurrentUser computes non-authoritative, render-time ABAC
@@ -115,6 +132,11 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 		if d.Allowed {
 			resp.Results = append(resp.Results, model.ActionSearchResult{Action: model.ActionSearchResultAction{Name: action}})
 		}
+	}
+
+	if req.Resource.Type == model.AccessControlPolicyTypePermission {
+		a.searchAllowedDMGMActions(rctx, candidates, record)
+		return resp, nil
 	}
 
 	// No active policy — return per-action defaults.
@@ -186,6 +208,32 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 	}
 
 	return resp, nil
+}
+
+// searchAllowedDMGMActions renders the direct and group message actions with the
+// evaluation enforcement uses, so the render matches the gate by construction. It is
+// inactive under the same licence and config check as enforcement.
+func (a *App) searchAllowedDMGMActions(rctx request.CTX, candidates []string, record func(string, model.RenderPermissionDecision)) {
+	active := a.ChannelAccessEnforcementActive()
+	for _, action := range candidates {
+		if !active {
+			record(action, model.RenderPermissionDecision{
+				Allowed:   renderableABACActions[action].DefaultWhenInactive,
+				Evaluated: true,
+			})
+			continue
+		}
+
+		allowed, appErr := a.evaluateDMGMAccess(rctx, rctx.Session().UserId, action)
+		if appErr != nil {
+			record(action, renderDecisionOnError(action))
+			continue
+		}
+		record(action, model.RenderPermissionDecision{
+			Allowed:   allowed,
+			Evaluated: true,
+		})
+	}
 }
 
 func (a *App) channelAccessExemptByID(rctx request.CTX, channelID string) bool {

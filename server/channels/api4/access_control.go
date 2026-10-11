@@ -95,12 +95,20 @@ func searchAccessControlDecisionActions(c *Context, w http.ResponseWriter, r *ht
 		c.Err = appErr
 		return
 	}
-	// Fail closed on resource types we can't authorize: only channel decisions are exposed
-	// today, so anything else is rejected rather than silently skipping the access check.
+	// Fail closed on resource types we can't authorize: only channel and system
+	// permission decisions are exposed, so anything else is rejected rather than
+	// silently skipping the access check.
 	switch req.Resource.Type {
 	case model.AccessControlPolicyTypeChannel:
 		if hasPermission, _ := c.App.SessionHasPermissionToChannelRBACOnly(c.AppContext, *c.AppContext.Session(), req.Resource.ID, model.PermissionReadChannel); !hasPermission {
 			c.SetPermissionError(model.PermissionReadChannel)
+			return
+		}
+	case model.AccessControlPolicyTypePermission:
+		// The system resource is about the session user alone, so there is nothing to
+		// authorize, but only the system resource itself has decisions.
+		if req.Resource.ID != "" {
+			c.Err = model.NewAppError("searchAccessControlDecisionActions", "api.access_control.decision.unsupported_resource_type.app_error", map[string]any{"Type": req.Resource.Type}, "", http.StatusBadRequest)
 			return
 		}
 	default:

@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -322,4 +323,127 @@ func TestDMGMGetPostIfAuthorized(t *testing.T) {
 	require.NotNil(t, appErr)
 	require.Equal(t, "api.channel.dm_gm_read_access.abac_denied.app_error", appErr.Id)
 	require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+}
+
+func TestSearchAllowedActionsDMGM(t *testing.T) {
+	systemResource := model.Resource{Type: model.AccessControlPolicyTypePermission, ID: ""}
+	search := func(t *testing.T, h *channelReadAccessHarness, actions []string) *model.ActionSearchResponse {
+		t.Helper()
+		resp, appErr := h.th.App.SearchAllowedActionsForCurrentUser(h.rctx, model.ActionSearchRequest{
+			Resource: systemResource,
+			Actions:  actions,
+		})
+		require.Nil(t, appErr)
+		return resp
+	}
+
+	t.Run("targeted and discovery modes return the three actions", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		allDMGMGoverned(mockACS)
+		decidesDMGM(mockACS, map[string]bool{
+			model.AccessControlPolicyActionDMGMStart:       true,
+			model.AccessControlPolicyActionDMGMReadAccess:  false,
+			model.AccessControlPolicyActionDMGMWriteAccess: true,
+		})
+
+		targeted := search(t, h, model.DMGMActions())
+		discovered := search(t, h, nil)
+		for _, resp := range []*model.ActionSearchResponse{targeted, discovered} {
+			require.Equal(t, systemResource, resp.Resource)
+			require.Len(t, resp.Decisions, 3)
+			require.Equal(t, model.RenderPermissionDecision{Allowed: true, Evaluated: true}, resp.Decisions[model.AccessControlPolicyActionDMGMStart])
+			require.Equal(t, model.RenderPermissionDecision{Allowed: false, Evaluated: true}, resp.Decisions[model.AccessControlPolicyActionDMGMReadAccess])
+			require.Equal(t, model.RenderPermissionDecision{Allowed: true, Evaluated: true}, resp.Decisions[model.AccessControlPolicyActionDMGMWriteAccess])
+			require.Len(t, resp.Results, 2)
+		}
+	})
+
+	for name, disable := range map[string]func(h *channelReadAccessHarness){
+		"ABAC disabled": func(h *channelReadAccessHarness) {
+			h.th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = false
+			})
+		},
+		// The channel branch skips the licence check; this one matches enforcement.
+		"unlicensed": func(h *channelReadAccessHarness) {
+			h.th.App.Srv().SetLicense(nil)
+		},
+	} {
+		t.Run(name+" allows without consulting the access control service", func(t *testing.T) {
+			h := setupChannelReadAccessTest(t)
+			mockACS := h.mockACS(t)
+			disable(h)
+
+			resp := search(t, h, nil)
+			require.Len(t, resp.Decisions, 3)
+			for _, action := range model.DMGMActions() {
+				require.Equal(t, model.RenderPermissionDecision{Allowed: true, Evaluated: true}, resp.Decisions[action])
+			}
+			require.Empty(t, mockACS.Calls)
+		})
+	}
+
+	t.Run("an ungoverned action is allowed without evaluating", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(false, nil)
+
+		resp := search(t, h, nil)
+		require.Len(t, resp.Results, 3)
+		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+	})
+
+	t.Run("an evaluation error denies with a reason", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		allDMGMGoverned(mockACS)
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{}, model.NewAppError("AccessEvaluation", "boom", nil, "", http.StatusInternalServerError))
+
+		resp := search(t, h, []string{model.AccessControlPolicyActionDMGMReadAccess})
+		require.Equal(t, model.RenderPermissionDecision{
+			Allowed:   false,
+			Evaluated: true,
+			Reason:    model.RenderDecisionReasonRestrictedByPolicy,
+		}, resp.Decisions[model.AccessControlPolicyActionDMGMReadAccess])
+	})
+
+	t.Run("the actions are rejected on a channel resource and channel actions on the system resource", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+
+		_, appErr := h.th.App.SearchAllowedActionsForCurrentUser(h.rctx, model.ActionSearchRequest{
+			Resource: model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: h.th.BasicChannel.Id},
+			Actions:  []string{model.AccessControlPolicyActionDMGMReadAccess},
+		})
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+		_, appErr = h.th.App.SearchAllowedActionsForCurrentUser(h.rctx, model.ActionSearchRequest{
+			Resource: systemResource,
+			Actions:  []string{model.AccessControlPolicyActionChannelReadAccess},
+		})
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	for _, want := range []bool{true, false} {
+		t.Run(fmt.Sprintf("render matches enforcement (pdp=%v)", want), func(t *testing.T) {
+			h := setupChannelReadAccessTest(t)
+			mockACS := h.mockACS(t)
+			allDMGMGoverned(mockACS)
+			decidesDMGM(mockACS, map[string]bool{
+				model.AccessControlPolicyActionDMGMStart:       want,
+				model.AccessControlPolicyActionDMGMReadAccess:  want,
+				model.AccessControlPolicyActionDMGMWriteAccess: want,
+			})
+
+			resp := search(t, h, nil)
+			for _, action := range model.DMGMActions() {
+				enforced := h.th.App.HasDMGMAccess(WithChannelAccessMemo(h.th.Context.WithSession(h.rctx.Session())), h.th.BasicUser.Id, action)
+				require.Equal(t, want, enforced)
+				require.Equal(t, enforced, resp.Decisions[action].Allowed, action)
+			}
+		})
+	}
 }

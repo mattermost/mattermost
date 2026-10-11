@@ -253,3 +253,87 @@ func TestSearchAccessControlDecisionActionsChannelManagementAccess(t *testing.T)
 	require.NoError(t, err)
 	require.Contains(t, discovered.Decisions, model.AccessControlPolicyActionChannelManagementAccess)
 }
+
+// The direct and group message actions are asked about the system resource
+// {permission, ""}, never a conversation.
+func TestSearchAccessControlDecisionActionsDMGM(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+	}).InitBasic(t)
+
+	systemResource := model.Resource{Type: model.AccessControlPolicyTypePermission, ID: ""}
+
+	t.Run("discovery mode returns the three actions allowed when ABAC is inactive", func(t *testing.T) {
+		out, resp, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
+			Resource: systemResource,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, systemResource, out.Resource)
+		require.Len(t, out.Decisions, 3)
+		require.Len(t, out.Results, 3)
+		for _, action := range model.DMGMActions() {
+			require.Equal(t, model.RenderPermissionDecision{Allowed: true, Evaluated: true}, out.Decisions[action])
+		}
+	})
+
+	t.Run("returns the PDP decision for the session user", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = false
+			})
+		})
+		mockACS := installMockACS(t, th)
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionDMGMReadAccess &&
+				req.Resource == systemResource &&
+				req.Subject.ID == th.BasicUser.Id
+		})).Return(model.AccessDecision{Decision: false}, nil)
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{Decision: true}, nil)
+
+		out, resp, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
+			Resource: systemResource,
+			Actions:  model.DMGMActions(),
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, model.RenderPermissionDecision{Allowed: false, Evaluated: true}, out.Decisions[model.AccessControlPolicyActionDMGMReadAccess])
+		require.True(t, out.Decisions[model.AccessControlPolicyActionDMGMStart].Allowed)
+		require.True(t, out.Decisions[model.AccessControlPolicyActionDMGMWriteAccess].Allowed)
+		require.Len(t, out.Results, 2)
+	})
+
+	t.Run("a permission resource with an id returns bad request", func(t *testing.T) {
+		_, resp, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
+			Resource: model.Resource{Type: model.AccessControlPolicyTypePermission, ID: th.BasicChannel.Id},
+			Actions:  model.DMGMActions(),
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		require.Equal(t, "api.access_control.decision.unsupported_resource_type.app_error", err.(*model.AppError).Id)
+	})
+
+	t.Run("a channel action on the system resource returns bad request", func(t *testing.T) {
+		_, resp, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
+			Resource: systemResource,
+			Actions:  []string{model.AccessControlPolicyActionChannelReadAccess},
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("a direct and group message action on a channel returns bad request", func(t *testing.T) {
+		_, resp, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
+			Resource: model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: th.BasicChannel.Id},
+			Actions:  []string{model.AccessControlPolicyActionDMGMReadAccess},
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+}
