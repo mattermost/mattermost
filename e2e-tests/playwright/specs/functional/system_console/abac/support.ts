@@ -1353,6 +1353,9 @@ export async function createPermissionPolicy(
             | 'Channel Write Access'
             | 'Manage Channel'
             | 'Create Burn-on-Read Message'
+            | 'Start Direct and Group Messages'
+            | 'Read Direct and Group Messages'
+            | 'Write Direct and Group Messages'
         >;
         role?: 'system_guest' | 'system_user' | 'system_admin';
         adminClient?: Client4;
@@ -1425,6 +1428,9 @@ export async function createPermissionPolicy(
         'Channel Write Access': 'pp-add-permission-channel_write_access',
         'Manage Channel': 'pp-add-permission-channel_management_access',
         'Create Burn-on-Read Message': 'pp-add-permission-create_burn_on_read_post',
+        'Start Direct and Group Messages': 'pp-add-permission-dm_gm_start',
+        'Read Direct and Group Messages': 'pp-add-permission-dm_gm_read_access',
+        'Write Direct and Group Messages': 'pp-add-permission-dm_gm_write_access',
     };
     for (const permission of options.permissions) {
         await page.getByRole('button', {name: 'Add permission'}).click();
@@ -1433,10 +1439,14 @@ export async function createPermissionPolicy(
 
     await page.getByRole('button', {name: 'Save'}).last().click();
 
-    // A policy with Channel Read Access or Manage Channel shows a confirmation dialog
-    // before saving. Channel Write Access and file-only policies save straight through,
+    // A policy with Channel Read Access, Manage Channel or Read Direct and Group Messages
+    // shows a confirmation dialog before saving. The other actions save straight through,
     // so the dialog is optional.
-    if (options.permissions.includes('Channel Read Access') || options.permissions.includes('Manage Channel')) {
+    if (
+        options.permissions.includes('Channel Read Access') ||
+        options.permissions.includes('Manage Channel') ||
+        options.permissions.includes('Read Direct and Group Messages')
+    ) {
         const confirmModal = page.locator('#channel-access-confirm-modal');
         await confirmModal.waitFor({state: 'visible'});
         await confirmModal.getByRole('button', {name: 'Save policy'}).click();
