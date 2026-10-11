@@ -119,7 +119,12 @@ func (*groupmsgProvider) DoCommand(a *app.App, rctx request.CTX, args *model.Com
 		rctx.Logger().Error(channelErr.Error())
 		return &model.CommandResponse{Text: args.T("api.command_groupmsg.group_fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
-	if groupChannel == nil {
+	if groupChannel != nil {
+		// Reopening a conversation is reading it.
+		if rctx.Session().UserId == args.UserId && !a.HasChannelReadAccess(rctx, args.UserId, groupChannel) {
+			return &model.CommandResponse{Text: args.T("api.channel.dm_gm_read_access.abac_denied.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
+		}
+	} else {
 		if !a.HasPermissionTo(rctx, args.UserId, model.PermissionCreateGroupChannel) {
 			return &model.CommandResponse{Text: args.T("api.command_groupmsg.permission.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}

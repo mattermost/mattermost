@@ -101,6 +101,10 @@ func (*msgProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandA
 			return &model.CommandResponse{Text: args.T("api.command_msg.dm_fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 	} else {
+		// Reopening a conversation is reading it.
+		if rctx.Session().UserId == args.UserId && !a.HasChannelReadAccess(rctx, args.UserId, channel) {
+			return &model.CommandResponse{Text: args.T("api.channel.dm_gm_read_access.abac_denied.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
+		}
 		targetChannelID = channel.Id
 	}
 

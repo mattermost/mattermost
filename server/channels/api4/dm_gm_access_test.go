@@ -729,6 +729,7 @@ func TestDMGMStartCreateGroupChannel(t *testing.T) {
 
 const (
 	dmGmStartDeniedText = "You can't start new direct or group messages."
+	dmGmReadDeniedText  = "You do not currently have access to direct and group messages."
 	dmGmWriteDeniedText = "You do not have permission to send direct or group messages."
 )
 
@@ -774,6 +775,36 @@ func TestDMGMSlashCommands(t *testing.T) {
 		require.NoError(t, err)
 		require.Empty(t, resp.Text)
 		require.Equal(t, before+1, postCount(t, th, dm.Id))
+	})
+
+	// Reopening a conversation is reading it, as for POST /channels/direct.
+	t.Run("/msg to an existing DM is refused when Read denies", func(t *testing.T) {
+		th := setupDMGMServer(t)
+		dm := th.CreateDmChannel(t, th.BasicUser2)
+		before := postCount(t, th, dm.Id)
+		installDMGMDecisions(t, th, map[string]bool{model.AccessControlPolicyActionDMGMReadAccess: false})
+
+		resp, _, err := th.Client.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/msg @"+th.BasicUser2.Username+" hello")
+		require.NoError(t, err)
+		require.Equal(t, dmGmReadDeniedText, resp.Text)
+		require.Empty(t, resp.GotoLocation, "a hidden conversation must not be navigated to")
+		require.Equal(t, before, postCount(t, th, dm.Id), "nothing may be posted")
+	})
+
+	t.Run("/groupmsg to an existing group is refused when Read denies", func(t *testing.T) {
+		th := setupDMGMServer(t)
+		other := th.CreateUser(t)
+		th.LinkUserToTeam(t, other, th.BasicTeam)
+		gm, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, other.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		before := postCount(t, th, gm.Id)
+		installDMGMDecisions(t, th, map[string]bool{model.AccessControlPolicyActionDMGMReadAccess: false})
+
+		resp, _, err := th.Client.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/groupmsg @"+th.BasicUser2.Username+",@"+other.Username+" hello")
+		require.NoError(t, err)
+		require.Equal(t, dmGmReadDeniedText, resp.Text)
+		require.Empty(t, resp.GotoLocation, "a hidden conversation must not be navigated to")
+		require.Equal(t, before, postCount(t, th, gm.Id), "nothing may be posted")
 	})
 
 	t.Run("/groupmsg to a new group needs Start", func(t *testing.T) {
