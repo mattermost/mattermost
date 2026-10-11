@@ -144,6 +144,7 @@ export {
 export type {EnableAutotranslationOptions} from './autotranslation_helpers';
 export {
     hasAutotranslationLicense,
+    hasEnterpriseLicense,
     hasSharedChannelsLicense,
     hasCustomPermissionsSchemesLicense,
     licenseTier,
