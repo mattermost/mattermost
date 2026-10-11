@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -864,6 +865,10 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !requireConversationOpenOrStart(c, model.GetDMNameFromIds(userIds[0], userIds[1]), model.PermissionCreateDirectChannel) {
+		return
+	}
+
 	sc, appErr := c.App.GetOrCreateDirectChannel(c.AppContext, userIds[0], userIds[1])
 	if appErr != nil {
 		c.Err = appErr
@@ -992,6 +997,14 @@ func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !canSeeAll {
 		c.SetPermissionError(model.PermissionViewMembers)
 		return
+	}
+
+	// Outside the size bounds CreateGroupChannel refuses with its own 400.
+	if len(userIds) >= model.ChannelGroupMinUsers && len(userIds) <= model.ChannelGroupMaxUsers {
+		// GetGroupNameFromUserIds sorts in place.
+		if !requireConversationOpenOrStart(c, model.GetGroupNameFromUserIds(slices.Clone(userIds)), model.PermissionCreateGroupChannel) {
+			return
+		}
 	}
 
 	groupChannel, appErr := c.App.CreateGroupChannel(c.AppContext, userIds, c.AppContext.Session().UserId)
@@ -1175,6 +1188,21 @@ func requireDMGMAccess(c *Context, action string, rbacPermission *model.Permissi
 	}
 	c.SetPermissionError(rbacPermission)
 	return false
+}
+
+// requireConversationOpenOrStart gates opening the conversation with the given name.
+// Reopening an existing conversation is reading it; only creating one is starting it.
+// Both are evaluated on the session, whoever the conversation is for.
+func requireConversationOpenOrStart(c *Context, name string, rbacPermission *model.Permission) bool {
+	existing, appErr := c.App.GetDirectOrGroupChannelByName(c.AppContext, name)
+	if appErr != nil {
+		c.Err = appErr
+		return false
+	}
+	if existing != nil {
+		return requireChannelReadAccess(c, existing)
+	}
+	return requireDMGMAccess(c, model.AccessControlPolicyActionDMGMStart, rbacPermission)
 }
 
 func requireChannelReadAccessForIDs(c *Context, channelIDs []string) (kept []string, ok bool) {

@@ -503,3 +503,354 @@ func TestDMGMReadAccessHidesConversationsFromLists(t *testing.T) {
 		}
 	})
 }
+
+const dmGmStartDeniedErrorID = "api.channel.dm_gm_start.abac_denied.app_error"
+
+// setupDMGMServer stands up a licensed server with attribute-based access control on
+// and no mock installed yet, so a test can create its fixtures first.
+func setupDMGMServer(t *testing.T) *TestHelper {
+	t.Helper()
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+		*cfg.EmailSettings.SendPushNotifications = false
+	})
+	return th
+}
+
+// installDMGMDecisions governs every action, answers the listed direct and group
+// message actions for any subject, and allows every other evaluation.
+func installDMGMDecisions(t *testing.T, th *TestHelper, allow map[string]bool) *mocks.AccessControlServiceInterface {
+	t.Helper()
+
+	mockACS := installMockACS(t, th)
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
+	for action, allowed := range allow {
+		mockACS.On("AccessEvaluation", mock.Anything, dmGmEvaluation(action)).
+			Return(model.AccessDecision{Decision: allowed}, nil)
+	}
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, nil)
+	return mockACS
+}
+
+// evaluatedSubjects lists the subject ids action was evaluated for.
+func evaluatedSubjects(mockACS *mocks.AccessControlServiceInterface, action string) []string {
+	var subjects []string
+	for _, call := range mockACS.Calls {
+		if call.Method != "AccessEvaluation" {
+			continue
+		}
+		if req := call.Arguments.Get(1).(model.AccessRequest); req.Action == action {
+			subjects = append(subjects, req.Subject.ID)
+		}
+	}
+	return subjects
+}
+
+func requireAppErrorID(t *testing.T, err error, wantID string) {
+	t.Helper()
+	require.Error(t, err)
+	appErr, ok := err.(*model.AppError)
+	require.True(t, ok, "expected an AppError, got %T", err)
+	require.Equal(t, wantID, appErr.Id)
+}
+
+func requireNoConversation(t *testing.T, th *TestHelper, name string) {
+	t.Helper()
+	channel, appErr := th.App.GetDirectOrGroupChannelByName(th.Context, name)
+	require.Nil(t, appErr)
+	require.Nil(t, channel, "nothing may be created when Start is denied")
+}
+
+func TestDMGMStartCreateDirectChannel(t *testing.T) {
+	startDenied := map[string]bool{model.AccessControlPolicyActionDMGMStart: false}
+
+	t.Run("a new DM needs Start", func(t *testing.T) {
+		th := setupDMGMServer(t)
+		other := th.CreateUser(t)
+		installDMGMDecisions(t, th, startDenied)
+
+		_, resp, err := th.Client.CreateDirectChannel(context.Background(), th.BasicUser.Id, other.Id)
+		CheckForbiddenStatus(t, resp)
+		requireAppErrorID(t, err, dmGmStartDeniedErrorID)
+		requireNoConversation(t, th, model.GetDMNameFromIds(th.BasicUser.Id, other.Id))
+	})
+
+	t.Run("a new DM is created when Start allows", func(t *testing.T) {
+		th := setupDMGMServer(t)
+		other := th.CreateUser(t)
+		installDMGMDecisions(t, th, map[string]bool{model.AccessControlPolicyActionDMGMStart: true})
+
+		_, resp, err := th.Client.CreateDirectChannel(context.Background(), th.BasicUser.Id, other.Id)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
+	t.Run("a new self-DM needs Start", func(t *testing.T) {
+		th := setupDMGMServer(t)
+		installDMGMDecisions(t, th, startDenied)
+
+		_, resp, err := th.Client.CreateDirectChannel(context.Background(), th.BasicUser.Id, th.BasicUser.Id)
+		CheckForbiddenStatus(t, resp)
+		requireAppErrorID(t, err, dmGmStartDeniedErrorID)
+	})
+
+	t.Run("reopening an existing DM is governed by Read, not Start", func(t *testing.T) {
+		th := setupDMGMServer(t)
+		th.CreateDmChannel(t, th.BasicUser2)
+		mockACS := installDMGMDecisions(t, th, startDenied)
+
+		_, resp, err := th.Client.CreateDirectChannel(context.Background(), th.BasicUser.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Empty(t, evaluatedSubjects(mockACS, model.AccessControlPolicyActionDMGMStart))
+	})
+
+	t.Run("reopening an existing DM is refused when Read denies", func(t *testing.T) {
+		th := setupDMGMServer(t)
+		th.CreateDmChannel(t, th.BasicUser2)
+		installDMGMDecisions(t, th, map[string]bool{model.AccessControlPolicyActionDMGMReadAccess: false})
+
+		_, resp, err := th.Client.CreateDirectChannel(context.Background(), th.BasicUser.Id, th.BasicUser2.Id)
+		CheckForbiddenStatus(t, resp)
+		requireAppErrorID(t, err, dmGmReadDeniedErrorID)
+	})
+
+	t.Run("an admin creating a DM for two others is evaluated on their own session", func(t *testing.T) {
+		th := setupDMGMServer(t)
+		other := th.CreateUser(t)
+		mockACS := installDMGMDecisions(t, th, startDenied)
+
+		_, resp, err := th.SystemAdminClient.CreateDirectChannel(context.Background(), th.BasicUser.Id, other.Id)
+		CheckForbiddenStatus(t, resp)
+		requireAppErrorID(t, err, dmGmStartDeniedErrorID)
+		require.Equal(t, []string{th.SystemAdminUser.Id}, evaluatedSubjects(mockACS, model.AccessControlPolicyActionDMGMStart))
+	})
+
+	t.Run("an RBAC denial wins without evaluating", func(t *testing.T) {
+		th := setupDMGMServer(t)
+		other := th.CreateUser(t)
+		th.RemovePermissionFromRole(t, model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
+		t.Cleanup(func() { th.AddPermissionToRole(t, model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId) })
+		mockACS := installDMGMDecisions(t, th, startDenied)
+
+		_, resp, err := th.Client.CreateDirectChannel(context.Background(), th.BasicUser.Id, other.Id)
+		CheckForbiddenStatus(t, resp)
+		requireAppErrorID(t, err, "api.context.permissions.app_error")
+		require.Empty(t, evaluatedSubjects(mockACS, model.AccessControlPolicyActionDMGMStart))
+	})
+
+	t.Run("a bot using a personal access token is evaluated", func(t *testing.T) {
+		th := setupDMGMServer(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+		})
+		bot := th.CreateBotWithSystemAdminClient(t)
+		token, appErr := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{UserId: bot.UserId, Description: "dm gm start"})
+		require.Nil(t, appErr)
+		mockACS := installDMGMDecisions(t, th, startDenied)
+
+		client := th.CreateClient()
+		client.SetToken(token.Token)
+		_, resp, err := client.CreateDirectChannel(context.Background(), bot.UserId, th.BasicUser.Id)
+		CheckForbiddenStatus(t, resp)
+		requireAppErrorID(t, err, dmGmStartDeniedErrorID)
+		require.Equal(t, []string{bot.UserId}, evaluatedSubjects(mockACS, model.AccessControlPolicyActionDMGMStart))
+	})
+}
+
+func TestDMGMStartCreateGroupChannel(t *testing.T) {
+	t.Run("a new GM needs Start", func(t *testing.T) {
+		th := setupDMGMServer(t)
+		other := th.CreateUser(t)
+		installDMGMDecisions(t, th, map[string]bool{model.AccessControlPolicyActionDMGMStart: false})
+
+		ids := []string{th.BasicUser.Id, th.BasicUser2.Id, other.Id}
+		_, resp, err := th.Client.CreateGroupChannel(context.Background(), ids)
+		CheckForbiddenStatus(t, resp)
+		requireAppErrorID(t, err, dmGmStartDeniedErrorID)
+		requireNoConversation(t, th, model.GetGroupNameFromUserIds(ids))
+	})
+
+	t.Run("a new GM is created when Start allows", func(t *testing.T) {
+		th := setupDMGMServer(t)
+		other := th.CreateUser(t)
+		installDMGMDecisions(t, th, map[string]bool{model.AccessControlPolicyActionDMGMStart: true})
+
+		// The session user is left out of the request; the handler adds them.
+		_, resp, err := th.Client.CreateGroupChannel(context.Background(), []string{th.BasicUser2.Id, other.Id})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
+	t.Run("reopening an existing GM is governed by Read, not Start", func(t *testing.T) {
+		th := setupDMGMServer(t)
+		other := th.CreateUser(t)
+		ids := []string{th.BasicUser.Id, th.BasicUser2.Id, other.Id}
+		_, appErr := th.App.CreateGroupChannel(th.Context, ids, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		mockACS := installDMGMDecisions(t, th, map[string]bool{model.AccessControlPolicyActionDMGMStart: false})
+
+		_, resp, err := th.Client.CreateGroupChannel(context.Background(), []string{th.BasicUser2.Id, other.Id})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Empty(t, evaluatedSubjects(mockACS, model.AccessControlPolicyActionDMGMStart))
+	})
+
+	t.Run("reopening an existing GM is refused when Read denies", func(t *testing.T) {
+		th := setupDMGMServer(t)
+		other := th.CreateUser(t)
+		ids := []string{th.BasicUser.Id, th.BasicUser2.Id, other.Id}
+		_, appErr := th.App.CreateGroupChannel(th.Context, ids, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		installDMGMDecisions(t, th, map[string]bool{model.AccessControlPolicyActionDMGMReadAccess: false})
+
+		_, resp, err := th.Client.CreateGroupChannel(context.Background(), ids)
+		CheckForbiddenStatus(t, resp)
+		requireAppErrorID(t, err, dmGmReadDeniedErrorID)
+	})
+
+	t.Run("a GM of the wrong size keeps its 400", func(t *testing.T) {
+		th := setupDMGMServer(t)
+		mockACS := installDMGMDecisions(t, th, map[string]bool{model.AccessControlPolicyActionDMGMStart: false})
+
+		_, resp, err := th.Client.CreateGroupChannel(context.Background(), []string{th.BasicUser2.Id})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		require.Empty(t, evaluatedSubjects(mockACS, model.AccessControlPolicyActionDMGMStart))
+	})
+}
+
+const (
+	dmGmStartDeniedText = "You can't start new direct or group messages."
+	dmGmWriteDeniedText = "You do not have permission to send direct or group messages."
+)
+
+func TestDMGMSlashCommands(t *testing.T) {
+	postCount := func(t *testing.T, th *TestHelper, channelID string) int {
+		t.Helper()
+		posts, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{ChannelId: channelID, PerPage: 60})
+		require.Nil(t, appErr)
+		return len(posts.Order)
+	}
+
+	t.Run("/msg to someone new needs Start", func(t *testing.T) {
+		th := setupDMGMServer(t)
+		other := th.CreateUser(t)
+		th.LinkUserToTeam(t, other, th.BasicTeam)
+		installDMGMDecisions(t, th, map[string]bool{model.AccessControlPolicyActionDMGMStart: false})
+
+		resp, _, err := th.Client.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/msg @"+other.Username)
+		require.NoError(t, err)
+		require.Equal(t, dmGmStartDeniedText, resp.Text)
+		requireNoConversation(t, th, model.GetDMNameFromIds(th.BasicUser.Id, other.Id))
+	})
+
+	t.Run("/msg with a message needs Write", func(t *testing.T) {
+		th := setupDMGMServer(t)
+		dm := th.CreateDmChannel(t, th.BasicUser2)
+		before := postCount(t, th, dm.Id)
+		installDMGMDecisions(t, th, map[string]bool{model.AccessControlPolicyActionDMGMWriteAccess: false})
+
+		resp, _, err := th.Client.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/msg @"+th.BasicUser2.Username+" hello")
+		require.NoError(t, err)
+		require.Equal(t, dmGmWriteDeniedText, resp.Text)
+		require.Equal(t, before, postCount(t, th, dm.Id), "nothing may be posted")
+	})
+
+	t.Run("/msg to an existing DM does not need Start", func(t *testing.T) {
+		th := setupDMGMServer(t)
+		dm := th.CreateDmChannel(t, th.BasicUser2)
+		before := postCount(t, th, dm.Id)
+		installDMGMDecisions(t, th, map[string]bool{model.AccessControlPolicyActionDMGMStart: false})
+
+		resp, _, err := th.Client.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/msg @"+th.BasicUser2.Username+" hello")
+		require.NoError(t, err)
+		require.Empty(t, resp.Text)
+		require.Equal(t, before+1, postCount(t, th, dm.Id))
+	})
+
+	t.Run("/groupmsg to a new group needs Start", func(t *testing.T) {
+		th := setupDMGMServer(t)
+		other := th.CreateUser(t)
+		th.LinkUserToTeam(t, other, th.BasicTeam)
+		installDMGMDecisions(t, th, map[string]bool{model.AccessControlPolicyActionDMGMStart: false})
+
+		resp, _, err := th.Client.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/groupmsg @"+th.BasicUser2.Username+",@"+other.Username)
+		require.NoError(t, err)
+		require.Equal(t, dmGmStartDeniedText, resp.Text)
+		requireNoConversation(t, th, model.GetGroupNameFromUserIds([]string{th.BasicUser.Id, th.BasicUser2.Id, other.Id}))
+	})
+
+	t.Run("/groupmsg with a message needs Write", func(t *testing.T) {
+		th := setupDMGMServer(t)
+		other := th.CreateUser(t)
+		th.LinkUserToTeam(t, other, th.BasicTeam)
+		gm, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, other.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		before := postCount(t, th, gm.Id)
+		installDMGMDecisions(t, th, map[string]bool{model.AccessControlPolicyActionDMGMWriteAccess: false})
+
+		resp, _, err := th.Client.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/groupmsg @"+th.BasicUser2.Username+",@"+other.Username+" hello")
+		require.NoError(t, err)
+		require.Equal(t, dmGmWriteDeniedText, resp.Text)
+		require.Equal(t, before, postCount(t, th, gm.Id), "nothing may be posted")
+	})
+
+	t.Run("/groupmsg to an existing group does not need Start", func(t *testing.T) {
+		th := setupDMGMServer(t)
+		other := th.CreateUser(t)
+		th.LinkUserToTeam(t, other, th.BasicTeam)
+		gm, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, other.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		before := postCount(t, th, gm.Id)
+		installDMGMDecisions(t, th, map[string]bool{model.AccessControlPolicyActionDMGMStart: false})
+
+		resp, _, err := th.Client.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/groupmsg @"+th.BasicUser2.Username+",@"+other.Username+" hello")
+		require.NoError(t, err)
+		require.Empty(t, resp.Text)
+		require.Equal(t, before+1, postCount(t, th, gm.Id))
+	})
+}
+
+func TestDMGMStartSearchInUser(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		search func(th *TestHelper, terms string) error
+	}{
+		{"posts", func(th *TestHelper, terms string) error {
+			_, _, err := th.Client.SearchPosts(context.Background(), th.BasicTeam.Id, terms, false)
+			return err
+		}},
+		{"files", func(th *TestHelper, terms string) error {
+			_, _, err := th.Client.SearchFiles(context.Background(), th.BasicTeam.Id, terms, false)
+			return err
+		}},
+	} {
+		t.Run(tc.name+": in:@user creates no DM when Start is denied", func(t *testing.T) {
+			th := setupDMGMServer(t)
+			other := th.CreateUser(t)
+			installDMGMDecisions(t, th, map[string]bool{model.AccessControlPolicyActionDMGMStart: false})
+
+			require.NoError(t, tc.search(th, "hello in:@"+other.Username))
+			requireNoConversation(t, th, model.GetDMNameFromIds(th.BasicUser.Id, other.Id))
+		})
+
+		t.Run(tc.name+": in:@user still creates the DM when Start allows", func(t *testing.T) {
+			th := setupDMGMServer(t)
+			other := th.CreateUser(t)
+			installDMGMDecisions(t, th, map[string]bool{model.AccessControlPolicyActionDMGMStart: true})
+
+			require.NoError(t, tc.search(th, "hello in:@"+other.Username))
+			channel, appErr := th.App.GetDirectOrGroupChannelByName(th.Context, model.GetDMNameFromIds(th.BasicUser.Id, other.Id))
+			require.Nil(t, appErr)
+			require.NotNil(t, channel)
+		})
+	}
+}

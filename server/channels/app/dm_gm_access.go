@@ -4,9 +4,13 @@
 package app
 
 import (
+	"errors"
+	"net/http"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // conversationAction maps a channel-access action to the direct and group
@@ -66,6 +70,31 @@ func (a *App) EnforceDMGMAccess(rctx request.CTX, userID, action string) bool {
 
 	a.noteChannelAccessEnforcementDenial(rctx, userID, "", action)
 	return false
+}
+
+// DMGMStartAllowedForSession reports whether userID may start a new conversation.
+// Start is evaluated only for the session user: plugins, system bots, webhooks, import
+// and shared channels create conversations on nobody's behalf and are never refused.
+func (a *App) DMGMStartAllowedForSession(rctx request.CTX, userID string) bool {
+	if userID == "" || userID != rctx.Session().UserId {
+		return true
+	}
+	return a.HasDMGMAccess(rctx, userID, model.AccessControlPolicyActionDMGMStart)
+}
+
+// GetDirectOrGroupChannelByName returns the conversation with the given name, or nil
+// when there is none. Start applies only when a conversation would be created, so
+// callers use it to tell reopening from starting.
+func (a *App) GetDirectOrGroupChannelByName(rctx request.CTX, name string) (*model.Channel, *model.AppError) {
+	channel, err := a.Srv().Store().Channel().GetByName("", name, true)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return nil, nil
+		}
+		return nil, model.NewAppError("GetDirectOrGroupChannelByName", "app.channel.get_by_name.existing.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return channel, nil
 }
 
 // DirectAndGroupHidden reports whether the user's direct and group messages are

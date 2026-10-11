@@ -518,3 +518,28 @@ func TestDMGMPermalinkPreviewWithheld(t *testing.T) {
 		require.Len(t, post.Metadata.Embeds, 1)
 	})
 }
+
+func TestDMGMStartAllowedForSession(t *testing.T) {
+	f := setupDMGMAccessTest(t)
+	mockACS := f.mockACS(t)
+	allDMGMGoverned(mockACS)
+	decidesDMGM(mockACS, map[string]bool{model.AccessControlPolicyActionDMGMStart: false})
+
+	require.False(t, f.th.App.DMGMStartAllowedForSession(f.rctx, f.th.BasicUser.Id))
+	require.True(t, f.th.App.DMGMStartAllowedForSession(f.rctx, f.th.BasicUser2.Id),
+		"a conversation started on someone else's behalf, such as by a system bot, is never refused")
+	require.True(t, f.th.App.DMGMStartAllowedForSession(f.rctx, ""))
+	mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 1)
+}
+
+func TestDMGMGetDirectOrGroupChannelByName(t *testing.T) {
+	f := setupDMGMAccessTest(t)
+
+	channel, appErr := f.th.App.GetDirectOrGroupChannelByName(f.rctx, f.dm.Name)
+	require.Nil(t, appErr)
+	require.Equal(t, f.dm.Id, channel.Id)
+
+	channel, appErr = f.th.App.GetDirectOrGroupChannelByName(f.rctx, model.GetDMNameFromIds(f.th.BasicUser.Id, model.NewId()))
+	require.Nil(t, appErr)
+	require.Nil(t, channel)
+}

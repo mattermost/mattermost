@@ -2407,7 +2407,18 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(rctx request.CTX, channel
 		if err != nil {
 			return nil, err
 		}
-		channel, err := a.GetOrCreateDirectChannel(rctx, userID, user.Id)
+		channel, err := a.getDirectChannel(rctx, userID, user.Id)
+		if err != nil {
+			return nil, err
+		}
+		if channel != nil {
+			return channel, nil
+		}
+		// Searching a conversation that doesn't exist yet would start it.
+		if !a.DMGMStartAllowedForSession(rctx, userID) {
+			return nil, model.NewAppError("parseAndFetchChannelIdByNameFromInFilter", "api.channel.dm_gm_start.abac_denied.app_error", nil, "", http.StatusForbidden)
+		}
+		channel, err = a.GetOrCreateDirectChannel(rctx, userID, user.Id)
 		if err != nil {
 			return nil, err
 		}
