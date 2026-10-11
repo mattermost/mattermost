@@ -4,16 +4,16 @@
 import React from 'react';
 import type {ChangeEvent, FormEvent, JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import type {Bot, BotPatch} from '@mattermost/types/bots';
+import type {Bot} from '@mattermost/types/bots';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {Team} from '@mattermost/types/teams';
-import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {General} from 'mattermost-redux/constants';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
@@ -28,13 +28,21 @@ import {
 import TokenExpiryPicker from 'components/common/token_expiry_picker/token_expiry_picker';
 import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
+import {getClearedUserAttributeValue} from 'components/property_fields/user_attribute_fields';
+import type {UserAttributeValue} from 'components/property_fields/user_attribute_fields';
 import SpinnerButton from 'components/spinner_button';
 
 import BotDefaultIcon from 'images/bot_default_icon.png';
 import {getHistory} from 'utils/browser_history';
-import {AcceptedProfileImageTypes, Constants, DeveloperLinks, ValidationErrors} from 'utils/constants';
+import {Constants, DeveloperLinks} from 'utils/constants';
 import * as FileUtils from 'utils/file_utils';
 import * as Utils from 'utils/utils';
+
+import {computeAttributeChanges, normalizeAttributeValues, seedAttributeRows, validateAttributeRows} from './bot_attributes';
+import type {BotAttributesStatus, BotAttributeValues, BotRoleChoice} from './bot_attributes';
+import BotAttributesSection from './bot_attributes_section';
+import {loadBotAttributeValues, saveBotCreate, saveBotEdit, validateBotForm} from './bot_save_flow';
+import type {BotEditResult, BotPictureFile, BotSaveActions, BotSaveFailure} from './bot_save_flow';
 
 const roleOptionSystemAdmin = 'System Admin';
 const roleOptionMember = 'Member';
@@ -74,40 +82,13 @@ export type Props = {
     editingUserHasManageSystem: boolean;
 
     /**
-     * Bot to edit
+     * Licensed and allowed to manage this bot (manage_bots / manage_others_bots)
      */
-    actions: {
+    attributesEnabled: boolean;
+    attributeFields: UserPropertyField[];
+    canManageRoles: boolean;
 
-        /**
-         * Creates a new bot account.
-         */
-        createBot: (bot: Partial<Bot>) => Promise<ActionResult<Bot>>;
-
-        /**
-         * Patches an existing bot account.
-         */
-        patchBot: (botUserId: string, botPatch: Partial<BotPatch>) => Promise<ActionResult<Bot>>;
-
-        /**
-         * Uploads a user profile image
-         */
-        uploadProfileImage: (userId: string, image: File | string) => Promise<ActionResult>;
-
-        /**
-         * Set profile image to default
-         */
-        setDefaultProfileImage: (userId: string) => Promise<ActionResult>;
-
-        /**
-         * For creating default access token
-         */
-        createUserAccessToken: (userId: string, description: string, expiresAt?: number) => Promise<ActionResult<UserAccessToken>>;
-
-        /**
-         * For creating setting bot to system admin or special posting permissions
-         */
-        updateUserRoles: (userId: string, roles: string) => Promise<ActionResult>;
-    };
+    actions: BotSaveActions;
 };
 
 export type State = {
@@ -121,15 +102,25 @@ export type State = {
     adding: boolean;
     image: string;
     orientationStyles: {transform: string; transformOrigin: string};
-    pictureFile: File | null | string;
+    pictureFile: BotPictureFile;
     expiryPreset: ExpiryPreset;
     customExpiryDate: string;
+    attributeRows: string[];
+    attributeValues: BotAttributeValues;
+    initialAttributeValues: BotAttributeValues;
+    attributeErrors: Record<string, MessageDescriptor | undefined>;
+    attributesStatus: BotAttributesStatus;
 };
 
 export default class AddBot extends React.PureComponent<Props, State> {
     previewBlob: string | null = null;
+    private submitting = false;
+    private unmounted = false;
+    private readonly rolesAtMount: string | undefined;
+
     constructor(props: Props) {
         super(props);
+        this.rolesAtMount = props.roles;
 
         this.state = {
             error: '',
@@ -145,8 +136,88 @@ export default class AddBot extends React.PureComponent<Props, State> {
             pictureFile: null,
             expiryPreset: this.defaultExpiryPreset(),
             customExpiryDate: this.defaultCustomExpiryDate(),
+            attributeRows: [],
+            attributeValues: {},
+            initialAttributeValues: {},
+            attributeErrors: {},
+            attributesStatus: this.needsAttributeLoad() ? 'loading' : 'ready',
         };
     }
+
+    componentDidMount() {
+        this.unmounted = false;
+        this.loadAttributes();
+    }
+
+    componentWillUnmount() {
+        this.unmounted = true;
+    }
+
+    needsAttributeLoad = (): boolean => this.props.attributesEnabled && (this.props.attributeFields.length === 0 || Boolean(this.props.bot));
+
+    loadAttributes = async () => {
+        if (!this.needsAttributeLoad()) {
+            this.setState({attributesStatus: 'ready'});
+            return;
+        }
+        const initialAttributeValues = await loadBotAttributeValues(this.props.actions, {
+            needFields: this.props.attributeFields.length === 0,
+            botUserId: this.props.bot?.user_id,
+        });
+        if (this.unmounted) {
+            return;
+        }
+        if (!initialAttributeValues) {
+            this.setState({attributesStatus: 'error'});
+            return;
+        }
+        this.setState({
+            attributesStatus: 'ready',
+            initialAttributeValues,
+            attributeValues: {...initialAttributeValues},
+            attributeRows: seedAttributeRows(initialAttributeValues),
+        });
+    };
+
+    retryAttributes = () => {
+        this.setState({attributesStatus: 'loading'}, this.loadAttributes);
+    };
+
+    getAttributeLockOptions = () => ({canEditAdminManaged: this.props.editingUserHasManageSystem});
+
+    addAttributeRow = (fieldId: string) => {
+        const field = this.props.attributeFields.find((f) => f.id === fieldId);
+        if (!field) {
+            return;
+        }
+        this.setState((state) => ({
+            attributeRows: state.attributeRows.includes(fieldId) ? state.attributeRows : [...state.attributeRows, fieldId],
+            attributeValues: {...state.attributeValues, [fieldId]: getClearedUserAttributeValue(field)},
+            attributeErrors: {...state.attributeErrors, [fieldId]: undefined},
+        }));
+    };
+
+    removeAttributeRow = (fieldId: string) => {
+        this.setState((state) => ({
+            attributeRows: state.attributeRows.filter((id) => id !== fieldId),
+            attributeErrors: {...state.attributeErrors, [fieldId]: undefined},
+        }));
+    };
+
+    updateAttributeValue = (fieldId: string, value: UserAttributeValue) => {
+        this.setState((state) => ({
+            attributeValues: {...state.attributeValues, [fieldId]: value},
+            attributeErrors: {...state.attributeErrors, [fieldId]: undefined},
+        }));
+    };
+
+    getRoleChoice = (): BotRoleChoice => ({
+        isAdmin: this.state.role === roleOptionSystemAdmin,
+        postAll: this.state.postAll,
+        postChannels: this.state.postChannels,
+    });
+
+    attributesReady = () => this.props.attributesEnabled && this.state.attributesStatus === 'ready';
 
     defaultCustomExpiryDate = (): string => {
         return defaultCustomExpiryDate(this.props.maxLifetimeDays);
@@ -241,199 +312,112 @@ export default class AddBot extends React.PureComponent<Props, State> {
         this.setState({pictureFile: 'default', image: BotDefaultIcon});
     };
 
-    isFile(file: File | string): file is File {
-        return (file as File).size !== undefined;
-    }
-
-    updateRoles = async (data: Bot) => {
-        let roles = General.SYSTEM_USER_ROLE;
-
-        if (this.state.role === roleOptionSystemAdmin) {
-            roles += ' ' + General.SYSTEM_ADMIN_ROLE;
-        } else if (this.state.postAll) {
-            roles += ' ' + General.SYSTEM_POST_ALL_ROLE;
-        } else if (this.state.postChannels) {
-            roles += ' ' + General.SYSTEM_POST_ALL_PUBLIC_ROLE;
+    finishWithError = (error: React.ReactNode) => {
+        this.submitting = false;
+        if (!this.unmounted) {
+            this.setState({adding: false, error});
         }
-
-        const rolesResult = await this.props.actions.updateUserRoles(data.user_id, roles);
-        if (rolesResult) {
-            return rolesResult.error;
-        }
-
-        return null;
     };
 
     handleSubmit = async (e: FormEvent<HTMLButtonElement | HTMLFormElement>) => {
         e.preventDefault();
 
-        if (this.state.adding) {
+        if (this.submitting || this.state.adding) {
             return;
         }
 
-        if (!this.state.username || this.state.username.length < 3) {
+        const formError = validateBotForm({
+            username: this.state.username,
+            pictureFile: this.state.pictureFile,
+            maxFileSize: this.props.maxFileSize,
+            isCreate: !this.props.bot,
+            expiryError: this.getExpiryValidationError(),
+        });
+        if (formError) {
+            this.setState({error: formError.kind === 'expiry' ? formError.error : <FormattedMessage {...formError.message}/>});
+            return;
+        }
+
+        const ready = this.attributesReady();
+        const attributeArgs = [this.props.attributeFields, this.state.attributeRows, this.state.attributeValues, this.state.initialAttributeValues, this.getAttributeLockOptions()] as const;
+        const attributeErrors = ready ? validateAttributeRows(...attributeArgs) : {};
+        if (Object.keys(attributeErrors).length > 0) {
             this.setState({
+                attributeErrors,
                 error: (
                     <FormattedMessage
-                        id='bots.manage.add.invalid_username'
-                        defaultMessage='Usernames have to begin with a lowercase letter and be 3-22 characters long. You can use lowercase letters, numbers, periods, dashes, and underscores.'
+                        id='bots.attributes.invalid'
+                        defaultMessage='Fix the highlighted attributes before saving.'
                     />
                 ),
             });
             return;
         }
 
-        if (this.state.pictureFile && this.isFile(this.state.pictureFile)) {
-            if (!AcceptedProfileImageTypes.includes(this.state.pictureFile.type)) {
-                this.setState({
-                    error: (
-                        <FormattedMessage
-                            id='user.settings.general.validImage'
-                            defaultMessage='Only BMP, JPG or PNG images may be used for profile pictures'
-                        />
-                    ),
-                });
-                return;
-            } else if (this.state.pictureFile.size > this.props.maxFileSize) {
-                this.setState({
-                    error: (
-                        <FormattedMessage
-                            id='user.settings.general.imageTooLarge'
-                            defaultMessage='Unable to upload profile image. File is too large.'
-                        />
-                    ),
-                });
-                return;
-            }
-        }
+        this.submitting = true;
+        this.setState({adding: true, error: '', attributeErrors: {}});
 
-        const expiryError = this.getExpiryValidationError();
-        if (expiryError) {
-            this.setState({
-                error: expiryError,
-            });
-            return;
-        }
-
-        this.setState({
-            adding: true,
-            error: '',
-        });
-
+        const input = {
+            pictureFile: this.state.pictureFile,
+            roleChoice: this.getRoleChoice(),
+            canManageRoles: this.props.canManageRoles,
+            attributeChanges: ready ? computeAttributeChanges(...attributeArgs) : {},
+        };
         const bot = {
             username: this.state.username.toLowerCase().trim(),
             display_name: this.state.displayName,
             description: this.state.description,
         };
 
-        let data: Bot | undefined;
-        let error;
         if (this.props.bot) {
-            const result = await this.props.actions.patchBot(this.props.bot.user_id, bot);
-            if (result) {
-                data = result.data;
-                error = result.error;
-            } else {
-                error = Utils.localizeMessage({id: 'bot.edit_failed', defaultMessage: 'Failed to edit bot'});
-            }
-
-            if (!error && data) {
-                if (this.state.pictureFile && this.state.pictureFile !== 'default') {
-                    const imageResult = await this.props.actions.uploadProfileImage(data.user_id, this.state.pictureFile);
-                    error = imageResult.error;
-                } else if (this.state.pictureFile && this.state.pictureFile === 'default') {
-                    await this.props.actions.setDefaultProfileImage(data.user_id);
-                }
-            }
-
-            if (!error && data) {
-                error = this.updateRoles(data);
-            }
-
-            if (data) {
-                getHistory().push(`/${this.props.team.name}/integrations/bots`);
-                return;
-            }
-        } else {
-            const usernameError = Utils.isValidBotUsername(bot.username);
-            if (usernameError) {
-                let errObj;
-                if (usernameError.id === ValidationErrors.INVALID_LAST_CHARACTER) {
-                    errObj = {
-                        adding: false,
-                        error: (
-                            <FormattedMessage
-                                id='bots.manage.add.invalid_last_char'
-                                defaultMessage='Bot usernames cannot have a period as the last character'
-                            />
-                        ),
-                    };
-                } else {
-                    errObj = {
-                        adding: false,
-                        error: (
-                            <FormattedMessage
-                                id='bots.manage.add.invalid_username'
-                                defaultMessage='Usernames have to begin with a lowercase letter and be 3-22 characters long. You can use lowercase letters, numbers, periods, dashes, and underscores.'
-                            />
-                        ),
-                    };
-                }
-                this.setState(errObj);
-                return;
-            }
-
-            const result = await this.props.actions.createBot(bot);
-            if (result) {
-                data = result.data;
-                error = result.error;
-            } else {
-                error = Utils.localizeMessage({id: 'bot.create_failed', defaultMessage: 'Failed to create bot'});
-            }
-
-            let token = '';
-            if (!error && data) {
-                if (this.state.pictureFile && this.state.pictureFile !== 'default') {
-                    await this.props.actions.uploadProfileImage(data.user_id, this.state.pictureFile);
-                } else {
-                    await this.props.actions.setDefaultProfileImage(data.user_id);
-                }
-                const expiresAt = this.resolveExpiresAt();
-                const clampedExpiresAt = clampExpiresAtToMaxLifetime(expiresAt, this.props.maxLifetimeDays);
-                const tokenResult = await this.props.actions.createUserAccessToken(data.user_id,
-                    Utils.localizeMessage({id: 'bot.token.default.description', defaultMessage: 'Default Token'}),
-                    clampedExpiresAt > 0 ? clampedExpiresAt : undefined,
-                );
-
-                // On error just skip the confirmation because we have a bot without a token.
-                if (!tokenResult || tokenResult.error) {
-                    this.updateRoles(data);
-                    getHistory().push(`/${this.props.team.name}/integrations/bots`);
-                    return;
-                }
-
-                token = tokenResult.data!.token!;
-            }
-
-            if (!error && data) {
-                error = this.updateRoles(data);
-            }
-
-            if (data) {
-                getHistory().push(`/${this.props.team.name}/integrations/confirm?type=bots&id=${data.user_id}&token=${token}`);
-                return;
-            }
-        }
-
-        this.setState({
-            adding: false,
-        });
-
-        if (error) {
-            this.setState({
-                error: error.message,
+            const result = await saveBotEdit(this.props.actions, {
+                ...input,
+                botUserId: this.props.bot.user_id,
+                patch: bot,
+                currentRoles: this.rolesAtMount === undefined ? undefined : this.props.roles,
             });
+            this.handleEditResult(result);
+            return;
         }
+
+        const result = await saveBotCreate(this.props.actions, {
+            ...input,
+            bot,
+            teamName: this.props.team.name,
+            expiresAt: clampExpiresAtToMaxLifetime(this.resolveExpiresAt(), this.props.maxLifetimeDays),
+        });
+        if (result.ok) {
+            getHistory().push(result.redirectUrl);
+        } else {
+            this.finishWithError(result.error);
+        }
+    };
+
+    handleEditResult = (result: BotEditResult) => {
+        if (!result.ok) {
+            this.finishWithError(result.error);
+            return;
+        }
+        if (this.unmounted) {
+            return;
+        }
+        const {failures, savedAttributes} = result;
+        if (savedAttributes) {
+            this.setState((state) => ({initialAttributeValues: normalizeAttributeValues({...state.initialAttributeValues, ...savedAttributes})}));
+        }
+        if (failures.length === 0) {
+            getHistory().push(`/${this.props.team.name}/integrations/bots`);
+            return;
+        }
+        const renderFailure = ({message, error}: BotSaveFailure) => (
+            <FormattedMessage
+                {...message}
+                values={{error}}
+            />
+        );
+        this.finishWithError(failures.length === 1 ? renderFailure(failures[0]) : (
+            <>{failures.map((failure) => <div key={failure.key}>{renderFailure(failure)}</div>)}</>
+        ));
     };
 
     renderDefaultTokenExpiryPicker = (): JSX.Element | null => {
@@ -724,6 +708,23 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                 </div>
                             </div>
                         </div>
+                        {this.props.attributesEnabled && (
+                            <BotAttributesSection
+                                fields={this.props.attributeFields}
+                                rows={this.state.attributeRows}
+                                values={this.state.attributeValues}
+                                errors={this.state.attributeErrors}
+                                initialValues={this.state.initialAttributeValues}
+                                status={this.state.attributesStatus}
+                                disabled={this.state.adding}
+                                canEditAdminManaged={this.props.editingUserHasManageSystem}
+                                canManageAttributes={this.props.editingUserHasManageSystem}
+                                onAdd={this.addAttributeRow}
+                                onRemove={this.removeAttributeRow}
+                                onChange={this.updateAttributeValue}
+                                onRetry={this.retryAttributes}
+                            />
+                        )}
                         <div className='row bot-profile__section'>
                             <div className='col-md-5 col-sm-8 col-sm-offset-4'>
                                 <FormattedMessage
