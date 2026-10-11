@@ -63,7 +63,7 @@ describe('DynamicVirtualizedList: centered item', () => {
         jest.useRealTimers();
     });
 
-    function setup() {
+    function setup({centerOffset = 0} = {}) {
         const listRef = createRef<DynamicVirtualizedList>();
         let outer: HTMLDivElement | null = null;
 
@@ -76,7 +76,7 @@ describe('DynamicVirtualizedList: centered item', () => {
             children: ({itemId}) => <div>{itemId}</div>,
             height: listHeight,
             initRangeToRender: [0, itemCount - 1],
-            initScrollToIndex: () => ({index: targetIndex, position: 'center'}),
+            initScrollToIndex: () => ({index: targetIndex, position: 'center', offset: centerOffset}),
             itemData,
             onItemsRendered: jest.fn(),
             onScroll: jest.fn(),
@@ -101,7 +101,7 @@ describe('DynamicVirtualizedList: centered item', () => {
             correctScrollToBottom: true,
         };
 
-        render(
+        const {rerender} = render(
             <DynamicVirtualizedList
                 ref={listRef}
                 {...props}
@@ -119,8 +119,20 @@ describe('DynamicVirtualizedList: centered item', () => {
             });
         };
 
+        // Replace the items of the list, e.g. when a post is deleted
+        const setItemData = (newItemData: string[]) => {
+            rerender(
+                <DynamicVirtualizedList
+                    ref={listRef}
+                    {...props}
+                    itemData={newItemData}
+                />,
+            );
+        };
+
         return {
             listRef,
+            setItemData,
             getOuter: () => outer!,
             getScrollTop: () => scrollTop,
             initialScrollTop,
@@ -245,6 +257,43 @@ describe('DynamicVirtualizedList: centered item', () => {
         });
 
         expect(scrollBy).toHaveBeenCalledWith(0, 400);
+    });
+
+    test('keeps the requested offset when re-centering', () => {
+        const {getScrollTop, growRowAboveTarget} = setup({centerOffset: 40});
+
+        growRowAboveTarget(rowHeight + 300);
+        act(() => {
+            jest.advanceTimersByTime(200);
+        });
+
+        expect(getScrollTop()).toBe(centeredOffset((rowHeight * (itemCount - 1 - targetIndex)) + 300) + 40);
+    });
+
+    test('releases the hold when the item is no longer in the list', () => {
+        const {listRef, setItemData} = setup();
+        expect(listRef.current!._isCenteredItemHeld()).toBe(true);
+
+        act(() => {
+            setItemData(itemData.filter((id) => id !== itemData[targetIndex]));
+        });
+
+        expect(listRef.current!._isCenteredItemHeld()).toBe(false);
+    });
+
+    test('releases the hold when a request for another position replaces it, but not for the bottom', () => {
+        const {listRef} = setup();
+
+        // The list requests 'end' itself whenever it measures that it is at the bottom
+        act(() => {
+            listRef.current!.scrollToItem(0, 'end');
+        });
+        expect(listRef.current!._isCenteredItemHeld()).toBe(true);
+
+        act(() => {
+            listRef.current!.scrollToItem(2, 'start');
+        });
+        expect(listRef.current!._isCenteredItemHeld()).toBe(false);
     });
 
     test('stops re-centering after the user interacts with the list', () => {

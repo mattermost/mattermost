@@ -111,6 +111,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
     private _mountingCorrections = 0;
     private _correctedInstances = 0;
     private _centeredItemId: string | null = null;
+    private _centeredItemOffset = 0;
     private _centeredItemSince = 0;
     private _userInteracted = false;
     private _recenterTimer: ReturnType<typeof setTimeout> | null = null;
@@ -199,8 +200,13 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
 
         if (align === 'center' && index >= 0) {
             this._centeredItemId = this.props.itemData[index];
+            this._centeredItemOffset = offset;
             this._centeredItemSince = Date.now();
             this._userInteracted = false;
+        } else if (align !== 'end') {
+            // A newer request for another position replaces the centered one. 'end' is requested by the
+            // list itself whenever it measures that it is at the bottom, so it does not end the hold.
+            this._releaseCenteredItem();
         }
 
         if (index === 0 && align === 'end') {
@@ -677,10 +683,22 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         this._userInteracted = true;
     };
 
+    _releaseCenteredItem = () => {
+        this._centeredItemId = null;
+
+        if (this._recenterTimer) {
+            clearTimeout(this._recenterTimer);
+            this._recenterTimer = null;
+        }
+    };
+
     _isCenteredItemHeld = () => {
-        return Boolean(this._centeredItemId) &&
+        const itemId = this._centeredItemId;
+
+        return itemId !== null &&
             !this._userInteracted &&
-            (Date.now() - this._centeredItemSince) < centeredItemHoldMs;
+            (Date.now() - this._centeredItemSince) < centeredItemHoldMs &&
+            this.props.itemData.includes(itemId);
     };
 
     // Re-centers the held item once the measurements have settled.
@@ -709,7 +727,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
                 return;
             }
 
-            const offset = getOffsetForIndexAndAlignment(this.props, index, 'center', element.scrollTop, this._listMetaData);
+            const offset = getOffsetForIndexAndAlignment(this.props, index, 'center', element.scrollTop, this._listMetaData) + this._centeredItemOffset;
             if (Number.isFinite(offset) && Math.abs(element.scrollTop - offset) > 1) {
                 element.scrollTop = offset;
             }
