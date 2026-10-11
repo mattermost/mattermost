@@ -8,48 +8,38 @@ test('should lock account after exceeding max login attempts and unlock via admi
     const {adminClient, user} = await pw.initSetup();
 
     // 2. Lower MaximumLoginAttempts to 3 via API so the test runs quickly
-    const originalConfig = await adminClient.getConfig();
-    const originalMax = originalConfig.ServiceSettings.MaximumLoginAttempts;
-
     await adminClient.patchConfig({
         ServiceSettings: {MaximumLoginAttempts: 3},
     });
 
-    try {
-        // 3. Navigate to the login page — set localStorage first to skip the native app landing page
-        await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
+    // 3. Navigate to the login page — set localStorage first to skip the native app landing page
+    await pw.hasSeenLandingPage();
+    await pw.loginPage.goto();
+    await pw.loginPage.toBeVisible();
 
-        // 4. Attempt login with wrong password 3 times
-        for (let i = 0; i < 3; i++) {
-            await pw.loginPage.loginInput.fill(user.username);
-            await pw.loginPage.passwordInput.fill('WrongPassword!');
-            await pw.loginPage.signInButton.click();
-            await expect(pw.loginPage.invalidCredentialsError).toBeVisible();
-        }
-
-        // 5. Correct password should now be rejected — account is locked
+    // 4. Attempt login with wrong password 3 times
+    for (let i = 0; i < 3; i++) {
         await pw.loginPage.loginInput.fill(user.username);
-        await pw.loginPage.passwordInput.fill(user.password);
+        await pw.loginPage.passwordInput.fill('WrongPassword!');
         await pw.loginPage.signInButton.click();
-        await expect(
-            pw.loginPage.page.getByText(/Your account is locked because of too many failed password attempts\./),
-        ).toBeVisible();
-        await expect(pw.loginPage.page).toHaveURL(/\/login/);
-
-        // 6. Admin unlocks the account via API
-        await adminClient.resetFailedAttempts(user.id);
-
-        // 7. User can now log in with correct password
-        await pw.loginPage.loginInput.fill(user.username);
-        await pw.loginPage.passwordInput.fill(user.password);
-        await pw.loginPage.signInButton.click();
-        await expect(pw.loginPage.page).not.toHaveURL(/\/login/);
-    } finally {
-        // 8. Restore original MaximumLoginAttempts regardless of test outcome
-        await adminClient.patchConfig({
-            ServiceSettings: {MaximumLoginAttempts: originalMax},
-        });
+        await expect(pw.loginPage.invalidCredentialsError).toBeVisible();
     }
+
+    // 5. Correct password should now be rejected — account is locked
+    await pw.loginPage.loginInput.fill(user.username);
+    await pw.loginPage.passwordInput.fill(user.password);
+    await pw.loginPage.signInButton.click();
+    await expect(
+        pw.loginPage.page.getByText(/Your account is locked because of too many failed password attempts\./),
+    ).toBeVisible();
+    await expect(pw.loginPage.page).toHaveURL(/\/login/);
+
+    // 6. Admin unlocks the account via API
+    await adminClient.resetFailedAttempts(user.id);
+
+    // 7. User can now log in with correct password
+    await pw.loginPage.loginInput.fill(user.username);
+    await pw.loginPage.passwordInput.fill(user.password);
+    await pw.loginPage.signInButton.click();
+    await expect(pw.loginPage.page).not.toHaveURL(/\/login/);
 });
