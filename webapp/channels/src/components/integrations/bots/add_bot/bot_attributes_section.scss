@@ -25,11 +25,19 @@
 
     .UserAttributeFields {
         margin-bottom: 8px;
+
+        > .UserAttributeField.cpa-field {
+            display: block;
+        }
+
+        > .UserAttributeField.cpa-field,
+        > .UserAttributeField__row {
+            margin-bottom: 12px;
+        }
     }
 
     .UserAttributeField.cpa-field {
-        display: block;
-        margin-bottom: 12px;
+        margin-bottom: 0;
         font-weight: 600;
         line-height: 20px;
 
@@ -57,17 +65,5 @@
                 box-shadow: 0 0 0 1px var(--error-text);
             }
         }
-    }
-
-    .UserAttributeField__row {
-        margin-bottom: 12px;
-
-        > .UserAttributeField.cpa-field {
-            margin-bottom: 0;
-        }
-    }
-
-    .UserAttributeField__trailing {
-        padding-top: 25px; // name line (20px) + gap (4px) + centering a 32px button on a 34px control
     }
 }

@@ -5,7 +5,6 @@ import React from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 
 import {TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getUserPropertyFieldLabel} from 'utils/properties';
@@ -68,18 +67,16 @@ export default function UserAttributeFields({
                         canEditAdminManaged={canEditAdminManaged}
                         testIdPrefix={testIdPrefix}
                         trailing={removable ? (
-                            <Button
+                            <button
                                 type='button'
-                                emphasis='tertiary'
-                                size='sm'
-                                className='UserAttributeFields__remove'
+                                className='btn btn-icon btn-sm UserAttributeFields__remove'
                                 aria-label={formatMessage(messages.remove, {name: getUserPropertyFieldLabel(field)})}
                                 data-testid={`${testIdPrefix}-remove-${field.id}`}
                                 disabled={disabled}
                                 onClick={() => onRemove?.(field.id)}
                             >
-                                <TrashCanOutlineIcon size={16}/>
-                            </Button>
+                                <TrashCanOutlineIcon size={18}/>
+                            </button>
                         ) : undefined}
                     />
                 );

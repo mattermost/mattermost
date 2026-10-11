@@ -83,13 +83,23 @@
     }
 }
 
+// The field's children (name, control, error, indicator) share the row's tracks,
+// so the trailing slot can center on the control row whatever its height.
 .UserAttributeField__row {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
+    display: grid;
+    column-gap: 8px;
+    grid-template-columns: minmax(0, 1fr) auto;
 
-    > .UserAttributeField {
-        min-width: 0;
-        flex: 1;
+    > .UserAttributeField.cpa-field {
+        display: grid;
+        grid-row: span 4;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: subgrid;
+    }
+
+    > .UserAttributeField__trailing {
+        align-self: center;
+        grid-column: 2;
+        grid-row: 2;
     }
 }

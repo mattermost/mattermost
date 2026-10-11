@@ -35,7 +35,7 @@ const BotCreateWarningsBanner = ({warnings, onDismiss}: Props) => {
                         <div>
                             <FormattedMessage
                                 id='bots.create_warnings.token_failed'
-                                defaultMessage='An access token could not be created. Use Create New Token on this bot to create one.'
+                                defaultMessage="An access token could not be created. Create one from this bot's Create New Token option, or ask a System Admin if you don't have permission."
                             />
                         </div>
                     )}

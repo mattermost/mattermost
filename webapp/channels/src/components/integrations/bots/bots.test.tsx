@@ -14,7 +14,7 @@ import {BOT_CREATE_WARNINGS_PARAM, serializeBotCreateWarnings} from './bot_creat
 import Bots from './bots';
 
 const TITLE = 'Bot account created, but some settings were not saved';
-const TOKEN = 'An access token could not be created. Use Create New Token on this bot to create one.';
+const TOKEN = "An access token could not be created. Create one from this bot's Create New Token option, or ask a System Admin if you don't have permission.";
 const ROLES = 'The role and post permissions could not be saved. Edit the bot to set them again.';
 const ATTRS = 'Attributes could not be saved. Edit the bot to add them again.';
 const ALL_LINES = [TOKEN, ROLES, ATTRS];
