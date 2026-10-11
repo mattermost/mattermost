@@ -3,7 +3,6 @@
 
 import type {CSSProperties} from 'react';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {MmButtonStyle} from '@mattermost/types/mm_blocks';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
@@ -46,24 +45,17 @@ export function isMmButtonHexColor(style: string | undefined): boolean {
     return Boolean(style && MM_BUTTON_HEX_COLOR.test(style));
 }
 
+/** Extra class names for semantic colors that Compass Button does not express (good/success/warning). */
 export function mmBlocksButtonClassName(style: string | undefined): string {
-    const base = buttonClassNames({emphasis: style === 'primary' ? 'primary' : 'tertiary'});
-    if (!style || style === 'default') {
-        return base;
-    }
     switch (style) {
-    case 'primary':
-        return base;
-    case 'danger':
-        return `${base} mm-blocks-button--danger`;
     case 'good':
-        return `${base} mm-blocks-button--good`;
+        return 'mm-blocks-button--good';
     case 'success':
-        return `${base} mm-blocks-button--success`;
+        return 'mm-blocks-button--success';
     case 'warning':
-        return `${base} mm-blocks-button--warning`;
+        return 'mm-blocks-button--warning';
     default:
-        return base;
+        return '';
     }
 }
 

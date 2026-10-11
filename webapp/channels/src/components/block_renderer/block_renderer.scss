@@ -220,12 +220,6 @@ $mm-blocks-container-max-heights: (
         margin: 0;
     }
 
-    // Button styles automatically add a margin between button siblings.
-    // We handle this with flex gap, so we remove this margin.
-    .btn + .btn {
-        margin-left: 0px;
-    }
-
     // Legacy attachment action colors (`ActionButton` STATUS_COLORS).
     .mm-blocks-button--good,
     .mm-blocks-button--success {
@@ -255,24 +249,6 @@ $mm-blocks-container-max-heights: (
 
         &:active:not(:disabled) {
             background-color: rgba(var(--semantic-color-warning), 0.16) !important;
-        }
-    }
-
-    // Avoid global `.app__body .btn.btn-danger` (filled red + white text), which overrides
-    // `.btn.btn-tertiary.btn-danger`. Matches legacy `ActionButton` danger styling.
-    .mm-blocks-button--danger {
-        background-color: rgba(var(--semantic-color-danger), 0.08) !important;
-        color: rgb(var(--semantic-color-danger)) !important;
-
-        &:hover:not(:disabled),
-        &:focus:not(:disabled) {
-            background-color: rgba(var(--semantic-color-danger), 0.12) !important;
-            color: rgb(var(--semantic-color-danger)) !important;
-        }
-
-        &:active:not(:disabled) {
-            background-color: rgba(var(--semantic-color-danger), 0.16) !important;
-            color: rgb(var(--semantic-color-danger)) !important;
         }
     }
 

@@ -283,7 +283,6 @@ export default class SettingPicture extends Component<Props, State> {
                     <Button
                         data-testid='inputSettingPictureButton'
                         emphasis='primary'
-                        className='btn-file'
                         disabled={this.props.loadingPicture}
                         onClick={this.handleInputFile}
                         aria-label={localizeMessage({id: 'setting_picture.select', defaultMessage: 'Select'})}

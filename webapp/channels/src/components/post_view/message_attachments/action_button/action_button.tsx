@@ -4,6 +4,7 @@
 import React, {memo, useCallback} from 'react';
 import styled, {css} from 'styled-components';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
 
@@ -70,8 +71,9 @@ const ActionButton = ({
                 disabled={disabled}
                 key={action.id}
                 onClick={handleActionClick}
-                className='btn btn-sm'
-                hexColor={hexColor}
+                size='small'
+                emphasis='tertiary'
+                $hexColor={hexColor}
             >
                 <LoadingWrapper
                     loading={actionExecuting}
@@ -87,16 +89,16 @@ const ActionButton = ({
     );
 };
 
-type ActionBtnProps = {hexColor: string | null | undefined};
-const ActionBtn = styled.button<ActionBtnProps>`
-    ${({hexColor}) => hexColor && css`
-        background-color: ${changeOpacity(hexColor, 0.08)} !important;
-        color: ${hexColor} !important;
+type ActionBtnProps = {$hexColor: string | null | undefined};
+const ActionBtn = styled(Button)<ActionBtnProps>`
+    ${({$hexColor}) => $hexColor && css`
+        background-color: ${changeOpacity($hexColor, 0.08)} !important;
+        color: ${$hexColor} !important;
         &:hover {
-            background-color: ${changeOpacity(hexColor, 0.12)} !important;
+            background-color: ${changeOpacity($hexColor, 0.12)} !important;
         }
         &:active {
-            background-color: ${changeOpacity(hexColor, 0.16)} !important;
+            background-color: ${changeOpacity($hexColor, 0.16)} !important;
         }
     `}
 `;
