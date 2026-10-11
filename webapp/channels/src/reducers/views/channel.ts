@@ -168,6 +168,19 @@ function toastStatus(state = false, action: MMAction) {
     }
 }
 
+// Set while the session's dm_gm_read_access denial has DMs and GMs dropped from local state, so
+// they can be refetched once Read returns.
+function dmGmHidden(state = false, action: MMAction) {
+    switch (action.type) {
+    case ActionTypes.SET_DM_GM_HIDDEN:
+        return action.data;
+    case UserTypes.LOGOUT_SUCCESS:
+        return false;
+    default:
+        return state;
+    }
+}
+
 function channelPrefetchStatus(state: {[channelId: string]: string} = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.PREFETCH_POSTS_FOR_CHANNEL:
@@ -194,4 +207,5 @@ export default combineReducers({
     lastGetPosts,
     toastStatus,
     channelPrefetchStatus,
+    dmGmHidden,
 });

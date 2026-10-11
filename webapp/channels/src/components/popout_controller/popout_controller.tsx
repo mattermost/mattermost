@@ -12,6 +12,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {loadStatusesByIds} from 'actions/status_actions';
 
 import ChannelPopout from 'components/channel_popout';
+import DmGmAccessSync from 'components/dm_gm_access_sync';
 import HelpPopout from 'components/help_popout';
 import LoggedIn from 'components/logged_in';
 import ModalController from 'components/modal_controller';
@@ -50,6 +51,7 @@ const PopoutController: React.FC<RouteComponentProps> = (routeProps) => {
     return (
         <LoggedIn {...routeProps}>
             <ModalController/>
+            <DmGmAccessSync/>
             <Pluggable pluggableName='Root'/>
             <Switch>
                 <Route

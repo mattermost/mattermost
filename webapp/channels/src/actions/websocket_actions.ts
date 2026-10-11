@@ -126,6 +126,7 @@ import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getPropertyFieldById, getPropertyGroupById} from 'mattermost-redux/selectors/entities/properties';
+import {hasDeniedSessionDecision, isDmGmReadDenied} from 'mattermost-redux/selectors/entities/render_permissions';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getScheduledPostTeamId, isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {
@@ -147,6 +148,7 @@ import {reconcileChannelReadAccess} from 'actions/channel_read_access';
 import {
     getTeamsUsage,
 } from 'actions/cloud';
+import {fetchDmGmAccess} from 'actions/dm_gm_access';
 import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {sendDesktopNotification} from 'actions/notification_actions';
@@ -307,6 +309,7 @@ export function reconnect() {
         // does that fetch itself and then drops what the server stopped returning, so
         // it stands in for the plain refresh rather than running alongside it.
         dispatch(reconcileChannelReadAccess());
+        dispatch(fetchDmGmAccess());
         if (isScheduledPostsEnabled(state)) {
             dispatch(fetchTeamScheduledPosts(currentTeamId, true, true));
         }
@@ -959,6 +962,10 @@ export function handlePermissionPolicyUpdatedEvent(): ThunkActionFunc<void> {
         doDispatch(clearRenderDecisions());
         doDispatch(refreshPostsAfterPolicyChange());
         doDispatch(reconcileChannelReadAccess());
+
+        // Broadcast to every client on a policy change, but also sent to one session alone when
+        // its own attributes flip a DM/GM decision.
+        doDispatch(fetchDmGmAccess({jitter: true}));
     };
 }
 
@@ -1424,11 +1431,23 @@ function handleUpdateMemberRoleEvent(msg: WebSocketMessages.TeamMemberRoleUpdate
 }
 
 function handleDirectAddedEvent(msg: WebSocketMessages.DirectChannelCreated) {
-    return fetchChannelAndAddToSidebar(msg.broadcast.channel_id);
+    return fetchConversationAndAddToSidebar(msg.broadcast.channel_id);
 }
 
 function handleGroupAddedEvent(msg: WebSocketMessages.GroupChannelCreated) {
-    return fetchChannelAndAddToSidebar(msg.broadcast.channel_id);
+    return fetchConversationAndAddToSidebar(msg.broadcast.channel_id);
+}
+
+// The server drops these events for a Read-denied session; one that raced the denial would
+// bring back a conversation that is meant to stay hidden.
+function fetchConversationAndAddToSidebar(channelId: string): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        if (isDmGmReadDenied(doGetState())) {
+            return;
+        }
+
+        doDispatch(fetchChannelAndAddToSidebar(channelId));
+    };
 }
 
 export function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkActionFunc<void> {
@@ -1967,6 +1986,7 @@ function handleUserRoleUpdated(msg: WebSocketMessages.UserRoleUpdated) {
                 isPermissionPoliciesEnabled(store.getState())) {
             store.dispatch(clearRenderDecisions());
             store.dispatch(refreshPostsAfterPolicyChange());
+            store.dispatch(fetchDmGmAccess());
         }
 
         if (demoted && global.location.pathname.startsWith('/admin_console')) {
@@ -1989,9 +2009,13 @@ function handleConfigChanged(msg: WebSocketMessages.ConfigChanged) {
     }
 
     // If the permission-policies feature availability changed, cached render
-    // decisions may no longer be valid; clear them so they are recomputed.
+    // decisions may no longer be valid; clear them so they are recomputed. The session's
+    // decisions go too, and DmGmAccessSync refetches them once the flag is on.
+    // Otherwise a config change can still lift a denial, e.g. by disabling ABAC.
     if (currentConfig?.FeatureFlagPermissionPolicies !== newConfig?.FeatureFlagPermissionPolicies) {
-        store.dispatch(clearRenderDecisions());
+        store.dispatch(clearRenderDecisions({includeSessionDecisions: true}));
+    } else if (hasDeniedSessionDecision(state)) {
+        store.dispatch(fetchDmGmAccess({jitter: true}));
     }
 
     store.dispatch({type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data: newConfig});
@@ -2003,6 +2027,7 @@ function handleLicenseChanged(msg: WebSocketMessages.LicenseChanged) {
     // A license change can flip ABAC availability, so clear cached render
     // decisions; they will be recomputed on demand.
     store.dispatch(clearRenderDecisions());
+    store.dispatch(fetchDmGmAccess({jitter: true}));
 
     // Refresh server limits when license changes since limits may have changed
     dispatch(getServerLimits());
@@ -2553,6 +2578,7 @@ export function handleCustomAttributeValuesUpdated(msg: WebSocketMessages.CPAVal
                 isPermissionPoliciesEnabled(doGetState())) {
             doDispatch(clearRenderDecisions());
             doDispatch(refreshPostsAfterPolicyChange());
+            doDispatch(fetchDmGmAccess());
         }
     };
 }

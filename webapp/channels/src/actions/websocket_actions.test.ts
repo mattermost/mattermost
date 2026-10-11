@@ -29,6 +29,7 @@ import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/ge
 import {getStatusForUserId, getUser as stateUser} from 'mattermost-redux/selectors/entities/users';
 
 import {reconcileChannelReadAccess} from 'actions/channel_read_access';
+import {fetchDmGmAccess} from 'actions/dm_gm_access';
 import {handleNewPost} from 'actions/post_actions';
 import {syncPostsInChannel} from 'actions/views/channel';
 import {closeRightHandSide} from 'actions/views/rhs';
@@ -119,6 +120,10 @@ jest.mock('mattermost-redux/actions/channels', () => ({
 // delegation matters, so it stands in as a single recognisable action.
 jest.mock('actions/channel_read_access', () => ({
     reconcileChannelReadAccess: jest.fn(() => ({type: 'MOCK_RECONCILE_CHANNEL_READ_ACCESS'})),
+}));
+
+jest.mock('actions/dm_gm_access', () => ({
+    fetchDmGmAccess: jest.fn(() => ({type: 'MOCK_FETCH_DM_GM_ACCESS'})),
 }));
 
 jest.mock('actions/post_actions', () => ({
@@ -957,6 +962,14 @@ describe('reconnect', () => {
         expect(reconcileChannelReadAccess).toHaveBeenCalled();
     });
 
+    test('should refetch the DM/GM decisions when socket reconnects', () => {
+        jest.mocked(fetchDmGmAccess).mockClear();
+
+        reconnect();
+
+        expect(fetchDmGmAccess).toHaveBeenCalledWith();
+    });
+
     test('should reload custom profile attribute fields on reconnect', () => {
         const clonedMockState = cloneDeep(mockState);
 
@@ -1783,6 +1796,10 @@ describe('render permission invalidation via existing events', () => {
         // One bulk reset (no channel id) rather than one dispatch per loaded channel.
         expect(actions).toContainEqual({type: PostTypes.RESET_POSTS_IN_CHANNEL, channelId: undefined});
         expect(actions).toContainEqual({type: 'MOCK_LOAD_UNREADS', channelId: 'visible-channel'});
+
+        // The clear keeps the DM/GM decisions only until this refetch replaces them.
+        expect(fetchDmGmAccess).toHaveBeenCalledWith();
+        expect(actions.map((a) => a.type).indexOf('MOCK_FETCH_DM_GM_ACCESS')).toBeGreaterThan(actions.map((a) => a.type).indexOf(RenderPermissionTypes.CLEAR_RENDER_DECISIONS));
     });
 
     test('CPA value update with no channel in view resets without refetching', () => {
@@ -1803,6 +1820,7 @@ describe('render permission invalidation via existing events', () => {
         const types = testStore.getActions().map((a) => a.type);
         expect(types).not.toContain(RenderPermissionTypes.CLEAR_RENDER_DECISIONS);
         expect(types).not.toContain(PostTypes.RESET_POSTS_IN_CHANNEL);
+        expect(types).not.toContain('MOCK_FETCH_DM_GM_ACCESS');
     });
 });
 
@@ -1828,6 +1846,17 @@ describe('handlePermissionPolicyUpdatedEvent', () => {
         const resets = actions.filter((a) => a.type === PostTypes.RESET_POSTS_IN_CHANNEL);
         expect(resets).toEqual([{type: PostTypes.RESET_POSTS_IN_CHANNEL, channelId: undefined}]);
         expect(actions).toContainEqual({type: 'MOCK_LOAD_UNREADS', channelId: 'visible-channel'});
+    });
+
+    test('refetches the DM/GM decisions after a jitter', () => {
+        jest.mocked(fetchDmGmAccess).mockClear();
+        const testStore = configureStore(stateWith('visible-channel'));
+
+        testStore.dispatch(handlePermissionPolicyUpdatedEvent());
+
+        expect(fetchDmGmAccess).toHaveBeenCalledWith({jitter: true});
+        const types = testStore.getActions().map((a) => a.type);
+        expect(types.indexOf('MOCK_FETCH_DM_GM_ACCESS')).toBeGreaterThan(types.indexOf(RenderPermissionTypes.CLEAR_RENDER_DECISIONS));
     });
 
     test('does nothing when permission policies are disabled', () => {
@@ -2412,5 +2441,91 @@ describe('handleJobUpdated', () => {
         expect(testStore.getActions()).not.toContainEqual(
             expect.objectContaining({type: 'MOCK_GET_JOBS_BY_TYPE'}),
         );
+    });
+});
+
+describe('DM/GM decision refetches', () => {
+    const permissionPoliciesOn = {FeatureFlagPermissionPolicies: 'true'};
+    let savedState: GlobalState;
+
+    beforeEach(() => {
+        savedState = cloneDeep(mockState);
+        jest.mocked(store.dispatch).mockClear();
+        jest.mocked(fetchDmGmAccess).mockClear();
+    });
+
+    afterEach(() => {
+        mockState = savedState;
+    });
+
+    function withState(diff: DeepPartial<GlobalState>) {
+        mockState = mergeObjects(mockState, diff);
+    }
+
+    const readDenied = {renderPermissions: {byResource: {permission: {'': {dm_gm_read_access: {allowed: false, evaluated: true, generation: 1}}}}}};
+
+    function dispatchedTypes() {
+        return jest.mocked(store.dispatch).mock.calls.map(([action]) => (action as unknown as AnyAction).type);
+    }
+
+    test('a role change for the current user clears decisions, then refetches them', () => {
+        withState({entities: {general: {config: permissionPoliciesOn}}});
+
+        handleEvent(wsMessage<WebSocketMessages.UserRoleUpdated>({event: WebSocketEvents.UserRoleUpdated, data: {user_id: 'currentUserId', roles: 'system_user'}}));
+
+        expect(fetchDmGmAccess).toHaveBeenCalledWith();
+        const types = dispatchedTypes();
+        expect(types.indexOf('MOCK_FETCH_DM_GM_ACCESS')).toBeGreaterThan(types.indexOf(RenderPermissionTypes.CLEAR_RENDER_DECISIONS));
+    });
+
+    test('a license change clears decisions, then refetches them after a jitter', () => {
+        handleEvent(wsMessage<WebSocketMessages.LicenseChanged>({event: WebSocketEvents.LicenseChanged, data: {license: {}}}));
+
+        expect(fetchDmGmAccess).toHaveBeenCalledWith({jitter: true});
+        const types = dispatchedTypes();
+        expect(types.indexOf('MOCK_FETCH_DM_GM_ACCESS')).toBeGreaterThan(types.indexOf(RenderPermissionTypes.CLEAR_RENDER_DECISIONS));
+    });
+
+    test('flipping the PermissionPolicies flag drops the session decisions too', () => {
+        handleEvent(wsMessage<WebSocketMessages.ConfigChanged>({event: WebSocketEvents.ConfigChanged, data: {config: permissionPoliciesOn}}));
+
+        expect(store.dispatch).toHaveBeenCalledWith({
+            type: RenderPermissionTypes.CLEAR_RENDER_DECISIONS,
+            data: expect.objectContaining({includeSessionDecisions: true}),
+        });
+    });
+
+    test('another config change refetches only while a DM/GM action is denied', () => {
+        withState({entities: {general: {config: permissionPoliciesOn}}});
+        handleEvent(wsMessage<WebSocketMessages.ConfigChanged>({event: WebSocketEvents.ConfigChanged, data: {config: permissionPoliciesOn}}));
+        expect(fetchDmGmAccess).not.toHaveBeenCalled();
+
+        withState({entities: readDenied});
+        handleEvent(wsMessage<WebSocketMessages.ConfigChanged>({event: WebSocketEvents.ConfigChanged, data: {config: permissionPoliciesOn}}));
+        expect(fetchDmGmAccess).toHaveBeenCalledWith({jitter: true});
+        expect(dispatchedTypes()).not.toContain(RenderPermissionTypes.CLEAR_RENDER_DECISIONS);
+    });
+
+    test.each([
+        WebSocketEvents.DirectAdded,
+        WebSocketEvents.GroupAdded,
+    ])('%s adds the conversation only while Read is allowed', (event) => {
+        const msg = {event, broadcast: {channel_id: 'dm1'}} as unknown as WebSocketMessage;
+
+        const runThunk = () => {
+            const thunk = jest.mocked(store.dispatch).mock.calls[0][0] as unknown as (dispatch: jest.Mock, getState: () => GlobalState) => void;
+            const doDispatch = jest.fn();
+            thunk(doDispatch, () => mockState);
+            return doDispatch;
+        };
+
+        withState({entities: {general: {config: permissionPoliciesOn}}});
+        handleEvent(msg);
+        expect(runThunk()).toHaveBeenCalledWith(expect.any(Function));
+
+        jest.mocked(store.dispatch).mockClear();
+        withState({entities: readDenied});
+        handleEvent(msg);
+        expect(runThunk()).not.toHaveBeenCalled();
     });
 });

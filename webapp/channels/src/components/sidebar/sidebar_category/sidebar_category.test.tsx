@@ -52,6 +52,7 @@ describe('components/sidebar/sidebar_category', () => {
         touchedInviteMembersButton: false,
         currentUserId: '',
         isAdmin: false,
+        hideCategory: false,
         actions: {
             setCategoryCollapsed: jest.fn(),
             setCategorySorting: jest.fn(),
@@ -202,6 +203,23 @@ describe('components/sidebar/sidebar_category', () => {
         await userEvent.click(screen.getByText('custom_category_1'));
 
         expect(baseProps.actions.setCategoryCollapsed).toHaveBeenCalledWith('category1', false);
+    });
+
+    test('should render nothing for the Direct Messages category while it is hidden', () => {
+        const props = {
+            ...baseProps,
+            category: {
+                ...baseProps.category,
+                type: CategoryTypes.DIRECT_MESSAGES,
+                display_name: 'Direct Messages',
+            },
+            hideCategory: true,
+        };
+
+        renderWithDnd(<SidebarCategory {...props}/>);
+
+        expect(screen.queryByText('Direct Messages')).not.toBeInTheDocument();
+        expect(document.querySelector('#mock-sidebar-channel')).not.toBeInTheDocument();
     });
 
     test('should not show category menu for managed categories', () => {

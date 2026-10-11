@@ -99,6 +99,7 @@ export type ViewsState = {
             [channelId: string]: string;
         };
         toastStatus: boolean;
+        dmGmHidden: boolean;
     };
 
     drafts: {
