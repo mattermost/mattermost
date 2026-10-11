@@ -914,7 +914,7 @@ function PolicyDetails({
                             id='admin.access_control.edit_policy.cancel'
                             defaultMessage='Cancel'
                         />
-'Cancel'
+                    </BlockableLink>
                 </Button>
                 {serverError && (
                     <span className='EditPolicy__error'>

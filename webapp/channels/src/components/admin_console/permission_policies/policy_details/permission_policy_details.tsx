@@ -877,7 +877,7 @@ function PermissionPolicyDetails({
                                     id='admin.permission_policies.edit.cancel'
                                     defaultMessage='Cancel'
                                 />
-'Cancel'
+                            </BlockableLink>
                         </Button>
                         {serverError && (
                             <span className='pp-error'>

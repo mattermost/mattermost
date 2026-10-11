@@ -553,7 +553,7 @@ export class PermissionSystemSchemeSettings extends React.PureComponent<Props, S
                                                     id='admin.permissions.permissionSchemes.cancel'
                                                     defaultMessage='Cancel'
                                                 />
-'Cancel'
+                                            </BlockableLink>
                                         </Button>
                     <Button
                         data-testid='resetPermissionsToDefault'

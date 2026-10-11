@@ -295,7 +295,7 @@ const CompanyInfoEdit: React.FC<Props> = () => {
                             id='admin.billing.company_info_edit.cancel'
                             defaultMessage='Cancel'
                         />
-'Cancel'
+                    </BlockableLink>
                 </Button>
             </div>
         </div>

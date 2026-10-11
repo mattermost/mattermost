@@ -828,7 +828,7 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                                                     id='admin.permissions.permissionSchemes.cancel'
                                                     defaultMessage='Cancel'
                                                 />
-'Cancel'
+                                            </BlockableLink>
                                         </Button>
                     <div className='error-message'>
                         <FormError error={this.state.serverError}/>

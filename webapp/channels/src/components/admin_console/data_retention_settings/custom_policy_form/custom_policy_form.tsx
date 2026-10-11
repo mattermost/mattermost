@@ -545,7 +545,7 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                                 id='admin.data_retention.custom_policy.cancel'
                                 defaultMessage='Cancel'
                             />
-'Cancel'
+                        </BlockableLink>
                     </Button>
                     {serverError &&
                         <span className='CustomPolicy__error'>
