@@ -6,7 +6,7 @@ import {defineMessages, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {RefreshIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Team} from '@mattermost/types/teams';
 
 import {Permissions} from 'mattermost-redux/constants';

@@ -6,7 +6,7 @@ import type {ChangeEvent, ClipboardEvent, JSX, MouseEvent, RefObject} from 'reac
 import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';

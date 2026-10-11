@@ -6,7 +6,7 @@ import type {ChangeEvent, JSX, ReactNode, SyntheticEvent} from 'react';
 import {defineMessage, FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Bot as BotType} from '@mattermost/types/bots';
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
@@ -692,7 +692,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                                 <div className='mt-2'>
                                     <SaveButton
                                         emphasis='primary'
-                                        size='sm'
+                                        size='small'
                                         savingMessage={
                                             <FormattedMessage
                                                 id='user.settings.tokens.save'
@@ -704,7 +704,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                                     />
                                     <Button
                                         emphasis='tertiary'
-                                        size='sm'
+                                        size='small'
                                         onClick={this.closeCreateToken}
                                     >
                                         <FormattedMessage
@@ -759,7 +759,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                     <div className='mt-2'>
                         <Button
                             emphasis='primary'
-                            size='sm'
+                            size='small'
                             onClick={this.closeCreateToken}
                         >
                             <FormattedMessage

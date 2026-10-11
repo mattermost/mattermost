@@ -17,7 +17,7 @@ import classNames from 'classnames';
 import React, {useId, useRef, type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import {TourTipBackdrop} from './tour_tip_backdrop';
 
@@ -218,7 +218,7 @@ export const TourTip = ({
                             <Button
                                 id='tipPreviousButton'
                                 emphasis='tertiary'
-                                size='sm'
+                                size='small'
                                 onClick={handlePrevious}
                             >
                                 {prevBtn}
@@ -228,7 +228,7 @@ export const TourTip = ({
                             <Button
                                 id='tipNextButton'
                                 emphasis='primary'
-                                size='sm'
+                                size='small'
                                 onClick={handleNext}
                             >
                                 {nextBtn}
@@ -244,8 +244,8 @@ export const TourTip = ({
                         />
                         <Button
                             emphasis='link'
-                            variant='inverted'
-                            size='xs'
+                            appearance='inverted'
+                            size='x-small'
                             onClick={handleSkip}
                         >
                             <FormattedMessage

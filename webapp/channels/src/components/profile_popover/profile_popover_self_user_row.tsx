@@ -5,7 +5,7 @@ import React, {useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {openModal} from 'actions/views/modals';
@@ -57,7 +57,7 @@ const ProfilePopoverSelfUserRow = ({
             <Button
                 type='button'
                 emphasis='primary'
-                size='sm'
+                size='small'
                 onClick={handleEditAccountSettings}
             >
                 <i

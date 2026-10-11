@@ -10,7 +10,6 @@ import {Link} from 'react-router-dom';
 
 import {AlertOutlineIcon, CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
-import {Button as SharedButton} from '@mattermost/shared/components/button';
 import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
@@ -588,9 +587,9 @@ const ValidateButton = ({status, onClick, setUnvalidated}: ValidateButtonProps) 
     }
 
     const validateButton = (
-        <SharedButton
+        <Button
             emphasis='tertiary'
-            size='sm'
+            size='small'
             type='button'
             onClick={onClick}
             id='validateConnection'
@@ -599,7 +598,7 @@ const ValidateButton = ({status, onClick, setUnvalidated}: ValidateButtonProps) 
                 id={'add_outgoing_oauth_connection.validate'}
                 defaultMessage={'Validate Connection'}
             />
-        </SharedButton>
+        </Button>
     );
 
     return validateButton;

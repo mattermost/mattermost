@@ -6,7 +6,7 @@ import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import {
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,

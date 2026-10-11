@@ -5,7 +5,7 @@ import React, {useState, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Channel} from '@mattermost/types/channels';
 
 import {deleteChannel} from 'actions/views/channel';
@@ -46,7 +46,7 @@ function ChannelSettingsArchiveTab({
             />
             <Button
                 type='button'
-                variant='destructive'
+                destructive={true}
                 onClick={handleArchiveChannel}
                 id='channelSettingsArchiveChannelButton'
                 aria-label={`Archive channel ${channel.display_name}`}

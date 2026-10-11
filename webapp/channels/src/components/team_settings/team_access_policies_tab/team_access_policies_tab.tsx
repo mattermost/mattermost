@@ -4,7 +4,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {AccessControlPolicy, AccessControlPolicyActiveUpdate} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts} from '@mattermost/types/channels';
 import type {AccessControlSettings} from '@mattermost/types/config';

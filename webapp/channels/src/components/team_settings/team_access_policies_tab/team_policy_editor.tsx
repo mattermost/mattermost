@@ -6,7 +6,7 @@ import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 import type {AccessControlSettings} from '@mattermost/types/config';
@@ -634,7 +634,7 @@ export default function TeamPolicyEditor({
                                 </p>
                             </div>
                             <Button
-                                variant='destructive'
+                                destructive={true}
                                 onClick={() => setShowDeleteModal(true)}
                                 disabled={hasChannels() || hasMaskedRows}
                             >
@@ -700,7 +700,7 @@ export default function TeamPolicyEditor({
                             </Button>
                             <Button
                                 type='button'
-                                variant='destructive'
+                                destructive={true}
                                 onClick={handleDelete}
                             >
                                 {formatMessage({id: 'team_settings.policy_editor.delete_confirmation.confirm', defaultMessage: 'Delete'})}

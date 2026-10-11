@@ -5,7 +5,7 @@ import React, {memo, useCallback} from 'react';
 import type {ChangeEventHandler} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import Setting from './setting';
 
@@ -86,7 +86,7 @@ const RadioSetting = ({
                 <Button
                     type='button'
                     emphasis='quaternary'
-                    size='sm'
+                    size='small'
                     className='radio-setting__clear'
                     onClick={handleClear}
                 >

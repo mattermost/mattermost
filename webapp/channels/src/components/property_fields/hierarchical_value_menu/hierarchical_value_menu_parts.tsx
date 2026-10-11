@@ -8,7 +8,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {defineMessages, useIntl} from 'react-intl';
 
 import {AlertOutlineIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import AttributeChip, {AttributeChipRemoveButton} from 'components/channel_attributes/attribute_chip';
 import Input from 'components/widgets/inputs/input/input';
@@ -228,7 +228,7 @@ export function HierarchicalMenuStatus({kind, onRetry}: HierarchicalMenuStatusPr
                 <Button
                     type='button'
                     emphasis='tertiary'
-                    size='xs'
+                    size='x-small'
                     className='hierarchical-value-menu__retry'
                     onClick={(event) => {
                         event.stopPropagation();

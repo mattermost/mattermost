@@ -10,11 +10,11 @@ Follow `webapp/STYLE_GUIDE.md` for canonical style, accessibility, and testing s
 
 Prefer design-system components over hand-rolled equivalents:
 
-- **`Button`** — for **new and migrated** text-based button UI, prefer Compass UI. Shared remains until migration finishes; do not introduce new shared `Button` call sites when compass-ui fits.
+- **`Button`** — use Compass UI for text-based button UI. Do not use `@mattermost/shared` `Button` (removed); `buttonClassNames` from shared remains for menu triggers and similar class-only cases.
   ```typescript
   import {Button} from '@mattermost/compass-ui/components/button';
   ```
-  Size tokens differ from shared (`xs`/`sm`/`md`/`lg` → `x-small`/`small`/`medium`/`large`). Use `destructive` (boolean) and `appearance="inverted"` instead of shared `variant`.
+  Sizes: `x-small` / `small` / `medium` / `large`. Use `destructive` (boolean) and `appearance="inverted"` for those styles. For link-styled CTAs, use `asChild` with a single `<a>` or router `Link` child instead of nesting a button.
 - **`WithTooltip`** — use for tooltips instead of wiring up Floating UI or other tooltip primitives directly.
   ```typescript
   import {WithTooltip} from '@mattermost/shared/components/tooltip';

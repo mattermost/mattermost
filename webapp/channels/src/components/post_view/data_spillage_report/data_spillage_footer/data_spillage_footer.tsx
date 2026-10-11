@@ -5,7 +5,7 @@ import React, {useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Post} from '@mattermost/types/posts';
 
 import {selectPostFromRightHandSideSearch} from 'actions/views/rhs';
@@ -31,7 +31,7 @@ export default function DataSpillageFooter({post, flaggedPostID}: Props) {
         >
             <Button
                 emphasis='primary'
-                size='sm'
+                size='small'
                 data-testid={`data-spillage-action-view-details_${flaggedPostID}`}
                 onClick={onClick}
             >

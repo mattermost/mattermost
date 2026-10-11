@@ -7,7 +7,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {Redirect, useHistory, useLocation} from 'react-router-dom';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import {getAgents} from 'mattermost-redux/actions/agents';
 import {getRecaps, getScheduledRecaps, getRecapLimitStatus as fetchRecapLimitStatus, markRecapsAsViewed} from 'mattermost-redux/actions/recaps';

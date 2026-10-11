@@ -6,7 +6,7 @@
 import classNames from 'classnames';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {MmBlock, MmColumnBlock} from '@mattermost/types/mm_blocks';
 
 import {
@@ -391,7 +391,7 @@ const HierarchyNode = ({
                 </button>
                 <div className='MmBlocksHierarchyEditor__rowActions'>
                     <Button
-                        size='xs'
+                        size='x-small'
                         emphasis='quaternary'
                         onClick={onAdd}
                         aria-label='Add block'
@@ -399,7 +399,7 @@ const HierarchyNode = ({
                         {'+'}
                     </Button>
                     <Button
-                        size='xs'
+                        size='x-small'
                         emphasis='quaternary'
                         onClick={onRemove}
                         aria-label='Remove block'
@@ -570,7 +570,7 @@ const MmBlocksHierarchyEditor = ({
                         <p className='MmBlocksHierarchyEditor__empty'>{'No blocks yet.'}</p>
                         <div className='MmBlocksHierarchyEditor__emptyAdd'>
                             <Button
-                                size='xs'
+                                size='x-small'
                                 onClick={() => setRootAddOpen((open) => !open)}
                             >
                                 {'Add block'}
