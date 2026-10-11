@@ -4,6 +4,7 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {ContentFlaggingConfig} from '@mattermost/types/content_flagging';
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
@@ -58,14 +59,15 @@ export default function ErrorStepBody({
                             id='keep_remove_quarantined_content_modal.error.body'
                             defaultMessage='We were unable to generate and download the report to your device.'
                         />
-                        <button
+                        <Button
                             type='button'
-                            className='GenericModal__button btn btn-primary errorRetryBtn'
+                            className='GenericModal__button errorRetryBtn'
+                            emphasis='primary'
                             onClick={onRetry}
                             data-testid='error-retry-button'
                         >
                             {tryAgainText}
-                        </button>
+                        </Button>
                     </div>
                 }
             />

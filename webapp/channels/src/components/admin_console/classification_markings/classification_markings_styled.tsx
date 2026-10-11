@@ -213,7 +213,11 @@ export const ActionsCell = styled.div`
     text-align: right;
 `;
 
-export const DeleteButton = styled.button.attrs({className: 'btn btn-sm btn-transparent'})`
+export const DeleteButton = styled(Button).attrs({
+    size: 'small',
+    emphasis: 'tertiary',
+    className: 'btn-transparent',
+})`
     &:hover {
         background: rgba(var(--error-text-color-rgb, 210, 75, 78), 0.08);
     }

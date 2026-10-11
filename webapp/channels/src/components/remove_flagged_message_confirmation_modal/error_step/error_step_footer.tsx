@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import {useIntl} from 'react-intl';
+
+import {Button} from '@mattermost/compass-ui/components/button';
 
 type FooterProps = {
     action: 'keep' | 'remove';
@@ -20,37 +21,42 @@ export default function ErrorStepFooter({action, onSkip, onBack}: FooterProps) {
     const backText = formatMessage({id: 'keep_remove_quarantined_content_modal.back.button_text', defaultMessage: 'Back'});
 
     const permanentText = action === 'remove' ? removePermanentlyText : keepPermanentlyText;
-    const permanentClass = action === 'remove' ? 'btn-danger' : 'btn-primary';
+    const permanentDestructive = action === 'remove';
 
     return (
         <div className='ModalFooterRow'>
             <div className='ModalFooterRow__left'>
-                <button
+                <Button
                     type='button'
-                    className='GenericModal__button btn btn-tertiary btn-danger skipReportBtn'
+                    className='GenericModal__button skipReportBtn'
+                    emphasis='tertiary'
+                    destructive={true}
                     onClick={onSkip}
                     data-testid='error-skip-button'
                 >
                     {skipText}
-                </button>
+                </Button>
             </div>
             <div className='ModalFooterRow__right'>
-                <button
+                <Button
                     type='button'
-                    className='GenericModal__button btn btn-tertiary'
+                    className='GenericModal__button'
+                    emphasis='tertiary'
                     onClick={onBack}
                     data-testid='error-step-back-button'
                 >
                     {backText}
-                </button>
-                <button
+                </Button>
+                <Button
                     type='button'
-                    className={classNames('GenericModal__button btn', permanentClass)}
+                    className='GenericModal__button'
+                    emphasis='primary'
+                    destructive={permanentDestructive}
                     disabled={true}
                     data-testid='error-permanent-button'
                 >
                     {permanentText}
-                </button>
+                </Button>
             </div>
         </div>
     );

@@ -931,7 +931,8 @@ const InviteModalLink = ({
 }: InviteModalLinkProps) => {
     return (
         <ToggleModalButton
-            className={`${inviteAsGuest ? 'invite-as-guest' : ''} btn btn-link`}
+            className={inviteAsGuest ? 'invite-as-guest' : undefined}
+            emphasis='link'
             modalId={ModalIdentifiers.INVITATION}
             dialogType={InvitationModal}
             dialogProps={{

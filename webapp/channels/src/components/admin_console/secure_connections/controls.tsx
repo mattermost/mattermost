@@ -194,13 +194,11 @@ export const Button = styled(MmButton).attrs({emphasis: 'secondary'})`
     margin: -1px -2px;
 `;
 
-export const LinkButton = styled.button.attrs({className: 'btn btn-link'})<{$destructive?: boolean}>`
+export const LinkButton = styled(MmButton).attrs<{$destructive?: boolean}>(({$destructive}) => ({
+    emphasis: 'link' as const,
+    destructive: Boolean($destructive),
+}))`
     font-weight: normal;
-    ${({$destructive}) => $destructive && css`
-        && {
-            color: #D24B4E;
-        }
-    `};
 `;
 
 export const ConnectionStatusLabel = ({rc}: {rc: RemoteCluster}) => {

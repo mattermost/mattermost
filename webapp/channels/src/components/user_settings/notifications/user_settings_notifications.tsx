@@ -12,6 +12,7 @@ import {components} from 'react-select';
 import CreatableReactSelect from 'react-select/creatable';
 
 import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
 import ExternalLink from 'components/external_link';
@@ -1117,14 +1118,18 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                 defaultMessage='<a>Learn more about notifications</a>'
                                 values={{
                                     a: (chunks) => ((
-                                        <ExternalLink
-                                            location='user_settings_notifications'
-                                            href='https://mattermost.com/pl/about-notifications'
-                                            className='btn btn-link'
+                                        <Button
+                                            asChild={true}
+                                            emphasis='link'
                                         >
-                                            <LightbulbOutlineIcon className='circular-border'/>
-                                            <span>{chunks}</span>
-                                        </ExternalLink>
+                                            <ExternalLink
+                                                location='user_settings_notifications'
+                                                href='https://mattermost.com/pl/about-notifications'
+                                            >
+                                                <LightbulbOutlineIcon className='circular-border'/>
+                                                <span>{chunks}</span>
+                                            </ExternalLink>
+                                        </Button>
                                     )),
                                 }}
                             />

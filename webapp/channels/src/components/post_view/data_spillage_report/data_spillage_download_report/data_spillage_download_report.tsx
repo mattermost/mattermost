@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import {Button, type ButtonEmphasis} from '@mattermost/compass-ui/components/button';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -73,59 +74,65 @@ export default function DataSpillageDownloadReport({flaggedPostId}: Props) {
         setStatus('idle');
     }, [flaggedPostId, status]);
 
-    let icon;
-    let label;
-    let buttonClass;
+    const {icon, label, emphasis, destructive} = useMemo(() => {
+        let icon;
+        let label;
+        let emphasis: ButtonEmphasis = 'tertiary';
+        let destructive = false;
 
-    switch (status) {
-    case 'generating':
-        icon = <LoadingSpinner/>;
-        label = (
-            <FormattedMessage
-                id='data_spillage_report.download_report.generating.button_text'
-                defaultMessage='Generating report…'
-            />
-        );
-        buttonClass = 'btn-tertiary';
-        break;
-    case 'error':
-        icon = <i className='icon icon-alert-outline'/>;
-        label = (
-            <FormattedMessage
-                id='data_spillage_report.download_report.failed.button_text'
-                defaultMessage='Generation failed. Try again.'
-            />
-        );
-        buttonClass = 'btn-danger';
-        break;
-    case 'idle':
-    default:
-        icon = <i className='icon icon-download-outline'/>;
-        label = (
-            <FormattedMessage
-                id='data_spillage_report.download_report.button_text'
-                defaultMessage='Download Report'
-            />
-        );
-        buttonClass = 'btn-tertiary';
-        break;
-    }
+        switch (status) {
+        case 'generating':
+            icon = <LoadingSpinner/>;
+            label = (
+                <FormattedMessage
+                    id='data_spillage_report.download_report.generating.button_text'
+                    defaultMessage='Generating report…'
+                />
+            );
+            break;
+        case 'error':
+            icon = <i className='icon icon-alert-outline'/>;
+            label = (
+                <FormattedMessage
+                    id='data_spillage_report.download_report.failed.button_text'
+                    defaultMessage='Generation failed. Try again.'
+                />
+            );
+            emphasis = 'primary';
+            destructive = true;
+            break;
+        case 'idle':
+        default:
+            icon = <i className='icon icon-download-outline'/>;
+            label = (
+                <FormattedMessage
+                    id='data_spillage_report.download_report.button_text'
+                    defaultMessage='Download Report'
+                />
+            );
+            break;
+        }
+
+        return {icon, label, emphasis, destructive};
+    }, [status]);
 
     return (
         <div
             className='DataSpillageDownloadReport'
             data-testid='data-spillage-download-report'
         >
-            <button
+            <Button
                 type='button'
-                className={classNames('btn btn-sm', buttonClass)}
+                size='small'
+                emphasis={emphasis}
+                destructive={destructive}
                 onClick={handleClick}
                 disabled={status === 'generating'}
                 data-testid='data-spillage-action-download-report'
             >
                 {icon}
                 {label}
-            </button>
+            </Button>
         </div>
     );
 }

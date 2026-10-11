@@ -5,6 +5,8 @@ import type {ReactNode} from 'react';
 import React from 'react';
 import styled, {css} from 'styled-components';
 
+import {Button} from '@mattermost/compass-ui/components/button';
+
 export const SectionHeading = styled.h3`
     &&& {
         margin-bottom: 8px;
@@ -84,11 +86,17 @@ export const DangerText = styled.span`
     color: #D24B4E;
 `;
 
-export const FieldDeleteButton = styled.button.attrs({className: 'btn btn-sm btn-transparent'})`
+export const FieldDeleteButton = styled(Button).attrs({
+    size: 'small',
+    emphasis: 'tertiary',
+    className: 'btn-transparent',
+})`
     font-weight: normal;
 `;
 
-export const LinkButton = styled.button.attrs({className: 'btn btn-link'})`
+export const LinkButton = styled(Button).attrs({
+    emphasis: 'link',
+})`
     font-weight: normal;
     padding: 8px 16px !important;
     font-size: 12px;

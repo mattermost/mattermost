@@ -895,9 +895,9 @@ function ChannelSettingsPermissionsPolicyTab({
                             }}
                         />
                     </span>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         onClick={() => setPage(Math.max(0, safePage - 1))}
                         disabled={safePage === 0}
                         aria-label={formatMessage({
@@ -906,10 +906,10 @@ function ChannelSettingsPermissionsPolicyTab({
                         })}
                     >
                         <i className='icon icon-chevron-left'/>
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         onClick={() => setPage(Math.min(totalPages - 1, safePage + 1))}
                         disabled={safePage >= totalPages - 1}
                         aria-label={formatMessage({
@@ -918,7 +918,7 @@ function ChannelSettingsPermissionsPolicyTab({
                         })}
                     >
                         <i className='icon icon-chevron-right'/>
-                    </button>
+                    </Button>
                 </div>
             )}
 
