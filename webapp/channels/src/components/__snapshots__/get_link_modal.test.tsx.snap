@@ -68,24 +68,24 @@ exports[`components/GetLinkModal should have called onHide when close button is 
           class="modal-footer"
         >
           <button
-            class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
+            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
             id="linkModalCloseButton"
             type="button"
           >
             <span
-              class="_button__label_doayp_24"
+              class="_button__label_aa8j5_31"
             >
               Close
             </span>
           </button>
           <button
-            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 btn-success pull-left"
+            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 btn-success pull-left"
             data-copy-btn="true"
             id="linkModalCopyLink"
             type="button"
           >
             <span
-              class="_button__label_doayp_24"
+              class="_button__label_aa8j5_31"
             >
               <i
                 class="icon icon-check"
@@ -168,24 +168,24 @@ exports[`components/GetLinkModal should have called onHide when close button is 
           class="modal-footer"
         >
           <button
-            class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
+            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
             id="linkModalCloseButton"
             type="button"
           >
             <span
-              class="_button__label_doayp_24"
+              class="_button__label_aa8j5_31"
             >
               Close
             </span>
           </button>
           <button
-            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 pull-left"
+            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 pull-left"
             data-copy-btn="true"
             id="linkModalCopyLink"
             type="button"
           >
             <span
-              class="_button__label_doayp_24"
+              class="_button__label_aa8j5_31"
             >
               <i
                 class="icon icon-link-variant"
@@ -273,24 +273,24 @@ exports[`components/GetLinkModal should match snapshot when all props is set 1`]
           class="modal-footer"
         >
           <button
-            class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
+            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
             id="linkModalCloseButton"
             type="button"
           >
             <span
-              class="_button__label_doayp_24"
+              class="_button__label_aa8j5_31"
             >
               Close
             </span>
           </button>
           <button
-            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 pull-left"
+            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 pull-left"
             data-copy-btn="true"
             id="linkModalCopyLink"
             type="button"
           >
             <span
-              class="_button__label_doayp_24"
+              class="_button__label_aa8j5_31"
             >
               <i
                 class="icon icon-link-variant"
@@ -373,24 +373,24 @@ exports[`components/GetLinkModal should match snapshot when helpText is not set 
           class="modal-footer"
         >
           <button
-            class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
+            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
             id="linkModalCloseButton"
             type="button"
           >
             <span
-              class="_button__label_doayp_24"
+              class="_button__label_aa8j5_31"
             >
               Close
             </span>
           </button>
           <button
-            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 pull-left"
+            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 pull-left"
             data-copy-btn="true"
             id="linkModalCopyLink"
             type="button"
           >
             <span
-              class="_button__label_doayp_24"
+              class="_button__label_aa8j5_31"
             >
               <i
                 class="icon icon-link-variant"
