@@ -56,7 +56,12 @@ func (h *channelReadAccessHarness) mockACS(t *testing.T) *eMocks.AccessControlSe
 	mockACS := &eMocks.AccessControlServiceInterface{}
 	original := h.th.App.Srv().ch.AccessControl
 	h.th.App.Srv().ch.AccessControl = mockACS
-	t.Cleanup(func() { h.th.App.Srv().ch.AccessControl = original })
+	t.Cleanup(func() {
+		// Badge and clear pushes evaluate the recipient asynchronously, whether or not
+		// pushes are enabled; let them finish before the service goes away.
+		h.th.App.Srv().StopPushNotificationsHubWorkers()
+		h.th.App.Srv().ch.AccessControl = original
+	})
 	return mockACS
 }
 
@@ -348,6 +353,8 @@ func TestBuildPushNotificationMessageChannelReadAccess(t *testing.T) {
 		h := setupChannelReadAccessTest(t)
 		mockACS := h.mockACS(t)
 		governed(mockACS)
+		// The badge asks whether the recipient's conversations are hidden.
+		dmGmReadUngoverned(mockACS)
 		decides(mockACS, false)
 
 		msg := build(t, h)
@@ -359,6 +366,8 @@ func TestBuildPushNotificationMessageChannelReadAccess(t *testing.T) {
 		h := setupChannelReadAccessTest(t)
 		mockACS := h.mockACS(t)
 		governed(mockACS)
+		// The badge asks whether the recipient's conversations are hidden.
+		dmGmReadUngoverned(mockACS)
 		decides(mockACS, true)
 
 		msg := build(t, h)

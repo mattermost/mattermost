@@ -4,8 +4,12 @@
 package api4
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -1127,4 +1131,52 @@ func TestDMGMReadAccessWebSocket(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, []string{th.BasicChannel.Id}, postedEvents(t, denied, th.BasicChannel.Id),
 		"the session that may not read conversations gets no conversation post")
+}
+
+func TestDMGMPushNotificationAck(t *testing.T) {
+	ack := func(t *testing.T, f *dmGmAccessFixture) *httptest.ResponseRecorder {
+		t.Helper()
+		notification := &mocks.NotificationInterface{}
+		notification.On("GetNotificationMessage", mock.Anything, mock.Anything, f.th.BasicUser.Id).
+			Return(&model.PushNotification{PostId: f.dmPost.Id, Category: model.CategoryCanReply}, nil)
+		f.th.App.Srv().Channels().Notification = notification
+		t.Cleanup(func() { f.th.App.Srv().Channels().Notification = nil })
+		// Pushes were off while the fixture posted; the ack endpoint needs them on.
+		f.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SendPushNotifications = true })
+
+		api, err := Init(f.th.Server)
+		require.NoError(t, err)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/api/v4/notifications/ack", bytes.NewBufferString(fmt.Sprintf(
+			`{"id":"123", "is_id_loaded":true, "post_id":"%s", "type":"%s"}`, f.dmPost.Id, model.PushTypeMessage)))
+		req.Header.Set(model.HeaderAuth, "Bearer "+f.th.Client.AuthToken)
+		api.APIHandler(pushNotificationAck).ServeHTTP(resp, req)
+		return resp
+	}
+	category := func(t *testing.T, resp *httptest.ResponseRecorder) string {
+		t.Helper()
+		require.Equal(t, http.StatusOK, resp.Code, resp.Body.String())
+		var msg model.PushNotification
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&msg))
+		return msg.Category
+	}
+
+	t.Run("read denied", func(t *testing.T) {
+		f, _ := setupDMGMAccessAPI(t, false, true)
+		resp := ack(t, f)
+		require.Equal(t, http.StatusForbidden, resp.Code)
+		var appErr model.AppError
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&appErr))
+		require.Equal(t, dmGmReadDeniedErrorID, appErr.Id)
+	})
+
+	t.Run("write denied withdraws the reply action", func(t *testing.T) {
+		f, _ := setupDMGMAccessAPI(t, true, false)
+		require.Empty(t, category(t, ack(t, f)))
+	})
+
+	t.Run("write allowed keeps the reply action", func(t *testing.T) {
+		f, _ := setupDMGMAccessAPI(t, true, true)
+		require.Equal(t, model.CategoryCanReply, category(t, ack(t, f)))
+	})
 }

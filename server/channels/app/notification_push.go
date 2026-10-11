@@ -51,6 +51,7 @@ type PushNotificationsHub struct {
 	wg                *sync.WaitGroup
 	semaWg            *sync.WaitGroup
 	buffer            int
+	stopOnce          *sync.Once
 }
 
 type PushNotification struct {
@@ -374,15 +375,20 @@ func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, exp
 	return senderName + userLocale("api.post.send_notifications_and_forget.push_general_message")
 }
 
-func (a *App) getUserBadgeCount(userID string, isCRTEnabled bool) (int, *model.AppError) {
-	unreadCount, err := a.Srv().Store().User().GetUnreadCount(userID, isCRTEnabled)
+// getUserBadgeCount leaves out direct and group message mentions while the user may not read
+// conversations. Pushes are evaluated without a session, so every push type agrees on the
+// badge and it doesn't jump between them.
+func (a *App) getUserBadgeCount(rctx request.CTX, userID string, isCRTEnabled bool) (int, *model.AppError) {
+	excludeDirectAndGroup := a.DirectAndGroupHidden(rctx, userID)
+
+	unreadCount, err := a.Srv().Store().User().GetUnreadCount(userID, isCRTEnabled, excludeDirectAndGroup)
 	if err != nil {
 		return 0, model.NewAppError("getUserBadgeCount", "app.user.get_unread_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	badgeCount := int(unreadCount)
 
 	if isCRTEnabled {
-		threadUnreadMentions, err := a.Srv().Store().Thread().GetTotalUnreadMentions(userID, "", model.GetUserThreadsOpts{})
+		threadUnreadMentions, err := a.Srv().Store().Thread().GetTotalUnreadMentions(userID, "", model.GetUserThreadsOpts{ExcludeDirect: excludeDirectAndGroup})
 		if err != nil {
 			return 0, model.NewAppError("getUserBadgeCount", "app.user.get_thread_count_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -395,7 +401,7 @@ func (a *App) getUserBadgeCount(userID string, isCRTEnabled bool) (int, *model.A
 func (a *App) clearPushNotificationSync(rctx request.CTX, currentSessionId, userID, channelID, rootID string) *model.AppError {
 	isCRTEnabled := a.IsCRTEnabledForUser(rctx, userID)
 
-	badgeCount, err := a.getUserBadgeCount(userID, isCRTEnabled)
+	badgeCount, err := a.getUserBadgeCount(rctx, userID, isCRTEnabled)
 	if err != nil {
 		return model.NewAppError("clearPushNotificationSync", "app.user.get_badge_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -428,7 +434,7 @@ func (a *App) clearPushNotification(currentSessionId, userID, channelID, rootID 
 }
 
 func (a *App) updateMobileAppBadgeSync(rctx request.CTX, userID string) *model.AppError {
-	badgeCount, err := a.getUserBadgeCount(userID, a.IsCRTEnabledForUser(rctx, userID))
+	badgeCount, err := a.getUserBadgeCount(rctx, userID, a.IsCRTEnabledForUser(rctx, userID))
 	if err != nil {
 		return model.NewAppError("updateMobileAppBadgeSync", "app.user.get_badge_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -461,6 +467,7 @@ func (s *Server) createPushNotificationsHub(rctx request.CTX) {
 		app:               New(ServerConnector(s.Channels())),
 		wg:                new(sync.WaitGroup),
 		semaWg:            new(sync.WaitGroup),
+		stopOnce:          new(sync.Once),
 		sema:              make(chan struct{}, runtime.NumCPU()*8), // numCPU * 8 is a good amount of concurrency.
 		stopChan:          make(chan struct{}),
 		buffer:            buffer,
@@ -525,21 +532,25 @@ func (hub *PushNotificationsHub) start(rctx request.CTX) {
 	}
 }
 
+// stop drains the hub and waits for its workers. Only the first call does anything: a
+// second would block draining into a hub nobody reads.
 func (hub *PushNotificationsHub) stop() {
-	// Drain the channel.
-	for range hub.buffer + 1 {
-		hub.notificationsChan <- PushNotification{
-			notificationType: notificationTypeDummy,
+	hub.stopOnce.Do(func() {
+		// Drain the channel.
+		for range hub.buffer + 1 {
+			hub.notificationsChan <- PushNotification{
+				notificationType: notificationTypeDummy,
+			}
 		}
-	}
-	close(hub.stopChan)
-	// We need to wait for the outer for loop to exit first.
-	// We cannot just send struct{}{} to stopChan because there are
-	// other listeners to the channel. And sending just once
-	// will cause a race.
-	hub.wg.Wait()
-	// And then we wait for the semaphore to finish.
-	hub.semaWg.Wait()
+		close(hub.stopChan)
+		// We need to wait for the outer for loop to exit first.
+		// We cannot just send struct{}{} to stopChan because there are
+		// other listeners to the channel. And sending just once
+		// will cause a race.
+		hub.wg.Wait()
+		// And then we wait for the semaphore to finish.
+		hub.semaWg.Wait()
+	})
 }
 
 func (s *Server) StopPushNotificationsHubWorkers() {
@@ -802,6 +813,9 @@ func (a *App) BuildPushNotificationMessage(rctx request.CTX, contentsConfig stri
 ) (*model.PushNotification, *model.AppError) {
 	var msg *model.PushNotification
 
+	// The read, badge and write checks share one evaluation per action.
+	rctx = WithChannelAccessMemo(rctx)
+
 	// A push delivers the post's content without the recipient asking for it, so a
 	// denied recipient — including one with no cached session attributes — gets the
 	// notification downgraded rather than suppressed: the device fetches by id, and
@@ -826,9 +840,23 @@ func (a *App) BuildPushNotificationMessage(rctx request.CTX, contentsConfig stri
 		msg = a.buildIdLoadedPushNotificationMessage(rctx, channel, post, user)
 	} else {
 		msg = a.buildFullPushNotificationMessage(rctx, contentsConfig, post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
+		if denied && channel.IsGroupOrDirect() {
+			// Even the generic form names the other participants, as the channel and the
+			// sender, so a recipient who may not read conversations gets neither.
+			msg.ChannelName = ""
+			msg.SenderName = ""
+			msg.OverrideUsername = ""
+			msg.OverrideIconURL = ""
+			msg.Message = i18n.GetUserTranslations(user.Locale)("api.push_notification.id_loaded.default_message")
+		}
 	}
 
-	badgeCount, err := a.getUserBadgeCount(user.Id, a.IsCRTEnabledForUser(rctx, user.Id))
+	// Replying from the notification writes to the conversation.
+	if channel.IsGroupOrDirect() && !a.HasChannelWriteAccess(rctx, user.Id, channel) {
+		msg.Category = ""
+	}
+
+	badgeCount, err := a.getUserBadgeCount(rctx, user.Id, a.IsCRTEnabledForUser(rctx, user.Id))
 	if err != nil {
 		return nil, model.NewAppError("BuildPushNotificationMessage", "app.user.get_badge_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

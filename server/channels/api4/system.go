@@ -788,6 +788,18 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.id_loaded.fetch.app_error", nil, "", http.StatusInternalServerError).Wrap(appError)
 				return
 			}
+			// The fetched message always offers a reply; withdraw it in a conversation this
+			// device's session may not write to.
+			if msg.Category == model.CategoryCanReply {
+				channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
+				if appErr != nil {
+					c.Err = appErr
+					return
+				}
+				if channel.IsGroupOrDirect() && !c.App.HasChannelWriteAccess(c.AppContext, c.AppContext.Session().UserId, channel) {
+					msg.Category = ""
+				}
+			}
 			if err2 := json.NewEncoder(w).Encode(msg); err2 != nil {
 				c.Logger.Warn("Error while writing response", mlog.Err(err2))
 			} else {

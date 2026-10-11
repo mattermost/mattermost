@@ -1581,7 +1581,7 @@ func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime in
 	return v, nil
 }
 
-func (us SqlUserStore) GetUnreadCount(userId string, isCRTEnabled bool) (int64, error) {
+func (us SqlUserStore) GetUnreadCount(userId string, isCRTEnabled, excludeDirectAndGroup bool) (int64, error) {
 	mentionCountColumn := "cm.MentionCount"
 	if isCRTEnabled {
 		mentionCountColumn = "cm.MentionCountRoot"
@@ -1598,6 +1598,9 @@ func (us SqlUserStore) GetUnreadCount(userId string, isCRTEnabled bool) (int64, 
 			AND c.DeleteAt = 0
 		WHERE c.Type ` + typeClause + `
 	`
+	if excludeDirectAndGroup {
+		query += ` AND c.Type NOT IN ('D', 'G')`
+	}
 
 	var count int64
 	err := us.GetReplica().Get(&count, query, append([]any{userId}, typeArgs...)...)
