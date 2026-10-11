@@ -34,7 +34,23 @@ running server, so a restart is the only way to flip one.
 - A test needing a different combination belongs in its own file. See
   `specs/functional/channels/categories/managed_categories_flag_off.spec.ts`.
 
+- Before the first test of each spec file, the test fixture restarts the server
+  with the env a fresh boot gets (`ensureDefaultServerEnv`), dropping every
+  `MM_*` var an earlier file set (feature flags, `ensureMinio()`,
+  `ensureOpensearch()`, ...), so a spec only sees what it requests itself. Don't
+  rely on leftovers. Consecutive files that request the same non-default env each
+  pay a restart to clear and set it.
+
 This is enforced by review, not tooling.
+
+## `ensurePhase2MigrationCompleted`: only for specs that use schemes
+
+The server is ready once `/api/v4/system/ping` answers; the permissions migration
+(`lib/src/server/migrations.ts`) is not waited for at boot. Scheme endpoints
+(`createScheme`, `updateTeamScheme`, ...) return 501 until it finishes, so a spec
+that calls them runs `await pw.ensurePhase2MigrationCompleted()` first. It starts
+the migration through `mmctl --local` instead of waiting for the server's 60s
+scheduler.
 
 ## Licensing
 
