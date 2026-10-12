@@ -557,7 +557,7 @@ function PolicyDetails({
                                     defaultMessage: 'Configure user attributes',
                                 }),
                                 onClick: () => {
-                                    getHistory().push('/admin_console/system_attributes/user_attributes');
+                                    getHistory().push('/admin_console/system_attributes/manage_attributes');
                                 },
                             }}
                         />

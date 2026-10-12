@@ -22,6 +22,9 @@ var latestVersionCache = cache.NewLRU(&cache.CacheOptions{
 	Size: 1,
 })
 
+// LatestVersionURL is the GitHub endpoint for the latest server release.
+const LatestVersionURL = "https://api.github.com/repos/mattermost/mattermost-server/releases/latest"
+
 func (s *Server) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
@@ -207,7 +210,13 @@ func (a *App) GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*mode
 		return cachedLatestVersion, nil
 	}
 
-	res, err := http.Get(latestVersionUrl)
+	req, err := http.NewRequestWithContext(rctx.Context(), http.MethodGet, latestVersionUrl, nil)
+	if err != nil {
+		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	res, err := client.Do(req)
 	if err != nil {
 		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}

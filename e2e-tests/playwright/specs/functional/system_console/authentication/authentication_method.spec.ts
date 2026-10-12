@@ -41,9 +41,9 @@ test('MM-T953_2 shows Email, MFA when multifactor authentication is active', {ta
     const {adminUser, adminClient} = await pw.initSetup();
     const user = await pw.createNewUserProfile(adminClient);
 
+    // # Enable MFA and enroll the user
+    const {restore} = await adminClient.patchConfig({ServiceSettings: {EnableMultifactorAuthentication: true}});
     try {
-        // # Enable MFA and enroll the user
-        await adminClient.patchConfig({ServiceSettings: {EnableMultifactorAuthentication: true}});
         await pw.enableUserMfa(adminClient, user.id);
 
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -54,6 +54,6 @@ test('MM-T953_2 shows Email, MFA when multifactor authentication is active', {ta
         // * Verify the authentication method includes MFA
         await systemConsolePage.users.userDetail.userCard.expectAuthenticationMethod('Email, MFA');
     } finally {
-        await adminClient.patchConfig({ServiceSettings: {EnableMultifactorAuthentication: false}});
+        await restore();
     }
 });

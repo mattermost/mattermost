@@ -16,30 +16,26 @@ test('rejects email-to-OpenID when the current password is wrong', {tag: '@authe
     await pw.ensureSiteUrl();
     await pw.ensureKeycloakOpenId();
 
-    try {
-        // # Log in as the email user and open Switch to OpenID
-        await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
-        await pw.loginPage.login(user);
-        await pw.channelsPage.goto(team.name);
-        await pw.channelsPage.toBeVisible();
+    // # Log in as the email user and open Switch to OpenID
+    await pw.hasSeenLandingPage();
+    await pw.loginPage.goto();
+    await pw.loginPage.toBeVisible();
+    await pw.loginPage.login(user);
+    await pw.channelsPage.goto(team.name);
+    await pw.channelsPage.toBeVisible();
 
-        const profileModal = await pw.channelsPage.openProfileModal();
-        await profileModal.openSecurityTab();
-        await profileModal.securityTab.clickSwitchToOpenId();
-        await pw.emailToOAuthPage.toBeVisible();
+    const profileModal = await pw.channelsPage.openProfileModal();
+    await profileModal.openSecurityTab();
+    await profileModal.securityTab.clickSwitchToOpenId();
+    await pw.emailToOAuthPage.toBeVisible();
 
-        // # Submit the wrong current password
-        await pw.emailToOAuthPage.submit('WrongPassword1');
+    // # Submit the wrong current password
+    await pw.emailToOAuthPage.submit('WrongPassword1');
 
-        // * Verify the switch is rejected and the auth method is unchanged
-        await expect(pw.emailToOAuthPage.invalidPasswordError).toBeVisible();
-        const unchanged = await adminClient.getUser(user.id);
-        expect(unchanged.auth_service).toBe('');
-    } finally {
-        await adminClient.patchConfig({OpenIdSettings: {Enable: false}});
-    }
+    // * Verify the switch is rejected and the auth method is unchanged
+    await expect(pw.emailToOAuthPage.invalidPasswordError).toBeVisible();
+    const unchanged = await adminClient.getUser(user.id);
+    expect(unchanged.auth_service).toBe('');
 });
 
 /**
@@ -80,6 +76,5 @@ test('rejects email-to-LDAP when the current password is wrong', {tag: '@authent
         expect(unchanged.auth_service).toBe('');
     } finally {
         await pw.deleteLdapUser(ldapUser.username).catch(() => undefined);
-        await adminClient.patchConfig({LdapSettings: {Enable: false}});
     }
 });

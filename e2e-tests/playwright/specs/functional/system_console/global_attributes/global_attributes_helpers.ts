@@ -51,15 +51,13 @@ export async function requireGlobalAttributesEnabled(pw: PlaywrightExtended) {
 }
 
 /**
- * Hierarchical (graph) authoring is gated on PropertyFieldGraph, which cannot be
- * flipped through the config API — the config store restores feature flags on write.
- * ensureFeatureFlag restarts the testcontainers server with the boot-time env var
- * when needed, and skips when the flag cannot be enabled.
+ * Precondition for hierarchical (graph) authoring, on top of
+ * {@link requireGlobalAttributesEnabled}'s license check. Does not enable
+ * PropertyFieldGraph itself -- callers must include it in their own
+ * pw.ensureFeatureFlag() call.
  */
 export async function requireHierarchicalAttributesEnabled(pw: PlaywrightExtended) {
-    const session = await requireGlobalAttributesEnabled(pw);
-    await pw.ensureFeatureFlag('PropertyFieldGraph', true);
-    return session;
+    return requireGlobalAttributesEnabled(pw);
 }
 
 /**

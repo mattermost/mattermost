@@ -35,8 +35,8 @@ func (n *NodeSnapshot) SchemaVersion() (string, bool) {
 	if n != nil && n.ClusterInfo != nil && n.ClusterInfo.SchemaVersion != "" {
 		return n.ClusterInfo.SchemaVersion, true
 	}
-	if diag, ok := n.Diag(); ok && diag.Database.SchemaVersion != "" && n.sectionOK(model.SectionDatabaseIdentity) {
-		return diag.Database.SchemaVersion, true
+	if diag, ok := n.Diag(); ok && model.SafeDereference(diag.Database.SchemaVersion) != "" && n.sectionOK(model.SectionDatabaseIdentity) {
+		return *diag.Database.SchemaVersion, true
 	}
 
 	return "", false

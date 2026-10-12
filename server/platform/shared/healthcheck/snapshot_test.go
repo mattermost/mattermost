@@ -91,3 +91,29 @@ func TestLeader(t *testing.T) {
 		require.False(t, ok)
 	})
 }
+
+func TestNewSnapshotCopiesNodes(t *testing.T) {
+	t.Parallel()
+
+	leader := &NodeSnapshot{Hostname: "node-1", IsLeader: true}
+	original := []*NodeSnapshot{
+		leader,
+		{Hostname: "node-2"},
+	}
+
+	snapshot := NewSnapshot(original)
+	nodes := snapshot.Nodes()
+	require.Len(t, nodes, 2)
+	gotLeader, ok := snapshot.Leader()
+	require.True(t, ok)
+	require.Same(t, leader, gotLeader)
+
+	original[0] = &NodeSnapshot{Hostname: "mutated", IsLeader: false}
+
+	nodes = snapshot.Nodes()
+	require.Len(t, nodes, 2)
+	require.Equal(t, "node-1", nodes[0].Hostname)
+	gotLeader, ok = snapshot.Leader()
+	require.True(t, ok)
+	require.Equal(t, "node-1", gotLeader.Hostname)
+}

@@ -1,9 +1,39 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+.BannerPreviewSection {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    // Compact the shared SectionNotice for this narrow preview slot.
+    .sectionNoticeContent {
+        padding: 8px 12px;
+        gap: 8px;
+    }
+
+    .sectionNoticeIcon {
+        font-size: 16px;
+    }
+
+    .sectionNoticeTitle {
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    .sectionNoticeBody {
+        gap: 2px;
+
+        p {
+            font-size: 12px;
+            line-height: 16px;
+        }
+    }
+}
+
 // Matches the banner text field's width, and truncates like the real banner. The
-// nowrap lives on the child, not here: a nowrap flex container reports its full text
-// as its minimum width and drags the modal wide with it.
+// nowrap lives here, not on the section: a nowrap flex container reports its full
+// text as its minimum width and drags the modal wide with it.
 .BannerPreview {
     display: flex;
     overflow: hidden;
@@ -30,10 +60,4 @@
     p {
         margin: 0;
     }
-}
-
-.BannerPreview__empty {
-    color: rgba(var(--center-channel-color-rgb), 0.64);
-    font-style: italic;
-    font-weight: 400;
 }

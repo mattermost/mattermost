@@ -1346,7 +1346,7 @@ export async function createPermissionPolicy(
     options: {
         name: string;
         celExpression: string;
-        permissions: Array<'Download Files' | 'Upload Files'>;
+        permissions: Array<'Download Files' | 'Upload Files' | 'Create Burn-on-Read Message'>;
         role?: 'system_guest' | 'system_user' | 'system_admin';
         adminClient?: Client4;
     },
@@ -1414,6 +1414,7 @@ export async function createPermissionPolicy(
     const permissionIdMap: Record<string, string> = {
         'Download Files': 'pp-add-permission-download_file_attachment',
         'Upload Files': 'pp-add-permission-upload_file_attachment',
+        'Create Burn-on-Read Message': 'pp-add-permission-create_burn_on_read_post',
     };
     for (const permission of options.permissions) {
         await page.getByRole('button', {name: 'Add permission'}).click();

@@ -32,29 +32,43 @@ type Props = {
     size?: 'small' | 'medium';
 
     className?: string;
+
+    // Rendered inside the pill, after the value — a remove control belongs on the
+    // chip's own background, not floating beside it. Callers must not put an
+    // interactive child inside a Menu trigger <button>; use a sibling underlay
+    // pattern instead (see ChannelAttributeRowEditor / HierarchicalValueMenu).
+    children?: React.ReactNode;
 };
 
 type RemoveButtonProps = {
     onRemove: (event: React.MouseEvent) => void;
     removeLabel: string;
     disabled?: boolean;
+    className?: string;
 };
 
-export const AttributeChipRemoveButton = ({onRemove, removeLabel, disabled}: RemoveButtonProps) => (
+/**
+ * Circular dismiss control for AttributeChip (Figma Components — Chip).
+ * A real <button>: only safe as a descendant of a non-interactive chip host
+ * (or a sibling of a Menu trigger), never nested inside another <button>.
+ */
+export const AttributeChipRemoveButton = ({onRemove, removeLabel, disabled, className}: RemoveButtonProps) => (
     <button
         type='button'
-        className='AttributeChip__remove'
+        className={classNames('AttributeChip__remove', className)}
         data-testid='attributeChipRemove'
+        data-menu-prevent-open={true}
+        data-menu-prevent-close={true}
         aria-label={removeLabel}
         disabled={disabled}
         onMouseDown={(event) => {
+            // Keep focus from moving off the open menu cluster before click runs.
             event.preventDefault();
             event.stopPropagation();
         }}
         onClick={(event) => {
             event.preventDefault();
             event.stopPropagation();
-            event.nativeEvent.stopImmediatePropagation();
             onRemove(event);
         }}
     >
@@ -74,6 +88,11 @@ export const AttributeChipRemoveButton = ({onRemove, removeLabel, disabled}: Rem
  *
  * The background is admin-chosen, so the foreground is derived from its luminance,
  * as the channel banner already does. That is what holds contrast in all themes.
+ *
+ * Dismissible chips follow Components — Chip: circular CloseCircle inside the chip
+ * via children (typically AttributeChipRemoveButton). Medium chips keep option
+ * casing, a fixed 22px height, and a 148px max-width (value ellipsizes; remove
+ * stays visible) whether or not a remove control is present.
  */
 const AttributeChip = ({
     label,
@@ -82,6 +101,7 @@ const AttributeChip = ({
     announceLabel = true,
     size = 'small',
     className,
+    children,
 }: Props) => {
     const style = useMemo(() => {
         if (!color || !HEX_COLOR_PATTERN.test(color)) {
@@ -97,6 +117,8 @@ const AttributeChip = ({
         return {backgroundColor: color, color: foreground};
     }, [color]);
 
+    const dismissible = Boolean(children);
+
     return (
         <span
             className={classNames(
@@ -104,6 +126,7 @@ const AttributeChip = ({
                 `AttributeChip--${size}`,
                 {
                     'AttributeChip--neutral': !style,
+                    'AttributeChip--dismissible': dismissible,
                 },
                 className,
             )}
@@ -120,6 +143,7 @@ const AttributeChip = ({
                 </span>
             )}
             <span className='AttributeChip__value'>{value}</span>
+            {children}
         </span>
     );
 };

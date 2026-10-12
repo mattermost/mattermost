@@ -126,7 +126,7 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 
 	// lock logger config so server init cannot override it during testing.
 	testLogger.LockConfiguration()
-	options = append(options, SetLogger(testLogger))
+	options = append(options, SetLogger(testLogger), DisableGlobalLogger())
 
 	s, err := NewServer(options...)
 	require.NoError(tb, err)
