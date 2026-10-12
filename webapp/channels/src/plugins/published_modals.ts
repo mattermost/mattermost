@@ -46,6 +46,7 @@ const publishedModals = {
     team_members: lazyModal(() => import('components/team_members_modal')),
     leave_team: lazyModal(() => import('components/leave_team_modal')),
     file_preview_modal: withDefaultProps(lazyModal(() => import('components/file_preview_modal')), {startIndex: 0}),
+    new_channel_modal: lazyModal(() => import('components/new_channel_modal/new_channel_modal')),
 } satisfies Record<PublishedModalId, React.ComponentType<any>>;
 
 // Fails the build here if a modal's real props drift from the published contract,
