@@ -22,10 +22,9 @@ export type Props = {
     title: React.ReactNode;
     pluginId?: string;
     showPopout?: boolean;
-    headerControls?: React.ReactNode;
 };
 
-const RhsPlugin = ({showPluggable, pluggableId, title, pluginId, showPopout = true, headerControls}: Props) => {
+const RhsPlugin = ({showPluggable, pluggableId, title, pluginId, showPopout = true}: Props) => {
     const intl = useIntl();
     const currentTeam = useSelector(getCurrentTeam);
     const currentChannel = useSelector(getCurrentChannel);
@@ -53,10 +52,7 @@ const RhsPlugin = ({showPluggable, pluggableId, title, pluginId, showPopout = tr
             id='rhsContainer'
             className='sidebar-right__body'
         >
-            <SearchResultsHeader
-                newWindowHandler={showPopout ? newWindowHandler : undefined}
-                headerControls={headerControls}
-            >
+            <SearchResultsHeader newWindowHandler={showPopout ? newWindowHandler : undefined}>
                 {title}
             </SearchResultsHeader>
             {

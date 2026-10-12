@@ -94,35 +94,6 @@ describe('search_results_header', () => {
         expect(screen.getByLabelText('Expand Sidebar Icon')).toBeInTheDocument();
     });
 
-    test('shows header controls first in the button group, before expand and close', () => {
-        renderWithContext(
-            <SearchResultsHeader
-                previousRhsState={RHSStates.FLAG as RhsState}
-                canGoBack={false}
-                isExpanded={false}
-                channelId='channel_id'
-                headerControls={(
-                    <button
-                        type='button'
-                        aria-label='Follow'
-                    />
-                )}
-                actions={{
-                    closeRightHandSide: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
-                    goBack: jest.fn(),
-                }}
-            >
-                {'Title'}
-            </SearchResultsHeader>,
-        );
-
-        const follow = screen.getByRole('button', {name: 'Follow'});
-        expect(screen.getByText('Title')).not.toContainElement(follow);
-        const buttons = Array.from(follow.parentElement!.querySelectorAll('button')).map((b) => b.getAttribute('aria-label'));
-        expect(buttons).toEqual(['Follow', 'Expand Sidebar Icon', 'Close']);
-    });
-
     test('should render popout button when newWindowHandler exists', () => {
         const newWindowHandler = jest.fn();
 

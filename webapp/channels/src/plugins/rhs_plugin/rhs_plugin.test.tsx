@@ -15,13 +15,12 @@ import ConnectedRhsPlugin from '.';
 
 jest.mock('components/search_results_header', () => ({
     __esModule: true,
-    default: ({children, newWindowHandler, headerControls}: {children: React.ReactNode; newWindowHandler?: () => void; headerControls?: React.ReactNode}) => (
+    default: ({children, newWindowHandler}: {children: React.ReactNode; newWindowHandler?: () => void}) => (
         <div
             data-testid='search-results-header'
             data-has-window-handler={newWindowHandler === undefined ? 'false' : 'true'}
         >
             {children}
-            <div data-testid='header-controls'>{headerControls}</div>
         </div>
     ),
 }));
@@ -109,12 +108,11 @@ describe('RhsPlugin', () => {
     describe('mapStateToProps', () => {
         const pluggableId = 'pluggable-id';
 
-        function stateWithRegisteredComponent(showPopout?: boolean, headerControls?: React.ReactNode): DeepPartial<GlobalState> {
+        function stateWithRegisteredComponent(showPopout?: boolean): DeepPartial<GlobalState> {
             const component: Record<string, unknown> = {
                 id: pluggableId,
                 pluginId: 'plugin-id',
                 title: 'Test Title',
-                headerControls,
             };
             if (showPopout !== undefined) {
                 component.showPopout = showPopout;
@@ -137,12 +135,6 @@ describe('RhsPlugin', () => {
             renderWithContext(<ConnectedRhsPlugin/>, stateWithRegisteredComponent(undefined));
 
             expect(screen.getByTestId('search-results-header')).toHaveAttribute('data-has-window-handler', 'true');
-        });
-
-        it('passes the registered header controls to the header', () => {
-            renderWithContext(<ConnectedRhsPlugin/>, stateWithRegisteredComponent(undefined, <button type='button'>{'Follow'}</button>));
-
-            expect(screen.getByTestId('header-controls')).toHaveTextContent('Follow');
         });
 
         it('passes showPopout: false through to hide the popout button', () => {

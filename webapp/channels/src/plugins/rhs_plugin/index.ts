@@ -22,7 +22,6 @@ function mapStateToProps(state: GlobalState) {
         title: pluginTitle,
         pluginId,
         showPopout: pluginComponent?.showPopout ?? true,
-        headerControls: pluginComponent?.headerControls,
     };
 }
 
