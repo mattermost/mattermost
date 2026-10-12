@@ -17,22 +17,12 @@ export const EMPTY_BUILD_MESSAGE =
 
 // Hosted docs keep YouTube/Wistia players; build-offline-bundle.py strips them
 // from the airgap tarball. Allowlisted so check-egress matches the public site.
-const HOSTED_EMBED_HOST_SUFFIXES = [
-  '.youtube.com',
-  '.youtu.be',
-  '.wistia.com',
-  '.wistia.net',
-];
-const HOSTED_EMBED_HOSTS = new Set([
+const HOSTED_EMBED_BASES = [
   'youtube.com',
-  'www.youtube.com',
   'youtu.be',
-  'www.youtu.be',
   'wistia.com',
-  'www.wistia.com',
-  'fast.wistia.com',
   'wistia.net',
-]);
+];
 
 const TEXT_EXT = new Set(['.html', '.css', '.js']);
 // Attribute-name boundary: \b matches after - and :, so data-src / xlink:href
@@ -112,11 +102,8 @@ export function isAllowedHostedEmbed(url) {
   } catch {
     return false;
   }
-  if (HOSTED_EMBED_HOSTS.has(host)) {
-    return true;
-  }
-  return HOSTED_EMBED_HOST_SUFFIXES.some(
-    (suffix) => host.endsWith(suffix) && host.length > suffix.length,
+  return HOSTED_EMBED_BASES.some(
+    (base) => host === base || host.endsWith('.' + base),
   );
 }
 
