@@ -189,14 +189,17 @@ func (a *App) CreateChannelWithUserAndPropertyValues(rctx request.CTX, channel *
 		return nil, model.NewAppError("CreateChannelWithUser", "app.channel.create_channel.no_team_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// Get total number of channels on current team
-	count, err := a.GetNumberOfChannelsOnTeam(rctx, channel.TeamId)
-	if err != nil {
-		return nil, err
-	}
+	// A limit of 0 means no limit.
+	if maxChannelsPerTeam := *a.Config().TeamSettings.MaxChannelsPerTeam; maxChannelsPerTeam > 0 {
+		// Get total number of channels on current team
+		count, err := a.GetNumberOfChannelsOnTeam(rctx, channel.TeamId)
+		if err != nil {
+			return nil, err
+		}
 
-	if int64(count+1) > *a.Config().TeamSettings.MaxChannelsPerTeam {
-		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.max_channel_limit.app_error", map[string]any{"MaxChannelsPerTeam": *a.Config().TeamSettings.MaxChannelsPerTeam}, "", http.StatusBadRequest)
+		if int64(count+1) > maxChannelsPerTeam {
+			return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.max_channel_limit.app_error", map[string]any{"MaxChannelsPerTeam": maxChannelsPerTeam}, "", http.StatusBadRequest)
+		}
 	}
 
 	channel.CreatorId = userID
