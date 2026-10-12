@@ -5,7 +5,7 @@ package model
 
 const (
 	PluginStateNotRunning          = 0
-	PluginStateStarting            = 1 // plugin process launched and OnActivate is running, but not yet ready to receive hooks/HTTP requests
+	PluginStateStarting            = 1 // process launched, OnActivate running, not yet ready for hooks/HTTP
 	PluginStateRunning             = 2
 	PluginStateFailedToStart       = 3
 	PluginStateFailedToStayRunning = 4
