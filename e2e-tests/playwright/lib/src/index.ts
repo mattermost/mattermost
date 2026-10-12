@@ -57,7 +57,6 @@ export {
     listMattermostDataFiles,
     ensurePostgresSearch,
     ensureFeatureFlag,
-    permalinkUrl,
     runMmctl,
     ensureMmctl,
     upgradeServerImage,
