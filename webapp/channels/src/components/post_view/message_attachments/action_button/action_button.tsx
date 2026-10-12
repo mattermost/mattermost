@@ -66,6 +66,9 @@ const ActionButton = ({
         return {
             backgroundColor: changeOpacity(hexColor, 0.08),
             color: hexColor,
+
+            // Compass Button paints label/icon via `--button-fg`, not inherited `color`.
+            ['--button-fg' as string]: hexColor,
         } as React.CSSProperties;
     }, [hexColor]);
 

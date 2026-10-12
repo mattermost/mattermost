@@ -84,12 +84,14 @@ describe('mmBlocksButtonInlineStyle', () => {
     it('returns tinted background for hex colors', () => {
         const style = mmBlocksButtonInlineStyle('#28a745', theme);
         expect(style?.color).toBe('#28a745');
+        expect(style?.['--button-fg']).toBe('#28a745');
         expect(style?.backgroundColor).toMatch(/^rgba\(40,? ?167,? ?69,? ?0\.08\)$/);
     });
 
     it('returns tinted background for theme color keys', () => {
         const style = mmBlocksButtonInlineStyle('onlineIndicator', theme);
         expect(style?.color).toBe(theme.onlineIndicator);
+        expect(style?.['--button-fg']).toBe(theme.onlineIndicator);
         expect(style?.backgroundColor).toBeDefined();
     });
 });

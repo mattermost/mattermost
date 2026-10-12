@@ -83,8 +83,10 @@ export function mmBlocksButtonInlineStyle(style: string | undefined, theme: Them
 }
 
 function mmBlocksButtonColorStyle(color: string): CSSProperties {
+    // Compass Button paints label/icon via `--button-fg`, not inherited `color`.
     return {
         backgroundColor: changeOpacity(color, 0.08),
         color,
+        ['--button-fg' as string]: color,
     };
 }

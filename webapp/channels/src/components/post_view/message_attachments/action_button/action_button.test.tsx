@@ -64,6 +64,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
 
         expect(button).toHaveStyle(`background-color: ${changeOpacity(Preferences.THEMES.denim.onlineIndicator, 0.08)}`);
         expect(button).toHaveStyle(`color: ${Preferences.THEMES.denim.onlineIndicator}`);
+        expect(button).toHaveStyle({'--button-fg': Preferences.THEMES.denim.onlineIndicator});
     });
 
     test('should have correct styles when provided color from not default theme', () => {
@@ -79,6 +80,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
 
         expect(button).toHaveStyle(`background-color: ${changeOpacity(Preferences.THEMES.indigo.errorTextColor, 0.08)}`);
         expect(button).toHaveStyle(`color: ${Preferences.THEMES.indigo.errorTextColor}`);
+        expect(button).toHaveStyle({'--button-fg': Preferences.THEMES.indigo.errorTextColor});
     });
 
     test('should have correct styles when provided status color', () => {
@@ -92,6 +94,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
 
         expect(button).toHaveStyle(`background-color: ${changeOpacity('#339970', 0.08)}`);
         expect(button).toHaveStyle(`color: ${'#339970'}`);
+        expect(button).toHaveStyle({'--button-fg': '#339970'});
     });
 
     test('should have correct styles when provided hex color', () => {
@@ -105,6 +108,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
 
         expect(button).toHaveStyle(`background-color: ${changeOpacity(props.action.style, 0.08)}`);
         expect(button).toHaveStyle(`color: ${props.action.style}`);
+        expect(button).toHaveStyle({'--button-fg': props.action.style});
     });
 
     test('should have no styles when provided invalid hex color', () => {

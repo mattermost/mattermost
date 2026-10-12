@@ -219,13 +219,16 @@ $mm-blocks-container-max-heights: (
     }
 
     // Legacy attachment action colors (`ActionButton` STATUS_COLORS).
+    // Compass Button uses `--button-fg` for label/icon color.
     .mm-blocks-button--good,
     .mm-blocks-button--success {
+        --button-fg: rgb(var(--semantic-color-success));
         background-color: rgba(var(--semantic-color-success), 0.08) !important;
         color: rgb(var(--semantic-color-success)) !important;
 
         &:hover:not(:disabled),
         &:focus:not(:disabled) {
+            --button-fg: rgb(var(--semantic-color-success));
             background-color: rgba(var(--semantic-color-success), 0.12) !important;
             color: rgb(var(--semantic-color-success)) !important;
         }
@@ -236,11 +239,13 @@ $mm-blocks-container-max-heights: (
     }
 
     .mm-blocks-button--warning {
+        --button-fg: rgb(var(--semantic-color-warning));
         background-color: rgba(var(--semantic-color-warning), 0.08) !important;
         color: rgb(var(--semantic-color-warning)) !important;
 
         &:hover:not(:disabled),
         &:focus:not(:disabled) {
+            --button-fg: rgb(var(--semantic-color-warning));
             background-color: rgba(var(--semantic-color-warning), 0.12) !important;
             color: rgb(var(--semantic-color-warning)) !important;
         }
