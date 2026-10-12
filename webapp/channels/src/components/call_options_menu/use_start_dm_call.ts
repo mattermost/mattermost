@@ -8,6 +8,7 @@ import type {Channel} from '@mattermost/types/channels';
 
 import {createDirectChannel} from 'mattermost-redux/actions/channels';
 import {getMyCurrentChannelMembership} from 'mattermost-redux/selectors/entities/channels';
+import {canStartDmGm} from 'mattermost-redux/selectors/entities/render_permissions';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import type {GlobalState} from 'types/store';
@@ -23,6 +24,10 @@ export default function useStartDMCall(userId: string, dmChannel?: Channel | nul
     return useCallback(async () => {
         let channel = dmChannel;
         if (!channel) {
+            if (!canStartDmGm(store.getState())) {
+                return;
+            }
+
             const {data} = await dispatch(createDirectChannel(getCurrentUserId(store.getState()), userId));
             channel = data;
         }

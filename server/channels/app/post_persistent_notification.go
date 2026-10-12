@@ -415,6 +415,7 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 
 			message.Add("mentions", model.ArrayToJSON(desktopUsers))
 			a.setupBroadcastHookForAbacFiles(post, message)
+			a.setupBroadcastHookForDirectAndGroupReadAccess(channel, message)
 			a.Publish(message)
 		}
 	}

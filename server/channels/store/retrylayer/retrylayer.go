@@ -2756,11 +2756,11 @@ func (s *RetryLayerChannelStore) GetMembersForUser(teamID string, userID string)
 
 }
 
-func (s *RetryLayerChannelStore) GetMembersForUserWithCursorPagination(userId string, perPage int, fromChanneID string) (model.ChannelMembersWithTeamData, error) {
+func (s *RetryLayerChannelStore) GetMembersForUserWithCursorPagination(userId string, perPage int, fromChanneID string, excludeDirectAndGroup bool) (model.ChannelMembersWithTeamData, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetMembersForUserWithCursorPagination(userId, perPage, fromChanneID)
+		result, err := s.ChannelStore.GetMembersForUserWithCursorPagination(userId, perPage, fromChanneID, excludeDirectAndGroup)
 		if err == nil {
 			return result, nil
 		}
@@ -2777,11 +2777,11 @@ func (s *RetryLayerChannelStore) GetMembersForUserWithCursorPagination(userId st
 
 }
 
-func (s *RetryLayerChannelStore) GetMembersForUserWithPagination(userID string, page int, perPage int) (model.ChannelMembersWithTeamData, error) {
+func (s *RetryLayerChannelStore) GetMembersForUserWithPagination(userID string, page int, perPage int, excludeDirectAndGroup bool) (model.ChannelMembersWithTeamData, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetMembersForUserWithPagination(userID, page, perPage)
+		result, err := s.ChannelStore.GetMembersForUserWithPagination(userID, page, perPage, excludeDirectAndGroup)
 		if err == nil {
 			return result, nil
 		}
@@ -5483,11 +5483,11 @@ func (s *RetryLayerDraftStore) Get(userID string, channelID string, rootID strin
 
 }
 
-func (s *RetryLayerDraftStore) GetDraftsForUser(userID string, teamID string) ([]*model.Draft, error) {
+func (s *RetryLayerDraftStore) GetDraftsForUser(userID string, teamID string, excludeDirectAndGroup bool) ([]*model.Draft, error) {
 
 	tries := 0
 	for {
-		result, err := s.DraftStore.GetDraftsForUser(userID, teamID)
+		result, err := s.DraftStore.GetDraftsForUser(userID, teamID, excludeDirectAndGroup)
 		if err == nil {
 			return result, nil
 		}
@@ -9056,11 +9056,11 @@ func (s *RetryLayerPostStore) GetEtag(channelID string, allowFromCache bool, col
 
 }
 
-func (s *RetryLayerPostStore) GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, error) {
+func (s *RetryLayerPostStore) GetFlaggedPosts(userID string, offset int, limit int, excludeDirectAndGroup bool) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetFlaggedPosts(userID, offset, limit)
+		result, err := s.PostStore.GetFlaggedPosts(userID, offset, limit, excludeDirectAndGroup)
 		if err == nil {
 			return result, nil
 		}
@@ -9098,11 +9098,11 @@ func (s *RetryLayerPostStore) GetFlaggedPostsForChannel(userID string, channelID
 
 }
 
-func (s *RetryLayerPostStore) GetFlaggedPostsForTeam(userID string, teamID string, offset int, limit int) (*model.PostList, error) {
+func (s *RetryLayerPostStore) GetFlaggedPostsForTeam(userID string, teamID string, offset int, limit int, excludeDirectAndGroup bool) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetFlaggedPostsForTeam(userID, teamID, offset, limit)
+		result, err := s.PostStore.GetFlaggedPostsForTeam(userID, teamID, offset, limit, excludeDirectAndGroup)
 		if err == nil {
 			return result, nil
 		}
@@ -17078,11 +17078,11 @@ func (s *RetryLayerThreadStore) MarkAllAsReadByChannels(userID string, channelID
 
 }
 
-func (s *RetryLayerThreadStore) MarkAllAsReadByTeam(userID string, teamID string) error {
+func (s *RetryLayerThreadStore) MarkAllAsReadByTeam(userID string, teamID string, excludeDirect bool) error {
 
 	tries := 0
 	for {
-		err := s.ThreadStore.MarkAllAsReadByTeam(userID, teamID)
+		err := s.ThreadStore.MarkAllAsReadByTeam(userID, teamID, excludeDirect)
 		if err == nil {
 			return nil
 		}
@@ -18473,11 +18473,11 @@ func (s *RetryLayerUserStore) GetTeamGroupUsers(teamID string) ([]*model.User, e
 
 }
 
-func (s *RetryLayerUserStore) GetUnreadCount(userID string, isCRTEnabled bool) (int64, error) {
+func (s *RetryLayerUserStore) GetUnreadCount(userID string, isCRTEnabled bool, excludeDirectAndGroup bool) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.GetUnreadCount(userID, isCRTEnabled)
+		result, err := s.UserStore.GetUnreadCount(userID, isCRTEnabled, excludeDirectAndGroup)
 		if err == nil {
 			return result, nil
 		}

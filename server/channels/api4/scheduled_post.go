@@ -154,13 +154,18 @@ func getTeamScheduledPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	response[teamId] = scheduledPosts
 
 	if r.URL.Query().Get("includeDirectChannels") == "true" {
-		directChannelScheduledPosts, appErr := c.App.GetUserTeamScheduledPosts(c.AppContext, userId, "")
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
+		// Hidden conversations keep their scheduled posts; they are only left out of the list.
+		if c.App.DirectAndGroupHidden(c.AppContext, userId) {
+			response["directChannels"] = []*model.ScheduledPost{}
+		} else {
+			directChannelScheduledPosts, appErr := c.App.GetUserTeamScheduledPosts(c.AppContext, userId, "")
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
 
-		response["directChannels"] = directChannelScheduledPosts
+			response["directChannels"] = directChannelScheduledPosts
+		}
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {

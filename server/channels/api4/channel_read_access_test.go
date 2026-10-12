@@ -196,7 +196,12 @@ func installMockACS(t *testing.T, th *TestHelper) *mocks.AccessControlServiceInt
 	mockACS := &mocks.AccessControlServiceInterface{}
 	original := th.App.Srv().Channels().AccessControl
 	th.App.Srv().Channels().AccessControl = mockACS
-	t.Cleanup(func() { th.App.Srv().Channels().AccessControl = original })
+	t.Cleanup(func() {
+		// Badge and clear pushes evaluate the recipient asynchronously, whether or not
+		// pushes are enabled; let them finish before the service goes away.
+		th.App.Srv().StopPushNotificationsHubWorkers()
+		th.App.Srv().Channels().AccessControl = original
+	})
 	return mockACS
 }
 

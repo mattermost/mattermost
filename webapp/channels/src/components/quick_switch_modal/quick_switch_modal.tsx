@@ -11,6 +11,8 @@ import type {Channel} from '@mattermost/types/channels';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import {START_DENIED_ERROR, startDeniedMessage} from 'actions/channel_actions';
+
 import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 import SuggestionBox from 'components/suggestion/suggestion_box';
@@ -52,6 +54,7 @@ type State = {
     hasSuggestions: boolean;
     shouldShowLoadingSpinner: boolean;
     pretext: string;
+    startDenied: boolean;
 };
 
 export class QuickSwitchModal extends React.PureComponent<Props, State> {
@@ -70,6 +73,7 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
             hasSuggestions: true,
             shouldShowLoadingSpinner: true,
             pretext: '',
+            startDenied: false,
         };
     }
 
@@ -114,7 +118,7 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
     };
 
     private onChange = (e: React.ChangeEvent<SuggestionBoxElement>): void => {
-        this.setState({text: e.target.value, shouldShowLoadingSpinner: true});
+        this.setState({text: e.target.value, shouldShowLoadingSpinner: true, startDenied: false});
     };
 
     public handleSubmit = async (selected?: any): Promise<void> => {
@@ -153,6 +157,9 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
             switchToChannel(selectedChannel).then((result: ActionResult) => {
                 if ('data' in result) {
                     this.hideOnSelect();
+                } else if (result.error === START_DENIED_ERROR) {
+                    // Stays open so the user can pick someone else.
+                    this.setState({startDenied: true});
                 }
             });
         } else {
@@ -209,6 +216,23 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
             </div>
         );
 
+        // Uses the direct messages modal's error styling, which shows the same message.
+        let startDeniedError;
+        if (this.state.startDenied) {
+            startDeniedError = (
+                <div
+                    className='multi-select__error'
+                    role='alert'
+                    id='quickSwitchError'
+                >
+                    <i className='icon icon-alert-circle-outline'/>
+                    <span>
+                        <FormattedMessage {...startDeniedMessage}/>
+                    </span>
+                </div>
+            );
+        }
+
         const modalSubheaderText = (
             <div
                 className='channel-switcher__hint'
@@ -240,6 +264,8 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
                         ref={this.setSwitchBoxRef}
                         id='quickSwitchInput'
                         aria-label={this.props.intl.formatMessage({id: 'quick_switch_modal.input', defaultMessage: 'quick switch input'})}
+                        aria-invalid={this.state.startDenied}
+                        aria-describedby={this.state.startDenied ? 'quickSwitchError' : undefined}
                         className='form-control focused'
                         onChange={this.onChange}
                         value={this.state.text}
@@ -254,6 +280,7 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
                         onSuggestionsReceived={this.handleSuggestionsReceived}
                         forceSuggestionsWhenBlur={true}
                         shouldSearchCompleteText={true}
+                        belowInput={startDeniedError}
                     />
                     {
                         !this.state.shouldShowLoadingSpinner &&

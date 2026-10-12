@@ -10,9 +10,12 @@ import {Button} from '@mattermost/shared/components/button';
 type Props = {
     onExited: () => void;
     channelName?: string;
+
+    // Shown when dm_gm_read_access hides every direct and group message, rather than one channel.
+    isConversation?: boolean;
 };
 
-export default function ChannelReadAccessDeniedModal({onExited, channelName}: Props) {
+export default function ChannelReadAccessDeniedModal({onExited, channelName, isConversation}: Props) {
     const [show, setShow] = useState(true);
     const onHide = useCallback(() => setShow(false), []);
 
@@ -45,11 +48,18 @@ export default function ChannelReadAccessDeniedModal({onExited, channelName}: Pr
             </Modal.Header>
             <Modal.Body>
                 <p>
-                    <FormattedMessage
-                        id='channel_access_denied.body'
-                        defaultMessage='You no longer have access to {channel}. Your membership has not changed, and the channel will reappear if you regain access.'
-                        values={{channel: <span className='name'>{name}</span>}}
-                    />
+                    {isConversation ? (
+                        <FormattedMessage
+                            id='channel_access_denied.dm_gm.body'
+                            defaultMessage='You no longer have access to direct and group messages. They will reappear if access is restored.'
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='channel_access_denied.body'
+                            defaultMessage='You no longer have access to {channel}. Your membership has not changed, and the channel will reappear if you regain access.'
+                            values={{channel: <span className='name'>{name}</span>}}
+                        />
+                    )}
                 </p>
             </Modal.Body>
             <Modal.Footer>

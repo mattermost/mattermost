@@ -53,6 +53,9 @@ const (
 	AccessControlPolicyActionChannelWriteAccess      = "channel_write_access"
 	AccessControlPolicyActionChannelManagementAccess = "channel_management_access"
 	AccessControlPolicyActionCreateBurnOnReadPost    = "create_burn_on_read_post"
+	AccessControlPolicyActionDMGMStart               = "dm_gm_start"
+	AccessControlPolicyActionDMGMReadAccess          = "dm_gm_read_access"
+	AccessControlPolicyActionDMGMWriteAccess         = "dm_gm_write_access"
 
 	AccessControlPolicyScopeTeam = "team"
 
@@ -95,6 +98,29 @@ var allowedActionsV0_3 = map[string]bool{
 	AccessControlPolicyActionChannelWriteAccess:      true,
 	AccessControlPolicyActionChannelManagementAccess: true,
 	AccessControlPolicyActionCreateBurnOnReadPost:    true,
+	AccessControlPolicyActionDMGMStart:               true,
+	AccessControlPolicyActionDMGMReadAccess:          true,
+	AccessControlPolicyActionDMGMWriteAccess:         true,
+}
+
+// dmGmActions are the direct and group message actions, in the order clients
+// list them. They are evaluated only against the system permission resource,
+// so they are not v0.4 channel-rule actions.
+var dmGmActions = []string{
+	AccessControlPolicyActionDMGMStart,
+	AccessControlPolicyActionDMGMReadAccess,
+	AccessControlPolicyActionDMGMWriteAccess,
+}
+
+// IsDMGMAction reports whether action is one of the direct and group message
+// actions.
+func IsDMGMAction(action string) bool {
+	return slices.Contains(dmGmActions, action)
+}
+
+// DMGMActions returns the direct and group message actions: start, read, write.
+func DMGMActions() []string {
+	return slices.Clone(dmGmActions)
 }
 
 // allowedChannelRolesV0_4 is the set of channel-scoped roles that may appear
@@ -742,6 +768,21 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
 		}
 	}
 
+	return p.ValidateDMGMRules()
+}
+
+// ValidateDMGMRules rejects direct and group message actions anywhere but a
+// system permission policy. Conversations have no channel policies, so a rule
+// for these actions on a channel, parent or team policy would never apply.
+func (p *AccessControlPolicy) ValidateDMGMRules() *AppError {
+	if p.Type == AccessControlPolicyTypePermission {
+		return nil
+	}
+	for i := range p.Rules {
+		if slices.ContainsFunc(p.Rules[i].Actions, IsDMGMAction) {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.dm_gm_type.app_error", nil, fmt.Sprintf("direct and group message actions are not allowed on %s policies", p.Type), 400)
+		}
+	}
 	return nil
 }
 
@@ -886,7 +927,7 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_4() *AppError {
 		}
 	}
 
-	return nil
+	return p.ValidateDMGMRules()
 }
 
 // accessPolicyVersionV0_5 validates a v0.5 policy. v0.5 is the lane for

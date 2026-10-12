@@ -16,6 +16,15 @@ func filterCategoryChannelsByReadAccess(c *Context, category *model.SidebarCateg
 		return
 	}
 
+	// The Direct Messages category only ever holds conversations, which share one
+	// decision, so it is answered once instead of loading every channel.
+	if category.Type == model.SidebarCategoryDirectMessages {
+		if c.App.DirectAndGroupHidden(c.AppContext, c.Params.UserId) {
+			category.Channels = []string{}
+		}
+		return
+	}
+
 	category.Channels = c.App.FilterChannelIDsByReadAccess(c.AppContext, c.Params.UserId, category.Channels)
 }
 

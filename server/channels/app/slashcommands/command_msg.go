@@ -70,6 +70,12 @@ func (*msgProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandA
 		return &model.CommandResponse{Text: args.T("api.command_msg.missing.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
+	// Refuse a message that couldn't be posted before opening or starting anything.
+	if parsedMessage != "" && rctx.Session().UserId == args.UserId &&
+		!a.HasDMGMAccess(rctx, args.UserId, model.AccessControlPolicyActionDMGMWriteAccess) {
+		return &model.CommandResponse{Text: args.T("api.channel.dm_gm_write_access.abac_denied.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
+	}
+
 	// Find the channel based on this user
 	channelName := model.GetDMNameFromIds(args.UserId, userProfile.Id)
 
@@ -79,6 +85,9 @@ func (*msgProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandA
 		if errors.As(channelErr, &nfErr) {
 			if !a.HasPermissionTo(rctx, args.UserId, model.PermissionCreateDirectChannel) {
 				return &model.CommandResponse{Text: args.T("api.command_msg.permission.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
+			}
+			if !a.DMGMStartAllowedForSession(rctx, args.UserId) {
+				return &model.CommandResponse{Text: args.T("api.channel.dm_gm_start.abac_denied.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 			}
 
 			var directChannel *model.Channel
@@ -92,6 +101,10 @@ func (*msgProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandA
 			return &model.CommandResponse{Text: args.T("api.command_msg.dm_fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 	} else {
+		// Reopening a conversation is reading it.
+		if rctx.Session().UserId == args.UserId && !a.HasChannelReadAccess(rctx, args.UserId, channel) {
+			return &model.CommandResponse{Text: args.T("api.channel.dm_gm_read_access.abac_denied.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
+		}
 		targetChannelID = channel.Id
 	}
 

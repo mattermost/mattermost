@@ -156,6 +156,11 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		}
 	}
 
+	// Model validation runs only in the store, where its error surfaces as a 500.
+	if appErr := policy.ValidateDMGMRules(); appErr != nil {
+		return nil, appErr
+	}
+
 	callerID := ""
 	if session := rctx.Session(); session != nil {
 		callerID = session.UserId
@@ -2395,6 +2400,15 @@ func (a *App) publishPermissionPolicyUpdate(rctx request.CTX) {
 	// Clear the whole epoch cache rather than a single channel key.
 	a.Srv().Store().AccessControlPolicy().ClearEtagCache()
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventPermissionPolicyUpdated, "", "", "", nil, "")
+	a.Publish(messageWs)
+}
+
+// publishPermissionPolicyUpdateToSession tells one session that its own permission policy
+// decisions have changed, so that it fetches them again. A broadcast can't address a session,
+// so the event goes to the user and the hook drops it on their other sessions.
+func (a *App) publishPermissionPolicyUpdateToSession(userID, sessionID string) {
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventPermissionPolicyUpdated, "", "", userID, nil, "")
+	useOnlySessionHook(messageWs, sessionID)
 	a.Publish(messageWs)
 }
 

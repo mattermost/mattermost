@@ -40,6 +40,7 @@ import {
     getTeammateNameDisplaySetting,
     isCollapsedThreadsEnabled,
 } from 'mattermost-redux/selectors/entities/preferences';
+import {canReadDmGm, canStartDmGm} from 'mattermost-redux/selectors/entities/render_permissions';
 import {
     getMyPermissionsByChannel,
     getMyPermissionsByTeam,
@@ -63,6 +64,7 @@ import {
     completeDirectGroupInfo,
     filterChannelsMatchingTerm,
     getChannelByName as getChannelByNameHelper,
+    getDirectChannelName,
     getUserIdFromChannelName,
     isChannelMuted,
     isDefault,
@@ -149,6 +151,51 @@ export const getDirectChannelsSet: (state: GlobalState) => Set<string> = createS
         return new Set(channelsInTeam['']);
     },
 );
+
+// Lets a caller find whether a DM with a user exists without scanning every channel.
+export const getDirectChannelNamesSet: (state: GlobalState) => Set<string> = createSelector(
+    'getDirectChannelNamesSet',
+    getAllChannels,
+    getDirectChannelsSet,
+    (channels: IDMappedObjects<Channel>, channelSet: Set<string>): Set<string> => {
+        const names = new Set<string>();
+        channelSet.forEach((id) => {
+            names.add(channels[id].name);
+        });
+        return names;
+    },
+);
+
+export function hasDirectChannelWithUser(state: GlobalState, userId: string): boolean {
+    return getDirectChannelNamesSet(state).has(getDirectChannelName(getCurrentUserId(state), userId));
+}
+
+// Whether the user may open the DM (one other user) or GM (several) with these users, the current
+// user aside. While starting one is blocked, that is only an existing conversation the user can read.
+export function canOpenDmOrGmWithUsers(state: GlobalState, userIds: string[]): boolean {
+    if (canStartDmGm(state)) {
+        return true;
+    }
+
+    if (!canReadDmGm(state)) {
+        return false;
+    }
+
+    if (userIds.length === 1) {
+        return hasDirectChannelWithUser(state, userIds[0]);
+    }
+
+    // The profiles of a GM leave out the current user.
+    return getChannelsWithUserProfiles(state).some((channel) => (
+        channel.profiles.length === userIds.length &&
+        userIds.every((userId) => channel.profiles.some((profile) => profile.id === userId))
+    ));
+}
+
+// Covers both DMs and GMs.
+export function hasDirectOrGroupChannels(state: GlobalState): boolean {
+    return getDirectChannelsSet(state).size > 0;
+}
 
 export function getChannelMembersInChannels(state: GlobalState): RelationOneToOne<Channel, Record<string, ChannelMembership>> {
     return state.entities.channels.membersInChannel;

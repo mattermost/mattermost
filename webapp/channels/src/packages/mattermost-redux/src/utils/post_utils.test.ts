@@ -126,6 +126,7 @@ describe('PostUtils', () => {
                     },
                     channels: {
                         currentChannelId: channelId,
+                        channels: {},
                         myMembers: {
                             'channel-id': {roles: 'channel_role'},
                         },

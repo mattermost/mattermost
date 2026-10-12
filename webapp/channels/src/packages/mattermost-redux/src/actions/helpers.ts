@@ -10,6 +10,7 @@ import {UserTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import type {DispatchFunc, GetStateFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 
+import {dmGmDenialFromError} from './dm_gm_access';
 import {logError} from './errors';
 
 type ActionType = string;
@@ -20,6 +21,11 @@ export function forceLogoutIfNecessary(err: ServerError, dispatch: DispatchFunc<
     if ('status_code' in err && err.status_code === HTTP_UNAUTHORIZED && err.url && err.url.indexOf('/login') === -1 && currentUserId) {
         Client4.setToken('');
         dispatch({type: UserTypes.LOGOUT_SUCCESS, data: {}});
+    }
+
+    const dmGmDenial = dmGmDenialFromError(err);
+    if (dmGmDenial) {
+        dispatch(dmGmDenial);
     }
 }
 

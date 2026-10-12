@@ -913,6 +913,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 					}
 					auditRec.Success()
 
+					a.setupBroadcastHookForDirectAndGroupReadAccess(channel, message)
 					a.Publish(message)
 				}
 			}
@@ -1075,6 +1076,7 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 				message.Add("previous_unread_replies", previousUnreadReplies)
 				a.markPostDeliveryForBroadcast(rctx, message, userThread.Post)
 
+				a.setupBroadcastHookForDirectAndGroupReadAccess(channel, message)
 				a.Publish(message)
 			}
 		}

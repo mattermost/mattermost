@@ -11,6 +11,7 @@ import {isChannelInManagedCategory} from 'mattermost-redux/selectors/entities/ch
 import {getCurrentChannel, getDirectTeammate, getMyCurrentChannelMembership, isCurrentChannelFavorite} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
+import {canWriteDmGm} from 'mattermost-redux/selectors/entities/render_permissions';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser, getProfilesInCurrentChannel, getCurrentUserId, getUser, getTotalUsersStats as getTotalUsersStatsSelector} from 'mattermost-redux/selectors/entities/users';
 
@@ -58,6 +59,7 @@ function mapStateToProps(state: GlobalState) {
         usersLimit,
         channelMember,
         isMobileView: getIsMobileView(state),
+        canEditConversationHeader: canWriteDmGm(state),
     };
 }
 

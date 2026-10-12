@@ -546,20 +546,20 @@ func (s *SqlPostStore) Overwrite(rctx request.CTX, post *model.Post) (*model.Pos
 	return posts[0], nil
 }
 
-func (s *SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, error) {
-	return s.getFlaggedPosts(userId, "", "", offset, limit)
+func (s *SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int, excludeDirectAndGroup bool) (*model.PostList, error) {
+	return s.getFlaggedPosts(userId, "", "", offset, limit, excludeDirectAndGroup)
 }
 
-func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, error) {
-	return s.getFlaggedPosts(userId, "", teamId, offset, limit)
+func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int, excludeDirectAndGroup bool) (*model.PostList, error) {
+	return s.getFlaggedPosts(userId, "", teamId, offset, limit, excludeDirectAndGroup)
 }
 
 func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, error) {
-	return s.getFlaggedPosts(userId, channelId, "", offset, limit)
+	return s.getFlaggedPosts(userId, channelId, "", offset, limit, false)
 }
 
 // TODO: convert to squirrel HW
-func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset int, limit int) (*model.PostList, error) {
+func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset int, limit int, excludeDirectAndGroup bool) (*model.PostList, error) {
 	pl := model.NewPostList()
 
 	postColumnsA := strings.Join(postSliceColumnsWithName("A"), ", ")
@@ -600,6 +600,7 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
 					WHERE UserId = ?
 				)
 				TEAM_FILTER
+				TYPE_FILTER
             ORDER BY CreateAt DESC
             LIMIT ? OFFSET ?`
 
@@ -613,6 +614,12 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
 
 	teamClause, queryParams = s.buildFlaggedPostTeamFilterClause(teamId, queryParams)
 	query = strings.Replace(query, "TEAM_FILTER", teamClause, 1)
+
+	typeClause := ""
+	if excludeDirectAndGroup {
+		typeClause = "AND B.Type NOT IN ('D', 'G')"
+	}
+	query = strings.Replace(query, "TYPE_FILTER", typeClause, 1)
 
 	queryParams = append(queryParams, limit, offset)
 
@@ -633,7 +640,7 @@ func (s *SqlPostStore) buildFlaggedPostTeamFilterClause(teamId string, queryPara
 		return "", queryParams
 	}
 
-	return "AND B.TeamId = ? OR B.TeamId = ''", append(queryParams, teamId)
+	return "AND (B.TeamId = ? OR B.TeamId = '')", append(queryParams, teamId)
 }
 
 func (s *SqlPostStore) buildFlaggedPostChannelFilterClause(channelId string, queryParams []any) (string, []any) {
@@ -2382,6 +2389,10 @@ func (s *SqlPostStore) search(logger mlog.LoggerIFace, teamId string, userId str
 
 	if !params.IncludeDeletedChannels {
 		inQuery = inQuery.Where("Channels.DeleteAt = 0")
+	}
+
+	if params.ExcludeDirectAndGroupChannels {
+		inQuery = inQuery.Where(sq.NotEq{"Channels.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}})
 	}
 
 	if !params.SearchWithoutUserId {

@@ -3,6 +3,7 @@
 
 import React, {type JSX} from 'react';
 
+import type {ChannelType} from '@mattermost/types/channels';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {General} from 'mattermost-redux/constants';
@@ -894,6 +895,42 @@ describe('ChannelSettingsModal', () => {
 
                 expect(screen.queryByTestId('info-tab-read-only')).not.toBeInTheDocument();
             });
+        });
+    });
+
+    describe('dm_gm_write_access policy', () => {
+        // DMs and GMs reach the modal when auto-translation is on; changing their settings is
+        // writing to them, so a Write denial makes it read-only the same way.
+        const withWriteDenied = (type: ChannelType) => {
+            const testState = makeTestState();
+            testState.entities.channels.channels[channelId].type = type;
+            testState.entities.general.config = {FeatureFlagPermissionPolicies: 'true'};
+            testState.entities.renderPermissions = {
+                byResource: {permission: {'': {dm_gm_write_access: {allowed: false, evaluated: true, generation: 1}}}},
+                invalidatedAt: 0,
+                invalidatedAtByResource: {},
+            };
+            return testState;
+        };
+
+        it.each([General.DM_CHANNEL, General.GM_CHANNEL])('marks the %s read-only when the policy denies', async (type) => {
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, withWriteDenied(type));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('info-tab')).toBeInTheDocument();
+            });
+
+            expect(screen.getByTestId('info-tab-read-only')).toBeInTheDocument();
+        });
+
+        it('leaves a channel editable when only the DM/GM policy denies', async () => {
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, withWriteDenied(General.OPEN_CHANNEL));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('info-tab')).toBeInTheDocument();
+            });
+
+            expect(screen.queryByTestId('info-tab-read-only')).not.toBeInTheDocument();
         });
     });
 

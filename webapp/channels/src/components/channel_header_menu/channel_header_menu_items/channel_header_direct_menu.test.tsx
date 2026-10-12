@@ -114,4 +114,25 @@ describe('components/ChannelHeaderMenu/ChannelHeaderDirectMenu', () => {
 
         expect(screen.queryByText(/Auto-translation/i)).not.toBeInTheDocument();
     });
+
+    it('does not offer Edit Header while dm_gm_write_access denies', () => {
+        const state = getStateWithRestrictedDMAndGM();
+        const writeDeniedState: DeepPartial<GlobalState> = {
+            ...state,
+            entities: {
+                ...state.entities,
+                general: {config: {...state.entities?.general?.config, FeatureFlagPermissionPolicies: 'true'}},
+                renderPermissions: {byResource: {permission: {'': {dm_gm_write_access: {allowed: false, evaluated: true, generation: 1}}}}},
+            },
+        };
+
+        renderWithContext(
+            <WithTestMenuContext>
+                <ChannelHeaderDirectMenu {...defaultProps}/>
+            </WithTestMenuContext>,
+            writeDeniedState,
+        );
+
+        expect(screen.queryByText('Edit Header')).not.toBeInTheDocument();
+    });
 });

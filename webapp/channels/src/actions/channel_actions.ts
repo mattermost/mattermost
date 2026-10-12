@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {defineMessage} from 'react-intl';
 import {batchActions} from 'redux-batched-actions';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -11,6 +12,7 @@ import {PreferenceTypes} from 'mattermost-redux/action_types';
 import * as ChannelActions from 'mattermost-redux/actions/channels';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getChannelByName, getUnreadChannelIds, getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {canStartDmGm} from 'mattermost-redux/selectors/entities/render_permissions';
 import {getCurrentTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -22,6 +24,16 @@ import {getDirectChannelName} from 'utils/utils';
 
 import type {ActionFuncAsync} from 'types/store';
 
+// Starting a DM needs both dm_gm_start and dm_gm_read_access, so this doesn't claim the server's
+// start-denial id.
+export const START_DENIED_ERROR: ServerError = {message: 'A permission policy prevents starting this direct message.'};
+
+// Shown where the user picks people to message when that would start a conversation.
+export const startDeniedMessage = defineMessage({
+    id: 'direct_channels.start_denied',
+    defaultMessage: 'You can\'t start a conversation with this person.',
+});
+
 export function openDirectChannelToUserId(userId: UserProfile['id']): ActionFuncAsync<Channel> {
     return async (dispatch, getState) => {
         const state = getState();
@@ -30,6 +42,12 @@ export function openDirectChannelToUserId(userId: UserProfile['id']): ActionFunc
         const channel = getChannelByName(state, channelName);
 
         if (!channel) {
+            // Checked here rather than left to the server, which would create the DM when only
+            // Read is denied: one the user then couldn't see.
+            if (!canStartDmGm(state)) {
+                return {error: START_DENIED_ERROR};
+            }
+
             return dispatch(ChannelActions.createDirectChannel(currentUserId, userId));
         }
 

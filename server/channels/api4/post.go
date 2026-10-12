@@ -1497,6 +1497,10 @@ func acknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !requireConversationAcknowledgementWriteAccess(c, c.Params.PostId) {
+		return
+	}
+
 	acknowledgement, appErr := c.App.SaveAcknowledgementForPost(c.AppContext, c.Params.PostId, c.Params.UserId)
 	if appErr != nil {
 		c.Err = appErr
@@ -1536,9 +1540,7 @@ func unacknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
-	if err != nil {
-		c.Err = err
+	if !requireConversationAcknowledgementWriteAccess(c, c.Params.PostId) {
 		return
 	}
 
@@ -1549,6 +1551,27 @@ func unacknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+// requireConversationAcknowledgementWriteAccess gates acknowledging a post as a write
+// when the post is in a conversation. Channels keep gating acknowledgements as reads.
+func requireConversationAcknowledgementWriteAccess(c *Context, postID string) bool {
+	post, appErr := c.App.GetSinglePost(c.AppContext, postID, false)
+	if appErr != nil {
+		c.Err = appErr
+		return false
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return false
+	}
+
+	if !channel.IsGroupOrDirect() {
+		return true
+	}
+	return requireChannelWriteAccess(c, channel)
 }
 
 func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {

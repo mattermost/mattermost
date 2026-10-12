@@ -5,6 +5,7 @@ package slashcommands
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -105,19 +106,35 @@ func (*groupmsgProvider) DoCommand(a *app.App, rctx request.CTX, args *model.Com
 		}
 	}
 
-	var groupChannel *model.Channel
-	var channelErr *model.AppError
+	// Refuse a message that couldn't be posted before opening or starting anything.
+	if parsedMessage != "" && rctx.Session().UserId == args.UserId &&
+		!a.HasDMGMAccess(rctx, args.UserId, model.AccessControlPolicyActionDMGMWriteAccess) {
+		return &model.CommandResponse{Text: args.T("api.channel.dm_gm_write_access.abac_denied.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
+	}
 
-	if a.HasPermissionTo(rctx, args.UserId, model.PermissionCreateGroupChannel) {
+	// An existing group message is used as is; only creating one needs the permission
+	// and Start. GetGroupNameFromUserIds sorts in place.
+	groupChannel, channelErr := a.GetDirectOrGroupChannelByName(rctx, model.GetGroupNameFromUserIds(slices.Clone(targetUsersSlice)))
+	if channelErr != nil {
+		rctx.Logger().Error(channelErr.Error())
+		return &model.CommandResponse{Text: args.T("api.command_groupmsg.group_fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
+	}
+	if groupChannel != nil {
+		// Reopening a conversation is reading it.
+		if rctx.Session().UserId == args.UserId && !a.HasChannelReadAccess(rctx, args.UserId, groupChannel) {
+			return &model.CommandResponse{Text: args.T("api.channel.dm_gm_read_access.abac_denied.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
+		}
+	} else {
+		if !a.HasPermissionTo(rctx, args.UserId, model.PermissionCreateGroupChannel) {
+			return &model.CommandResponse{Text: args.T("api.command_groupmsg.permission.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
+		}
+		if !a.DMGMStartAllowedForSession(rctx, args.UserId) {
+			return &model.CommandResponse{Text: args.T("api.channel.dm_gm_start.abac_denied.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
+		}
 		groupChannel, channelErr = a.CreateGroupChannel(rctx, targetUsersSlice, args.UserId)
 		if channelErr != nil {
 			rctx.Logger().Error(channelErr.Error())
 			return &model.CommandResponse{Text: args.T("api.command_groupmsg.group_fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
-		}
-	} else {
-		groupChannel, channelErr = a.GetGroupChannel(rctx, targetUsersSlice)
-		if channelErr != nil {
-			return &model.CommandResponse{Text: args.T("api.command_groupmsg.permission.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 	}
 

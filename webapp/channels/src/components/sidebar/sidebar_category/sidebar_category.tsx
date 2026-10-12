@@ -42,6 +42,9 @@ type Props = {
     draggingState: DraggingState;
     currentUserId: string;
     isAdmin: boolean;
+
+    // Kept in the category list rather than filtered out, so drag-and-drop indexes still match the server's.
+    hideCategory: boolean;
     actions: {
         setCategoryCollapsed: (categoryId: string, collapsed: boolean) => void;
         setCategorySorting: (categoryId: string, sorting: CategorySorting) => void;
@@ -264,6 +267,10 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
         }
 
         if (category.type === CategoryTypes.FAVORITES && !channelIds?.length) {
+            return null;
+        }
+
+        if (this.props.hideCategory) {
             return null;
         }
 

@@ -16,6 +16,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {PostTypes, ChannelTypes, FileTypes, IntegrationTypes} from 'mattermost-redux/action_types';
 import {selectChannel} from 'mattermost-redux/actions/channels';
+import {dmGmDenialFromError} from 'mattermost-redux/actions/dm_gm_access';
 import {systemEmojis, getCustomEmojiByName} from 'mattermost-redux/actions/emojis';
 import {getGroupsByNames} from 'mattermost-redux/actions/groups';
 import {bindClientFunc, forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
@@ -305,6 +306,11 @@ export function createPost(
                     update_at: Date.now(),
                 };
                 actions = [{type: PostTypes.CREATE_POST_FAILURE, error}];
+
+                const dmGmDenial = dmGmDenialFromError(error);
+                if (dmGmDenial) {
+                    actions.push(dmGmDenial);
+                }
 
                 // If the failure was because: the root post was deleted or
                 // TownSquareIsReadOnly=true then remove the post

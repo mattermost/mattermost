@@ -2,13 +2,14 @@
 // See LICENSE.txt for license information.
 
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
 import {shouldOpenInNewTab} from 'utils/url';
 import {copyToClipboard} from 'utils/utils';
 
-import {bookmarkHasLinkUrl, copyBookmarkLink, shouldOpenBookmarkInNewTab} from './utils';
+import {bookmarkHasLinkUrl, copyBookmarkLink, getHaveIChannelBookmarkPermission, shouldOpenBookmarkInNewTab} from './utils';
 
 jest.mock('utils/url', () => ({
     shouldOpenInNewTab: jest.fn(),
@@ -116,5 +117,36 @@ describe('copyBookmarkLink', () => {
 
         expect(copyToClipboard).not.toHaveBeenCalled();
         expect(getFileDownloadUrl).not.toHaveBeenCalled();
+    });
+});
+
+describe('getHaveIChannelBookmarkPermission in a DM', () => {
+    function makeState(dmGmWriteAllowed?: boolean) {
+        return {
+            entities: {
+                general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+                channels: {
+                    channels: {dm1: {id: 'dm1', type: 'D', delete_at: 0, team_id: ''}},
+                    myMembers: {dm1: {channel_id: 'dm1'}},
+                },
+                renderPermissions: {
+                    byResource: dmGmWriteAllowed === undefined ? {} : {permission: {'': {dm_gm_write_access: {allowed: dmGmWriteAllowed, evaluated: true, generation: 1}}}},
+                },
+            },
+        } as unknown as GlobalState;
+    }
+
+    test('allows a member to add bookmarks while dm_gm_write_access is unknown or allows', () => {
+        expect(getHaveIChannelBookmarkPermission(makeState(), 'dm1', 'add')).toBe(true);
+        expect(getHaveIChannelBookmarkPermission(makeState(true), 'dm1', 'add')).toBe(true);
+    });
+
+    test('withholds every bookmark action while dm_gm_write_access denies', () => {
+        const state = makeState(false);
+
+        expect(getHaveIChannelBookmarkPermission(state, 'dm1', 'add')).toBe(false);
+        expect(getHaveIChannelBookmarkPermission(state, 'dm1', 'edit')).toBe(false);
+        expect(getHaveIChannelBookmarkPermission(state, 'dm1', 'delete')).toBe(false);
+        expect(getHaveIChannelBookmarkPermission(state, 'dm1', 'order')).toBe(false);
     });
 });

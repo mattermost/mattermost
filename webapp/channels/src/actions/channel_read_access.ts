@@ -9,7 +9,9 @@ import {ChannelTypes} from 'mattermost-redux/action_types';
 import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
 import {General} from 'mattermost-redux/constants';
 import {getCurrentChannelId, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
+import {isDmGmReadDenied} from 'mattermost-redux/selectors/entities/render_permissions';
 
+import {hideDirectAndGroupChannels} from 'actions/dm_gm_access';
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {openModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
@@ -31,20 +33,53 @@ function isGoverned(channel: Channel): boolean {
 }
 
 /**
+ * Drops the local copy of channels the session can no longer read. LEAVE_CHANNEL here is a
+ * local reducer action only — no request is made, and the membership, followed threads, saved
+ * posts and unread counts all survive on the server, so the channels reappear intact once
+ * access returns.
+ */
+export function dropChannelsLocally(channelIds: string[], {conversation = false} = {}): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        if (channelIds.length === 0) {
+            return;
+        }
+
+        const state = doGetState();
+        const currentChannelId = getCurrentChannelId(state);
+
+        doDispatch(batchActions(channelIds.map((channelId) => ({
+            type: ChannelTypes.LEAVE_CHANNEL,
+            data: {
+                id: channelId,
+                user_id: state.entities.users.currentUserId,
+                team_id: state.entities.channels.channels[channelId]?.team_id,
+            },
+        }))));
+
+        const rhsChannelId = getSelectedChannelId(state);
+        if (rhsChannelId && channelIds.includes(rhsChannelId)) {
+            doDispatch(closeRightHandSide());
+        }
+
+        if (currentChannelId && channelIds.includes(currentChannelId)) {
+            doDispatch(openModal({
+                modalId: ModalIdentifiers.CHANNEL_ACCESS_DENIED,
+                dialogType: ChannelReadAccessDeniedModal,
+                dialogProps: conversation ? {isConversation: true} : {channelName: state.entities.channels.channels[currentChannelId]?.display_name},
+            }));
+            redirectUserToDefaultTeam();
+        }
+    };
+}
+
+/**
  * Reconciles local channel state against the channels the server is still willing to
  * return. The server suppresses a denied channel rather than removing the user from
  * it, so dropping the local copy is what makes the channel disappear.
- *
- * LEAVE_CHANNEL here is a local reducer action only — no request is made, and the
- * membership, followed threads, saved posts and unread counts all survive on the
- * server, so the channel reappears intact once access returns.
  */
 export function reconcileChannelReadAccess(): ThunkActionFunc<Promise<void>> {
     return async (doDispatch, doGetState) => {
-        const before = doGetState();
-        const knownChannelIds = Object.keys(getMyChannelMemberships(before));
-
-        const currentChannelId = getCurrentChannelId(before);
+        const knownChannelIds = Object.keys(getMyChannelMemberships(doGetState()));
 
         const {data: channels} = await doDispatch(fetchAllMyTeamsChannels());
         if (!channels) {
@@ -64,31 +99,11 @@ export function reconcileChannelReadAccess(): ThunkActionFunc<Promise<void>> {
             return Boolean(channel) && isGoverned(channel);
         });
 
-        if (dropped.length === 0) {
-            return;
-        }
+        doDispatch(dropChannelsLocally(dropped));
 
-        doDispatch(batchActions(dropped.map((channelId) => ({
-            type: ChannelTypes.LEAVE_CHANNEL,
-            data: {
-                id: channelId,
-                user_id: after.entities.users.currentUserId,
-                team_id: after.entities.channels.channels[channelId]?.team_id,
-            },
-        }))));
-
-        const rhsChannelId = getSelectedChannelId(after);
-        if (rhsChannelId && dropped.includes(rhsChannelId)) {
-            doDispatch(closeRightHandSide());
-        }
-
-        if (currentChannelId && dropped.includes(currentChannelId)) {
-            doDispatch(openModal({
-                modalId: ModalIdentifiers.CHANNEL_ACCESS_DENIED,
-                dialogType: ChannelReadAccessDeniedModal,
-                dialogProps: {channelName: before.entities.channels.channels[currentChannelId]?.display_name},
-            }));
-            redirectUserToDefaultTeam();
+        // Conversations aren't diffed above; the session's own Read decision governs them.
+        if (isDmGmReadDenied(doGetState())) {
+            doDispatch(hideDirectAndGroupChannels());
         }
     };
 }

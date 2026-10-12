@@ -1644,6 +1644,22 @@ describe('components/SwitchChannelProvider', () => {
             expect(mergedResults.terms).toEqual([recentMatch.id, delphine.id]);
         });
 
+        // The switcher says so when the user picks someone they can't start a conversation with.
+        it('keeps a person the user has no direct message with while dm_gm_start denies', async () => {
+            const withStartDenied = (state: ReturnType<typeof makeState>) => ({
+                ...state,
+                entities: {
+                    ...state.entities,
+                    general: {...state.entities.general, config: {...state.entities.general.config, FeatureFlagPermissionPolicies: 'true'}},
+                    renderPermissions: {byResource: {permission: {'': {dm_gm_start: {allowed: false, evaluated: true, generation: 1}}}}},
+                },
+            });
+
+            const [, mergedResults] = await search('delp', withStartDenied(makeState()));
+
+            expect(mergedResults.terms).toEqual(['gm_channel_2', 'gm_channel_1', 'gm_channel_0', delphine.id]);
+        });
+
         it('keeps a group message hidden from the sidebar below an equally relevant visible one', async () => {
             const state = makeState({hiddenGmMembers: ['delphine', 'wanda.pryor']});
 

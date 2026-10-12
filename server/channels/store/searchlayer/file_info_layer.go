@@ -5,6 +5,7 @@ package searchlayer
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -190,6 +191,14 @@ func (s SearchFileInfoStore) Search(rctx request.CTX, paramsList []*model.Search
 			})
 			if nErr != nil {
 				return nil, nErr
+			}
+			// Every params object carries the same flag. An empty channel list would
+			// search every channel, so a searcher with only hidden conversations gets nothing.
+			if paramsList[0].ExcludeDirectAndGroupChannels {
+				userChannels = slices.DeleteFunc(userChannels, (*model.Channel).IsGroupOrDirect)
+				if len(userChannels) == 0 {
+					return model.NewFileInfoList(), nil
+				}
 			}
 			fileIds, appErr := engine.SearchFiles(userChannels, paramsList, page, perPage)
 			if appErr != nil {

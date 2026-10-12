@@ -35,6 +35,9 @@ type SearchParams struct {
 	// True if this search doesn't originate from a "current user".
 	SearchWithoutUserId bool   `json:"search_without_user_id,omitempty"`
 	Modifier            string `json:"modifier"`
+	// ExcludeDirectAndGroupChannels leaves direct and group messages out, for a
+	// searcher denied reading them. The server sets it; clients can't.
+	ExcludeDirectAndGroupChannels bool `json:"-"`
 }
 
 // Returns the epoch timestamp of the start of the day specified by SearchParams.AfterDate

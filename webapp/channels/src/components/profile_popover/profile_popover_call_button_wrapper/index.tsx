@@ -8,6 +8,7 @@ import {useSelector} from 'react-redux';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {getChannelByName} from 'mattermost-redux/selectors/entities/channels';
+import {canStartDmGm, isDmGmReadDenied} from 'mattermost-redux/selectors/entities/render_permissions';
 
 import {
     isCallsEnabled as getIsCallsEnabled,
@@ -55,6 +56,10 @@ const CallButton = ({
     const isCallsEnabled = useSelector((state: GlobalState) => getIsCallsEnabled(state));
     const dmChannel = useSelector((state: GlobalState) => getChannelByName(state, getDirectChannelName(currentUserId, userId)));
     const shouldRenderButton = useCanStartCall(dmChannel?.id ?? '', currentUserId);
+    const dmGmReadDenied = useSelector(isDmGmReadDenied);
+
+    // A call takes place in the DM, so calling someone without one starts a conversation.
+    const startDenied = useSelector((state: GlobalState) => !dmChannel && !canStartDmGm(state));
 
     const hasDMCall = useSelector((state: GlobalState) => {
         if (isCallsEnabled && dmChannel) {
@@ -79,9 +84,14 @@ const CallButton = ({
         phoneAction?.({number: phone.number, userId, label: phone.label, fieldId: phone.fieldId});
     }
 
-    if (!shouldRenderButton) {
+    if (!shouldRenderButton || dmGmReadDenied) {
         return null;
     }
+
+    const startDeniedMessage = formatMessage({
+        id: 'user_profile.send.dm.start_denied',
+        defaultMessage: 'You can\'t start new direct messages',
+    });
 
     if (phoneAction && phones.length > 0) {
         return (
@@ -92,9 +102,31 @@ const CallButton = ({
                 phones={phones}
                 onStartCall={handleStartCall}
                 onPhoneCall={handlePhoneCall}
+                startCallDisabledReason={startDenied ? startDeniedMessage : undefined}
                 anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
                 transformOrigin={{vertical: 'top', horizontal: 'right'}}
             />
+        );
+    }
+
+    if (startDenied) {
+        // aria-disabled rather than disabled, so the button stays focusable and its tooltip
+        // can explain why.
+        return (
+            <WithTooltip title={startDeniedMessage}>
+                <button
+                    id='startCallButton'
+                    type='button'
+                    aria-disabled={true}
+                    className='btn btn-icon btn-sm style--none'
+                    aria-label={startDeniedMessage}
+                >
+                    <span
+                        className='icon icon-phone'
+                        aria-hidden='true'
+                    />
+                </button>
+            </WithTooltip>
         );
     }
 

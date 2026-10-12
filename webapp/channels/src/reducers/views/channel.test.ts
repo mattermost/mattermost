@@ -20,6 +20,7 @@ describe('Reducers.channel', () => {
         lastGetPosts: {},
         toastStatus: false,
         channelPrefetchStatus: {},
+        dmGmHidden: false,
     };
 
     test('Initial state', () => {
@@ -29,6 +30,16 @@ describe('Reducers.channel', () => {
         );
 
         expect(nextState).toEqual(initialState);
+    });
+
+    describe('dmGmHidden', () => {
+        test('should follow SET_DM_GM_HIDDEN and reset on LOGOUT_SUCCESS', () => {
+            const hidden = channelReducer({...initialState}, {type: ActionTypes.SET_DM_GM_HIDDEN, data: true});
+            expect(hidden.dmGmHidden).toBe(true);
+
+            expect(channelReducer(hidden, {type: ActionTypes.SET_DM_GM_HIDDEN, data: false}).dmGmHidden).toBe(false);
+            expect(channelReducer(hidden, {type: UserTypes.LOGOUT_SUCCESS}).dmGmHidden).toBe(false);
+        });
     });
 
     describe('channelPrefetchStatus', () => {

@@ -91,6 +91,26 @@ describe('Actions.Posts', () => {
         expect(!postsInChannel[channelId]).toBeTruthy();
     });
 
+    it('createPost records a DM/GM write denial', async () => {
+        const channelId = TestHelper.basicChannel!.id;
+        const post = TestHelper.fakePost(channelId);
+
+        nock(Client4.getBaseRoute()).
+            post('/posts').
+            reply(403, {
+                message: 'You do not have permission to send direct or group messages.',
+                id: 'api.channel.dm_gm_write_access.abac_denied.app_error',
+                status_code: 403,
+            });
+
+        await store.dispatch(Actions.createPost(post));
+        await TestHelper.wait(50);
+
+        const state: GlobalState = store.getState();
+        expect(state.requests.posts.createPost.status).toEqual(RequestStatus.FAILURE);
+        expect(state.entities.renderPermissions.byResource.permission[''].dm_gm_write_access).toMatchObject({allowed: false, evaluated: true});
+    });
+
     it('resetCreatePostRequest', async () => {
         const channelId = TestHelper.basicChannel!.id;
         const post = TestHelper.fakePost(channelId);

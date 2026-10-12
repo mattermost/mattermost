@@ -10099,6 +10099,14 @@
     "defaultMessage": "Create policies to control what users can do, based on their attributes.",
     "description": "Description under the page title on the System Console > Permission Policies page."
   },
+  "admin.permission_policies.dm_gm_read_access_confirm.body_effect": {
+    "defaultMessage": "Any session that does not meet the conditions will stop seeing direct and group messages, including messages from bots.",
+    "description": "System Console > Permission Policies > save confirmation. Explains what a Read Direct and Group Messages policy does to sessions that fail its conditions."
+  },
+  "admin.permission_policies.dm_gm_read_access_confirm.body_scope": {
+    "defaultMessage": "This policy controls Read Direct and Group Messages across the workspace.",
+    "description": "System Console > Permission Policies > save confirmation. States that a Read Direct and Group Messages policy applies across the whole workspace."
+  },
   "admin.permission_policies.edit": {
     "defaultMessage": "Edit",
     "description": "Menu item that opens a permission policy for editing; used in the policy actions menu and the channel settings permissions tab."
@@ -10198,6 +10206,10 @@
   "admin.permission_policies.edit.permissions.column_header": {
     "defaultMessage": "Permission",
     "description": "Table column header for the permission name in the permissions table of the permission policy edit page; compact space."
+  },
+  "admin.permission_policies.edit.permissions.dm_gm_heading": {
+    "defaultMessage": "Direct and Group Messages",
+    "description": "System Console > Permission Policies > policy editor. Heading that groups the direct and group message permissions in the add-permission menu and the selected list."
   },
   "admin.permission_policies.edit.permissions.empty": {
     "defaultMessage": "Add a permission to this policy",
@@ -10322,6 +10334,30 @@
   "admin.permission_policies.permission.create_bor.label": {
     "defaultMessage": "Create Burn-on-Read Message",
     "description": "Name of the Send Burn-On-Read permission toggle in the permission policy editor; also used as a column value in the policies table."
+  },
+  "admin.permission_policies.permission.dm_gm_read_access.description": {
+    "defaultMessage": "Allow users to read direct and group messages and their content",
+    "description": "System Console > Permission Policies > add-permission menu. Description of the Read Direct and Group Messages permission."
+  },
+  "admin.permission_policies.permission.dm_gm_read_access.label": {
+    "defaultMessage": "Read Direct and Group Messages",
+    "description": "System Console > Permission Policies. Name of the permission that controls reading direct and group messages."
+  },
+  "admin.permission_policies.permission.dm_gm_start.description": {
+    "defaultMessage": "Allow users to start new direct and group messages",
+    "description": "System Console > Permission Policies > add-permission menu. Description of the Start Direct and Group Messages permission."
+  },
+  "admin.permission_policies.permission.dm_gm_start.label": {
+    "defaultMessage": "Start Direct and Group Messages",
+    "description": "System Console > Permission Policies. Name of the permission that controls starting new direct and group messages."
+  },
+  "admin.permission_policies.permission.dm_gm_write_access.description": {
+    "defaultMessage": "Allow users to post in direct and group messages and change their content",
+    "description": "System Console > Permission Policies > add-permission menu. Description of the Write Direct and Group Messages permission."
+  },
+  "admin.permission_policies.permission.dm_gm_write_access.label": {
+    "defaultMessage": "Write Direct and Group Messages",
+    "description": "System Console > Permission Policies. Name of the permission that controls posting in direct and group messages."
   },
   "admin.permission_policies.permission.download_file.description": {
     "defaultMessage": "Allow users to download files to their device",
@@ -18671,6 +18707,10 @@
     "defaultMessage": "this channel",
     "description": ""
   },
+  "channel_access_denied.dm_gm.body": {
+    "defaultMessage": "You no longer have access to direct and group messages. They will reappear if access is restored.",
+    "description": "Body of the modal shown when a permission policy stops the user reading direct and group messages while one is open; they are hidden, not left."
+  },
   "channel_access_denied.okay": {
     "defaultMessage": "Okay",
     "description": ""
@@ -21271,6 +21311,10 @@
     "defaultMessage": "Send Now",
     "description": "Tooltip and accessibility label of the send button when the message can also be scheduled; sends immediately."
   },
+  "create_post.dm_gm_write_access_denied": {
+    "defaultMessage": "You do not have permission to send direct or group messages.",
+    "description": "Placeholder in the disabled message box of a direct or group message when a permission policy denies the user writing to direct and group messages."
+  },
   "create_post.dm_or_gm_remote": {
     "defaultMessage": "Direct Messages and Group Messages with remote users are not supported.",
     "description": "Placeholder in the disabled message box when the DM/GM includes remote (shared channel) users and such messages are not enabled."
@@ -21826,6 +21870,10 @@
   "device_icons.windows": {
     "defaultMessage": "Windows Icon",
     "description": "Accessible name of the Windows device icon shown next to a session in the Active Sessions modal."
+  },
+  "direct_channels.start_denied": {
+    "defaultMessage": "You can't start a conversation with this person.",
+    "description": "Error shown when a permission policy stops the user starting direct and group messages and the people they picked have no conversation with them yet. Shown in the Direct Messages modal after selecting people, and under the hint of the Find Channels switcher after picking a person."
   },
   "discard_changes_modal.leave": {
     "defaultMessage": "Yes, Discard",
@@ -31894,6 +31942,14 @@
   "user_profile.send.dm.no_connection.aria_label": {
     "defaultMessage": "Cannot message {user}. Their server is not directly connected.",
     "description": "Accessible label for the disabled message button in the profile popover when a remote user cannot be messaged; {user} is their username."
+  },
+  "user_profile.send.dm.start_denied": {
+    "defaultMessage": "You can't start new direct messages",
+    "description": "Tooltip on the disabled message or call button for someone the user has no direct message with yet, when a permission policy stops the user starting direct and group messages. Shown in the profile popover and member lists."
+  },
+  "user_profile.send.dm.start_denied.aria_label": {
+    "defaultMessage": "Cannot message {user}. You can't start new direct messages.",
+    "description": "Accessible label for the disabled message button in the profile popover when a permission policy stops the user starting direct messages; {user} is the other person's username."
   },
   "user_profile.send.dm.yourself": {
     "defaultMessage": "Send yourself a message",

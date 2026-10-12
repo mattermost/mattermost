@@ -907,6 +907,10 @@ func (a *App) GetUsersByIds(rctx request.CTX, userIDs []string, options *store.U
 }
 
 func (a *App) GetUsersByGroupChannelIds(rctx request.CTX, channelIDs []string, asAdmin bool) (map[string][]*model.User, *model.AppError) {
+	if a.DirectAndGroupHidden(rctx, rctx.Session().UserId) {
+		return map[string][]*model.User{}, nil
+	}
+
 	usersByChannelId, err := a.Srv().Store().User().GetProfileByGroupChannelIdsForUser(rctx.Session().UserId, channelIDs)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersByGroupChannelIds", "app.user.get_profile_by_group_channel_ids_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -2842,6 +2846,7 @@ func (a *App) PromoteGuestToUser(rctx request.CTX, user *model.User, requestorId
 				return model.NewAppError("PromoteGuestToUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 			}
 			evt.Add("channelMember", string(memberJSON))
+			a.setupBroadcastHookForDirectAndGroupReadAccessByID(member.ChannelId, evt)
 			a.Publish(evt)
 		}
 	}
@@ -2893,6 +2898,7 @@ func (a *App) DemoteUserToGuest(rctx request.CTX, user *model.User) *model.AppEr
 				return model.NewAppError("DemoteUserToGuest", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 			}
 			evt.Add("channelMember", string(memberJSON))
+			a.setupBroadcastHookForDirectAndGroupReadAccessByID(member.ChannelId, evt)
 			a.Publish(evt)
 		}
 	}
@@ -2987,6 +2993,10 @@ func (a *App) ConvertBotToUser(rctx request.CTX, bot *model.Bot, userPatch *mode
 }
 
 func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError) {
+	if a.DirectAndGroupHidden(rctx, userID) {
+		options.ExcludeDirect = true
+	}
+
 	var result model.Threads
 	var eg errgroup.Group
 	postPriorityIsEnabled := a.IsPostPriorityEnabled()
@@ -3163,8 +3173,8 @@ func (a *App) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadM
 }
 
 // sanitizeThreadResponse removes server-only data from a thread response before it is sent to clients.
-func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {
-	nErr := a.Srv().Store().Thread().MarkAllAsReadByTeam(userID, teamID)
+func (a *App) UpdateThreadsReadForUser(userID, teamID string, excludeDirect bool) *model.AppError {
+	nErr := a.Srv().Store().Thread().MarkAllAsReadByTeam(userID, teamID, excludeDirect)
 	if nErr != nil {
 		return model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
@@ -3197,6 +3207,9 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 	message.Add("thread_id", threadID)
 	message.Add("state", state)
 	message.Add("reply_count", replyCount)
+	if thread != nil {
+		a.setupBroadcastHookForDirectAndGroupReadAccessByID(thread.ChannelId, message)
+	}
 	a.Publish(message)
 	return nil
 }
@@ -3269,6 +3282,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, 
 	}
 	auditRec.Success()
 
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(post.ChannelId, message)
 	a.Publish(message)
 	return nil
 }
@@ -3341,6 +3355,7 @@ func (a *App) UpdateThreadReadForUser(rctx request.CTX, currentSessionId, userID
 	message.Add("previous_unread_mentions", previousUnreadMentions)
 	message.Add("previous_unread_replies", previousUnreadReplies)
 	message.Add("channel_id", post.ChannelId)
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(post.ChannelId, message)
 	a.Publish(message)
 	return thread, nil
 }

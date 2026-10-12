@@ -7,6 +7,7 @@ import {Route} from 'react-router-dom';
 
 import {makeAsyncComponent} from 'components/async_load';
 import CloudPreviewModalController from 'components/cloud_preview_modal/cloud_preview_modal_controller';
+import DmGmAccessSync from 'components/dm_gm_access_sync';
 import LoggedIn from 'components/logged_in';
 
 const OnBoardingTaskList = makeAsyncComponent('OnboardingTaskList', lazy(() => import('components/onboarding_tasklist')));
@@ -26,6 +27,7 @@ export default function LoggedInRoute(props: Props) {
                 <LoggedIn {...routeProps}>
                     <OnBoardingTaskList/>
                     <CloudPreviewModalController/>
+                    <DmGmAccessSync/>
                     <Component {...(routeProps)}/>
                 </LoggedIn>
             )}

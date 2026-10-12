@@ -166,6 +166,26 @@ func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 		mockAccessControl.AssertExpectations(t)
 	})
 
+	t.Run("Direct and group message action on a parent policy is a 400", func(t *testing.T) {
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControl
+
+		policy := &model.AccessControlPolicy{
+			Type: model.AccessControlPolicyTypeParent,
+			Name: "dm-gm-on-parent",
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionDMGMReadAccess}, Expression: "true"},
+			},
+		}
+
+		result, err := th.App.CreateOrUpdateAccessControlPolicy(th.Context, policy)
+		require.NotNil(t, err)
+		require.Nil(t, result)
+		require.Equal(t, "model.access_policy.is_valid.actions.dm_gm_type.app_error", err.Id)
+		require.Equal(t, http.StatusBadRequest, err.StatusCode)
+		mockAccessControl.AssertNotCalled(t, "SavePolicy", mock.Anything, mock.Anything)
+	})
+
 	t.Run("Channel-type policy broadcasts policy enforced update", func(t *testing.T) {
 		thMock := storeMockWithMaskingOff(t)
 

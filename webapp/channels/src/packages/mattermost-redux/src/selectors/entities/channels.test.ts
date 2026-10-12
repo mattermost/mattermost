@@ -545,6 +545,98 @@ describe('Selectors.Channels.getChannelByName', () => {
     });
 });
 
+describe('Selectors.Channels.hasDirectChannelWithUser', () => {
+    const currentUserId = 'current_user_id';
+    const team = TestHelper.fakeTeamWithId();
+    const dm = {
+        ...TestHelper.fakeChannelWithId(''),
+        type: General.DM_CHANNEL,
+        name: getDirectChannelName(currentUserId, 'partner_id'),
+    };
+    const channel = {
+        ...TestHelper.fakeChannelWithId(team.id),
+        name: getDirectChannelName(currentUserId, 'stranger_id'),
+    };
+
+    const makeState = (directChannelIds: string[]) => deepFreezeAndThrowOnMutation({
+        entities: {
+            users: {currentUserId},
+            channels: {
+                channels: {[dm.id]: dm, [channel.id]: channel},
+                channelsInTeam: {'': new Set(directChannelIds), [team.id]: new Set([channel.id])},
+            },
+        },
+    });
+
+    it('finds only DMs the user has', () => {
+        const state = makeState([dm.id]);
+
+        expect(Selectors.hasDirectChannelWithUser(state, 'partner_id')).toBe(true);
+        expect(Selectors.hasDirectChannelWithUser(state, 'stranger_id')).toBe(false);
+        expect(Selectors.hasDirectOrGroupChannels(state)).toBe(true);
+    });
+
+    it('reports no conversations when there are none', () => {
+        const state = makeState([]);
+
+        expect(Selectors.hasDirectChannelWithUser(state, 'partner_id')).toBe(false);
+        expect(Selectors.hasDirectOrGroupChannels(state)).toBe(false);
+    });
+});
+
+describe('Selectors.Channels.canOpenDmOrGmWithUsers', () => {
+    const currentUserId = 'current_user_id';
+    const users = ['partner_id', 'second_id', 'third_id'].map((id) => TestHelper.fakeUserWithId(id));
+    const dm = {
+        ...TestHelper.fakeChannelWithId(''),
+        type: General.DM_CHANNEL,
+        name: getDirectChannelName(currentUserId, 'partner_id'),
+    };
+    const gm = {
+        ...TestHelper.fakeChannelWithId(''),
+        type: General.GM_CHANNEL,
+    };
+
+    const decision = (allowed: boolean) => ({allowed, evaluated: true, generation: 1});
+    const makeState = (startAllowed: boolean, readAllowed = true) => deepFreezeAndThrowOnMutation({
+        entities: {
+            users: {
+                currentUserId,
+                profiles: Object.fromEntries(users.map((user) => [user.id, user])),
+                profilesInChannel: {[gm.id]: new Set([currentUserId, 'partner_id', 'second_id'])},
+            },
+            channels: {
+                channels: {[dm.id]: dm, [gm.id]: gm},
+                channelsInTeam: {'': new Set([dm.id, gm.id])},
+            },
+            preferences: {myPreferences: {}},
+            general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+            renderPermissions: {byResource: {permission: {'': {
+                dm_gm_start: decision(startAllowed),
+                dm_gm_read_access: decision(readAllowed),
+            }}}},
+        },
+    });
+
+    it('allows any conversation while starting is allowed', () => {
+        expect(Selectors.canOpenDmOrGmWithUsers(makeState(true), ['third_id'])).toBe(true);
+    });
+
+    it('allows only existing conversations while starting is denied', () => {
+        const state = makeState(false);
+
+        expect(Selectors.canOpenDmOrGmWithUsers(state, ['partner_id'])).toBe(true);
+        expect(Selectors.canOpenDmOrGmWithUsers(state, ['second_id'])).toBe(false);
+        expect(Selectors.canOpenDmOrGmWithUsers(state, ['second_id', 'partner_id'])).toBe(true);
+        expect(Selectors.canOpenDmOrGmWithUsers(state, ['partner_id', 'third_id'])).toBe(false);
+        expect(Selectors.canOpenDmOrGmWithUsers(state, ['partner_id', 'second_id', 'third_id'])).toBe(false);
+    });
+
+    it('allows nothing while Read is denied', () => {
+        expect(Selectors.canOpenDmOrGmWithUsers(makeState(true, false), ['partner_id'])).toBe(false);
+    });
+});
+
 describe('Selectors.Channels.getChannelByTeamIdAndChannelName', () => {
     const team1 = TestHelper.fakeTeamWithId();
     const team2 = TestHelper.fakeTeamWithId();

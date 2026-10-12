@@ -28,6 +28,8 @@ const (
 	broadcastAbacBookmarks      = "abac_bookmarks"
 	broadcastOnlyChannelAdmins  = "only_channel_admins"
 	broadcastChannelReadAccess  = "channel_read_access"
+	broadcastDMGMReadAccess     = "dm_gm_read_access"
+	broadcastOnlySession        = "only_session"
 )
 
 func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
@@ -43,6 +45,8 @@ func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 		broadcastAbacBookmarks:      &abacBookmarksBroadcastHook{},
 		broadcastOnlyChannelAdmins:  &onlyChannelAdminsBroadcastHook{},
 		broadcastChannelReadAccess:  &channelReadAccessBroadcastHook{},
+		broadcastDMGMReadAccess:     &dmGmReadAccessBroadcastHook{},
+		broadcastOnlySession:        &onlySessionBroadcastHook{},
 	}
 }
 
@@ -421,7 +425,7 @@ func (h *burnOnReadReactionBroadcastHook) Process(msg *platform.HookedWebSocketE
 
 	// If no receipt or receipt expired, remove reaction data
 	if receipt == nil || receipt.ExpireAt < model.GetMillis() {
-		msg.Event().Reject()
+		msg.Reject()
 		return nil
 	}
 
@@ -513,7 +517,7 @@ func (h *abacFilesBroadcastHook) stripFilesFromMessage(msg *platform.HookedWebSo
 	post, err := getPostFromMessage(msg)
 	if err != nil {
 		mlog.Warn("abacFilesBroadcastHook: failed to parse post in fallback strip; rejecting event", mlog.Err(err))
-		msg.Event().Reject()
+		msg.Reject()
 		return nil
 	}
 	if post.Metadata == nil {
@@ -526,7 +530,7 @@ func (h *abacFilesBroadcastHook) stripFilesFromMessage(msg *platform.HookedWebSo
 		msg.Add("post", postJSON)
 	} else {
 		mlog.Warn("abacFilesBroadcastHook: failed to marshal post in fallback strip; rejecting event", mlog.Err(jsonErr))
-		msg.Event().Reject()
+		msg.Reject()
 	}
 	return nil
 }
@@ -597,7 +601,7 @@ func (h *abacBookmarksBroadcastHook) Process(msg *platform.HookedWebSocketEvent,
 			mlog.String("user_id", webConn.UserId),
 			mlog.String("field", field),
 		)
-		msg.Event().Reject()
+		msg.Reject()
 		return nil
 	}
 
@@ -607,7 +611,7 @@ func (h *abacBookmarksBroadcastHook) Process(msg *platform.HookedWebSocketEvent,
 			mlog.String("user_id", webConn.UserId),
 			mlog.Err(jsonErr),
 		)
-		msg.Event().Reject()
+		msg.Reject()
 		return nil
 	}
 
@@ -619,7 +623,7 @@ func (h *abacBookmarksBroadcastHook) Process(msg *platform.HookedWebSocketEvent,
 			mlog.String("user_id", webConn.UserId),
 			mlog.Err(jsonErr),
 		)
-		msg.Event().Reject()
+		msg.Reject()
 		return nil
 	}
 
@@ -668,7 +672,7 @@ func (h *onlyChannelAdminsBroadcastHook) Process(msg *platform.HookedWebSocketEv
 	}
 
 	if !slices.Contains(adminUserIDs, webConn.UserId) {
-		msg.Event().Reject()
+		msg.Reject()
 	}
 	return nil
 }
@@ -697,13 +701,62 @@ func (h *channelReadAccessBroadcastHook) Process(msg *platform.HookedWebSocketEv
 	// this connection's session; without one there is nothing to evaluate.
 	session := webConn.GetSession()
 	if session == nil {
-		msg.Event().Reject()
+		msg.Reject()
 		return nil
 	}
 
 	rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
 	if !webConn.Suite.HasChannelReadAccessByID(rctx, webConn.UserId, channelID) {
-		msg.Event().Reject()
+		msg.Reject()
+	}
+	return nil
+}
+
+// dmGmReadAccessBroadcastHook drops an event about direct or group messages for any session
+// the dm_gm_read_access policy denies. The decision is the same for every conversation, so
+// it is taken once per session and cached; see HasDirectAndGroupReadAccessForSession.
+type dmGmReadAccessBroadcastHook struct{}
+
+func useDMGMReadAccessHook(message *model.WebSocketEvent) {
+	message.GetBroadcast().AddHook(broadcastDMGMReadAccess, map[string]any{})
+}
+
+func (h *dmGmReadAccessBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	// A rule may reference the session's device or network, so the evaluation needs
+	// this connection's session; without one there is nothing to evaluate.
+	session := webConn.GetSession()
+	if session == nil {
+		msg.Reject()
+		return nil
+	}
+
+	rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
+	if !webConn.Suite.HasDirectAndGroupReadAccessForSession(rctx) {
+		msg.Reject()
+	}
+	return nil
+}
+
+// onlySessionBroadcastHook narrows an event addressed to a user down to one of their sessions.
+// A broadcast can name a user or a connection but not a session, so the event goes to the user
+// and every connection on another session drops it. The args carry the session id, never the
+// token, since they cross the cluster.
+type onlySessionBroadcastHook struct{}
+
+func useOnlySessionHook(message *model.WebSocketEvent, sessionID string) {
+	message.GetBroadcast().AddHook(broadcastOnlySession, map[string]any{
+		"session_id": sessionID,
+	})
+}
+
+func (h *onlySessionBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	sessionID, err := getTypedArg[string](args, "session_id")
+	if err != nil {
+		return errors.Wrap(err, "Invalid session_id value passed to onlySessionBroadcastHook")
+	}
+
+	if session := webConn.GetSession(); session == nil || session.Id != sessionID {
+		msg.Reject()
 	}
 	return nil
 }

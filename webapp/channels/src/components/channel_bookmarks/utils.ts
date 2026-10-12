@@ -12,6 +12,7 @@ import {Permissions} from 'mattermost-redux/constants';
 import {getChannelBookmarks} from 'mattermost-redux/selectors/entities/channel_bookmarks';
 import {getChannel, getMyChannelMember} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {isDmGmWriteDenied} from 'mattermost-redux/selectors/entities/render_permissions';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {insertWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
 import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
@@ -97,7 +98,7 @@ export const getHaveIChannelBookmarkPermission = (state: GlobalState, channelId:
 
     if (type === GM_CHANNEL || type === DM_CHANNEL) {
         const myMembership = getMyChannelMember(state, channelId);
-        return myMembership?.channel_id === channelId;
+        return myMembership?.channel_id === channelId && !isDmGmWriteDenied(state);
     }
 
     const permission = BOOKMARK_PERMISSION[key(action, type)];

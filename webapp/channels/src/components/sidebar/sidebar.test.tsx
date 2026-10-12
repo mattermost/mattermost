@@ -17,6 +17,8 @@ import type {GlobalState} from 'types/store';
 
 import Sidebar from './sidebar';
 
+jest.mock('components/more_direct_channels', () => () => <div data-testid='more-direct-channels'/>);
+
 describe('components/sidebar', () => {
     const currentTeam = TestHelper.getTeamMock({
         id: 'current_team_id',
@@ -405,5 +407,29 @@ describe('components/sidebar', () => {
             // Should not call openModal
             expect(openModalSpy).not.toHaveBeenCalled();
         });
+    });
+
+    // The modal itself says when the selected people can't be messaged.
+    test('should open the direct messages modal from the shortcut while starting conversations is denied', async () => {
+        renderWithContext(
+            <Sidebar {...baseProps}/>,
+            mergeObjects(initialState, {
+                entities: {
+                    general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+                    renderPermissions: {byResource: {permission: {'': {dm_gm_start: {allowed: false, evaluated: true, generation: 1}}}}},
+                },
+            }),
+        );
+
+        // Ctrl/Cmd+Shift+K, which the sidebar list routes to handleOpenMoreDirectChannelsModal.
+        fireEvent.keyDown(document, {
+            key: 'K',
+            code: 'KeyK',
+            keyCode: Constants.KeyCodes.K[1],
+            ctrlKey: true,
+            shiftKey: true,
+        });
+
+        expect(await screen.findByTestId('more-direct-channels')).toBeInTheDocument();
     });
 });

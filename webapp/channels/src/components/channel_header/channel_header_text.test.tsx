@@ -66,6 +66,25 @@ describe('ChannelHeaderText', () => {
         expect(container.childNodes.length).toBe(0);
     });
 
+    test.each(['D', 'G'] as const)('should not show the add header button for a %s while dm_gm_write_access denies', (type) => {
+        const channel = TestHelper.getChannelMock({type, header: ''});
+
+        renderWithContext(
+            <ChannelHeaderText
+                teamId={defaultTeamId}
+                channel={channel}
+            />,
+            {
+                entities: {
+                    general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+                    renderPermissions: {byResource: {permission: {'': {dm_gm_write_access: {allowed: false, evaluated: true, generation: 1}}}}},
+                },
+            },
+        );
+
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
+    });
+
     test('should show add header button for DM channels without header', () => {
         const channel = TestHelper.getChannelMock({type: 'D', header: ''});
 

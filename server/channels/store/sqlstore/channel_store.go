@@ -3364,10 +3364,19 @@ func (s SqlChannelStore) GetMembersForUser(teamID string, userID string) (model.
 	return dbMembers.ToModel(), nil
 }
 
-func (s SqlChannelStore) GetMembersForUserWithPagination(userId string, page, perPage int) (model.ChannelMembersWithTeamData, error) {
+// directAndGroupNotInClause leaves conversations out of a member list when asked to.
+func directAndGroupNotInClause(excludeDirectAndGroup bool) string {
+	if !excludeDirectAndGroup {
+		return ""
+	}
+	return " AND Channels.Type NOT IN ('D', 'G')"
+}
+
+func (s SqlChannelStore) GetMembersForUserWithPagination(userId string, page, perPage int, excludeDirectAndGroup bool) (model.ChannelMembersWithTeamData, error) {
 	dbMembers := channelMemberWithTeamWithSchemeRolesList{}
 	offset := page * perPage
 	notInClause, notInArgs := nonMessageBackingChannelTypesNotIn()
+	notInClause += directAndGroupNotInClause(excludeDirectAndGroup)
 	queryArgs := append([]any{userId}, notInArgs...)
 	queryArgs = append(queryArgs, perPage, offset)
 	err := s.GetReplica().Select(&dbMembers, channelMembersWithSchemeSelectQuery+"WHERE ChannelMembers.UserId = ? AND Channels.Type "+notInClause+" ORDER BY ChannelId ASC Limit ? Offset ?", queryArgs...)
@@ -3378,9 +3387,10 @@ func (s SqlChannelStore) GetMembersForUserWithPagination(userId string, page, pe
 	return dbMembers.ToModel(), nil
 }
 
-func (s SqlChannelStore) GetMembersForUserWithCursorPagination(userId string, perPage int, fromChannelID string) (model.ChannelMembersWithTeamData, error) {
+func (s SqlChannelStore) GetMembersForUserWithCursorPagination(userId string, perPage int, fromChannelID string, excludeDirectAndGroup bool) (model.ChannelMembersWithTeamData, error) {
 	dbMembers := channelMemberWithTeamWithSchemeRolesList{}
 	notInClause, notInArgs := nonMessageBackingChannelTypesNotIn()
+	notInClause += directAndGroupNotInClause(excludeDirectAndGroup)
 	queryArgs := append([]any{userId, fromChannelID}, notInArgs...)
 	queryArgs = append(queryArgs, perPage)
 	err := s.GetReplica().Select(&dbMembers, channelMembersWithSchemeSelectQuery+"WHERE ChannelMembers.UserId = ? AND ChannelId > ? AND Channels.Type "+notInClause+" ORDER BY ChannelId ASC Limit ?", queryArgs...)

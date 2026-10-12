@@ -173,6 +173,11 @@ export type SuggestionBoxProps = {
      */
     alignWithTextbox?: boolean;
 
+    /**
+     * Rendered between the input and the suggestion list, e.g. an error about the input
+     */
+    belowInput?: React.ReactNode;
+
     actions: {
         addMessageIntoHistory: (message: string) => void;
     };
@@ -810,6 +815,7 @@ export default class SuggestionBox extends React.PureComponent<SuggestionBoxProp
             shouldSearchCompleteText,
             alignWithTextbox,
             /* eslint-enable @typescript-eslint/no-unused-vars */
+            belowInput,
 
             // Forwarded to the input below, but pulled out of the spread because QuickInput types its key
             // handlers against a generic Element rather than the input element consumers expect
@@ -842,6 +848,7 @@ export default class SuggestionBox extends React.PureComponent<SuggestionBoxProp
                     onInput={this.handleChange}
                     onKeyDown={this.handleKeyDown}
                 />
+                {belowInput}
                 {showList && this.state.presentationType === 'text' && SuggestionListComponent && (
                     <SuggestionListComponent
                         open={this.state.focused || this.props.forceSuggestionsWhenBlur}

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	platform_mocks "github.com/mattermost/mattermost/server/v8/channels/app/platform/mocks"
 	"github.com/stretchr/testify/assert"
@@ -1279,6 +1280,101 @@ func TestChannelReadAccessBroadcastHook_Process(t *testing.T) {
 	t.Run("a malformed arg is an error, not a silent delivery", func(t *testing.T) {
 		msg := makeMessage()
 		require.Error(t, hook.Process(msg, makeWebConn(t, true, true), map[string]any{"channel_id": 42}))
+	})
+}
+
+func TestDMGMReadAccessBroadcastHook_Process(t *testing.T) {
+	mainHelper.Parallel(t)
+	hook := &dmGmReadAccessBroadcastHook{}
+
+	userID := model.NewId()
+
+	makeMessage := func() *platform.HookedWebSocketEvent {
+		event := model.NewWebSocketEvent(model.WebsocketEventPosted, "", model.NewId(), "", nil, "")
+		return platform.MakeHookedWebSocketEvent(event)
+	}
+
+	makeWebConn := func(t *testing.T, allowed bool, withSession bool) (*platform.WebConn, *platform_mocks.SuiteIFace) {
+		t.Helper()
+		mockSuite := &platform_mocks.SuiteIFace{}
+		mockSuite.On("HasDirectAndGroupReadAccessForSession", mock.Anything).Return(allowed).Maybe()
+		wc := &platform.WebConn{
+			UserId:   userID,
+			Platform: &platform.PlatformService{},
+			Suite:    mockSuite,
+		}
+		if withSession {
+			wc.SetSession(&model.Session{Id: model.NewId(), UserId: userID, Roles: model.SystemUserRoleId})
+		}
+		return wc, mockSuite
+	}
+
+	t.Run("allowed session receives the event", func(t *testing.T) {
+		msg := makeMessage()
+		wc, mockSuite := makeWebConn(t, true, true)
+		require.NoError(t, hook.Process(msg, wc, map[string]any{}))
+		assert.False(t, msg.IsRejected())
+
+		// The decision is asked for with this connection's session.
+		rctx := mockSuite.Calls[0].Arguments.Get(0).(request.CTX)
+		assert.Equal(t, wc.GetSession().Id, rctx.Session().Id)
+	})
+
+	t.Run("denied session has the event dropped", func(t *testing.T) {
+		msg := makeMessage()
+		wc, _ := makeWebConn(t, false, true)
+		require.NoError(t, hook.Process(msg, wc, map[string]any{}))
+		assert.True(t, msg.IsRejected())
+	})
+
+	t.Run("a connection with no session is dropped", func(t *testing.T) {
+		msg := makeMessage()
+		wc, mockSuite := makeWebConn(t, true, false)
+		require.NoError(t, hook.Process(msg, wc, map[string]any{}))
+		assert.True(t, msg.IsRejected())
+		mockSuite.AssertNotCalled(t, "HasDirectAndGroupReadAccessForSession", mock.Anything)
+	})
+}
+
+func TestOnlySessionBroadcastHook_Process(t *testing.T) {
+	mainHelper.Parallel(t)
+	hook := &onlySessionBroadcastHook{}
+
+	userID := model.NewId()
+	sessionID := model.NewId()
+
+	makeMessage := func() *platform.HookedWebSocketEvent {
+		return platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPermissionPolicyUpdated, "", "", userID, nil, ""))
+	}
+	makeWebConn := func(session *model.Session) *platform.WebConn {
+		wc := &platform.WebConn{UserId: userID, Platform: &platform.PlatformService{}}
+		if session != nil {
+			wc.SetSession(session)
+		}
+		return wc
+	}
+	args := map[string]any{"session_id": sessionID}
+
+	t.Run("the named session receives the event", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(&model.Session{Id: sessionID, UserId: userID}), args))
+		assert.False(t, msg.IsRejected())
+	})
+
+	t.Run("the user's other sessions have it dropped", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(&model.Session{Id: model.NewId(), UserId: userID}), args))
+		assert.True(t, msg.IsRejected())
+	})
+
+	t.Run("a connection with no session has it dropped", func(t *testing.T) {
+		msg := makeMessage()
+		require.NoError(t, hook.Process(msg, makeWebConn(nil), args))
+		assert.True(t, msg.IsRejected())
+	})
+
+	t.Run("a malformed arg is an error", func(t *testing.T) {
+		require.Error(t, hook.Process(makeMessage(), makeWebConn(&model.Session{Id: sessionID, UserId: userID}), map[string]any{"session_id": 42}))
 	})
 }
 

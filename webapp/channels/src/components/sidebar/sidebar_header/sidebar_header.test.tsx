@@ -5,7 +5,7 @@ import React from 'react';
 
 import {Permissions} from 'mattermost-redux/constants';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {CloudProducts} from 'utils/constants';
 import {FileSizes} from 'utils/file_utils';
 import {TestHelper} from 'utils/test_helper';
@@ -143,6 +143,22 @@ describe('SidebarHeader', () => {
         renderWithContext(<SidebarHeader {...defaultProps}/>, initialState);
 
         expect(screen.getByRole('button', {name: /Browse or create channels/i})).toBeInTheDocument();
+    });
+
+    // The direct messages modal says when the selected people can't be messaged.
+    test('should offer Open a direct message while dm_gm_start is denied', async () => {
+        renderWithContext(<SidebarHeader {...defaultProps}/>, {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+                renderPermissions: {byResource: {permission: {'': {dm_gm_start: {allowed: false, evaluated: true, generation: 1}}}}},
+            },
+        });
+
+        await userEvent.click(screen.getByRole('button', {name: /Browse or create channels/i}));
+
+        expect(screen.getByRole('menuitem', {name: /Open a direct message/})).toBeInTheDocument();
     });
 
     test('should not render anything when team is empty', () => {

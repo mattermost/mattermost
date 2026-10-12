@@ -125,6 +125,11 @@ func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Bookmarks are conversation content, so changing them is a write.
+		if !requireChannelWriteAccess(c, channel) {
+			return
+		}
+
 	default:
 		c.Err = model.NewAppError("createChannelBookmark", "api.channel.bookmark.create_channel_bookmark.forbidden.app_error", nil, "", http.StatusForbidden)
 		return
@@ -217,6 +222,11 @@ func updateChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if user.IsGuest() {
 			c.Err = model.NewAppError("updateChannelBookmark", "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+
+		// Bookmarks are conversation content, so changing them is a write.
+		if !requireChannelWriteAccess(c, channel) {
 			return
 		}
 
@@ -346,6 +356,11 @@ func updateChannelBookmarkSortOrder(c *Context, w http.ResponseWriter, r *http.R
 			return
 		}
 
+		// Bookmarks are conversation content, so changing them is a write.
+		if !requireChannelWriteAccess(c, channel) {
+			return
+		}
+
 	default:
 		c.Err = model.NewAppError("updateChannelBookmarkSortOrder", "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error", nil, "", http.StatusForbidden)
 		return
@@ -438,6 +453,11 @@ func deleteChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if user.IsGuest() {
 			c.Err = model.NewAppError("deleteChannelBookmark", "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+
+		// Bookmarks are conversation content, so changing them is a write.
+		if !requireChannelWriteAccess(c, channel) {
 			return
 		}
 

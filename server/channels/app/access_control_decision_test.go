@@ -75,7 +75,10 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 			Resource: model.Resource{Type: model.AccessControlPolicyTypePermission},
 		})
 		require.Nil(t, appErr)
-		require.Empty(t, resp.Decisions)
+		require.Len(t, resp.Decisions, len(model.DMGMActions()))
+		for _, action := range model.DMGMActions() {
+			require.True(t, resp.Decisions[action].Allowed, action)
+		}
 	})
 
 	t.Run("unsupported action returns bad request", func(t *testing.T) {

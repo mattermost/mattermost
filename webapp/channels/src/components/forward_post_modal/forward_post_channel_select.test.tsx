@@ -3,12 +3,16 @@
 
 import React from 'react';
 
-import {compassIconForName} from 'components/channel_type_icon';
+import {General} from 'mattermost-redux/constants';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {compassIconForName} from 'components/channel_type_icon';
+import {flattenItems} from 'components/suggestion/suggestion_results';
+import SwitchChannelProvider from 'components/suggestion/switch_channel_provider';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-import {FormattedOption, makeSelectedChannelOption} from './forward_post_channel_select';
+import ForwardPostChannelSelect, {FormattedOption, makeSelectedChannelOption} from './forward_post_channel_select';
 
 jest.mock('components/channel_type_icon/compass_icon_resolver', () => ({
     compassIconForName: jest.fn().mockReturnValue(null),
@@ -281,5 +285,99 @@ describe('forward_post_channel_select/FormattedOption', () => {
 
         expect(screen.getByTestId('profile-picture')).toBeInTheDocument();
         expect(screen.queryByTestId('stub-override-icon')).not.toBeInTheDocument();
+    });
+});
+
+describe('forward_post_channel_select/ForwardPostChannelSelect', () => {
+    const me = TestHelper.getUserMock({id: 'me-id', username: 'me'});
+    const alice = TestHelper.getUserMock({id: 'alice-id', username: 'alice'});
+    const bob = TestHelper.getUserMock({id: 'bob-id', username: 'bob'});
+    const aliceDm = TestHelper.getChannelMock({id: 'alice-dm-id', type: General.DM_CHANNEL, name: `${alice.id}__${me.id}`, team_id: ''});
+    const town = TestHelper.getChannelMock({id: 'town-id', type: General.OPEN_CHANNEL, name: 'town', display_name: 'Town'});
+
+    // The rows the switcher provider gives for people, with or without a DM.
+    const personRow = (user: typeof alice, id: string) => ({
+        channel: {id, name: user.username, display_name: '', userId: user.id, type: General.DM_CHANNEL, delete_at: 0},
+    });
+    const rows = [personRow(alice, aliceDm.id), personRow(bob, bob.id), {channel: town}];
+
+    const decision = (allowed: boolean) => ({allowed, evaluated: true, generation: 1});
+    const makeSelectState = (startAllowed: boolean) => ({
+        entities: {
+            users: {
+                currentUserId: me.id,
+                profiles: {[me.id]: me, [alice.id]: alice, [bob.id]: bob},
+                statuses: {},
+            },
+            channels: {
+                channels: {[aliceDm.id]: aliceDm, [town.id]: town},
+                channelsInTeam: {'': new Set([aliceDm.id])},
+                myMembers: {},
+            },
+            teams: {teams: {}, myMembers: {}},
+            general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+            preferences: {myPreferences: {}},
+            renderPermissions: {byResource: {permission: {'': {
+                dm_gm_start: decision(startAllowed),
+                dm_gm_read_access: decision(true),
+            }}}},
+        },
+        plugins: {components: {ChannelIconOverride: []}},
+    } as any);
+
+    beforeEach(() => {
+        jest.mocked(flattenItems).mockImplementation((res: any) => res);
+        jest.mocked(SwitchChannelProvider).mockImplementation(() => ({
+            fetchAndFormatRecentlyViewedChannels: (callback: (res: unknown) => void) => callback(rows),
+
+            // The select waits for the provider's two rounds of results.
+            handlePretextChanged: (_: string, callback: (res: unknown) => void) => {
+                callback(rows);
+                callback(rows);
+            },
+        }) as any);
+    });
+
+    afterEach(() => {
+        jest.mocked(flattenItems).mockReset();
+        jest.mocked(flattenItems).mockImplementation(() => []);
+        jest.mocked(SwitchChannelProvider).mockReset();
+    });
+
+    const renderSelect = (startAllowed: boolean) => renderWithContext(
+        <ForwardPostChannelSelect
+            onSelect={jest.fn()}
+            currentBodyHeight={500}
+        />,
+        makeSelectState(startAllowed),
+    );
+
+    it('should leave out people the user cannot start a conversation with while starting is denied', async () => {
+        renderSelect(false);
+
+        await userEvent.type(screen.getByRole('combobox'), 'a');
+
+        expect(await screen.findByTestId('alice')).toBeInTheDocument();
+        expect(screen.getByTestId('town')).toBeInTheDocument();
+        expect(screen.queryByTestId('bob')).not.toBeInTheDocument();
+    });
+
+    it('should leave them out of the recent options too', async () => {
+        renderSelect(false);
+
+        await userEvent.click(screen.getByRole('combobox'));
+        await userEvent.keyboard('{ArrowDown}');
+
+        expect(await screen.findByTestId('alice')).toBeInTheDocument();
+        expect(screen.queryByTestId('bob')).not.toBeInTheDocument();
+    });
+
+    it('should offer everyone while starting is allowed', async () => {
+        renderSelect(true);
+
+        await userEvent.type(screen.getByRole('combobox'), 'a');
+
+        expect(await screen.findByTestId('bob')).toBeInTheDocument();
+        expect(screen.getByTestId('alice')).toBeInTheDocument();
     });
 });

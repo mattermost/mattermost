@@ -236,6 +236,35 @@ describe('Actions.Channel', () => {
         Date.now = realDateNow;
     });
 
+    describe('openDirectChannelToUserId while starting conversations is blocked', () => {
+        const withSessionDecision = (action: string) => ({
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {...initialState.entities.general, config: {...initialState.entities.general.config, FeatureFlagPermissionPolicies: 'true'}},
+                renderPermissions: {byResource: {permission: {'': {[action]: {allowed: false, evaluated: true, generation: 1}}}}},
+            },
+        });
+
+        // Read denied with Start allowed matters most: the server would create the DM.
+        test.each(['dm_gm_start', 'dm_gm_read_access'])('returns an error without creating the DM when %s denies', async (action) => {
+            const testStore = await mockStore(withSessionDecision(action));
+
+            const result = await testStore.dispatch(openDirectChannelToUserId('testid'));
+
+            expect(result.error).toBeDefined();
+            expect(testStore.getActions()).toEqual([]);
+        });
+
+        test('still opens a DM that already exists when only Start is denied', async () => {
+            const testStore = await mockStore(withSessionDecision('dm_gm_start'));
+
+            const result = await testStore.dispatch(openDirectChannelToUserId('existingId'));
+
+            expect(result.data).toEqual(expect.objectContaining({id: 'current_user_id__existingId'}));
+        });
+    });
+
     test('openGroupChannelToUserIds', async () => {
         const testStore = await mockStore(initialState);
 

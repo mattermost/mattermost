@@ -122,7 +122,10 @@ func (s *SqlDraftStore) Upsert(draft *model.Draft) (*model.Draft, error) {
 	return draft, nil
 }
 
-func (s *SqlDraftStore) GetDraftsForUser(userID, teamID string) ([]*model.Draft, error) {
+// GetDraftsForUser returns the user's drafts in the team and in their direct and group
+// messages, or in every channel without a team. excludeDirectAndGroup leaves the
+// conversations' drafts out.
+func (s *SqlDraftStore) GetDraftsForUser(userID, teamID string, excludeDirectAndGroup bool) ([]*model.Draft, error) {
 	var drafts []*model.Draft
 
 	query := s.getQueryBuilder().
@@ -147,13 +150,19 @@ func (s *SqlDraftStore) GetDraftsForUser(userID, teamID string) ([]*model.Draft,
 		}).
 		OrderBy("Drafts.UpdateAt DESC")
 
+	if teamID != "" || excludeDirectAndGroup {
+		query = query.Join("Channels ON Drafts.ChannelId = Channels.Id")
+	}
+
 	if teamID != "" {
-		query = query.
-			Join("Channels ON Drafts.ChannelId = Channels.Id").
-			Where(sq.Or{
-				sq.Eq{"Channels.TeamId": teamID},
-				sq.Eq{"Channels.TeamId": ""},
-			})
+		query = query.Where(sq.Or{
+			sq.Eq{"Channels.TeamId": teamID},
+			sq.Eq{"Channels.TeamId": ""},
+		})
+	}
+
+	if excludeDirectAndGroup {
+		query = query.Where(sq.NotEq{"Channels.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}})
 	}
 
 	err := s.GetReplica().SelectBuilder(&drafts, query)

@@ -10,10 +10,12 @@ import type {Post} from '@mattermost/types/posts';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
+import {General} from 'mattermost-redux/constants';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {isDmGmWriteDenied} from 'mattermost-redux/selectors/entities/render_permissions';
 import {isChannelWriteDenied} from 'mattermost-redux/selectors/entities/roles';
 import {
     getCurrentTeamId,
@@ -111,6 +113,11 @@ function makeMapStateToProps() {
         const isBoRPost = isBurnOnReadPost(state, post.id);
         const isPostSender = post.user_id === userId;
 
+        // A conversation post can only be forwarded back into its own conversation, and the
+        // forward modal doesn't check write permission for that.
+        const isConversation = channel?.type === General.DM_CHANNEL || channel?.type === General.GM_CHANNEL;
+        const forwardDenied = isConversation && isDmGmWriteDenied(state);
+
         return {
             channelIsArchived: isArchivedChannel(channel),
             components: state.plugins.components,
@@ -130,7 +137,7 @@ function makeMapStateToProps() {
             isMilitaryTime,
             canMove: channel && !isBoRPost ? canWrangler(state, channel.type, threadReplyCount) : false,
             canReply: !systemMessage && !isBoRPost && ownProps.location === Locations.CENTER && !isChannelWriteDenied(state, post.channel_id),
-            canForward: !systemMessage && !isBoRPost,
+            canForward: !systemMessage && !isBoRPost && !forwardDenied,
             canFollowThread: !systemMessage && !isBoRPost && collapsedThreads && (
                 !ownProps.location ||
                 ownProps.location === Locations.CENTER ||

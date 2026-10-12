@@ -23,6 +23,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
@@ -84,6 +85,13 @@ type Channels struct {
 	AccessControl    einterfaces.AccessControlServiceInterface
 	Intune           einterfaces.IntuneInterface
 
+	// dmGmReadDecisions caches each session's dm_gm_read_access decision for the
+	// WebSocket hook, keyed by session id. See HasDirectAndGroupReadAccessForSession.
+	dmGmReadDecisions cache.Cache
+	// dmGmSessionReferences caches whether the direct and group message rules reference
+	// session attributes. See dmGmPoliciesReferenceSessionAttributes.
+	dmGmSessionReferences atomic.Pointer[dmGmSessionReferences]
+
 	attributeViewRefreshMut   sync.Mutex
 	attributeViewRefreshLast  time.Time
 	attributeViewNeedsRefresh atomic.Bool
@@ -115,6 +123,11 @@ func NewChannels(s *Server) (*Channels, error) {
 		exportFilestore:   s.ExportFileBackend(),
 		cfgSvc:            s.Platform(),
 		interruptQuitChan: make(chan struct{}),
+		dmGmReadDecisions: cache.NewLRU(&cache.CacheOptions{
+			Name:          "dm_gm_read_decisions",
+			Size:          model.SessionCacheSize,
+			DefaultExpiry: dmGmReadDecisionTTL,
+		}),
 	}
 	ch.guardCache.Store(&sync.Map{})
 

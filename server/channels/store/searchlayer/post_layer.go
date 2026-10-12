@@ -4,6 +4,8 @@
 package searchlayer
 
 import (
+	"slices"
+
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -166,6 +168,15 @@ func (s SearchPostStore) searchPostsForUserByEngine(engine searchengine.SearchEn
 		})
 	if err2 != nil {
 		return nil, errors.Wrap(err2, "error getting channel for user")
+	}
+
+	// Every params object carries the same flag. An empty channel list would search
+	// every channel, so a searcher with only hidden conversations gets nothing.
+	if paramsList[0].ExcludeDirectAndGroupChannels {
+		userChannels = slices.DeleteFunc(userChannels, (*model.Channel).IsGroupOrDirect)
+		if len(userChannels) == 0 {
+			return model.MakePostSearchResults(model.NewPostList(), nil), nil
+		}
 	}
 
 	postIds, matches, err := engine.SearchPosts(userChannels, paramsList, page, perPage)

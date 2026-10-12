@@ -21,6 +21,11 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{EngineAll},
 	},
 	{
+		Name: "Should leave out direct and group messages when asked",
+		Fn:   testSearchPostsExcludingDirectAndGroupChannels,
+		Tags: []string{EngineAll},
+	},
+	{
 		Name: "Should be able to search posts using pagination",
 		Fn:   testSearchPostsWithPagination,
 		Tags: []string{EngineElasticSearch},
@@ -334,6 +339,51 @@ func testSearchPostsIncludingDMs(t *testing.T, th *SearchTestHelper) {
 	require.Len(t, results.Posts, 2)
 	th.checkPostInSearchResults(t, p1.Id, results.Posts)
 	th.checkPostInSearchResults(t, p2.Id, results.Posts)
+}
+
+func testSearchPostsExcludingDirectAndGroupChannels(t *testing.T, th *SearchTestHelper) {
+	direct, err := th.createDirectChannel(th.Team.Id, "direct", []*model.User{th.User, th.UserAnotherTeam})
+	require.NoError(t, err)
+	defer th.deleteChannel(direct)
+	group, err := th.createGroupChannel(th.Team.Id, "group", []*model.User{th.User, th.User2, th.UserAnotherTeam})
+	require.NoError(t, err)
+	defer th.deleteChannel(group)
+
+	dmPost, err := th.createPost(th.User.Id, direct.Id, "dm test", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	gmPost, err := th.createPost(th.User.Id, group.Id, "gm test", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	channelPost, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "channel test", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	search := func(t *testing.T, userID string, exclude bool) map[string]*model.Post {
+		t.Helper()
+		params := &model.SearchParams{Terms: "test", ExcludeDirectAndGroupChannels: exclude}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, userID, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+		return results.Posts
+	}
+
+	t.Run("conversations are left out", func(t *testing.T) {
+		results := search(t, th.User.Id, true)
+		require.Len(t, results, 1)
+		th.checkPostInSearchResults(t, channelPost.Id, results)
+	})
+
+	t.Run("conversations are found otherwise", func(t *testing.T) {
+		results := search(t, th.User.Id, false)
+		require.Len(t, results, 3)
+		th.checkPostInSearchResults(t, dmPost.Id, results)
+		th.checkPostInSearchResults(t, gmPost.Id, results)
+	})
+
+	// This user is in no channel of the team, so only conversations are left to search;
+	// an engine must not take the empty channel list to mean every channel.
+	t.Run("nothing is found when only conversations remain", func(t *testing.T) {
+		require.Empty(t, search(t, th.UserAnotherTeam.Id, true))
+		require.Len(t, search(t, th.UserAnotherTeam.Id, false), 2)
+	})
 }
 
 func testSearchPostsWithPagination(t *testing.T, th *SearchTestHelper) {

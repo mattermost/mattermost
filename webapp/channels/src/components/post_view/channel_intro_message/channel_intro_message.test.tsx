@@ -63,6 +63,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
         stats: {},
         usersLimit: 10,
         isMobileView: false,
+        canEditConversationHeader: true,
         actions: {
             getTotalUsersStats: jest.fn().mockResolvedValue([]),
             favoriteChannel: jest.fn().mockResolvedValue([]),
@@ -171,6 +172,19 @@ describe('components/post_view/ChannelIntroMessages', () => {
             const notificationPreferencesButton = screen.getByText('Notifications');
             expect(notificationPreferencesButton).toBeInTheDocument();
         });
+
+        test('should not offer to set the header when the user cannot write to it', () => {
+            renderWithContext(
+                <ChannelIntroMessage
+                    {...props}
+                    channelProfiles={users}
+                    canEditConversationHeader={false}
+                />, initialState,
+            );
+
+            expect(screen.queryByLabelText('Set header')).not.toBeInTheDocument();
+            expect(screen.getByText('Notifications')).toBeInTheDocument();
+        });
     });
 
     describe('test DIRECT Channel', () => {
@@ -222,6 +236,20 @@ describe('components/post_view/ChannelIntroMessages', () => {
             expect(headerDialog).toBeInTheDocument();
             expect(headerDialog).toHaveTextContent('Set header');
             expect(headerDialog).toHaveClass('action-button');
+        });
+
+        test('should not offer to set the header when the user cannot write to it', () => {
+            renderWithContext(
+                <ChannelIntroMessage
+                    {...props}
+                    teammate={user1 as UserProfile}
+                    teammateName='my teammate'
+                    canEditConversationHeader={false}
+                />, initialState,
+            );
+
+            expect(screen.getByText('my teammate')).toBeInTheDocument();
+            expect(screen.queryByLabelText('Set header')).not.toBeInTheDocument();
         });
     });
 

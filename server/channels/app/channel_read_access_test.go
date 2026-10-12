@@ -56,7 +56,12 @@ func (h *channelReadAccessHarness) mockACS(t *testing.T) *eMocks.AccessControlSe
 	mockACS := &eMocks.AccessControlServiceInterface{}
 	original := h.th.App.Srv().ch.AccessControl
 	h.th.App.Srv().ch.AccessControl = mockACS
-	t.Cleanup(func() { h.th.App.Srv().ch.AccessControl = original })
+	t.Cleanup(func() {
+		// Badge and clear pushes evaluate the recipient asynchronously, whether or not
+		// pushes are enabled; let them finish before the service goes away.
+		h.th.App.Srv().StopPushNotificationsHubWorkers()
+		h.th.App.Srv().ch.AccessControl = original
+	})
 	return mockACS
 }
 
@@ -271,16 +276,6 @@ func TestHasChannelReadAccessShortCircuits(t *testing.T) {
 			h.th.App.Srv().SetLicense(nil)
 			return h.th.BasicChannel
 		},
-		"direct message": func(t *testing.T, h *channelReadAccessHarness) *model.Channel {
-			channel := h.th.BasicChannel.DeepCopy()
-			channel.Type = model.ChannelTypeDirect
-			return channel
-		},
-		"group message": func(t *testing.T, h *channelReadAccessHarness) *model.Channel {
-			channel := h.th.BasicChannel.DeepCopy()
-			channel.Type = model.ChannelTypeGroup
-			return channel
-		},
 		"nil channel": func(t *testing.T, h *channelReadAccessHarness) *model.Channel {
 			return nil
 		},
@@ -358,6 +353,8 @@ func TestBuildPushNotificationMessageChannelReadAccess(t *testing.T) {
 		h := setupChannelReadAccessTest(t)
 		mockACS := h.mockACS(t)
 		governed(mockACS)
+		// The badge asks whether the recipient's conversations are hidden.
+		dmGmReadUngoverned(mockACS)
 		decides(mockACS, false)
 
 		msg := build(t, h)
@@ -369,6 +366,8 @@ func TestBuildPushNotificationMessageChannelReadAccess(t *testing.T) {
 		h := setupChannelReadAccessTest(t)
 		mockACS := h.mockACS(t)
 		governed(mockACS)
+		// The badge asks whether the recipient's conversations are hidden.
+		dmGmReadUngoverned(mockACS)
 		decides(mockACS, true)
 
 		msg := build(t, h)
@@ -511,6 +510,7 @@ func TestGetFlaggedPostsFillsPagesPastDeniedChannels(t *testing.T) {
 			deniedPostID := all.Order[deniedIndex]
 			mockACS := h.mockACS(t)
 			governed(mockACS)
+			dmGmReadUngoverned(mockACS)
 			deniesChannel(mockACS, all.Posts[deniedPostID].ChannelId)
 
 			seen := map[string]bool{}
@@ -556,6 +556,7 @@ func TestGetFlaggedPostsGivesUpAfterMaxFillRounds(t *testing.T) {
 
 	mockACS := h.mockACS(t)
 	governed(mockACS)
+	dmGmReadUngoverned(mockACS)
 	decides(mockACS, false)
 
 	got, appErr := h.th.App.GetFlaggedPosts(h.rctx, h.th.BasicUser.Id, 0, 2)
@@ -576,6 +577,7 @@ func TestSearchPostsForUserDropsDeniedChannels(t *testing.T) {
 
 	mockACS := h.mockACS(t)
 	governed(mockACS)
+	dmGmReadUngoverned(mockACS)
 	deniesChannel(mockACS, deniedChannel.Id)
 
 	results, _, appErr := h.th.App.SearchPostsForUser(h.rctx, term, h.th.BasicUser.Id, h.th.BasicTeam.Id, false, false, 0, 0, 20)
@@ -600,6 +602,7 @@ func TestSearchPostsForUserDoesNotTruncateAnOverlongStorePage(t *testing.T) {
 
 	mockACS := h.mockACS(t)
 	governed(mockACS)
+	dmGmReadUngoverned(mockACS)
 	decides(mockACS, true)
 
 	results, _, appErr := h.th.App.SearchPostsForUser(h.rctx, term, h.th.BasicUser.Id, h.th.BasicTeam.Id, false, false, 0, 0, perPage)
@@ -1125,9 +1128,29 @@ func TestChannelReadAccessHookOnlyWhereAccessCanBeDenied(t *testing.T) {
 		require.True(t, hooked(t, h, model.NewId()))
 	})
 
-	t.Run("not for a direct message channel", func(t *testing.T) {
+	t.Run("a direct message channel gets the conversation hook instead", func(t *testing.T) {
 		h := setupChannelReadAccessTest(t)
-		governed(h.mockACS(t))
-		require.False(t, hooked(t, h, h.th.CreateDmChannel(t, h.th.BasicUser2).Id))
+		dm := h.th.CreateDmChannel(t, h.th.BasicUser2)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionDMGMReadAccess).
+			Return(true, nil)
+
+		message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", dm.Id, "", nil, "")
+		h.th.App.setupBroadcastHookForChannelReadAccess(dm.Id, message)
+		require.Equal(t, []string{broadcastDMGMReadAccess}, message.GetBroadcast().BroadcastHooks)
+	})
+
+	t.Run("not for a direct message channel while reading conversations is ungoverned", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		dm := h.th.CreateDmChannel(t, h.th.BasicUser2)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionDMGMReadAccess).
+			Return(false, nil)
+
+		message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", dm.Id, "", nil, "")
+		h.th.App.setupBroadcastHookForChannelReadAccess(dm.Id, message)
+		require.Empty(t, message.GetBroadcast().BroadcastHooks)
 	})
 }

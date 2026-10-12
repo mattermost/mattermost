@@ -3,12 +3,14 @@
 
 import React from 'react';
 import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
+import {canWriteDmGm} from 'mattermost-redux/selectors/entities/render_permissions';
 
 import Markdown from 'components/markdown';
 import ProfilePicture from 'components/profile_picture';
@@ -73,6 +75,7 @@ interface Props {
 
 const AboutAreaGM = ({channel, gmUsers, actions}: Props) => {
     const {formatMessage} = useIntl();
+    const canEditHeader = useSelector(canWriteDmGm);
 
     return (
         <>
@@ -118,7 +121,7 @@ const AboutAreaGM = ({channel, gmUsers, actions}: Props) => {
                             <Markdown message={channel.header}/>
                         </LineLimiter>
                     )}
-                    editable={true}
+                    editable={canEditHeader}
                     onEdit={actions.editChannelHeader}
                     editTooltip={formatMessage({id: 'channel_info_rhs.about_area.edit_channel_header', defaultMessage: 'Edit channel header'})}
                     emptyLabel={formatMessage({id: 'channel_info_rhs.about_area.add_channel_header', defaultMessage: 'Add a channel header'})}

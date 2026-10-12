@@ -184,6 +184,8 @@ type ChannelMemberCursor struct {
 	Page          int // If page is -1, then FromChannelID is used as a cursor.
 	PerPage       int
 	FromChannelID string
+	// ExcludeDirectAndGroup leaves direct and group message memberships out.
+	ExcludeDirectAndGroup bool
 }
 
 func (o *ChannelMember) IsValid() *AppError {

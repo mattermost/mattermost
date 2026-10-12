@@ -58,6 +58,9 @@ type Props = {
     usersLimit: number;
     channelMember?: ChannelMembership;
     isMobileView: boolean;
+
+    // Setting a DM or GM header is writing to it.
+    canEditConversationHeader: boolean;
     actions: {
         getTotalUsersStats: () => any;
         favoriteChannel: (channelId: string) => any;
@@ -104,6 +107,7 @@ export default class ChannelIntroMessage extends React.PureComponent<Props> {
             usersLimit,
             channelMember,
             isMobileView,
+            canEditConversationHeader,
         } = this.props;
 
         let centeredIntro = '';
@@ -116,9 +120,9 @@ export default class ChannelIntroMessage extends React.PureComponent<Props> {
         }
 
         if (channel.type === Constants.DM_CHANNEL) {
-            return createDMIntroMessage(channel, centeredIntro, currentUser, isFavorite, isMobileView, this.toggleFavorite, teammate, teammateName);
+            return createDMIntroMessage(channel, centeredIntro, currentUser, isFavorite, isMobileView, this.toggleFavorite, canEditConversationHeader, teammate, teammateName);
         } else if (channel.type === Constants.GM_CHANNEL) {
-            return createGMIntroMessage(channel, centeredIntro, isFavorite, isMobileView, this.toggleFavorite, channelProfiles, currentUserId, currentUser, channelMember);
+            return createGMIntroMessage(channel, centeredIntro, isFavorite, isMobileView, this.toggleFavorite, canEditConversationHeader, channelProfiles, currentUserId, currentUser, channelMember);
         } else if (channel.name === Constants.DEFAULT_CHANNEL) {
             return createDefaultIntroMessage(channel, centeredIntro, currentUser, isFavorite, isMobileView, this.toggleFavorite, stats, usersLimit, enableUserCreation, isReadOnly, teamIsGroupConstrained, isInManagedCategory);
         } else if (channel.name === Constants.OFFTOPIC_CHANNEL) {
@@ -176,6 +180,7 @@ function createGMIntroMessage(
     isFavorite: boolean,
     isMobileView: boolean,
     toggleFavorite: () => void,
+    canEditHeader: boolean,
     profiles: UserProfileType[],
     currentUserId: string,
     currentUser: UserProfileType,
@@ -201,7 +206,7 @@ function createGMIntroMessage(
         const actionButtons = (
             <div className='channel-intro__actions'>
                 {createFavoriteButton(isFavorite, toggleFavorite)}
-                {createSetHeaderButton(channel)}
+                {canEditHeader && createSetHeaderButton(channel)}
                 {!isMobileView && createNotificationPreferencesButton(channel, currentUser)}
                 <PluggableIntroButtons channel={channel}/>
             </div>
@@ -252,6 +257,7 @@ function createDMIntroMessage(
     isFavorite: boolean,
     isMobileView: boolean,
     toggleFavorite: () => void,
+    canEditHeader: boolean,
     teammate?: UserProfileType,
     teammateName?: string,
 ) {
@@ -263,7 +269,9 @@ function createDMIntroMessage(
         let setHeaderButton = null;
         if (!teammate?.is_bot) {
             pluggableButton = <PluggableIntroButtons channel={channel}/>;
-            setHeaderButton = createSetHeaderButton(channel);
+            if (canEditHeader) {
+                setHeaderButton = createSetHeaderButton(channel);
+            }
         }
 
         const actionButtons = (

@@ -2408,6 +2408,10 @@ var accessControlDecisionActions = []string{
 	model.AccessControlPolicyActionChannelReadAccess,
 	model.AccessControlPolicyActionChannelWriteAccess,
 	model.AccessControlPolicyActionChannelManagementAccess,
+	model.AccessControlPolicyActionCreateBurnOnReadPost,
+	model.AccessControlPolicyActionDMGMStart,
+	model.AccessControlPolicyActionDMGMReadAccess,
+	model.AccessControlPolicyActionDMGMWriteAccess,
 	einterfaces.AccessControlDecisionActionPlugin,
 	accessControlDecisionActionOther,
 }

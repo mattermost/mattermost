@@ -8,7 +8,9 @@ import type {ChannelType} from '@mattermost/types/channels';
 import type {PostType} from '@mattermost/types/posts';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
+import {Permissions} from 'mattermost-redux/constants';
 import {PostTypes} from 'mattermost-redux/constants/posts';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {useCreateBurnOnReadAccess} from 'components/common/hooks/useCreateBurnOnReadAccess';
 
@@ -42,7 +44,7 @@ jest.mock('mattermost-redux/actions/scheduled_posts', () => ({
     updateScheduledPost: () => jest.fn(),
 }));
 jest.mock('mattermost-redux/selectors/entities/roles', () => ({
-    haveIChannelPermission: () => true,
+    haveIChannelPermission: jest.fn(() => true),
 }));
 jest.mock('mattermost-redux/selectors/entities/channels', () => ({
     ...jest.requireActual('mattermost-redux/selectors/entities/channels'),
@@ -164,6 +166,56 @@ describe('components/drafts/drafts_row', () => {
             renderWithContext(<DraftRow {...baseProps}/>, initialState);
 
             expect(lastCanSend()).toBe(true);
+        });
+    });
+
+    describe('drafts in a conversation while dm_gm_write_access denies', () => {
+        const dmId = 'dm_id';
+        const dmDraftProps = {
+            ...baseProps,
+            item: {...baseProps.item, channelId: dmId} as PostDraft,
+        };
+        const lastActionProps = () => jest.mocked(DraftActions).mock.calls.at(-1)?.[0];
+
+        // The real permission check, so the draft row sees the DM/GM write fold.
+        beforeEach(() => {
+            jest.mocked(DraftActions).mockClear();
+            jest.mocked(haveIChannelPermission).mockImplementation(jest.requireActual('mattermost-redux/selectors/entities/roles').haveIChannelPermission);
+        });
+
+        afterEach(() => {
+            jest.mocked(haveIChannelPermission).mockImplementation(() => true);
+        });
+
+        const makeState = (allowed: boolean) => ({
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                channels: {
+                    channels: {...initialState.entities.channels.channels, [dmId]: {...channel, id: dmId, team_id: '', type: 'D' as ChannelType, name: 'user_id__other_id'}},
+                    roles: {[dmId]: new Set(['channel_user'])},
+                    myMembers: {},
+                },
+                users: {currentUserId: 'user_id', profiles: {user_id: {id: 'user_id', roles: ''}}},
+                roles: {roles: {channel_user: {permissions: [Permissions.CREATE_POST]}}},
+                groups: {groups: {}, myGroups: []},
+                general: {...initialState.entities.general, config: {...initialState.entities.general.config, FeatureFlagPermissionPolicies: 'true'}},
+                renderPermissions: {byResource: {permission: {'': {dm_gm_write_access: {allowed, evaluated: true, generation: 1}}}}},
+            },
+        });
+
+        it('keeps the draft but withholds sending and editing it', () => {
+            renderWithContext(<DraftRow {...dmDraftProps}/>, makeState(false));
+
+            expect(lastActionProps()?.canSend).toBe(false);
+            expect(lastActionProps()?.canEdit).toBe(false);
+        });
+
+        it('leaves the draft sendable once dm_gm_write_access allows', () => {
+            renderWithContext(<DraftRow {...dmDraftProps}/>, makeState(true));
+
+            expect(lastActionProps()?.canSend).toBe(true);
+            expect(lastActionProps()?.canEdit).toBe(true);
         });
     });
 });

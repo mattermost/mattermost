@@ -9,7 +9,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {General} from 'mattermost-redux/constants';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
-import {renderWithContext, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import GroupMemberList from './group_member_list';
@@ -129,5 +129,59 @@ describe('component/user_group_popover/group_member_list', () => {
         }
         expect(baseProps.showUserOverlay).toHaveBeenCalledTimes(0);
         expect(baseProps.hide).toHaveBeenCalledTimes(0);
+    });
+
+    describe('the send message buttons under DM/GM permission policies', () => {
+        const withDecisions = (decisions: Record<string, boolean>) => ({
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+                users: {...initialState.entities.users, currentUserId: 'current_user_id'},
+                renderPermissions: {
+                    byResource: {permission: {'': Object.fromEntries(Object.entries(decisions).map(([action, allowed]) => [action, {allowed, evaluated: true, generation: 1}]))}},
+                },
+            },
+        });
+
+        const sendMessageButtons = () => screen.queryAllByRole('button', {name: /^Send message to/});
+
+        test('should not render while Read is denied', () => {
+            renderWithContext(<GroupMemberList {...baseProps}/>, withDecisions({dm_gm_read_access: false}) as any);
+
+            expect(sendMessageButtons()).toHaveLength(0);
+        });
+
+        test('should do nothing for members without a DM while Start is denied', async () => {
+            const openDirectChannelToUserId = jest.fn(() => Promise.resolve({}));
+            renderWithContext(
+                <GroupMemberList
+                    {...baseProps}
+                    actions={{...baseProps.actions, openDirectChannelToUserId}}
+                />,
+                withDecisions({dm_gm_start: false}) as any,
+            );
+
+            const buttons = sendMessageButtons();
+            expect(buttons.length).toBeGreaterThan(0);
+            expect(buttons[0]).toHaveAttribute('aria-disabled', 'true');
+
+            await userEvent.click(buttons[0]);
+            expect(openDirectChannelToUserId).not.toHaveBeenCalled();
+        });
+
+        test('should open the DM while both are allowed', async () => {
+            const openDirectChannelToUserId = jest.fn(() => Promise.resolve({}));
+            renderWithContext(
+                <GroupMemberList
+                    {...baseProps}
+                    actions={{...baseProps.actions, openDirectChannelToUserId}}
+                />,
+                withDecisions({}) as any,
+            );
+
+            await userEvent.click(sendMessageButtons()[0]);
+            expect(openDirectChannelToUserId).toHaveBeenCalledWith(members[0].user.id);
+        });
     });
 });

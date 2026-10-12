@@ -80,6 +80,7 @@ describe('CallButton', () => {
                 enabled: false,
             },
             entities: {
+                general: {config: {}},
                 channels: {
                     channels: {
                         currentChannelId: dmChannelId,
@@ -131,6 +132,7 @@ describe('CallButton', () => {
                 },
             },
             entities: {
+                general: {config: {}},
                 channels: {
                     currentChannelId: dmChannelId,
                     channels: {
@@ -198,6 +200,7 @@ describe('CallButton', () => {
                 sessions: {},
             },
             entities: {
+                general: {config: {}},
                 channels: {
                     currentChannelId: dmChannelId,
                     channels: {
@@ -267,6 +270,7 @@ describe('CallButton', () => {
                 sessions: {},
             },
             entities: {
+                general: {config: {}},
                 channels: {
                     currentChannelId: dmChannelId,
                     channels: {
@@ -336,6 +340,7 @@ describe('CallButton', () => {
                 sessions: {},
             },
             entities: {
+                general: {config: {}},
                 channels: {
                     currentChannelId: dmChannelId,
                     channels: {
@@ -395,6 +400,7 @@ describe('CallButton', () => {
                 },
             },
             entities: {
+                general: {config: {}},
                 channels: {
                     currentChannelId: dmChannelId,
                     channels: {
@@ -438,5 +444,68 @@ describe('CallButton', () => {
         const button = screen.getByLabelText('Call with Test User is ongoing');
         expect(button).toBeInTheDocument();
         expect(button).toBeDisabled();
+    });
+
+    describe('DM/GM permission policies', () => {
+        function makeStore(decisions: Record<string, boolean>, hasDM: boolean) {
+            const entries = Object.fromEntries(Object.entries(decisions).map(([action, allowed]) => [action, {allowed, evaluated: true, generation: 1}]));
+            const dm = TestHelper.getChannelMock({id: dmChannelId, name: `${currentUserId}__${userId}`, delete_at: 0, type: 'D'});
+
+            return mockStore({
+                'plugins-com.mattermost.calls': {
+                    enabled: true,
+                    config: {DefaultEnabled: true},
+                    channels: {},
+                    sessions: {},
+                },
+                entities: {
+                    general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+                    channels: {
+                        channels: hasDM ? {[dmChannelId]: dm} : {},
+                        myMembers: hasDM ? {[dmChannelId]: TestHelper.getChannelMembershipMock({channel_id: dmChannelId})} : {},
+                    },
+                    users: {
+                        currentUserId,
+                        profiles: {[currentUserId]: TestHelper.getUserMock({id: currentUserId, roles: 'system_admin'})},
+                    },
+                    renderPermissions: {byResource: {permission: {'': entries}}},
+                },
+                plugins: {
+                    plugins: {'com.mattermost.calls': {id: 'com.mattermost.calls', version: '1.0.0'}},
+                    components: {CallButton: [{id: 'CallButton', plugin_id: 'com.mattermost.calls', button: PluginComponent}]},
+                },
+                views: {rhs: {isSidebarOpen: false}},
+            });
+        }
+
+        test('should not render while Read is denied', () => {
+            render(
+                <Provider store={makeStore({dm_gm_read_access: false}, true)}>
+                    <CallButton {...baseProps}/>
+                </Provider>,
+            );
+
+            expect(screen.queryByRole('button')).not.toBeInTheDocument();
+        });
+
+        test('should render a disabled button for someone without a DM while Start is denied', () => {
+            render(
+                <Provider store={makeStore({dm_gm_start: false}, false)}>
+                    <CallButton {...baseProps}/>
+                </Provider>,
+            );
+
+            expect(screen.getByRole('button', {name: 'You can\'t start new direct messages'})).toHaveAttribute('aria-disabled', 'true');
+        });
+
+        test('should still offer a call into an existing DM while Start is denied', () => {
+            render(
+                <Provider store={makeStore({dm_gm_start: false}, true)}>
+                    <CallButton {...baseProps}/>
+                </Provider>,
+            );
+
+            expect(screen.getByLabelText('Start Call')).toBeInTheDocument();
+        });
     });
 });

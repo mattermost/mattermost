@@ -586,17 +586,17 @@ func (_m *ThreadStore) MarkAllAsReadByChannels(userID string, channelIDs []strin
 	return r0
 }
 
-// MarkAllAsReadByTeam provides a mock function with given fields: userID, teamID
-func (_m *ThreadStore) MarkAllAsReadByTeam(userID string, teamID string) error {
-	ret := _m.Called(userID, teamID)
+// MarkAllAsReadByTeam provides a mock function with given fields: userID, teamID, excludeDirect
+func (_m *ThreadStore) MarkAllAsReadByTeam(userID string, teamID string, excludeDirect bool) error {
+	ret := _m.Called(userID, teamID, excludeDirect)
 
 	if len(ret) == 0 {
 		panic("no return value specified for MarkAllAsReadByTeam")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(userID, teamID)
+	if rf, ok := ret.Get(0).(func(string, string, bool) error); ok {
+		r0 = rf(userID, teamID, excludeDirect)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -39,6 +39,9 @@ const ACTION_LABELS: Record<string, string> = {
     channel_write_access: 'Channel Write Access',
     channel_management_access: 'Manage Channel',
     create_burn_on_read_post: 'Create Burn on Read Message',
+    dm_gm_start: 'Start Direct and Group Messages',
+    dm_gm_read_access: 'Read Direct and Group Messages',
+    dm_gm_write_access: 'Write Direct and Group Messages',
 };
 
 function getActionsLabel(policy: AccessControlPolicy): string {

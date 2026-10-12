@@ -851,6 +851,7 @@ func (a *App) SendEphemeralPost(rctx request.CTX, userID string, post *model.Pos
 		rctx.Logger().Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
 	}
 	message.Add("post", postJSON)
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(post.ChannelId, message)
 	a.Publish(message)
 
 	return post, isMemberForPreviews
@@ -885,6 +886,7 @@ func (a *App) UpdateEphemeralPost(rctx request.CTX, userID string, post *model.P
 		rctx.Logger().Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
 	}
 	message.Add("post", postJSON)
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(post.ChannelId, message)
 	a.Publish(message)
 
 	return post, isMemberForPreviews
@@ -1264,6 +1266,10 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 
 	message.Add("post", postJSON)
 
+	// Ahead of the permalink, mention and file hooks, so a recipient who may not read the
+	// channel is dropped before they run.
+	a.setupBroadcastHookForChannelReadAccess(post.ChannelId, message)
+
 	// Setup broadcast hooks with extracted metadata
 	appErr := a.setupBroadcastHookForPermalink(rctx, post, message, permalinkPreviewedPost, previewProp)
 	if appErr != nil {
@@ -1283,7 +1289,6 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 	}
 
 	a.setupBroadcastHookForAbacFiles(post, message)
-	a.setupBroadcastHookForChannelReadAccess(post.ChannelId, message)
 
 	a.Publish(message)
 	return nil
@@ -1364,6 +1369,10 @@ func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post,
 			return nil
 		}
 		return appErr
+	}
+
+	if a.conversationPreviewWithheld(rctx, permalinkPreviewedChannel) {
+		return nil
 	}
 
 	// Add metadata back to post for HTTP response if post author has permission
@@ -1850,8 +1859,9 @@ func (a *App) fillFlaggedPostPage(rctx request.CTX, userID string, offset, limit
 }
 
 func (a *App) GetFlaggedPosts(rctx request.CTX, userID string, offset int, limit int) (*model.PostList, *model.AppError) {
+	hidden := a.DirectAndGroupHidden(rctx, userID)
 	postList, err := a.fillFlaggedPostPage(rctx, userID, offset, limit, func(off, lim int) (*model.PostList, error) {
-		return a.Srv().Store().Post().GetFlaggedPosts(userID, off, lim)
+		return a.Srv().Store().Post().GetFlaggedPosts(userID, off, lim, hidden)
 	})
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPosts", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1878,8 +1888,9 @@ func (a *App) GetFlaggedPosts(rctx request.CTX, userID string, offset int, limit
 }
 
 func (a *App) GetFlaggedPostsForTeam(rctx request.CTX, userID, teamID string, offset int, limit int) (*model.PostList, *model.AppError) {
+	hidden := a.DirectAndGroupHidden(rctx, userID)
 	postList, err := a.fillFlaggedPostPage(rctx, userID, offset, limit, func(off, lim int) (*model.PostList, error) {
-		return a.Srv().Store().Post().GetFlaggedPostsForTeam(userID, teamID, off, lim)
+		return a.Srv().Store().Post().GetFlaggedPostsForTeam(userID, teamID, off, lim, hidden)
 	})
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPostsForTeam", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1906,6 +1917,13 @@ func (a *App) GetFlaggedPostsForTeam(rctx request.CTX, userID, teamID string, of
 }
 
 func (a *App) GetFlaggedPostsForChannel(rctx request.CTX, userID, channelID string, offset int, limit int) (*model.PostList, *model.AppError) {
+	// Every post of a hidden conversation would be filtered out, so skip the paging.
+	if a.DirectAndGroupHidden(rctx, userID) {
+		if channel, appErr := a.GetChannel(rctx, channelID); appErr == nil && channel.IsGroupOrDirect() {
+			return model.NewPostList(), nil
+		}
+	}
+
 	postList, err := a.fillFlaggedPostPage(rctx, userID, offset, limit, func(off, lim int) (*model.PostList, error) {
 		return a.Srv().Store().Post().GetFlaggedPostsForChannel(userID, channelID, off, lim)
 	})
@@ -2396,7 +2414,18 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(rctx request.CTX, channel
 		if err != nil {
 			return nil, err
 		}
-		channel, err := a.GetOrCreateDirectChannel(rctx, userID, user.Id)
+		channel, err := a.getDirectChannel(rctx, userID, user.Id)
+		if err != nil {
+			return nil, err
+		}
+		if channel != nil {
+			return channel, nil
+		}
+		// Searching a conversation that doesn't exist yet would start it.
+		if !a.DMGMStartAllowedForSession(rctx, userID) {
+			return nil, model.NewAppError("parseAndFetchChannelIdByNameFromInFilter", "api.channel.dm_gm_start.abac_denied.app_error", nil, "", http.StatusForbidden)
+		}
+		channel, err = a.GetOrCreateDirectChannel(rctx, userID, user.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -2574,10 +2603,12 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 	}
 
 	finalParamsList := []*model.SearchParams{}
+	hidden := a.DirectAndGroupHidden(rctx, userID)
 
 	for _, params := range paramsList {
 		params.OrTerms = isOrSearch
 		params.IncludeDeletedChannels = includeDeletedChannels
+		params.ExcludeDirectAndGroupChannels = hidden
 		// Don't allow users to search for "*"
 		if params.Terms != "*" {
 			// TODO: we have to send channel ids
@@ -3148,6 +3179,10 @@ func (a *App) GetPostIfAuthorized(rctx request.CTX, postID string, session *mode
 	}
 
 	if !a.HasChannelReadAccess(rctx, session.UserId, channel) {
+		if channel.IsGroupOrDirect() {
+			return nil, model.NewAppError("GetPostIfAuthorized", "api.channel.dm_gm_read_access.abac_denied.app_error", nil,
+				"userId="+session.UserId+", channelId="+channel.Id, http.StatusForbidden), false
+		}
 		return nil, model.NewAppError("GetPostIfAuthorized", "api.channel.channel_read_access.abac_denied.app_error", nil,
 			"userId="+session.UserId+", channelId="+channel.Id, http.StatusForbidden), false
 	}
@@ -3327,6 +3362,7 @@ func (a *App) SetPostReminder(rctx request.CTX, postID, userID string, targetTim
 		rctx.Logger().Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
 	}
 	message.Add("post", postJSON)
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(ephemeralPost.ChannelId, message)
 	a.Publish(message)
 
 	return nil
@@ -4430,6 +4466,7 @@ func (a *App) publishPostRevealedEventToAuthor(rctx request.CTX, post *model.Pos
 		event.Add("recipients", []string{})
 	}
 
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(post.ChannelId, event)
 	a.Publish(event)
 
 	return nil
@@ -4454,6 +4491,7 @@ func (a *App) publishPostRevealedEventToUser(rctx request.CTX, post *model.Post,
 
 	event.Add("post", postJSON)
 
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(post.ChannelId, event)
 	a.Publish(event)
 
 	return nil
@@ -4471,6 +4509,7 @@ func (a *App) publishPostBurnedEvent(postID string, channelID string, userID str
 	)
 
 	event.Add("post_id", postID)
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(channelID, event)
 	a.Publish(event)
 
 	return nil
@@ -4490,6 +4529,7 @@ func (a *App) publishAllRecipientsRevealedEvent(rctx request.CTX, post *model.Po
 	event.Add("post_id", post.Id)
 	event.Add("sender_expire_at", senderExpireAt)
 
+	a.setupBroadcastHookForDirectAndGroupReadAccessByID(post.ChannelId, event)
 	a.Publish(event)
 
 	return nil

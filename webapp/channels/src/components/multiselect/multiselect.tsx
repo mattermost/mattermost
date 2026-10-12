@@ -69,6 +69,9 @@ export type Props<T extends Value> = {
     handleCancel?: () => void;
     customNoOptionsMessage?: React.ReactNode;
     required?: boolean;
+
+    // Shown under the input, in place of the required error, while set. Submitting is disabled meanwhile.
+    errorText?: ReactNode;
 };
 
 export type State = {
@@ -327,6 +330,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
     public render() {
         const options = Object.assign([...this.props.options]);
         const {totalCount, users, values} = this.props;
+        const hasError = this.state.hasError || Boolean(this.props.errorText);
 
         let numRemainingText;
         if (this.props.numRemainingText) {
@@ -495,7 +499,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                     <div className='filter-row'>
                         <div
                             className={classNames('multi-select__container react-select', {
-                                'has-error': this.state.hasError,
+                                'has-error': hasError,
                             })}
                         >
                             <ReactSelect
@@ -525,21 +529,31 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                                 aria-label={formatAsString(this.props.intl.formatMessage, this.props.placeholderText)}
                                 className={this.state.a11yActive ? 'multi-select__focused' : ''}
                                 classNamePrefix='react-select-auto react-select'
-                                aria-invalid={this.state.hasError}
-                                aria-describedby={this.state.hasError ? 'multiSelectMessageError' : undefined}
+                                aria-invalid={hasError}
+                                aria-describedby={hasError ? 'multiSelectMessageError' : undefined}
                                 onBlur={this.validateInput}
                             />
                             {this.props.saveButtonPosition === 'top' &&
                                 <SaveButton
                                     id='saveItems'
                                     saving={this.props.saving}
-                                    disabled={this.props.saving}
+                                    disabled={this.props.saving || Boolean(this.props.errorText)}
                                     onClick={this.handleOnClick}
                                     defaultMessage={buttonSubmitText}
                                     savingMessage={formatAsComponent(this.props.buttonSubmitLoadingText)}
                                 />
                             }
                         </div>
+                        {this.props.errorText && (
+                            <div
+                                className='multi-select__error multi-select__error--input'
+                                role='alert'
+                                id='multiSelectMessageError'
+                            >
+                                <i className='icon icon-alert-circle-outline'/>
+                                <span>{this.props.errorText}</span>
+                            </div>
+                        )}
                         <div
                             id='multiSelectHelpMemberInfo'
                             className='multi-select__help'
@@ -555,7 +569,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                     >
                         {noteTextContainer}
                     </div>
-                    {this.state.hasError && (
+                    {this.state.hasError && !this.props.errorText && (
                         <div
                             className='multi-select__error'
                             role='alert'
@@ -593,7 +607,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                         <SaveButton
                             id='saveItems'
                             saving={this.props.saving}
-                            disabled={this.props.saving || !this.props.savingEnabled}
+                            disabled={this.props.saving || !this.props.savingEnabled || Boolean(this.props.errorText)}
                             onClick={this.handleOnClick}
                             defaultMessage={buttonSubmitText}
                             savingMessage={formatAsComponent(this.props.buttonSubmitLoadingText)}

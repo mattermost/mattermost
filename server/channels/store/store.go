@@ -303,8 +303,8 @@ type ChannelStore interface {
 	AnalyticsCountAll(teamID string) (map[model.ChannelType]int64, error)
 	GetMembersForUser(teamID string, userID string) (model.ChannelMembers, error)
 	GetTeamMembersForChannel(rctx request.CTX, channelID string) ([]string, error)
-	GetMembersForUserWithPagination(userID string, page, perPage int) (model.ChannelMembersWithTeamData, error)
-	GetMembersForUserWithCursorPagination(userId string, perPage int, fromChanneID string) (model.ChannelMembersWithTeamData, error)
+	GetMembersForUserWithPagination(userID string, page, perPage int, excludeDirectAndGroup bool) (model.ChannelMembersWithTeamData, error)
+	GetMembersForUserWithCursorPagination(userId string, perPage int, fromChanneID string, excludeDirectAndGroup bool) (model.ChannelMembersWithTeamData, error)
 	Autocomplete(rctx request.CTX, userID, term string, includeDeleted, isGuest bool) (model.ChannelListWithTeamData, error)
 	AutocompleteInTeam(rctx request.CTX, teamID, userID, term string, includeDeleted, isGuest bool) (model.ChannelList, error)
 	AutocompleteInTeamFiltered(rctx request.CTX, teamID, userID, term string, includeDeleted, isGuest, privateOnly, excludeGroupConstrained bool) (model.ChannelList, error)
@@ -388,7 +388,7 @@ type ThreadStore interface {
 	GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool) (map[string]*model.TeamUnread, error)
 
 	MarkAllAsRead(userID string, threadIds []string) error
-	MarkAllAsReadByTeam(userID, teamID string) error
+	MarkAllAsReadByTeam(userID, teamID string, excludeDirect bool) error
 	MarkAllAsReadByChannels(userID string, channelIDs []string) error
 	MarkAsRead(userID, threadID string, timestamp int64) error
 
@@ -419,8 +419,8 @@ type PostStore interface {
 	PermanentDeleteByUser(rctx request.CTX, userID string) error
 	PermanentDeleteByChannel(rctx request.CTX, channelID string) error
 	GetPosts(rctx request.CTX, options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error)
-	GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, error)
-	GetFlaggedPostsForTeam(userID, teamID string, offset int, limit int) (*model.PostList, error)
+	GetFlaggedPosts(userID string, offset int, limit int, excludeDirectAndGroup bool) (*model.PostList, error)
+	GetFlaggedPostsForTeam(userID, teamID string, offset int, limit int, excludeDirectAndGroup bool) (*model.PostList, error)
 	GetFlaggedPostsForChannel(userID, channelID string, offset int, limit int) (*model.PostList, error)
 	GetPostsBefore(rctx request.CTX, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetPostsAfter(rctx request.CTX, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error)
@@ -522,7 +522,7 @@ type UserStore interface {
 	PermanentDelete(rctx request.CTX, userID string) error
 	AnalyticsActiveCount(timestamp int64, options model.UserCountOptions) (int64, error)
 	AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int32, error)
-	GetUnreadCount(userID string, isCRTEnabled bool) (int64, error)
+	GetUnreadCount(userID string, isCRTEnabled, excludeDirectAndGroup bool) (int64, error)
 	GetUnreadCountForChannel(userID string, channelID string) (int64, error)
 	GetAnyUnreadPostCountForChannel(userID string, channelID string) (int64, error)
 	GetRecentlyActiveUsersForTeam(teamID string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
@@ -1144,7 +1144,7 @@ type DraftStore interface {
 	Get(userID, channelID, rootID string, includeDeleted bool) (*model.Draft, error)
 	Delete(userID, channelID, rootID string) error
 	DeleteDraftsAssociatedWithPost(channelID, rootID string) error
-	GetDraftsForUser(userID, teamID string) ([]*model.Draft, error)
+	GetDraftsForUser(userID, teamID string, excludeDirectAndGroup bool) ([]*model.Draft, error)
 	GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt int64, userID string) (int64, string, error)
 	DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userID string) error
 	DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userID string) error

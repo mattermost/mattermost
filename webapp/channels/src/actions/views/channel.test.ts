@@ -11,10 +11,12 @@ import * as PostActions from 'mattermost-redux/actions/posts';
 import * as UserActions from 'mattermost-redux/actions/users';
 import {General, Posts, RequestStatus} from 'mattermost-redux/constants';
 
+import {openDirectChannelToUserId, START_DENIED_ERROR} from 'actions/channel_actions';
 import * as Actions from 'actions/views/channel';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {markThreadAsRead} from 'actions/views/threads';
 
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import mockStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, PostRequestTypes} from 'utils/constants';
@@ -53,6 +55,11 @@ jest.mock('actions/views/threads', () => ({
 }));
 
 jest.mock('mattermost-redux/actions/posts');
+
+jest.mock('actions/channel_actions', () => ({
+    ...jest.requireActual('actions/channel_actions'),
+    openDirectChannelToUserId: jest.fn(() => ({type: '', data: {}})),
+}));
 
 jest.mock('selectors/local_storage', () => ({
     getLastViewedChannelName: () => 'channel1',
@@ -146,6 +153,70 @@ describe('channel view actions', () => {
         test('switch to gm channel', async () => {
             await store.dispatch(Actions.switchToChannel(gmChannel));
             expect(getHistory().push).toHaveBeenCalledWith(`/${team1.name}/channels/${gmChannel.name}`);
+        });
+
+        describe('for a person', () => {
+            const dm = {id: 'dmchannelid', name: 'userid1__userid2', type: General.DM_CHANNEL, team_id: ''} as Channel;
+            const person = {id: 'userid2', name: 'username2', userId: 'userid2', type: General.DM_CHANNEL} as Channel & {userId: string};
+            const bot = {id: 'botid', name: 'botname', userId: 'botid', type: General.DM_CHANNEL} as Channel & {userId: string};
+
+            const decision = (allowed: boolean) => ({allowed, evaluated: true, generation: 1});
+            const makeStore = ({flag = true, startAllowed = true, readAllowed = true, hasDm = false} = {}) => mockStore(mergeObjects(initialState, {
+                entities: {
+                    users: {profiles: {botid: {id: 'botid', username: 'botname', is_bot: true, roles: 'system_user'}}},
+                    channels: {
+                        channels: hasDm ? {[dm.id]: dm} : {},
+                        channelsInTeam: {'': new Set(hasDm ? [dm.id] : [])},
+                    },
+                    general: {config: {FeatureFlagPermissionPolicies: String(flag)}},
+                    renderPermissions: {byResource: {permission: {'': {
+                        dm_gm_start: decision(startAllowed),
+                        dm_gm_read_access: decision(readAllowed),
+                    }}}},
+                },
+            }));
+
+            beforeEach(() => {
+                jest.mocked(openDirectChannelToUserId).mockClear();
+                jest.mocked(getHistory().push).mockClear();
+            });
+
+            test.each([
+                ['person', person],
+                ['bot', bot],
+            ])('should refuse a %s without a DM while starting is denied', async (_, row) => {
+                const result = await makeStore({startAllowed: false}).dispatch(Actions.switchToChannel(row));
+
+                expect(result).toEqual({error: START_DENIED_ERROR});
+                expect(openDirectChannelToUserId).not.toHaveBeenCalled();
+                expect(getHistory().push).not.toHaveBeenCalled();
+            });
+
+            test('should open an existing DM the user can read while starting is denied', async () => {
+                const result = await makeStore({startAllowed: false, hasDm: true}).dispatch(Actions.switchToChannel(person));
+
+                expect(result).toEqual({data: true});
+                expect(openDirectChannelToUserId).toHaveBeenCalledWith('userid2');
+                expect(getHistory().push).toHaveBeenCalledWith(`/${team1.name}/messages/@username2`);
+            });
+
+            test('should refuse an existing DM while Read is denied', async () => {
+                const result = await makeStore({readAllowed: false, hasDm: true}).dispatch(Actions.switchToChannel(person));
+
+                expect(result).toEqual({error: START_DENIED_ERROR});
+                expect(openDirectChannelToUserId).not.toHaveBeenCalled();
+            });
+
+            test.each([
+                ['the flag is off', {flag: false, startAllowed: false}],
+                ['starting is allowed', {}],
+            ])('should open the DM as before when %s', async (_, options) => {
+                const result = await makeStore(options).dispatch(Actions.switchToChannel(person));
+
+                expect(result).toEqual({data: true});
+                expect(openDirectChannelToUserId).toHaveBeenCalledWith('userid2');
+                expect(getHistory().push).toHaveBeenCalledWith(`/${team1.name}/messages/@username2`);
+            });
         });
     });
 

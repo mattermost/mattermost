@@ -471,6 +471,45 @@ describe('components/dot_menu/DotMenu', () => {
         expect(flagPostOption).toBeVisible();
     });
 
+    describe('while dm_gm_write_access denies', () => {
+        const writeDeniedState = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {config: {...initialState.entities?.general?.config, FeatureFlagPermissionPolicies: 'true'}},
+                renderPermissions: {byResource: {permission: {'': {dm_gm_write_access: {allowed: false, evaluated: true, generation: 1}}}}},
+            },
+        };
+
+        test('should not offer Forward on a DM post', async () => {
+            renderWithContext(
+                <DotMenuRoot
+                    {...baseProps}
+                    post={dmPost}
+                />,
+                writeDeniedState,
+            );
+
+            await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${dmPost.id}`));
+
+            expect(screen.queryByTestId(`forward_post_${dmPost.id}`)).not.toBeInTheDocument();
+        });
+
+        test('should still offer Forward on a channel post', async () => {
+            renderWithContext(
+                <DotMenuRoot
+                    {...baseProps}
+                    post={post1}
+                />,
+                writeDeniedState,
+            );
+
+            await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${post1.id}`));
+
+            expect(screen.getByTestId(`forward_post_${post1.id}`)).toBeVisible();
+        });
+    });
+
     test('should not show flag post menu option for DM channel even when enabled', async () => {
         const props = {
             ...baseProps,

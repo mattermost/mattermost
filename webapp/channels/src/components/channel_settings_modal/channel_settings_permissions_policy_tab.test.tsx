@@ -8,6 +8,7 @@ import {
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
     ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
     ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
+    ACCESS_CONTROL_DM_GM_ACTIONS,
     ACCESS_CONTROL_CHANNEL_ROLE_ADMIN,
     ACCESS_CONTROL_CHANNEL_ROLE_USER,
 } from '@mattermost/types/access_control';
@@ -304,6 +305,19 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
         // were pre-selected again, it would drop out of the dropdown here.
         expect(await screen.findByText('Allow users to attach files to messages in this channel')).toBeInTheDocument();
         expect(screen.getByText('Allow users to download attached files from this channel')).toBeInTheDocument();
+    });
+
+    // DM/GM actions are evaluated against the system only, so a channel policy can't carry them.
+    test('offers no direct and group message permissions', async () => {
+        await openNewRuleEditor();
+
+        await userEvent.click(await screen.findByTestId('permissions-policy-editor-add-permission'));
+        await screen.findByText('Allow users to attach files to messages in this channel');
+
+        for (const action of ACCESS_CONTROL_DM_GM_ACTIONS) {
+            expect(screen.queryByTestId(`cpp-add-permission-${action}`)).not.toBeInTheDocument();
+        }
+        expect(screen.queryByText(/Direct and Group Messages/)).not.toBeInTheDocument();
     });
 
     test('a new rule with no permissions selected fails validation on save', async () => {

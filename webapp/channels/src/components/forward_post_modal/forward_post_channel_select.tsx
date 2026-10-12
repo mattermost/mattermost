@@ -3,7 +3,7 @@
 
 import React, {useEffect, useRef} from 'react';
 import {useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useSelector, useStore} from 'react-redux';
 import {components} from 'react-select';
 import type {OptionProps, SingleValueProps, OnChangeValue, DropdownIndicatorProps, OptionsOrGroups, GroupBase} from 'react-select';
 import AsyncSelect from 'react-select/async';
@@ -16,7 +16,7 @@ import {
 } from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
-import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
+import {canOpenDmOrGmWithUsers, getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 import {getMyTeams, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
@@ -241,7 +241,18 @@ function ForwardPostChannelSelect({onSelect, value, currentBodyHeight, validChan
 
     const baseStyles = getBaseStyles(currentBodyHeight);
 
+    const store = useStore<GlobalState>();
     const isValidChannelType = (channel: Channel) => validChannelTypes.includes(channel.type) && !channel.delete_at;
+
+    // Unlike the switcher, this leaves out people the user can't start a DM with, since
+    // forwarding to one would need a DM that can't be created.
+    const isValidItem = (item: any) => (
+        item?.channel &&
+        isValidChannelType(item.channel) &&
+        !item.deactivated &&
+        !item.discoverableNonMember &&
+        !(item.channel.userId && !canOpenDmOrGmWithUsers(store.getState(), [item.channel.userId]))
+    );
 
     const getDefaultResults = () => {
         let options: OptionsOrGroups<ChannelOption, GroupBase<ChannelOption>> = [];
@@ -250,7 +261,7 @@ function ForwardPostChannelSelect({onSelect, value, currentBodyHeight, validChan
             options = [
                 {
                     label: formatMessage({id: 'suggestion.mention.recent.channels', defaultMessage: 'Recent'}),
-                    options: flattenItems(res).filter((item) => item?.channel && isValidChannelType(item.channel) && !item.deactivated && !item.discoverableNonMember).map((item) => {
+                    options: flattenItems(res).filter(isValidItem).map((item) => {
                         const {channel} = item;
                         return makeSelectedChannelOption(channel);
                     }),
@@ -277,7 +288,7 @@ function ForwardPostChannelSelect({onSelect, value, currentBodyHeight, validChan
              */
             const handleResults = async (res: ProviderResults<any>) => {
                 callCount++;
-                await flattenItems(res).filter((item) => item?.channel && isValidChannelType(item.channel) && !item.deactivated && !item.discoverableNonMember).forEach((item) => {
+                await flattenItems(res).filter(isValidItem).forEach((item) => {
                     const {channel} = item;
 
                     if (options.findIndex((option) => option.value === channel.id) === -1) {

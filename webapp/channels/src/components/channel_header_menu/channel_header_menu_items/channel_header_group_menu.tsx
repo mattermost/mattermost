@@ -14,6 +14,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Permissions} from 'mattermost-redux/constants';
+import {isDmGmWriteDenied} from 'mattermost-redux/selectors/entities/render_permissions';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {canAccessChannelSettings} from 'selectors/views/channel_settings';
@@ -55,6 +56,9 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
     const {formatMessage} = useIntl();
     const canAccessChannelSettingsForChannel = useSelector((state: GlobalState) => canAccessChannelSettings(state, channel.id));
 
+    // Editing the header and converting the conversation both change it, which is writing.
+    const writeDenied = useSelector(isDmGmWriteDenied);
+
     return (
         <>
             <MenuItemToggleInfo
@@ -90,7 +94,7 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                             <MenuItemChannelSettings
                                 channel={channel}
                             />
-                            {(!isGroupConstrained && !isGuest(user.roles)) && (
+                            {(!isGroupConstrained && !isGuest(user.roles) && !writeDenied) && (
                                 <MenuItemConvertToPrivate
                                     channel={channel}
                                 />
@@ -98,13 +102,13 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                         </>
                     ) : (
                         <>
-                            {(isGuest(user.roles)) && (
+                            {(isGuest(user.roles) && !writeDenied) && (
                                 <EditConversationHeader
                                     leadingElement={<CogOutlineIcon size='18px'/>}
                                     channel={channel}
                                 />
                             )}
-                            {(!isGroupConstrained && !isGuest(user.roles)) && (
+                            {(!isGroupConstrained && !isGuest(user.roles) && !writeDenied) && (
                                 <Menu.SubMenu
                                     id={'channelSettings'}
                                     labels={

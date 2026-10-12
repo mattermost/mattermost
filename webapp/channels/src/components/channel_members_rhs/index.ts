@@ -27,6 +27,7 @@ import {
     isCurrentChannelArchived,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {canStartDmGm} from 'mattermost-redux/selectors/entities/render_permissions';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getRemoteDisplayName} from 'mattermost-redux/selectors/entities/shared_channels';
 import {getCurrentRelativeTeamUrl, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -131,12 +132,14 @@ function mapStateToProps(state: GlobalState) {
 
     const isArchived = isCurrentChannelArchived(state);
     const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
+
+    // Only Add is offered for a GM, and adding people to one creates a new GM.
     const canManageMembers = haveIChannelPermission(
         state,
         currentTeam?.id,
         channel.id,
         isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS : Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS,
-    ) && !isArchived;
+    ) && !isArchived && (channel.type !== Constants.GM_CHANNEL || canStartDmGm(state));
 
     const searchTerms = state.views.search.channelMembersRhsSearch || '';
 

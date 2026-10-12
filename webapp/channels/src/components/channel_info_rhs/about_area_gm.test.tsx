@@ -172,4 +172,38 @@ describe('channel_info_rhs/about_area_gm', () => {
 
         expect(screen.getByText('my channel header')).toBeInTheDocument();
     });
+
+    describe('header editing', () => {
+        const withWriteDecision = (allowed: boolean): DeepPartial<GlobalState> => ({
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {...initialState.entities?.general, config: {...initialState.entities?.general?.config, FeatureFlagPermissionPolicies: 'true'}},
+                renderPermissions: {byResource: {permission: {'': {dm_gm_write_access: {allowed, evaluated: true, generation: 1}}}}},
+            },
+        });
+
+        test('should offer to edit the header while dm_gm_write_access allows', () => {
+            renderWithContext(
+                <AboutAreaGM
+                    {...defaultProps}
+                />,
+                withWriteDecision(true),
+            );
+
+            expect(screen.getByRole('button', {name: 'Edit'})).toBeInTheDocument();
+        });
+
+        test('should show the header without an edit button while dm_gm_write_access denies', () => {
+            renderWithContext(
+                <AboutAreaGM
+                    {...defaultProps}
+                />,
+                withWriteDecision(false),
+            );
+
+            expect(screen.getByText('my channel header')).toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Edit'})).not.toBeInTheDocument();
+        });
+    });
 });

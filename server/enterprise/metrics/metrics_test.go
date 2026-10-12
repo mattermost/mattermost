@@ -438,6 +438,20 @@ func TestIncrementAccessControlDecision(t *testing.T) {
 		require.Equal(t, 0.0, read(t, mi, model.AccessControlPolicyActionChannelWriteAccess, einterfaces.AccessControlDecisionDenyPermissionPolicy))
 	})
 
+	t.Run("the burn-on-read and direct and group message actions have their own labels", func(t *testing.T) {
+		mi := newMetrics()
+
+		actions := append([]string{model.AccessControlPolicyActionCreateBurnOnReadPost}, model.DMGMActions()...)
+		for _, action := range actions {
+			mi.IncrementAccessControlDecision(action, einterfaces.AccessControlDecisionDenyPermissionPolicy)
+		}
+
+		for _, action := range actions {
+			require.Equal(t, 1.0, read(t, mi, action, einterfaces.AccessControlDecisionDenyPermissionPolicy), action)
+		}
+		require.Equal(t, 0.0, read(t, mi, accessControlDecisionActionOther, einterfaces.AccessControlDecisionDenyPermissionPolicy))
+	})
+
 	t.Run("an unknown action is counted as other", func(t *testing.T) {
 		mi := newMetrics()
 

@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -423,6 +424,10 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("updateChannel", "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
+		// The header is conversation content, so changing it is a write.
+		if !requireChannelWriteAccess(c, oldChannel) {
+			return
+		}
 
 	default:
 		c.Err = model.NewAppError("updateChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)
@@ -674,6 +679,10 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.auto_translation_restricted.app_error", nil, "", http.StatusForbidden)
 			return
 		}
+		// The header and auto-translation are conversation content, so changing them is a write.
+		if !requireChannelWriteAccess(c, oldChannel) {
+			return
+		}
 
 	default:
 		c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)
@@ -856,6 +865,10 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !requireConversationOpenOrStart(c, model.GetDMNameFromIds(userIds[0], userIds[1]), model.PermissionCreateDirectChannel) {
+		return
+	}
+
 	sc, appErr := c.App.GetOrCreateDirectChannel(c.AppContext, userIds[0], userIds[1])
 	if appErr != nil {
 		c.Err = appErr
@@ -889,6 +902,10 @@ func readAllMessages(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	if !requireDMGMAccess(c, model.AccessControlPolicyActionDMGMReadAccess, model.PermissionReadChannel) {
 		return
 	}
 
@@ -980,6 +997,14 @@ func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !canSeeAll {
 		c.SetPermissionError(model.PermissionViewMembers)
 		return
+	}
+
+	// Outside the size bounds CreateGroupChannel refuses with its own 400.
+	if len(userIds) >= model.ChannelGroupMinUsers && len(userIds) <= model.ChannelGroupMaxUsers {
+		// GetGroupNameFromUserIds sorts in place.
+		if !requireConversationOpenOrStart(c, model.GetGroupNameFromUserIds(slices.Clone(userIds)), model.PermissionCreateGroupChannel) {
+			return
+		}
 	}
 
 	groupChannel, appErr := c.App.CreateGroupChannel(c.AppContext, userIds, c.AppContext.Session().UserId)
@@ -1152,6 +1177,32 @@ func requireChannelManagementAccessByID(c *Context, channelID string) bool {
 	}
 	c.SetPermissionError(model.PermissionManageChannelRoles)
 	return false
+}
+
+// requireDMGMAccess gates a direct and group message action for the session user. The
+// action is the same for every conversation, so no channel is needed; rbacPermission is
+// what SetPermissionError reports if no denial was recorded.
+func requireDMGMAccess(c *Context, action string, rbacPermission *model.Permission) bool {
+	if c.App.EnforceDMGMAccess(c.AppContext, c.AppContext.Session().UserId, action) {
+		return true
+	}
+	c.SetPermissionError(rbacPermission)
+	return false
+}
+
+// requireConversationOpenOrStart gates opening the conversation with the given name.
+// Reopening an existing conversation is reading it; only creating one is starting it.
+// Both are evaluated on the session, whoever the conversation is for.
+func requireConversationOpenOrStart(c *Context, name string, rbacPermission *model.Permission) bool {
+	existing, appErr := c.App.GetDirectOrGroupChannelByName(c.AppContext, name)
+	if appErr != nil {
+		c.Err = appErr
+		return false
+	}
+	if existing != nil {
+		return requireChannelReadAccess(c, existing)
+	}
+	return requireDMGMAccess(c, model.AccessControlPolicyActionDMGMStart, rbacPermission)
 }
 
 func requireChannelReadAccessForIDs(c *Context, channelIDs []string) (kept []string, ok bool) {
@@ -3517,6 +3568,10 @@ func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Req
 	// The channel id the payload must be the same one as indicated in the URL.
 	if gmConversionRequest.ChannelID != c.Params.ChannelId {
 		c.SetInvalidParam("channel_id")
+		return
+	}
+
+	if !requireChannelWriteAccessByID(c, c.Params.ChannelId) {
 		return
 	}
 
