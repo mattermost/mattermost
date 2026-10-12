@@ -74,7 +74,6 @@ func docsCmdF(command *cobra.Command, args []string) error {
 		http.NotFound(w, r)
 	})
 
-	// Localhost only — this CLI is for reading docs, not exposing them on the LAN.
 	addr := fmt.Sprintf("127.0.0.1:%d", port)
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
