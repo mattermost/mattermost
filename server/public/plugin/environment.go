@@ -287,12 +287,14 @@ func (env *Environment) startPluginServer(pluginInfo *model.BundleInfo, opts ...
 		return errors.Wrapf(err, "unable to start plugin: %v", pluginInfo.Manifest.Id)
 	}
 
-	// Pre-emptively mark the plugin as starting, not running, to guard against
-	// re-entrant Activate() calls (OnActivate can call UpdateConfiguration, which
-	// calls back into Activate). Running is reserved for once the supervisor below
-	// is registered, so IsActive()/HooksForPlugin never see a plugin as active
-	// before it can actually handle hooks or HTTP requests.
-	env.setPluginState(pluginInfo.Manifest.Id, model.PluginStateStarting)
+	// We pre-emptively set the state to running to prevent re-entrancy issues.
+	// The plugin's OnActivate hook can in-turn call UpdateConfiguration
+	// which again calls this method. This method is guarded against multiple calls,
+	// but fails if it is called recursively.
+	//
+	// Therefore, setting the state to running prevents this from happening,
+	// and in case there is an error, the defer clause will set the proper state anyways.
+	env.setPluginState(pluginInfo.Manifest.Id, model.PluginStateRunning)
 
 	if err := sup.Hooks().OnActivate(); err != nil {
 		sup.Shutdown()
@@ -312,11 +314,8 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		}
 	}()
 
-	// Check if we are already active or activating (see PluginStateStarting in
-	// startPluginServer). Both guard against the re-entrant Activate() call that
-	// a plugin's own OnActivate hook can trigger via UpdateConfiguration.
-	switch env.GetPluginState(id) {
-	case model.PluginStateRunning, model.PluginStateStarting:
+	// Check if we are already active
+	if env.IsActive(id) {
 		return nil, false, nil
 	}
 
