@@ -8,7 +8,6 @@ import type {Dispatch} from 'redux';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {canStartDmGm} from 'mattermost-redux/selectors/entities/render_permissions';
 import {haveICurrentChannelPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
@@ -53,7 +52,6 @@ function mapStateToProps(state: GlobalState) {
         isMobileView: getIsMobileView(state),
         isKeyBoardShortcutModalOpen: isModalOpen(state, ModalIdentifiers.KEYBOARD_SHORTCUTS_MODAL),
         canCreateCustomGroups,
-        canStartDmGm: canStartDmGm(state),
         rhsState: getRhsState(state),
         rhsOpen: getIsRhsOpen(state),
     };

@@ -40,6 +40,7 @@ import {
     getTeammateNameDisplaySetting,
     isCollapsedThreadsEnabled,
 } from 'mattermost-redux/selectors/entities/preferences';
+import {canReadDmGm, canStartDmGm} from 'mattermost-redux/selectors/entities/render_permissions';
 import {
     getMyPermissionsByChannel,
     getMyPermissionsByTeam,
@@ -167,6 +168,28 @@ export const getDirectChannelNamesSet: (state: GlobalState) => Set<string> = cre
 
 export function hasDirectChannelWithUser(state: GlobalState, userId: string): boolean {
     return getDirectChannelNamesSet(state).has(getDirectChannelName(getCurrentUserId(state), userId));
+}
+
+// Whether the user may open the DM (one other user) or GM (several) with these users, the current
+// user aside. While starting one is blocked, that is only an existing conversation the user can read.
+export function canOpenDmOrGmWithUsers(state: GlobalState, userIds: string[]): boolean {
+    if (canStartDmGm(state)) {
+        return true;
+    }
+
+    if (!canReadDmGm(state)) {
+        return false;
+    }
+
+    if (userIds.length === 1) {
+        return hasDirectChannelWithUser(state, userIds[0]);
+    }
+
+    // The profiles of a GM leave out the current user.
+    return getChannelsWithUserProfiles(state).some((channel) => (
+        channel.profiles.length === userIds.length &&
+        userIds.every((userId) => channel.profiles.some((profile) => profile.id === userId))
+    ));
 }
 
 // Covers both DMs and GMs.

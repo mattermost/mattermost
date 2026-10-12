@@ -53,7 +53,6 @@ describe('components/sidebar/sidebar_category', () => {
         currentUserId: '',
         isAdmin: false,
         hideCategory: false,
-        canStartDmGm: true,
         actions: {
             setCategoryCollapsed: jest.fn(),
             setCategorySorting: jest.fn(),
@@ -204,23 +203,6 @@ describe('components/sidebar/sidebar_category', () => {
         await userEvent.click(screen.getByText('custom_category_1'));
 
         expect(baseProps.actions.setCategoryCollapsed).toHaveBeenCalledWith('category1', false);
-    });
-
-    test.each([true, false])('should offer the + button on the Direct Messages category only when starting conversations is allowed (%s)', (canStartDmGm) => {
-        const props = {
-            ...baseProps,
-            category: {
-                ...baseProps.category,
-                type: CategoryTypes.DIRECT_MESSAGES,
-                display_name: 'Direct Messages',
-            },
-            canStartDmGm,
-        };
-
-        renderWithDnd(<SidebarCategory {...props}/>);
-
-        expect(document.querySelector('#mock-sorting-menu')).toBeInTheDocument();
-        expect(Boolean(screen.queryByRole('button', {name: 'Write a direct message'}))).toBe(canStartDmGm);
     });
 
     test('should render nothing for the Direct Messages category while it is hidden', () => {

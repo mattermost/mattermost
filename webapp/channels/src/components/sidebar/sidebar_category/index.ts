@@ -10,7 +10,7 @@ import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import {setCategoryCollapsed, setCategorySorting} from 'mattermost-redux/actions/channel_categories';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
-import {canStartDmGm, isDmGmReadDenied} from 'mattermost-redux/selectors/entities/render_permissions';
+import {isDmGmReadDenied} from 'mattermost-redux/selectors/entities/render_permissions';
 import {getCurrentUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {isAdmin} from 'mattermost-redux/utils/user_utils';
 
@@ -34,7 +34,6 @@ function makeMapStateToProps() {
             currentUserId: getCurrentUserId(state),
             isAdmin: isAdmin(getCurrentUser(state).roles),
             hideCategory: ownProps.category.type === CategoryTypes.DIRECT_MESSAGES && isDmGmReadDenied(state),
-            canStartDmGm: canStartDmGm(state),
         };
     };
 }

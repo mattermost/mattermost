@@ -1644,7 +1644,8 @@ describe('components/SwitchChannelProvider', () => {
             expect(mergedResults.terms).toEqual([recentMatch.id, delphine.id]);
         });
 
-        describe('while dm_gm_start denies', () => {
+        // The switcher says so when the user picks someone they can't start a conversation with.
+        it('keeps a person the user has no direct message with while dm_gm_start denies', async () => {
             const withStartDenied = (state: ReturnType<typeof makeState>) => ({
                 ...state,
                 entities: {
@@ -1654,17 +1655,9 @@ describe('components/SwitchChannelProvider', () => {
                 },
             });
 
-            it('leaves out a person the user has no direct message with', async () => {
-                const [, mergedResults] = await search('delp', withStartDenied(makeState()));
+            const [, mergedResults] = await search('delp', withStartDenied(makeState()));
 
-                expect(mergedResults.terms).toEqual(['gm_channel_2', 'gm_channel_1', 'gm_channel_0']);
-            });
-
-            it('keeps a person the user already has a direct message with', async () => {
-                const [, mergedResults] = await search('delp', withStartDenied(makeState({existingDmLastViewedAt: 1})));
-
-                expect(mergedResults.terms).toEqual([delphine.id, 'gm_channel_2', 'gm_channel_1', 'gm_channel_0']);
-            });
+            expect(mergedResults.terms).toEqual(['gm_channel_2', 'gm_channel_1', 'gm_channel_0', delphine.id]);
         });
 
         it('keeps a group message hidden from the sidebar below an equally relevant visible one', async () => {

@@ -4,10 +4,12 @@
 import React from 'react';
 import {IntlProvider, injectIntl} from 'react-intl';
 
+import {START_DENIED_ERROR} from 'actions/channel_actions';
+
 import QuickSwitchModal, {QuickSwitchModal as QuickSwitchModalClass} from 'components/quick_switch_modal/quick_switch_modal';
 import ChannelNavigator from 'components/sidebar/channel_navigator/channel_navigator';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 // Wrap the class component with injectIntl + forwardRef so refs work
@@ -257,6 +259,53 @@ describe('components/QuickSwitchModal', () => {
             await instance.handleSubmit(selected);
             expect(props.actions.withdrawJoinRequest).toHaveBeenCalledWith(channel.id);
             expect(props.onExited).not.toHaveBeenCalled();
+        });
+
+        describe('picking someone the user can\'t start a conversation with', () => {
+            const person = {id: 'user_id', name: 'username', userId: 'user_id', type: Constants.DM_CHANNEL};
+
+            const renderSwitcher = (error: unknown) => {
+                const props = {
+                    ...baseProps,
+                    onExited: jest.fn(),
+                    actions: {
+                        ...baseProps.actions,
+                        switchToChannel: jest.fn().mockResolvedValue({error}),
+                    },
+                };
+                const ref = React.createRef<QuickSwitchModalClass>();
+                renderWithContext(
+                    <QuickSwitchModalWithRef
+                        {...props}
+                        ref={ref}
+                    />,
+                );
+                return {props, instance: ref.current!};
+            };
+
+            it('should stay open and say so until the user types again', async () => {
+                const {props, instance} = renderSwitcher(START_DENIED_ERROR);
+
+                await act(() => instance.handleSubmit({channel: person}));
+
+                expect(screen.getByRole('alert')).toHaveTextContent('You can\'t start a conversation with this person.');
+                expect(screen.getByRole('combobox', {name: 'quick switch input'})).toHaveAttribute('aria-invalid', 'true');
+                expect(screen.getByRole('combobox', {name: 'quick switch input'})).toHaveAttribute('aria-describedby', 'quickSwitchError');
+                expect(props.onExited).not.toHaveBeenCalled();
+
+                await userEvent.type(screen.getByRole('combobox', {name: 'quick switch input'}), 'a');
+
+                expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+            });
+
+            it('should not show it for other failures', async () => {
+                const {props, instance} = renderSwitcher({message: 'Failed'});
+
+                await act(() => instance.handleSubmit({channel: person}));
+
+                expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+                expect(props.onExited).not.toHaveBeenCalled();
+            });
         });
     });
 

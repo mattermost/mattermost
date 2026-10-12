@@ -69,6 +69,9 @@ export type Props<T extends Value> = {
     handleCancel?: () => void;
     customNoOptionsMessage?: React.ReactNode;
     required?: boolean;
+
+    // Shown in place of the required error while set.
+    errorText?: ReactNode;
 };
 
 export type State = {
@@ -327,6 +330,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
     public render() {
         const options = Object.assign([...this.props.options]);
         const {totalCount, users, values} = this.props;
+        const hasError = this.state.hasError || Boolean(this.props.errorText);
 
         let numRemainingText;
         if (this.props.numRemainingText) {
@@ -495,7 +499,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                     <div className='filter-row'>
                         <div
                             className={classNames('multi-select__container react-select', {
-                                'has-error': this.state.hasError,
+                                'has-error': hasError,
                             })}
                         >
                             <ReactSelect
@@ -525,8 +529,8 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                                 aria-label={formatAsString(this.props.intl.formatMessage, this.props.placeholderText)}
                                 className={this.state.a11yActive ? 'multi-select__focused' : ''}
                                 classNamePrefix='react-select-auto react-select'
-                                aria-invalid={this.state.hasError}
-                                aria-describedby={this.state.hasError ? 'multiSelectMessageError' : undefined}
+                                aria-invalid={hasError}
+                                aria-describedby={hasError ? 'multiSelectMessageError' : undefined}
                                 onBlur={this.validateInput}
                             />
                             {this.props.saveButtonPosition === 'top' &&
@@ -555,7 +559,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                     >
                         {noteTextContainer}
                     </div>
-                    {this.state.hasError && (
+                    {hasError && (
                         <div
                             className='multi-select__error'
                             role='alert'
@@ -563,7 +567,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                         >
                             <i className='icon icon-alert-circle-outline'/>
                             <span>
-                                {this.props.intl.formatMessage({id: 'multiselect.required', defaultMessage: 'This field is required'})}
+                                {this.props.errorText ?? this.props.intl.formatMessage({id: 'multiselect.required', defaultMessage: 'This field is required'})}
                             </span>
                         </div>
                     )}

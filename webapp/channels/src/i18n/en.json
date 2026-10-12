@@ -21871,6 +21871,10 @@
     "defaultMessage": "Windows Icon",
     "description": "Accessible name of the Windows device icon shown next to a session in the Active Sessions modal."
   },
+  "direct_channels.start_denied": {
+    "defaultMessage": "You can't start a conversation with this person.",
+    "description": "Error shown when a permission policy stops the user starting direct and group messages and the people they picked have no conversation with them yet. Shown in the Direct Messages modal after selecting people, and under the hint of the Find Channels switcher after picking a person."
+  },
   "discard_changes_modal.leave": {
     "defaultMessage": "Yes, Discard",
     "description": "Confirm button of the discard-unsaved-changes dialog; confirms abandoning the edits."

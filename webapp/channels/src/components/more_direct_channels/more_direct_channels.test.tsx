@@ -5,11 +5,16 @@ import React from 'react';
 import type {ComponentProps} from 'react';
 
 import type {UserProfile} from '@mattermost/types/users';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
+import {General} from 'mattermost-redux/constants';
 
 import MoreDirectChannels from 'components/more_direct_channels/more_direct_channels';
 
-import {act, renderWithContext, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
 
 const mockedUser = TestHelper.getUserMock();
 
@@ -345,5 +350,133 @@ describe('components/MoreDirectChannels', () => {
         const props = {...baseProps, users, myDirectChannels, currentChannelMembers};
         const {baseElement} = renderWithContext(<MoreDirectChannels {...props}/>);
         expect(baseElement).toMatchSnapshot();
+    });
+
+    describe('while starting conversations is denied', () => {
+        const me = TestHelper.getUserMock({id: 'current_user_id', username: 'me'});
+        const alice = TestHelper.getUserMock({id: 'alice_id', username: 'alice'});
+        const bob = TestHelper.getUserMock({id: 'bob_id', username: 'bob'});
+        const carol = TestHelper.getUserMock({id: 'carol_id', username: 'carol'});
+
+        // Neither has posts, so the list offers people rather than recent conversations.
+        const aliceDm = TestHelper.getChannelMock({id: 'alice_dm_id', type: General.DM_CHANNEL, name: `${alice.id}__${me.id}`, last_post_at: 0});
+        const aliceBobGm = TestHelper.getChannelMock({id: 'gm_id', type: General.GM_CHANNEL, name: 'gm_name', last_post_at: 0});
+
+        const decision = (allowed: boolean) => ({allowed, evaluated: true, generation: 1});
+        const makeState = ({readAllowed = true, gmLastPostAt = 0} = {}): DeepPartial<GlobalState> => ({
+            entities: {
+                general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+                users: {
+                    currentUserId: me.id,
+                    profiles: {[me.id]: me, [alice.id]: alice, [bob.id]: bob, [carol.id]: carol},
+                    profilesInChannel: {[aliceBobGm.id]: new Set([me.id, alice.id, bob.id])},
+                },
+                channels: {
+                    channels: {[aliceDm.id]: aliceDm, [aliceBobGm.id]: {...aliceBobGm, last_post_at: gmLastPostAt}},
+                    channelsInTeam: {'': new Set([aliceDm.id, aliceBobGm.id])},
+                },
+                renderPermissions: {byResource: {permission: {'': {
+                    dm_gm_start: decision(false),
+                    dm_gm_read_access: decision(readAllowed),
+                }}}},
+            },
+            views: {search: {modalSearch: ''}},
+        });
+
+        const renderModal = (state = makeState()) => {
+            const props = {
+                ...baseProps,
+                currentUserId: me.id,
+                users: [me, alice, bob, carol],
+                currentChannelMembers: [],
+                actions: {
+                    ...baseProps.actions,
+                    openDirectChannelToUserId: jest.fn().mockResolvedValue({data: {name: 'dm'}}),
+                    openGroupChannelToUserIds: jest.fn().mockResolvedValue({data: {name: 'group'}}),
+                },
+            };
+            renderWithContext(<MoreDirectChannels {...props}/>, state);
+            return props.actions;
+        };
+
+        const add = async (username: string) => userEvent.click(await screen.findByRole('button', {name: `Add option ${username}`}));
+        const startDeniedText = 'You can\'t start a conversation with this person.';
+
+        test('should open an existing DM the user can read', async () => {
+            const actions = renderModal();
+
+            await add('alice');
+            expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Go'}));
+            expect(actions.openDirectChannelToUserId).toHaveBeenCalledWith(alice.id);
+        });
+
+        test('should show the error for someone without a DM, and do nothing on Go', async () => {
+            const actions = renderModal();
+
+            await add('bob');
+            expect(screen.getByRole('alert')).toHaveTextContent(startDeniedText);
+            expect(screen.getByRole('combobox', {name: 'Search for people'})).toHaveAttribute('aria-invalid', 'true');
+
+            await userEvent.click(screen.getByRole('button', {name: 'Go'}));
+            expect(actions.openDirectChannelToUserId).not.toHaveBeenCalled();
+            expect(actions.openGroupChannelToUserIds).not.toHaveBeenCalled();
+        });
+
+        test('should clear the error once the selection is an existing GM', async () => {
+            const actions = renderModal();
+
+            await add('bob');
+            expect(screen.getByRole('alert')).toBeInTheDocument();
+
+            await add('carol');
+            expect(screen.getByRole('alert')).toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Remove carol'}));
+            await add('alice');
+            expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Go'}));
+            expect(actions.openGroupChannelToUserIds).toHaveBeenCalledWith([bob.id, alice.id]);
+        });
+
+        test('should open an existing GM picked from its row', async () => {
+            const actions = renderModal(makeState({gmLastPostAt: 1}));
+
+            await userEvent.click(await screen.findByTestId('group-message-row'));
+            expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Go'}));
+            expect(actions.openGroupChannelToUserIds).toHaveBeenCalledWith([alice.id, bob.id]);
+        });
+
+        test('should clear the error when the person is removed', async () => {
+            renderModal();
+
+            await add('bob');
+            expect(screen.getByRole('alert')).toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Remove bob'}));
+            expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+        });
+
+        test('should show the error even for an existing DM while Read is denied', async () => {
+            const actions = renderModal(makeState({readAllowed: false}));
+
+            await add('alice');
+            expect(screen.getByRole('alert')).toHaveTextContent(startDeniedText);
+
+            await userEvent.click(screen.getByRole('button', {name: 'Go'}));
+            expect(actions.openDirectChannelToUserId).not.toHaveBeenCalled();
+        });
+
+        test('should show the error instead of opening a self-DM that does not exist', async () => {
+            const actions = renderModal();
+
+            await add('me');
+            expect(screen.getByRole('alert')).toHaveTextContent(startDeniedText);
+            expect(actions.openDirectChannelToUserId).not.toHaveBeenCalled();
+        });
     });
 });

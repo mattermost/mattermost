@@ -131,4 +131,21 @@ describe('components/multiselect/multiselect', () => {
 
         expect(handleBackButtonClick).toHaveBeenCalled();
     });
+
+    test('should show errorText in the error area while it is set', () => {
+        const {rerender} = renderWithContext(
+            <MultiSelect
+                {...baseProps}
+                errorText='Something is wrong'
+            />,
+        );
+
+        expect(screen.getByRole('alert')).toHaveTextContent('Something is wrong');
+        expect(screen.getByRole('combobox')).toHaveAttribute('aria-invalid', 'true');
+
+        rerender(<MultiSelect {...baseProps}/>);
+
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+        expect(screen.getByRole('combobox')).toHaveAttribute('aria-invalid', 'false');
+    });
 });

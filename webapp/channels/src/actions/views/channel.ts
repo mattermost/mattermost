@@ -21,6 +21,7 @@ import {selectTeam} from 'mattermost-redux/actions/teams';
 import {autocompleteUsers} from 'mattermost-redux/actions/users';
 import {Posts, RequestStatus} from 'mattermost-redux/constants';
 import {
+    canOpenDmOrGmWithUsers,
     getChannel,
     getChannelsNameMapInCurrentTeam,
     getCurrentChannel,
@@ -45,7 +46,7 @@ import {makeAddLastViewAtToProfiles} from 'mattermost-redux/selectors/entities/u
 import {getChannelByName} from 'mattermost-redux/utils/channel_utils';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
-import {openDirectChannelToUserId} from 'actions/channel_actions';
+import {openDirectChannelToUserId, START_DENIED_ERROR} from 'actions/channel_actions';
 import {loadCustomStatusEmojisForPostList} from 'actions/emoji_actions';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {markThreadAsRead} from 'actions/views/threads';
@@ -120,6 +121,11 @@ export function switchToChannel(channel: Channel & {userId?: string}): ActionFun
             const user = getUserByUsername(state, username);
             if (!user) {
                 return {error: true};
+            }
+
+            // Unlike openDirectChannelToUserId, this also refuses an existing DM the user can't read.
+            if (!canOpenDmOrGmWithUsers(state, [user.id])) {
+                return {error: START_DENIED_ERROR};
             }
 
             const direct = await dispatch(openDirectChannelToUserId(user.id));

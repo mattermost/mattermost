@@ -38,10 +38,8 @@ describe('components/sidebar/sidebar_category/sidebar_category_sorting_menu', ()
         expect(container).toMatchSnapshot();
     });
 
-    test.each([
-        ['allowed', true, true],
-        ['denied', false, false],
-    ])('should offer Open a direct message only while dm_gm_start is %s', async (_, allowed, expected) => {
+    // The direct messages modal says when the selected people can't be messaged.
+    test('should offer Open a direct message while dm_gm_start is denied', async () => {
         renderWithContext(
             <SidebarCategorySortingMenu {...baseProps}/>,
             {
@@ -49,14 +47,13 @@ describe('components/sidebar/sidebar_category/sidebar_category_sorting_menu', ()
                 entities: {
                     ...initialState.entities,
                     general: {config: {FeatureFlagPermissionPolicies: 'true'}},
-                    renderPermissions: {byResource: {permission: {'': {dm_gm_start: {allowed, evaluated: true, generation: 1}}}}},
+                    renderPermissions: {byResource: {permission: {'': {dm_gm_start: {allowed: false, evaluated: true, generation: 1}}}}},
                 },
             },
         );
 
         await userEvent.click(screen.getByRole('button', {name: `${baseProps.category.display_name} category options`}));
 
-        expect(screen.getByRole('menuitem', {name: /Sort/})).toBeInTheDocument();
-        expect(Boolean(screen.queryByRole('menuitem', {name: 'Open a direct message'}))).toBe(expected);
+        expect(screen.getByRole('menuitem', {name: 'Open a direct message'})).toBeInTheDocument();
     });
 });

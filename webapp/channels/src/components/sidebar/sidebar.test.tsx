@@ -82,7 +82,6 @@ describe('components/sidebar', () => {
         isKeyBoardShortcutModalOpen: false,
         userGroupsEnabled: false,
         canCreateCustomGroups: true,
-        canStartDmGm: true,
         actions: {
             createCategory: jest.fn(),
             fetchMyCategories: jest.fn(),
@@ -410,9 +409,20 @@ describe('components/sidebar', () => {
         });
     });
 
-    describe('the direct messages modal', () => {
+    // The modal itself says when the selected people can't be messaged.
+    test('should open the direct messages modal from the shortcut while starting conversations is denied', async () => {
+        renderWithContext(
+            <Sidebar {...baseProps}/>,
+            mergeObjects(initialState, {
+                entities: {
+                    general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+                    renderPermissions: {byResource: {permission: {'': {dm_gm_start: {allowed: false, evaluated: true, generation: 1}}}}},
+                },
+            }),
+        );
+
         // Ctrl/Cmd+Shift+K, which the sidebar list routes to handleOpenMoreDirectChannelsModal.
-        const pressShortcut = () => fireEvent.keyDown(document, {
+        fireEvent.keyDown(document, {
             key: 'K',
             code: 'KeyK',
             keyCode: Constants.KeyCodes.K[1],
@@ -420,26 +430,6 @@ describe('components/sidebar', () => {
             shiftKey: true,
         });
 
-        test('should open from the shortcut while starting conversations is allowed', async () => {
-            renderWithContext(<Sidebar {...baseProps}/>, initialState);
-
-            pressShortcut();
-
-            expect(await screen.findByTestId('more-direct-channels')).toBeInTheDocument();
-        });
-
-        test('should not open from the shortcut while starting conversations is blocked', async () => {
-            renderWithContext(
-                <Sidebar
-                    {...baseProps}
-                    canStartDmGm={false}
-                />,
-                initialState,
-            );
-
-            pressShortcut();
-
-            await expect(screen.findByTestId('more-direct-channels', {}, {timeout: 200})).rejects.toThrow();
-        });
+        expect(await screen.findByTestId('more-direct-channels')).toBeInTheDocument();
     });
 });

@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {defineMessage} from 'react-intl';
 import {batchActions} from 'redux-batched-actions';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -25,7 +26,13 @@ import type {ActionFuncAsync} from 'types/store';
 
 // Starting a DM needs both dm_gm_start and dm_gm_read_access, so this doesn't claim the server's
 // start-denial id.
-const START_DENIED_ERROR: ServerError = {message: 'A permission policy prevents starting this direct message.'};
+export const START_DENIED_ERROR: ServerError = {message: 'A permission policy prevents starting this direct message.'};
+
+// Shown where the user picks people to message when that would start a conversation.
+export const startDeniedMessage = defineMessage({
+    id: 'direct_channels.start_denied',
+    defaultMessage: 'You can\'t start a conversation with this person.',
+});
 
 export function openDirectChannelToUserId(userId: UserProfile['id']): ActionFuncAsync<Channel> {
     return async (dispatch, getState) => {
