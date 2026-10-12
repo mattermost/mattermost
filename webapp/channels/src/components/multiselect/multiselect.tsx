@@ -70,7 +70,7 @@ export type Props<T extends Value> = {
     customNoOptionsMessage?: React.ReactNode;
     required?: boolean;
 
-    // Shown under the input, in place of the required error, while set.
+    // Shown under the input, in place of the required error, while set. Submitting is disabled meanwhile.
     errorText?: ReactNode;
 };
 
@@ -537,7 +537,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                                 <SaveButton
                                     id='saveItems'
                                     saving={this.props.saving}
-                                    disabled={this.props.saving}
+                                    disabled={this.props.saving || Boolean(this.props.errorText)}
                                     onClick={this.handleOnClick}
                                     defaultMessage={buttonSubmitText}
                                     savingMessage={formatAsComponent(this.props.buttonSubmitLoadingText)}
@@ -607,7 +607,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                         <SaveButton
                             id='saveItems'
                             saving={this.props.saving}
-                            disabled={this.props.saving || !this.props.savingEnabled}
+                            disabled={this.props.saving || !this.props.savingEnabled || Boolean(this.props.errorText)}
                             onClick={this.handleOnClick}
                             defaultMessage={buttonSubmitText}
                             savingMessage={formatAsComponent(this.props.buttonSubmitLoadingText)}

@@ -418,6 +418,7 @@ describe('components/MoreDirectChannels', () => {
             await add('bob');
             expect(screen.getByRole('alert')).toHaveTextContent(startDeniedText);
             expect(screen.getByRole('combobox', {name: 'Search for people'})).toHaveAttribute('aria-invalid', 'true');
+            expect(screen.getByRole('button', {name: 'Go'})).toBeDisabled();
 
             await userEvent.click(screen.getByRole('button', {name: 'Go'}));
             expect(actions.openDirectChannelToUserId).not.toHaveBeenCalled();
@@ -432,10 +433,12 @@ describe('components/MoreDirectChannels', () => {
 
             await add('carol');
             expect(screen.getByRole('alert')).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Go'})).toBeDisabled();
 
             await userEvent.click(screen.getByRole('button', {name: 'Remove carol'}));
             await add('alice');
             expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Go'})).toBeEnabled();
 
             await userEvent.click(screen.getByRole('button', {name: 'Go'}));
             expect(actions.openGroupChannelToUserIds).toHaveBeenCalledWith([bob.id, alice.id]);
