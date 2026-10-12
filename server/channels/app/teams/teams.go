@@ -216,8 +216,8 @@ func (ts *TeamService) JoinUserToTeam(rctx request.CTX, team *model.Team, user *
 
 	// A limit of 0 means no limit.
 	if maxUsersPerTeam := *ts.config().TeamSettings.MaxUsersPerTeam; maxUsersPerTeam > 0 {
-		membersCount, err := ts.store.GetActiveMemberCount(tm.TeamId, nil)
-		if err != nil {
+		membersCount, nErr := ts.store.GetActiveMemberCount(tm.TeamId, nil)
+		if nErr != nil {
 			return nil, false, MemberCountError
 		}
 
