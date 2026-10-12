@@ -3,7 +3,6 @@
 
 import {getName} from 'country-list';
 import React, {useCallback, useEffect, useState} from 'react';
-
 import {defineMessage, FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
@@ -289,7 +288,7 @@ const CompanyInfoEdit: React.FC<Props> = () => {
                 <Button
                     asChild={true}
                     emphasis='tertiary'
-                    >
+                >
                     <BlockableLink to='/admin_console/billing/company_info'>
                         <FormattedMessage
                             id='admin.billing.company_info_edit.cancel'

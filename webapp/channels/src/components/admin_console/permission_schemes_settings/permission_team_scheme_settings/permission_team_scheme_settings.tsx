@@ -2,12 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
-import {Button} from '@mattermost/compass-ui/components/button';
 import {defineMessage, FormattedMessage} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
 import type {Scheme, SchemePatch} from '@mattermost/types/schemes';
@@ -818,18 +817,18 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                             />
                         }
                     />
-                                        <Button
-                                            asChild={true}
-                                            emphasis='tertiary'
-                                            data-testid='permission-scheme-cancel-button'
-                                            >
-                                            <BlockableLink to='/admin_console/user_management/permissions'>
-                                                <FormattedMessage
-                                                    id='admin.permissions.permissionSchemes.cancel'
-                                                    defaultMessage='Cancel'
-                                                />
-                                            </BlockableLink>
-                                        </Button>
+                    <Button
+                        asChild={true}
+                        emphasis='tertiary'
+                        data-testid='permission-scheme-cancel-button'
+                    >
+                        <BlockableLink to='/admin_console/user_management/permissions'>
+                            <FormattedMessage
+                                id='admin.permissions.permissionSchemes.cancel'
+                                defaultMessage='Cancel'
+                            />
+                        </BlockableLink>
+                    </Button>
                     <div className='error-message'>
                         <FormError error={this.state.serverError}/>
                     </div>

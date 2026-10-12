@@ -5,8 +5,8 @@ import cloneDeep from 'lodash/cloneDeep';
 import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {GenericModal} from '@mattermost/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {GenericModal} from '@mattermost/components';
 import type {AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 import type {AccessControlSettings} from '@mattermost/types/config';

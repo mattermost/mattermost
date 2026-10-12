@@ -3,8 +3,6 @@
 
 import classNames from 'classnames';
 import React, {useCallback, useEffect, useMemo, useRef, useState, type JSX, type ReactNode} from 'react';
-
-import {Button} from '@mattermost/compass-ui/components/button';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
@@ -12,6 +10,7 @@ import {useParams} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
 import {ChevronLeftIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldVisibility, PropertyField, PropertyFieldOption, PropertyPermissionLevel} from '@mattermost/types/properties';
 import {supportsHierarchy, supportsOptions} from '@mattermost/types/properties';
@@ -1817,15 +1816,15 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     onClick={handleSave}
                     defaultMessage={<FormattedMessage {...messages.save}/>}
                 />
-                                <Button
-                                    asChild={true}
-                                    emphasis='tertiary'
-                                    data-testid='attributeCancelLink'
-                                    >
-                                    <BlockableLink to={LIST_ROUTE}>
-                                        <FormattedMessage {...messages.cancel}/>
-                                    </BlockableLink>
-                                </Button>
+                <Button
+                    asChild={true}
+                    emphasis='tertiary'
+                    data-testid='attributeCancelLink'
+                >
+                    <BlockableLink to={LIST_ROUTE}>
+                        <FormattedMessage {...messages.cancel}/>
+                    </BlockableLink>
+                </Button>
                 {errorKind && (
                     <span
                         id='attribute-save-error'

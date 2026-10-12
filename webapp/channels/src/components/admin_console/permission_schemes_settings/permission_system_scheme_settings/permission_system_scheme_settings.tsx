@@ -543,18 +543,18 @@ export class PermissionSystemSchemeSettings extends React.PureComponent<Props, S
                         onClick={this.handleSubmit}
                         savingMessage={this.props.intl.formatMessage({id: 'admin.saving', defaultMessage: 'Saving Config...'})}
                     />
-                                        <Button
-                                            asChild={true}
-                                            emphasis='tertiary'
-                                            data-testid='permission-scheme-cancel-button'
-                                            >
-                                            <BlockableLink to='/admin_console/user_management/permissions'>
-                                                <FormattedMessage
-                                                    id='admin.permissions.permissionSchemes.cancel'
-                                                    defaultMessage='Cancel'
-                                                />
-                                            </BlockableLink>
-                                        </Button>
+                    <Button
+                        asChild={true}
+                        emphasis='tertiary'
+                        data-testid='permission-scheme-cancel-button'
+                    >
+                        <BlockableLink to='/admin_console/user_management/permissions'>
+                            <FormattedMessage
+                                id='admin.permissions.permissionSchemes.cancel'
+                                defaultMessage='Cancel'
+                            />
+                        </BlockableLink>
+                    </Button>
                     <Button
                         data-testid='resetPermissionsToDefault'
                         onClick={() => this.setState({showResetDefaultModal: true})}

@@ -3,10 +3,9 @@
 
 import cloneDeep from 'lodash/cloneDeep';
 import React, {useState, useEffect, useMemo, type JSX} from 'react';
-
-import {Button} from '@mattermost/compass-ui/components/button';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
 import type {AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import {getMembershipRule, buildRulesWithMembership, getAutoAddFromRules} from '@mattermost/types/access_control';
@@ -908,7 +907,7 @@ function PolicyDetails({
                 <Button
                     asChild={true}
                     emphasis='tertiary'
-                    >
+                >
                     <BlockableLink to='/admin_console/system_attributes/membership_policies'>
                         <FormattedMessage
                             id='admin.access_control.edit_policy.cancel'

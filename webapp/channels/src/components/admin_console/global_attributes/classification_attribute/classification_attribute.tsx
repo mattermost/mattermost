@@ -2,14 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-
-import {Button} from '@mattermost/compass-ui/components/button';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
 import {ChevronLeftIcon, OpenInNewIcon, SortAscendingIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
@@ -525,15 +524,15 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                         onClick={handleSave}
                         defaultMessage={<FormattedMessage {...messages.save}/>}
                     />
-                                        <Button
-                                            asChild={true}
-                                            emphasis='tertiary'
-                                            data-testid='classificationAttributeCancelLink'
-                                            >
-                                            <BlockableLink to={GLOBAL_ATTRIBUTES_LIST_ROUTE}>
-                                                <FormattedMessage {...messages.cancel}/>
-                                            </BlockableLink>
-                                        </Button>
+                    <Button
+                        asChild={true}
+                        emphasis='tertiary'
+                        data-testid='classificationAttributeCancelLink'
+                    >
+                        <BlockableLink to={GLOBAL_ATTRIBUTES_LIST_ROUTE}>
+                            <FormattedMessage {...messages.cancel}/>
+                        </BlockableLink>
+                    </Button>
                     {saveFailed && (
                         <span
                             className='ClassificationAttribute__error'

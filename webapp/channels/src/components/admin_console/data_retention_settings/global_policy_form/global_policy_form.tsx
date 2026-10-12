@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX} from 'react';
-
-import {Button} from '@mattermost/compass-ui/components/button';
 import {defineMessages, FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -277,7 +276,7 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
                     <Button
                         asChild={true}
                         emphasis='tertiary'
-                        >
+                    >
                         <BlockableLink to='/admin_console/compliance/data_retention_settings'>
                             <FormattedMessage
                                 id='admin.data_retention.custom_policy.cancel'

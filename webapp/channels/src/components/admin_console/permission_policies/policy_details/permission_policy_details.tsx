@@ -2,12 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect, useCallback, useMemo, type JSX} from 'react';
-
-import {Button} from '@mattermost/compass-ui/components/button';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
 import {ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ, type AccessControlPolicy, type AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {AccessControlSettings} from '@mattermost/types/config';
@@ -871,7 +870,7 @@ function PermissionPolicyDetails({
                         <Button
                             asChild={true}
                             emphasis='tertiary'
-                            >
+                        >
                             <BlockableLink to='/admin_console/system_attributes/permission_policies'>
                                 <FormattedMessage
                                     id='admin.permission_policies.edit.cancel'
