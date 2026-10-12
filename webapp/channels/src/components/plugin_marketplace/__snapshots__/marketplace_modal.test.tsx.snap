@@ -281,11 +281,16 @@ exports[`components/marketplace/ hides search and shows web marketplace banner 1
                   <div
                     class="more-modal__actions"
                   >
-                    <button
-                      class="plugin-configure"
+                    <a
+                      class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56 plugin-configure"
+                      href="/admin_console/plugins/plugin_com.mattermost.test"
                     >
-                      Configure
-                    </button>
+                      <span
+                        class="_button__label_aa8j5_31"
+                      >
+                        Configure
+                      </span>
+                    </a>
                   </div>
                 </div>
                 <div
@@ -368,9 +373,14 @@ exports[`components/marketplace/ hides search and shows web marketplace banner 1
                     class="more-modal__actions"
                   >
                     <button
-                      class="plugin-install always-show-enabled"
+                      class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 plugin-install"
+                      type="button"
                     >
-                      Install
+                      <span
+                        class="_button__label_aa8j5_31"
+                      >
+                        Install
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -1112,9 +1122,14 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
                     class="more-modal__actions"
                   >
                     <button
-                      class="plugin-install always-show-enabled"
+                      class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 plugin-install"
+                      type="button"
                     >
-                      Install
+                      <span
+                        class="_button__label_aa8j5_31"
+                      >
+                        Install
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -1331,11 +1346,16 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
                   <div
                     class="more-modal__actions"
                   >
-                    <button
-                      class="plugin-configure"
+                    <a
+                      class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56 plugin-configure"
+                      href="/admin_console/plugins/plugin_com.mattermost.test"
                     >
-                      Configure
-                    </button>
+                      <span
+                        class="_button__label_aa8j5_31"
+                      >
+                        Configure
+                      </span>
+                    </a>
                   </div>
                 </div>
                 <div
@@ -1418,9 +1438,14 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
                     class="more-modal__actions"
                   >
                     <button
-                      class="plugin-install always-show-enabled"
+                      class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 plugin-install"
+                      type="button"
                     >
-                      Install
+                      <span
+                        class="_button__label_aa8j5_31"
+                      >
+                        Install
+                      </span>
                     </button>
                   </div>
                 </div>

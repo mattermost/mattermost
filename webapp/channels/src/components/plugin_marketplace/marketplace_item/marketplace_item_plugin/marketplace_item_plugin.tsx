@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {type JSX} from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 import semver from 'semver';
 
@@ -13,7 +13,6 @@ import type {PluginStatusRedux} from '@mattermost/types/plugins';
 
 import ConfirmModal from 'components/confirm_modal';
 import ExternalLink from 'components/external_link';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import MarketplaceItem from '../marketplace_item';
 
@@ -302,16 +301,23 @@ export default class MarketplaceItemPlugin extends React.PureComponent <Marketpl
             );
         }
 
-        let actionButton: JSX.Element;
-        if (this.props.error) {
-            actionButton = (
+        let actionLabel: JSX.Element;
+        if (this.props.installing) {
+            actionLabel = (
+                <FormattedMessage
+                    id='marketplace_modal.installing'
+                    defaultMessage='Installing...'
+                />
+            );
+        } else if (this.props.error) {
+            actionLabel = (
                 <FormattedMessage
                     id='marketplace_modal.list.try_again'
                     defaultMessage='Try Again'
                 />
             );
         } else {
-            actionButton = (
+            actionLabel = (
                 <FormattedMessage
                     id='marketplace_modal.list.install'
                     defaultMessage='Install'
@@ -320,19 +326,13 @@ export default class MarketplaceItemPlugin extends React.PureComponent <Marketpl
         }
 
         return (
-            <button
+            <Button
                 onClick={this.onInstall}
-                className='plugin-install always-show-enabled'
-                disabled={this.props.installing}
+                className='plugin-install'
+                loading={this.props.installing}
             >
-                <LoadingWrapper
-                    loading={this.props.installing}
-                    text={defineMessage({id: 'marketplace_modal.installing', defaultMessage: 'Installing...'})}
-                >
-                    {actionButton}
-                </LoadingWrapper>
-
-            </button>
+                {actionLabel}
+            </Button>
         );
     }
 

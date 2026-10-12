@@ -69,7 +69,7 @@ describe('components/MarketplaceItemApp', () => {
         it('when installing', () => {
             const props = {
                 ...baseProps,
-                isInstalling: true,
+                installing: true,
             };
             const {container} = renderWithContext(
                 <MarketplaceItemApp {...props}/>,
