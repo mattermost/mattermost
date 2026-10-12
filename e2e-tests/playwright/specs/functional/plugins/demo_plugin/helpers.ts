@@ -99,11 +99,10 @@ export async function recoverDemoPlugin(adminClient: Client4): Promise<void> {
     await logDemoPluginDiagnostics(adminClient, 'recoverDemoPlugin:after');
 }
 
-// DEBUG-ONLY (temporary): visibility into server config/plugin state whenever a dialog
-// submit/cancel attempt is made, to find what correlates with the hooks going unresponsive
-// (see recoverDemoPlugin's doc comment above). Not a fix on its own — console.log so it shows
-// up directly in CI job output without needing a custom server image or extra artifacts.
-export async function logDemoPluginDiagnostics(adminClient: Client4, label: string): Promise<void> {
+// Logs server config/plugin state around a recoverDemoPlugin() cycle, for CI visibility
+// into what triggered it. console.log so it shows up directly in CI job output without
+// needing a custom server image or extra artifacts.
+async function logDemoPluginDiagnostics(adminClient: Client4, label: string): Promise<void> {
     try {
         const [config, status] = await Promise.all([
             adminClient.getConfig(),
