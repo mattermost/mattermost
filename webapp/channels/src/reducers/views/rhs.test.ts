@@ -8,6 +8,7 @@ import {SearchTypes} from 'mattermost-redux/action_types';
 import rhsReducer from 'reducers/views/rhs';
 
 import {ActionTypes, RHSStates} from 'utils/constants';
+import {defaultMentionFilters} from 'utils/mention_search';
 
 describe('Reducers.RHS', () => {
     const initialState = {
@@ -33,6 +34,7 @@ describe('Reducers.RHS', () => {
         editChannelMembers: false,
         shouldFocusRHS: false,
         searchTeam: null,
+        mentionFilters: defaultMentionFilters,
     };
 
     test('Initial state', () => {
@@ -674,6 +676,7 @@ describe('Reducers.RHS', () => {
             editChannelMembers: false,
             shouldFocusRHS: false,
             searchTeam: null,
+            mentionFilters: defaultMentionFilters,
         };
 
         const nextState = rhsReducer(state, {type: ActionTypes.SUPPRESS_RHS});

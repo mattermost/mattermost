@@ -18,10 +18,11 @@ import {
     searchFilesWithParams,
 } from 'mattermost-redux/actions/search';
 import {getCurrentChannelId, getCurrentChannelNameForSearchShortcut, getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
+import {getMyGroupMentionKeys} from 'mattermost-redux/selectors/entities/groups';
 import {getLatestInteractablePostId, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
-import {getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUser, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
 
 import {
     getSearchType,
@@ -29,6 +30,7 @@ import {
     getRhsState,
     getPluggableId,
     getExplicitSearchTeam,
+    getMentionFilters,
     getFilesSearchExtFilter,
     getPreviousRhsState,
     getSearchTeam,
@@ -37,12 +39,13 @@ import {
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 import {ActionTypes, RHSStates, Constants} from 'utils/constants';
+import {buildMentionSearchQuery, defaultMentionFilters, mentionKeysForTypes} from 'utils/mention_search';
 import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 import {quoteSearchTerms} from 'utils/search';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 
 import type {ActionFunc, ActionFuncAsync, GlobalState, ThunkActionFunc} from 'types/store';
-import type {RhsState} from 'types/store/rhs';
+import type {MentionFilters, MentionType, RhsState} from 'types/store/rhs';
 
 function selectPostWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFunc<boolean> {
     return (dispatch, getState) => {
@@ -244,23 +247,20 @@ export function showSearchResults(isMentionSearch = false): ThunkActionFunc<unkn
         const state = getState();
 
         const searchTerms = getSearchTerms(state);
-        let teamId = getSearchTeam(state);
+        const teamId = getSearchTeam(state);
         const searchType = getSearchType(state);
 
+        // A mention search is rebuilt from its filters rather than from the terms, so that re-running
+        // it keeps the channel and date filters it was showing.
         if (isMentionSearch) {
-            dispatch(updateRhsState(RHSStates.MENTION));
-
-            // Mentions are searched across every team unless the search was scoped to one.
-            if (!getExplicitSearchTeam(state)) {
-                teamId = '';
-            }
-        } else {
-            dispatch(updateRhsState(RHSStates.SEARCH));
+            return dispatch(runMentionSearch(getMentionFilters(state), getExplicitSearchTeam(state)));
         }
+
+        dispatch(updateRhsState(RHSStates.SEARCH));
         dispatch(updateSearchResultsTerms(searchTerms));
         dispatch(updateSearchResultsType(searchType));
 
-        return dispatch(performSearch(searchTerms, teamId, isMentionSearch));
+        return dispatch(performSearch(searchTerms, teamId));
     };
 }
 
@@ -457,19 +457,38 @@ export function showChannelFiles(channelId: string): ActionFuncAsync<boolean> {
     };
 }
 
-function getMentionSearchTerms(state: GlobalState): string {
-    const termKeys = getCurrentUserMentionKeys(state).filter(({key}) => {
-        return key !== '@channel' && key !== '@all' && key !== '@here';
-    });
+function getMentionSearchKeys(state: GlobalState, types: MentionType[]): string[] {
+    const user = getCurrentUser(state);
 
-    return termKeys.map(({key}) => key).join(' ').trim();
+    return mentionKeysForTypes(
+        types,
+        user?.username ?? '',
+        getCurrentUserMentionKeys(state),
+        getMyGroupMentionKeys(state, false),
+    );
 }
 
-export function showMentions(): ActionFunc<boolean> {
+// runMentionSearch is the single place a recent mentions search is assembled. The filters are held in
+// the RHS state rather than written into the search terms, so that the search box keeps showing the
+// mention keys and the chips have real ids to render names from.
+function runMentionSearch(filters: MentionFilters, teamId: string | null): ActionFunc<boolean> {
     return (dispatch, getState) => {
-        const terms = getMentionSearchTerms(getState()) + ' ';
+        const state = getState();
+        const mentionKeys = getMentionSearchKeys(state, filters.mentionTypes);
 
-        dispatch(performSearch(terms, '', true));
+        // Terms shown in the search box, without the filters. The trailing space lets the user keep
+        // typing after them.
+        const terms = mentionKeys.join(' ').trim() + ' ';
+
+        // With no keys to match, an in: or date filter on its own would return every post it allows
+        // rather than the mentions among them.
+        if (mentionKeys.length === 0) {
+            dispatch(clearSearch());
+        } else {
+            const query = buildMentionSearchQuery(mentionKeys, filters, getCurrentTimezone(state));
+            dispatch(performSearch(query, teamId ?? '', true));
+        }
+
         dispatch(batchActions([
             {
                 type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
@@ -481,11 +500,31 @@ export function showMentions(): ActionFunc<boolean> {
             },
             {
                 type: ActionTypes.UPDATE_RHS_SEARCH_TEAM,
-                teamId: null,
+                teamId,
+            },
+            {
+                type: ActionTypes.UPDATE_RHS_MENTION_FILTERS,
+                filters,
             },
         ]));
 
         return {data: true};
+    };
+}
+
+// showMentions opens recent mentions across every team, with no filters applied.
+export function showMentions(): ActionFunc<boolean> {
+    return (dispatch) => dispatch(runMentionSearch(defaultMentionFilters, null));
+}
+
+// updateMentionFilters re-runs the recent mentions search with a new set of filters. Changing the
+// team drops the channel filter, since those channels belong to the team being left.
+export function updateMentionFilters(filters: MentionFilters, teamId: string | null): ActionFunc<boolean> {
+    return (dispatch, getState) => {
+        const previousTeamId = getExplicitSearchTeam(getState());
+        const next = teamId === previousTeamId ? filters : {...filters, channelIds: []};
+
+        return dispatch(runMentionSearch(next, teamId));
     };
 }
 

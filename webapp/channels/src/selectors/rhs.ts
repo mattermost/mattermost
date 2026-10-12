@@ -18,7 +18,7 @@ import {localizeMessage} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-import type {RhsState, FakePost, SearchType} from 'types/store/rhs';
+import type {RhsState, FakePost, MentionFilters, SearchType} from 'types/store/rhs';
 
 export function getSelectedPostId(state: GlobalState): Post['id'] {
     return state.views.rhs.selectedPostId;
@@ -145,6 +145,10 @@ export function getSearchTeam(state: GlobalState): string {
 // scoped to one. Recent mentions search every team unless scoped, so callers need to tell the two apart.
 export function getExplicitSearchTeam(state: GlobalState): string | null {
     return state.views.rhs.searchTeam;
+}
+
+export function getMentionFilters(state: GlobalState): MentionFilters {
+    return state.views.rhs.mentionFilters;
 }
 
 export function getSearchType(state: GlobalState): SearchType {

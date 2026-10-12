@@ -44,6 +44,7 @@ import {
 
 import mockStore from 'tests/test_store';
 import {ActionTypes, RHSStates, Constants} from 'utils/constants';
+import {defaultMentionFilters} from 'utils/mention_search';
 import {TestHelper} from 'utils/test_helper';
 import {getUtcOffsetForTimeZone} from 'utils/timezone';
 
@@ -63,6 +64,8 @@ const previousSelectedPost = {
     root_id: 'root123',
 } as Post;
 
+const GroupSelectors = require('mattermost-redux/selectors/entities/groups');
+GroupSelectors.getMyGroupMentionKeys = jest.fn(() => []);
 const UserSelectors = require('mattermost-redux/selectors/entities/users');
 UserSelectors.getCurrentUserMentionKeys = jest.fn(() => [{key: '@here'}, {key: '@mattermost'}, {key: '@channel'}, {key: '@all'}]);
 
@@ -118,6 +121,7 @@ describe('rhs view actions', () => {
                 rhsState: null,
                 filesSearchExtFilter: [] as string[],
                 searchType: '',
+                mentionFilters: defaultMentionFilters,
             },
             posts: {
                 editingPost: {
@@ -476,7 +480,7 @@ describe('rhs view actions', () => {
 
             const compareStore = mockStore(initialState);
 
-            compareStore.dispatch(performSearch('@mattermost ', '', true));
+            compareStore.dispatch(performSearch('@mattermost', '', true));
             compareStore.dispatch(batchActions([
                 {
                     type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
@@ -490,9 +494,30 @@ describe('rhs view actions', () => {
                     type: ActionTypes.UPDATE_RHS_SEARCH_TEAM,
                     teamId: null,
                 },
+                {
+                    type: ActionTypes.UPDATE_RHS_MENTION_FILTERS,
+                    filters: defaultMentionFilters,
+                },
             ]));
 
             expect(store.getActions()).toEqual(compareStore.getActions());
+        });
+
+        test('it clears any filters left over from an earlier mention search', () => {
+            const filtered = cloneDeep(initialState);
+            set(filtered, 'views.rhs.mentionFilters', {channelIds: [currentChannelId], mentionTypes: ['direct'], date: 'today'});
+            set(filtered, 'views.rhs.searchTeam', currentTeamId);
+
+            store = mockStore(filtered);
+            store.dispatch(showMentions());
+
+            const searchAction = store.getActions().find(({type}) => type === 'MOCK_SEARCH_POSTS');
+            expect(searchAction.args[0]).toEqual('');
+            expect(searchAction.args[1].terms).toEqual('"@mattermost"');
+
+            const batch = store.getActions().find(({type}) => type === 'BATCHING_REDUCER.BATCH');
+            expect(batch.payload).toContainEqual({type: ActionTypes.UPDATE_RHS_MENTION_FILTERS, filters: defaultMentionFilters});
+            expect(batch.payload).toContainEqual({type: ActionTypes.UPDATE_RHS_SEARCH_TEAM, teamId: null});
         });
     });
 
@@ -746,7 +771,7 @@ describe('rhs view actions', () => {
             store.dispatch(openAtPrevious({isMentionSearch: true}));
             const compareStore = mockStore(initialState);
 
-            compareStore.dispatch(performSearch('@mattermost ', '', true));
+            compareStore.dispatch(performSearch('@mattermost', '', true));
             compareStore.dispatch(batchActions([
                 {
                     type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
@@ -759,6 +784,10 @@ describe('rhs view actions', () => {
                 {
                     type: ActionTypes.UPDATE_RHS_SEARCH_TEAM,
                     teamId: null,
+                },
+                {
+                    type: ActionTypes.UPDATE_RHS_MENTION_FILTERS,
+                    filters: defaultMentionFilters,
                 },
             ]));
 

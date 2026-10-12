@@ -36,6 +36,7 @@ import {popoutRhsSearch} from 'utils/popouts/popout_windows';
 import type {RhsState, SearchType} from 'types/store/rhs';
 
 import FilesFilterMenu from './files_filter_menu';
+import MentionFiltersButton, {MentionFilterChips} from './mention_filters';
 import MessageOrFileSelector from './messages_or_files_selector';
 import PostSearchResultsItem from './post_search_results_item';
 import SearchLimitsBanner from './search_limits_banner';
@@ -412,8 +413,10 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                 <h2 id='rhsPanelTitle'>
                     {formattedTitle}
                 </h2>
+                {isMentionSearch && <MentionFiltersButton/>}
                 {props.channelDisplayName && <div className='sidebar--right__title__channel'>{props.channelDisplayName}</div>}
             </SearchResultsHeader>
+            {isMentionSearch && <MentionFilterChips/>}
             {isMessagesSearch &&
                 <MessageOrFileSelector
                     selected={searchType}
