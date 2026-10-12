@@ -245,10 +245,32 @@ describe('scanSources', () => {
       html: {
         'index.html': `<iframe src="https://www.youtube.com/embed/abc"></iframe>
 <script src="https://fast.wistia.com/assets/external/E-v1.js"></script>
+<script src="https://fast.wistia.com/embed/medias/5gjgi10rr0.jsonp"></script>
 <img src="https://fast.wistia.com/embed/medias/x/swatch">`,
       },
     });
     assert.equal(hits.length, 0);
+  });
+
+  it('rejects fetch() to an embed host', () => {
+    const hits = scanSources({
+      html: {'index.html': stubHtml()},
+      js: {'app.js': 'fetch("https://www.youtube.com/embed/abc");'},
+    });
+    assert.equal(hits.length, 1);
+    assert.equal(hits[0].kind, 'fetch()');
+    assert.equal(hits[0].found, 'https://www.youtube.com/embed/abc');
+  });
+
+  it('rejects non-player paths on embed hosts', () => {
+    const hits = scanSources({
+      html: {
+        'index.html':
+          '<script src="https://www.youtube.com/yts/jsbin/player.js"></script>',
+      },
+    });
+    assert.equal(hits.length, 1);
+    assert.equal(hits[0].kind, 'script[src]');
   });
 
   it('still flags non-embed remote scripts', () => {
@@ -263,11 +285,41 @@ describe('scanSources', () => {
 });
 
 describe('isAllowedHostedEmbed', () => {
-  it('matches youtube and wistia hosts', () => {
-    assert.equal(isAllowedHostedEmbed('https://www.youtube.com/embed/x'), true);
-    assert.equal(isAllowedHostedEmbed('https://youtu.be/x'), true);
-    assert.equal(isAllowedHostedEmbed('//fast.wistia.com/embed/x'), true);
-    assert.equal(isAllowedHostedEmbed('https://cdn.example.com/x'), false);
+  it('allows player kinds/paths only', () => {
+    assert.equal(
+      isAllowedHostedEmbed('https://www.youtube.com/embed/x', 'iframe[src]'),
+      true,
+    );
+    assert.equal(
+      isAllowedHostedEmbed('//fast.wistia.com/embed/medias/x', 'iframe[src]'),
+      true,
+    );
+    assert.equal(
+      isAllowedHostedEmbed(
+        'https://fast.wistia.com/assets/external/E-v1.js',
+        'script[src]',
+      ),
+      true,
+    );
+    assert.equal(
+      isAllowedHostedEmbed(
+        'https://fast.wistia.com/embed/medias/x/swatch',
+        'img[src]',
+      ),
+      true,
+    );
+    assert.equal(
+      isAllowedHostedEmbed('https://www.youtube.com/embed/x', 'fetch()'),
+      false,
+    );
+    assert.equal(
+      isAllowedHostedEmbed('https://www.youtube.com/watch?v=x', 'iframe[src]'),
+      false,
+    );
+    assert.equal(
+      isAllowedHostedEmbed('https://cdn.example.com/x', 'iframe[src]'),
+      false,
+    );
   });
 });
 

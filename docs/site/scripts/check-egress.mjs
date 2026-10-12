@@ -95,16 +95,61 @@ function isAllowedDocsMeta(url) {
   }
 }
 
-export function isAllowedHostedEmbed(url) {
-  let host;
-  try {
-    host = new URL(reportUrl(url)).hostname.toLowerCase();
-  } catch {
-    return false;
-  }
+function isHostedEmbedHost(host) {
   return HOSTED_EMBED_BASES.some(
     (base) => host === base || host.endsWith('.' + base),
   );
+}
+
+function isYoutubeHost(host) {
+  return host === 'youtube.com' || host.endsWith('.youtube.com') || host === 'youtu.be' || host.endsWith('.youtu.be');
+}
+
+function isWistiaHost(host) {
+  return (
+    host === 'wistia.com' ||
+    host.endsWith('.wistia.com') ||
+    host === 'wistia.net' ||
+    host.endsWith('.wistia.net')
+  );
+}
+
+/** Allow only player tags/paths used by hosted docs embeds — not arbitrary host traffic. */
+export function isAllowedHostedEmbed(url, kind) {
+  let parsed;
+  try {
+    parsed = new URL(reportUrl(url));
+  } catch {
+    return false;
+  }
+  const host = parsed.hostname.toLowerCase();
+  if (!isHostedEmbedHost(host)) {
+    return false;
+  }
+  const path = parsed.pathname;
+
+  if (kind === 'iframe[src]') {
+    if (isYoutubeHost(host) && path.startsWith('/embed/')) {
+      return true;
+    }
+    if (isWistiaHost(host) && (path.startsWith('/embed/') || path.startsWith('/medias/'))) {
+      return true;
+    }
+    return false;
+  }
+  if (kind === 'script[src]') {
+    if (!isWistiaHost(host)) {
+      return false;
+    }
+    return (
+      path.startsWith('/assets/external/') ||
+      (path.startsWith('/embed/medias/') && path.endsWith('.jsonp'))
+    );
+  }
+  if (kind === 'img[src]') {
+    return isWistiaHost(host) && path.startsWith('/embed/medias/');
+  }
+  return false;
 }
 
 function lineAt(text, index) {
@@ -219,7 +264,7 @@ function htmlKind(tag, attr, ctx) {
 
 function pushViolation(violations, file, line, kind, found) {
   const url = reportUrl(found);
-  if (isAllowedFeed(url) || isAllowedHostedEmbed(url)) {
+  if (isAllowedFeed(url) || isAllowedHostedEmbed(url, kind)) {
     return;
   }
   violations.push({file, line, kind, found: url});
