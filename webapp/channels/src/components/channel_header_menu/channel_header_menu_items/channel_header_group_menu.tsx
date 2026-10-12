@@ -36,7 +36,6 @@ import MenuItemPluginItems from '../menu_items/plugins_submenu';
 import MenuItemToggleFavoriteChannel from '../menu_items/toggle_favorite_channel';
 import MenuItemToggleInfo from '../menu_items/toggle_info';
 import MenuItemToggleMuteChannel from '../menu_items/toggle_mute_channel';
-import MenuItemViewChannelMentions from '../menu_items/view_channel_mentions';
 import MenuItemViewPinnedPosts from '../menu_items/view_pinned_posts';
 
 interface Props extends Menu.FirstMenuItemProps {
@@ -67,7 +66,6 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                 channel={channel}
                 isMuted={isMuted}
             />
-            <MenuItemViewChannelMentions/>
             {isMobile && (
                 <>
                     <MenuItemToggleFavoriteChannel

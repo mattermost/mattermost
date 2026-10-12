@@ -489,44 +489,6 @@ export function showMentions(): ActionFunc<boolean> {
     };
 }
 
-// showChannelMentions opens recent mentions filtered down to the current channel.
-export function showChannelMentions(): ActionFunc<boolean> {
-    return (dispatch, getState) => {
-        const state = getState();
-        const channelName = getCurrentChannelNameForSearchShortcut(state);
-        const mentionTerms = getMentionSearchTerms(state);
-
-        // Without any terms to match, an in: filter on its own would return the whole channel rather
-        // than the mentions in it.
-        if (!channelName || !mentionTerms) {
-            return dispatch(showMentions());
-        }
-
-        // The in: filter matches channels by name, so the search is pinned to the current team to keep
-        // it from also matching same-named channels on the user's other teams.
-        const teamId = getCurrentTeamId(state);
-        const terms = `${mentionTerms} in:${channelName} `;
-
-        dispatch(performSearch(terms, teamId, true));
-        dispatch(batchActions([
-            {
-                type: ActionTypes.UPDATE_RHS_SEARCH_TERMS,
-                terms,
-            },
-            {
-                type: ActionTypes.UPDATE_RHS_STATE,
-                state: RHSStates.MENTION,
-            },
-            {
-                type: ActionTypes.UPDATE_RHS_SEARCH_TEAM,
-                teamId,
-            },
-        ]));
-
-        return {data: true};
-    };
-}
-
 export function showChannelInfo(channelId: string) {
     return {
         type: ActionTypes.UPDATE_RHS_STATE,
