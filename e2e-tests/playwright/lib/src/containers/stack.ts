@@ -377,7 +377,12 @@ export async function restartMattermostContainer(env: Record<string, string>, un
 
 async function restartMattermostContainerLocked(env: Record<string, string>, unset: string[]): Promise<void> {
     // Another process may have replaced the server while this one waited for the lock.
+    // reloadTestConfig() rebuilds serverImage from argv-based upgrade-phase detection, which is
+    // always false in a forked worker (no --project in its argv), so it would silently undo an
+    // in-progress upgradeServerImage() swap. Keep this process's own image intent across the reload.
+    const requestedServerImage = testConfig.serverImage;
     reloadTestConfig();
+    testConfig.serverImage = requestedServerImage;
 
     if (!testConfig.useTestContainers) {
         throw new Error('restartMattermostContainer requires PW_USE_TESTCONTAINERS=true.');
