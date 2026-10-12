@@ -313,6 +313,10 @@ func (c *Client4) deliveryTrackingRoute() clientRoute {
 	return newClientRoute("delivery_tracking")
 }
 
+func (c *Client4) healthFindingsRoute() clientRoute {
+	return newClientRoute("health").Join("findings")
+}
+
 func (c *Client4) postsEphemeralRoute() clientRoute {
 	return newClientRoute("posts").Join("ephemeral")
 }
@@ -8644,6 +8648,42 @@ func (c *Client4) RevealPost(ctx context.Context, postID string) (*Post, *Respon
 // If the user is not the author, the post will be expired for that user by updating their read receipt expiration time.
 func (c *Client4) BurnPost(ctx context.Context, postID string) (*Response, error) {
 	r, err := c.doAPIDelete(ctx, c.postRoute(postID).Join("burn"))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// Health Dashboard Section
+
+// GetHealthFindings returns the stored health findings, rendered in the client's locale, and
+// when the server last evaluated them. Only filter.Muted is sent; the server decides which
+// surfaces are returned.
+func (c *Client4) GetHealthFindings(ctx context.Context, filter HealthFindingFilter) (*HealthFindingList, *Response, error) {
+	query := url.Values{}
+	if filter.Muted != MutedExcluded {
+		query.Set("muted", string(filter.Muted))
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.healthFindingsRoute(), query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*HealthFindingList](r)
+}
+
+func (c *Client4) MuteHealthFinding(ctx context.Context, fingerprint string) (*Response, error) {
+	r, err := c.doAPIPost(ctx, c.healthFindingsRoute().Join(fingerprint, "mute"), "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) UnmuteHealthFinding(ctx context.Context, fingerprint string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.healthFindingsRoute().Join(fingerprint, "mute"))
 	if err != nil {
 		return BuildResponse(r), err
 	}

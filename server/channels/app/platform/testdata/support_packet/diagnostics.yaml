@@ -1,0 +1,101 @@
+version: 2
+license:
+  company: Example Co
+  users: 150
+  sku_short_name: enterprise
+  is_trial: true
+  is_non_production: true
+server:
+  # Machine
+  os: linux
+  architecture: amd64
+  hostname: mm-host
+  installation_type: docker
+  # Capacity (hardware → effective quota)
+  cpu_cores: 8 # logical CPUs visible to the OS
+  total_memory_mb: 32768 # host/VM total RAM; may exceed container limit
+  container_cpu_limit: 6.5 # cgroup v2 CPU quota in CPUs; Linux only, omitted if no limit set
+  container_memory_limit_mb: 16384 # cgroup v2 memory quota in MB; Linux only, omitted if no limit set
+  # Process lifecycle
+  process_id: 90210
+  started_at: 2026-01-02T03:04:05Z # when Mattermost process started
+  host_started_at: 2025-12-30T00:00:00Z # when the host OS booted; omitted if unavailable
+  open_file_descriptors: 512 # current open FDs for this process
+  max_file_descriptors: 8192 # system limit (ulimit -n)
+  # Software
+  version: 11.0.0
+  build_hash: abc123
+  go_version: go1.26
+config:
+  store_type: memory://
+database:
+  type: postgres
+  version: "16.4"
+  schema_version: "123"
+  master_connections: 40
+  replica_connections: 20
+  search_connections: 10
+  master_connections_in_use: 5
+  master_connections_idle: 35
+  master_pool_wait_count: 100 # cumulative; total times a goroutine waited for a connection since process start
+  master_pool_wait_duration_ms: 220 # cumulative wait time across all goroutines since process start
+  master_connections_closed_max_idle: 2 # cumulative; connections closed because the idle pool was full
+  master_connections_closed_max_lifetime: 1 # cumulative; connections closed for exceeding ConnMaxLifetime
+  replica_connections_in_use: 3
+  replica_connections_idle: 17
+  replica_pool_wait_count: 12 # cumulative across all replicas; see master_pool_wait_count
+  replica_pool_wait_duration_ms: 66 # cumulative across all replicas
+  replica_connections_closed_max_idle: 4 # cumulative across all replicas
+  replica_connections_closed_max_lifetime: 3 # cumulative across all replicas
+  # PostgreSQL-only (these fields are omitted on MySQL)
+  cache_hit_ratio: 0.99 # blks_hit / (blks_hit + blks_read) from pg_stat_database; cumulative since stats reset
+  deadlocks: 3 # cumulative since pg_stat_database reset
+  temp_files: 4 # cumulative count of temp files created since stats reset
+  temp_bytes_mb: 12.5 # cumulative bytes written to temp files, in MB
+  rollbacks: 2 # cumulative transaction rollbacks since stats reset
+  idle_in_transaction_count: 1 # point-in-time count from pg_stat_activity
+  longest_query_duration_seconds: 7.25 # point-in-time; max age of any active query right now
+  waiting_for_lock_count: 5 # point-in-time count of backends waiting on a Lock wait_event_type
+  posts_dead_tuples: 9 # n_dead_tup for the posts table from pg_stat_user_tables
+  posts_last_autovacuum: 2026-07-10T12:13:14Z # last autovacuum on posts; null if never autovacuumed (then omitted)
+file_store:
+  file_status: OK
+  file_driver: local
+  filesystem_type: ext4 # local driver only (e.g. ext4, xfs); omitted for s3 and other remote drivers
+  total_mb: 204800 # local driver only; capacity of the volume hosting FileSettings.Directory
+  available_mb: 102400 # local driver only; free space remaining on that volume
+websocket:
+  connections: 77
+cluster:
+  id: cluster-id
+  number_of_nodes: 3
+notifications:
+  email:
+    status: OK
+  push:
+    status: FAIL
+    error: proxy timeout
+ldap:
+  status: OK
+  server_name: OpenLDAP
+  server_version: "2.6"
+saml:
+  provider_type: Keycloak
+  status: disabled
+elastic:
+  status: OK
+  backend: elasticsearch
+  server_version: 8.0.0
+  server_plugins:
+  - analysis-icu
+  - ingest-attachment
+oauth_providers:
+  gitlab:
+    status: OK
+  google:
+    status: FAIL
+    error: dial tcp timeout
+  office365:
+    status: disabled
+  openid:
+    status: OK

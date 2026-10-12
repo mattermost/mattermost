@@ -89,8 +89,8 @@ func (s *memoryStore) Upsert(findings []*model.HealthFinding) error {
 	for fp, finding := range deduped {
 		stored := cloneFinding(finding)
 		stored.PreSave()
-		// Summary/Remediation/Message are rendered at the read boundary; the store never holds them.
-		stored.Summary = ""
+		// Title/Remediation/Message are rendered at the read boundary; the store never holds them.
+		stored.Title = ""
 		stored.Remediation = ""
 		stored.Message = ""
 

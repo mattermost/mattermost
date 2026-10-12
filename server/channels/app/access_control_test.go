@@ -2386,12 +2386,12 @@ func TestIsSystemPolicyAppliedToChannel(t *testing.T) {
 	})
 }
 
-func TestHasPermissionToFileAction(t *testing.T) {
+func TestHasPermissionToChannelAction(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	t.Run("should allow when access control service is nil", func(t *testing.T) {
 		th.App.Srv().ch.AccessControl = nil
-		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
+		result := th.App.HasPermissionToChannelAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
 		assert.True(t, result)
 	})
 
@@ -2405,7 +2405,7 @@ func TestHasPermissionToFileAction(t *testing.T) {
 			cfg.FeatureFlags.PermissionPolicies = true
 		})
 
-		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
+		result := th.App.HasPermissionToChannelAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
 		assert.True(t, result)
 	})
 
@@ -2419,7 +2419,7 @@ func TestHasPermissionToFileAction(t *testing.T) {
 			cfg.FeatureFlags.PermissionPolicies = false
 		})
 
-		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
+		result := th.App.HasPermissionToChannelAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
 		assert.True(t, result)
 	})
 
@@ -2439,7 +2439,7 @@ func TestHasPermissionToFileAction(t *testing.T) {
 				req.Action == model.AccessControlPolicyActionDownloadFileAttachment
 		})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
 
-		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
+		result := th.App.HasPermissionToChannelAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
 		assert.False(t, result)
 	})
 
@@ -2456,7 +2456,7 @@ func TestHasPermissionToFileAction(t *testing.T) {
 		mockAccessControl.On("AccessEvaluation", mock.Anything, mock.Anything).
 			Return(model.AccessDecision{}, model.NewAppError("AccessEvaluation", "app.pdp.access_evaluation.app_error", nil, "", http.StatusInternalServerError))
 
-		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
+		result := th.App.HasPermissionToChannelAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
 		assert.False(t, result)
 	})
 }

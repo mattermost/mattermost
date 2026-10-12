@@ -73,8 +73,9 @@ export function buildChannelFieldPayload(
 /**
  * The inverse of buildChannelFieldPayload, so a field it wrote round-trips unchanged.
  *
- * Unknown actions are dropped rather than carried: a location the row cannot show
- * must not survive a save through it.
+ * Actions outside CHANNEL_DISPLAY_LOCATIONS (e.g. display_banner_bottom) are dropped.
+ * display_label_info is kept even though the console no longer offers a checkbox for
+ * it, so a save does not rewrite backend state the UI is only hiding.
  */
 export function parseChannelFieldConfig(field: PropertyField): ChannelResourceConfig {
     const rawActions = field.attrs?.actions;

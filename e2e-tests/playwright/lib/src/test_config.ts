@@ -259,7 +259,8 @@ export class TestConfig {
         // stale file pointing at a container that's no longer running is detected and reset
         // elsewhere, before a fresh container starts.
         this.bootEnvOverrides =
-            parsePersistedBootEnv(process.env.PW_TESTCONTAINERS_BOOT_ENV) ?? computeDefaultBootEnv(this.serverEnv);
+            parsePersistedBootEnv(process.env.PW_TESTCONTAINERS_BOOT_ENV) ??
+            computeDefaultBootEnv(this.serverEnv, this.subpathMode, this.nginxUrl);
 
         // Testcontainers — service-specific (opt-in additional services)
         this.ldapHost = process.env.PW_LDAP_HOST || 'localhost';
@@ -305,11 +306,18 @@ function parseKeyValueList(actualValue: string | undefined): Record<string, stri
 // Mirrors startMattermostContainer()'s actual default boot env: baseline plus MM_ENV overrides
 // (same precedence), plus the two settings it never sets itself, so the server falls back to
 // its own defaults for those.
-function computeDefaultBootEnv(serverEnv: Record<string, string>): Record<string, string> {
+function computeDefaultBootEnv(
+    serverEnv: Record<string, string>,
+    subpathMode: boolean,
+    nginxUrl: string,
+): Record<string, string> {
     return {
         ...SERVER_ENV_BASELINE,
         MM_FILESETTINGS_DRIVERNAME: 'local',
         MM_ELASTICSEARCHSETTINGS_BACKEND: 'elasticsearch',
+        // Mirrors resolveMattermostBootEnv()'s subpath override, so a fresh boot's expected
+        // env matches what the server actually starts with in subpath mode.
+        ...(subpathMode ? {MM_SERVICESETTINGS_SITEURL: `${nginxUrl}${SUBPATH_DEFAULT}`} : {}),
         ...serverEnv,
     };
 }
@@ -319,7 +327,7 @@ function computeDefaultBootEnv(serverEnv: Record<string, string>): Record<string
  * persisted boot env turns out to reference a container that's no longer running.
  */
 export function defaultBootEnv(): Record<string, string> {
-    return computeDefaultBootEnv(testConfig.serverEnv);
+    return computeDefaultBootEnv(testConfig.serverEnv, testConfig.subpathMode, testConfig.nginxUrl);
 }
 
 function parsePersistedBootEnv(actualValue: string | undefined): Record<string, string> | undefined {
@@ -366,4 +374,10 @@ function parseTestContainersServices(actualValue: string | undefined): TestConta
         );
     }
     return requested as TestContainersServiceName[];
+}
+
+/** Re-reads .env.testcontainers, which another process may have written since this one started. */
+export function reloadTestConfig(): void {
+    dotenv.config({path: '.env.testcontainers', quiet: true, override: true});
+    Object.assign(testConfig, new TestConfig());
 }

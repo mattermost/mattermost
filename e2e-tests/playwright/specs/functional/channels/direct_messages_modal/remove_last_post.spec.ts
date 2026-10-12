@@ -27,5 +27,5 @@ test('MM-T218 removes the last post without leaving the direct message', {tag: '
 
     // * Verify the post is gone and the direct-message route remains open
     await expect(post.container).not.toBeVisible();
-    await expect(page).toHaveURL(`/${team.name}/messages/@${otherUser.username}`);
+    await expect(page).toHaveURL(new RegExp(`/${team.name}/messages/@${otherUser.username}$`));
 });

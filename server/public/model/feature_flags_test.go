@@ -27,17 +27,19 @@ func TestFeatureFlagsSetDefaults(t *testing.T) {
 		require.Equal(t, "false", m["ClassificationMarkings"])
 	})
 
-	t.Run("ChannelAttributes should default to false and serialize correctly", func(t *testing.T) {
-		require.False(t, f.ChannelAttributes)
-		require.Equal(t, "false", f.ToMap()["ChannelAttributes"])
-
-		f.ChannelAttributes = true
+	t.Run("ChannelAttributes should default to true and serialize correctly", func(t *testing.T) {
+		require.True(t, f.ChannelAttributes)
 		require.Equal(t, "true", f.ToMap()["ChannelAttributes"])
 	})
 
 	t.Run("MmBlocksEnabled defaults to true", func(t *testing.T) {
 		require.True(t, f.MmBlocksEnabled)
 		require.Equal(t, "true", f.ToMap()["MmBlocksEnabled"])
+	})
+
+	t.Run("HealthDashboard defaults to false", func(t *testing.T) {
+		require.False(t, f.HealthDashboard)
+		require.Equal(t, "false", f.ToMap()["HealthDashboard"])
 	})
 }
 
@@ -104,8 +106,16 @@ func TestFeatureFlagsSetDefaults_PropertyFieldGraph(t *testing.T) {
 	var flags FeatureFlags
 	flags.SetDefaults()
 
-	require.False(t, flags.PropertyFieldGraph, "PropertyFieldGraph should default to false")
-	require.Equal(t, "false", flags.ToMap()["PropertyFieldGraph"])
+	require.True(t, flags.PropertyFieldGraph, "PropertyFieldGraph should default to true")
+	require.Equal(t, "true", flags.ToMap()["PropertyFieldGraph"])
+}
+
+func TestFeatureFlagsSetDefaults_ResourceAttributesInPolicies(t *testing.T) {
+	var flags FeatureFlags
+	flags.SetDefaults()
+
+	require.True(t, flags.ResourceAttributesInPolicies, "ResourceAttributesInPolicies should default to true")
+	require.Equal(t, "true", flags.ToMap()["ResourceAttributesInPolicies"])
 }
 
 func TestFeatureFlagsSetDefaults_TeamMembershipAccessControl(t *testing.T) {
