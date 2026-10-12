@@ -16,6 +16,17 @@ export type TeamMembersModalProps = {onLoad?: () => void; focusOriginElement?: s
 export type LeaveTeamModalProps = Record<string, never>;
 export type FilePreviewModalProps = {fileInfos: FileInfo[]; post?: Post; postId?: string; startIndex?: number};
 
+// channelTypePluginId offers only that plugin's registered channel types, under the given title.
+export type NewChannelModalProps = {
+    channelTypePluginId?: string;
+    modalHeaderText?: string;
+    nameLabel?: string;
+    namePlaceholder?: string;
+    purposeLabel?: string;
+    purposeHelpText?: string;
+    categoryHelpText?: string;
+};
+
 export type PublishedModalProps = {
     user_settings: UserSettingsModalProps;
     invitation: InvitationModalProps;
@@ -23,6 +34,7 @@ export type PublishedModalProps = {
     team_members: TeamMembersModalProps;
     leave_team: LeaveTeamModalProps;
     file_preview_modal: FilePreviewModalProps;
+    new_channel_modal: NewChannelModalProps;
 };
 
 export type PublishedModalId = keyof PublishedModalProps;
