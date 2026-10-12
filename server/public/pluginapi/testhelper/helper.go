@@ -144,13 +144,18 @@ func acquireInstance(t *testing.T) {
 }
 
 // leaseTimeout fires 10s before the test binary's deadline, so a deadlocked test fails
-// with a hint instead of the binary panicking. Without a deadline it blocks forever.
+// with a hint instead of the binary panicking. Without a deadline, or with less than 10s
+// left, it blocks forever: a timer that is already due would race the free-slot case.
 func leaseTimeout(t *testing.T) <-chan time.Time {
 	deadline, ok := t.Deadline()
 	if !ok {
 		return nil
 	}
-	return time.After(time.Until(deadline) - 10*time.Second)
+	d := time.Until(deadline) - 10*time.Second
+	if d <= 0 {
+		return nil
+	}
+	return time.After(d)
 }
 
 // Setup starts containers (once per test binary), resets the database, deploys the plugin,
