@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ComponentProps} from 'react';
+import React from 'react';
 import styled from 'styled-components';
 
-import {Button} from 'components/compass_ui_button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import {SectionContent} from '../system_properties/controls';
 
@@ -92,14 +94,14 @@ export const AddLevelButtonRow = styled.div`
     margin-left: 16px;
 `;
 
-export const AddLevelButton = styled(Button).attrs({
-    type: 'button',
-    emphasis: 'tertiary',
-})`
-    && {
-        padding-inline: 16px;
-    }
-`;
+export const AddLevelButton = ({style, ...props}: ComponentProps<typeof Button>) => (
+    <Button
+        type='button'
+        emphasis='tertiary'
+        style={{paddingInline: 16, ...style}}
+        {...props}
+    />
+);
 
 export const TableWrapper = styled.div`
     table.adminConsoleListTable {
@@ -213,11 +215,8 @@ export const ActionsCell = styled.div`
     text-align: right;
 `;
 
-export const DeleteButton = styled(Button).attrs({
-    size: 'small',
-    emphasis: 'tertiary',
-    className: 'btn-transparent',
-})`
+// Native button (not Compass) — hover styles without styled(CompassButton).
+export const DeleteButton = styled.button.attrs({className: 'btn btn-sm btn-transparent'})`
     &:hover {
         background: rgba(var(--error-text-color-rgb, 210, 75, 78), 0.08);
     }

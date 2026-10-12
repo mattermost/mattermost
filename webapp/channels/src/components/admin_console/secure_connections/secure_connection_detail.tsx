@@ -11,6 +11,7 @@ import {useHistory, useParams, useLocation} from 'react-router-dom';
 import styled from 'styled-components';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {isRemoteClusterPatch, type RemoteCluster} from '@mattermost/types/remote_clusters';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -19,7 +20,6 @@ import {setNavigationBlocked} from 'actions/admin_actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import {compassIconForName, useChannelIconOverrideName} from 'components/channel_type_icon';
-import {Button} from 'components/compass_ui_button';
 import ExternalLink from 'components/external_link';
 import LoadingScreen from 'components/loading_screen';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
@@ -366,9 +366,12 @@ const Placeholder = (props: {filter: 'home' | 'remote'; rc: RemoteCluster}) => {
     );
 };
 
-const AddChannelsButton = styled(Button)`
-    padding-left: 15px;
-`;
+const AddChannelsButton = ({style, ...props}: React.ComponentProps<typeof Button>) => (
+    <Button
+        style={{paddingLeft: 15, ...style}}
+        {...props}
+    />
+);
 
 const TabsWrapper = styled.div`
     .tabs {
