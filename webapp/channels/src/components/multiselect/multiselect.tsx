@@ -282,7 +282,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
         return (
             <>
                 <Avatar
-                    size='small'
+                    size='sm'
                     username={user.username}
                     url={profileImg}
                 />
