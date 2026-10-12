@@ -45,6 +45,7 @@ Platform and OS scope reflects reported and tested environments and may not repr
  - Removed the **System Console > System Attributes > User Attributes** page on Enterprise plans. Existing Custom Profile Attributes (User Attributes) fields are migrated automatically into **Attribute Management** on server startup and are managed there from v12.0. The old page's URL redirects to Attribute Management.
  - ``PATCH`` and ``DELETE`` requests to ``/api/v4/custom_profile_attributes/fields/{field_id}`` now return HTTP 400 when the field is linked to an Attribute Management template, with an error pointing to the Global Attributes API. On Enterprise plans, eligible existing User Attributes fields are linked to templates automatically on server startup, so scripts and integrations that edit or delete these fields through the User Attributes API must use the Global Attributes API instead.
  - The ``LocalizationSettings.EnableExperimentalLocales`` configuration setting has been removed, along with most of the work-in-progress translation catalogs it exposed. Danish is now a supported language, and Czech, Croatian, Finnish, Lithuanian, Norwegian Bokmål and Portuguese (Portugal) are available to all users as experimental languages without the setting. Users who had selected any other removed language see Mattermost in English. The setting is ignored if left in an existing ``config.json``.
+ - Removed the Belarusian language. Users who had Belarusian selected now see the default language.
  - ``ServiceSettings.ExperimentalEnableHardenedMode`` is deprecated and replaced by ``ServiceSettings.EnableHardenedMode``, which has moved from **System Console > Experimental > Features** to **System Console > Environment > Web Server**. An existing value is carried over to ``EnableHardenedMode`` automatically on upgrade. After that, the server reads only ``EnableHardenedMode``, so update any configuration management, environment variables, or scripts that still set the old setting.
 
 </Important>
@@ -92,10 +93,11 @@ New setting options were added to ``config.json``. Below is a list of the additi
    - Moved the Email Batching Buffer Size, Email Batching Interval, and Use Channel Name in Email Notifications settings from System Console > Experimental > Features to System Console > Site Configuration > Notifications.
    - Moved the **Enable Account Deactivation** and **User Status Away Timeout** settings (``TeamSettings.EnableUserDeactivation`` and ``TeamSettings.UserStatusAwayTimeout``) from System Console > Experimental > Features to System Console > Site Configuration > Users and Teams.
    - Moved the **Enable Channel Viewed WebSocket Messages** setting (``ServiceSettings.EnableChannelViewedMessages``) from System Console > Experimental > Features to System Console > Environment > Web Server.
-   - Moved the Enable Theme Selection, Allow Custom Themes, Default Theme, Enable Tutorial, and Enable Onboarding settings from System Console > Experimental > Features to System Console > Site Configuration > Customization.
+   - Moved the Enable Tutorial and Enable Onboarding settings from System Console > Experimental > Features to System Console > Site Configuration > Customization.
    - Removed the ``atmos/camo`` remote image proxy type. Deployments with ``ImageProxySettings.ImageProxyType`` set to ``atmos/camo`` are automatically changed to ``local`` on upgrade, and a warning is logged.
  - **Changes to Professional, Enterprise, and Enterprise Advanced plans:**
    - Added ``ThemeSettings.AllowedThemes`` to System Console > Site Configuration > Customization; it was previously configurable only by editing ``config.json``.
+   - Moved the Enable Theme Selection, Allow Custom Themes, and Default Theme settings from System Console > Experimental > Features to System Console > Site Configuration > Customization.
  - **Changes to Entry and Enterprise Advanced plans:**
    - Removed ``NativeAppSettings.EnableIntuneMAM`` configuration setting. Use ``IntuneSettings.Enable`` instead.
  - **Changes to Enterprise and Enterprise Advanced plans:**

@@ -23,7 +23,7 @@ We recommend reviewing the [additional upgrade notes](#additional-upgrade-notes)
 </thead>
 <tbody>
 <tr>
-<td rowspan="25">v12.0</td>
+<td rowspan="26">v12.0</td>
 <td><p>This release includes a database migration that increases the maximum message length from 16,383 to 262,144 characters by widening the <code>message</code> column from <code>VARCHAR(65535)</code> to <code>VARCHAR(1048576)</code>. The message limit is a quarter of the column size, to allow for characters of up to four bytes. Widening <code>VARCHAR</code> is metadata-only on supported PostgreSQL versions, but the migration still takes a brief <code>ACCESS EXCLUSIVE</code> lock on each affected table, including <code>posts</code>. Acquiring this lock can be delayed by active or idle-in-transaction database sessions, and reads and writes on the table wait while it is pending. To keep the lock short, the full-text index on post messages (<code>idx_posts_message_txt</code>) is dropped before the column is widened and rebuilt concurrently by a later migration, so database full-text search of posts runs without that index until the rebuild completes. Large or busy deployments should test the migration and schedule a maintenance window.</p></td>
 </tr>
 <tr>
@@ -55,6 +55,9 @@ We recommend reviewing the [additional upgrade notes](#additional-upgrade-notes)
 </tr>
 <tr>
 <td><p>The <code>LocalizationSettings.EnableExperimentalLocales</code> configuration setting has been removed, along with most of the work-in-progress translation catalogs it exposed. Danish is now a supported language, and Czech, Croatian, Finnish, Lithuanian, Norwegian Bokmål and Portuguese (Portugal) are available to all users as experimental languages without the setting. Users who had selected any other removed language see Mattermost in English. The setting is ignored if left in an existing <code>config.json</code>.</p></td>
+</tr>
+<tr>
+<td><p>Removed the Belarusian language. Users who had Belarusian selected now see the default language.</p></td>
 </tr>
 <tr>
 <td><p>The minimum supported PostgreSQL version is now v15. PostgreSQL v14 and earlier are no longer supported. Upgrade your database to PostgreSQL v15 or later <em>before</em> upgrading the server. See the <a href={useBaseUrl('/deployment-guide/software-hardware-requirements#minimum-postgresql-database-support-policy')}>minimum supported PostgreSQL version policy</a> for details.</p></td>
