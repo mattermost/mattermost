@@ -25,17 +25,13 @@ test('shows validation errors for empty login fields', {tag: '@authentication'},
 test('MM-T1760 hides the create-account link when open server is disabled', {tag: '@authentication'}, async ({pw}) => {
     const {adminClient} = await pw.getAdminClient();
 
-    try {
-        // # Disable open server
-        await adminClient.patchConfig({TeamSettings: {EnableOpenServer: false}});
+    // # Disable open server
+    await adminClient.patchConfig({TeamSettings: {EnableOpenServer: false}});
 
-        await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
+    await pw.hasSeenLandingPage();
+    await pw.loginPage.goto();
+    await pw.loginPage.toBeVisible();
 
-        // * Verify the create-account link is hidden
-        await expect(pw.loginPage.createAccountLink).toBeHidden();
-    } finally {
-        await adminClient.patchConfig({TeamSettings: {EnableOpenServer: true}});
-    }
+    // * Verify the create-account link is hidden
+    await expect(pw.loginPage.createAccountLink).toBeHidden();
 });
