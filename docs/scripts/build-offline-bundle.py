@@ -1,19 +1,43 @@
 #!/usr/bin/env python3
-"""Hardlink-dedup images, drop sitemaps, emit client/_documentation tarball.
+"""Hardlink-dedup images, drop sitemaps/embeds, emit client/_documentation tarball.
 
 Usage: build-offline-bundle.py <build-dir> <output-tarball.tar.gz>
 
 Redirect stubs are kept (~1 MB uncompressed); dropping them breaks legacy URLs.
+YouTube/Wistia players stay on the hosted site; this script strips them so the
+airgap bundle does not reference those CDNs.
 """
 
 from __future__ import annotations
 
 import hashlib
 import os
+import re
 import sys
 import tarfile
 
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".ico", ".avif", ".mp4"}
+
+# Hosts kept on docs.mattermost.com but removed from the offline tarball.
+_EMBED_HOST = r"(?:(?:www\.)?youtube\.com|youtu\.be|(?:[\w-]+\.)?wistia\.(?:com|net))"
+_IFRAME_EMBED_RE = re.compile(
+    rf'<iframe\b[^>]*\bsrc=["\']https?://{_EMBED_HOST}[^"\']*["\'][^>]*>\s*</iframe>',
+    re.I,
+)
+_SCRIPT_EMBED_RE = re.compile(
+    rf'<script\b[^>]*\bsrc=["\']https?://{_EMBED_HOST}[^"\']*["\'][^>]*>\s*</script>',
+    re.I,
+)
+_IMG_EMBED_RE = re.compile(
+    rf'<img\b[^>]*\bsrc=["\']https?://{_EMBED_HOST}[^"\']*["\'][^>]*/?>',
+    re.I,
+)
+# Wistia player chrome from the MDX embed (nested responsive wrappers).
+_WISTIA_DIV_RE = re.compile(
+    r'<div\b[^>]*\bclass=["\'][^"\']*\bwistia_responsive_padding\b[^"\']*["\'][^>]*>'
+    r'.*?</div>\s*</div>\s*</div>\s*</div>',
+    re.I | re.S,
+)
 
 
 def die(msg: str) -> None:
@@ -105,6 +129,41 @@ def strip_sitemaps(build_dir: str) -> int:
     return sitemaps
 
 
+def strip_hosted_embeds_html(html: str) -> tuple[str, int]:
+    """Remove YouTube/Wistia players from built HTML. Returns (html, removals)."""
+    removed = 0
+
+    def sub(pattern: re.Pattern[str], text: str) -> str:
+        nonlocal removed
+        text, n = pattern.subn("", text)
+        removed += n
+        return text
+
+    html = sub(_IFRAME_EMBED_RE, html)
+    html = sub(_SCRIPT_EMBED_RE, html)
+    html = sub(_WISTIA_DIV_RE, html)
+    html = sub(_IMG_EMBED_RE, html)
+    return html, removed
+
+
+def strip_hosted_embeds(build_dir: str) -> int:
+    removed = 0
+    for path in walk_files(build_dir):
+        if not path.lower().endswith(".html"):
+            continue
+        try:
+            original = open(path, encoding="utf-8").read()
+        except OSError:
+            continue
+        next_html, n = strip_hosted_embeds_html(original)
+        if n == 0:
+            continue
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(next_html)
+        removed += n
+    return removed
+
+
 def disk_usage(root: str) -> tuple[int, int, int]:
     """Returns (file_count, apparent_bytes, unique_inode_bytes)."""
     files = 0
@@ -156,6 +215,9 @@ def main() -> None:
 
     sitemaps = strip_sitemaps(build_dir)
     print(f"[build-offline-bundle] stripped: {sitemaps} sitemap(s)")
+
+    embeds = strip_hosted_embeds(build_dir)
+    print(f"[build-offline-bundle] stripped: {embeds} YouTube/Wistia embed tag(s)")
 
     final_files, final_app, final_unique = disk_usage(build_dir)
     print(f"[build-offline-bundle] final tree: {final_files:,} files, "
