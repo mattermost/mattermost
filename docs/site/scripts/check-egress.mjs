@@ -15,6 +15,25 @@ export const DOCS_HOST = 'docs.mattermost.com';
 export const EMPTY_BUILD_MESSAGE =
   'docs/site/build is missing or empty; run npm run build first';
 
+// Hosted docs keep YouTube/Wistia players; build-offline-bundle.py strips them
+// from the airgap tarball. Allowlisted so check-egress matches the public site.
+const HOSTED_EMBED_HOST_SUFFIXES = [
+  '.youtube.com',
+  '.youtu.be',
+  '.wistia.com',
+  '.wistia.net',
+];
+const HOSTED_EMBED_HOSTS = new Set([
+  'youtube.com',
+  'www.youtube.com',
+  'youtu.be',
+  'www.youtu.be',
+  'wistia.com',
+  'www.wistia.com',
+  'fast.wistia.com',
+  'wistia.net',
+]);
+
 const TEXT_EXT = new Set(['.html', '.css', '.js']);
 // Attribute-name boundary: \b matches after - and :, so data-src / xlink:href
 // must not count as src / href. Require whitespace, quote, or / before the name.
@@ -84,6 +103,21 @@ function isAllowedDocsMeta(url) {
   } catch {
     return false;
   }
+}
+
+export function isAllowedHostedEmbed(url) {
+  let host;
+  try {
+    host = new URL(reportUrl(url)).hostname.toLowerCase();
+  } catch {
+    return false;
+  }
+  if (HOSTED_EMBED_HOSTS.has(host)) {
+    return true;
+  }
+  return HOSTED_EMBED_HOST_SUFFIXES.some(
+    (suffix) => host.endsWith(suffix) && host.length > suffix.length,
+  );
 }
 
 function lineAt(text, index) {
@@ -198,7 +232,7 @@ function htmlKind(tag, attr, ctx) {
 
 function pushViolation(violations, file, line, kind, found) {
   const url = reportUrl(found);
-  if (isAllowedFeed(url)) {
+  if (isAllowedFeed(url) || isAllowedHostedEmbed(url)) {
     return;
   }
   violations.push({file, line, kind, found: url});
@@ -450,8 +484,8 @@ export function formatReport(rootLabel, violations) {
     `[check-egress] ${violations.length} external resource(s) in ${rootLabel} ` +
       `(scanned ${html} html, ${css} css, ${js} js).`,
     '',
-    'A browser would fetch these. The offline bundle must not. Self-host the',
-    'asset or remove the tag. Do not add allowlist entries without a design review.',
+    'A browser would fetch these. Self-host the asset or remove the tag.',
+    'Do not add allowlist entries without a design review.',
     '',
   ];
 
@@ -469,6 +503,9 @@ export function formatReport(rootLabel, violations) {
     `  - <link rel=canonical> and og:*/twitter:* meta on https://${DOCS_HOST}`,
   );
   lines.push('  - <a href> / <area href> (never fetched; includes editUrl)');
+  lines.push(
+    '  - YouTube/Wistia embeds (hosted site only; stripped in offline packaging)',
+  );
   lines.push('');
   return lines.join('\n');
 }

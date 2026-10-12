@@ -9,6 +9,7 @@ import {fileURLToPath} from 'node:url';
 import {
   EMPTY_BUILD_MESSAGE,
   FEED_URL,
+  isAllowedHostedEmbed,
   main,
   scanBuild,
   scanSources,
@@ -237,6 +238,36 @@ describe('scanSources', () => {
     assert.throws(() => scanSources({css: {'a.css': 'body{}'}}), {
       message: EMPTY_BUILD_MESSAGE,
     });
+  });
+
+  it('allows YouTube iframes and Wistia scripts/images', () => {
+    const hits = scanSources({
+      html: {
+        'index.html': `<iframe src="https://www.youtube.com/embed/abc"></iframe>
+<script src="https://fast.wistia.com/assets/external/E-v1.js"></script>
+<img src="https://fast.wistia.com/embed/medias/x/swatch">`,
+      },
+    });
+    assert.equal(hits.length, 0);
+  });
+
+  it('still flags non-embed remote scripts', () => {
+    const hits = scanSources({
+      html: {
+        'index.html':
+          '<script src="https://cdn.example.com/foo.js"></script>',
+      },
+    });
+    assert.equal(hits.length, 1);
+  });
+});
+
+describe('isAllowedHostedEmbed', () => {
+  it('matches youtube and wistia hosts', () => {
+    assert.equal(isAllowedHostedEmbed('https://www.youtube.com/embed/x'), true);
+    assert.equal(isAllowedHostedEmbed('https://youtu.be/x'), true);
+    assert.equal(isAllowedHostedEmbed('//fast.wistia.com/embed/x'), true);
+    assert.equal(isAllowedHostedEmbed('https://cdn.example.com/x'), false);
   });
 });
 
