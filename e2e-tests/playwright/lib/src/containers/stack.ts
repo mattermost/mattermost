@@ -403,7 +403,7 @@ async function restartMattermostContainerLocked(env: Record<string, string>, uns
         testConfig.bootEnvOverrides,
     );
 
-    testConfig.baseURL = resolveUrl(mattermost, MATTERMOST_PORT, MATTERMOST_ALIAS);
+    testConfig.baseURL = resolveMattermostBaseURL(mattermost);
     testConfig.mattermostContainerId = mattermost.getId();
     clearClientCache();
 
@@ -560,6 +560,16 @@ function resolveUrl(container: StartedTestContainer, port: number, alias: string
         return `${scheme}://${alias}:${port}`;
     }
     return `${scheme}://${container.getHost()}:${container.getMappedPort(port)}`;
+}
+
+// Subpath mode boots the server with SiteURL under the nginx proxy (resolveMattermostBootEnv()),
+// so baseURL must route through nginx too, not the Mattermost container's own port — otherwise
+// requests bypass the subpath prefix and the server rejects the session.
+function resolveMattermostBaseURL(mattermost: StartedTestContainer): string {
+    if (testConfig.subpathMode) {
+        return `${testConfig.nginxUrl}${SUBPATH_DEFAULT}`;
+    }
+    return resolveUrl(mattermost, MATTERMOST_PORT, MATTERMOST_ALIAS);
 }
 
 function resolveHostAndPort(container: StartedTestContainer, port: number, alias: string): [string, number] {
