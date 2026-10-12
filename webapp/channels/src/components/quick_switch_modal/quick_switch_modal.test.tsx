@@ -293,6 +293,10 @@ describe('components/QuickSwitchModal', () => {
                 expect(screen.getByRole('combobox', {name: 'quick switch input'})).toHaveAttribute('aria-describedby', 'quickSwitchError');
                 expect(props.onExited).not.toHaveBeenCalled();
 
+                // Under the input, not above it
+                const input = screen.getByRole('combobox', {name: 'quick switch input'});
+                expect(input.compareDocumentPosition(screen.getByRole('alert')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
                 await userEvent.type(screen.getByRole('combobox', {name: 'quick switch input'}), 'a');
 
                 expect(screen.queryByRole('alert')).not.toBeInTheDocument();

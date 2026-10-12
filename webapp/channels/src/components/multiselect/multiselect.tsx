@@ -70,7 +70,7 @@ export type Props<T extends Value> = {
     customNoOptionsMessage?: React.ReactNode;
     required?: boolean;
 
-    // Shown in place of the required error while set.
+    // Shown under the input, in place of the required error, while set.
     errorText?: ReactNode;
 };
 
@@ -544,6 +544,16 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                                 />
                             }
                         </div>
+                        {this.props.errorText && (
+                            <div
+                                className='multi-select__error multi-select__error--input'
+                                role='alert'
+                                id='multiSelectMessageError'
+                            >
+                                <i className='icon icon-alert-circle-outline'/>
+                                <span>{this.props.errorText}</span>
+                            </div>
+                        )}
                         <div
                             id='multiSelectHelpMemberInfo'
                             className='multi-select__help'
@@ -559,7 +569,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                     >
                         {noteTextContainer}
                     </div>
-                    {hasError && (
+                    {this.state.hasError && !this.props.errorText && (
                         <div
                             className='multi-select__error'
                             role='alert'
@@ -567,7 +577,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                         >
                             <i className='icon icon-alert-circle-outline'/>
                             <span>
-                                {this.props.errorText ?? this.props.intl.formatMessage({id: 'multiselect.required', defaultMessage: 'This field is required'})}
+                                {this.props.intl.formatMessage({id: 'multiselect.required', defaultMessage: 'This field is required'})}
                             </span>
                         </div>
                     )}

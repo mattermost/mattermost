@@ -234,15 +234,12 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
         }
 
         const modalSubheaderText = (
-            <>
-                <div
-                    className='channel-switcher__hint'
-                    id='quickSwitchHint'
-                >
-                    {help}
-                </div>
-                {startDeniedError}
-            </>
+            <div
+                className='channel-switcher__hint'
+                id='quickSwitchHint'
+            >
+                {help}
+            </div>
         );
 
         return (
@@ -283,6 +280,7 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
                         onSuggestionsReceived={this.handleSuggestionsReceived}
                         forceSuggestionsWhenBlur={true}
                         shouldSearchCompleteText={true}
+                        belowInput={startDeniedError}
                     />
                     {
                         !this.state.shouldShowLoadingSpinner &&
