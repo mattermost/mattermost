@@ -17,6 +17,9 @@ import type {PropsFromRedux} from './index';
 export interface Props extends PropsFromRedux {
     children: React.ReactNode;
     newWindowHandler?: () => void;
+
+    /** Buttons of the panel's own, shown first in the button group (like the thread header's Follow). */
+    headerControls?: React.ReactNode;
 }
 
 function SearchResultsHeader(props: Props) {
@@ -72,6 +75,7 @@ function SearchResultsHeader(props: Props) {
                 {props.children}
             </span>
             <div className='pull-right'>
+                {props.headerControls}
                 {showExpand && !isPopoutWindow() && (
                     <WithTooltip
                         title={sidebarTooltipContent}

@@ -393,6 +393,9 @@ export type RightHandSidebarComponent = PluginComponent & {
     title: PluggableText;
     component: React.ComponentType<BasePluggableProps>;
     showPopout?: boolean;
+
+    /** Rendered first among the header's buttons, before expand and close (like the thread header's Follow). */
+    headerControls?: React.ReactNode;
 };
 
 export type SearchHintsComponent = PluginComponent & {
