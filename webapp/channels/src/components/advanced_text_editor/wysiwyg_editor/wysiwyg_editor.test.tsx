@@ -15,6 +15,8 @@ const mockConstructorError: {current: Error | null} = {current: null};
 const mockChainCalls: {current: string[]} = {current: []};
 const mockSetNodeThrows: {current: boolean} = {current: false};
 const mockRunReturnsFalse: {current: boolean} = {current: false};
+const mockMarkdownFailure: {current: 'parse' | 'insert' | null} = {current: null};
+const mockInsertedContent: {current: unknown[]} = {current: []};
 
 jest.mock('@tiptap/react', () => {
     const ReactMock = require('react') as typeof import('react');
@@ -29,7 +31,14 @@ jest.mock('@tiptap/react', () => {
                     clearContent: () => undefined,
                     focus: () => undefined,
                     blur: () => undefined,
-                    insertContent: () => undefined,
+                    insertContent: (content: unknown) => {
+                        if (mockMarkdownFailure.current === 'insert' && mockInsertedContent.current.length === 0) {
+                            mockInsertedContent.current.push('rejected');
+                            throw new RangeError('Invalid content for node listItem');
+                        }
+                        mockInsertedContent.current.push(content);
+                        return true;
+                    },
                 },
 
                 // Mirrors the real library: an update is emitted unless the caller opts out.
@@ -69,7 +78,12 @@ jest.mock('@tiptap/react', () => {
                 base.getMarkdown = () => 'hi';
                 base.schema = {nodes: {}};
                 base.markdown = {
-                    parse: (md: string) => ({type: 'doc', content: [{type: 'paragraph', content: [{type: 'text', text: md}]}]}),
+                    parse: (md: string) => {
+                        if (mockMarkdownFailure.current === 'parse') {
+                            throw new Error('Unsupported markdown');
+                        }
+                        return {type: 'doc', content: [{type: 'paragraph', content: [{type: 'text', text: md}]}]};
+                    },
                     serialize: () => 'hi',
                 };
             }
@@ -435,6 +449,21 @@ describe('WysiwygEditor', () => {
 
         test('defers to ProseMirror when the text is not markdown', () => {
             expect(paste('just words', '<b>just words</b>')).toBe(false);
+        });
+
+        test.each(['parse', 'insert'] as const)('pastes the markdown as plain text when the %s step fails', (failure) => {
+            mockMarkdownFailure.current = failure;
+            mockInsertedContent.current = [];
+            try {
+                expect(paste('# title\n\n- [ ] todo', '<b>ignored</b>')).toBe(true);
+                expect(mockInsertedContent.current[mockInsertedContent.current.length - 1]).toEqual([
+                    {type: 'paragraph', content: [{type: 'text', text: '# title'}]},
+                    {type: 'paragraph', content: []},
+                    {type: 'paragraph', content: [{type: 'text', text: '- [ ] todo'}]},
+                ]);
+            } finally {
+                mockMarkdownFailure.current = null;
+            }
         });
     });
 

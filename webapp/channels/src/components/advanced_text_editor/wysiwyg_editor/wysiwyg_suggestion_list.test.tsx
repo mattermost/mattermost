@@ -3,17 +3,22 @@
 
 import {act, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import {Editor as TiptapEditor} from '@tiptap/core';
 import type {Editor} from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
 import React from 'react';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
+import WysiwygMention from './wysiwyg_mention';
 import WysiwygSuggestionList from './wysiwyg_suggestion_list';
 
 const EXECUTE_CURRENT_COMMAND_ITEM_ID = '_execute_current_command';
 const OPEN_COMMAND_IN_MODAL_ITEM_ID = '_open_command_in_modal';
 
 const mockTerms: string[] = [];
+const mockAtMentionPretexts: string[] = [];
+const mockStaleMatchedPretext: {current: string | null} = {current: null};
 
 jest.mock('components/suggestion/command_provider/command_provider', () => ({
     __esModule: true,
@@ -38,13 +43,14 @@ jest.mock('components/suggestion/at_mention_provider', () => ({
     __esModule: true,
     default: class {
         handlePretextChanged(pretext: string, resultCallback: (results: any) => void) {
+            mockAtMentionPretexts.push(pretext);
             const trigger = pretext.lastIndexOf('@');
             if (trigger === -1) {
                 return false;
             }
 
             resultCallback({
-                matchedPretext: pretext.slice(trigger),
+                matchedPretext: mockStaleMatchedPretext.current ?? pretext.slice(trigger),
                 terms: [...mockTerms],
                 items: mockTerms.map((term) => ({suggestion: term})),
                 component: () => null,
@@ -57,8 +63,19 @@ jest.mock('components/suggestion/at_mention_provider', () => ({
 jest.mock('components/suggestion/channel_mention_provider', () => ({
     __esModule: true,
     default: class {
-        handlePretextChanged() {
-            return false;
+        handlePretextChanged(pretext: string, resultCallback: (results: any) => void) {
+            const captured = (/\B(~([^~\r\n]*))$/i).exec(pretext.toLowerCase());
+            if (!captured) {
+                return false;
+            }
+
+            resultCallback({
+                matchedPretext: captured[1],
+                terms: [...mockTerms],
+                items: mockTerms.map((term) => ({suggestion: term})),
+                component: () => null,
+            });
+            return true;
         }
     },
 }));
@@ -245,5 +262,121 @@ describe('WysiwygSuggestionList', () => {
         expect(inserted).toEqual([]);
         expect(chainCalls).toEqual([]);
         expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    describe('with a real editor', () => {
+        let editor: TiptapEditor;
+
+        const render = (terms: string[]) => {
+            mockTerms.length = 0;
+            mockTerms.push(...terms);
+            mockAtMentionPretexts.length = 0;
+            editor = new TiptapEditor({extensions: [StarterKit, WysiwygMention]});
+            renderWithContext(
+                <WysiwygSuggestionList
+                    editor={editor}
+                    channelId='channel1'
+                    onSubmit={jest.fn()}
+                />,
+            );
+        };
+
+        const paragraphContent = () => editor.getJSON().content?.[0].content;
+
+        afterEach(() => {
+            editor.destroy();
+            mockStaleMatchedPretext.current = null;
+        });
+
+        test('completes results that arrive for an earlier pretext when the term still matches', async () => {
+            render(['@sysadmin']);
+            mockStaleMatchedPretext.current = '@s';
+            act(() => {
+                editor.chain().insertContent('hi @sys').run();
+            });
+
+            await userEvent.click(screen.getByRole('button', {name: '@sysadmin'}));
+
+            expect(paragraphContent()).toEqual([
+                {type: 'text', text: 'hi '},
+                {type: 'mention', attrs: {char: '@', name: 'sysadmin'}},
+                {type: 'text', text: ' '},
+            ]);
+        });
+
+        test('does not complete results for an earlier pretext once the typed text no longer matches', async () => {
+            render(['@sysadmin']);
+            mockStaleMatchedPretext.current = '@s';
+            act(() => {
+                editor.chain().insertContent('hi @sxx').run();
+            });
+
+            await userEvent.click(screen.getByRole('button', {name: '@sysadmin'}));
+
+            expect(paragraphContent()).toEqual([{type: 'text', text: 'hi @sxx'}]);
+        });
+
+        test('passes a Shift+Enter line break to the providers so a mention can start the new line', () => {
+            render([]);
+
+            act(() => {
+                editor.chain().insertContent('hello').setHardBreak().insertContent('@sys').run();
+            });
+
+            expect(mockAtMentionPretexts[mockAtMentionPretexts.length - 1]).toBe('hello\n@sys');
+        });
+
+        test('completes a mention on the new line without touching the previous one', async () => {
+            render(['@sysadmin']);
+            act(() => {
+                editor.chain().insertContent('hello').setHardBreak().insertContent('@sys').run();
+            });
+
+            await userEvent.click(screen.getByRole('button', {name: '@sysadmin'}));
+
+            expect(paragraphContent()).toEqual([
+                {type: 'text', text: 'hello'},
+                {type: 'hardBreak'},
+                {type: 'mention', attrs: {char: '@', name: 'sysadmin'}},
+                {type: 'text', text: ' '},
+            ]);
+        });
+
+        test('Shift+Enter starts a new line instead of completing the open suggestion', () => {
+            render(['~town-square']);
+            act(() => {
+                editor.chain().insertContent('hello ~tow').run();
+            });
+            expect(screen.getByTestId('suggestion-list')).toBeInTheDocument();
+
+            act(() => {
+                editor.view.dom.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', shiftKey: true, bubbles: true, cancelable: true}));
+            });
+
+            expect(paragraphContent()).toEqual([
+                {type: 'text', text: 'hello ~tow'},
+                {type: 'hardBreak'},
+            ]);
+            expect(screen.queryByTestId('suggestion-list')).not.toBeInTheDocument();
+        });
+
+        test('completes a channel after a user mention without replacing the mention', async () => {
+            render(['~town-square']);
+            act(() => {
+                editor.chain().insertContent([
+                    {type: 'mention', attrs: {char: '@', name: 'sysadmin'}},
+                    {type: 'text', text: ' ~Town'},
+                ]).run();
+            });
+
+            await userEvent.click(screen.getByRole('button', {name: '~town-square'}));
+
+            expect(paragraphContent()).toEqual([
+                {type: 'mention', attrs: {char: '@', name: 'sysadmin'}},
+                {type: 'text', text: ' '},
+                {type: 'mention', attrs: {char: '~', name: 'town-square'}},
+                {type: 'text', text: ' '},
+            ]);
+        });
     });
 });

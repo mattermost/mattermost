@@ -108,13 +108,26 @@ function getCaretAlignment(editor: Editor, matchedPretext: string, triggerPos: n
     };
 }
 
+// One character per inline leaf (line breaks, mentions, images) keeps string offsets equal to document positions.
 function getTextBeforeCursor(editor: Editor): string {
     const {state} = editor;
     const {from} = state.selection;
-    const currentNode = state.selection.$from;
+    const startOfLine = state.selection.$from.start();
 
-    const startOfLine = currentNode.start();
-    return state.doc.textBetween(startOfLine, from, '\n');
+    return state.doc.textBetween(startOfLine, from, '\n', (node) => (node.type.name === 'hardBreak' ? '\n' : '\uFFFC'));
+}
+
+// Server results can arrive labelled with an earlier, shorter pretext; they still apply while the term matches what was typed since.
+function getTypedPretext(textBeforeCursor: string, matchedPretext: string, term: string): string | undefined {
+    const text = textBeforeCursor.toLowerCase();
+    const pretext = matchedPretext.toLowerCase();
+    if (text.endsWith(pretext)) {
+        return matchedPretext;
+    }
+
+    const start = text.lastIndexOf(pretext);
+    const typed = start === -1 ? '' : text.slice(start);
+    return typed && term.toLowerCase().startsWith(typed) ? typed : undefined;
 }
 
 const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => {
@@ -268,20 +281,14 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
             return false;
         }
 
-        const {state} = editor;
-        const {from} = state.selection;
-        const cursorNode = state.selection.$from;
-        const startOfLine = cursorNode.start();
-        const textBeforeCursor = state.doc.textBetween(startOfLine, from, '\n');
-
-        const matchIndex = textBeforeCursor.lastIndexOf(matchedPretext);
-        if (matchIndex === -1) {
+        const typed = getTypedPretext(getTextBeforeCursor(editor), matchedPretext, term);
+        if (typed === undefined) {
             setIsOpen(false);
             return false;
         }
 
-        const deleteFrom = startOfLine + matchIndex;
-        const deleteTo = from;
+        const deleteTo = editor.state.selection.from;
+        const deleteFrom = deleteTo - typed.length;
 
         const mention = parseMentionTerm(term);
         const completedContent = mention ? [{type: 'mention', attrs: mention}, {type: 'text', text: ' '}] : `${term} `;
@@ -347,7 +354,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
                 return;
             }
 
-            if (event.key === 'Tab' || event.key === 'Enter') {
+            if (event.key === 'Tab' || (event.key === 'Enter' && !event.shiftKey)) {
                 if (selectionRef.current && matchedPretextRef.current) {
                     event.preventDefault();
                     event.stopPropagation();

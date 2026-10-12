@@ -32,7 +32,7 @@ import {useDebounce} from 'hooks/useDebounce';
 import {useLatest} from 'hooks/useLatest';
 
 import WysiwygImage from './wysiwyg_image';
-import {parseMarkdownContent, serializeToMarkdown} from './wysiwyg_markdown';
+import {insertMarkdown, plainTextContent, serializeToMarkdown} from './wysiwyg_markdown';
 import WysiwygMention from './wysiwyg_mention';
 import WysiwygSuggestionList from './wysiwyg_suggestion_list';
 
@@ -219,22 +219,24 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
 
     const editorRef = useRef<Editor | null>(null);
 
-    const debouncedOnChange = useDebounce((md: string) => {
-        onChangeRef.current(md);
-    }, SERIALIZE_DEBOUNCE_MS);
+    const pendingChangeRef = useRef<(() => void) | null>(null);
+    const flushPendingChange = useCallback(() => {
+        const pendingChange = pendingChangeRef.current;
+        pendingChangeRef.current = null;
+        pendingChange?.();
+    }, []);
+    const debouncedFlushPendingChange = useDebounce(flushPendingChange, SERIALIZE_DEBOUNCE_MS);
 
     const handleSuggestionSubmit = useCallback(() => {
         onSubmitRef.current();
     }, [onSubmitRef]);
 
     const handleUpdate = useCallback(({editor}: {editor: Editor}) => {
-        if (jsonMode) {
-            debouncedOnChange(JSON.stringify(editor.getJSON()));
-            return;
-        }
-
-        debouncedOnChange(serializeToMarkdown(editor));
-    }, [debouncedOnChange, jsonMode]);
+        const content = jsonMode ? JSON.stringify(editor.getJSON()) : serializeToMarkdown(editor);
+        const onChangeForLocation = onChangeRef.current;
+        pendingChangeRef.current = () => onChangeForLocation(content);
+        debouncedFlushPendingChange();
+    }, [debouncedFlushPendingChange, jsonMode, onChangeRef]);
 
     const baseExtensions: Extensions = [
         StarterKit.configure({
@@ -365,13 +367,10 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                     return false;
                 }
 
-                const content = parseMarkdownContent(ed, text);
-                if (!content) {
-                    return false;
-                }
-
                 event.preventDefault();
-                ed.commands.insertContent(content);
+                if (!insertMarkdown(ed, text)) {
+                    ed.commands.insertContent(plainTextContent(text));
+                }
                 return true;
             },
             handleKeyDown: (view, event) => {
@@ -607,12 +606,15 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         }
         locationRef.current = {channelId, rootId};
 
+        debouncedFlushPendingChange.cancel();
+        flushPendingChange();
+
         if (jsonMode) {
             editor.commands.setContent(parseJsonModeContent(value).content, {emitUpdate: false});
         } else {
             editor.commands.setContent(value, {contentType: 'markdown', emitUpdate: false});
         }
-    }, [channelId, rootId, editor]);
+    }, [channelId, rootId, editor, debouncedFlushPendingChange, flushPendingChange]);
 
     const lastValueRef = useRef(value);
     useEffect(() => {

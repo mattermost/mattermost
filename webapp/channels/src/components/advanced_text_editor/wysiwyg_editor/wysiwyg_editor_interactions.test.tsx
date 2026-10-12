@@ -79,6 +79,25 @@ describe('WysiwygEditor interactions', () => {
         });
     });
 
+    test('pastes a full markdown sample with lists, task items and headings', () => {
+        const {editor} = renderEditor('');
+        const markdown = '1. first\n2. second\n\n## Tables\n\nhello *world*\n\n- [ ] todo\n- [x] done\n\n| a | b |\n| - | - |\n| 1 | 2 |';
+        const event = {
+            preventDefault: jest.fn(),
+            clipboardData: {getData: (type: string) => (type === 'text/plain' ? markdown : ''), files: []},
+        } as unknown as ClipboardEvent;
+
+        let handled;
+        act(() => {
+            handled = editor.view.someProp('handlePaste', (handlePaste) => handlePaste(editor.view, event, editor.state.doc.slice(0)));
+        });
+
+        expect(handled).toBe(true);
+        expect(editor.getHTML()).toContain('<h2 class="markdown__heading">Tables</h2>');
+        expect(editor.getHTML()).toContain('<p>hello <em>world</em></p>');
+        expect(editor.getHTML()).toContain('<p>[ ] todo</p>');
+    });
+
     describe('switching channels', () => {
         const switchTo = (rerender: (ui: React.ReactElement) => void, ref: React.RefObject<WysiwygEditorHandle | null>, value: string, channelId: string) => {
             rerender(
@@ -113,6 +132,37 @@ describe('WysiwygEditor interactions', () => {
             typeText(editor, 'hi');
 
             expect(editor.getHTML()).toBe('<p>hi</p>');
+        });
+
+        test('saves an edit still pending at the switch to the channel it was typed in', () => {
+            jest.useFakeTimers();
+            const onChangeC1 = jest.fn();
+            const onChangeC2 = jest.fn();
+            const ref = React.createRef<WysiwygEditorHandle>();
+            const render = (onChange: jest.Mock, channelId: string, value: string) => (
+                <WysiwygEditor
+                    ref={ref}
+                    onSubmit={jest.fn()}
+                    onChange={onChange}
+                    value={value}
+                    channelId={channelId}
+                />
+            );
+            const {rerender} = renderWithContext(render(onChangeC1, 'c1', ''));
+            const editor = ref.current!.getEditor()!;
+            act(() => {
+                editor.commands.setTextSelection(1);
+            });
+            typeText(editor, 'typed in c1');
+
+            rerender(render(onChangeC2, 'c2', ''));
+            act(() => {
+                jest.runAllTimers();
+            });
+
+            expect(onChangeC1).toHaveBeenCalledWith('typed in c1');
+            expect(onChangeC2).not.toHaveBeenCalled();
+            jest.useRealTimers();
         });
 
         test('keeps the content when only the value changes within the same channel', () => {
