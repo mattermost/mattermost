@@ -33,61 +33,46 @@ export async function ensureServerEnv(key: string, value: string): Promise<void>
     }
 }
 
+/** Restarts the server with the baseline internal SiteURL if a prior override set it to something else. */
+export async function ensureInternalSiteUrl(): Promise<void> {
+    if (!testConfig.useTestContainers) {
+        return;
+    }
+
+    const override = testConfig.bootEnvOverrides.MM_SERVICESETTINGS_SITEURL;
+    if (override === undefined || override === testConfig.internalBaseURL) {
+        return;
+    }
+
+    await restartMattermostContainer({MM_SERVICESETTINGS_SITEURL: testConfig.internalBaseURL});
+}
+
 /**
  * Restarts the server with ServiceSettings.SiteURL set to the host-reachable baseURL, if it
  * isn't already, and confirms the running server reports that value, skipping the test otherwise.
  *
  * This persists once set: restartMattermostContainer() merges env, so every spec sharing this
  * reused server afterward also sees the host-facing SiteURL. Only call this when a spec genuinely
- * needs a host-reachable SiteURL.
+ * needs a host-reachable SiteURL. Undo with ensureInternalSiteUrl().
  */
 export async function ensureSiteUrl(): Promise<void> {
-    await ensureSiteUrlValue(testConfig.baseURL);
-}
-
-/**
- * Restarts the server with ServiceSettings.SiteURL back at internalBaseURL — the address the
- * server's own container can reach itself on — if an earlier ensureSiteUrl() left it at the
- * host-mapped baseURL, and confirms the running server reports that value.
- *
- * Call this from any spec whose assertions depend on the server reaching its own HTTP routes.
- * Interactive dialogs are the common case: a plugin registers a callback URL of
- * `<SiteURL>/plugins/<id>/...`, and the server POSTs to it over the network, because
- * App.DoActionRequest only dispatches in-process for URLs that are already relative. With a
- * host-mapped SiteURL those callbacks never arrive, so a dialog submit leaves the dialog open and
- * a cancel posts no notification.
- *
- * A no-op on a server booted with the default SiteURL, which is every stack no ensureSiteUrl()
- * caller has run against.
- */
-export async function ensureInternalSiteUrl(): Promise<void> {
-    // `external` mode has one address for both, and initSetup()'s patchConfig already sets
-    // SiteURL to it, so there is nothing to converge and no container to restart.
-    if (!testConfig.useTestContainers) {
-        return;
-    }
-
-    await ensureSiteUrlValue(testConfig.internalBaseURL);
-}
-
-async function ensureSiteUrlValue(siteUrl: string): Promise<void> {
     if (!testConfig.useTestContainers) {
         test.skip(true, 'Skipping test - SiteURL restart requires PW_USE_TESTCONTAINERS=true');
         return;
     }
 
     try {
-        const env = {MM_SERVICESETTINGS_SITEURL: siteUrl};
+        const env = {MM_SERVICESETTINGS_SITEURL: testConfig.baseURL};
         if (!bootEnvMatches(env)) {
             await restartMattermostContainer(env);
         }
 
         const {adminClient} = await getAdminClient();
         const config = await adminClient.getConfig();
-        if (config.ServiceSettings.SiteURL !== siteUrl) {
+        if (config.ServiceSettings.SiteURL !== testConfig.baseURL) {
             throw new Error(
                 `ServiceSettings.SiteURL is "${config.ServiceSettings.SiteURL}" after restart, expected ` +
-                    `"${siteUrl}".`,
+                    `"${testConfig.baseURL}".`,
             );
         }
     } catch (error) {

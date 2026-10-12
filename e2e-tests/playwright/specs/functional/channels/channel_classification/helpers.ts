@@ -26,20 +26,6 @@ export const TEST_LEVELS = [
 ];
 
 /**
- * Sets the ClassificationMarkings feature flag via server config.
- */
-export async function setClassificationMarkingsFeatureFlag(adminClient: Client4, enabled: boolean) {
-    const config = await adminClient.getConfig();
-    await adminClient.updateConfig({
-        ...config,
-        FeatureFlags: {
-            ...config.FeatureFlags,
-            ClassificationMarkings: enabled,
-        },
-    } as Awaited<ReturnType<Client4['getConfig']>>);
-}
-
-/**
  * Deletes existing classification fields (channel linked, system linked, and template)
  * to provide a clean slate.
  */
