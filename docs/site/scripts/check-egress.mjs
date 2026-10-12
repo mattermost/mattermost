@@ -146,7 +146,8 @@ export function isAllowedHostedEmbed(url, kind) {
       (path.startsWith('/embed/medias/') && path.endsWith('.jsonp'))
     );
   }
-  if (kind === 'img[src]') {
+  // Wistia MDX embed also emits <link rel=preload> for the swatch image.
+  if (kind === 'img[src]' || kind === 'link[rel=preload]') {
     return isWistiaHost(host) && path.startsWith('/embed/medias/');
   }
   return false;

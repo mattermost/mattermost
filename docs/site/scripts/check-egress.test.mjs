@@ -240,13 +240,14 @@ describe('scanSources', () => {
     });
   });
 
-  it('allows YouTube iframes and Wistia scripts/images', () => {
+  it('allows YouTube iframes and Wistia scripts/images/preload', () => {
     const hits = scanSources({
       html: {
         'index.html': `<iframe src="https://www.youtube.com/embed/abc"></iframe>
 <script src="https://fast.wistia.com/assets/external/E-v1.js"></script>
 <script src="https://fast.wistia.com/embed/medias/5gjgi10rr0.jsonp"></script>
-<img src="https://fast.wistia.com/embed/medias/x/swatch">`,
+<img src="https://fast.wistia.com/embed/medias/x/swatch">
+<link rel="preload" href="https://fast.wistia.com/embed/medias/5gjgi10rr0/swatch" as="image">`,
       },
     });
     assert.equal(hits.length, 0);
@@ -305,6 +306,13 @@ describe('isAllowedHostedEmbed', () => {
       isAllowedHostedEmbed(
         'https://fast.wistia.com/embed/medias/x/swatch',
         'img[src]',
+      ),
+      true,
+    );
+    assert.equal(
+      isAllowedHostedEmbed(
+        'https://fast.wistia.com/embed/medias/x/swatch',
+        'link[rel=preload]',
       ),
       true,
     );
