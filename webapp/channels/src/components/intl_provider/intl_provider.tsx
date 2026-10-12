@@ -52,6 +52,7 @@ export default class IntlProvider extends React.PureComponent<Props> {
 
     handleLocaleChange = (locale: string) => {
         Client4.setAcceptLanguage(locale);
+        document.documentElement.lang = locale;
 
         this.loadTranslationsIfNecessary(locale);
     };

@@ -8,17 +8,15 @@ import {useSelector} from 'react-redux';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {getChannelByName} from 'mattermost-redux/selectors/entities/channels';
-import {getUser} from 'mattermost-redux/selectors/entities/users';
-import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
 import {
     isCallsEnabled as getIsCallsEnabled,
     getSessionsInCalls,
-    getCallsConfig,
-    callsChannelExplicitlyDisabled,
-    callsChannelExplicitlyEnabled,
 } from 'selectors/calls';
 
+import type {DialablePhone} from 'components/call_options_menu';
+import CallOptionsMenu, {useCanStartCall, usePhoneCallOptions, useStartDMCall} from 'components/call_options_menu';
+import type {MenuButtonComponentProps} from 'components/menu';
 import ProfilePopoverCallButton from 'components/profile_popover/profile_popover_calls_button';
 
 import {getDirectChannelName} from 'utils/utils';
@@ -30,6 +28,7 @@ type Props = {
     currentUserId: string;
     fullname: string;
     username: string;
+    hide?: () => void;
 };
 
 export function isUserInCall(state: GlobalState, userId: string, channelId: string) {
@@ -49,41 +48,13 @@ const CallButton = ({
     currentUserId,
     fullname,
     username,
+    hide,
 }: Props) => {
     const {formatMessage} = useIntl();
 
     const isCallsEnabled = useSelector((state: GlobalState) => getIsCallsEnabled(state));
     const dmChannel = useSelector((state: GlobalState) => getChannelByName(state, getDirectChannelName(currentUserId, userId)));
-
-    const shouldRenderButton = useSelector((state: GlobalState) => {
-        // 1. No one should get the button if the plugin is disabled.
-        if (!isCallsEnabled) {
-            return false;
-        }
-
-        // 2. No one should get the button if calls in channel have been explicitly disabled in the DM channel.
-        if (callsChannelExplicitlyDisabled(state, dmChannel?.id ?? '')) {
-            return false;
-        }
-
-        // 3. Admins should get the button unless calls have been explicitly disabled in the DM channel. This
-        // should apply in test mode as well (DefaultEnabled = false).
-        if (isSystemAdmin(getUser(state, currentUserId)?.roles)) {
-            return true;
-        }
-
-        // 4. Users should only see the button if test mode is off (DefaultEnabled = true) and calls in the DM channel are not disabled.
-        if (getCallsConfig(state).DefaultEnabled) {
-            return true;
-        }
-
-        // 5. Everyone should see the button if calls have been explicitly enabled in the DM channel, regardless of test mode state.
-        if (callsChannelExplicitlyEnabled(state, dmChannel?.id ?? '')) {
-            return true;
-        }
-
-        return false;
-    });
+    const shouldRenderButton = useCanStartCall(dmChannel?.id ?? '', currentUserId);
 
     const hasDMCall = useSelector((state: GlobalState) => {
         if (isCallsEnabled && dmChannel) {
@@ -92,8 +63,39 @@ const CallButton = ({
         return false;
     });
 
+    // With a phone number for the user, the button opens a menu offering a call or a phone call.
+    const callButtonAction = useSelector((state: GlobalState) => state.plugins.components?.CallButton?.[0]);
+    const phoneAction = callButtonAction?.phoneAction;
+    const phones = usePhoneCallOptions(userId, Boolean(phoneAction) && shouldRenderButton && !hasDMCall);
+    const startDMCall = useStartDMCall(userId, dmChannel);
+
+    function handleStartCall() {
+        hide?.();
+        startDMCall();
+    }
+
+    function handlePhoneCall(phone: DialablePhone) {
+        hide?.();
+        phoneAction?.({number: phone.number, userId, label: phone.label, fieldId: phone.fieldId});
+    }
+
     if (!shouldRenderButton) {
         return null;
+    }
+
+    if (phoneAction && phones.length > 0) {
+        return (
+            <CallOptionsMenu
+                menuId='profilePopoverCallOptionsMenu'
+                buttonId='startCallButton'
+                button={CallOptionsMenuButton}
+                phones={phones}
+                onStartCall={handleStartCall}
+                onPhoneCall={handlePhoneCall}
+                anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
+                transformOrigin={{vertical: 'top', horizontal: 'right'}}
+            />
+        );
     }
 
     // We disable the button if there's already a call ongoing with the user.
@@ -137,5 +139,22 @@ const CallButton = ({
         />
     );
 };
+
+const CallOptionsMenuButton = (props: MenuButtonComponentProps) => (
+    <button
+        {...props}
+        type='button'
+        className='btn btn-icon btn-sm style--none user-popover__call-options-button'
+    >
+        <i
+            className='icon icon-phone'
+            aria-hidden='true'
+        />
+        <i
+            className='icon icon-chevron-down'
+            aria-hidden='true'
+        />
+    </button>
+);
 
 export default CallButton;
