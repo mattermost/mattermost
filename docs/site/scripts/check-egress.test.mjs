@@ -184,6 +184,17 @@ describe('scanSources', () => {
     assert.equal(hits.length, 0);
   });
 
+  it('still scans inline script body when only data-src is set', () => {
+    const hits = scanSources({
+      html: {
+        'index.html':
+          '<script data-src="https://cdn.example.com/x.js">fetch("https://evil.example/x");</script>',
+      },
+    });
+    assert.equal(hits.length, 1);
+    assert.equal(hits[0].kind, 'fetch()');
+  });
+
   it('allows the security bulletin URL', () => {
     const hits = scanSources({
       html: {'index.html': stubHtml()},

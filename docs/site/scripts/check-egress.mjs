@@ -354,7 +354,8 @@ function isJsonScript(attrText) {
 }
 
 function hasSrc(attrText) {
-  return /\bsrc\s*=/i.test(attrText);
+  // Same attribute boundary as getAttr/ATTR — \b matches inside data-src.
+  return getAttr(`<script ${attrText}>`, 'src') != null;
 }
 
 function scanHtml(html, file, violations) {
