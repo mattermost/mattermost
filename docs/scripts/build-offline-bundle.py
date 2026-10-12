@@ -32,6 +32,11 @@ _IMG_EMBED_RE = re.compile(
     rf'<img\b[^>]*\bsrc=["\']https?://{_EMBED_HOST}[^"\']*["\'][^>]*/?>',
     re.I,
 )
+_PRELOAD_EMBED_RE = re.compile(
+    rf'<link\b[^>]*\brel=["\']preload["\'][^>]*\bhref=["\']https?://{_EMBED_HOST}[^"\']*["\'][^>]*/?>'
+    rf'|<link\b[^>]*\bhref=["\']https?://{_EMBED_HOST}[^"\']*["\'][^>]*\brel=["\']preload["\'][^>]*/?>',
+    re.I,
+)
 # Wistia player chrome from the MDX embed (nested responsive wrappers).
 _WISTIA_DIV_RE = re.compile(
     r'<div\b[^>]*\bclass=["\'][^"\']*\bwistia_responsive_padding\b[^"\']*["\'][^>]*>'
@@ -143,6 +148,7 @@ def strip_hosted_embeds_html(html: str) -> tuple[str, int]:
     html = sub(_SCRIPT_EMBED_RE, html)
     html = sub(_WISTIA_DIV_RE, html)
     html = sub(_IMG_EMBED_RE, html)
+    html = sub(_PRELOAD_EMBED_RE, html)
     return html, removed
 
 
