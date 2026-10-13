@@ -20,6 +20,12 @@ Client-side detection methods are not bulletproof and can be bypassed by a suffi
 
 </Note>
 
+## Session attribute collection
+
+From Mattermost mobile app v2.44 (when connected to Mattermost server v12 or later), the app can report device and network context - such as device identifiers, network interface type, VPN status, MDM enrollment, and jailbreak or root status - to its configured servers for use in [permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies). Collection is server-initiated and controlled entirely by the System Admin: the app reports only the attributes an admin has explicitly enabled, and only as often as each attribute's time-to-live requires. Message content, credentials, device location, and the contents of network traffic are never included, and reported values are never written to the database or included in compliance exports.
+
+Reading the Wi-Fi network name requires location access on both platforms, so enabling the `ssid` attribute prompts users for that permission. The app declares `ACCESS_WIFI_STATE` and `ACCESS_FINE_LOCATION` on Android and the `com.apple.developer.networking.wifi-info` entitlement on iOS, on both the main app and the share extension. A user who declines the prompt, or who isn't on Wi-Fi, reports no network name and is denied by any policy that requires it.
+
 ## Biometric authentication
 
 Mattermost integrates with iOS Face ID/Touch ID and Android’s Biometric API. When enabled by the server administrator, biometric checks are required before accessing specific servers, and the Mattermost mobile app mandates that a device PIN or biometric lock is active.

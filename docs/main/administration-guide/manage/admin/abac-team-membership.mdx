@@ -76,11 +76,11 @@ Auto-add is the only behavior that applies to **both** advisory and strict mode.
 
 Before configuring team membership policies:
 
-1.  [Configure user attributes](/administration-guide/manage/admin/user-attributes) in the System Console.
+1.  Configure user attributes in the System Console. See [Attribute management](/administration-guide/manage/admin/attribute-management) for Mattermost v12.0 and later, or [User attributes](/administration-guide/manage/admin/user-attributes) for earlier releases.
 2.  Go to **System Console \> System Attributes \> Attribute-Based Access** and enable **Enable Attribute-Based Access Control**.
 3.  For Team Admins configuring rules: the `manage_team_access_rules` permission is required. This permission is included in the Team Admin role by default.
 
-Team membership ABAC is also gated by the `TeamMembershipAccessControl` feature flag, which is **enabled by default** from Mattermost v11.10. Disabling it turns off team enforcement without affecting channel ABAC. See the Mattermost developer documentation for details on [feature flags in a self-hosted deployment](https://developers.mattermost.com/contribute/more-info/server/feature-flags/#self-hosted-and-local-development).
+Team membership ABAC is also gated by the `TeamMembershipAccessControl` feature flag, which is **enabled by default** from Mattermost v11.10. Disabling it turns off team enforcement without affecting channel ABAC. See the Mattermost developer documentation for details on [feature flags in a self-hosted deployment](https://docs.mattermost.com/developers/contribute/more-info/server/feature-flags/#self-hosted-and-local-development).
 
 **What changes when team membership ABAC is off:**
 

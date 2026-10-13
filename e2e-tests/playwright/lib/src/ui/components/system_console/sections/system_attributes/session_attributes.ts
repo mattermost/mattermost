@@ -87,12 +87,24 @@ export default class SessionAttributes {
     // ── Row actions (stage edits locally; commit via saveAndWaitForSettled) ──
 
     async openDotMenu(fieldId: string) {
+        await this.scrollRowToCenter(fieldId);
         await this.dotMenuButton(fieldId).click();
 
         // Wait for the popover to actually open. Opening a second dot menu right
         // after the previous one closed can otherwise race the closing overlay,
         // where the click lands on the fading backdrop instead of the button.
         await expect(this.dotMenu(fieldId)).toBeVisible();
+    }
+
+    /**
+     * A row near the bottom of the table only has room to open its dot menu
+     * upward, which forces the popover library to flip placement and remeasure
+     * before it can render — for the trigger's own hover-opened submenu this
+     * pushes first paint past the usual budget. Centering the row first gives
+     * the menu room to open downward instead, avoiding the flip outright.
+     */
+    private async scrollRowToCenter(fieldId: string) {
+        await this.dotMenuButton(fieldId).evaluate((el) => el.scrollIntoView({block: 'center'}));
     }
 
     /**
@@ -129,6 +141,8 @@ export default class SessionAttributes {
         // Playwright's strict mode.
         const trigger = this.dotMenu(fieldId).getByRole('menuitem', {name: triggerName});
         const option = this.page.getByTestId(`session-attribute-${kind}-option-${fieldId}-${seconds}`);
+
+        await this.scrollRowToCenter(fieldId);
 
         await expect(async () => {
             await this.page.keyboard.press('Escape');

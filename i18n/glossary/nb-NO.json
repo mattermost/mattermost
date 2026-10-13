@@ -1,0 +1,464 @@
+{
+  "Mattermost": {
+    "target": "Mattermost",
+    "note": "Brand name; never translate. Compounds take a hyphen: 'Mattermost-serveren', 'Mattermost-teamet'."
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition",
+    "note": "Keep in English. The legacy 'Enterprise versjon' (about.teamEditiont1) is not to be followed."
+  },
+  "Team Edition": {
+    "target": "Team Edition",
+    "note": "Keep in English. The legacy 'Team versjon' (about.teamEditiont0) is not to be followed."
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud",
+    "note": "Keep in English. Do not render 'Cloud' as 'Sky' (about.cloudEdition does; legacy)."
+  },
+  "Channels": {
+    "target": "Channels",
+    "note": "Product name; keep in English. The common noun 'channels' is 'kanaler'."
+  },
+  "Playbooks": {
+    "target": "Playbooks",
+    "note": "Product name. A single playbook as common noun stays 'playbook' (en playbook, playbooken)."
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls",
+    "note": "Product name; keep in English. The common noun 'call' is 'samtale'."
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth",
+    "note": "Compounds take a hyphen: 'OAuth-tilkobling', 'OAuth 2.0-applikasjon'."
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP",
+    "note": "'AD/LDAP' stays as-is; compounds take a hyphen: 'AD/LDAP-brukernavn'."
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA",
+    "note": "Spelled out as 'flerfaktorautentisering' where the English spells it out."
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Gossip": {
+    "target": "Gossip",
+    "note": "Protocol name; never render literally ('sladder')."
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay",
+    "note": "'Global Relay EML' stays as-is."
+  },
+  "System Console": {
+    "target": "Systemkonsoll",
+    "note": "Masculine: systemkonsollen (definite). The catalog has a few 'systemkonsollet' and three untranslated 'System Console' — do not follow those."
+  },
+  "marketplace": {
+    "target": "Marketplace",
+    "note": "The existing catalog keeps 'Marketplace' in English everywhere (admin.plugins.settings.*). Keep it, capitalised, as the name of the plugin store."
+  },
+  "channel": {
+    "target": "kanal",
+    "note": "Masculine: en kanal, kanalen, kanaler, kanalene."
+  },
+  "team": {
+    "target": "team",
+    "note": "Neuter: et team, teamet, team, teamene. Compounds: 'teamnavn', 'teaminnstillinger'."
+  },
+  "post": {
+    "target": "innlegg",
+    "note": "Neuter: et innlegg, innlegget. 'melding' is also widely used where the English says post; both appear in the catalog. Prefer 'melding' in user-facing message-list strings and 'innlegg' in admin/permission strings, matching the surrounding keys."
+  },
+  "message": {
+    "target": "melding",
+    "note": "Feminine/masculine: en melding, meldingen, meldinger."
+  },
+  "thread": {
+    "target": "tråd",
+    "note": "Masculine: en tråd, tråden, tråder. The Threads view is 'Tråder'."
+  },
+  "reply": {
+    "target": "svar",
+    "note": "Neuter: et svar, svaret, svar. Verb: svare ('Svar' as button)."
+  },
+  "direct message": {
+    "target": "direktemelding",
+    "note": "One word. Two legacy strings have 'direkte melding' — do not follow. 'DM' is not used in the Norwegian UI; spell it out."
+  },
+  "group message": {
+    "target": "gruppemelding",
+    "note": "One word; plural 'gruppemeldinger'."
+  },
+  "mention": {
+    "target": "omtale",
+    "note": "Noun: omtale, omtaler ('Siste omtaler'). Verb: nevne ('@nevne'); 'omtale' as verb is also fine."
+  },
+  "notification": {
+    "target": "varsel",
+    "note": "Neuter: et varsel, varselet, varsler. 'varsling' for the activity/setting ('varslingsinnstillinger')."
+  },
+  "pin": {
+    "target": "feste",
+    "note": "Pinned messages = 'Festede meldinger'; 'Fest til kanal'; unpin = 'Løsne' ('Løsne fra kanalen')."
+  },
+  "bookmark": {
+    "target": "bokmerke",
+    "note": "Neuter: et bokmerke, bokmerket, bokmerker. Verb: 'legg til bokmerke'."
+  },
+  "saved messages": {
+    "target": "Lagrede meldinger",
+    "note": "save = lagre; unsave = 'Opphev lagring' / 'Fjern fra lagrede'. Legacy 'Fjern fra Lagrer' is a typo — do not follow."
+  },
+  "draft": {
+    "target": "utkast",
+    "note": "Neuter: et utkast, utkastet, utkast, utkastene."
+  },
+  "scheduled post": {
+    "target": "planlagt melding",
+    "note": "Tab heading is 'Planlagt'; the catalog mixes 'planlagt innlegg' and 'planlagte utkast'. Prefer 'planlagt melding' / 'planlagte meldinger'."
+  },
+  "emoji": {
+    "target": "emoji",
+    "note": "Masculine: en emoji, emojien, emojier. Compounds hyphenated: 'emoji-velger'."
+  },
+  "custom emoji": {
+    "target": "egendefinert emoji",
+    "note": "Plural: egendefinerte emojier."
+  },
+  "reaction": {
+    "target": "reaksjon",
+    "note": "Verb 'react' = reagere."
+  },
+  "status": {
+    "target": "status",
+    "note": "Masculine: statusen."
+  },
+  "custom status": {
+    "target": "egendefinert status",
+    "note": "Consistent in the existing catalog."
+  },
+  "do not disturb": {
+    "target": "Ikke forstyrr",
+    "note": "Status label. 'DND' is not used in the Norwegian UI."
+  },
+  "away": {
+    "target": "Borte",
+    "note": "Status label; lowercase 'borte' inside sentences."
+  },
+  "online": {
+    "target": "Pålogget",
+    "note": "Majority rendering ('Sist pålogget'); one aria string leaves 'Online' untranslated — do not follow."
+  },
+  "offline": {
+    "target": "Frakoblet"
+  },
+  "out of office": {
+    "target": "Ikke på kontoret",
+    "note": "Menu label (userAccountMenu.oooMenuItem). The catalog also has 'Fraværende' (manual-status modal) and 'Ute av kontoret'; prefer 'Ikke på kontoret'."
+  },
+  "guest": {
+    "target": "gjest",
+    "note": "Masculine: en gjest, gjesten, gjester. Guest access = 'gjestetilgang'."
+  },
+  "member": {
+    "target": "medlem",
+    "note": "Neuter: et medlem, medlemmet, medlemmer."
+  },
+  "user": {
+    "target": "bruker",
+    "note": "Masculine: en bruker, brukeren, brukere."
+  },
+  "system admin": {
+    "target": "systemadministrator",
+    "note": "Plural 'systemadministratorer'. Short 'systemadmin' appears twice; prefer the full form."
+  },
+  "team admin": {
+    "target": "teamadministrator",
+    "note": "One word. The legacy 'Team administrator' (user_profile.roleTitle.team_admin) is wrong."
+  },
+  "channel admin": {
+    "target": "kanaladministrator"
+  },
+  "session": {
+    "target": "sesjon",
+    "note": "Masculine: en sesjon, sesjonen, sesjoner. Not 'økt'."
+  },
+  "sign in": {
+    "target": "logge inn",
+    "note": "Button 'Logg inn'; noun 'innlogging' / 'pålogging'. Both 'sign in' and 'log in' = logge inn. The catalog also uses 'logg på' about as often; prefer 'logg inn'. Informal 'du' register."
+  },
+  "sign out": {
+    "target": "logge ut",
+    "note": "Button 'Logg ut'. Both 'sign out' and 'log out' = logge ut."
+  },
+  "join": {
+    "target": "bli med",
+    "note": "'Bli med i kanalen', 'bli med i teamet'. 'joined' = 'ble med'."
+  },
+  "leave": {
+    "target": "forlate",
+    "note": "Button 'Forlat kanal', 'Forlat team'."
+  },
+  "archive": {
+    "target": "arkivere",
+    "note": "Button 'Arkiver kanal'; adjective 'arkivert'."
+  },
+  "unarchive": {
+    "target": "gjenopprette fra arkiv",
+    "note": "Button 'Gjenopprett fra arkiv' (channel_info_rhs.archived.unarchive). Avoid 'dearkivere' (one legacy string) and 'reaktiver'."
+  },
+  "mute": {
+    "target": "dempe",
+    "note": "'Demp kanal'; unmute = 'Fjern demping'. Same verb for microphone mute in Calls."
+  },
+  "follow": {
+    "target": "følge",
+    "note": "'Følg tråd'; 'Følger' = following."
+  },
+  "unfollow": {
+    "target": "slutte å følge",
+    "note": "Button 'Slutt å følge tråden'."
+  },
+  "favorite": {
+    "target": "favoritt",
+    "note": "Sidebar category 'Favoritter'. Verb: 'Legg til i favoritter'; unfavorite: 'Fjern fra favoritter'."
+  },
+  "search": {
+    "target": "søk",
+    "note": "Noun 'søk', verb 'søke'; 'browse' = 'bla gjennom'."
+  },
+  "integration": {
+    "target": "integrasjon"
+  },
+  "slash command": {
+    "target": "slash-kommando",
+    "note": "Majority rendering (22 vs 2 'skråstrek-kommando'). Plural 'slash-kommandoer'."
+  },
+  "webhook": {
+    "target": "webhook",
+    "note": "Kept in English; definite form hyphenated 'webhook-en', plural 'webhooks'/'webhook-er' — prefer 'webhooks'."
+  },
+  "incoming webhook": {
+    "target": "innkommende webhook"
+  },
+  "outgoing webhook": {
+    "target": "utgående webhook"
+  },
+  "trigger word": {
+    "target": "triggerord",
+    "note": "Majority rendering; 'utløserord' and 'aktiveringsord' appear once each — do not follow."
+  },
+  "plugin": {
+    "target": "plugin",
+    "note": "Kept in English; plural 'plugins', definite 'pluginen'/'pluginene'. Not 'programtillegg'."
+  },
+  "bot": {
+    "target": "bot",
+    "note": "Masculine: en bot, boten, boter. Bot account = 'botkonto'."
+  },
+  "role": {
+    "target": "rolle"
+  },
+  "permission": {
+    "target": "tillatelse",
+    "note": "Plural 'tillatelser'. Not 'rettighet'."
+  },
+  "scheme": {
+    "target": "skjema",
+    "note": "Permission scheme = 'tillatelsesskjema'; team scheme = 'teamskjema'. A legacy string uses 'teamplan' — do not follow."
+  },
+  "license": {
+    "target": "lisens"
+  },
+  "seat": {
+    "target": "sete",
+    "note": "Plural 'seter' (established in billing strings)."
+  },
+  "trial": {
+    "target": "prøveperiode",
+    "note": "Majority rendering; 'prøveversjon' appears when the software itself is meant. Free trial = 'gratis prøveperiode'."
+  },
+  "workspace": {
+    "target": "arbeidsområde",
+    "note": "Neuter: arbeidsområdet, arbeidsområder."
+  },
+  "subscription": {
+    "target": "abonnement"
+  },
+  "deactivate": {
+    "target": "deaktivere",
+    "note": "Deactivated = 'deaktivert'."
+  },
+  "invite": {
+    "target": "invitere",
+    "note": "Verb; button 'Inviter'. As a noun use 'invitasjon'."
+  },
+  "invitation": {
+    "target": "invitasjon"
+  },
+  "sidebar": {
+    "target": "sidefelt",
+    "note": "Neuter: sidefeltet. Not 'sidepanel'/'sidemeny'."
+  },
+  "unread": {
+    "target": "ulest",
+    "note": "Plural/definite 'uleste'; the Unreads filter is 'Uleste'."
+  },
+  "attachment": {
+    "target": "vedlegg",
+    "note": "Neuter: et vedlegg, vedlegget, vedlegg."
+  },
+  "public channel": {
+    "target": "åpen kanal",
+    "note": "Established rendering (plural 'åpne kanaler'); 'offentlig kanal' is not used in the catalog."
+  },
+  "private channel": {
+    "target": "privat kanal"
+  },
+  "shared channel": {
+    "target": "delt kanal",
+    "note": "Plural 'delte kanaler'."
+  },
+  "channel header": {
+    "target": "kanaloverskrift",
+    "note": "Bare 'header' = 'overskrift' ('Rediger overskrift')."
+  },
+  "channel purpose": {
+    "target": "kanalformål",
+    "note": "Bare 'purpose' = 'formål' ('kanalens formål')."
+  },
+  "system message": {
+    "target": "systemmelding"
+  },
+  "persistent notification": {
+    "target": "vedvarende varsel",
+    "note": "Plural 'vedvarende varsler'."
+  },
+  "message priority": {
+    "target": "meldingsprioritet"
+  },
+  "urgent": {
+    "target": "Haster",
+    "note": "Priority label; 'Important' = 'Viktig'. In sentences: 'hastemelding' / 'som haster'."
+  },
+  "recap": {
+    "target": "oppsummering",
+    "note": "No established rendering in the catalog; use 'oppsummering' (plural 'oppsummeringer') for the entity and 'oppsummere' for the action."
+  },
+  "agent": {
+    "target": "agent",
+    "note": "Masculine: en agent, agenten, agenter. 'AI agent' = 'KI-agent'; the product 'Mattermost Agents' stays in English."
+  },
+  "burn-on-read": {
+    "target": "Burn-on-Read",
+    "note": "No existing rendering in the catalog; keep the feature name in English and compound with a hyphen ('Burn-on-Read-melding'). Do not translate literally ('brenn ved lesing')."
+  },
+  "magic link": {
+    "target": "Magic Link",
+    "note": "The existing catalog keeps 'Magic Link' in English (user.settings.security.*)."
+  },
+  "personal access token": {
+    "target": "personlig tilgangstoken",
+    "note": "Neuter: tilgangstokenet, plural 'tilgangstokener'. Permission strings use 'brukertilgangstoken' for 'user access token'."
+  },
+  "announcement banner": {
+    "target": "kunngjøringslinje",
+    "note": "Established rendering in admin.customization.announcement.*; bare 'banner' = 'banner'."
+  },
+  "channel banner": {
+    "target": "kanalbanner",
+    "note": "Neuter: kanalbanneret. Form labels use 'Bannertekst', 'Farge på banner'."
+  },
+  "keyword": {
+    "target": "nøkkelord",
+    "note": "Notification settings also use 'søkeord' once — prefer 'nøkkelord'."
+  },
+  "user group": {
+    "target": "brukergruppe",
+    "note": "Bare 'group' = 'gruppe'."
+  },
+  "permalink": {
+    "target": "permalenke"
+  },
+  "profile": {
+    "target": "profil"
+  },
+  "username": {
+    "target": "brukernavn"
+  },
+  "nickname": {
+    "target": "kallenavn"
+  },
+  "display name": {
+    "target": "visningsnavn"
+  },
+  "collapsed reply threads": {
+    "target": "Trådede diskusjoner",
+    "note": "Established feature name (user.settings.display, admin.experimental). Do not render literally ('sammenslåtte svartråder')."
+  },
+  "auto-translation": {
+    "target": "automatisk oversettelse",
+    "note": "'auto-translated' = 'automatisk oversatt'."
+  },
+  "data retention": {
+    "target": "dataoppbevaring",
+    "note": "Policy = 'policy for dataoppbevaring' (the catalog uses 'policy', not 'retningslinje', throughout admin strings)."
+  },
+  "compliance export": {
+    "target": "samsvarseksport",
+    "note": "Established rendering; compounds 'samsvarseksportjobb'."
+  },
+  "access control": {
+    "target": "tilgangskontroll",
+    "note": "Attribute-based access control = 'attributtbasert tilgangskontroll'; policy = 'policy for tilgangskontroll'."
+  },
+  "attribute": {
+    "target": "attributt",
+    "note": "Neuter: et attributt, attributtet, attributter. Custom profile attribute = 'egendefinert profilattributt'."
+  },
+  "onboarding": {
+    "target": "onboarding",
+    "note": "Kept in English in the catalog ('onboardingprosessen'). Where a plain Norwegian phrase fits better, 'komme i gang' is acceptable."
+  },
+  "Town Square": {
+    "target": "Torget",
+    "note": "Default channel name; no rendering exists yet in either catalog (server entries are empty). Use consistently."
+  },
+  "Off-Topic": {
+    "target": "Utenfor tema",
+    "note": "Default channel name; no rendering exists yet in either catalog. Use consistently."
+  },
+  "read-only": {
+    "target": "skrivebeskyttet",
+    "note": "'Denne kanalen er skrivebeskyttet'."
+  },
+  "server": {
+    "target": "server",
+    "note": "Masculine: en server, serveren, servere. Not 'tjener'."
+  }
+}

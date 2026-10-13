@@ -34,6 +34,8 @@ export default class ChannelsPostCreate {
     // Burn-on-Read elements
     readonly burnOnReadButton;
     readonly burnOnReadLabel;
+    readonly burnOnReadLabelRemoveButton;
+    readonly removeAllLabelsButton;
 
     constructor(container: Locator, isRHS = false) {
         this.container = container;
@@ -66,6 +68,12 @@ export default class ChannelsPostCreate {
         // Use a flexible locator that matches the aria-label pattern
         this.burnOnReadButton = container.getByRole('button', {name: /Burn-on-read/i});
         this.burnOnReadLabel = container.getByTestId('burn-on-read-label');
+
+        // Two distinct remove controls can sit on the label row: the label's own X and
+        // UnifiedLabelsWrapper's remove-all. Kept separate so a spec can assert which
+        // of them is present rather than counting anonymous buttons.
+        this.burnOnReadLabelRemoveButton = container.getByRole('button', {name: 'Remove burn-on-read'});
+        this.removeAllLabelsButton = container.getByRole('button', {name: 'Remove all labels'});
     }
 
     async toBeVisible() {
@@ -298,6 +306,27 @@ export default class ChannelsPostCreate {
         await expect(this.burnOnReadButton).toBeAttached();
         await expect(this.burnOnReadButton).toBeEnabled();
         await this.burnOnReadButton.click();
+    }
+
+    /**
+     * The burn-on-read control is hidden by not being rendered at all, so this asserts
+     * absence from the DOM rather than invisibility — a control rendered disabled would
+     * pass toBeHidden() and should not pass here.
+     */
+    async toHaveBurnOnReadHidden() {
+        await expect(this.burnOnReadButton).not.toBeAttached();
+    }
+
+    async toHaveBurnOnReadVisible() {
+        await expect(this.burnOnReadButton).toBeVisible();
+    }
+
+    async toHaveBurnOnReadLabel() {
+        await expect(this.burnOnReadLabel).toBeVisible();
+    }
+
+    async toHaveNoBurnOnReadLabel() {
+        await expect(this.burnOnReadLabel).not.toBeVisible();
     }
 
     /**

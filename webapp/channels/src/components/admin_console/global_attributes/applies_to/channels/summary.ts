@@ -7,11 +7,12 @@ import {defineMessages} from 'react-intl';
 import {DISPLAY_BANNER_TOP, DISPLAY_LABEL_HEADER, DISPLAY_LABEL_INFO} from 'mattermost-redux/constants/properties';
 
 import type {ChannelChangePolicy, ChannelDisplayLocation, ChannelResourceConfig} from './types';
+import {CHANNEL_DISPLAY_LOCATION_OPTIONS} from './types';
 
 export const locationMessages = defineMessages({
     [DISPLAY_LABEL_HEADER]: {id: 'admin.global_attributes.applies_to.channels.location.header', defaultMessage: 'Header'},
-    [DISPLAY_LABEL_INFO]: {id: 'admin.global_attributes.applies_to.channels.location.info', defaultMessage: 'Channel Info'},
     [DISPLAY_BANNER_TOP]: {id: 'admin.global_attributes.applies_to.channels.location.banner', defaultMessage: 'Banner'},
+    [DISPLAY_LABEL_INFO]: {id: 'admin.global_attributes.applies_to.channels.location.info', defaultMessage: 'Channel Info'},
 });
 
 export const changePolicyMessages = defineMessages({
@@ -43,7 +44,7 @@ export function displayLocationLabel(location: ChannelDisplayLocation, intl: Int
 }
 
 /**
- * The collapsed one-liner, e.g. "Optional · Display: Header + Channel Info".
+ * The collapsed one-liner, e.g. "Optional · Display: Header + Banner".
  * Assembled from short conditional segments rather than one message with four
  * optional slots, which translators cannot work with.
  */
@@ -52,8 +53,14 @@ export function summarizeChannelResource(config: ChannelResourceConfig, intl: In
         intl.formatMessage(config.required ? messages.required : messages.optional),
     ];
 
-    if (config.displayLocations.length > 0) {
-        const locations = config.displayLocations.
+    // Channel Info is always available, so it is omitted from the Display: list —
+    // including when it is the only stored action (UI-hidden checkbox).
+    const visibleLocations = config.displayLocations.filter((location) => (
+        (CHANNEL_DISPLAY_LOCATION_OPTIONS as readonly string[]).includes(location)
+    ));
+
+    if (visibleLocations.length > 0) {
+        const locations = visibleLocations.
             map((location) => displayLocationLabel(location, intl)).
             join(' + ');
         segments.push(intl.formatMessage(messages.display, {locations}));

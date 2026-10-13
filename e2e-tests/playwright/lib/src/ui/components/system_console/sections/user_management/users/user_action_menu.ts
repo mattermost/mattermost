@@ -60,4 +60,12 @@ export class UserActionMenu {
     async clickRevokeSessions() {
         await this.clickMenuItem('Revoke sessions');
     }
+
+    async clickRemoveMfa() {
+        await this.clickMenuItem('Remove MFA');
+    }
+
+    async expectRemoveMfaHidden() {
+        await expect(this.getMenuItem('Remove MFA')).toHaveCount(0);
+    }
 }

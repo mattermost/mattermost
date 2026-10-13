@@ -11,7 +11,7 @@
 // - Each parameter with `@params`
 // - Return value with `@returns`
 // - Example usage with `@example`
-// Custom command should follow naming convention of having `ui` prefix, e.g. `uiGetProductMenuButton`.
+// Custom command should follow naming convention of having `ui` prefix, e.g. `uiGetSwitchProductMenuButton`.
 // ***************************************************************
 
 declare namespace Cypress {
@@ -21,17 +21,17 @@ declare namespace Cypress {
          * Get product switch button
          *
          * @example
-         *   cy.uiGetProductMenuButton().click();
+         *   cy.uiGetSwitchProductMenuButton().click();
          */
-        uiGetProductMenuButton(): Chainable;
+        uiGetSwitchProductMenuButton(): Chainable;
 
         /**
          * Get product switch menu
          *
          * @example
-         *   cy.uiGetProductMenu().click();
+         *   cy.uiGetSwitchProductMenu().click();
          */
-        uiGetProductMenu(): Chainable;
+        uiGetSwitchProductMenu(): Chainable;
 
         /**
          * Open product switch menu
@@ -39,9 +39,9 @@ declare namespace Cypress {
          * @param {string} item - menu item ex. System Console, Integrations, etc.
          *
          * @example
-         *   cy.uiOpenProductMenu().click();
+         *   cy.uiOpenSwitchProductMenu().click();
          */
-        uiOpenProductMenu(item: string = ''): Chainable;
+        uiOpenSwitchProductMenu(item?: string): Chainable;
 
         /**
          * Get set status button

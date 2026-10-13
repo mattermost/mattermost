@@ -72,7 +72,7 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	includeAttachments := c.App.HasPermissionToFileAction(c.AppContext, userId, c.AppContext.Session().Roles, channel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
+	includeAttachments := c.App.HasPermissionToChannelAction(c.AppContext, userId, c.AppContext.Session().Roles, channel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
 
 	reportPath, omittedAttachments, appErr := c.App.GenerateFlaggedPostReport(c.AppContext, postId, userId, actionRequest.Comment, actionRequest.Action, includeAttachments)
 	if appErr != nil {

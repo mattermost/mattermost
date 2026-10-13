@@ -108,6 +108,14 @@
             flex: 4;
         }
 
+        .setting_help {
+            margin: 8px 0 0;
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 16px;
+        }
+
         .AdvancedTextbox {
             margin-top: 0 !important;
         }

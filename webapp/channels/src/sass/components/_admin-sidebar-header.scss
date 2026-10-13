@@ -1,68 +1,63 @@
-@use "utils/mixins";
-@use "utils/variables";
-
 .AdminSidebarHeader {
-    background: #333;
+    position: relative;
+    display: flex;
+    width: 100%;
+    flex-shrink: 0;
+    align-items: center;
+    padding: 14px 18px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    gap: 8px;
+    text-align: left;
+    transition: background-color 0.2s ease-in-out;
 
-    > div {
-        &:first-child {
-            position: relative;
+    > img {
+        flex-shrink: 0;
+        margin-left: -4px;
+    }
+
+    .header__info {
+        position: relative;
+        width: 100%;
+        flex-grow: 1;
+        color: var(--sys-sidebar-text);
+
+        .header__title {
             display: flex;
-            align-items: center;
-            padding: 10px;
-            cursor: pointer;
+            overflow: hidden;
+            max-width: 100%;
+            font-family: Metropolis, sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 20px;
+            text-decoration: none;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
-        > img {
-            width: 36px;
-            height: 36px;
-            border-radius: 36px;
-        }
-
-        .header__info {
-            @include mixins.clearfix;
-
-            position: relative;
-            width: 100%;
-            flex-grow: 1;
-            padding: 3px 15px 0 8px;
-            color: variables.$white;
-
-            .team__name {
-                overflow: hidden;
-                max-width: 100%;
-                font-size: 14px;
-                font-weight: 600;
-                text-decoration: none;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-
-            .user__name {
-                font-weight: 400;
-                opacity: 0.8;
-            }
-        }
-
-        .menu-icon {
-            margin-right: 10px;
-            fill: variables.$white;
-            opacity: 0.8;
-        }
-
-        &:hover {
-            .user__name,
-            .menu-icon {
-                opacity: 1;
-            }
-
-            > div > img {
-                opacity: 0.8;
-            }
+        .user__name {
+            color: rgba(var(--sys-sidebar-text-rgb), 0.75);
+            font-weight: 400;
+            line-height: 16px;
         }
     }
 
-    .Menu {
-        margin-left: 16px;
+    &:hover {
+        background-color: rgba(var(--sys-sidebar-text-rgb), 0.04);
     }
+
+    &:active {
+        background-color: rgba(var(--sys-sidebar-text-rgb), 0.08);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--sys-button-bg);
+        outline-offset: -2px;
+    }
+}
+
+// Match parent menu width for the Switch teams submenu (positioning uses Menu.SubMenu defaults).
+#adminConsoleSwitchTeamsMenu {
+    min-width: calc(var(--admin-sidebar-width) - 16px);
 }

@@ -18,13 +18,12 @@ import * as Menu from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
 
+import type {ExternalSource} from './external_source';
+import {ALL_EXTERNAL_SOURCES, externalSourceMessages as sourceMessages, externalSourceValue as sourceValue} from './external_source';
+
 import type {AttributeTypeId} from '../utils';
 
 import './attribute_external_source.scss';
-
-export type ExternalSource = 'ldap' | 'saml';
-
-const ALL_SOURCES: ExternalSource[] = ['ldap', 'saml'];
 
 const TRIGGER_ID = 'attribute-external-source-trigger';
 
@@ -43,10 +42,6 @@ type Props = {
     // touches fieldType, so those stay enabled.
     disableAdding?: boolean;
 };
-
-function sourceValue(source: ExternalSource, ldapAttr: string, samlAttr: string): string {
-    return source === 'ldap' ? ldapAttr : samlAttr;
-}
 
 function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink, disabled = false, disableAdding = false}: Props): JSX.Element {
     const {formatMessage} = useIntl();
@@ -130,8 +125,8 @@ function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink, disable
         }
     }, []);
 
-    const linkedSources = ALL_SOURCES.filter((source) => sourceValue(source, ldapAttr, samlAttr));
-    const unlinkedSources = ALL_SOURCES.filter((source) => !sourceValue(source, ldapAttr, samlAttr));
+    const linkedSources = ALL_EXTERNAL_SOURCES.filter((source) => sourceValue(source, ldapAttr, samlAttr));
+    const unlinkedSources = ALL_EXTERNAL_SOURCES.filter((source) => !sourceValue(source, ldapAttr, samlAttr));
 
     return (
         <div
@@ -295,18 +290,3 @@ const messages = defineMessages({
         defaultMessage: 'Cannot link an external source while this attribute applies to a resource.',
     },
 });
-
-const sourceMessages = {
-    ldap: defineMessages({
-        title: {id: 'admin.global_attributes.attribute_details.external_source.ldap.title', defaultMessage: 'AD/LDAP'},
-        subtitle: {id: 'admin.global_attributes.attribute_details.external_source.ldap.subtitle', defaultMessage: 'Sync with your directory of record'},
-        modalTitle: {id: 'admin.global_attributes.attribute_details.external_source.ldap.modal_title', defaultMessage: 'Link to AD/LDAP'},
-        helpText: {id: 'admin.global_attributes.attribute_details.external_source.ldap.help_text', defaultMessage: 'The attribute in your AD/LDAP directory to sync this value from.'},
-    }),
-    saml: defineMessages({
-        title: {id: 'admin.global_attributes.attribute_details.external_source.saml.title', defaultMessage: 'SAML'},
-        subtitle: {id: 'admin.global_attributes.attribute_details.external_source.saml.subtitle', defaultMessage: 'Map values from SAML at sign-in'},
-        modalTitle: {id: 'admin.global_attributes.attribute_details.external_source.saml.modal_title', defaultMessage: 'Link to SAML'},
-        helpText: {id: 'admin.global_attributes.attribute_details.external_source.saml.help_text', defaultMessage: 'The attribute in your SAML response to sync this value from.'},
-    }),
-} as const;

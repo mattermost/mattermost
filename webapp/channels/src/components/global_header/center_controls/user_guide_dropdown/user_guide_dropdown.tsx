@@ -2,12 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
-import IconButton from 'components/global_header/header_icon_button';
+import HeaderIconButton from 'components/global_header/header_icon_button';
 import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
@@ -111,12 +111,6 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
 
     render() {
         const {intl} = this.props;
-        const tooltipText = (
-            <FormattedMessage
-                id={'channel_header.userHelpGuide'}
-                defaultMessage='Help'
-            />
-        );
 
         return (
             <MenuWrapper
@@ -125,22 +119,21 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                 onToggle={this.buttonToggleState}
             >
                 <WithTooltip
-                    title={tooltipText}
+                    title={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
                 >
-                    <IconButton
+                    <HeaderIconButton
+                        aria-controls='userHelpGuide'
                         icon={'help-circle-outline'}
-                        onClick={() => {}} // icon button currently requires onclick ... needs to revisit
-                        active={this.state.buttonActive}
-                        aria-controls='AddChannelDropdown'
-                        aria-expanded={this.state.buttonActive}
                         aria-label={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
+                        aria-expanded={this.state.buttonActive}
+                        aria-haspopup={true}
                     />
                 </WithTooltip>
                 <Menu
+                    id='userHelpGuide'
+                    ariaLabel={intl.formatMessage({id: 'channel_header.userHelpGuide.menuAriaLabel', defaultMessage: 'Help menu'})}
                     openLeft={false}
                     openUp={false}
-                    id='AddChannelDropdown'
-                    ariaLabel={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
                 >
                     {this.renderDropdownItems()}
                 </Menu>
