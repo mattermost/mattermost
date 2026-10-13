@@ -87,11 +87,14 @@ export function gotoTeamAndPostImage() {
 }
 
 export function gotoGlobalPolicy() {
-    // # Reveal CSS :hover action IconButton, then open edit
+    // # Reveal CSS :hover IconButton, open menu, then Edit.
+    // Menu.Item defers onClick until close, so wait on URL before asserting header
+    // (invoke('text') is not retryable across navigation).
     cy.get('#global_policy_table .DataGrid_row').first().realHover();
     cy.get('#global-retention-policy-menu').should('be.visible').click();
-    cy.findByRole('menuitem', {name: /edit/i}).should('be.visible').click();
-    cy.get('.DataRetentionSettings .admin-console__header', {timeout: TIMEOUTS.TWO_MIN}).should('be.visible').invoke('text').should('include', 'Global Retention Policy');
+    cy.get('#global-retention-policy-menu-edit').should('be.visible').click();
+    cy.location('pathname', {timeout: TIMEOUTS.TWO_MIN}).should('include', '/data_retention_settings/global_policy');
+    cy.get('.DataRetentionSettings .admin-console__header').should('be.visible').and('include.text', 'Global Retention Policy');
 }
 
 export function editGlobalPolicyMessageRetention(input, result) {
