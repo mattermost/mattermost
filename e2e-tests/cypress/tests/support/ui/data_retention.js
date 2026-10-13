@@ -80,8 +80,10 @@ Cypress.Commands.add('uiVerifyCustomPolicyRow', (policyId, description, duration
 });
 
 Cypress.Commands.add('uiClickEditCustomPolicyRow', (policyId) => {
-    cy.get(`#customWrapper-${policyId}`).trigger('mouseover').click();
-    cy.findByRole('button', {name: /edit/i}).should('be.visible').click();
+    // # Reveal CSS :hover IconButton, open menu, then Edit
+    cy.get(`#customWrapper-${policyId}`).realHover();
+    cy.get(`#custom-retention-policy-menu-${policyId}`).should('be.visible').click();
+    cy.findByRole('menuitem', {name: /edit/i}).should('be.visible').click();
 });
 
 Cypress.Commands.add('uiVerifyPolicyResponse', (body, teamCount, channelCount, duration, displayName) => {
