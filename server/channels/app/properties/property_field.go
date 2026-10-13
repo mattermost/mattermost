@@ -285,6 +285,22 @@ func refuseSelfWritableHoldings(caller string, field, template *model.PropertyFi
 	)
 }
 
+// templateNamesHoldingsField reports whether template's masking names fieldID
+// in mask_by_field_id, and so reads every caller's holdings from it.
+//
+// refuseSelfWritableHoldings reaches such a field only while it still links to
+// the template, but the template goes on reading holdings from it either way. So
+// a field this returns true for may not be unlinked or deleted until the
+// template stops naming it: unlinked, it could then be made writable by the
+// people the template filters, and deleted, it would leave the template naming a
+// field that fails ValidateMaskByFieldID on every later save.
+func templateNamesHoldingsField(template *model.PropertyField, fieldID string) bool {
+	return template != nil &&
+		template.Permissions != nil &&
+		template.Permissions.Masking != nil &&
+		template.Permissions.Masking.MaskByFieldID == fieldID
+}
+
 // validateDependentOptionReadCeilings refuses a template update that tightens
 // its own option.read below the tier of a field already linked to it.
 // validateLinkedFieldOptionReadCeiling closes the other half of this ceiling —
@@ -623,6 +639,32 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 			)
 		}
 
+		// A field its template names as the holdings source stays linked until
+		// the template stops naming it (see templateNamesHoldingsField). The
+		// template is read from this same call first, so a call that clears
+		// mask_by_field_id and unlinks the field together is allowed, and one that
+		// names the field while unlinking it is not.
+		if existingIsLinked && !newIsLinked {
+			template, ok := incoming[*existing.LinkedFieldID]
+			if !ok {
+				var tErr error
+				template, tErr = ps.fieldStore.Get(store.RequestContextWithMaster(rctx), "", *existing.LinkedFieldID)
+				if tErr != nil {
+					return nil, nil, nil, fmt.Errorf("failed to get linked template field %q: %w", *existing.LinkedFieldID, tErr)
+				}
+			}
+
+			if templateNamesHoldingsField(template, field.ID) {
+				return nil, nil, nil, model.NewAppError(
+					"UpdatePropertyFields",
+					"app.property_field.update.unlink_mask_holdings.app_error",
+					map[string]any{"FieldID": field.ID, "TemplateID": template.ID},
+					fmt.Sprintf("field %q is the holdings source named by template %q's mask_by_field_id, so it cannot be unlinked", field.ID, template.ID),
+					http.StatusConflict,
+				)
+			}
+		}
+
 		// Checked before the PSAv1 skip below: whether a linked field's type may
 		// change does not depend on which property generation the field belongs to.
 		if existingIsLinked && field.Type != existing.Type {
@@ -772,11 +814,10 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 }
 
 func (ps *PropertyService) deletePropertyField(rctx request.CTX, groupID, id string) error {
-	// if groupID is not empty, we need to check first that the field belongs to the group
-	if groupID != "" {
-		if _, err := ps.getPropertyField(rctx, groupID, id); err != nil {
-			return fmt.Errorf("error getting property field %q for group %q: %w", id, groupID, err)
-		}
+	// Also checks the field belongs to the group, when groupID is not empty.
+	field, err := ps.fieldStore.Get(store.RequestContextWithMaster(rctx), groupID, id)
+	if err != nil {
+		return fmt.Errorf("error getting property field %q for group %q: %w", id, groupID, err)
 	}
 
 	// Deletion protection: cannot delete a field that has active linked dependents
@@ -792,6 +833,24 @@ func (ps *PropertyService) deletePropertyField(rctx request.CTX, groupID, id str
 			"cannot delete field with active linked dependents; unlink or delete dependent fields first",
 			http.StatusConflict,
 		)
+	}
+
+	// Nor a field its template names as the holdings source (see
+	// templateNamesHoldingsField).
+	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
+		template, tErr := ps.fieldStore.Get(store.RequestContextWithMaster(rctx), "", *field.LinkedFieldID)
+		if tErr != nil {
+			return fmt.Errorf("failed to get linked template field %q: %w", *field.LinkedFieldID, tErr)
+		}
+		if templateNamesHoldingsField(template, id) {
+			return model.NewAppError(
+				"DeletePropertyField",
+				"app.property_field.delete.mask_holdings.app_error",
+				map[string]any{"FieldID": id, "TemplateID": template.ID},
+				fmt.Sprintf("field %q is the holdings source named by template %q's mask_by_field_id, so it cannot be deleted", id, template.ID),
+				http.StatusConflict,
+			)
+		}
 	}
 
 	if err := ps.valueStore.DeleteForField(groupID, id); err != nil {
