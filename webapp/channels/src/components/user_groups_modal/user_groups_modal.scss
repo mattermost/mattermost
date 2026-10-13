@@ -14,13 +14,13 @@
             align-items: center;
 
             .user-groups-modal__header-title-row {
-                flex: 1 1 auto;
                 min-width: 0;
+                flex: 1 1 auto;
                 gap: 16px;
 
                 .modal-title {
-                    flex: 1 1 auto;
                     min-width: 0;
+                    flex: 1 1 auto;
                 }
             }
 
@@ -33,11 +33,11 @@
 
             .user-groups-modal__header-actions {
                 display: flex;
-                flex: 0 0 auto;
                 width: fit-content;
+                flex: 0 0 auto;
                 align-items: center;
-                margin-left: auto;
                 margin-right: calc(18px + 40px + 8px - 64px);
+                margin-left: auto;
                 gap: 8px;
             }
         }
