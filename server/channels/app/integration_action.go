@@ -189,10 +189,19 @@ func (a *App) getPostActionClient(rctx request.CTX, inURL *url.URL, req *http.Re
 	// Allow access to plugin routes for action buttons
 	var httpClient *http.Client
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
-	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
-	if inURL.Hostname() == siteURL.Hostname() && strings.HasPrefix(path.Clean(inURL.Path), path.Join(subpath, "plugins")) {
+	siteURL, err := url.Parse(*a.Config().ServiceSettings.SiteURL)
+	if err == nil && isSitePluginActionURL(siteURL, inURL, subpath) {
 		req.Header.Set(model.HeaderAuth, "Bearer "+rctx.Session().Token)
 		httpClient = a.HTTPService().MakeClient(true)
+		httpClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			if len(via) >= 10 {
+				return fmt.Errorf("stopped after %d redirects", len(via))
+			}
+			if !isSitePluginActionURL(siteURL, req.URL, subpath) {
+				return fmt.Errorf("redirect target %q is outside the site plugin path", req.URL.Redacted())
+			}
+			return nil
+		}
 	} else {
 		httpClient = a.HTTPService().MakeClient(false)
 	}
@@ -204,6 +213,44 @@ func (a *App) getPostActionClient(rctx request.CTX, inURL *url.URL, req *http.Re
 	}
 
 	return httpClient
+}
+
+// isSitePluginActionURL reports whether target uses the same scheme, hostname,
+// and effective port as siteURL and its cleaned path is the site plugin path
+// or a path under it.
+func isSitePluginActionURL(siteURL, target *url.URL, subpath string) bool {
+	if siteURL == nil || target == nil || siteURL.Hostname() == "" {
+		return false
+	}
+	if siteURL.Scheme != target.Scheme {
+		return false
+	}
+	if !strings.EqualFold(siteURL.Hostname(), target.Hostname()) {
+		return false
+	}
+	if effectiveURLPort(siteURL) != effectiveURLPort(target) {
+		return false
+	}
+
+	pluginPath := path.Join(subpath, "plugins")
+	cleaned := path.Clean(target.Path)
+	return cleaned == pluginPath || strings.HasPrefix(cleaned, pluginPath+"/")
+}
+
+// effectiveURLPort returns u's port, or the scheme default (80 for http, 443
+// for https) when the port is empty.
+func effectiveURLPort(u *url.URL) string {
+	if port := u.Port(); port != "" {
+		return port
+	}
+	switch u.Scheme {
+	case "http":
+		return "80"
+	case "https":
+		return "443"
+	default:
+		return ""
+	}
 }
 
 type LocalResponseWriter struct {
