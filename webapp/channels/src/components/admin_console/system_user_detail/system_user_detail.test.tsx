@@ -812,7 +812,6 @@ describe('SystemUserDetail', () => {
         });
 
         describe('CPA validation and locks', () => {
-            const TOO_LONG = 'This value is too long.';
             const REQUIRED = 'This attribute is required.';
             const INVALID_EMAIL = 'Invalid email address';
             const ADMIN_MANAGED = 'This field can only be changed by an administrator.';
@@ -830,38 +829,6 @@ describe('SystemUserDetail', () => {
             const cpaInput = () => cpaField().querySelector('input') as HTMLInputElement;
             const fieldAlert = () => within(cpaField()).getByRole('alert');
             const saveButton = () => screen.getByRole('button', {name: 'Save'});
-
-            test('shows a length error for 65 ASCII bytes and disables Save', async () => {
-                renderWithField(buildCPAField());
-                await waitForLoadingToFinish();
-
-                fireEvent.change(cpaInput(), {target: {value: 'a'.repeat(65)}});
-
-                expect(fieldAlert()).toHaveTextContent(TOO_LONG);
-                expect(cpaInput()).toHaveAttribute('aria-invalid', 'true');
-                expect(saveButton()).toBeDisabled();
-            });
-
-            test('accepts 64 ASCII bytes', async () => {
-                renderWithField(buildCPAField());
-                await waitForLoadingToFinish();
-
-                fireEvent.change(cpaInput(), {target: {value: 'a'.repeat(64)}});
-
-                expect(screen.queryByText(TOO_LONG)).not.toBeInTheDocument();
-                expect(saveButton()).toBeEnabled();
-            });
-
-            test('shows a length error for multibyte text over 64 bytes', async () => {
-                renderWithField(buildCPAField());
-                await waitForLoadingToFinish();
-
-                fireEvent.change(cpaInput(), {target: {value: 'é'.repeat(33)}});
-                expect(screen.getByText(TOO_LONG)).toBeInTheDocument();
-
-                fireEvent.change(cpaInput(), {target: {value: 'é'.repeat(32)}});
-                expect(screen.queryByText(TOO_LONG)).not.toBeInTheDocument();
-            });
 
             test('shows a required error when a required value is cleared', async () => {
                 renderWithField(buildCPAField({required: true} as Partial<UserPropertyField['attrs']>), 'Eng');
@@ -945,17 +912,18 @@ describe('SystemUserDetail', () => {
                 await userEvent.type(cpaInput(), 'nope');
 
                 expect(fieldAlert()).toHaveTextContent(INVALID_EMAIL);
+                expect(cpaInput()).toHaveAttribute('aria-invalid', 'true');
                 expect(saveButton()).toBeDisabled();
             });
 
             test('clears the error once the value is fixed', async () => {
-                renderWithField(buildCPAField());
+                renderWithField(buildCPAField({value_type: 'email'}));
                 await waitForLoadingToFinish();
 
-                fireEvent.change(cpaInput(), {target: {value: 'a'.repeat(65)}});
-                expect(screen.getByText(TOO_LONG)).toBeInTheDocument();
+                fireEvent.change(cpaInput(), {target: {value: 'nope'}});
+                expect(fieldAlert()).toHaveTextContent(INVALID_EMAIL);
 
-                fireEvent.change(cpaInput(), {target: {value: 'Eng'}});
+                fireEvent.change(cpaInput(), {target: {value: 'a@b.co'}});
                 expect(within(cpaField()).queryByRole('alert')).not.toBeInTheDocument();
                 expect(saveButton()).toBeEnabled();
             });

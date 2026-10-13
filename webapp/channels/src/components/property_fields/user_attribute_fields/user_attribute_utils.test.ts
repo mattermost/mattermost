@@ -6,10 +6,10 @@ import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {
     canEditUserAttribute,
-    getClearedUserAttributeValue,
-    getUserAttributeLockReason,
+    getEmptyUserAttributeValue,
     getVisibleUserAttributeFields,
     hasUserAttributeValue,
+    isAdminManagedLocked,
     isSameUserAttributeValue,
     validateUserAttributeValue,
 } from './user_attribute_utils';
@@ -33,111 +33,50 @@ const buildField = (overrides: Partial<UserPropertyField> = {}, attrs: Partial<U
 
 const opts = {canEditAdminManaged: true};
 
-const TOO_LONG = 'property_fields.user_attribute_fields.too_long';
 const REQUIRED = 'property_fields.user_attribute_fields.required';
 const INVALID_EMAIL = 'admin.user_item.invalidEmail';
 const INVALID_URL = 'admin.user_item.invalidUrl';
 
-describe('getUserAttributeLockReason', () => {
-    test('returns undefined for a plain editable field', () => {
-        expect(getUserAttributeLockReason(buildField(), opts)).toBeUndefined();
+describe('canEditUserAttribute', () => {
+    test('allows a plain field', () => {
+        expect(canEditUserAttribute(buildField(), opts)).toBe(true);
     });
 
-    test('returns protected when attrs.protected is set', () => {
-        expect(getUserAttributeLockReason(buildField({}, {protected: true}), opts)).toBe('protected');
-    });
-
-    test('returns synced for an ldap attr', () => {
-        expect(getUserAttributeLockReason(buildField({}, {ldap: 'department'}), opts)).toBe('synced');
-    });
-
-    test('returns synced for a saml attr', () => {
-        expect(getUserAttributeLockReason(buildField({}, {saml: 'department'}), opts)).toBe('synced');
-    });
-
-    test('returns owner_managed when owners is non-empty', () => {
+    test('locks protected, synced and owner-managed fields', () => {
         const owners = [{id: 'scim', type: 'plugin' as const, scopes: []}];
-        expect(getUserAttributeLockReason(buildField({}, {owners}), opts)).toBe('owner_managed');
-        expect(getUserAttributeLockReason(buildField({}, {owners: []}), opts)).toBeUndefined();
+        expect(canEditUserAttribute(buildField({}, {protected: true}), opts)).toBe(false);
+        expect(canEditUserAttribute(buildField({}, {ldap: 'department'}), opts)).toBe(false);
+        expect(canEditUserAttribute(buildField({}, {saml: 'department'}), opts)).toBe(false);
+        expect(canEditUserAttribute(buildField({}, {owners}), opts)).toBe(false);
+        expect(canEditUserAttribute(buildField({}, {owners: []}), opts)).toBe(true);
     });
 
-    test.each(['select', 'multiselect', 'text'] as FieldType[])('returns options_omitted for a non-graph field with omitted options (%s)', (type) => {
-        expect(getUserAttributeLockReason(buildField({type}, {options_omitted: true}), opts)).toBe('options_omitted');
+    test.each(['select', 'multiselect', 'text'] as FieldType[])('locks a non-graph field with omitted options (%s)', (type) => {
+        expect(canEditUserAttribute(buildField({type}, {options_omitted: true}), opts)).toBe(false);
     });
 
-    test('does not lock a graph field with omitted options', () => {
-        expect(getUserAttributeLockReason(buildField({type: 'graph'}, {options_omitted: true}), opts)).toBeUndefined();
+    test('allows a graph field with omitted options', () => {
+        expect(canEditUserAttribute(buildField({type: 'graph'}, {options_omitted: true}), opts)).toBe(true);
     });
 
     test('locks managed=admin only without canEditAdminManaged', () => {
         const field = buildField({}, {managed: 'admin'});
-        expect(getUserAttributeLockReason(field, {canEditAdminManaged: false})).toBe('admin_managed');
-        expect(getUserAttributeLockReason(field, {canEditAdminManaged: true})).toBeUndefined();
-    });
-
-    test('prefers the earliest reason', () => {
-        const owners = [{id: 'scim', type: 'plugin' as const, scopes: []}];
-        const noAdmin = {canEditAdminManaged: false};
-
-        expect(getUserAttributeLockReason(buildField({type: 'select'}, {
-            protected: true,
-            ldap: 'dept',
-            owners,
-            options_omitted: true,
-            managed: 'admin',
-        }), noAdmin)).toBe('protected');
-        expect(getUserAttributeLockReason(buildField({}, {ldap: 'dept', owners}), noAdmin)).toBe('synced');
-        expect(getUserAttributeLockReason(buildField({type: 'select'}, {owners, options_omitted: true}), noAdmin)).toBe('owner_managed');
-        expect(getUserAttributeLockReason(buildField({type: 'select'}, {options_omitted: true, managed: 'admin'}), noAdmin)).toBe('options_omitted');
+        expect(canEditUserAttribute(field, {canEditAdminManaged: false})).toBe(false);
+        expect(canEditUserAttribute(field, {canEditAdminManaged: true})).toBe(true);
     });
 });
 
-describe('canEditUserAttribute', () => {
-    test('is true only when there is no lock reason', () => {
-        expect(canEditUserAttribute(buildField(), opts)).toBe(true);
-        expect(canEditUserAttribute(buildField({}, {protected: true}), opts)).toBe(false);
-
-        const adminManaged = buildField({}, {managed: 'admin'});
-        expect(canEditUserAttribute(adminManaged, {canEditAdminManaged: true})).toBe(true);
-        expect(canEditUserAttribute(adminManaged, {canEditAdminManaged: false})).toBe(false);
+describe('isAdminManagedLocked', () => {
+    test('is true only for managed=admin without canEditAdminManaged', () => {
+        expect(isAdminManagedLocked(buildField({}, {managed: 'admin'}), {canEditAdminManaged: false})).toBe(true);
+        expect(isAdminManagedLocked(buildField({}, {managed: 'admin'}), {canEditAdminManaged: true})).toBe(false);
+        expect(isAdminManagedLocked(buildField(), {canEditAdminManaged: false})).toBe(false);
     });
 });
 
 describe('validateUserAttributeValue', () => {
-    const textField = buildField();
-
-    test('accepts 64 ASCII bytes', () => {
-        expect(validateUserAttributeValue(textField, 'a'.repeat(64))).toBeUndefined();
-    });
-
-    test('rejects 65 ASCII bytes', () => {
-        expect(validateUserAttributeValue(textField, 'a'.repeat(65))?.id).toBe(TOO_LONG);
-    });
-
-    test('rejects multibyte text over 64 bytes even under 64 characters', () => {
-        expect(validateUserAttributeValue(textField, 'é'.repeat(33))?.id).toBe(TOO_LONG);
-        expect(validateUserAttributeValue(textField, 'é'.repeat(32))).toBeUndefined();
-    });
-
-    test('counts three-byte characters as three bytes', () => {
-        expect(validateUserAttributeValue(textField, '日'.repeat(22))?.id).toBe(TOO_LONG);
-        expect(validateUserAttributeValue(textField, '日'.repeat(21))).toBeUndefined();
-    });
-
-    test('counts astral characters as four bytes', () => {
-        expect(validateUserAttributeValue(textField, '😀'.repeat(17))?.id).toBe(TOO_LONG);
-        expect(validateUserAttributeValue(textField, '😀'.repeat(16))).toBeUndefined();
-    });
-
-    test('trims before counting', () => {
-        expect(validateUserAttributeValue(textField, ` ${'a'.repeat(64)} `)).toBeUndefined();
-        expect(validateUserAttributeValue(textField, ` ${'a'.repeat(65)} `)?.id).toBe(TOO_LONG);
-    });
-
-    test('only applies the length limit to text fields', () => {
-        const longId = 'o'.repeat(65);
-        const select = buildField({type: 'select'}, {options: [{id: longId, name: 'Long'}]});
-        expect(validateUserAttributeValue(select, longId)).toBeUndefined();
+    test('does not limit text length', () => {
+        expect(validateUserAttributeValue(buildField(), 'a'.repeat(65))).toBeUndefined();
     });
 
     test('requires a value when attrs.required is true', () => {
@@ -177,11 +116,6 @@ describe('validateUserAttributeValue', () => {
         expect(validateUserAttributeValue(buildField(), '   ')).toBeUndefined();
         expect(validateUserAttributeValue(buildField({}, {required: true}), '   ')?.id).toBe(REQUIRED);
         expect(validateUserAttributeValue(buildField({}, {required: true, value_type: 'email'}), '   ')?.id).toBe(REQUIRED);
-    });
-
-    test('reports length before format', () => {
-        const email = buildField({}, {value_type: 'email'});
-        expect(validateUserAttributeValue(email, `${'a'.repeat(60)}@b.co`)?.id).toBe(TOO_LONG);
     });
 
     test('does not validate phone', () => {
@@ -246,7 +180,7 @@ describe('isSameUserAttributeValue', () => {
     });
 });
 
-describe('getClearedUserAttributeValue', () => {
+describe('getEmptyUserAttributeValue', () => {
     test.each([
         ['text', ''],
         ['select', ''],
@@ -257,8 +191,8 @@ describe('getClearedUserAttributeValue', () => {
         ['graph', []],
         ['multiuser', []],
     ] as Array<[FieldType, string | string[]]>)("returns [] for multiselect, graph and multiuser and '' otherwise (%s)", (type, expected) => {
-        const cleared = getClearedUserAttributeValue(buildField({type}));
-        expect(cleared).toEqual(expected);
-        expect(cleared).not.toBeNull();
+        const empty = getEmptyUserAttributeValue(buildField({type}));
+        expect(empty).toEqual(expected);
+        expect(empty).not.toBeNull();
     });
 });

@@ -6869,7 +6869,6 @@
   "property_fields.hierarchical_value_menu.withheld": "The values for this attribute are not available to you here.",
   "property_fields.user_attribute_fields.remove": "Remove {name}",
   "property_fields.user_attribute_fields.required": "This attribute is required.",
-  "property_fields.user_attribute_fields.too_long": "This value is too long.",
   "property_option.color.blue": "Blue",
   "property_option.color.brown": "Brown",
   "property_option.color.default": "Default",

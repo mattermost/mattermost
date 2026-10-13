@@ -13,7 +13,7 @@ import {BOT_CREATE_WARNINGS_PARAM, serializeBotCreateWarnings} from 'components/
 import type {BotCreateWarnings} from 'components/integrations/bots/bot_create_warnings';
 import {
     canEditUserAttribute,
-    getClearedUserAttributeValue,
+    getEmptyUserAttributeValue,
     getVisibleUserAttributeFields,
     hasUserAttributeValue,
     isSameUserAttributeValue,
@@ -85,7 +85,7 @@ export function addAttributeRow(state: BotAttributesState, field: UserPropertyFi
     return {
         ...state,
         rows: state.rows.includes(field.id) ? state.rows : [...state.rows, field.id],
-        values: {...state.values, [field.id]: getClearedUserAttributeValue(field)},
+        values: {...state.values, [field.id]: getEmptyUserAttributeValue(field)},
         errors: {...state.errors, [field.id]: undefined},
     };
 }
@@ -136,7 +136,7 @@ export function computeAttributeChanges(
         if (!inRows && !hasUserAttributeValue(initialValues[field.id])) {
             continue;
         }
-        const next = inRows ? (values[field.id] ?? getClearedUserAttributeValue(field)) : getClearedUserAttributeValue(field);
+        const next = inRows ? (values[field.id] ?? getEmptyUserAttributeValue(field)) : getEmptyUserAttributeValue(field);
         if (!isSameUserAttributeValue(next, initialValues[field.id])) {
             changes[field.id] = next;
         }

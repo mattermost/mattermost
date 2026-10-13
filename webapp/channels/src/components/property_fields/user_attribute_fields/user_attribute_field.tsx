@@ -24,7 +24,7 @@ import {getUserPropertyFieldLabel} from 'utils/properties';
 
 import type {GlobalState} from 'types/store';
 
-import {getUserAttributeLockReason} from './user_attribute_utils';
+import {canEditUserAttribute, isAdminManagedLocked} from './user_attribute_utils';
 import type {UserAttributeValue} from './user_attribute_utils';
 
 import './user_attribute_fields.scss';
@@ -318,9 +318,9 @@ export default function UserAttributeField({
 }: UserAttributeFieldProps) {
     const intl = useIntl();
     const value = rawValue || '';
-    const lockReason = getUserAttributeLockReason(field, {canEditAdminManaged});
+    const lockOpts = {canEditAdminManaged};
     const omitLocksField = Boolean(field.attrs?.options_omitted) && field.type !== 'graph';
-    const isDisabled = disabled || lockReason !== undefined;
+    const isDisabled = disabled || !canEditUserAttribute(field, lockOpts);
     const errorId = field.id + '-error';
     const describedErrorId = error ? errorId : undefined;
 
@@ -481,7 +481,7 @@ export default function UserAttributeField({
             <CpaFieldManagementIndicator
                 field={field}
                 omitLocksField={omitLocksField}
-                adminManagedLocked={lockReason === 'admin_managed'}
+                adminManagedLocked={isAdminManagedLocked(field, lockOpts)}
             />
         </>
     );

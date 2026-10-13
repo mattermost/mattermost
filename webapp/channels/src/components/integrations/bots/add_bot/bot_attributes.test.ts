@@ -241,12 +241,6 @@ describe('bot_attributes', () => {
             });
         });
 
-        test('a text value over 64 bytes fails', () => {
-            expect(validateAttributeRows(fields, rowsState(['text'], {text: 'a'.repeat(65)}, {}), ADMIN)).toEqual({
-                text: expect.objectContaining({id: 'property_fields.user_attribute_fields.too_long'}),
-            });
-        });
-
         test('a new required row left empty fails', () => {
             expect(validateAttributeRows(fields, rowsState(['req'], {req: ''}, {}), ADMIN)).toEqual({
                 req: expect.objectContaining({id: 'property_fields.user_attribute_fields.required'}),

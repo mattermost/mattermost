@@ -7,8 +7,7 @@ export {default as UserAttributeFields} from './user_attribute_fields';
 export type {UserAttributeFieldsProps} from './user_attribute_fields';
 export {
     canEditUserAttribute,
-    getClearedUserAttributeValue,
-    getUserAttributeLockReason,
+    getEmptyUserAttributeValue,
     getVisibleUserAttributeFields,
     hasUserAttributeValue,
     isSameUserAttributeValue,
@@ -16,6 +15,5 @@ export {
 } from './user_attribute_utils';
 export type {
     UserAttributeLockOptions,
-    UserAttributeLockReason,
     UserAttributeValue,
 } from './user_attribute_utils';
