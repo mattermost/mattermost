@@ -98,16 +98,21 @@ const MoreThanMaxFreeUsers = ({channel, pluginButtons}: {channel: Channel; plugi
     const channelIsArchived = channel.delete_at !== 0;
     const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
 
-    const modalId = channel.group_constrained ? ModalIdentifiers.ADD_GROUPS_TO_CHANNEL : ModalIdentifiers.CHANNEL_INVITE;
-    const modal = channel.group_constrained ? AddGroupsToChannelModal : ChannelInviteModal;
-
     const handleAddPeople = useCallback(() => {
+        if (channel.group_constrained) {
+            dispatch(openModal({
+                modalId: ModalIdentifiers.ADD_GROUPS_TO_CHANNEL,
+                dialogType: AddGroupsToChannelModal,
+            }));
+            return;
+        }
+
         dispatch(openModal({
-            modalId,
-            dialogType: modal,
+            modalId: ModalIdentifiers.CHANNEL_INVITE,
+            dialogType: ChannelInviteModal,
             dialogProps: {channel},
         }));
-    }, [channel, dispatch, modal, modalId]);
+    }, [channel, dispatch]);
 
     if (channelIsArchived) {
         return null;
