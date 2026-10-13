@@ -1803,7 +1803,11 @@
     },
     {
       "from": "/integrate/servicenow",
-      "to": "/integrations-guide/servicenow"
+      "to": "/integrations-guide/popular-integrations"
+    },
+    {
+      "from": "/integrations-guide/servicenow",
+      "to": "/integrations-guide/popular-integrations"
     },
     {
       "from": "/integrate/zoom",
