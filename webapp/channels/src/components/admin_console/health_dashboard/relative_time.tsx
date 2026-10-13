@@ -16,6 +16,7 @@ const UNITS: TimestampProps['units'] = [
                 defaultMessage='just now'
             />
         ),
+        updateIntervalInSeconds: 15,
     },
     'minute', 'hour', 'day', 'week', 'month', 'year',
 ];
