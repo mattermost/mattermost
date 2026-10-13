@@ -27,6 +27,11 @@ export function isCallsRingingEnabledOnServer(state: GlobalState) {
     return Boolean(pluginState(state)?.callsConfig?.EnableRinging);
 }
 
+// isCallsPhoneDialingEnabled reports whether the calls plugin can place outbound phone calls
+export function isCallsPhoneDialingEnabled(state: GlobalState) {
+    return Boolean(pluginState(state)?.callsConfig?.EnableSIPOutbound);
+}
+
 export const getSessionsInCalls = createSelector(
     'getSessionsInCalls',
     pluginState,
