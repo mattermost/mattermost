@@ -949,42 +949,6 @@ Disabling this experimental configuration setting in larger deployments may impr
 
 </Note>
 
-### Enable file search
-
-This setting isn't available in the System Console and can only be set in `config.json`.
-
-<Important>
-
-This experimental configuration setting enables users to search documents attached to messages by filename. To enable users to search documents by their content, you must also enable the `ExtractContent` configuration setting. See our [Enable Document Search by Content](/administration-guide/configure/environment-configuration-settings#enable-document-search-by-content) documentation for details. Document content search is available in Mattermost Server from v5.35, with mobile support coming soon.
-
-</Important>
-
-**True**: Supported document types are searchable by their filename.
-
-**False**: File-based searches are disabled.
-
-<table style={{width: '92%'}}>
-<colgroup>
-<col style={{width: '91%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"EnableFileSearch": true</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-<Note>
-
-Disabling this experimental configuration setting in larger deployments may improve server performance in the following areas:
-
-- Less Data to Index: Indexing files in addition to messages adds to the amount of data that needs to be processed and stored in the search index.
-- Fewer Complex Queries: Searching through files can require more complex queries, which can be more resource-intensive and time-consuming as compared to searching through messages alone.
-- Lower IO Operations: Searching files can generate more input/output operations, impacting the overall disk performance, especially if the system handles a large volume of file uploads and searches.
-- However, the ability to search for files in Mattermost is a critical feature for many users, and disabling this feature will result in users seeing an error if they attempt to use the Mattermost Search box. It’s important to balance performance improvements with the needs of your organization and users.
-
-</Note>
-
 ### Enable user status updates
 
 This setting isn't available in the System Console and can only be set in `config.json`.

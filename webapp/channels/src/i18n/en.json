@@ -5735,6 +5735,14 @@
     "defaultMessage": "When false, disables file sharing on the server. All file and image uploads on messages are forbidden across clients and devices, including mobile.",
     "description": "Help text for the Allow File Sharing setting on the System Console file storage page."
   },
+  "admin.file.enableFileSearchDesc": {
+    "defaultMessage": "When false, users cannot search for files and the Files tab is hidden from search results.",
+    "description": "Help text under the file search toggle in the System Console File Sharing and Downloads page, explaining that turning it off disables file search for users."
+  },
+  "admin.file.enableFileSearchTitle": {
+    "defaultMessage": "Enable File Search:",
+    "description": "Setting label (toggle) in the System Console controlling whether users can search for files; ends with a colon."
+  },
   "admin.file.enableMobileDownloadDesc": {
     "defaultMessage": "When false, disables file downloads on mobile apps. Users can still download files from a mobile web browser.",
     "description": "Admin console help text under the Allow File Downloads on Mobile toggle on the File Sharing and Downloads page."

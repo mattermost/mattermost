@@ -4285,6 +4285,13 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             type: 'bool',
+                            key: 'ServiceSettings.EnableFileSearch',
+                            label: defineMessage({id: 'admin.file.enableFileSearchTitle', defaultMessage: 'Enable File Search:'}),
+                            help_text: defineMessage({id: 'admin.file.enableFileSearchDesc', defaultMessage: 'When false, users cannot search for files and the Files tab is hidden from search results.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.FILE_SHARING_AND_DOWNLOADS)),
+                        },
+                        {
+                            type: 'bool',
                             key: 'FileSettings.EnableMobileUpload',
                             label: defineMessage({id: 'admin.file.enableMobileUploadTitle', defaultMessage: 'Allow File Uploads on Mobile:'}),
                             help_text: defineMessage({id: 'admin.file.enableMobileUploadDesc', defaultMessage: 'When false, disables file uploads on mobile apps. If Allow File Sharing is set to true, users can still upload files from a mobile web browser.'}),

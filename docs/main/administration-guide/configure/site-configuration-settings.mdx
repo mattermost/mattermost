@@ -2095,6 +2095,23 @@ Access the following configuration settings in the System Console by going to **
 </tbody>
 </table>
 
+### Enable file search
+
+<table>
+<colgroup>
+<col style={{width: '64%'}} />
+<col style={{width: '35%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Users can search for files attached to messages by filename.</li><li><strong>false</strong>: File search is disabled. The web and desktop apps hide the Files tab in search results and the channel Files views.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; File Sharing and Downloads</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableFileSearch</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLEFILESEARCH</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+To let users search documents by their content as well as by filename, also enable [document search by content](/administration-guide/configure/environment-configuration-settings#enable-document-search-by-content). Disabling file search in larger deployments may improve performance by removing file search queries against the database or search engine.
+
 ### Allow file uploads on mobile
 
 <table>

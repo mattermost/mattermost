@@ -11,7 +11,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import ExternalLink from 'components/external_link';
 
-import {isFileAttachmentsEnabled} from 'utils/file_utils';
+import {canSearchFiles} from 'utils/file_utils';
 
 interface SearchTerm {
     searchTerm: string;
@@ -39,7 +39,7 @@ const SearchHint = (props: Props): JSX.Element => {
         }
     };
     const config = useSelector(getConfig);
-    const isFileAttachmentEnabled = isFileAttachmentsEnabled(config);
+    const isFilesSearchAvailable = canSearchFiles(config);
 
     if (props.onSearchTypeSelected) {
         if (!props.searchType) {
@@ -84,7 +84,7 @@ const SearchHint = (props: Props): JSX.Element => {
                                 defaultMessage='Messages'
                             />
                         </button>
-                        {isFileAttachmentEnabled &&
+                        {isFilesSearchAvailable &&
                             <button
                                 className={classNames({highlighted: props.highlightedIndex === 1})}
                                 onClick={() => props.onSearchTypeSelected && props.onSearchTypeSelected('files')}

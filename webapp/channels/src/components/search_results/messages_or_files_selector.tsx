@@ -30,7 +30,7 @@ type Props = {
     selectedFilter: SearchFilterType;
     messagesCounter: string;
     filesCounter: string;
-    isFileAttachmentsEnabled: boolean;
+    isFilesTabEnabled: boolean;
     crossTeamSearchEnabled: boolean;
     onChange: (value: SearchType) => void;
     onFilter: (filter: SearchFilterType) => void;
@@ -59,7 +59,7 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
             let nextTab: SearchType;
             let nextTabRef: React.RefObject<HTMLButtonElement | null>;
 
-            if (currentTab === DataSearchTypes.MESSAGES_SEARCH_TYPE && props.isFileAttachmentsEnabled) {
+            if (currentTab === DataSearchTypes.MESSAGES_SEARCH_TYPE && props.isFilesTabEnabled) {
                 nextTab = DataSearchTypes.FILES_SEARCH_TYPE;
                 nextTabRef = filesTabRef;
             } else {
@@ -114,7 +114,7 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
                     />
                     <span className='counter'>{props.messagesCounter}</span>
                 </button>
-                {props.isFileAttachmentsEnabled && (
+                {props.isFilesTabEnabled && (
                     <button
                         ref={filesTabRef}
                         role='tab'

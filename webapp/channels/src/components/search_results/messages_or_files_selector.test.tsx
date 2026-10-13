@@ -14,7 +14,7 @@ describe('components/search_results/MessagesOrFilesSelector', () => {
         selectedFilter: 'code' as SearchFilterType,
         messagesCounter: '5',
         filesCounter: '10',
-        isFileAttachmentsEnabled: true,
+        isFilesTabEnabled: true,
         onChange: jest.fn(),
         onFilter: jest.fn(),
         onTeamChange: jest.fn(),
@@ -68,7 +68,7 @@ describe('components/search_results/MessagesOrFilesSelector', () => {
         const props = {
             ...baseProps,
             selected: 'files' as 'messages' | 'files',
-            isFileAttachmentsEnabled: false,
+            isFilesTabEnabled: false,
         };
 
         const {container} = renderWithContext(
