@@ -3,7 +3,7 @@
 
 import React, {type JSX} from 'react';
 
-import UsagePercentBar from 'components/common/usage_percent_bar';
+import {ProgressBar} from '@mattermost/compass-ui/components/progress-bar';
 
 import './limit_card.scss';
 
@@ -19,7 +19,7 @@ type Props = {
 };
 
 const LimitCard = (props: Props) => {
-    const barWidth = props.barWidth ?? 155;
+    const barWidth = props.barWidth ?? '155px';
     let className = 'ProductLimitCard';
     if (props.fullWidth) {
         className += ' ProductLimitCard--full-width';
@@ -38,9 +38,11 @@ const LimitCard = (props: Props) => {
             {(props.percent > 100) && <i className='icon icon-alert-outline'/>}
             {props.status}
         </div>
-        <UsagePercentBar
-            percent={props.percent}
-            barWidth={barWidth}
+        <ProgressBar
+            value={props.percent}
+            size='large'
+            semanticColors={true}
+            style={{width: barWidth}}
         />
     </div>);
 };
