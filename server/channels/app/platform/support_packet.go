@@ -142,11 +142,11 @@ func (ps *PlatformService) GenerateSupportPacket(rctx request.CTX, options *mode
 }
 
 func supportPacketDiagnosticsFile(d *model.SupportPacketDiagnostics, err error) (*model.FileData, error) {
-	return YAMLFile("diagnostics.yaml", d, err, yaml.WithComment(diagnosticsYAMLComments))
+	return YAMLFile(model.SupportPacketDiagnosticsFileName, d, err, yaml.WithComment(diagnosticsYAMLComments))
 }
 
 func supportPacketConfigFile(c *model.SupportPacketConfig, err error) (*model.FileData, error) {
-	return JSONFile("sanitized_config.json", c, err)
+	return JSONFile(model.SupportPacketConfigFileName, c, err)
 }
 
 // GetSupportPacketDiagnostics collects this node's diagnostics. Every node section is
@@ -178,6 +178,7 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.License.IsTrial = license.IsTrial
 		d.License.IsGovSKU = license.IsGovSku
 		d.License.IsNonProduction = license.IsNonProduction
+		d.License.IsCloud = license.IsCloud()
 	}
 
 	/* Server */
@@ -189,8 +190,9 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	totalMemoryBytes, err := getTotalMemory()
 	if err != nil {
 		fail(model.SectionServerHost, errors.Wrap(err, "error while getting total memory"))
+	} else {
+		d.Server.TotalMemoryMB = new(totalMemoryBytes / 1024 / 1024)
 	}
-	d.Server.TotalMemoryMB = totalMemoryBytes / 1024 / 1024
 	containerLimits, err := getContainerLimits()
 	if err != nil {
 		rctx.Logger().Debug("Failed to get container limits for Support Packet", mlog.Err(err))
@@ -198,9 +200,11 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.Server.ContainerCPULimit = containerLimits.CPULimit
 		d.Server.ContainerMemoryLimitMB = containerLimits.MemoryLimitMB
 	}
-	d.Server.Hostname, err = os.Hostname()
+	serverHostname, err := os.Hostname()
 	if err != nil {
 		fail(model.SectionServerHost, errors.Wrap(err, "error while getting hostname"))
+	} else {
+		d.Server.Hostname = new(serverHostname)
 	}
 	d.Server.ProcessID = os.Getpid()
 	d.Server.StartedAt = ps.startTime.UTC()
@@ -218,29 +222,36 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		installationType = unknownDataPoint
 	}
 	d.Server.InstallationType = installationType
-	d.Server.OpenFileDescriptors, err = getOpenFileDescriptors()
+	openFileDescriptors, err := getOpenFileDescriptors()
 	if err != nil {
 		fail(model.SectionServerFDs, errors.Wrap(err, "error while getting open file descriptor count"))
+	} else {
+		d.Server.OpenFileDescriptors = new(openFileDescriptors)
 	}
-	d.Server.MaxFileDescriptors, err = getMaxFileDescriptors()
+	maxFileDescriptors, err := getMaxFileDescriptors()
 	if err != nil {
 		fail(model.SectionServerFDs, errors.Wrap(err, "error while getting max file descriptor limit"))
+	} else {
+		d.Server.MaxFileDescriptors = new(maxFileDescriptors)
 	}
 
 	/* Config */
 	d.Config.Source = ps.DescribeConfig()
 
 	/* DB */
-	d.Database.Type, d.Database.SchemaVersion, err = ps.DatabaseTypeAndSchemaVersion()
+	databaseType, schemaVersion, err := ps.DatabaseTypeAndSchemaVersion()
 	if err != nil {
 		fail(model.SectionDatabaseIdentity, errors.Wrap(err, "error while getting DB type and schema version"))
+	} else {
+		d.Database.Type = new(databaseType)
+		d.Database.SchemaVersion = new(schemaVersion)
 	}
 
 	databaseVersion, err := ps.Store.GetDbVersion(false)
 	if err != nil {
 		fail(model.SectionDatabaseIdentity, errors.Wrap(err, "error while getting DB version"))
 	} else {
-		d.Database.Version = databaseVersion
+		d.Database.Version = new(databaseVersion)
 	}
 	d.Database.MasterConnections = ps.Store.TotalMasterDbConnections()
 	d.Database.ReplicaConnections = ps.Store.TotalReadDbConnections()
@@ -268,9 +279,9 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		if diskErr != nil {
 			fail(model.SectionFilestoreDisk, errors.Wrap(diskErr, "error while getting disk space info"))
 		} else {
-			d.FileStore.FilesystemType = di.FilesystemType
-			d.FileStore.TotalMB = di.TotalMB
-			d.FileStore.AvailableMB = di.AvailableMB
+			d.FileStore.FilesystemType = new(di.FilesystemType)
+			d.FileStore.TotalMB = new(di.TotalMB)
+			d.FileStore.AvailableMB = new(di.AvailableMB)
 		}
 	}
 
@@ -280,12 +291,15 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	/* Cluster */
 	if cluster := ps.Cluster(); cluster != nil {
 		d.Cluster.ID = cluster.GetClusterId()
+		d.Cluster.IsLeader = cluster.IsLeader()
 		clusterInfo, e := cluster.GetClusterInfos()
 		if e != nil {
 			fail(model.SectionCluster, errors.Wrap(e, "error while getting cluster infos"))
 		} else {
-			d.Cluster.NumberOfNodes = max(len(clusterInfo), 1) // clusterInfo is empty if the node is the only one in the cluster
+			d.Cluster.NumberOfNodes = new(max(len(clusterInfo), 1)) // clusterInfo is empty if the node is the only one in the cluster
 		}
+	} else {
+		d.Cluster.NumberOfNodes = new(1)
 	}
 
 	/* LDAP */
@@ -414,18 +428,18 @@ func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *
 		return nil
 	}
 
-	diagnostics.Database.MasterConnectionsInUse = storeDiagnostics.MasterConnectionsInUse
-	diagnostics.Database.MasterConnectionsIdle = storeDiagnostics.MasterConnectionsIdle
-	diagnostics.Database.MasterPoolWaitCount = storeDiagnostics.MasterPoolWaitCount
-	diagnostics.Database.MasterPoolWaitDurationMs = storeDiagnostics.MasterPoolWaitDurationMs
-	diagnostics.Database.MasterConnectionsClosedMaxIdle = storeDiagnostics.MasterConnectionsClosedMaxIdle
-	diagnostics.Database.MasterConnectionsClosedMaxLifetime = storeDiagnostics.MasterConnectionsClosedMaxLifetime
-	diagnostics.Database.ReplicaConnectionsInUse = storeDiagnostics.ReplicaConnectionsInUse
-	diagnostics.Database.ReplicaConnectionsIdle = storeDiagnostics.ReplicaConnectionsIdle
-	diagnostics.Database.ReplicaPoolWaitCount = storeDiagnostics.ReplicaPoolWaitCount
-	diagnostics.Database.ReplicaPoolWaitDurationMs = storeDiagnostics.ReplicaPoolWaitDurationMs
-	diagnostics.Database.ReplicaConnectionsClosedMaxIdle = storeDiagnostics.ReplicaConnectionsClosedMaxIdle
-	diagnostics.Database.ReplicaConnectionsClosedMaxLifetime = storeDiagnostics.ReplicaConnectionsClosedMaxLifetime
+	diagnostics.Database.MasterConnectionsInUse = new(storeDiagnostics.MasterConnectionsInUse)
+	diagnostics.Database.MasterConnectionsIdle = new(storeDiagnostics.MasterConnectionsIdle)
+	diagnostics.Database.MasterPoolWaitCount = new(storeDiagnostics.MasterPoolWaitCount)
+	diagnostics.Database.MasterPoolWaitDurationMs = new(storeDiagnostics.MasterPoolWaitDurationMs)
+	diagnostics.Database.MasterConnectionsClosedMaxIdle = new(storeDiagnostics.MasterConnectionsClosedMaxIdle)
+	diagnostics.Database.MasterConnectionsClosedMaxLifetime = new(storeDiagnostics.MasterConnectionsClosedMaxLifetime)
+	diagnostics.Database.ReplicaConnectionsInUse = new(storeDiagnostics.ReplicaConnectionsInUse)
+	diagnostics.Database.ReplicaConnectionsIdle = new(storeDiagnostics.ReplicaConnectionsIdle)
+	diagnostics.Database.ReplicaPoolWaitCount = new(storeDiagnostics.ReplicaPoolWaitCount)
+	diagnostics.Database.ReplicaPoolWaitDurationMs = new(storeDiagnostics.ReplicaPoolWaitDurationMs)
+	diagnostics.Database.ReplicaConnectionsClosedMaxIdle = new(storeDiagnostics.ReplicaConnectionsClosedMaxIdle)
+	diagnostics.Database.ReplicaConnectionsClosedMaxLifetime = new(storeDiagnostics.ReplicaConnectionsClosedMaxLifetime)
 	diagnostics.Database.CacheHitRatio = storeDiagnostics.CacheHitRatio
 	diagnostics.Database.Deadlocks = storeDiagnostics.Deadlocks
 	diagnostics.Database.TempFiles = storeDiagnostics.TempFiles

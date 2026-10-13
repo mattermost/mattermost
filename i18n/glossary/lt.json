@@ -1,0 +1,467 @@
+{
+  "Mattermost": {
+    "target": "Mattermost",
+    "note": "Brand name; never translate, transliterate or decline. The existing catalog once renders it as „Svarbiausia“ (literal MT) and once as „Matermost“ — never follow those."
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition",
+    "note": "Keep in English. The existing catalog has „Enterprise laida“ in the About dialog; do not spread that."
+  },
+  "Team Edition": {
+    "target": "Team Edition",
+    "note": "Keep in English. The existing catalog has „Team laida“ in the About dialog; do not spread that."
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels",
+    "note": "Product name; keep in English. The common noun 'channel' is „kanalas“."
+  },
+  "Playbooks": {
+    "target": "Playbooks"
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls",
+    "note": "Product name; keep in English. The common noun 'call' is „skambutis“."
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth"
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP",
+    "note": "Keep the compound 'AD/LDAP' as-is too."
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA",
+    "note": "Spelled-out form in the existing catalog is „kelių veiksnių autentifikavimas“."
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Gossip": {
+    "target": "Gossip",
+    "note": "Protocol name; never translate literally (not „apkalbos“)."
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay"
+  },
+  "System Console": {
+    "target": "Sistemos konsolė",
+    "note": "Established rendering (31 occurrences). Locative „Sistemos konsolėje“, genitive „Sistemos konsolės“."
+  },
+  "marketplace": {
+    "target": "Marketplace",
+    "note": "The existing catalog keeps the English proper name „Marketplace“ (34 occurrences, e.g. „Apsilankykite Marketplace“); treat it as indeclinable. Describe generically as „papildinių parduotuvė“ only where the English uses lowercase 'marketplace' as a common noun."
+  },
+  "channel": {
+    "target": "kanalas",
+    "note": "Masculine. Plural „kanalai“; genitive „kanalo“; locative „kanale“."
+  },
+  "team": {
+    "target": "komanda",
+    "note": "Feminine. Plural „komandos“; genitive „komandos“; locative „komandoje“. Note „komanda“ also means a slash command — write „pasvirojo brūkšnio komanda“ for those."
+  },
+  "post": {
+    "target": "pranešimas",
+    "note": "Majority rendering is „pranešimas“ (same word as 'message'); „įrašas“ appears in a few labels („Prisegti įrašai“, „Išsaugoti įrašai“). Prefer „pranešimas“ for consistency."
+  },
+  "message": {
+    "target": "pranešimas",
+    "note": "Majority rendering (≈250 occurrences) vs „žinutė“ (≈37). Because 'notification' is also „pranešimas“, use „žinutė“ only where the two collide in one string (e.g. „pranešimai apie žinutes“)."
+  },
+  "thread": {
+    "target": "gija",
+    "note": "Feminine. Plural „gijos“; locative „gijoje“. Sidebar item 'Threads' → „Gijos“."
+  },
+  "reply": {
+    "target": "atsakymas",
+    "note": "Noun „atsakymas“ (plural „atsakymai“); verb „atsakyti“; button 'Reply' → „Atsakyti“."
+  },
+  "direct message": {
+    "target": "tiesioginis pranešimas",
+    "note": "Majority rendering (33 vs 7 for „tiesioginė žinutė“). Plural „tiesioginiai pranešimai“. Do not translate the abbreviation DM."
+  },
+  "group message": {
+    "target": "grupės pranešimas",
+    "note": "Plural „grupės pranešimai“. Do not translate the abbreviation GM."
+  },
+  "mention": {
+    "target": "paminėjimas",
+    "note": "Noun „paminėjimas“; verb „paminėti“. '@mention' → „@paminėjimas“."
+  },
+  "notification": {
+    "target": "pranešimas",
+    "note": "Established („Pranešimų nustatymai“, „Darbalaukio pranešimai“). Where it must be distinguished from a chat message in the same string, the message becomes „žinutė“."
+  },
+  "pin": {
+    "target": "prisegti",
+    "note": "'Pinned messages' → „Prisegti pranešimai“; 'unpin' → „atsegti“. Avoid „prisegimas“ only where a noun is unavoidable."
+  },
+  "bookmark": {
+    "target": "žymelė",
+    "note": "No channel-bookmark strings are translated yet. Use „žymelė“ (plural „žymelės“); verb → „pridėti žymelę“. One legacy string uses „adresynas“ for Favorites — do not reuse."
+  },
+  "saved messages": {
+    "target": "išsaugoti pranešimai",
+    "note": "'save' → „išsaugoti“; 'unsave' → „pašalinti iš išsaugotų“. Legacy label „Išsaugoti įrašai“ exists; prefer „Išsaugoti pranešimai“."
+  },
+  "draft": {
+    "target": "juodraštis",
+    "note": "Masculine. Plural „juodraščiai“; sidebar 'Drafts' → „Juodraščiai“."
+  },
+  "scheduled post": {
+    "target": "suplanuotas pranešimas",
+    "note": "Plural „suplanuoti pranešimai“; section label 'Scheduled' → „Suplanuoti“."
+  },
+  "emoji": {
+    "target": "jaustukas",
+    "note": "Masculine. Plural „jaustukai“; genitive plural „jaustukų“. Do not use the loanword „emoji“."
+  },
+  "custom emoji": {
+    "target": "tinkintas jaustukas",
+    "note": "'custom' is „tinkintas“ (majority, 34 vs 27 for „pasirinktinis“). Plural „tinkinti jaustukai“."
+  },
+  "reaction": {
+    "target": "reakcija",
+    "note": "Verb 'react' → „reaguoti“; 'Add reaction' → „Pridėti reakciją“."
+  },
+  "status": {
+    "target": "būsena",
+    "note": "Feminine. Use „būsena“ (not „statusas“) for user availability."
+  },
+  "custom status": {
+    "target": "tinkinta būsena",
+    "note": "Genitive „tinkintos būsenos“."
+  },
+  "do not disturb": {
+    "target": "Netrukdyti",
+    "note": "Established status name, quoted as „Netrukdyti“ in sentences. Do not translate the abbreviation DND."
+  },
+  "away": {
+    "target": "Atsitraukęs",
+    "note": "Only existing rendering of the status name. Avoid „Toli“ (one broken legacy string)."
+  },
+  "online": {
+    "target": "Prisijungęs",
+    "note": "Status name, masculine participle as in the existing catalog."
+  },
+  "offline": {
+    "target": "Neprisijungęs"
+  },
+  "out of office": {
+    "target": "Ne biure",
+    "note": "Established status name."
+  },
+  "guest": {
+    "target": "svečias",
+    "note": "Plural „svečiai“; genitive plural „svečių“. 'Guest access' → „svečių prieiga“."
+  },
+  "member": {
+    "target": "narys",
+    "note": "Plural „nariai“; genitive „nario“/„narių“. 'channel member' → „kanalo narys“."
+  },
+  "user": {
+    "target": "naudotojas",
+    "note": "Established (≈320 occurrences); avoid „vartotojas“ (3 legacy occurrences). Plural „naudotojai“."
+  },
+  "system admin": {
+    "target": "sistemos administratorius",
+    "note": "Plural „sistemos administratoriai“. Use for 'System Administrator' too."
+  },
+  "team admin": {
+    "target": "komandos administratorius"
+  },
+  "channel admin": {
+    "target": "kanalo administratorius"
+  },
+  "session": {
+    "target": "seansas",
+    "note": "Majority rendering (44 vs 10 for „sesija“). Plural „seansai“."
+  },
+  "sign in": {
+    "target": "prisijungti",
+    "note": "Button „Prisijungti“. Translate 'log in' and 'sign in' identically. The same verb is used for 'join' („prisijungti prie kanalo“)."
+  },
+  "sign out": {
+    "target": "atsijungti",
+    "note": "Button „Atsijungti“. Translate 'log out' and 'sign out' identically."
+  },
+  "join": {
+    "target": "prisijungti",
+    "note": "„prisijungti prie kanalo / komandos“; button „Prisijungti“. 'joined the channel' → „prisijungė prie kanalo“."
+  },
+  "leave": {
+    "target": "palikti",
+    "note": "Menu items use „Palikti kanalą“; confirmation dialogs use „išeiti iš kanalo“ — both acceptable, prefer „palikti“ for labels. 'left the channel' → „paliko kanalą“."
+  },
+  "archive": {
+    "target": "archyvuoti",
+    "note": "Button „Archyvuoti“; 'archived' → „archyvuotas“ (also „suarchyvuotas“ in a few strings)."
+  },
+  "unarchive": {
+    "target": "išarchyvuoti",
+    "note": "Established („Išarchyvuoti kanalą“)."
+  },
+  "mute": {
+    "target": "nutildyti",
+    "note": "Button „Nutildyti“; 'muted' → „nutildytas“; 'unmute' → „įjungti garsą“ as in „Įjungti kanalo garsą“ (established), or „atšaukti nutildymą“ in sentences."
+  },
+  "follow": {
+    "target": "sekti",
+    "note": "Button „Sekti“; „Sekti giją“. 'following' → „sekama“."
+  },
+  "unfollow": {
+    "target": "nebesekti",
+    "note": "The existing menu item says „Nebestebėti gijos“ — inconsistent with „Sekti“; prefer „Nebesekti gijos“."
+  },
+  "favorite": {
+    "target": "mėgstamiausias",
+    "note": "Sidebar category 'Favorites' → „Mėgstamiausi“; verb → „pridėti prie mėgstamiausių“; 'unfavorite' → „pašalinti iš mėgstamiausių“ (the legacy „Nemėgstamas“ is wrong)."
+  },
+  "search": {
+    "target": "paieška",
+    "note": "Noun „paieška“; verb/button „Ieškoti“."
+  },
+  "integration": {
+    "target": "integracija",
+    "note": "Plural „integracijos“."
+  },
+  "slash command": {
+    "target": "pasvirojo brūkšnio komanda",
+    "note": "Established (22 occurrences). Plural „pasvirojo brūkšnio komandos“."
+  },
+  "webhook": {
+    "target": "žiniatinklio kablys",
+    "note": "Majority rendering (56 vs 5 untranslated). Masculine; plural „žiniatinklio kabliai“; genitive „žiniatinklio kablio“. Avoid the diminutive „kabliukas“ seen in a few strings."
+  },
+  "incoming webhook": {
+    "target": "gaunamasis žiniatinklio kablys",
+    "note": "Existing strings use „gaunamas žiniatinklio kablys“ / „Įeinantys žiniatinklio kabliukai“; prefer „gaunamasis“."
+  },
+  "outgoing webhook": {
+    "target": "siunčiamasis žiniatinklio kablys",
+    "note": "Existing strings use „siunčiamas“ / „išeinantis“; prefer „siunčiamasis“."
+  },
+  "trigger word": {
+    "target": "suaktyvinimo žodis",
+    "note": "Existing usage is split between „suaktyvinimo žodis“ (field labels), „paleidimo žodis“ and „sužadinimo žodis“; prefer „suaktyvinimo žodis“."
+  },
+  "plugin": {
+    "target": "papildinys",
+    "note": "Established (44 occurrences); avoid „įskiepis“. Plural „papildiniai“."
+  },
+  "bot": {
+    "target": "robotas",
+    "note": "Existing usage is split between „robotas“ and „botas“; prefer „robotas“. 'bot account' → „roboto paskyra“."
+  },
+  "role": {
+    "target": "vaidmuo",
+    "note": "Plural „vaidmenys“; genitive „vaidmens“."
+  },
+  "permission": {
+    "target": "leidimas",
+    "note": "Majority rendering (53 vs 20 for „teisė“). Plural „leidimai“."
+  },
+  "scheme": {
+    "target": "schema",
+    "note": "'permission scheme' → „leidimų schema“."
+  },
+  "license": {
+    "target": "licencija"
+  },
+  "seat": {
+    "target": "vieta",
+    "note": "Licensed seat → „vieta“ (plural „vietos“, genitive plural „vietų“), as in „licencijos vietų skaičius“."
+  },
+  "trial": {
+    "target": "bandomasis laikotarpis",
+    "note": "Period → „bandomasis laikotarpis“; trial license → „bandomoji licencija“. Avoid „bandomoji versija“ / „bandymas“ seen in some legacy strings."
+  },
+  "workspace": {
+    "target": "darbo sritis",
+    "note": "Majority rendering; „darbo erdvė“/„darbo aplinka“ appear once each — prefer „darbo sritis“. Genitive „darbo srities“."
+  },
+  "subscription": {
+    "target": "prenumerata"
+  },
+  "deactivate": {
+    "target": "išaktyvinti",
+    "note": "Established („Išaktyvinti naudotojai“, „Paskyra išaktyvinta“); not „deaktyvuoti“."
+  },
+  "invite": {
+    "target": "pakviesti",
+    "note": "Verb „pakviesti“; button „Pakviesti“; noun uses „kvietimas“."
+  },
+  "invitation": {
+    "target": "kvietimas",
+    "note": "Majority rendering (23 vs 3 for „pakvietimas“). Plural „kvietimai“."
+  },
+  "sidebar": {
+    "target": "šoninė juosta",
+    "note": "Locative „šoninėje juostoje“."
+  },
+  "unread": {
+    "target": "neskaitytas",
+    "note": "Adjective, agrees in gender/number („neskaitytas pranešimas“, „neskaityti kanalai“). Filter label 'Unreads' → „Neskaityti“."
+  },
+  "attachment": {
+    "target": "priedas",
+    "note": "Plural „priedai“."
+  },
+  "public channel": {
+    "target": "viešasis kanalas",
+    "note": "Plural „viešieji kanalai“."
+  },
+  "private channel": {
+    "target": "privatus kanalas",
+    "note": "Plural „privatūs kanalai“."
+  },
+  "shared channel": {
+    "target": "bendrinamas kanalas",
+    "note": "Established („Bendrinami kanalai“)."
+  },
+  "channel header": {
+    "target": "kanalo antraštė"
+  },
+  "channel purpose": {
+    "target": "kanalo paskirtis",
+    "note": "Standalone label 'Purpose' → „Paskirtis“."
+  },
+  "system message": {
+    "target": "sistemos pranešimas"
+  },
+  "persistent notification": {
+    "target": "nuolatinis pranešimas",
+    "note": "No existing rendering; plural „nuolatiniai pranešimai“."
+  },
+  "message priority": {
+    "target": "pranešimo prioritetas",
+    "note": "Priority levels: Standard → „Standartinis“, Important → „Svarbu“, Urgent → „Skubu“ (existing label „Skubiai“ is adverbial; prefer „Skubu“)."
+  },
+  "urgent": {
+    "target": "skubus",
+    "note": "Label „SKUBU“ when uppercased; agrees with the noun („skubus pranešimas“, „skubus paminėjimas“)."
+  },
+  "recap": {
+    "target": "santrauka",
+    "note": "AI summary feature; plural „santraukos“."
+  },
+  "agent": {
+    "target": "agentas",
+    "note": "AI assistant. Plural „agentai“; 'AI agents' → „DI agentai“. Product name 'Agents' may stay English where it names the plugin."
+  },
+  "burn-on-read": {
+    "target": "išnykstantis perskaičius",
+    "note": "No existing rendering. Attributive: „perskaičius išnykstantis pranešimas“; uppercase label 'BURN ON READ' → „IŠNYKSTA PERSKAIČIUS“."
+  },
+  "magic link": {
+    "target": "magiška nuoroda",
+    "note": "No existing rendering; genitive „magiškos nuorodos“."
+  },
+  "personal access token": {
+    "target": "asmeninis prieigos raktas",
+    "note": "'token' is „prieigos raktas“ in the existing catalog. Plural „asmeniniai prieigos raktai“."
+  },
+  "announcement banner": {
+    "target": "skelbimų reklamjuostė",
+    "note": "Established („skelbimų reklamjuostę“, „reklamjuostės spalva“)."
+  },
+  "channel banner": {
+    "target": "kanalo reklamjuostė"
+  },
+  "keyword": {
+    "target": "raktažodis",
+    "note": "Plural „raktažodžiai“; avoid „raktinis žodis“."
+  },
+  "user group": {
+    "target": "naudotojų grupė",
+    "note": "Plain 'group' in this sense is „grupė“."
+  },
+  "permalink": {
+    "target": "nuolatinė nuoroda",
+    "note": "Established („Nuolatinė nuoroda priklauso…“)."
+  },
+  "profile": {
+    "target": "profilis",
+    "note": "'Profile picture' → „profilio nuotrauka“."
+  },
+  "username": {
+    "target": "naudotojo vardas"
+  },
+  "nickname": {
+    "target": "slapyvardis"
+  },
+  "display name": {
+    "target": "rodomas vardas",
+    "note": "For users „rodomas vardas“; for channels, teams and bots „rodomas pavadinimas“ (as in bots.add.displayName)."
+  },
+  "collapsed reply threads": {
+    "target": "sutrauktos atsakymų gijos",
+    "note": "Established in settings („Sutrauktos atsakymų gijos“)."
+  },
+  "auto-translation": {
+    "target": "automatinis vertimas",
+    "note": "'auto-translated' → „išversta automatiškai“; label 'AUTO-TRANSLATED' → „IŠVERSTA AUTOMATIŠKAI“."
+  },
+  "data retention": {
+    "target": "duomenų saugojimas",
+    "note": "Policy → „duomenų saugojimo politika“ (established)."
+  },
+  "compliance export": {
+    "target": "atitikties eksportas",
+    "note": "Established."
+  },
+  "access control": {
+    "target": "prieigos kontrolė",
+    "note": "'attribute-based access control' → „atributais pagrįsta prieigos kontrolė“; policy → „prieigos kontrolės politika“."
+  },
+  "attribute": {
+    "target": "atributas",
+    "note": "Plural „atributai“. 'custom profile attribute' → „tinkintas profilio atributas“."
+  },
+  "onboarding": {
+    "target": "pradinis supažindinimas",
+    "note": "No existing rendering. Use „pradinis supažindinimas“; 'onboarding tour' → „supažindinimo gidas“; 'onboarding checklist' → „pradžios užduočių sąrašas“."
+  },
+  "Town Square": {
+    "target": "Pagrindinis kanalas",
+    "note": "The server catalog creates the channel with this name. The webapp catalog's literal „miesto aikštė“ is wrong — do not reuse."
+  },
+  "Off-Topic": {
+    "target": "Ne į temą",
+    "note": "As created by the server catalog."
+  },
+  "read-only": {
+    "target": "tik skaitomas",
+    "note": "Adjective; „tik skaitomas kanalas“. 'Read only' access → „tik skaitymui“."
+  },
+  "server": {
+    "target": "serveris",
+    "note": "Genitive „serverio“; locative „serveryje“."
+  }
+}

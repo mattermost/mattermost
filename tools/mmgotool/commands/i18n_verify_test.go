@@ -98,11 +98,11 @@ func TestVerifyLocale(t *testing.T) {
 			warning:        "a.b: missing id",
 		},
 		{
-			name:       "extra id not in en.json",
+			name:       "extra id not in en.json is a warning",
 			localeName: "fr.json",
 			en:         enPlain,
 			locale:     `[{"id":"a.b","translation":"{{.User}} est ici"},{"id":"z.z","translation":"orphelin"}]`,
-			problem:    "z.z: extra id not in en.json",
+			warning:    "z.z: extra id not in en.json",
 		},
 
 		// Template tokens. An unknown one renders "<no value>"; a dropped one

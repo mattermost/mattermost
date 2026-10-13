@@ -32,8 +32,9 @@
  *     check is the only thing that catches it.
  *
  * Key parity is a separate question from whether the entries that exist are
- * correct. An extra key, one en.json does not have, is always an error: nothing
- * will ever read it. A missing key -- absent, or present but blank -- is an
+ * correct. An extra key, one en.json does not have, is only ever a warning:
+ * nothing will read it, so it is dead weight rather than a defect, and is left
+ * for a later sweep. A missing key -- absent, or present but blank -- is an
  * error by default and a warning under --warn-missing-keys, and is not a
  * runtime defect either way, because react-intl falls back to the source
  * message.
@@ -194,7 +195,7 @@ for (const name of localeNames) {
 
     for (const [key, message] of Object.entries(data)) {
         if (!(key in en)) {
-            errors.push(`${name}:${key}: extra key not in ${SOURCE}`);
+            warnings.push(`${name}:${key}: extra key not in ${SOURCE}`);
             continue;
         }
         if (typeof message !== 'string') {

@@ -74,8 +74,8 @@ func (r *Registry) Validate() error {
 			validationErrs = append(validationErrs, fmt.Errorf("rule %q must define Eval and/or EvalNode", rule.Code))
 		}
 
-		if rule.SummaryID == "" {
-			validationErrs = append(validationErrs, fmt.Errorf("rule %q summary id cannot be empty", rule.Code))
+		if rule.TitleID == "" {
+			validationErrs = append(validationErrs, fmt.Errorf("rule %q title id cannot be empty", rule.Code))
 		}
 		if rule.RemediationID == "" {
 			validationErrs = append(validationErrs, fmt.Errorf("rule %q remediation id cannot be empty", rule.Code))
@@ -95,9 +95,9 @@ func (r *Registry) Validate() error {
 			validationErrs = append(validationErrs, fmt.Errorf("rule %q has unknown volatility %q", rule.Code, rule.Volatility))
 		}
 
-		expectedSummaryID := "health.rule." + strings.ToLower(rule.Code) + ".summary"
-		if rule.SummaryID != "" && rule.SummaryID != expectedSummaryID {
-			validationErrs = append(validationErrs, fmt.Errorf("rule %q summary id must be %q", rule.Code, expectedSummaryID))
+		expectedTitleID := "health.rule." + strings.ToLower(rule.Code) + ".title"
+		if rule.TitleID != "" && rule.TitleID != expectedTitleID {
+			validationErrs = append(validationErrs, fmt.Errorf("rule %q title id must be %q", rule.Code, expectedTitleID))
 		}
 		expectedRemediationID := "health.rule." + strings.ToLower(rule.Code) + ".remediation"
 		if rule.RemediationID != "" && rule.RemediationID != expectedRemediationID {

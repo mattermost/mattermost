@@ -9,7 +9,7 @@ import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermos
 import {Client4} from 'mattermost-redux/client';
 import {ACCESS_CONTROL_PROPERTY_GROUP, DISPLAY_BANNER_BOTTOM, DISPLAY_BANNER_TOP} from 'mattermost-redux/constants/properties';
 
-import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 
 import ClassificationMarkings from './classification_markings';
 import * as Utils from './utils';
@@ -32,7 +32,6 @@ import {
     CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
     CLASSIFICATIONS_USER_OBJECT_TYPE,
-    CLEARANCE_FIELD_DISPLAY_NAME,
     CLEARANCE_FIELD_NAME,
 } from './utils';
 import type {ClassificationLevel} from './utils/presets';
@@ -107,6 +106,22 @@ function makeChannelLinkedField(overrides: Partial<PropertyField> = {}): Propert
     };
 }
 
+// An unrelated attribute in Attribute Management that happens to be called
+// `clearance`. A template, not a user field, so the server's own uniqueness check
+// never sees it as a collision with the user field this page creates — only an
+// admin does.
+function makeForeignClearanceTemplate(overrides: Partial<PropertyField> = {}): PropertyField {
+    return makePropertyField({
+        id: 'foreign_clearance_template',
+        name: 'Clearance',
+        type: 'select',
+        attrs: {options: [{id: 'opt1', name: 'Yes'}]},
+        create_at: 6000,
+        update_at: 6000,
+        ...overrides,
+    });
+}
+
 // A "Clearance" user field linked to the classification template ('field1').
 function makeUserLinkedField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
@@ -163,6 +178,52 @@ function mockFieldsByObjectType(byType: Partial<Record<string, PropertyField[]>>
     return jest.spyOn(Client4, 'getPropertyFields').mockImplementation(
         async (_group, objectType, _targetType, _targetId, cursor) => (cursor?.cursorId ? [] : (byType[objectType] ?? [])),
     );
+}
+
+// Same fixture as mockFieldsByObjectType, except that the *second* page of the
+// template object type rejects.
+//
+// Two different lookups read that object type — the classification lookup
+// (findLiveFieldByName) and the clearance name-conflict listing
+// (listLiveFields) — so the object type alone cannot tell them apart. How they
+// page can. findLiveFieldByName returns the moment a page contains a field
+// called `classification` and never asks for another; listLiveFields has no
+// name to stop at, so it always requests one more page to learn it has reached
+// the end. Serving a first page that already holds the classification template
+// therefore satisfies the lookup outright, and rejecting only the cursored
+// follow-up breaks the listing and nothing else.
+function mockFieldsByObjectTypeWithFailingTemplateListing(byType: Partial<Record<string, PropertyField[]>>, error: unknown) {
+    return jest.spyOn(Client4, 'getPropertyFields').mockImplementation(
+        async (_group, objectType, _targetType, _targetId, cursor) => {
+            if (objectType === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE && cursor?.cursorId) {
+                throw error;
+            }
+            return cursor?.cursorId ? [] : (byType[objectType] ?? []);
+        },
+    );
+}
+
+// Cursored reads of the template object type, which only the clearance
+// name-conflict listing issues: the classification lookup stops at the first
+// page that holds `classification`, and an empty first page ends it too.
+function templateListingCalls() {
+    return (Client4.getPropertyFields as jest.Mock).mock.calls.filter(
+        ([, objectType, , , cursor]) => objectType === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE && cursor?.cursorId,
+    );
+}
+
+// The listing runs in its own effect, so the clearance section can be on screen
+// before it has landed — waiting on the section alone would make a "no warning"
+// assertion a statement about the state the page starts in. The cursored
+// follow-up above is what says the listing has read to the end.
+//
+// Needs a fixture whose first template page is non-empty: an empty one ends the
+// paging outright, and there is then no second call to wait for.
+async function waitForClearanceNameListing() {
+    await waitFor(() => {
+        expect(templateListingCalls().length).toBeGreaterThan(0);
+    });
+    await act(async () => {});
 }
 
 // The suite runs with clearMocks, which empties call history but leaves queued
@@ -726,6 +787,23 @@ describe('ClassificationMarkings component', () => {
 
         await userEvent.setup().click(screen.getByText('membership policy'));
         expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/membership_policies');
+    });
+
+    test('should quote the clearance attribute in the help text under the name it is actually created with', async () => {
+        // The display name is pinned as a literal where the create call is
+        // asserted, and this copy quotes the same name: the two are one pair, so
+        // renaming the attribute without this reads as two different attributes.
+        const field = makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}});
+        mockFieldsByObjectType({[CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field]});
+
+        renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
+        await screen.findByTestId('clearanceAttributeCheckbox');
+        await waitForClearanceNameListing();
+
+        expect(screen.getByTestId('clearanceAttributehelp-text')).toHaveTextContent(
+            'Creates a ranked "Classification clearance" user attribute linked to these classification levels. ' +
+            'Channel membership can then be managed with a corresponding membership policy.',
+        );
     });
 
     test('should render disabled state when no existing field', async () => {
@@ -1606,7 +1684,11 @@ describe('Channel classification linked field branches', () => {
                     name: CLEARANCE_FIELD_NAME,
                     type: 'rank',
                     linked_field_id: field.id,
-                    attrs: expect.objectContaining({managed: 'admin', display_name: CLEARANCE_FIELD_DISPLAY_NAME}),
+
+                    // Spelled out rather than read from the constant production
+                    // uses: an expectation built from that constant passes
+                    // whatever it says.
+                    attrs: expect.objectContaining({managed: 'admin', display_name: 'Classification clearance'}),
                 }),
             );
         });
@@ -2176,6 +2258,247 @@ describe('Conflicting same-named fields', () => {
         expect(screen.getByRole('textbox', {name: /Classification level name/i})).not.toHaveAttribute('readonly');
         expect(screen.getByText('Add level')).toBeInTheDocument();
         expect(screen.queryByRole('heading', {name: 'Classification markings cannot be configured'})).not.toBeInTheDocument();
+    });
+});
+
+// Attribute Management can hold a template called `clearance` while this page owns
+// a user field of the same name: different object types, so the server accepts
+// both, and an admin sees one attribute with two sets of values.
+describe('Clearance name shared with another attribute', () => {
+    beforeEach(resetPropertyFieldMocks);
+
+    const configuredTemplate = makePropertyField({
+        attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
+    });
+
+    // Spelled out in full because the copy has to read correctly whether or not
+    // clearance is already on, which a partial match would not hold it to.
+    const WARNING_TEXT = 'Rename "Clearance" in Attribute Management so it isn\'t mistaken for this clearance attribute.';
+
+    async function renderClearanceSection() {
+        renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
+        await screen.findByTestId('clearanceAttributeCheckbox');
+        await waitForClearanceNameListing();
+        return within(screen.getByTestId('clearanceAttribute'));
+    }
+
+    test('should name the other attribute without disabling the clearance checkbox', async () => {
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [configuredTemplate, makeForeignClearanceTemplate()],
+        });
+
+        const section = await renderClearanceSection();
+
+        expect(section.getByRole('heading', {name: 'Another attribute already uses this name'})).toBeInTheDocument();
+        expect(section.getByText(WARNING_TEXT)).toBeInTheDocument();
+
+        // Its severity, not only its presence: the blocking notice below carries
+        // the same icon and differs from this one in nothing a query by role or
+        // text can see, so without this the warning could be dressed as a block
+        // while still reading as a warning. SectionNotice puts its type on the
+        // container's class list.
+        const notice = section.getByRole('heading', {name: 'Another attribute already uses this name'}).closest('.sectionNoticeContainer');
+        expect(notice).toHaveClass('warning');
+        expect(notice).not.toHaveClass('danger');
+
+        // The half that matters: this one warns, it does not block. The server
+        // accepts the user field this page creates, so the admin is still allowed
+        // to create it — unlike the same-named user field below.
+        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
+        expect(screen.getByTestId('clearanceAttributeCheckbox')).not.toBeChecked();
+        expect(section.queryByRole('heading', {name: 'Clearance attribute cannot be created'})).not.toBeInTheDocument();
+    });
+
+    test('should read the same way, and stay unblocking, once clearance is already enabled', async () => {
+        // The warning outlives the decision it describes: an admin who already
+        // turned clearance on still has two attributes called `clearance`, so the
+        // copy has to describe what exists rather than what enabling would create.
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [configuredTemplate, makeForeignClearanceTemplate()],
+            [CLASSIFICATIONS_USER_OBJECT_TYPE]: [makeUserLinkedField()],
+        });
+
+        const section = await renderClearanceSection();
+
+        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeChecked();
+        expect(section.getByRole('heading', {name: 'Another attribute already uses this name'})).toBeInTheDocument();
+        expect(section.getByText(WARNING_TEXT)).toBeInTheDocument();
+
+        // Still not a block: the checkbox stays live so clearance can be turned
+        // back off, which is the only action the warning leaves to take.
+        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
+        expect(section.queryByRole('heading', {name: 'Clearance attribute cannot be created'})).not.toBeInTheDocument();
+    });
+
+    test('should catch the name in a casing the server would not call a conflict', async () => {
+        // The server compares names exactly, so `CLEARANCE` and `clearance` coexist
+        // happily. An admin reading a policy still cannot tell which one it means.
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [configuredTemplate, makeForeignClearanceTemplate({name: 'CLEARANCE'})],
+        });
+
+        const section = await renderClearanceSection();
+
+        expect(section.getByRole('heading', {name: 'Another attribute already uses this name'})).toBeInTheDocument();
+        expect(section.getByText(/Rename "CLEARANCE" in Attribute Management/)).toBeInTheDocument();
+        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
+    });
+
+    test('should stay quiet about an attribute whose name is something else', async () => {
+        // Attribute Management is rarely empty, and the classification template
+        // alone proves nothing: it is named `classification`, so no name check
+        // has to run for it to be passed over. `department` is the field that
+        // makes this a name check.
+        const unrelatedTemplate = makePropertyField({
+            id: 'department_template',
+            name: 'department',
+            type: 'text',
+            attrs: {},
+            create_at: 6000,
+            update_at: 6000,
+        });
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [configuredTemplate, unrelatedTemplate],
+        });
+
+        const section = await renderClearanceSection();
+
+        expect(section.queryByRole('heading', {name: 'Another attribute already uses this name'})).not.toBeInTheDocument();
+        expect(section.queryByText(/in Attribute Management so it isn't mistaken/)).not.toBeInTheDocument();
+        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
+    });
+
+    test('should drop the warning while the blocking user-field conflict is showing', async () => {
+        // The blocking conflict disables the checkbox, so nothing can be created and
+        // the warning would describe an outcome that cannot happen.
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [configuredTemplate, makeForeignClearanceTemplate()],
+            [CLASSIFICATIONS_USER_OBJECT_TYPE]: [makeUserLinkedField({id: 'foreign_clearance', linked_field_id: 'some_other_template'})],
+        });
+
+        const section = await renderClearanceSection();
+
+        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeDisabled();
+        expect(section.getByRole('heading', {name: 'Clearance attribute cannot be created'})).toBeInTheDocument();
+        expect(section.queryByRole('heading', {name: 'Another attribute already uses this name'})).not.toBeInTheDocument();
+    });
+});
+
+// The listing behind that warning is the only lookup on this page whose answer
+// nothing depends on: it decides a sentence, and every other decision the page
+// makes is already settled without it. So it reads the templates on its own
+// rather than from inside the load the page waits on, whose catch turns any
+// failure into the load-error screen and whose 404 branch returns before the
+// loaded configuration is ever applied.
+describe('Clearance name listing failures', () => {
+    beforeEach(resetPropertyFieldMocks);
+
+    const configuredTemplate = makePropertyField({
+        attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
+    });
+
+    // Exactly the fixture the warning tests above use, so the only difference
+    // between a warning and no warning here is whether the listing answered.
+    const fixture = {
+        [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [configuredTemplate, makeForeignClearanceTemplate()],
+    };
+
+    async function renderWithFailingListing(error: unknown) {
+        // The page logs the failure it swallows. Swallowed here too, but only
+        // that one line: anything else console.error says still surfaces.
+        const origError = console.error;
+        console.error = (...args: Parameters<typeof console.error>) => {
+            if (typeof args[0] === 'string' && args[0].startsWith('ClassificationMarkings-load-clearance-name-conflict')) {
+                return;
+            }
+            origError(...args);
+        };
+
+        try {
+            mockFieldsByObjectTypeWithFailingTemplateListing(fixture, error);
+            renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
+            await screen.findByTestId('clearanceAttributeCheckbox');
+            await waitForClearanceNameListing();
+        } finally {
+            console.error = origError;
+        }
+    }
+
+    // Everything the page is for, none of which the failed listing has any say
+    // over. Spelled out rather than checked through a single "not the error
+    // screen" assertion, because the 404 case would not render the error screen
+    // either: the load path's 404 branch returns before the loaded configuration
+    // is applied, leaving an empty, never-configured page.
+    function expectPageFullyUsable() {
+        // Configured, not never-configured: the levels that came back are on
+        // screen and the feature reads as enabled.
+        expect(screen.getByTestId('classificationEnabledtrue')).toBeChecked();
+        expect(screen.getByRole('textbox', {name: /Classification level name/i})).toHaveValue('UNCLASSIFIED');
+        expect(screen.getByText('Classification levels')).toBeInTheDocument();
+        expect(screen.getByText('Add level')).toBeInTheDocument();
+
+        expect(screen.getByTestId('classificationPreset')).toBeInTheDocument();
+
+        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
+
+        expect(screen.queryByText(/Failed to load classification markings/)).not.toBeInTheDocument();
+    }
+
+    test('should keep the whole page usable, minus the warning, when the listing 500s', async () => {
+        await renderWithFailingListing(new ClientError('https://example.com', {
+            message: 'Internal Server Error',
+            server_error_id: 'api.context.internal_error',
+            status_code: 500,
+            url: '/api/v4/properties/groups/access_control/template/fields',
+        }));
+
+        expectPageFullyUsable();
+
+        // The only casualty. The same fixture warns in the tests above, so its
+        // absence here is the failed listing and nothing else.
+        expect(screen.queryByRole('heading', {name: 'Another attribute already uses this name'})).not.toBeInTheDocument();
+        expect(screen.queryByText(/in Attribute Management so it isn't mistaken/)).not.toBeInTheDocument();
+    });
+
+    test('should still show the configured levels when the listing 404s', async () => {
+        // A 404 is the one status the load path treats as "nothing is set up
+        // here", so a listing failing with it inside that path reported a fully
+        // configured instance as never configured.
+        await renderWithFailingListing(new ClientError('https://example.com', {
+            message: 'Not Found',
+            server_error_id: 'api.context.404.app_error',
+            status_code: 404,
+            url: '/api/v4/properties/groups/access_control/template/fields',
+        }));
+
+        expectPageFullyUsable();
+
+        expect(screen.queryByRole('heading', {name: 'Another attribute already uses this name'})).not.toBeInTheDocument();
+        expect(screen.queryByText(/in Attribute Management so it isn't mistaken/)).not.toBeInTheDocument();
+    });
+
+    test('should not list the templates at all while ABAC is off', async () => {
+        // Clearance is an ABAC-only concept and its section is not rendered
+        // without it, so the listing behind its warning is a request for
+        // something nothing on the page could show.
+        mockFieldsByObjectType(fixture);
+
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+
+        await screen.findByText('Classification levels');
+        await act(async () => {});
+
+        // One read of the template object type — the classification lookup,
+        // which stops on its first page. A listing would have followed it with a
+        // cursored second read.
+        const templateCalls = (Client4.getPropertyFields as jest.Mock).mock.calls.filter(
+            ([, objectType]) => objectType === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+        );
+        expect(templateCalls).toHaveLength(1);
+        expect(templateListingCalls()).toHaveLength(0);
+
+        expect(screen.queryByTestId('clearanceAttributeCheckbox')).not.toBeInTheDocument();
+        expect(screen.queryByRole('heading', {name: 'Another attribute already uses this name'})).not.toBeInTheDocument();
     });
 });
 
