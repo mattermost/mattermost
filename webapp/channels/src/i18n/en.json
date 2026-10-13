@@ -14819,6 +14819,14 @@
     "defaultMessage": "AI Service",
     "description": "Setting label on the System Console Localization page for choosing the AI service used for auto-translation."
   },
+  "admin.site.localization.autoTranslationLLMServiceUnavailable": {
+    "defaultMessage": "The selected AI service is no longer available in the Agents plugin. Select an available service and save.",
+    "description": "Error shown under the AI Service setting on the System Console Localization page when the saved auto-translation service no longer exists in the Agents plugin."
+  },
+  "admin.site.localization.autoTranslationLLMServiceUnavailableOption": {
+    "defaultMessage": "Unavailable service ({serviceId})",
+    "description": "Dropdown option on the System Console Localization page representing the saved auto-translation AI service that no longer exists; {serviceId} is the saved service ID."
+  },
   "admin.site.localization.autoTranslationProviderDescription": {
     "defaultMessage": "<strong>NOTE:</strong> If using external translation services (e.g., cloud-based LLMs), message data may be processed outside your environment.",
     "description": "Cautionary note under the translation provider setting on the System Console Localization page; <strong> wraps 'NOTE:'."
@@ -18510,6 +18518,30 @@
   "call_button.menuAriaLabel": {
     "defaultMessage": "Call type selector",
     "description": "Accessibility label for the dropdown in the channel header used to pick which call plugin/type to start."
+  },
+  "call_button.start_call": {
+    "defaultMessage": "Start call",
+    "description": ""
+  },
+  "call_options.aria_label": {
+    "defaultMessage": "Call options",
+    "description": ""
+  },
+  "call_options.audio": {
+    "defaultMessage": "Start an Audio Call",
+    "description": ""
+  },
+  "call_options.audio_sub": {
+    "defaultMessage": "Mattermost Call",
+    "description": ""
+  },
+  "call_options.phone": {
+    "defaultMessage": "Call {label}",
+    "description": ""
+  },
+  "call_options.phone_sub": {
+    "defaultMessage": "{number} • Phone call",
+    "description": ""
   },
   "carousel.nextButton": {
     "defaultMessage": "Next",
@@ -25559,9 +25591,21 @@
     "defaultMessage": "Download all",
     "description": "Button above a post's media gallery that downloads every attachment in it."
   },
+  "media_gallery.download_all_error": {
+    "defaultMessage": "Unable to download these files.",
+    "description": "Inline error next to the media gallery's Download all button when the archive could not be created and the server gave no reason."
+  },
   "media_gallery.download_all_label": {
     "defaultMessage": "Download all {count, plural, one {# item} other {# items}}",
     "description": "Accessibility label for the button that downloads all attachments in a post's media gallery; {count} is the number of items with plural forms."
+  },
+  "media_gallery.download_all_preparing": {
+    "defaultMessage": "Preparing {done} of {total}...",
+    "description": "Text and accessibility label of the media gallery's Download all button while the zip is being built; {done} is the number of files fetched so far, {total} the number of files."
+  },
+  "media_gallery.download_all_too_large": {
+    "defaultMessage": "These files are too large to download together. Download them one at a time.",
+    "description": "Inline error next to the media gallery's Download all button when the attachments exceed the size limit for a single zip."
   },
   "media_gallery.image_label": {
     "defaultMessage": "Image {current} of {total}: {name}",
@@ -26562,14 +26606,6 @@
   "onboarding_wizard.plugins.marketplace": {
     "defaultMessage": "More tools can be added once your workspace is set up. To see all available integrations, <a>visit the Marketplace.</a>",
     "description": "Footnote on the plugin selection step of the setup wizard; the <a> tags wrap a link to the in-product integrations Marketplace."
-  },
-  "onboarding_wizard.plugins.servicenow": {
-    "defaultMessage": "ServiceNow",
-    "description": "Product name on a selectable tool card in the setup wizard's plugin selection step; usually left untranslated."
-  },
-  "onboarding_wizard.plugins.servicenow.tooltip": {
-    "defaultMessage": "This plugin serves as an integration between Mattermost and ServiceNow.",
-    "description": "Tooltip describing the ServiceNow plugin on the onboarding wizard's plugins step."
   },
   "onboarding_wizard.plugins.zoom": {
     "defaultMessage": "Zoom",

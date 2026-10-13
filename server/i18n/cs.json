@@ -14210,7 +14210,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Neplatný režim webového serveru {{.Value}}. Musí být 'gzip', 'nogzip' nebo 'disabled'."
+    "translation": "Neplatný režim webového serveru {{.Value}}. Musí být 'gzip', 'uncompressed' nebo 'disabled'."
   },
   {
     "id": "model.cpa_field.name.invalid_charset.app_error",

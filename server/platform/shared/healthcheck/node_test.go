@@ -51,7 +51,7 @@ func TestSchemaVersion(t *testing.T) {
 				Diagnostics: &model.SupportPacketDiagnostics{},
 			},
 		}
-		node.Diagnostics.Diagnostics.Database.SchemaVersion = "diag"
+		node.Diagnostics.Diagnostics.Database.SchemaVersion = new("diag")
 
 		version, ok := node.SchemaVersion()
 		require.True(t, ok)
@@ -65,7 +65,7 @@ func TestSchemaVersion(t *testing.T) {
 				Errors:      model.SectionErrors{model.SectionDatabaseIdentity: nil},
 			},
 		}
-		node.Diagnostics.Diagnostics.Database.SchemaVersion = "diag"
+		node.Diagnostics.Diagnostics.Database.SchemaVersion = new("diag")
 
 		version, ok := node.SchemaVersion()
 		require.True(t, ok)
@@ -79,7 +79,32 @@ func TestSchemaVersion(t *testing.T) {
 				Errors:      model.SectionErrors{model.SectionDatabaseIdentity: errors.New("collect failed")},
 			},
 		}
-		node.Diagnostics.Diagnostics.Database.SchemaVersion = "diag"
+		node.Diagnostics.Diagnostics.Database.SchemaVersion = new("diag")
+
+		_, ok := node.SchemaVersion()
+		require.False(t, ok)
+	})
+
+	t.Run("nil schema version in diagnostics", func(t *testing.T) {
+		node := &NodeSnapshot{
+			Diagnostics: &model.NodeDiagnostics{
+				Diagnostics: &model.SupportPacketDiagnostics{},
+				Errors:      model.SectionErrors{model.SectionDatabaseIdentity: nil},
+			},
+		}
+
+		_, ok := node.SchemaVersion()
+		require.False(t, ok)
+	})
+
+	t.Run("empty schema version from an older packet", func(t *testing.T) {
+		node := &NodeSnapshot{
+			Diagnostics: &model.NodeDiagnostics{
+				Diagnostics: &model.SupportPacketDiagnostics{},
+				Errors:      model.SectionErrors{model.SectionDatabaseIdentity: nil},
+			},
+		}
+		node.Diagnostics.Diagnostics.Database.SchemaVersion = new("")
 
 		_, ok := node.SchemaVersion()
 		require.False(t, ok)

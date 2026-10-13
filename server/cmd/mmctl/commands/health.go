@@ -6,6 +6,7 @@ package commands
 import (
 	"cmp"
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -14,9 +15,13 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
+	serveri18n "github.com/mattermost/mattermost/server/v8/i18n"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/packet"
+	_ "github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules"
 )
 
 // The server evaluates hourly, so results older than two intervals mean evaluation stopped.
@@ -27,21 +32,34 @@ var HealthCmd = &cobra.Command{
 	Short: "Inspect workspace health findings",
 }
 
+const healthPacketDisclaimer = "Evaluated offline from a Support Packet. The packet is a point-in-time snapshot: findings describe the server when the packet was generated, not its current state."
+
 var HealthCheckCmd = &cobra.Command{
-	Use:     "check",
-	Short:   "Report current health findings",
-	Long:    "Report the findings of the server's latest health evaluation. By default only firing findings and findings that could not be evaluated are shown.",
-	Example: "  health check\n  health check --include-resolved --include-muted",
+	Use:   "check",
+	Short: "Report current health findings",
+	Long: "Report the findings of the server's latest health evaluation. By default only firing findings and findings that could not be evaluated are shown.\n\n" +
+		"With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included.",
+	Example: "  health check\n  health check --include-resolved --include-muted\n  health check --packet mm_support_packet.zip",
 	Args:    cobra.NoArgs,
-	RunE:    withClient(healthCheckCmdF),
+	RunE:    healthCheckRunE,
 }
 
 func init() {
 	HealthCheckCmd.Flags().Bool("include-resolved", false, "Include resolved findings")
 	HealthCheckCmd.Flags().Bool("include-muted", false, "Include muted findings")
+	HealthCheckCmd.Flags().String("packet", "", "Path to a Support Packet zip to evaluate offline, without a server")
 
 	HealthCmd.AddCommand(HealthCheckCmd)
 	RootCmd.AddCommand(HealthCmd)
+}
+
+// healthCheckRunE dispatches before any client is built: withClient connects eagerly, and
+// --packet must work with no server.
+func healthCheckRunE(cmd *cobra.Command, args []string) error {
+	if packetPath, _ := cmd.Flags().GetString("packet"); packetPath != "" {
+		return healthCheckPacketCmdF(cmd, args)
+	}
+	return withClient(healthCheckCmdF)(cmd, args)
 }
 
 func healthCheckCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -62,9 +80,59 @@ func healthCheckCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+// healthCheckPacketCmdF evaluates a Support Packet with the same engine and reconciler the
+// server uses, against an in-memory store, and renders with the English catalog built into mmctl.
+func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
+	packetPath, _ := cmd.Flags().GetString("packet")
+	includeResolved, _ := cmd.Flags().GetBool("include-resolved")
+	if includeMuted, _ := cmd.Flags().GetBool("include-muted"); includeMuted {
+		return errors.New("--include-muted cannot be used with --packet: findings evaluated from a packet are never muted")
+	}
+
+	p, err := packet.ReadFile(packetPath)
+	if err != nil {
+		return fmt.Errorf("failed to read Support Packet: %w", err)
+	}
+
+	// Findings are stamped with when the packet was generated, not when mmctl ran.
+	evaluatedAt := p.Snapshot.CollectedAt
+	if evaluatedAt.IsZero() {
+		evaluatedAt = time.Now()
+	}
+	now := func() time.Time { return evaluatedAt }
+
+	registry := healthcheck.Builtin()
+	store := healthcheck.NewMemoryStore()
+	engine := healthcheck.NewEngine(healthcheck.EngineOpts{Registry: registry, Now: now})
+	reconciler := healthcheck.NewReconciler(healthcheck.ReconcilerOpts{Store: store, Registry: registry, Now: now})
+	if _, err = reconciler.Reconcile(engine.Evaluate(p.Snapshot)); err != nil {
+		return fmt.Errorf("failed to evaluate Support Packet: %w", err)
+	}
+
+	stored, err := store.List(model.HealthFindingFilter{})
+	if err != nil {
+		return fmt.Errorf("failed to list health findings: %w", err)
+	}
+
+	if err = i18n.TranslationsPreInitFromFileBytes("en.json", serveri18n.English); err != nil {
+		return fmt.Errorf("failed to load translations: %w", err)
+	}
+
+	findings := make([]*model.HealthFinding, 0, len(stored))
+	for _, finding := range stored {
+		if rule, ok := registry.Get(finding.Code); ok {
+			findings = append(findings, finding.Render(i18n.T, rule.RuleText))
+		}
+	}
+
+	printHealthFindings(&model.HealthFindingList{EvaluatedAt: evaluatedAt.UnixMilli(), Findings: findings}, includeResolved, evaluatedAt, append([]string{healthPacketDisclaimer}, p.Warnings...)...)
+	return nil
+}
+
 // printHealthFindings prints already-rendered findings, leaving out resolved ones unless
-// includeResolved is set.
-func printHealthFindings(list *model.HealthFindingList, includeResolved bool, now time.Time) {
+// includeResolved is set. Notes open the plain output; with --json they go to stderr so the
+// output stays valid JSON.
+func printHealthFindings(list *model.HealthFindingList, includeResolved bool, now time.Time, notes ...string) {
 	shown := make([]*model.HealthFinding, 0, len(list.Findings))
 	for _, finding := range list.Findings {
 		if includeResolved || finding.State != string(healthcheck.StateResolved) {
@@ -73,12 +141,15 @@ func printHealthFindings(list *model.HealthFindingList, includeResolved bool, no
 	}
 
 	if printer.GetFormat() == printer.FormatJSON {
+		for _, note := range notes {
+			printer.PrintError(note)
+		}
 		printer.SetSingle(true)
 		printer.PrintT("", &model.HealthFindingList{EvaluatedAt: list.EvaluatedAt, Findings: shown})
 		return
 	}
 
-	printer.Print(formatHealthFindings(list.EvaluatedAt, shown, now))
+	printer.Print(strings.Join(slices.Concat(notes, []string{formatHealthFindings(list.EvaluatedAt, shown, now)}), "\n\n"))
 }
 
 func formatHealthFindings(evaluatedAt int64, shown []*model.HealthFinding, now time.Time) string {

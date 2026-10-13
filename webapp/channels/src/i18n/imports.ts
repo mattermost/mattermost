@@ -5,7 +5,6 @@
 
 /* eslint-disable */
 
-import be from './be.json';
 import bg from './bg.json';
 import cs from './cs.json';
 import da from './da.json';
@@ -40,7 +39,6 @@ import zhTW from './zh-TW.json';
 export const langFiles: {
     [langID: string]: string;
 } = {
-    be: be as unknown as string,
     bg: bg as unknown as string,
     cs: cs as unknown as string,
     da: da as unknown as string,

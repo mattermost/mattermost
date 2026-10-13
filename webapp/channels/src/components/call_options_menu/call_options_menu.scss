@@ -1,0 +1,5 @@
+// The profile popover's overlay sits above menus, so its call menu has to sit above the overlay
+// or clicks on the menu land on the overlay and close the popover instead.
+.MuiPopover-root:has(#profilePopoverCallOptionsMenu) {
+    z-index: calc(var(--z-index-popover) + 1);
+}

@@ -51,21 +51,16 @@ func TestGetMattermostLog(t *testing.T) {
 	// Override log root path to allow log file reads from our temp directory
 	th.Service.SetLogRootPathOverride(dir)
 
-	// Enable log file but point to an empty directory to get an error trying to read the file
+	// Enable log file but point to an empty directory to get an error trying to read the file.
+	// FileLevel "fatal" stops the file target from ever creating mattermost.log, which would
+	// otherwise defeat the missing-file assertion below (MM-70639).
 	th.Service.UpdateConfig(func(cfg *model.Config) {
 		*cfg.LogSettings.EnableFile = true
 		*cfg.LogSettings.FileLocation = dir
+		*cfg.LogSettings.FileLevel = "fatal"
 	})
 
 	logLocation := config.GetLogFileLocation(dir)
-
-	// ReconfigureLogger may create mattermost.log as soon as file logging is enabled.
-	// Flush and remove it so the next GetLogFile exercises the missing-file path.
-	th.Service.Logger().Flush()
-	err = os.Remove(logLocation)
-	if err != nil && !os.IsNotExist(err) {
-		require.NoError(t, err)
-	}
 
 	// There is no mattermost.log file yet, so this fails
 	fileData, err = th.Service.GetLogFile(th.Context)
@@ -162,10 +157,6 @@ func TestGetLogsSkipSendPathValidation(t *testing.T) {
 		logDir, err := os.MkdirTemp("", "logs")
 		require.NoError(t, err)
 		t.Cleanup(func() {
-			th.Service.UpdateConfig(func(cfg *model.Config) {
-				*cfg.LogSettings.EnableFile = false
-			})
-			th.Service.Logger().Flush()
 			err = os.RemoveAll(logDir)
 			require.NoError(t, err)
 		})
@@ -177,6 +168,11 @@ func TestGetLogsSkipSendPathValidation(t *testing.T) {
 		outsideDir, err := os.MkdirTemp("", "outside")
 		require.NoError(t, err)
 		t.Cleanup(func() {
+			// The file target must be gone first or a late record recreates mattermost.log mid-RemoveAll (MM-70918).
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				*cfg.LogSettings.EnableFile = false
+			})
+			th.Service.Logger().Flush()
 			err = os.RemoveAll(outsideDir)
 			require.NoError(t, err)
 		})
@@ -186,10 +182,12 @@ func TestGetLogsSkipSendPathValidation(t *testing.T) {
 		err = os.WriteFile(outsideLogLocation, []byte("secret data\n"), 0644)
 		require.NoError(t, err)
 
-		// Point FileLocation to the outside directory
+		// Point FileLocation to the outside directory. FileLevel "fatal" keeps the file target
+		// from writing into outsideDir; GetLogsSkipSend does not consult it.
 		th.Service.UpdateConfig(func(cfg *model.Config) {
 			*cfg.LogSettings.EnableFile = true
 			*cfg.LogSettings.FileLocation = outsideDir
+			*cfg.LogSettings.FileLevel = "fatal"
 		})
 
 		// Should be blocked by path validation
