@@ -16755,10 +16755,6 @@
     "defaultMessage": "Member",
     "description": "Role label shown in the Role column of admin console member lists for regular (non-admin) members."
   },
-  "admin.user_item.menuAriaLabel": {
-    "defaultMessage": "User Actions Menu",
-    "description": "Accessibility label for the per-row '...' actions menu; reused here for retention policy rows in the Data Retention tables despite the 'User' wording."
-  },
   "admin.user_item.remoteUser": {
     "defaultMessage": "Remote user",
     "description": "Indicator label on a user row for a user from a remote server via shared channels."
@@ -23078,6 +23074,10 @@
   "generic_modal.cancel": {
     "defaultMessage": "Cancel",
     "description": "Default cancel button label of the shared generic modal component used across the app."
+  },
+  "generic_modal.close": {
+    "defaultMessage": "Close",
+    "description": ""
   },
   "generic_modal.confirm": {
     "defaultMessage": "Confirm",
