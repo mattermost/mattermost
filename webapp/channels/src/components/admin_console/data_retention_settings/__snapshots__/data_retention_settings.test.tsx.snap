@@ -86,9 +86,14 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
             <button
-              class="btn btn-primary"
+              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              type="button"
             >
-              Add policy
+              <span
+                class="_button__label_aa8j5_31"
+              >
+                Add policy
+              </span>
             </button>
             <hr
               class="Card__hr"
@@ -152,10 +157,15 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
             <button
-              class="btn btn-primary"
+              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
               disabled=""
+              type="button"
             >
-              Run Deletion Job Now
+              <span
+                class="_button__label_aa8j5_31"
+              >
+                Run Deletion Job Now
+              </span>
             </button>
             <hr
               class="Card__hr"
@@ -317,9 +327,14 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
             <button
-              class="btn btn-primary"
+              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              type="button"
             >
-              Add policy
+              <span
+                class="_button__label_aa8j5_31"
+              >
+                Add policy
+              </span>
             </button>
             <hr
               class="Card__hr"
@@ -419,9 +434,14 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
             <button
-              class="btn btn-primary"
+              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              type="button"
             >
-              Run Deletion Job Now
+              <span
+                class="_button__label_aa8j5_31"
+              >
+                Run Deletion Job Now
+              </span>
             </button>
             <hr
               class="Card__hr"
@@ -583,9 +603,14 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
             <button
-              class="btn btn-primary"
+              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              type="button"
             >
-              Add policy
+              <span
+                class="_button__label_aa8j5_31"
+              >
+                Add policy
+              </span>
             </button>
             <hr
               class="Card__hr"
@@ -685,9 +710,14 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
             <button
-              class="btn btn-primary"
+              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              type="button"
             >
-              Run Deletion Job Now
+              <span
+                class="_button__label_aa8j5_31"
+              >
+                Run Deletion Job Now
+              </span>
             </button>
             <hr
               class="Card__hr"
@@ -849,9 +879,14 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
             <button
-              class="btn btn-primary"
+              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              type="button"
             >
-              Add policy
+              <span
+                class="_button__label_aa8j5_31"
+              >
+                Add policy
+              </span>
             </button>
             <hr
               class="Card__hr"
@@ -915,9 +950,14 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
             <button
-              class="btn btn-primary"
+              class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+              type="button"
             >
-              Run Deletion Job Now
+              <span
+                class="_button__label_aa8j5_31"
+              >
+                Run Deletion Job Now
+              </span>
             </button>
             <hr
               class="Card__hr"

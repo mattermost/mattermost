@@ -335,23 +335,23 @@ exports[`components/integrations/EditCommand should have match renderExtra 1`] =
         <div
           class="backstage-form__footer"
         >
-          <button
-            class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
-            type="button"
+          <a
+            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+            href="/test/integrations/commands"
           >
             <span
-              class="_button__label_doayp_24"
+              class="_button__label_aa8j5_31"
             >
               Cancel
             </span>
-          </button>
+          </a>
           <button
-            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
             id="saveCommand"
             type="submit"
           >
             <span
-              class="_button__label_doayp_24"
+              class="_button__label_aa8j5_31"
             >
               Update
             </span>
@@ -698,23 +698,23 @@ exports[`components/integrations/EditCommand should match snapshot 1`] = `
         <div
           class="backstage-form__footer"
         >
-          <button
-            class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
-            type="button"
+          <a
+            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+            href="/test/integrations/commands"
           >
             <span
-              class="_button__label_doayp_24"
+              class="_button__label_aa8j5_31"
             >
               Cancel
             </span>
-          </button>
+          </a>
           <button
-            class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+            class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
             id="saveCommand"
             type="submit"
           >
             <span
-              class="_button__label_doayp_24"
+              class="_button__label_aa8j5_31"
             >
               Update
             </span>

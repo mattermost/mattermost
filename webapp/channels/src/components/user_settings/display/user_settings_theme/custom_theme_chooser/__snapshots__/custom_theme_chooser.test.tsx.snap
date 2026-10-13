@@ -968,9 +968,14 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
           class="mt-3"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+            type="button"
           >
-            Copy Theme Colors
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Copy Theme Colors
+            </span>
           </button>
           <span
             class="alert alert-success copy-theme-success"

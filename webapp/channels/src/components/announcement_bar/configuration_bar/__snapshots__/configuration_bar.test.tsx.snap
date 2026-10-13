@@ -18,9 +18,14 @@ exports[`components/ConfigurationBar should match snapshot, expired 1`] = `
           />
           Enterprise license is expired and some features may be disabled.
           <button
-            class="btn btn-tertiary btn-xs btn-inverted annnouncementBar__renewLicense"
+            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-x-small_aa8j5_42 _button--appearance-inverted_aa8j5_204 annnouncementBar__renewLicense"
+            type="button"
           >
-            Contact sales
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Contact sales
+            </span>
           </button>
         </div>
       </span>
@@ -55,9 +60,14 @@ exports[`components/ConfigurationBar should match snapshot, expired, in grace pe
           />
           Enterprise license is expired and some features may be disabled.
           <button
-            class="btn btn-tertiary btn-xs btn-inverted annnouncementBar__renewLicense"
+            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-x-small_aa8j5_42 _button--appearance-inverted_aa8j5_204 annnouncementBar__renewLicense"
+            type="button"
           >
-            Contact sales
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Contact sales
+            </span>
           </button>
         </div>
       </span>
@@ -112,9 +122,14 @@ exports[`components/ConfigurationBar should match snapshot, expiring, trial lice
           />
           This is the last day of your free trial. Purchase a license now to continue using Mattermost Professional and Enterprise features.
           <button
-            class="btn btn-tertiary btn-xs btn-inverted annnouncementBar__purchaseNow"
+            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-x-small_aa8j5_42 _button--appearance-inverted_aa8j5_204 annnouncementBar__purchaseNow"
+            type="button"
           >
-            Purchase a License Now
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Purchase a License Now
+            </span>
           </button>
         </div>
       </span>
@@ -147,9 +162,14 @@ exports[`components/ConfigurationBar should match snapshot, expiring, trial lice
           />
           This is the last day of your free trial.
           <button
-            class="btn btn-tertiary btn-xs btn-inverted annnouncementBar__purchaseNow"
+            class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-x-small_aa8j5_42 _button--appearance-inverted_aa8j5_204 annnouncementBar__purchaseNow"
+            type="button"
           >
-            Purchase a License Now
+            <span
+              class="_button__label_aa8j5_31"
+            >
+              Purchase a License Now
+            </span>
           </button>
         </div>
       </span>

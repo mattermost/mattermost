@@ -15,9 +15,14 @@ exports[`NotificationPermissionBar should render the NotificationPermissionNever
         We need your permission to show notifications in the browser.
       </span>
       <button
-        class="btn btn-tertiary btn-xs btn-inverted"
+        class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-x-small_aa8j5_42 _button--appearance-inverted_aa8j5_204"
+        type="button"
       >
-        Manage notification preferences
+        <span
+          class="_button__label_aa8j5_31"
+        >
+          Manage notification preferences
+        </span>
       </button>
     </div>
     <a
@@ -45,9 +50,14 @@ exports[`NotificationPermissionBar should render the NotificationUnsupportedBar 
         Your browser does not support browser notifications.
       </span>
       <button
-        class="btn btn-tertiary btn-xs btn-inverted"
+        class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-x-small_aa8j5_42 _button--appearance-inverted_aa8j5_204"
+        type="button"
       >
-        Update your browser
+        <span
+          class="_button__label_aa8j5_31"
+        >
+          Update your browser
+        </span>
       </button>
     </div>
     <a

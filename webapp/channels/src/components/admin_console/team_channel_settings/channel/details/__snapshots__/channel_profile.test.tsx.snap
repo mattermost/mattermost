@@ -48,12 +48,12 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
           class="AdminChannelDetails_archiveContainer"
         >
           <button
-            class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+            class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
             type="button"
           >
             <span
               aria-hidden="true"
-              class="_button__icon-slot_doayp_27"
+              class="_button__icon-slot_aa8j5_35"
             >
               <div
                 aria-hidden="true"
@@ -78,7 +78,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
               </div>
             </span>
             <span
-              class="_button__label_doayp_24"
+              class="_button__label_aa8j5_31"
             >
               Archive Channel
             </span>
@@ -151,12 +151,12 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
           class="AdminChannelDetails_archiveContainer"
         >
           <button
-            class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+            class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
             type="button"
           >
             <span
               aria-hidden="true"
-              class="_button__icon-slot_doayp_27"
+              class="_button__icon-slot_aa8j5_35"
             >
               <div
                 aria-hidden="true"
@@ -181,7 +181,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
               </div>
             </span>
             <span
-              class="_button__label_doayp_24"
+              class="_button__label_aa8j5_31"
             >
               Archive Channel
             </span>

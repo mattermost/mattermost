@@ -161,7 +161,7 @@ describe('components/new_channel_modal', () => {
         const editUrl = screen.getByText('Edit');
         expect(editUrl).toBeInTheDocument();
         expect(editUrl).toHaveClass('url-input-button-label');
-        expect(editUrl.parentElement).toHaveClass('url-input-button');
+        expect(editUrl.closest('button')).toHaveClass('url-input-button');
 
         const publicChannelSvg = screen.getByLabelText('Globe Circle Solid Icon');
         expect(publicChannelSvg).toBeInTheDocument();

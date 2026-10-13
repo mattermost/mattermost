@@ -69,12 +69,12 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="AdminChannelDetails_archiveContainer"
               >
                 <button
-                  class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+                  class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                   type="button"
                 >
                   <span
                     aria-hidden="true"
-                    class="_button__icon-slot_doayp_27"
+                    class="_button__icon-slot_aa8j5_35"
                   >
                     <div
                       aria-hidden="true"
@@ -99,7 +99,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                     </div>
                   </span>
                   <span
-                    class="_button__label_doayp_24"
+                    class="_button__label_aa8j5_31"
                   >
                     Archive Channel
                   </span>
@@ -356,12 +356,12 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
               class="button"
             >
               <button
-                class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
                 id="addGroupsToChannelToggle"
                 type="button"
               >
                 <span
-                  class="_button__label_doayp_24"
+                  class="_button__label_aa8j5_31"
                 >
                   Add Group
                 </span>
@@ -418,12 +418,12 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 1 - 1 of 1
               </div>
               <button
-                class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 disabled"
+                class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56 disabled"
                 disabled=""
                 type="button"
               >
                 <span
-                  class="_button__label_doayp_24"
+                  class="_button__label_aa8j5_31"
                 >
                   <i
                     class="icon icon-chevron-left"
@@ -432,13 +432,13 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 </span>
               </button>
               <button
-                class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 disabled"
+                class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56 disabled"
                 data-testid="page-link-next"
                 disabled=""
                 type="button"
               >
                 <span
-                  class="_button__label_doayp_24"
+                  class="_button__label_aa8j5_31"
                 >
                   <i
                     class="icon icon-chevron-right"
@@ -458,29 +458,29 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
         <span
-          class="_button__label_doayp_24"
+          class="_button__label_aa8j5_31"
         >
           Save
         </span>
       </button>
-      <button
-        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
+      <a
+        class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+        href="/admin_console/user_management/channels"
         id="cancelButtonSettings"
-        type="button"
       >
         <span
-          class="_button__label_doayp_24"
+          class="_button__label_aa8j5_31"
         >
           Cancel
         </span>
-      </button>
+      </a>
       <div
         class="error-message"
         data-testid="saveChangesPanel-errorMessage"
@@ -558,12 +558,12 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="AdminChannelDetails_archiveContainer"
               >
                 <button
-                  class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+                  class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                   type="button"
                 >
                   <span
                     aria-hidden="true"
-                    class="_button__icon-slot_doayp_27"
+                    class="_button__icon-slot_aa8j5_35"
                   >
                     <div
                       aria-hidden="true"
@@ -588,7 +588,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                     </div>
                   </span>
                   <span
-                    class="_button__label_doayp_24"
+                    class="_button__label_aa8j5_31"
                   >
                     Archive Channel
                   </span>
@@ -845,12 +845,12 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
               class="button"
             >
               <button
-                class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
                 id="addGroupsToChannelToggle"
                 type="button"
               >
                 <span
-                  class="_button__label_doayp_24"
+                  class="_button__label_aa8j5_31"
                 >
                   Add Group
                 </span>
@@ -907,12 +907,12 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 1 - 1 of 1
               </div>
               <button
-                class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 disabled"
+                class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56 disabled"
                 disabled=""
                 type="button"
               >
                 <span
-                  class="_button__label_doayp_24"
+                  class="_button__label_aa8j5_31"
                 >
                   <i
                     class="icon icon-chevron-left"
@@ -921,13 +921,13 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 </span>
               </button>
               <button
-                class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47 disabled"
+                class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56 disabled"
                 data-testid="page-link-next"
                 disabled=""
                 type="button"
               >
                 <span
-                  class="_button__label_doayp_24"
+                  class="_button__label_aa8j5_31"
                 >
                   <i
                     class="icon icon-chevron-right"
@@ -947,29 +947,29 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
         <span
-          class="_button__label_doayp_24"
+          class="_button__label_aa8j5_31"
         >
           Save
         </span>
       </button>
-      <button
-        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
+      <a
+        class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+        href="/admin_console/user_management/channels"
         id="cancelButtonSettings"
-        type="button"
       >
         <span
-          class="_button__label_doayp_24"
+          class="_button__label_aa8j5_31"
         >
           Cancel
         </span>
-      </button>
+      </a>
       <div
         class="error-message"
         data-testid="saveChangesPanel-errorMessage"
@@ -1048,12 +1048,12 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="AdminChannelDetails_archiveContainer"
               >
                 <button
-                  class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+                  class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                   type="button"
                 >
                   <span
                     aria-hidden="true"
-                    class="_button__icon-slot_doayp_27"
+                    class="_button__icon-slot_aa8j5_35"
                   >
                     <div
                       aria-hidden="true"
@@ -1078,7 +1078,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                     </div>
                   </span>
                   <span
-                    class="_button__label_doayp_24"
+                    class="_button__label_aa8j5_31"
                   >
                     Archive Channel
                   </span>
@@ -1267,29 +1267,29 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
         <span
-          class="_button__label_doayp_24"
+          class="_button__label_aa8j5_31"
         >
           Save
         </span>
       </button>
-      <button
-        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
+      <a
+        class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+        href="/admin_console/user_management/channels"
         id="cancelButtonSettings"
-        type="button"
       >
         <span
-          class="_button__label_doayp_24"
+          class="_button__label_aa8j5_31"
         >
           Cancel
         </span>
-      </button>
+      </a>
       <div
         class="error-message"
         data-testid="saveChangesPanel-errorMessage"
@@ -1367,12 +1367,12 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="AdminChannelDetails_archiveContainer"
               >
                 <button
-                  class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+                  class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                   type="button"
                 >
                   <span
                     aria-hidden="true"
-                    class="_button__icon-slot_doayp_27"
+                    class="_button__icon-slot_aa8j5_35"
                   >
                     <div
                       aria-hidden="true"
@@ -1397,7 +1397,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                     </div>
                   </span>
                   <span
-                    class="_button__label_doayp_24"
+                    class="_button__label_aa8j5_31"
                   >
                     Archive Channel
                   </span>
@@ -1586,29 +1586,29 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
         <span
-          class="_button__label_doayp_24"
+          class="_button__label_aa8j5_31"
         >
           Save
         </span>
       </button>
-      <button
-        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
+      <a
+        class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+        href="/admin_console/user_management/channels"
         id="cancelButtonSettings"
-        type="button"
       >
         <span
-          class="_button__label_doayp_24"
+          class="_button__label_aa8j5_31"
         >
           Cancel
         </span>
-      </button>
+      </a>
       <div
         class="error-message"
         data-testid="saveChangesPanel-errorMessage"
@@ -1687,12 +1687,12 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="AdminChannelDetails_archiveContainer"
               >
                 <button
-                  class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+                  class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                   type="button"
                 >
                   <span
                     aria-hidden="true"
-                    class="_button__icon-slot_doayp_27"
+                    class="_button__icon-slot_aa8j5_35"
                   >
                     <div
                       aria-hidden="true"
@@ -1717,7 +1717,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                     </div>
                   </span>
                   <span
-                    class="_button__label_doayp_24"
+                    class="_button__label_aa8j5_31"
                   >
                     Archive Channel
                   </span>
@@ -1865,29 +1865,29 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
         <span
-          class="_button__label_doayp_24"
+          class="_button__label_aa8j5_31"
         >
           Save
         </span>
       </button>
-      <button
-        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
+      <a
+        class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+        href="/admin_console/user_management/channels"
         id="cancelButtonSettings"
-        type="button"
       >
         <span
-          class="_button__label_doayp_24"
+          class="_button__label_aa8j5_31"
         >
           Cancel
         </span>
-      </button>
+      </a>
       <div
         class="error-message"
         data-testid="saveChangesPanel-errorMessage"
@@ -1965,12 +1965,12 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 class="AdminChannelDetails_archiveContainer"
               >
                 <button
-                  class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+                  class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                   type="button"
                 >
                   <span
                     aria-hidden="true"
-                    class="_button__icon-slot_doayp_27"
+                    class="_button__icon-slot_aa8j5_35"
                   >
                     <div
                       aria-hidden="true"
@@ -1995,7 +1995,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                     </div>
                   </span>
                   <span
-                    class="_button__label_doayp_24"
+                    class="_button__label_aa8j5_31"
                   >
                     Archive Channel
                   </span>
@@ -2143,29 +2143,29 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       class="admin-console-save"
     >
       <button
-        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
         <span
-          class="_button__label_doayp_24"
+          class="_button__label_aa8j5_31"
         >
           Save
         </span>
       </button>
-      <button
-        class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-medium_doayp_47"
+      <a
+        class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56"
+        href="/admin_console/user_management/channels"
         id="cancelButtonSettings"
-        type="button"
       >
         <span
-          class="_button__label_doayp_24"
+          class="_button__label_aa8j5_31"
         >
           Cancel
         </span>
-      </button>
+      </a>
       <div
         class="error-message"
         data-testid="saveChangesPanel-errorMessage"

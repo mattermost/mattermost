@@ -3,8 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
-import {getHistory} from 'utils/browser_history';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import EmojiPage from './emoji_page';
 
@@ -41,13 +40,11 @@ describe('EmojiPage', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should render the emoji list and the add button with permission', async () => {
-        const push = jest.spyOn(getHistory(), 'push');
+    it('should render the emoji list and the add button with permission', () => {
         renderWithContext(<EmojiPage {...defaultProps}/>);
         expect(screen.getByTestId('emoji-list')).toBeInTheDocument();
         expect(screen.getByTestId('permission-gate')).toBeInTheDocument();
-        await userEvent.click(screen.getByRole('button', {name: 'Add Custom Emoji'}));
-        expect(push).toHaveBeenCalledWith('/team/emoji/add');
+        expect(screen.getByRole('link', {name: 'Add Custom Emoji'})).toHaveAttribute('href', '/team/emoji/add');
     });
 
     it('should not render the add button if permission is not granted', () => {
@@ -59,7 +56,7 @@ describe('EmojiPage', () => {
             />,
         );
         expect(screen.getByTestId('permission-gate')).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Add Custom Emoji'})).toBeInTheDocument();
+        expect(screen.getByRole('link', {name: 'Add Custom Emoji'})).toBeInTheDocument();
     });
 
     it('should render EmojiList component', () => {

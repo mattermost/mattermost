@@ -86,9 +86,14 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen a
                       class="purchase-card"
                     >
                       <button
-                        class="btn btn-primary contact-us"
+                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 contact-us"
+                        type="button"
                       >
-                        Contact Sales
+                        <span
+                          class="_button__label_aa8j5_31"
+                        >
+                          Contact Sales
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -463,11 +468,11 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen a
                   </p>
                   <p>
                     <button
-                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                      class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         Restart Server
                       </span>
@@ -570,9 +575,14 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
                       class="purchase-card"
                     >
                       <button
-                        class="btn btn-primary contact-us"
+                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 contact-us"
+                        type="button"
                       >
-                        Contact Sales
+                        <span
+                          class="_button__label_aa8j5_31"
+                        >
+                          Contact Sales
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -944,13 +954,13 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
                 <div>
                   <p>
                     <button
-                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                      class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
                       disabled=""
                       type="button"
                     >
                       <span
                         aria-hidden="true"
-                        class="_button__icon-slot_doayp_27"
+                        class="_button__icon-slot_aa8j5_35"
                       >
                         <span
                           aria-label="Loading"
@@ -960,7 +970,7 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
                         />
                       </span>
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         Upgrading 42%
                       </span>
@@ -1078,9 +1088,14 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="purchase-card"
                     >
                       <button
-                        class="btn btn-primary contact-us"
+                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 contact-us"
+                        type="button"
                       >
-                        Contact Sales
+                        <span
+                          class="_button__label_aa8j5_31"
+                        >
+                          Contact Sales
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -1113,12 +1128,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     </div>
                   </div>
                   <button
-                    class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-small_doayp_40 PlanDetails__viewPlansButton"
+                    class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 PlanDetails__viewPlansButton"
                     id="enterprise_edition_view_plans"
                     type="button"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       View plans
                     </span>
@@ -1136,11 +1151,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-small_doayp_40"
+                      class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         + Add seats
                       </span>
@@ -1270,11 +1285,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     </div>
                     <hr />
                     <button
-                      class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47"
+                      class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         Add a new license
                       </span>
@@ -1288,13 +1303,13 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="remove-button"
                     >
                       <button
-                        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                         data-testid="remove-button"
                         id="remove-button"
                         type="button"
                       >
                         <span
-                          class="_button__label_doayp_24"
+                          class="_button__label_aa8j5_31"
                         >
                           Remove license and downgrade to Mattermost Free
                         </span>
@@ -1641,11 +1656,11 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                   class="purchase_buttons"
                 >
                   <button
-                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
                     type="button"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       Contact Sales
                     </span>
@@ -1761,9 +1776,14 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="purchase-card"
                     >
                       <button
-                        class="btn btn-primary contact-us"
+                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 contact-us"
+                        type="button"
                       >
-                        Contact Sales
+                        <span
+                          class="_button__label_aa8j5_31"
+                        >
+                          Contact Sales
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -1796,12 +1816,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     </div>
                   </div>
                   <button
-                    class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-small_doayp_40 PlanDetails__viewPlansButton"
+                    class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 PlanDetails__viewPlansButton"
                     id="enterprise_edition_view_plans"
                     type="button"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       View plans
                     </span>
@@ -1819,11 +1839,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-small_doayp_40"
+                      class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         + Add seats
                       </span>
@@ -1953,11 +1973,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     </div>
                     <hr />
                     <button
-                      class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47"
+                      class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         Add a new license
                       </span>
@@ -1971,13 +1991,13 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="remove-button"
                     >
                       <button
-                        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                         data-testid="remove-button"
                         id="remove-button"
                         type="button"
                       >
                         <span
-                          class="_button__label_doayp_24"
+                          class="_button__label_aa8j5_31"
                         >
                           Remove license and downgrade to Mattermost Free
                         </span>
@@ -2324,11 +2344,11 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                   class="purchase_buttons"
                 >
                   <button
-                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
                     type="button"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       Contact Sales
                     </span>
@@ -2430,9 +2450,14 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="purchase-card"
                     >
                       <button
-                        class="btn btn-primary contact-us"
+                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 contact-us"
+                        type="button"
                       >
-                        Contact Sales
+                        <span
+                          class="_button__label_aa8j5_31"
+                        >
+                          Contact Sales
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -2465,12 +2490,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     </div>
                   </div>
                   <button
-                    class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-small_doayp_40 PlanDetails__viewPlansButton"
+                    class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 PlanDetails__viewPlansButton"
                     id="enterprise_edition_view_plans"
                     type="button"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       View plans
                     </span>
@@ -2488,11 +2513,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-small_doayp_40"
+                      class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         + Add seats
                       </span>
@@ -2622,11 +2647,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     </div>
                     <hr />
                     <button
-                      class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47"
+                      class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         Add a new license
                       </span>
@@ -2640,13 +2665,13 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="remove-button"
                     >
                       <button
-                        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                         data-testid="remove-button"
                         id="remove-button"
                         type="button"
                       >
                         <span
-                          class="_button__label_doayp_24"
+                          class="_button__label_aa8j5_31"
                         >
                           Remove license and downgrade to Mattermost Free
                         </span>
@@ -3009,11 +3034,11 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                   class="purchase_buttons"
                 >
                   <button
-                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
                     type="button"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       Contact Sales
                     </span>
@@ -3115,9 +3140,14 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="purchase-card"
                     >
                       <button
-                        class="btn btn-primary contact-us"
+                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 contact-us"
+                        type="button"
                       >
-                        Contact Sales
+                        <span
+                          class="_button__label_aa8j5_31"
+                        >
+                          Contact Sales
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -3150,12 +3180,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     </div>
                   </div>
                   <button
-                    class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-small_doayp_40 PlanDetails__viewPlansButton"
+                    class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 PlanDetails__viewPlansButton"
                     id="enterprise_edition_view_plans"
                     type="button"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       View plans
                     </span>
@@ -3173,11 +3203,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-small_doayp_40"
+                      class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         + Add seats
                       </span>
@@ -3307,11 +3337,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     </div>
                     <hr />
                     <button
-                      class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47"
+                      class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         Add a new license
                       </span>
@@ -3325,13 +3355,13 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="remove-button"
                     >
                       <button
-                        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                         data-testid="remove-button"
                         id="remove-button"
                         type="button"
                       >
                         <span
-                          class="_button__label_doayp_24"
+                          class="_button__label_aa8j5_31"
                         >
                           Remove license and downgrade to Mattermost Free
                         </span>
@@ -3678,11 +3708,11 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                   class="purchase_buttons"
                 >
                   <button
-                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
                     type="button"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       Contact Sales
                     </span>
@@ -3784,9 +3814,14 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="purchase-card"
                     >
                       <button
-                        class="btn btn-primary contact-us"
+                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 contact-us"
+                        type="button"
                       >
-                        Contact Sales
+                        <span
+                          class="_button__label_aa8j5_31"
+                        >
+                          Contact Sales
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -3819,12 +3854,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     </div>
                   </div>
                   <button
-                    class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-small_doayp_40 PlanDetails__viewPlansButton"
+                    class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 PlanDetails__viewPlansButton"
                     id="enterprise_edition_view_plans"
                     type="button"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       View plans
                     </span>
@@ -3842,11 +3877,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-small_doayp_40"
+                      class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         + Add seats
                       </span>
@@ -3976,11 +4011,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     </div>
                     <hr />
                     <button
-                      class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47"
+                      class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         Add a new license
                       </span>
@@ -3994,14 +4029,14 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="remove-button"
                     >
                       <button
-                        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                         data-testid="remove-button"
                         disabled=""
                         id="remove-button"
                         type="button"
                       >
                         <span
-                          class="_button__label_doayp_24"
+                          class="_button__label_aa8j5_31"
                         >
                           Remove license and downgrade to Mattermost Free
                         </span>
@@ -4348,11 +4383,11 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                   class="purchase_buttons"
                 >
                   <button
-                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
                     type="button"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       Contact Sales
                     </span>
@@ -4454,9 +4489,14 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="purchase-card"
                     >
                       <button
-                        class="btn btn-primary contact-us"
+                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 contact-us"
+                        type="button"
                       >
-                        Contact Sales
+                        <span
+                          class="_button__label_aa8j5_31"
+                        >
+                          Contact Sales
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -4489,12 +4529,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     </div>
                   </div>
                   <button
-                    class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-small_doayp_40 PlanDetails__viewPlansButton"
+                    class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 PlanDetails__viewPlansButton"
                     id="enterprise_edition_view_plans"
                     type="button"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       View plans
                     </span>
@@ -4512,11 +4552,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-small_doayp_40"
+                      class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         + Add seats
                       </span>
@@ -4646,11 +4686,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     </div>
                     <hr />
                     <button
-                      class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47"
+                      class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         Add a new license
                       </span>
@@ -4664,13 +4704,13 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="remove-button"
                     >
                       <button
-                        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                         data-testid="remove-button"
                         id="remove-button"
                         type="button"
                       >
                         <span
-                          class="_button__label_doayp_24"
+                          class="_button__label_aa8j5_31"
                         >
                           Remove license and downgrade to Mattermost Free
                         </span>
@@ -5023,11 +5063,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                   class="purchase_buttons"
                 >
                   <button
-                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
                     type="button"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       Contact Sales
                     </span>
@@ -5156,12 +5196,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     </div>
                   </div>
                   <button
-                    class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-small_doayp_40 PlanDetails__viewPlansButton"
+                    class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 PlanDetails__viewPlansButton"
                     id="enterprise_edition_view_plans"
                     type="button"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       View plans
                     </span>
@@ -5179,11 +5219,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-small_doayp_40"
+                      class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         + Add seats
                       </span>
@@ -5307,11 +5347,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     </div>
                     <hr />
                     <button
-                      class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47"
+                      class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         Add a new license
                       </span>
@@ -5325,13 +5365,13 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="remove-button"
                     >
                       <button
-                        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                         data-testid="remove-button"
                         id="remove-button"
                         type="button"
                       >
                         <span
-                          class="_button__label_doayp_24"
+                          class="_button__label_aa8j5_31"
                         >
                           Remove license and downgrade to Mattermost Free
                         </span>
@@ -5611,11 +5651,11 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                   class="purchase_buttons"
                 >
                   <button
-                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
                     type="button"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       Contact Sales
                     </span>
@@ -5730,11 +5770,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     class="trial"
                   >
                     <button
-                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                      class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         Start trial
                       </span>
@@ -5758,12 +5798,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                 class="StarterLeftPanel"
               >
                 <button
-                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-small_doayp_40 PlanDetails__viewPlansButton"
+                  class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 PlanDetails__viewPlansButton"
                   id="starter_edition_view_plans"
                   type="button"
                 >
                   <span
-                    class="_button__label_doayp_24"
+                    class="_button__label_aa8j5_31"
                   >
                     View plans
                   </span>
@@ -5812,12 +5852,12 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                     class="uploadButtons"
                   >
                     <button
-                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                      class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
                       id="open-modal"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         Upload File
                       </span>
@@ -6171,9 +6211,14 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                   class="purchase_buttons"
                 >
                   <button
-                    class="btn btn-tertiary contact-us btn-full"
+                    class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56 contact-us btn-full"
+                    type="button"
                   >
-                    Contact Sales
+                    <span
+                      class="_button__label_aa8j5_31"
+                    >
+                      Contact Sales
+                    </span>
                   </button>
                 </div>
               </div>
@@ -6285,11 +6330,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     class="trial"
                   >
                     <button
-                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                      class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         Start trial
                       </span>
@@ -6313,12 +6358,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                 class="StarterLeftPanel"
               >
                 <button
-                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-small_doayp_40 PlanDetails__viewPlansButton"
+                  class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 PlanDetails__viewPlansButton"
                   id="starter_edition_view_plans"
                   type="button"
                 >
                   <span
-                    class="_button__label_doayp_24"
+                    class="_button__label_aa8j5_31"
                   >
                     View plans
                   </span>
@@ -6373,12 +6418,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     class="uploadButtons"
                   >
                     <button
-                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                      class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
                       id="open-modal"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         Upload File
                       </span>
@@ -6732,9 +6777,14 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                   class="purchase_buttons"
                 >
                   <button
-                    class="btn btn-tertiary contact-us btn-full"
+                    class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56 contact-us btn-full"
+                    type="button"
                   >
-                    Contact Sales
+                    <span
+                      class="_button__label_aa8j5_31"
+                    >
+                      Contact Sales
+                    </span>
                   </button>
                 </div>
               </div>
@@ -6847,9 +6897,14 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="purchase-card"
                     >
                       <button
-                        class="btn btn-primary contact-us"
+                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 contact-us"
+                        type="button"
                       >
-                        Contact Sales
+                        <span
+                          class="_button__label_aa8j5_31"
+                        >
+                          Contact Sales
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -7221,11 +7276,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                 <div>
                   <p>
                     <button
-                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                      class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         Upgrade to Enterprise Edition
                       </span>
@@ -7319,11 +7374,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     class="trial"
                   >
                     <button
-                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                      class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         Upgrade Server And Start trial
                       </span>
@@ -7731,11 +7786,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                 <div>
                   <p>
                     <button
-                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                      class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         Upgrade to Enterprise Edition
                       </span>
@@ -7814,12 +7869,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                 class="StarterLeftPanel"
               >
                 <button
-                  class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-small_doayp_40 PlanDetails__viewPlansButton"
+                  class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 PlanDetails__viewPlansButton"
                   id="starter_edition_view_plans"
                   type="button"
                 >
                   <span
-                    class="_button__label_doayp_24"
+                    class="_button__label_aa8j5_31"
                   >
                     View plans
                   </span>
@@ -7868,12 +7923,12 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                     class="uploadButtons"
                   >
                     <button
-                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                      class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
                       id="open-modal"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         Upload File
                       </span>
@@ -8227,9 +8282,14 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                   class="purchase_buttons"
                 >
                   <button
-                    class="btn btn-tertiary contact-us btn-full"
+                    class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-medium_aa8j5_56 contact-us btn-full"
+                    type="button"
                   >
-                    Contact Sales
+                    <span
+                      class="_button__label_aa8j5_31"
+                    >
+                      Contact Sales
+                    </span>
                   </button>
                 </div>
               </div>
@@ -8300,12 +8360,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     </div>
                   </div>
                   <button
-                    class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-small_doayp_40 PlanDetails__viewPlansButton"
+                    class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 PlanDetails__viewPlansButton"
                     id="enterprise_edition_view_plans"
                     type="button"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       View plans
                     </span>
@@ -8323,11 +8383,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-small_doayp_40"
+                      class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         + Add seats
                       </span>
@@ -8457,11 +8517,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     </div>
                     <hr />
                     <button
-                      class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47"
+                      class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         Add a new license
                       </span>
@@ -8475,13 +8535,13 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="remove-button"
                     >
                       <button
-                        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                         data-testid="remove-button"
                         id="remove-button"
                         type="button"
                       >
                         <span
-                          class="_button__label_doayp_24"
+                          class="_button__label_aa8j5_31"
                         >
                           Remove license and downgrade to Mattermost Free
                         </span>
@@ -8828,11 +8888,11 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                   class="purchase_buttons"
                 >
                   <button
-                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
                     type="button"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       Contact Sales
                     </span>
@@ -8934,9 +8994,14 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="purchase-card"
                     >
                       <button
-                        class="btn btn-primary contact-us"
+                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 contact-us"
+                        type="button"
                       >
-                        Contact Sales
+                        <span
+                          class="_button__label_aa8j5_31"
+                        >
+                          Contact Sales
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -8969,12 +9034,12 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     </div>
                   </div>
                   <button
-                    class="_button_doayp_2 _button--emphasis-tertiary_doayp_91 _button--size-small_doayp_40 PlanDetails__viewPlansButton"
+                    class="_button_aa8j5_2 _button--emphasis-tertiary_aa8j5_100 _button--size-small_aa8j5_49 PlanDetails__viewPlansButton"
                     id="enterprise_edition_view_plans"
                     type="button"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       View plans
                     </span>
@@ -8992,11 +9057,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-small_doayp_40"
+                      class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         + Add seats
                       </span>
@@ -9126,11 +9191,11 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                     </div>
                     <hr />
                     <button
-                      class="_button_doayp_2 _button--emphasis-secondary_doayp_75 _button--size-medium_doayp_47"
+                      class="_button_aa8j5_2 _button--emphasis-secondary_aa8j5_84 _button--size-medium_aa8j5_56"
                       type="button"
                     >
                       <span
-                        class="_button__label_doayp_24"
+                        class="_button__label_aa8j5_31"
                       >
                         Add a new license
                       </span>
@@ -9144,13 +9209,13 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       class="remove-button"
                     >
                       <button
-                        class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47 _button--destructive_doayp_130"
+                        class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56 _button--destructive_aa8j5_141"
                         data-testid="remove-button"
                         id="remove-button"
                         type="button"
                       >
                         <span
-                          class="_button__label_doayp_24"
+                          class="_button__label_aa8j5_31"
                         >
                           Remove license and downgrade to Mattermost Free
                         </span>
@@ -9497,11 +9562,11 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                   class="purchase_buttons"
                 >
                   <button
-                    class="_button_doayp_2 _button--emphasis-primary_doayp_61 _button--size-medium_doayp_47"
+                    class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
                     type="button"
                   >
                     <span
-                      class="_button__label_doayp_24"
+                      class="_button__label_aa8j5_31"
                     >
                       Contact Sales
                     </span>
