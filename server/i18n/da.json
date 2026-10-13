@@ -14448,7 +14448,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Ugyldig webservertilstand {{.Value}}. Skal være 'gzip', 'nogzip' eller 'disabled'."
+    "translation": "Ugyldig webservertilstand {{.Value}}. Skal være 'gzip', 'uncompressed' eller 'disabled'."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",

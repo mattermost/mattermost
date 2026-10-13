@@ -14560,7 +14560,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "حالت وب‌سرور {{.Value}} نامعتبر است. باید 'gzip'، 'nogzip' یا 'disabled' باشد."
+    "translation": "حالت وب‌سرور {{.Value}} نامعتبر است. باید 'gzip'، 'uncompressed' یا 'disabled' باشد."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",

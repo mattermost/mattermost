@@ -4,6 +4,7 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"testing"
@@ -334,7 +335,16 @@ func TestFixTLSMinVer(t *testing.T) {
 }
 
 func TestFixWebserverMode(t *testing.T) {
-	for _, mode := range []string{"gzip", "nogzip", "disabled"} {
+	t.Run("missing defaults to gzip", func(t *testing.T) {
+		cfg := &model.Config{}
+		require.NoError(t, json.Unmarshal([]byte(`{"ServiceSettings": {}}`), cfg))
+		cfg.SetDefaults()
+
+		assert.False(t, fixWebserverMode(cfg))
+		assert.Equal(t, "gzip", *cfg.ServiceSettings.WebserverMode)
+	})
+
+	for _, mode := range []string{"gzip", "uncompressed", "disabled"} {
 		t.Run("supported "+mode, func(t *testing.T) {
 			cfg := &model.Config{}
 			cfg.SetDefaults()
@@ -352,7 +362,7 @@ func TestFixWebserverMode(t *testing.T) {
 			*cfg.ServiceSettings.WebserverMode = mode
 
 			assert.True(t, fixWebserverMode(cfg))
-			assert.Equal(t, "nogzip", *cfg.ServiceSettings.WebserverMode)
+			assert.Equal(t, "uncompressed", *cfg.ServiceSettings.WebserverMode)
 			assert.Nil(t, cfg.IsValid())
 		})
 	}
