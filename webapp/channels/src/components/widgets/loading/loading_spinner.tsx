@@ -16,7 +16,7 @@ type Props = {
     style?: React.CSSProperties;
     size?: SpinnerSize;
 
-    /** Stack the spinner above the text. Defaults size to 20 when size is omitted. */
+    /** Stack the spinner above the text. Defaults size to 24 when size is omitted. */
     stacked?: boolean;
 
     /** Light spinner for dark backgrounds (uses Compass Spinner inverted). */
@@ -35,7 +35,7 @@ const LoadingSpinner = ({
 }: Props) => {
     const {formatMessage} = useIntl();
     const ariaLabel = formatMessage({id: 'generic_icons.loading', defaultMessage: 'Loading Icon'});
-    const resolvedSize = size ?? (stacked ? '20' : '16');
+    const resolvedSize = size ?? (stacked ? '24' : '16');
 
     return (
         <span

@@ -36,7 +36,7 @@ const LoadingImagePreview: React.FC<Props> = ({
     return (
         <div className={containerClass}>
             <LoadingSpinner
-                size='20'
+                size='24'
                 inverted={inverted}
             />
             {progressView}
