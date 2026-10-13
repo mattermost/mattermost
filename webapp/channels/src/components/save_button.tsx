@@ -48,6 +48,7 @@ const SaveButton: React.FC<Props> = ({
             {...props}
         >
             <LoadingWrapper
+                legacy={true}
                 loading={saving}
                 text={savingMessage}
             >

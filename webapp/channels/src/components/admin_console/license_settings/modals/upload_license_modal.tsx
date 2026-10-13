@@ -251,6 +251,7 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                         id='confirm-button'
                     >
                         <LoadingWrapper
+                            legacy={true}
                             loading={Boolean(isLoading)}
                             text={defineMessage({id: 'admin.license.modal.applying', defaultMessage: 'Applying'})}
                         >

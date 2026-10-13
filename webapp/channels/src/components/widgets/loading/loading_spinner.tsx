@@ -13,8 +13,11 @@ import {formatAsComponent} from 'utils/i18n';
 type Props = {
     text?: React.ReactNode | MessageDescriptor;
     style?: React.CSSProperties;
+
+    /** Renders the Font Awesome spinner. Used inside buttons until they move to the Compass Button. */
+    legacy?: boolean;
 };
-const LoadingSpinner = ({text, style}: Props) => {
+const LoadingSpinner = ({text, style, legacy = false}: Props) => {
     const {formatMessage} = useIntl();
     const ariaLabel = formatMessage({id: 'generic_icons.loading', defaultMessage: 'Loading Icon'});
 
@@ -25,11 +28,18 @@ const LoadingSpinner = ({text, style}: Props) => {
             style={style}
             data-testid='loadingSpinner'
         >
-            <Spinner
-                size='16'
-                className='spinner'
-                aria-label={ariaLabel}
-            />
+            {legacy ? (
+                <span
+                    className='fa fa-spinner fa-fw fa-pulse spinner'
+                    title={ariaLabel}
+                />
+            ) : (
+                <Spinner
+                    size='16'
+                    className='spinner'
+                    aria-label={ariaLabel}
+                />
+            )}
             {formatAsComponent(text)}
         </span>
     );

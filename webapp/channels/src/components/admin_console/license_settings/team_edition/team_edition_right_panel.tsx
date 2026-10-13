@@ -85,6 +85,7 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
                         emphasis='primary'
                     >
                         <LoadingWrapper
+                            legacy={true}
                             loading={upgradingPercentage > 0}
                             text={
                                 <FormattedMessage
@@ -153,6 +154,7 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
                         emphasis='primary'
                     >
                         <LoadingWrapper
+                            legacy={true}
                             loading={restarting}
                             text={intl.formatMessage({
                                 id: 'admin.licenseSettings.teamEdition.teamEditionRightPanel.restarting',

@@ -214,6 +214,7 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
                             disabled={this.props.isDisabled || this.state.loadingMore}
                         >
                             <LoadingWrapper
+                                legacy={true}
                                 loading={this.state.loadingMore}
                                 text={defineMessage({id: 'admin.permissions.loadingMoreSchemes', defaultMessage: 'Loading...'})}
                             >

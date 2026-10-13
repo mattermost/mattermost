@@ -202,7 +202,7 @@ export default class TermsOfService extends React.PureComponent<TermsOfServicePr
                                 onClick={this.handleAcceptTerms}
                                 type='submit'
                             >
-                                {this.state.loadingAgree && <LoadingSpinner/>}
+                                {this.state.loadingAgree && <LoadingSpinner legacy={true}/>}
                                 <FormattedMessage
                                     id='terms_of_service.agreeButton'
                                     defaultMessage={'I Agree'}
@@ -215,7 +215,7 @@ export default class TermsOfService extends React.PureComponent<TermsOfServicePr
                                 onClick={this.handleRejectTerms}
                                 type='reset'
                             >
-                                {this.state.loadingDisagree && <LoadingSpinner/>}
+                                {this.state.loadingDisagree && <LoadingSpinner legacy={true}/>}
                                 <FormattedMessage
                                     id='terms_of_service.disagreeButton'
                                     defaultMessage={'I Disagree'}

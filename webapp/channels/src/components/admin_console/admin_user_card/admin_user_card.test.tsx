@@ -153,7 +153,7 @@ describe('components/admin_console/admin_user_card/admin_user_card', () => {
 
             expect(screen.getByTestId('adminUserCardPictureButton')).toBeDisabled();
             expect(screen.getByTestId('adminUserCardPictureInput')).toBeDisabled();
-            expect(screen.getByRole('status', {name: 'Loading Icon'})).toBeInTheDocument();
+            expect(screen.getByTitle('Loading Icon')).toBeInTheDocument();
         });
     });
 });

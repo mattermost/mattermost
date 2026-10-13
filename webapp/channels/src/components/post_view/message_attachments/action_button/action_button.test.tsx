@@ -25,8 +25,8 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
         expect(button).toHaveAttribute('data-action-cookie', 'cookie-contents');
         expect(button).toHaveAttribute('data-action-id', 'action_id_1');
 
-        const loadingIcon = screen.getByRole('status', {name: 'Loading Icon'});
-        expect(loadingIcon).toHaveClass('spinner');
+        const loadingIcon = screen.getByTitle('Loading Icon');
+        expect(loadingIcon).toHaveClass('fa fa-spinner fa-fw fa-pulse spinner');
     });
 
     test('should call handleAction on click', async () => {

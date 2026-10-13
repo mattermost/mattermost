@@ -308,6 +308,7 @@ const TrialBanner = ({
                 emphasis='primary'
             >
                 <LoadingWrapper
+                    legacy={true}
                     loading={upgradingPercentage > 0}
                     text={upgradingPercentage === 100 && restarting ? (
                         <FormattedMessage

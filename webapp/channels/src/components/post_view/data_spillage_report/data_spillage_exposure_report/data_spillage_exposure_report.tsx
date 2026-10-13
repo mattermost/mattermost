@@ -82,7 +82,7 @@ export default function DataSpillageExposureReport({flaggedPostId}: Props) {
 
         switch (status) {
         case 'generating':
-            icon = <LoadingSpinner/>;
+            icon = <LoadingSpinner legacy={true}/>;
             label = (
                 <FormattedMessage
                     id='data_spillage_report.exposure_report.generating.button_text'
