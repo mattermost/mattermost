@@ -15,7 +15,7 @@ import BackstageHeader from 'components/backstage/components/backstage_header';
 import CopyText from 'components/copy_text';
 import ExternalLink from 'components/external_link';
 import type {BotCreateWarnings} from 'components/integrations/bots/bot_create_warnings';
-import {BOT_CREATE_WARNINGS_PARAM, parseBotCreateWarnings, removeBotCreateWarningsParam} from 'components/integrations/bots/bot_create_warnings';
+import {parseBotCreateWarnings, stripBotCreateWarningsParam} from 'components/integrations/bots/bot_create_warnings';
 import BotCreateWarningsBanner from 'components/integrations/bots/bot_create_warnings_banner';
 
 import {Constants, DeveloperLinks, ErrorPageTypes} from 'utils/constants';
@@ -50,8 +50,9 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
     const [botCreateWarnings, setBotCreateWarnings] = useState<BotCreateWarnings | undefined>(() => (isBotConfirmation ? parseBotCreateWarnings(location.search) : undefined));
 
     useEffect(() => {
-        if (isBotConfirmation && new URLSearchParams(location.search).has(BOT_CREATE_WARNINGS_PARAM)) {
-            history.replace(location.pathname + removeBotCreateWarningsParam(location.search));
+        const search = isBotConfirmation ? stripBotCreateWarningsParam(location.search) : undefined;
+        if (search !== undefined) {
+            history.replace(location.pathname + search);
         }
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

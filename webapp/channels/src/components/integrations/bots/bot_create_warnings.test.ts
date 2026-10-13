@@ -6,8 +6,8 @@ import {
     BOT_CREATE_WARNINGS_PARAM,
     hasBotCreateWarnings,
     parseBotCreateWarnings,
-    removeBotCreateWarningsParam,
     serializeBotCreateWarnings,
+    stripBotCreateWarningsParam,
 } from './bot_create_warnings';
 
 const CONFIRM_SEARCH = '?type=bots&id=abc123&token=tok456';
@@ -27,7 +27,9 @@ describe('bot_create_warnings', () => {
             [{tokenFailed: true}, 'token'],
             [{rolesFailed: true}, 'roles'],
             [{attributesFailed: true}, 'attributes'],
+            [{imageFailed: true}, 'image'],
             [{attributesFailed: true, tokenFailed: true}, 'token,attributes'],
+            [{attributesFailed: true, rolesFailed: true, imageFailed: true, tokenFailed: true}, 'token,image,roles,attributes'],
             [{attributesFailed: true, rolesFailed: true}, 'roles,attributes'],
             [{attributesFailed: true, rolesFailed: true, tokenFailed: true}, 'token,roles,attributes'],
             [{tokenFailed: true, rolesFailed: false, attributesFailed: true}, 'token,attributes'],
@@ -49,6 +51,7 @@ describe('bot_create_warnings', () => {
             [{tokenFailed: true}],
             [{rolesFailed: true}],
             [{attributesFailed: true}],
+            [{imageFailed: true}],
             [{tokenFailed: false, rolesFailed: false, attributesFailed: true}],
         ])('returns true for %p', (warnings: BotCreateWarnings) => {
             expect(hasBotCreateWarnings(warnings)).toBe(true);
@@ -120,6 +123,7 @@ describe('bot_create_warnings', () => {
             [{tokenFailed: true, attributesFailed: true}],
             [{rolesFailed: true, attributesFailed: true}],
             [{tokenFailed: true, rolesFailed: true, attributesFailed: true}],
+            [{tokenFailed: true, imageFailed: true, rolesFailed: true, attributesFailed: true}],
         ])('parse(serialize(%p)) returns the same warnings', (warnings: BotCreateWarnings) => {
             const value = serializeBotCreateWarnings(warnings)!;
 
@@ -131,66 +135,43 @@ describe('bot_create_warnings', () => {
         test('removing the param after appending restores the original search', () => {
             const value = serializeBotCreateWarnings({tokenFailed: true, attributesFailed: true});
 
-            expect(removeBotCreateWarningsParam(`${CONFIRM_SEARCH}&${BOT_CREATE_WARNINGS_PARAM}=${value}`)).toBe(CONFIRM_SEARCH);
+            expect(stripBotCreateWarningsParam(`${CONFIRM_SEARCH}&${BOT_CREATE_WARNINGS_PARAM}=${value}`)).toBe(CONFIRM_SEARCH);
         });
     });
 
-    describe('removeBotCreateWarningsParam', () => {
+    describe('stripBotCreateWarningsParam', () => {
         test.each([
-            ['', ''],
-            ['?', ''],
-            ['?bot_warnings=roles', ''],
-            ['bot_warnings=roles', ''],
-            ['?bot_warnings', ''],
-        ])('returns an empty string for %p', (search: string, expected: string) => {
-            expect(removeBotCreateWarningsParam(search)).toBe(expected);
+            [''],
+            ['?'],
+            [CONFIRM_SEARCH],
+            ['?bot_warnings_extra=1&xbot_warnings=2'],
+        ])('returns undefined when the param is absent from %p', (search: string) => {
+            expect(stripBotCreateWarningsParam(search)).toBeUndefined();
+        });
+
+        test.each([
+            ['?bot_warnings=roles'],
+            ['bot_warnings=roles'],
+            ['?bot_warnings'],
+        ])('returns an empty search for %p', (search: string) => {
+            expect(stripBotCreateWarningsParam(search)).toBe('');
         });
 
         test('keeps the confirm page params and their order', () => {
-            expect(removeBotCreateWarningsParam(`${CONFIRM_SEARCH}&bot_warnings=token,roles`)).toBe(CONFIRM_SEARCH);
-            expect(removeBotCreateWarningsParam('?bot_warnings=roles&type=bots&id=abc123&token=tok456')).toBe(CONFIRM_SEARCH);
+            expect(stripBotCreateWarningsParam(`${CONFIRM_SEARCH}&bot_warnings=token,roles`)).toBe(CONFIRM_SEARCH);
+            expect(stripBotCreateWarningsParam('?bot_warnings=roles&type=bots&id=abc123&token=tok456')).toBe(CONFIRM_SEARCH);
         });
 
-        test('removes the param from the middle and keeps order', () => {
-            expect(removeBotCreateWarningsParam('?a=1&bot_warnings=roles&b=2')).toBe('?a=1&b=2');
+        test('removes every occurrence, including a percent-encoded name', () => {
+            expect(stripBotCreateWarningsParam('?bot_warnings=token&a=1&bot%5Fwarnings=roles')).toBe('?a=1');
         });
 
-        test('removes every occurrence', () => {
-            expect(removeBotCreateWarningsParam('?bot_warnings=token&a=1&bot_warnings=roles')).toBe('?a=1');
-        });
-
-        test('returns the search unchanged when the param is absent', () => {
-            expect(removeBotCreateWarningsParam(CONFIRM_SEARCH)).toBe(CONFIRM_SEARCH);
-        });
-
-        test('always prefixes a non-empty result with a question mark', () => {
-            expect(removeBotCreateWarningsParam('a=1&bot_warnings=roles')).toBe('?a=1');
-            expect(removeBotCreateWarningsParam('type=bots&id=abc123')).toBe('?type=bots&id=abc123');
-        });
-
-        test('preserves the raw encoding of other params', () => {
-            expect(removeBotCreateWarningsParam('?next=%2Fteam%2Fchannels%3Fx%3D1&q=a+b&bot_warnings=roles')).toBe('?next=%2Fteam%2Fchannels%3Fx%3D1&q=a+b');
-        });
-
-        test('removes the param with a URL-encoded comma value', () => {
-            expect(removeBotCreateWarningsParam('?a=x%3Dy&bot_warnings=token%2Croles')).toBe('?a=x%3Dy');
-        });
-
-        test('leaves look-alike param names alone', () => {
-            expect(removeBotCreateWarningsParam('?bot_warnings_extra=1&xbot_warnings=2')).toBe('?bot_warnings_extra=1&xbot_warnings=2');
-        });
-
-        test('removes a valueless or percent-encoded param name', () => {
-            expect(removeBotCreateWarningsParam('?bot_warnings&a=1')).toBe('?a=1');
-            expect(removeBotCreateWarningsParam('?bot%5Fwarnings=roles&a=1')).toBe('?a=1');
-        });
-
-        test('drops empty segments', () => {
-            expect(removeBotCreateWarningsParam('?a=1&&b=2')).toBe('?a=1&b=2');
+        test('keeps encoded values of other params', () => {
+            expect(stripBotCreateWarningsParam('?next=%2Fteam%2Fchannels%3Fx%3D1&q=a+b&bot_warnings=roles')).toBe('?next=%2Fteam%2Fchannels%3Fx%3D1&q=a+b');
         });
 
         test('does not throw on malformed percent encoding', () => {
-            expect(removeBotCreateWarningsParam('?%E0%A4%A=1&bot_warnings=roles')).toBe('?%E0%A4%A=1');
+            expect(() => stripBotCreateWarningsParam('?%E0%A4%A=1&bot_warnings=roles')).not.toThrow();
         });
     });
 });

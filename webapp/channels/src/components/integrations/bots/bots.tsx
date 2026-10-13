@@ -22,7 +22,7 @@ import * as Utils from 'utils/utils';
 
 import Bot, {matchesFilter} from './bot';
 import type {BotCreateWarnings} from './bot_create_warnings';
-import {BOT_CREATE_WARNINGS_PARAM, parseBotCreateWarnings, removeBotCreateWarningsParam} from './bot_create_warnings';
+import {parseBotCreateWarnings, stripBotCreateWarningsParam} from './bot_create_warnings';
 import BotCreateWarningsBanner from './bot_create_warnings_banner';
 
 // The server clamps per_page to PerPageMaximum (200), so bots must be fetched
@@ -147,8 +147,9 @@ export default class Bots extends React.PureComponent<Props, State> {
         }
 
         const {location} = this.props;
-        if (location && new URLSearchParams(location.search).has(BOT_CREATE_WARNINGS_PARAM)) {
-            getHistory().replace(location.pathname + removeBotCreateWarningsParam(location.search));
+        const search = location ? stripBotCreateWarningsParam(location.search) : undefined;
+        if (location && search !== undefined) {
+            getHistory().replace(location.pathname + search);
         }
     }
 

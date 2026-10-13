@@ -23,7 +23,7 @@ import {isEnterpriseLicense} from 'utils/license_utils';
 
 import SystemUserDetail from './system_user_detail';
 
-export function mapStateToProps(state: GlobalState) {
+function mapStateToProps(state: GlobalState) {
     const license = getLicense(state);
     const config = getConfig(state);
     const customProfileAttributeEnabled = isEnterpriseLicense(license);

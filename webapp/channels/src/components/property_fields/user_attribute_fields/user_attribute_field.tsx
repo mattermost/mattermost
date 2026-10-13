@@ -443,7 +443,7 @@ export default function UserAttributeField({
                     value={Array.isArray(value) ? value.join(intl.formatMessage({id: 'admin.userManagement.userDetail.arrayValueSeparator', defaultMessage: ', '})) : value}
                     onChange={(e) => onChange(field.id, e.target.value)}
                     disabled={isDisabled}
-                    aria-describedby={errorId}
+                    aria-describedby={describedErrorId}
                     aria-invalid={error ? 'true' : 'false'}
                 />
             );

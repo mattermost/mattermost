@@ -210,6 +210,7 @@ describe('components/integrations/bots/AddBot', () => {
         );
 
         const addAttribute = async (name: string) => {
+            await waitForAttributesReady();
             await userEvent.click(screen.getByRole('button', {name: 'Add attribute'}));
             await userEvent.click(await screen.findByRole('menuitem', {name}));
         };
@@ -239,18 +240,13 @@ describe('components/integrations/bots/AddBot', () => {
                 expect(botActions.getCustomProfileAttributeValues).not.toHaveBeenCalled();
             });
 
-            test('create: renders the section without fetching when fields are loaded', () => {
-                const {actions: botActions} = renderAddBot();
+            test.each([
+                ['none are', []],
+                ['some are', FIELDS],
+            ])('create: fetches fields when %s loaded', async (_, attributeFields) => {
+                const {actions: botActions} = renderAddBot({attributeFields});
 
                 expect(screen.getByTestId('botAttributesSection')).toBeInTheDocument();
-                expect(screen.getByRole('button', {name: 'Add attribute'})).toBeEnabled();
-                expect(botActions.getCustomProfileAttributeFields).not.toHaveBeenCalled();
-                expect(botActions.getCustomProfileAttributeValues).not.toHaveBeenCalled();
-            });
-
-            test('create: fetches fields when none are loaded', async () => {
-                const {actions: botActions} = renderAddBot({attributeFields: []});
-
                 expect(screen.getByRole('button', {name: 'Add attribute'})).toBeDisabled();
                 await waitForAttributesReady();
                 expect(botActions.getCustomProfileAttributeFields).toHaveBeenCalledTimes(1);
@@ -279,7 +275,7 @@ describe('components/integrations/bots/AddBot', () => {
 
                 await screen.findByTestId('bot-attribute-label-dept');
                 expect(botActions.getCustomProfileAttributeValues).toHaveBeenCalledWith('bot-user-id');
-                expect(botActions.getCustomProfileAttributeFields).not.toHaveBeenCalled();
+                expect(botActions.getCustomProfileAttributeFields).toHaveBeenCalledTimes(1);
                 expect(screen.getByRole('textbox', {name: 'Department'})).toHaveValue('Eng');
                 expect(screen.getByTestId('bot-attribute-label-skills')).toBeInTheDocument();
                 expect(screen.queryByTestId('bot-attribute-label-hidden')).not.toBeInTheDocument();
@@ -477,6 +473,7 @@ describe('components/integrations/bots/AddBot', () => {
                 const {container, actions: botActions} = renderEdit({});
 
                 await waitForAttributesReady();
+                expect(container.querySelector('select')).toBeDisabled();
                 setRoleSelect(container, 'System Admin');
                 submit('Update');
 
@@ -500,10 +497,11 @@ describe('components/integrations/bots/AddBot', () => {
                 expect(botActions.updateUserRoles).not.toHaveBeenCalled();
             });
 
-            test('edit: roles that arrive after mount are never sent', async () => {
-                const {rerender, actions: botActions} = renderEdit({});
+            test('edit: roles that arrive after mount seed the controls', async () => {
+                const {container, rerender, actions: botActions} = renderEdit({});
 
                 await waitForAttributesReady();
+                expect(container.querySelector('select')).toBeDisabled();
                 rerender(
                     <AddBot
                         {...baseProps}
@@ -514,10 +512,33 @@ describe('components/integrations/bots/AddBot', () => {
                         actions={botActions}
                     />,
                 );
+                expect(container.querySelector('select')).toBeEnabled();
+                expect(container.querySelector('select')).toHaveValue('System Admin');
                 submit('Update');
 
                 await waitFor(() => expect(historyMock.push).toHaveBeenCalledWith(LIST_URL));
                 expect(botActions.updateUserRoles).not.toHaveBeenCalled();
+            });
+
+            test('MANAGE_ROLES, not MANAGE_SYSTEM, gates the role controls and the roles call', async () => {
+                const {container, actions: botActions} = renderEdit({}, {roles: 'system_user', editingUserHasManageSystem: false, canManageRoles: true});
+
+                await waitForAttributesReady();
+                expect(container.querySelector('select')).toBeEnabled();
+                setRoleSelect(container, 'System Admin');
+                submit('Update');
+
+                await waitFor(() => expect(historyMock.push).toHaveBeenCalledWith(LIST_URL));
+                expect(botActions.updateUserRoles).toHaveBeenCalledWith('bot-user-id', 'system_user system_admin');
+            });
+
+            test('without MANAGE_ROLES the role controls are disabled even with MANAGE_SYSTEM', async () => {
+                const {container} = renderEdit({}, {roles: 'system_user', editingUserHasManageSystem: true, canManageRoles: false});
+
+                await waitForAttributesReady();
+                expect(container.querySelector('select')).toBeDisabled();
+                expect(screen.getByLabelText('post:all')).toBeDisabled();
+                expect(screen.getByLabelText('post:channels')).toBeDisabled();
             });
         });
 

@@ -4,19 +4,24 @@
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {
+    addAttributeRow,
     canManageBotAttributes,
     computeAttributeChanges,
     computeBotRoles,
+    emptyAttributesState,
     getAddableFields,
     getBotCreateRedirectUrl,
     getRowFields,
     isRowRemovable,
+    loadedAttributesState,
+    markAttributesSaved,
     normalizeAttributeValues,
+    removeAttributeRow,
     rolesChanged,
-    seedAttributeRows,
+    setAttributeValue,
     validateAttributeRows,
 } from './bot_attributes';
-import type {BotRoleChoice} from './bot_attributes';
+import type {BotAttributeValues, BotRoleChoice} from './bot_attributes';
 
 const buildField = (overrides: Partial<UserPropertyField> = {}, attrs: Partial<UserPropertyField['attrs']> = {}): UserPropertyField => ({
     id: 'field-1',
@@ -34,6 +39,8 @@ const buildField = (overrides: Partial<UserPropertyField> = {}, attrs: Partial<U
     ...overrides,
     attrs: {sort_order: 0, visibility: 'when_set', value_type: '', ...attrs},
 });
+
+const rowsState = (rows: string[], values: BotAttributeValues, initialValues: BotAttributeValues) => ({...emptyAttributesState('ready'), rows, values, initialValues});
 
 const ADMIN = {canEditAdminManaged: true};
 const NON_ADMIN = {canEditAdminManaged: false};
@@ -79,9 +86,43 @@ describe('bot_attributes', () => {
         });
     });
 
-    describe('seedAttributeRows', () => {
-        test('returns the ids with values', () => {
-            expect(seedAttributeRows({a: 'x', b: ['y'], c: '', d: []})).toEqual(['a', 'b']);
+    describe('attributes state', () => {
+        const text = buildField({id: 'text'});
+        const multi = buildField({id: 'multi', type: 'multiselect'});
+
+        test('loadedAttributesState seeds rows from the ids with values', () => {
+            const state = loadedAttributesState({a: 'x', b: ['y'], c: '', d: []});
+            expect(state.status).toBe('ready');
+            expect(state.rows).toEqual(['a', 'b']);
+            expect(state.values).not.toBe(state.initialValues);
+        });
+
+        test('addAttributeRow appends once, clears the value and the error', () => {
+            const start = {...rowsState(['text'], {text: 'Eng'}, {}), errors: {multi: {id: 'x'}}};
+            const added = addAttributeRow(addAttributeRow(start, multi), multi);
+            expect(added.rows).toEqual(['text', 'multi']);
+            expect(added.values).toEqual({text: 'Eng', multi: []});
+            expect(added.errors.multi).toBeUndefined();
+        });
+
+        test('removeAttributeRow drops the row and its error but keeps the value', () => {
+            const start = {...rowsState(['text'], {text: 'Eng'}, {}), errors: {text: {id: 'x'}}};
+            const removed = removeAttributeRow(start, 'text');
+            expect(removed.rows).toEqual([]);
+            expect(removed.values).toEqual({text: 'Eng'});
+            expect(removed.errors.text).toBeUndefined();
+        });
+
+        test('setAttributeValue sets the value and clears its error', () => {
+            const start = {...rowsState([text.id], {}, {}), errors: {text: {id: 'x'}}};
+            const next = setAttributeValue(start, 'text', 'Ops');
+            expect(next.values).toEqual({text: 'Ops'});
+            expect(next.errors.text).toBeUndefined();
+        });
+
+        test('markAttributesSaved merges saved values into the baseline and drops cleared ones', () => {
+            const start = rowsState(['text'], {text: 'Ops'}, {text: 'Eng', multi: ['a']});
+            expect(markAttributesSaved(start, {text: 'Ops', multi: []}).initialValues).toEqual({text: 'Ops'});
         });
     });
 
@@ -149,41 +190,41 @@ describe('bot_attributes', () => {
         const fields = [text, multi, graph, locked, adminOnly, hidden];
 
         test('a new text row with a value is sent', () => {
-            expect(computeAttributeChanges(fields, ['text'], {text: 'Eng'}, {}, ADMIN)).toEqual({text: 'Eng'});
+            expect(computeAttributeChanges(fields, rowsState(['text'], {text: 'Eng'}, {}), ADMIN)).toEqual({text: 'Eng'});
         });
 
         test('a new row left empty is not sent', () => {
-            expect(computeAttributeChanges(fields, ['text'], {text: ''}, {}, ADMIN)).toEqual({});
-            expect(computeAttributeChanges(fields, ['multi'], {}, {}, ADMIN)).toEqual({});
+            expect(computeAttributeChanges(fields, rowsState(['text'], {text: ''}, {}), ADMIN)).toEqual({});
+            expect(computeAttributeChanges(fields, rowsState(['multi'], {}, {}), ADMIN)).toEqual({});
         });
 
         test('removed seeded rows send the cleared value for their type', () => {
             const initial = {text: 'Eng', multi: ['a'], graph: ['g']};
-            expect(computeAttributeChanges(fields, [], initial, initial, ADMIN)).toEqual({text: '', multi: [], graph: []});
+            expect(computeAttributeChanges(fields, rowsState([], initial, initial), ADMIN)).toEqual({text: '', multi: [], graph: []});
         });
 
         test('unchanged seeded rows are not sent', () => {
             const initial = {text: 'Eng', multi: ['a', 'b']};
-            expect(computeAttributeChanges(fields, ['text', 'multi'], {text: 'Eng', multi: ['a', 'b']}, initial, ADMIN)).toEqual({});
+            expect(computeAttributeChanges(fields, rowsState(['text', 'multi'], {text: 'Eng', multi: ['a', 'b']}, initial), ADMIN)).toEqual({});
         });
 
         test('an edited seeded row sends the new value', () => {
-            expect(computeAttributeChanges(fields, ['text'], {text: 'Ops'}, {text: 'Eng'}, ADMIN)).toEqual({text: 'Ops'});
+            expect(computeAttributeChanges(fields, rowsState(['text'], {text: 'Ops'}, {text: 'Eng'}), ADMIN)).toEqual({text: 'Ops'});
         });
 
         test('locked fields are never sent', () => {
-            expect(computeAttributeChanges(fields, [], {}, {locked: 'x'}, ADMIN)).toEqual({});
-            expect(computeAttributeChanges(fields, ['locked'], {locked: 'y'}, {locked: 'x'}, ADMIN)).toEqual({});
+            expect(computeAttributeChanges(fields, rowsState([], {}, {locked: 'x'}), ADMIN)).toEqual({});
+            expect(computeAttributeChanges(fields, rowsState(['locked'], {locked: 'y'}, {locked: 'x'}), ADMIN)).toEqual({});
         });
 
         test('admin-managed fields are not sent without canEditAdminManaged', () => {
-            expect(computeAttributeChanges(fields, ['adminOnly'], {adminOnly: 'y'}, {adminOnly: 'x'}, NON_ADMIN)).toEqual({});
-            expect(computeAttributeChanges(fields, ['adminOnly'], {adminOnly: 'y'}, {adminOnly: 'x'}, ADMIN)).toEqual({adminOnly: 'y'});
+            expect(computeAttributeChanges(fields, rowsState(['adminOnly'], {adminOnly: 'y'}, {adminOnly: 'x'}), NON_ADMIN)).toEqual({});
+            expect(computeAttributeChanges(fields, rowsState(['adminOnly'], {adminOnly: 'y'}, {adminOnly: 'x'}), ADMIN)).toEqual({adminOnly: 'y'});
         });
 
         test('hidden and unknown fields are never sent', () => {
-            expect(computeAttributeChanges(fields, [], {}, {hidden: 'x'}, ADMIN)).toEqual({});
-            expect(computeAttributeChanges(fields, ['gone'], {gone: 'x'}, {}, ADMIN)).toEqual({});
+            expect(computeAttributeChanges(fields, rowsState([], {}, {hidden: 'x'}), ADMIN)).toEqual({});
+            expect(computeAttributeChanges(fields, rowsState(['gone'], {gone: 'x'}, {}), ADMIN)).toEqual({});
         });
     });
 
@@ -195,37 +236,37 @@ describe('bot_attributes', () => {
         const fields = [email, text, required, locked];
 
         test('a changed invalid email fails', () => {
-            expect(validateAttributeRows(fields, ['email'], {email: 'nope'}, {}, ADMIN)).toEqual({
+            expect(validateAttributeRows(fields, rowsState(['email'], {email: 'nope'}, {}), ADMIN)).toEqual({
                 email: expect.objectContaining({id: 'admin.user_item.invalidEmail'}),
             });
         });
 
         test('a text value over 64 bytes fails', () => {
-            expect(validateAttributeRows(fields, ['text'], {text: 'a'.repeat(65)}, {}, ADMIN)).toEqual({
+            expect(validateAttributeRows(fields, rowsState(['text'], {text: 'a'.repeat(65)}, {}), ADMIN)).toEqual({
                 text: expect.objectContaining({id: 'property_fields.user_attribute_fields.too_long'}),
             });
         });
 
         test('a new required row left empty fails', () => {
-            expect(validateAttributeRows(fields, ['req'], {req: ''}, {}, ADMIN)).toEqual({
+            expect(validateAttributeRows(fields, rowsState(['req'], {req: ''}, {}), ADMIN)).toEqual({
                 req: expect.objectContaining({id: 'property_fields.user_attribute_fields.required'}),
             });
         });
 
         test('an unchanged seeded invalid email passes', () => {
-            expect(validateAttributeRows(fields, ['email'], {email: 'nope'}, {email: 'nope'}, ADMIN)).toEqual({});
+            expect(validateAttributeRows(fields, rowsState(['email'], {email: 'nope'}, {email: 'nope'}), ADMIN)).toEqual({});
         });
 
         test('a locked row with an invalid value passes', () => {
-            expect(validateAttributeRows(fields, ['locked'], {locked: 'nope'}, {}, ADMIN)).toEqual({});
+            expect(validateAttributeRows(fields, rowsState(['locked'], {locked: 'nope'}, {}), ADMIN)).toEqual({});
         });
 
         test('a field not in rows is not validated', () => {
-            expect(validateAttributeRows(fields, [], {email: 'nope'}, {}, ADMIN)).toEqual({});
+            expect(validateAttributeRows(fields, rowsState([], {email: 'nope'}, {}), ADMIN)).toEqual({});
         });
 
         test('a valid change passes', () => {
-            expect(validateAttributeRows(fields, ['email', 'text'], {email: 'a@b.com', text: 'Eng'}, {}, ADMIN)).toEqual({});
+            expect(validateAttributeRows(fields, rowsState(['email', 'text'], {email: 'a@b.com', text: 'Eng'}, {}), ADMIN)).toEqual({});
         });
     });
 

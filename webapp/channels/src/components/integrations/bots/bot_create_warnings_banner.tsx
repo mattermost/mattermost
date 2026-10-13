@@ -39,6 +39,14 @@ const BotCreateWarningsBanner = ({warnings, onDismiss}: Props) => {
                             />
                         </div>
                     )}
+                    {warnings.imageFailed && (
+                        <div>
+                            <FormattedMessage
+                                id='bots.create_warnings.image_failed'
+                                defaultMessage='The bot icon could not be saved. Edit the bot to upload it again.'
+                            />
+                        </div>
+                    )}
                     {warnings.rolesFailed && (
                         <div>
                             <FormattedMessage

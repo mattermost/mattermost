@@ -7,16 +7,13 @@ import type {MessageDescriptor} from 'react-intl';
 import type {Bot, BotPatch} from '@mattermost/types/bots';
 import type {UserAccessToken} from '@mattermost/types/users';
 
-import {General} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
-
-import type {UserAttributeValue} from 'components/property_fields/user_attribute_fields';
 
 import {AcceptedProfileImageTypes, ValidationErrors} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import {computeBotRoles, getBotCreateRedirectUrl, normalizeAttributeValues, rolesChanged} from './bot_attributes';
-import type {BotAttributeValues, BotRoleChoice} from './bot_attributes';
+import type {BotAttributeValues, BotRoleUpdate} from './bot_attributes';
 
 export type BotSaveActions = {
 
@@ -94,48 +91,40 @@ function isFile(file: File | string): file is File {
 
 export async function loadBotAttributeValues(
     actions: Pick<BotSaveActions, 'getCustomProfileAttributeFields' | 'getCustomProfileAttributeValues'>,
-    {needFields, botUserId}: {needFields: boolean; botUserId?: string},
+    botUserId: string | undefined,
 ): Promise<BotAttributeValues | undefined> {
     const [fieldsResult, valuesResult] = await Promise.all([
-        needFields ? actions.getCustomProfileAttributeFields() : Promise.resolve<ActionResult>({data: true}),
-        botUserId ? actions.getCustomProfileAttributeValues(botUserId) : Promise.resolve<ActionResult<Record<string, string>>>({data: {}}),
+        actions.getCustomProfileAttributeFields(),
+        botUserId ? actions.getCustomProfileAttributeValues(botUserId) : undefined,
     ]);
-    if (!fieldsResult || fieldsResult.error || !valuesResult || valuesResult.error) {
+    if (!fieldsResult || fieldsResult.error || valuesResult?.error) {
         return undefined;
     }
-    return normalizeAttributeValues(valuesResult.data);
+    return normalizeAttributeValues(valuesResult?.data);
 }
 
-export type BotFormError<T> = {kind: 'message'; message: MessageDescriptor} | {kind: 'expiry'; error: T};
-
-export function validateBotForm<T>({username, pictureFile, maxFileSize, isCreate, expiryError}: {
+export function validateBotForm({username, pictureFile, maxFileSize, isCreate}: {
     username: string;
     pictureFile: BotPictureFile;
     maxFileSize: number;
     isCreate: boolean;
-    expiryError: T | null | undefined;
-}): BotFormError<T> | undefined {
+}): MessageDescriptor | undefined {
     if (!username || username.length < 3) {
-        return {kind: 'message', message: botSaveMessages.invalidUsername};
+        return botSaveMessages.invalidUsername;
     }
 
     if (pictureFile && isFile(pictureFile)) {
         if (!AcceptedProfileImageTypes.includes(pictureFile.type)) {
-            return {kind: 'message', message: botSaveMessages.invalidImage};
+            return botSaveMessages.invalidImage;
         } else if (pictureFile.size > maxFileSize) {
-            return {kind: 'message', message: botSaveMessages.imageTooLarge};
+            return botSaveMessages.imageTooLarge;
         }
-    }
-
-    if (expiryError) {
-        return {kind: 'expiry', error: expiryError};
     }
 
     if (isCreate) {
         const usernameError = Utils.isValidBotUsername(username.toLowerCase().trim());
         if (usernameError) {
-            const message = usernameError.id === ValidationErrors.INVALID_LAST_CHARACTER ? botSaveMessages.invalidLastChar : botSaveMessages.invalidUsername;
-            return {kind: 'message', message};
+            return usernameError.id === ValidationErrors.INVALID_LAST_CHARACTER ? botSaveMessages.invalidLastChar : botSaveMessages.invalidUsername;
         }
     }
 
@@ -144,21 +133,55 @@ export function validateBotForm<T>({username, pictureFile, maxFileSize, isCreate
 
 type BotSaveInput = {
     pictureFile: BotPictureFile;
-    roleChoice: BotRoleChoice;
-    canManageRoles: boolean;
-    attributeChanges: Record<string, UserAttributeValue>;
+
+    /** Omitted when the caller may not change the bot's roles, or they aren't known. */
+    roleUpdate?: BotRoleUpdate;
+    attributeChanges: BotAttributeValues;
 };
 
-export type BotSaveFailure = {key: 'image' | 'roles' | 'attributes'; message: MessageDescriptor; error: string};
+type BotSaveStep = 'image' | 'roles' | 'attributes';
+type BotSaveStepErrors = Partial<Record<BotSaveStep, string>>;
 
-export type BotEditResult = {ok: false; error: string} | {ok: true; failures: BotSaveFailure[]; savedAttributes?: Record<string, UserAttributeValue>};
+const BOT_SAVE_STEPS: BotSaveStep[] = ['image', 'roles', 'attributes'];
+
+function stepError(result: ActionResult | undefined): string | undefined {
+    if (result && !result.error) {
+        return undefined;
+    }
+    return result?.error?.message ?? '';
+}
+
+async function saveBotDetails(actions: BotSaveActions, userId: string, input: BotSaveInput): Promise<BotSaveStepErrors> {
+    const errors: BotSaveStepErrors = {};
+
+    if (input.pictureFile === 'default') {
+        await actions.setDefaultProfileImage(userId);
+    } else if (input.pictureFile) {
+        errors.image = stepError(await actions.uploadProfileImage(userId, input.pictureFile));
+    }
+
+    if (input.roleUpdate) {
+        const {currentRoles, choice} = input.roleUpdate;
+        const nextRoles = computeBotRoles(currentRoles, choice);
+        if (rolesChanged(currentRoles, nextRoles)) {
+            errors.roles = stepError(await actions.updateUserRoles(userId, nextRoles));
+        }
+    }
+
+    if (Object.keys(input.attributeChanges).length > 0) {
+        errors.attributes = stepError(await actions.updateUserCustomProfileAttributeValues(userId, input.attributeChanges));
+    }
+
+    return errors;
+}
+
+export type BotSaveFailure = {key: BotSaveStep; message: MessageDescriptor; error: string};
+
+export type BotEditResult = {ok: false; error: string} | {ok: true; failures: BotSaveFailure[]; savedAttributes: BotAttributeValues};
 
 export async function saveBotEdit(actions: BotSaveActions, input: BotSaveInput & {
     botUserId: string;
     patch: Partial<BotPatch>;
-
-    /** Undefined when the bot user's roles weren't known at mount; roles are then left alone. */
-    currentRoles: string | undefined;
 }): Promise<BotEditResult> {
     const result = await actions.patchBot(input.botUserId, input.patch);
     const data = result?.data;
@@ -166,38 +189,13 @@ export async function saveBotEdit(actions: BotSaveActions, input: BotSaveInput &
         return {ok: false, error: result?.error?.message ?? Utils.localizeMessage({id: 'bot.edit_failed', defaultMessage: 'Failed to edit bot'})};
     }
 
-    const failures: BotSaveFailure[] = [];
+    const errors = await saveBotDetails(actions, data.user_id, input);
+    const failures = BOT_SAVE_STEPS.flatMap((key) => {
+        const error = errors[key];
+        return error === undefined ? [] : [{key, message: botSaveMessages[`${key}Failed` as const], error}];
+    });
 
-    if (input.pictureFile && input.pictureFile !== 'default') {
-        const imageResult = await actions.uploadProfileImage(data.user_id, input.pictureFile);
-        if (imageResult?.error) {
-            failures.push({key: 'image', message: botSaveMessages.imageFailed, error: imageResult.error.message ?? ''});
-        }
-    } else if (input.pictureFile === 'default') {
-        await actions.setDefaultProfileImage(data.user_id);
-    }
-
-    if (input.canManageRoles && input.currentRoles !== undefined) {
-        const nextRoles = computeBotRoles(input.currentRoles, input.roleChoice);
-        if (rolesChanged(input.currentRoles, nextRoles)) {
-            const rolesResult = await actions.updateUserRoles(data.user_id, nextRoles);
-            if (!rolesResult || rolesResult.error) {
-                failures.push({key: 'roles', message: botSaveMessages.rolesFailed, error: rolesResult?.error?.message ?? ''});
-            }
-        }
-    }
-
-    let savedAttributes: Record<string, UserAttributeValue> | undefined;
-    if (Object.keys(input.attributeChanges).length > 0) {
-        const attributesResult = await actions.updateUserCustomProfileAttributeValues(data.user_id, input.attributeChanges);
-        if (!attributesResult || attributesResult.error) {
-            failures.push({key: 'attributes', message: botSaveMessages.attributesFailed, error: attributesResult?.error?.message ?? ''});
-        } else {
-            savedAttributes = input.attributeChanges;
-        }
-    }
-
-    return {ok: true, failures, savedAttributes};
+    return {ok: true, failures, savedAttributes: errors.attributes === undefined ? input.attributeChanges : {}};
 }
 
 export type BotCreateResult = {ok: false; error: string} | {ok: true; redirectUrl: string};
@@ -213,12 +211,6 @@ export async function saveBotCreate(actions: BotSaveActions, input: BotSaveInput
         return {ok: false, error: result?.error?.message ?? Utils.localizeMessage({id: 'bot.create_failed', defaultMessage: 'Failed to create bot'})};
     }
 
-    if (input.pictureFile && input.pictureFile !== 'default') {
-        await actions.uploadProfileImage(data.user_id, input.pictureFile);
-    } else {
-        await actions.setDefaultProfileImage(data.user_id);
-    }
-
     const tokenResult = await actions.createUserAccessToken(
         data.user_id,
         Utils.localizeMessage({id: 'bot.token.default.description', defaultMessage: 'Default Token'}),
@@ -226,20 +218,14 @@ export async function saveBotCreate(actions: BotSaveActions, input: BotSaveInput
     );
     const token = tokenResult && !tokenResult.error ? tokenResult.data?.token : undefined;
 
-    let rolesFailed = false;
-    if (input.canManageRoles) {
-        const nextRoles = computeBotRoles(General.SYSTEM_USER_ROLE, input.roleChoice);
-        if (rolesChanged(General.SYSTEM_USER_ROLE, nextRoles)) {
-            const rolesResult = await actions.updateUserRoles(data.user_id, nextRoles);
-            rolesFailed = !rolesResult || Boolean(rolesResult.error);
-        }
-    }
+    const errors = await saveBotDetails(actions, data.user_id, {...input, pictureFile: input.pictureFile || 'default'});
 
-    let attributesFailed = false;
-    if (Object.keys(input.attributeChanges).length > 0) {
-        const attributesResult = await actions.updateUserCustomProfileAttributeValues(data.user_id, input.attributeChanges);
-        attributesFailed = !attributesResult || Boolean(attributesResult.error);
-    }
-
-    return {ok: true, redirectUrl: getBotCreateRedirectUrl(input.teamName, data.user_id, token, {rolesFailed, attributesFailed})};
+    return {
+        ok: true,
+        redirectUrl: getBotCreateRedirectUrl(input.teamName, data.user_id, token, {
+            imageFailed: errors.image !== undefined,
+            rolesFailed: errors.roles !== undefined,
+            attributesFailed: errors.attributes !== undefined,
+        }),
+    };
 }

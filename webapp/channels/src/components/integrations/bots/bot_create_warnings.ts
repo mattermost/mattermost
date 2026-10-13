@@ -2,17 +2,18 @@
 // See LICENSE.txt for license information.
 
 export type BotCreateWarnings = {
-    attributesFailed?: boolean;
     tokenFailed?: boolean;
+    imageFailed?: boolean;
     rolesFailed?: boolean;
+    attributesFailed?: boolean;
 };
 
+// A query param rather than location.state: on desktop, getHistory().push forwards only the path.
 export const BOT_CREATE_WARNINGS_PARAM = 'bot_warnings';
 
-type BotCreateWarningToken = 'token' | 'roles' | 'attributes';
-
-const WARNING_TOKENS: ReadonlyArray<readonly [BotCreateWarningToken, keyof BotCreateWarnings]> = [
+const WARNING_TOKENS: ReadonlyArray<readonly [string, keyof BotCreateWarnings]> = [
     ['token', 'tokenFailed'],
+    ['image', 'imageFailed'],
     ['roles', 'rolesFailed'],
     ['attributes', 'attributesFailed'],
 ];
@@ -23,7 +24,7 @@ export function serializeBotCreateWarnings(warnings: BotCreateWarnings): string 
 }
 
 export function hasBotCreateWarnings(warnings?: BotCreateWarnings): warnings is BotCreateWarnings {
-    return Boolean(warnings?.tokenFailed || warnings?.rolesFailed || warnings?.attributesFailed);
+    return Boolean(warnings && WARNING_TOKENS.some(([, key]) => warnings[key]));
 }
 
 export function parseBotCreateWarnings(search: string): BotCreateWarnings | undefined {
@@ -40,20 +41,16 @@ export function parseBotCreateWarnings(search: string): BotCreateWarnings | unde
         }
     }
 
-    return Object.keys(warnings).length ? warnings : undefined;
+    return hasBotCreateWarnings(warnings) ? warnings : undefined;
 }
 
-function getParamName(part: string): string {
-    const name = part.split('=', 1)[0].replace(/\+/g, ' ');
-    try {
-        return decodeURIComponent(name);
-    } catch {
-        return name;
+/** Returns the search string without the warnings param, or undefined when it isn't present. */
+export function stripBotCreateWarningsParam(search: string): string | undefined {
+    const params = new URLSearchParams(search);
+    if (!params.has(BOT_CREATE_WARNINGS_PARAM)) {
+        return undefined;
     }
-}
-
-export function removeBotCreateWarningsParam(search: string): string {
-    const query = search.startsWith('?') ? search.slice(1) : search;
-    const kept = query.split('&').filter((part) => part && getParamName(part) !== BOT_CREATE_WARNINGS_PARAM);
-    return kept.length ? `?${kept.join('&')}` : '';
+    params.delete(BOT_CREATE_WARNINGS_PARAM);
+    const rest = params.toString();
+    return rest ? `?${rest}` : '';
 }

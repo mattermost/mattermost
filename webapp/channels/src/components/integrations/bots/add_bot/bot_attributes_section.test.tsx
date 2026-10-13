@@ -8,6 +8,8 @@ import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {fireEvent, renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
 
+import {emptyAttributesState} from './bot_attributes';
+import type {BotAttributesState} from './bot_attributes';
 import BotAttributesSection from './bot_attributes_section';
 import type {BotAttributesSectionProps} from './bot_attributes_section';
 
@@ -43,24 +45,21 @@ describe('components/integrations/bots/add_bot/BotAttributesSection', () => {
 
     const baseProps: BotAttributesSectionProps = {
         fields: FIELDS,
-        rows: [],
-        values: {},
-        errors: {},
-        initialValues: {},
-        status: 'ready',
+        state: emptyAttributesState('ready'),
         disabled: false,
         canEditAdminManaged: true,
-        canManageAttributes: true,
         onAdd: jest.fn(),
         onRemove: jest.fn(),
         onChange: jest.fn(),
         onRetry: jest.fn(),
     };
 
-    const renderSection = (overrides: Partial<BotAttributesSectionProps> = {}) => renderWithContext(
+    type Overrides = Partial<Omit<BotAttributesSectionProps, 'state'> & BotAttributesState>;
+    const renderSection = ({status = 'ready', rows = [], values = {}, initialValues = {}, errors = {}, ...overrides}: Overrides = {}) => renderWithContext(
         <BotAttributesSection
             {...baseProps}
             {...overrides}
+            state={{status, rows, values, initialValues, errors}}
         />,
         {plugins: {plugins: {}}},
     );
@@ -156,7 +155,7 @@ describe('components/integrations/bots/add_bot/BotAttributesSection', () => {
         expect(onAdd).not.toHaveBeenCalled();
     });
 
-    test('Manage attributes is only offered with canManageAttributes', async () => {
+    test('Manage attributes is only offered with canEditAdminManaged', async () => {
         const {unmount} = renderSection();
 
         await openMenu();
@@ -164,7 +163,7 @@ describe('components/integrations/bots/add_bot/BotAttributesSection', () => {
         await waitFor(() => expect(historyMock.push).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
         unmount();
 
-        renderSection({canManageAttributes: false});
+        renderSection({canEditAdminManaged: false});
         await openMenu();
         await screen.findByRole('menuitem', {name: 'Skills'});
         expect(screen.queryByRole('menuitem', {name: 'Manage attributes'})).not.toBeInTheDocument();

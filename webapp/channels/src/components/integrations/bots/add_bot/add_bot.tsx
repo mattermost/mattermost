@@ -4,7 +4,6 @@
 import React from 'react';
 import type {ChangeEvent, FormEvent, JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
-import type {MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {buttonClassNames} from '@mattermost/shared/components/button';
@@ -14,6 +13,7 @@ import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {General} from 'mattermost-redux/constants';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
@@ -28,7 +28,6 @@ import {
 import TokenExpiryPicker from 'components/common/token_expiry_picker/token_expiry_picker';
 import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
-import {getClearedUserAttributeValue} from 'components/property_fields/user_attribute_fields';
 import type {UserAttributeValue} from 'components/property_fields/user_attribute_fields';
 import SpinnerButton from 'components/spinner_button';
 
@@ -38,14 +37,31 @@ import {Constants, DeveloperLinks} from 'utils/constants';
 import * as FileUtils from 'utils/file_utils';
 import * as Utils from 'utils/utils';
 
-import {computeAttributeChanges, normalizeAttributeValues, seedAttributeRows, validateAttributeRows} from './bot_attributes';
-import type {BotAttributesStatus, BotAttributeValues, BotRoleChoice} from './bot_attributes';
+import {
+    addAttributeRow,
+    computeAttributeChanges,
+    emptyAttributesState,
+    loadedAttributesState,
+    markAttributesSaved,
+    removeAttributeRow,
+    setAttributeValue,
+    validateAttributeRows,
+} from './bot_attributes';
+import type {BotAttributesState, BotRoleUpdate} from './bot_attributes';
 import BotAttributesSection from './bot_attributes_section';
 import {loadBotAttributeValues, saveBotCreate, saveBotEdit, validateBotForm} from './bot_save_flow';
 import type {BotEditResult, BotPictureFile, BotSaveActions, BotSaveFailure} from './bot_save_flow';
 
 const roleOptionSystemAdmin = 'System Admin';
 const roleOptionMember = 'Member';
+
+function getRoleState(roles: string | undefined, isEdit: boolean) {
+    return {
+        role: UserUtils.isSystemAdmin(roles || '') ? roleOptionSystemAdmin : roleOptionMember,
+        postAll: isEdit ? UserUtils.hasPostAllRole(roles || '') : false,
+        postChannels: isEdit ? UserUtils.hasPostAllPublicRole(roles || '') : false,
+    };
+}
 
 export type Props = {
 
@@ -77,7 +93,7 @@ export type Props = {
     maxLifetimeDays: number;
 
     /**
-     * Editing user has the MANAGE_SYSTEM permission
+     * Editing user has the MANAGE_SYSTEM permission, which unlocks admin-managed attributes
      */
     editingUserHasManageSystem: boolean;
 
@@ -86,6 +102,10 @@ export type Props = {
      */
     attributesEnabled: boolean;
     attributeFields: UserPropertyField[];
+
+    /**
+     * Editing user has the MANAGE_ROLES permission required to change the bot's role and post permissions
+     */
     canManageRoles: boolean;
 
     actions: BotSaveActions;
@@ -105,22 +125,16 @@ export type State = {
     pictureFile: BotPictureFile;
     expiryPreset: ExpiryPreset;
     customExpiryDate: string;
-    attributeRows: string[];
-    attributeValues: BotAttributeValues;
-    initialAttributeValues: BotAttributeValues;
-    attributeErrors: Record<string, MessageDescriptor | undefined>;
-    attributesStatus: BotAttributesStatus;
+    attributes: BotAttributesState;
 };
 
 export default class AddBot extends React.PureComponent<Props, State> {
     previewBlob: string | null = null;
     private submitting = false;
     private unmounted = false;
-    private readonly rolesAtMount: string | undefined;
 
     constructor(props: Props) {
         super(props);
-        this.rolesAtMount = props.roles;
 
         this.state = {
             error: '',
@@ -129,18 +143,12 @@ export default class AddBot extends React.PureComponent<Props, State> {
             description: this.props.bot ? this.props.bot.description : '',
             adding: false,
             image: BotDefaultIcon,
-            role: UserUtils.isSystemAdmin(this.props.roles || '') ? roleOptionSystemAdmin : roleOptionMember,
-            postAll: this.props.bot ? UserUtils.hasPostAllRole(this.props.roles || '') : false,
-            postChannels: this.props.bot ? UserUtils.hasPostAllPublicRole(this.props.roles || '') : false,
+            ...getRoleState(this.props.roles, Boolean(this.props.bot)),
             orientationStyles: {transform: '', transformOrigin: ''},
             pictureFile: null,
             expiryPreset: this.defaultExpiryPreset(),
             customExpiryDate: this.defaultCustomExpiryDate(),
-            attributeRows: [],
-            attributeValues: {},
-            initialAttributeValues: {},
-            attributeErrors: {},
-            attributesStatus: this.needsAttributeLoad() ? 'loading' : 'ready',
+            attributes: emptyAttributesState(this.props.attributesEnabled ? 'loading' : 'ready'),
         };
     }
 
@@ -149,75 +157,68 @@ export default class AddBot extends React.PureComponent<Props, State> {
         this.loadAttributes();
     }
 
+    componentDidUpdate(prevProps: Props) {
+        if (prevProps.roles === undefined && this.props.roles !== undefined) {
+            this.setState(getRoleState(this.props.roles, Boolean(this.props.bot)));
+        }
+    }
+
     componentWillUnmount() {
         this.unmounted = true;
     }
 
-    needsAttributeLoad = (): boolean => this.props.attributesEnabled && (this.props.attributeFields.length === 0 || Boolean(this.props.bot));
-
     loadAttributes = async () => {
-        if (!this.needsAttributeLoad()) {
-            this.setState({attributesStatus: 'ready'});
+        if (!this.props.attributesEnabled) {
             return;
         }
-        const initialAttributeValues = await loadBotAttributeValues(this.props.actions, {
-            needFields: this.props.attributeFields.length === 0,
-            botUserId: this.props.bot?.user_id,
-        });
+        const initialValues = await loadBotAttributeValues(this.props.actions, this.props.bot?.user_id);
         if (this.unmounted) {
             return;
         }
-        if (!initialAttributeValues) {
-            this.setState({attributesStatus: 'error'});
-            return;
-        }
-        this.setState({
-            attributesStatus: 'ready',
-            initialAttributeValues,
-            attributeValues: {...initialAttributeValues},
-            attributeRows: seedAttributeRows(initialAttributeValues),
-        });
+        this.setState((state) => ({
+            attributes: initialValues ? loadedAttributesState(initialValues) : {...state.attributes, status: 'error'},
+        }));
     };
 
     retryAttributes = () => {
-        this.setState({attributesStatus: 'loading'}, this.loadAttributes);
+        this.setState((state) => ({attributes: {...state.attributes, status: 'loading'}}), this.loadAttributes);
     };
-
-    getAttributeLockOptions = () => ({canEditAdminManaged: this.props.editingUserHasManageSystem});
 
     addAttributeRow = (fieldId: string) => {
         const field = this.props.attributeFields.find((f) => f.id === fieldId);
-        if (!field) {
-            return;
+        if (field) {
+            this.setState((state) => ({attributes: addAttributeRow(state.attributes, field)}));
         }
-        this.setState((state) => ({
-            attributeRows: state.attributeRows.includes(fieldId) ? state.attributeRows : [...state.attributeRows, fieldId],
-            attributeValues: {...state.attributeValues, [fieldId]: getClearedUserAttributeValue(field)},
-            attributeErrors: {...state.attributeErrors, [fieldId]: undefined},
-        }));
     };
 
     removeAttributeRow = (fieldId: string) => {
-        this.setState((state) => ({
-            attributeRows: state.attributeRows.filter((id) => id !== fieldId),
-            attributeErrors: {...state.attributeErrors, [fieldId]: undefined},
-        }));
+        this.setState((state) => ({attributes: removeAttributeRow(state.attributes, fieldId)}));
     };
 
     updateAttributeValue = (fieldId: string, value: UserAttributeValue) => {
-        this.setState((state) => ({
-            attributeValues: {...state.attributeValues, [fieldId]: value},
-            attributeErrors: {...state.attributeErrors, [fieldId]: undefined},
-        }));
+        this.setState((state) => ({attributes: setAttributeValue(state.attributes, fieldId, value)}));
     };
 
-    getRoleChoice = (): BotRoleChoice => ({
-        isAdmin: this.state.role === roleOptionSystemAdmin,
-        postAll: this.state.postAll,
-        postChannels: this.state.postChannels,
-    });
+    getCurrentRoles = (): string | undefined => (this.props.bot ? this.props.roles : General.SYSTEM_USER_ROLE);
 
-    attributesReady = () => this.props.attributesEnabled && this.state.attributesStatus === 'ready';
+    canEditRoles = (): boolean => this.props.canManageRoles && this.getCurrentRoles() !== undefined;
+
+    getRoleUpdate = (): BotRoleUpdate | undefined => {
+        const currentRoles = this.getCurrentRoles();
+        if (!this.props.canManageRoles || currentRoles === undefined) {
+            return undefined;
+        }
+        return {
+            currentRoles,
+            choice: {
+                isAdmin: this.state.role === roleOptionSystemAdmin,
+                postAll: this.state.postAll,
+                postChannels: this.state.postChannels,
+            },
+        };
+    };
+
+    attributesReady = () => this.props.attributesEnabled && this.state.attributes.status === 'ready';
 
     defaultCustomExpiryDate = (): string => {
         return defaultCustomExpiryDate(this.props.maxLifetimeDays);
@@ -331,37 +332,41 @@ export default class AddBot extends React.PureComponent<Props, State> {
             pictureFile: this.state.pictureFile,
             maxFileSize: this.props.maxFileSize,
             isCreate: !this.props.bot,
-            expiryError: this.getExpiryValidationError(),
         });
         if (formError) {
-            this.setState({error: formError.kind === 'expiry' ? formError.error : <FormattedMessage {...formError.message}/>});
+            this.setState({error: <FormattedMessage {...formError}/>});
+            return;
+        }
+
+        const expiryError = this.getExpiryValidationError();
+        if (expiryError) {
+            this.setState({error: expiryError});
             return;
         }
 
         const ready = this.attributesReady();
-        const attributeArgs = [this.props.attributeFields, this.state.attributeRows, this.state.attributeValues, this.state.initialAttributeValues, this.getAttributeLockOptions()] as const;
-        const attributeErrors = ready ? validateAttributeRows(...attributeArgs) : {};
+        const lockOptions = {canEditAdminManaged: this.props.editingUserHasManageSystem};
+        const attributeErrors = ready ? validateAttributeRows(this.props.attributeFields, this.state.attributes, lockOptions) : {};
         if (Object.keys(attributeErrors).length > 0) {
-            this.setState({
-                attributeErrors,
+            this.setState((state) => ({
+                attributes: {...state.attributes, errors: attributeErrors},
                 error: (
                     <FormattedMessage
                         id='bots.attributes.invalid'
                         defaultMessage='Fix the highlighted attributes before saving.'
                     />
                 ),
-            });
+            }));
             return;
         }
 
         this.submitting = true;
-        this.setState({adding: true, error: '', attributeErrors: {}});
+        this.setState((state) => ({adding: true, error: '', attributes: {...state.attributes, errors: {}}}));
 
         const input = {
             pictureFile: this.state.pictureFile,
-            roleChoice: this.getRoleChoice(),
-            canManageRoles: this.props.canManageRoles,
-            attributeChanges: ready ? computeAttributeChanges(...attributeArgs) : {},
+            roleUpdate: this.getRoleUpdate(),
+            attributeChanges: ready ? computeAttributeChanges(this.props.attributeFields, this.state.attributes, lockOptions) : {},
         };
         const bot = {
             username: this.state.username.toLowerCase().trim(),
@@ -374,7 +379,6 @@ export default class AddBot extends React.PureComponent<Props, State> {
                 ...input,
                 botUserId: this.props.bot.user_id,
                 patch: bot,
-                currentRoles: this.rolesAtMount === undefined ? undefined : this.props.roles,
             });
             this.handleEditResult(result);
             return;
@@ -402,9 +406,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
             return;
         }
         const {failures, savedAttributes} = result;
-        if (savedAttributes) {
-            this.setState((state) => ({initialAttributeValues: normalizeAttributeValues({...state.initialAttributeValues, ...savedAttributes})}));
-        }
+        this.setState((state) => ({attributes: markAttributesSaved(state.attributes, savedAttributes)}));
         if (failures.length === 0) {
             getHistory().push(`/${this.props.team.name}/integrations/bots`);
             return;
@@ -465,6 +467,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
     };
 
     render() {
+        const canEditRoles = this.canEditRoles();
         let subtitle = (
             <FormattedMessage
                 id='bots.manage.add.add'
@@ -686,7 +689,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                 <select
                                     className='form-control'
                                     value={this.state.role}
-                                    disabled={!this.props.editingUserHasManageSystem}
+                                    disabled={!canEditRoles}
                                     onChange={this.updateRole}
                                 >
                                     <option
@@ -711,14 +714,9 @@ export default class AddBot extends React.PureComponent<Props, State> {
                         {this.props.attributesEnabled && (
                             <BotAttributesSection
                                 fields={this.props.attributeFields}
-                                rows={this.state.attributeRows}
-                                values={this.state.attributeValues}
-                                errors={this.state.attributeErrors}
-                                initialValues={this.state.initialAttributeValues}
-                                status={this.state.attributesStatus}
+                                state={this.state.attributes}
                                 disabled={this.state.adding}
                                 canEditAdminManaged={this.props.editingUserHasManageSystem}
-                                canManageAttributes={this.props.editingUserHasManageSystem}
                                 onAdd={this.addAttributeRow}
                                 onRemove={this.removeAttributeRow}
                                 onChange={this.updateAttributeValue}
@@ -761,7 +759,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                             type='checkbox'
                                             checked={this.state.postAll || this.state.role === roleOptionSystemAdmin}
                                             onChange={this.updatePostAll}
-                                            disabled={!this.props.editingUserHasManageSystem || this.state.role === roleOptionSystemAdmin}
+                                            disabled={!canEditRoles || this.state.role === roleOptionSystemAdmin}
                                         />
                                         <FormattedMessage
                                             id='bot.add.post_all.enabled'
@@ -795,7 +793,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                             type='checkbox'
                                             checked={this.state.postChannels || this.state.role === roleOptionSystemAdmin || this.state.postAll}
                                             onChange={this.updatePostChannels}
-                                            disabled={!this.props.editingUserHasManageSystem || this.state.role === roleOptionSystemAdmin || this.state.postAll}
+                                            disabled={!canEditRoles || this.state.role === roleOptionSystemAdmin || this.state.postAll}
                                         />
                                         <FormattedMessage
                                             id='bot.add.post_channels.enabled'

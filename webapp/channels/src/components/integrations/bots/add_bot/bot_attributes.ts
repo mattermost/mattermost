@@ -24,6 +24,15 @@ import type {UserAttributeLockOptions, UserAttributeValue} from 'components/prop
 export type BotAttributesStatus = 'loading' | 'ready' | 'error';
 export type BotAttributeValues = Record<string, UserAttributeValue>;
 export type BotRoleChoice = {isAdmin: boolean; postAll: boolean; postChannels: boolean};
+export type BotRoleUpdate = {currentRoles: string; choice: BotRoleChoice};
+
+export type BotAttributesState = {
+    status: BotAttributesStatus;
+    rows: string[];
+    values: BotAttributeValues;
+    initialValues: BotAttributeValues;
+    errors: Record<string, MessageDescriptor | undefined>;
+};
 
 const MANAGED_ROLES = [General.SYSTEM_USER_ROLE, General.SYSTEM_ADMIN_ROLE, General.SYSTEM_POST_ALL_ROLE, General.SYSTEM_POST_ALL_PUBLIC_ROLE];
 
@@ -58,8 +67,47 @@ export function normalizeAttributeValues(raw: Record<string, unknown> | undefine
     return values;
 }
 
-export function seedAttributeRows(initialValues: BotAttributeValues): string[] {
-    return Object.keys(initialValues).filter((id) => hasUserAttributeValue(initialValues[id]));
+export function emptyAttributesState(status: BotAttributesStatus): BotAttributesState {
+    return {status, rows: [], values: {}, initialValues: {}, errors: {}};
+}
+
+export function loadedAttributesState(initialValues: BotAttributeValues): BotAttributesState {
+    return {
+        status: 'ready',
+        rows: Object.keys(initialValues).filter((id) => hasUserAttributeValue(initialValues[id])),
+        values: {...initialValues},
+        initialValues,
+        errors: {},
+    };
+}
+
+export function addAttributeRow(state: BotAttributesState, field: UserPropertyField): BotAttributesState {
+    return {
+        ...state,
+        rows: state.rows.includes(field.id) ? state.rows : [...state.rows, field.id],
+        values: {...state.values, [field.id]: getClearedUserAttributeValue(field)},
+        errors: {...state.errors, [field.id]: undefined},
+    };
+}
+
+export function removeAttributeRow(state: BotAttributesState, fieldId: string): BotAttributesState {
+    return {
+        ...state,
+        rows: state.rows.filter((id) => id !== fieldId),
+        errors: {...state.errors, [fieldId]: undefined},
+    };
+}
+
+export function setAttributeValue(state: BotAttributesState, fieldId: string, value: UserAttributeValue): BotAttributesState {
+    return {
+        ...state,
+        values: {...state.values, [fieldId]: value},
+        errors: {...state.errors, [fieldId]: undefined},
+    };
+}
+
+export function markAttributesSaved(state: BotAttributesState, saved: BotAttributeValues): BotAttributesState {
+    return {...state, initialValues: normalizeAttributeValues({...state.initialValues, ...saved})};
 }
 
 export function getRowFields(fields: UserPropertyField[], rows: string[]): UserPropertyField[] {
@@ -76,12 +124,10 @@ export function isRowRemovable(field: UserPropertyField, initialValues: BotAttri
 
 export function computeAttributeChanges(
     fields: UserPropertyField[],
-    rows: string[],
-    values: BotAttributeValues,
-    initialValues: BotAttributeValues,
+    {rows, values, initialValues}: BotAttributesState,
     opts: UserAttributeLockOptions,
-): Record<string, UserAttributeValue> {
-    const changes: Record<string, UserAttributeValue> = {};
+): BotAttributeValues {
+    const changes: BotAttributeValues = {};
     for (const field of getVisibleUserAttributeFields(fields)) {
         if (!canEditUserAttribute(field, opts)) {
             continue;
@@ -100,9 +146,7 @@ export function computeAttributeChanges(
 
 export function validateAttributeRows(
     fields: UserPropertyField[],
-    rows: string[],
-    values: BotAttributeValues,
-    initialValues: BotAttributeValues,
+    {rows, values, initialValues}: BotAttributesState,
     opts: UserAttributeLockOptions,
 ): Record<string, MessageDescriptor> {
     const errors: Record<string, MessageDescriptor> = {};

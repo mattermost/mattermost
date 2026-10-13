@@ -155,10 +155,9 @@ const ProfilePopover = ({
     const urlSrc = overwriteIcon || src;
     const haveOverrideProp = Boolean(overwriteIcon || overwriteName);
     const fullname = overwriteName || Utils.getFullName(user);
-    const mountCustomProfileAttributes = enableCustomProfileAttributes && !(user.is_bot && haveOverrideProp);
 
     // Bot entry points pass hideStatus to hide presence; that shouldn't hide a bot's attributes.
-    const hideCustomProfileAttributeValues = !user.is_bot && hideStatus;
+    const showCustomProfileAttributes = enableCustomProfileAttributes && (user.is_bot ? !haveOverrideProp : !hideStatus);
 
     return (
         <div className='user-profile-popover_container'>
@@ -200,11 +199,8 @@ const ProfilePopover = ({
                     />
                 </div>
 
-                {mountCustomProfileAttributes && (
-                    <ProfilePopoverCustomAttributes
-                        userID={userId}
-                        hideStatus={hideCustomProfileAttributeValues}
-                    />
+                {showCustomProfileAttributes && (
+                    <ProfilePopoverCustomAttributes userID={userId}/>
                 )}
                 <ProfilePopoverTimezone
                     currentUserTimezone={currentUserTimezone}

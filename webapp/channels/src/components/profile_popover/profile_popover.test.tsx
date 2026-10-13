@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, waitFor} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import React from 'react';
 import type {ComponentProps} from 'react';
@@ -876,15 +876,15 @@ describe('components/ProfilePopover', () => {
         expect(Client4.getUserCustomProfileAttributesValues).not.toHaveBeenCalled();
     });
 
-    test('should not display attributes for a user when status is hidden', async () => {
+    test('should neither fetch nor display attributes for a user when status is hidden', async () => {
         const [props, initialState] = getBasePropsAndState();
         setUpAttributes(initialState);
         props.hideStatus = true;
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
 
-        await waitFor(() => expect(Client4.getUserCustomProfileAttributesValues).toHaveBeenCalledWith(props.userId));
         await act(async () => {});
+        expect(Client4.getUserCustomProfileAttributesValues).not.toHaveBeenCalled();
         expect(screen.queryByText('Clearance')).not.toBeInTheDocument();
         expect(screen.queryByText('Top Secret')).not.toBeInTheDocument();
     });

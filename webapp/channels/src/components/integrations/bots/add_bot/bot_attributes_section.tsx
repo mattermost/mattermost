@@ -4,7 +4,6 @@
 import React, {useEffect, useRef} from 'react';
 import type {JSX} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
-import type {MessageDescriptor} from 'react-intl';
 
 import {ChevronDownIcon} from '@mattermost/compass-icons/components';
 import {Button, buttonClassNames} from '@mattermost/shared/components/button';
@@ -17,7 +16,7 @@ import type {UserAttributeValue} from 'components/property_fields/user_attribute
 import {getUserPropertyFieldLabel} from 'utils/properties';
 
 import {getAddableFields, getRowFields, isRowRemovable} from './bot_attributes';
-import type {BotAttributesStatus, BotAttributeValues} from './bot_attributes';
+import type {BotAttributesState} from './bot_attributes';
 
 import './bot_attributes_section.scss';
 
@@ -33,30 +32,22 @@ const messages = defineMessages({
 
 export type BotAttributesSectionProps = {
     fields: UserPropertyField[];
-    rows: string[];
-    values: BotAttributeValues;
-    errors: Record<string, MessageDescriptor | undefined>;
-    initialValues: BotAttributeValues;
-    status: BotAttributesStatus;
+    state: BotAttributesState;
     disabled: boolean;
     canEditAdminManaged: boolean;
-    canManageAttributes: boolean;
     onAdd: (fieldId: string) => void;
     onRemove: (fieldId: string) => void;
     onChange: (fieldId: string, value: UserAttributeValue) => void;
     onRetry: () => void;
 };
 
+const focusAddTrigger = () => document.getElementById(BOT_ATTRIBUTES_ADD_BUTTON_ID)?.focus();
+
 export default function BotAttributesSection({
     fields,
-    rows,
-    values,
-    errors,
-    initialValues,
-    status,
+    state: {status, rows, values, initialValues, errors},
     disabled,
     canEditAdminManaged,
-    canManageAttributes,
     onAdd,
     onRemove,
     onChange,
@@ -64,26 +55,16 @@ export default function BotAttributesSection({
 }: BotAttributesSectionProps): JSX.Element {
     const {formatMessage} = useIntl();
 
-    const opts = {canEditAdminManaged};
     const rowFields = getRowFields(fields, rows);
-    const addableFields = getAddableFields(fields, rows, opts);
+    const addableFields = getAddableFields(fields, rows, {canEditAdminManaged});
 
     const formattedErrors: Record<string, string | undefined> = {};
     for (const [id, descriptor] of Object.entries(errors)) {
         formattedErrors[id] = descriptor ? formatMessage(descriptor) : undefined;
     }
 
-    const addMenuRef = useRef<HTMLDivElement>(null);
     const retryButtonRef = useRef<HTMLButtonElement>(null);
     const retrying = useRef(false);
-
-    // The menu keeps its trigger ref private; the trigger is the wrapper's only element child.
-    const focusAddTrigger = () => {
-        const trigger = addMenuRef.current?.firstElementChild;
-        if (trigger instanceof HTMLElement) {
-            trigger.focus();
-        }
-    };
 
     useEffect(() => {
         if (!retrying.current || status === 'loading') {
@@ -108,7 +89,7 @@ export default function BotAttributesSection({
     };
 
     const renderAddMenu = (triggerDisabled: boolean) => (
-        <div ref={addMenuRef}>
+        <div>
             <Menu.Container
                 menuButton={{
                     id: BOT_ATTRIBUTES_ADD_BUTTON_ID,
@@ -148,8 +129,8 @@ export default function BotAttributesSection({
                         }
                     />
                 )}
-                {canManageAttributes && <Menu.Separator/>}
-                {canManageAttributes && (
+                {canEditAdminManaged && <Menu.Separator/>}
+                {canEditAdminManaged && (
                     <Menu.LinkItem
                         id='botAttributesManage'
                         data-testid='botAttributesManage'
