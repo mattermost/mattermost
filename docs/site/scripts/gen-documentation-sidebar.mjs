@@ -1037,7 +1037,6 @@ const INTEGRATIONS_GROUPS = {
         'github',
         'gitlab',
         'jira',
-        'servicenow',
         'zoom',
       ]},
     ],
@@ -1074,7 +1073,7 @@ const INTEGRATIONS_HIDDEN = new Set([
   'popular-integrations',
   'mattermost-mission-collaboration-for-m365', 'microsoft-calendar',
   'microsoft-teams-meetings', 'microsoft-teams-sync',
-  'github', 'gitlab', 'jira', 'servicenow', 'zoom',
+  'github', 'gitlab', 'jira', 'zoom',
   'webhook-integrations', 'incoming-webhooks', 'outgoing-webhooks',
   'slash-commands', 'run-slash-commands', 'built-in-slash-commands',
 ]);
