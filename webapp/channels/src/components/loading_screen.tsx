@@ -29,6 +29,7 @@ function LoadingScreen({message, position = 'relative', style, className = '', c
         >
             <div className='loading__content'>
                 <LoadingSpinner
+                    stacked={true}
                     text={message || formatMessage({id: 'loading_screen.loading', defaultMessage: 'Loading'})}
                 />
             </div>

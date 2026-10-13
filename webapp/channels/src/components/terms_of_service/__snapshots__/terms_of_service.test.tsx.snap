@@ -71,7 +71,7 @@ exports[`components/terms_of_service/TermsOfService should match snapshot on loa
       class="loading__content"
     >
       <span
-        class="LoadingSpinner with-text"
+        class="LoadingSpinner with-text stacked"
         data-testid="loadingSpinner"
         id="loadingSpinner"
       >
@@ -79,7 +79,7 @@ exports[`components/terms_of_service/TermsOfService should match snapshot on loa
           aria-label="Loading Icon"
           class="_spinner_3elm7_10 spinner"
           role="status"
-          style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+          style="width: 20px; height: 20px; --spinner-stroke-width: 2px;"
         />
         Loading
       </span>

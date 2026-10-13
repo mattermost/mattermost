@@ -16,20 +16,34 @@ type Props = {
     style?: React.CSSProperties;
     size?: SpinnerSize;
 
+    /** Stack the spinner above the text. Defaults size to 20 when size is omitted. */
+    stacked?: boolean;
+
     /** Light spinner for dark backgrounds (uses Compass Spinner inverted). */
     inverted?: boolean;
 
     /** Renders the Font Awesome spinner. Used inside buttons until they move to the Compass Button. */
     legacy?: boolean;
 };
-const LoadingSpinner = ({text, style, size = '16', inverted = false, legacy = false}: Props) => {
+const LoadingSpinner = ({
+    text,
+    style,
+    size,
+    stacked = false,
+    inverted = false,
+    legacy = false,
+}: Props) => {
     const {formatMessage} = useIntl();
     const ariaLabel = formatMessage({id: 'generic_icons.loading', defaultMessage: 'Loading Icon'});
+    const resolvedSize = size ?? (stacked ? '20' : '16');
 
     return (
         <span
             id='loadingSpinner'
-            className={classNames('LoadingSpinner', {'with-text': Boolean(text)})}
+            className={classNames('LoadingSpinner', {
+                'with-text': Boolean(text),
+                stacked,
+            })}
             style={style}
             data-testid='loadingSpinner'
         >
@@ -40,7 +54,7 @@ const LoadingSpinner = ({text, style, size = '16', inverted = false, legacy = fa
                 />
             ) : (
                 <Spinner
-                    size={size}
+                    size={resolvedSize}
                     inverted={inverted}
                     className='spinner'
                     aria-label={ariaLabel}

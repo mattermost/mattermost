@@ -78,6 +78,18 @@ describe('components/widgets/loadingLoadingSpinner', () => {
         expect(screen.getByRole('status', {name: 'Loading Icon'})).toHaveStyle({width: '24px', height: '24px'});
     });
 
+    test('defaults to size 20 when stacked with text', () => {
+        renderWithContext(
+            <LoadingSpinner
+                stacked={true}
+                text='Loading'
+            />,
+        );
+
+        expect(screen.getByRole('status', {name: 'Loading Icon'})).toHaveStyle({width: '20px', height: '20px'});
+        expect(screen.getByTestId('loadingSpinner')).toHaveClass('stacked');
+    });
+
     test('renders the inverted Compass spinner', () => {
         renderWithContext(<LoadingSpinner inverted={true}/>);
 
