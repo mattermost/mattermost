@@ -3767,6 +3767,7 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 				if appErr != nil {
 					return nil, appErr
 				}
+				c.App.PrepareChannelReadAccessByIDs(c.AppContext, currentUserId, channelIDsOfMembers(m))
 				return m, nil
 			},
 			func(member model.ChannelMemberWithTeamData) bool {
@@ -3835,6 +3836,7 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 		}
 
 		currentUserId := c.AppContext.Session().UserId
+		c.App.PrepareChannelReadAccessByIDs(c.AppContext, currentUserId, channelIDsOfMembers(members))
 		for _, member := range members {
 			// Filtered here, not in the app layer: the cursor advance and the
 			// short-page test below must see the raw page, or the whole list would
@@ -3856,6 +3858,14 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 
 		fromChannelID = members[len(members)-1].ChannelId
 	}
+}
+
+func channelIDsOfMembers(members []model.ChannelMemberWithTeamData) []string {
+	channelIDs := make([]string, 0, len(members))
+	for _, member := range members {
+		channelIDs = append(channelIDs, member.ChannelId)
+	}
+	return channelIDs
 }
 
 func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {

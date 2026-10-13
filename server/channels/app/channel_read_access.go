@@ -23,6 +23,16 @@ type channelReadAccessMemo struct {
 	mu        sync.Mutex
 	decisions map[channelReadAccessKey]bool
 
+	// subjects holds each user's subject without a channel role. Only that role
+	// differs between a user's channels, so a request builds the rest once and
+	// copies it per channel.
+	subjects map[string]*model.Subject
+
+	// channelRoles holds roles PrepareChannelReadAccess fetched for a whole page in
+	// one query, so evaluating each channel does not read its member row again.
+	// An empty role is a fetched answer: the user is not a member.
+	channelRoles map[channelReadAccessKey]string
+
 	// enforcementDenial is the channel an *enforcement* gate denied for the
 	// requesting session, deliberately not the same thing as a false entry in
 	// decisions: filters and mention sanitisers record denials and still return
@@ -41,6 +51,31 @@ func (m *channelReadAccessMemo) set(key channelReadAccessKey, allowed bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.decisions[key] = allowed
+}
+
+func (m *channelReadAccessMemo) getSubject(userID string) *model.Subject {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.subjects[userID]
+}
+
+func (m *channelReadAccessMemo) setSubject(userID string, subject *model.Subject) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.subjects[userID] = subject
+}
+
+func (m *channelReadAccessMemo) getChannelRole(key channelReadAccessKey) (role string, ok bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	role, ok = m.channelRoles[key]
+	return role, ok
+}
+
+func (m *channelReadAccessMemo) setChannelRole(key channelReadAccessKey, role string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.channelRoles[key] = role
 }
 
 func (m *channelReadAccessMemo) noteEnforcementDenial(channelID string) {
@@ -68,7 +103,11 @@ func WithChannelReadAccessMemo(rctx request.CTX) request.CTX {
 	if getChannelReadAccessMemo(rctx) != nil {
 		return rctx
 	}
-	memo := &channelReadAccessMemo{decisions: map[channelReadAccessKey]bool{}}
+	memo := &channelReadAccessMemo{
+		decisions:    map[channelReadAccessKey]bool{},
+		subjects:     map[string]*model.Subject{},
+		channelRoles: map[channelReadAccessKey]string{},
+	}
 	return rctx.WithContext(context.WithValue(rctx.Context(), channelReadAccessMemoKey{}, memo))
 }
 
@@ -167,24 +206,43 @@ func (a *App) HasChannelReadAccess(rctx request.CTX, userID string, channel *mod
 	return allowed
 }
 
-func (a *App) evaluateChannelReadAccess(rctx request.CTX, userID string, channel *model.Channel) bool {
+func (a *App) channelReadAccessGoverned(rctx request.CTX, channel *model.Channel) (governed, byChannelPolicy bool) {
 	acs := a.Srv().Channels().AccessControl
+	action := model.AccessControlPolicyActionChannelReadAccess
 
-	governed, appErr := acs.ActionHasPermissionPolicy(rctx, model.AccessControlPolicyActionChannelReadAccess)
+	bySystemPolicy, appErr := acs.ActionHasPermissionPolicy(rctx, action)
 	if appErr != nil {
-		// Evaluate rather than short-circuit: a failed governance check says nothing
-		// about whether a policy applies, and every other failure here denies.
-		governed = true
 		rctx.Logger().Debug("Failed to check whether permission policies govern channel_read_access; evaluating anyway",
 			mlog.String("channel_id", channel.Id),
 			mlog.Err(appErr),
 		)
+		bySystemPolicy = true
 	}
-	if !governed && !channel.PolicyEnforced {
+
+	// PolicyEnforced is false only when the channel has no policy of its own to ask about.
+	if channel.PolicyEnforced {
+		byChannelPolicy, appErr = acs.ResourcePolicyGovernsAction(rctx, channel.Id, action)
+		if appErr != nil {
+			rctx.Logger().Debug("Failed to check whether the channel's policy governs channel_read_access; evaluating anyway",
+				mlog.String("channel_id", channel.Id),
+				mlog.Err(appErr),
+			)
+			byChannelPolicy = true
+		}
+	}
+
+	return bySystemPolicy || byChannelPolicy, byChannelPolicy
+}
+
+func (a *App) evaluateChannelReadAccess(rctx request.CTX, userID string, channel *model.Channel) bool {
+	acs := a.Srv().Channels().AccessControl
+
+	governed, byChannelPolicy := a.channelReadAccessGoverned(rctx, channel)
+	if !governed {
 		return true
 	}
 
-	subject, appErr := a.buildChannelReadAccessSubject(rctx, userID, channel.Id)
+	subject, appErr := a.channelReadAccessSubject(rctx, userID, channel.Id, byChannelPolicy)
 	if appErr != nil {
 		rctx.Logger().Info("Failed to build ABAC subject for channel_read_access evaluation; denying",
 			mlog.String("user_id", userID),
@@ -195,7 +253,7 @@ func (a *App) evaluateChannelReadAccess(rctx request.CTX, userID string, channel
 	}
 
 	decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
-		Subject: *subject,
+		Subject: subject,
 		Resource: model.Resource{
 			Type: model.AccessControlPolicyTypeChannel,
 			ID:   channel.Id,
@@ -214,22 +272,136 @@ func (a *App) evaluateChannelReadAccess(rctx request.CTX, userID string, channel
 	return decision.Decision
 }
 
-func (a *App) buildChannelReadAccessSubject(rctx request.CTX, userID, channelID string) (*model.Subject, *model.AppError) {
-	if rctx.Session().UserId == userID {
-		return a.BuildAccessControlSubjectForSession(rctx, channelID)
+// channelReadAccessSubject returns the subject to evaluate userID against in one
+// channel. The base subject comes from channelReadAccessBaseSubject; withChannelRole
+// adds the user's role in the channel, taken from the roles PrepareChannelReadAccess
+// fetched for the page when it has one, and read from the member row otherwise.
+func (a *App) channelReadAccessSubject(rctx request.CTX, userID, channelID string, withChannelRole bool) (model.Subject, *model.AppError) {
+	base, appErr := a.channelReadAccessBaseSubject(rctx, userID)
+	if appErr != nil {
+		return model.Subject{}, appErr
 	}
 
-	user, appErr := a.GetUser(rctx, userID)
+	// A copy: SetScopedRole allocates a fresh ScopedRoles slice, so the memoised
+	// base never picks up one channel's role.
+	subject := *base
+	if !withChannelRole {
+		return subject, nil
+	}
+
+	if memo := getChannelReadAccessMemo(rctx); memo != nil {
+		if role, ok := memo.getChannelRole(channelReadAccessKey{userID: userID, channelID: channelID}); ok {
+			subject.SetScopedRole(model.AccessControlSubjectScopeChannel, role)
+			return subject, nil
+		}
+	}
+	return a.attachChannelScopedRole(rctx, subject, userID, channelID)
+}
+
+// channelReadAccessBaseSubject returns userID's subject without a channel role.
+// Nothing else in it depends on the channel, so a request with a memo builds it once
+// per user rather than once per channel.
+func (a *App) channelReadAccessBaseSubject(rctx request.CTX, userID string) (*model.Subject, *model.AppError) {
+	memo := getChannelReadAccessMemo(rctx)
+	if memo != nil {
+		if subject := memo.getSubject(userID); subject != nil {
+			return subject, nil
+		}
+	}
+
+	var subject *model.Subject
+	var appErr *model.AppError
+	if rctx.Session().UserId == userID {
+		subject, appErr = a.BuildAccessControlSubjectForSession(rctx, "")
+	} else {
+		var user *model.User
+		user, appErr = a.GetUser(rctx, userID)
+		if appErr != nil {
+			return nil, appErr
+		}
+		subject, appErr = a.BuildAccessControlSubject(rctx, userID, user.Roles, "")
+	}
 	if appErr != nil {
 		return nil, appErr
 	}
-	return a.BuildAccessControlSubject(rctx, userID, user.Roles, channelID)
+
+	if memo != nil {
+		memo.setSubject(userID, subject)
+	}
+	return subject, nil
+}
+
+// PrepareChannelReadAccess fetches userID's role in every channel of a page whose own
+// policy declares channel_read_access, in one query, so evaluating the page does not read
+// a member row per channel. It only fills the request memo: without one it does nothing,
+// and a role it did not fetch is read when its channel is evaluated.
+func (a *App) PrepareChannelReadAccess(rctx request.CTX, userID string, channels []*model.Channel) {
+	memo := getChannelReadAccessMemo(rctx)
+	if memo == nil || userID == "" || len(channels) == 0 || !a.channelReadAccessEnforcementActive() {
+		return
+	}
+
+	var channelIDs []string
+	for _, channel := range channels {
+		if channel == nil || channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
+			continue
+		}
+		key := channelReadAccessKey{userID: userID, channelID: channel.Id}
+		if _, decided := memo.get(key); decided {
+			continue
+		}
+		if _, fetched := memo.getChannelRole(key); fetched {
+			continue
+		}
+		if _, byChannelPolicy := a.channelReadAccessGoverned(rctx, channel); byChannelPolicy {
+			channelIDs = append(channelIDs, channel.Id)
+		}
+	}
+	if len(channelIDs) == 0 {
+		return
+	}
+
+	members, err := a.Srv().Store().Channel().GetMembersByChannelIds(channelIDs, userID)
+	if err != nil {
+		rctx.Logger().Warn("Failed to fetch channel roles for channel_read_access evaluation; reading them per channel",
+			mlog.String("user_id", userID),
+			mlog.Int("channels", len(channelIDs)),
+			mlog.Err(err),
+		)
+		return
+	}
+
+	roles := make(map[string]string, len(members))
+	for i := range members {
+		roles[members[i].ChannelId] = channelRoleForMember(rctx, &members[i])
+	}
+	for _, channelID := range channelIDs {
+		// No row means not a member, which GetSubjectChannelRole also reports as no role.
+		memo.setChannelRole(channelReadAccessKey{userID: userID, channelID: channelID}, roles[channelID])
+	}
+}
+
+// PrepareChannelReadAccessByIDs is PrepareChannelReadAccess for callers that hold
+// channel IDs. It reads the channels from the cache to see which need a role.
+func (a *App) PrepareChannelReadAccessByIDs(rctx request.CTX, userID string, channelIDs []string) {
+	if getChannelReadAccessMemo(rctx) == nil || len(channelIDs) == 0 || !a.channelReadAccessEnforcementActive() {
+		return
+	}
+
+	channels, err := a.Srv().Store().Channel().GetMany(channelIDs, true)
+	if err != nil {
+		// Nothing to prepare; each channel is loaded and evaluated on its own.
+		return
+	}
+	a.PrepareChannelReadAccess(rctx, userID, channels)
 }
 
 func (a *App) FilterChannelIDsByReadAccess(rctx request.CTX, userID string, channelIDs []string) []string {
 	if len(channelIDs) == 0 || !a.channelReadAccessEnforcementActive() {
 		return channelIDs
 	}
+
+	a.PrepareChannelReadAccessByIDs(rctx, userID, channelIDs)
 
 	filtered := make([]string, 0, len(channelIDs))
 	for _, channelID := range channelIDs {
@@ -244,6 +416,8 @@ func (a *App) FilterChannelsByReadAccess(rctx request.CTX, userID string, channe
 	if len(channels) == 0 || !a.channelReadAccessEnforcementActive() {
 		return channels
 	}
+
+	a.PrepareChannelReadAccess(rctx, userID, channels)
 
 	filtered := make([]*model.Channel, 0, len(channels))
 	for _, channel := range channels {
@@ -262,6 +436,12 @@ func (a *App) FilterChannelListWithTeamDataByReadAccess(rctx request.CTX, userID
 	if len(channels) == 0 || !a.channelReadAccessEnforcementActive() {
 		return channels, 0
 	}
+
+	page := make([]*model.Channel, 0, len(channels))
+	for _, channel := range channels {
+		page = append(page, &channel.Channel)
+	}
+	a.PrepareChannelReadAccess(rctx, userID, page)
 
 	filtered := make(model.ChannelListWithTeamData, 0, len(channels))
 	for _, channel := range channels {

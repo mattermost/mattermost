@@ -1678,6 +1678,7 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		c.App.PrepareChannelReadAccess(c.AppContext, currentUserId, channels)
 		for _, ch := range channels {
 			// Evaluated for the session, not the queried user: a requester acting for
 			// someone else must not learn of a channel their own policy denies.

@@ -2729,7 +2729,9 @@ func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression st
 func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles string, channelID string) (*model.Subject, *model.AppError) {
 	a.refreshAttributeViewIfStale(rctx)
 
-	group, err := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	// Group is the cached lookup; GetPropertyGroup reads the store on every call,
+	// and subjects are built on hot paths such as websocket delivery.
+	group, err := a.Srv().propertyService.Group(model.AccessControlPropertyGroupName)
 	if err != nil {
 		return nil, model.NewAppError("BuildAccessControlSubject", "app.access_control.build_subject.group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2851,13 +2853,20 @@ func (a *App) GetSubjectChannelRole(rctx request.CTX, userID, channelID string) 
 		return "", model.NewAppError("GetSubjectChannelRole", "app.access_control.get_channel_role.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	return channelRoleForMember(rctx, cm), nil
+}
+
+// channelRoleForMember maps a ChannelMember row to its channel-scoped role, as
+// GetSubjectChannelRole describes. It is shared with callers that read many rows
+// in one query, so a batch resolves each row exactly as a single lookup would.
+func channelRoleForMember(rctx request.CTX, cm *model.ChannelMember) string {
 	switch {
 	case cm.SchemeAdmin:
-		return model.ChannelAdminRoleId, nil
+		return model.ChannelAdminRoleId
 	case cm.SchemeGuest:
-		return model.ChannelGuestRoleId, nil
+		return model.ChannelGuestRoleId
 	case cm.SchemeUser:
-		return model.ChannelUserRoleId, nil
+		return model.ChannelUserRoleId
 	}
 
 	// Inspect the Roles tokens deterministically rather than returning
@@ -2880,13 +2889,13 @@ func (a *App) GetSubjectChannelRole(rctx request.CTX, userID, channelID string) 
 	// and `channel_guest` is the sole recognised token in the row.
 	tokens := strings.Fields(cm.Roles)
 	if slices.Contains(tokens, model.ChannelAdminRoleId) {
-		return model.ChannelAdminRoleId, nil
+		return model.ChannelAdminRoleId
 	}
 	if slices.Contains(tokens, model.ChannelUserRoleId) {
-		return model.ChannelUserRoleId, nil
+		return model.ChannelUserRoleId
 	}
 	if slices.Contains(tokens, model.ChannelGuestRoleId) {
-		return model.ChannelGuestRoleId, nil
+		return model.ChannelGuestRoleId
 	}
 
 	// ChannelMember row exists but neither the scheme flags nor the
@@ -2901,14 +2910,14 @@ func (a *App) GetSubjectChannelRole(rctx request.CTX, userID, channelID string) 
 	// surfaces the row state so operators can investigate.
 	rctx.Logger().Warn(
 		"Channel member exists but channel role could not be resolved; treating as no channel scope",
-		mlog.String("user_id", userID),
-		mlog.String("channel_id", channelID),
+		mlog.String("user_id", cm.UserId),
+		mlog.String("channel_id", cm.ChannelId),
 		mlog.String("roles", cm.Roles),
 		mlog.Bool("scheme_admin", cm.SchemeAdmin),
 		mlog.Bool("scheme_user", cm.SchemeUser),
 		mlog.Bool("scheme_guest", cm.SchemeGuest),
 	)
-	return "", nil
+	return ""
 }
 
 // ResolveSystemRole returns the highest-precedence base system role token

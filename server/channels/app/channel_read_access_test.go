@@ -59,6 +59,23 @@ func governed(mockACS *eMocks.AccessControlServiceInterface) {
 		Return(true, nil)
 }
 
+func channelPolicyGoverns(mockACS *eMocks.AccessControlServiceInterface, channelID string, governs bool) {
+	mockACS.On("ResourcePolicyGovernsAction", mock.Anything, channelID, model.AccessControlPolicyActionChannelReadAccess).
+		Return(governs, nil)
+}
+
+// capturesRequests answers every evaluation with allow and records each request, so a
+// test can inspect the subject the gate built.
+func capturesRequests(mockACS *eMocks.AccessControlServiceInterface, allow bool) *[]model.AccessRequest {
+	var requests []model.AccessRequest
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Run(func(args mock.Arguments) {
+			requests = append(requests, args.Get(1).(model.AccessRequest))
+		}).
+		Return(model.AccessDecision{Decision: allow}, nil)
+	return &requests
+}
+
 func decides(mockACS *eMocks.AccessControlServiceInterface, allow bool) {
 	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
 		Return(model.AccessDecision{Decision: allow}, nil)
@@ -73,19 +90,101 @@ func TestHasChannelReadAccess(t *testing.T) {
 
 		require.True(t, h.th.App.HasChannelReadAccess(h.rctx, h.th.BasicUser.Id, h.th.BasicChannel))
 		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+		mockACS.AssertNotCalled(t, "ResourcePolicyGovernsAction", mock.Anything, mock.Anything, mock.Anything)
 	})
 
-	t.Run("evaluates a channel with its own policy even when no system policy governs", func(t *testing.T) {
+	t.Run("evaluates a channel whose own policy declares the action, even when no system policy governs", func(t *testing.T) {
 		h := setupChannelReadAccessTest(t)
 		mockACS := h.mockACS(t)
 		mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
 			Return(false, nil)
+		channelPolicyGoverns(mockACS, h.th.BasicChannel.Id, true)
 		decides(mockACS, false)
 
 		channel := h.th.BasicChannel.DeepCopy()
 		channel.PolicyEnforced = true
 
 		require.False(t, h.th.App.HasChannelReadAccess(h.rctx, h.th.BasicUser.Id, channel))
+	})
+
+	// PolicyEnforced is true for a channel with any policy, so a membership-only policy
+	// must not cost every reader a subject build and a PDP call.
+	t.Run("allows a channel whose own policy does not declare the action, without building a subject", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
+			Return(false, nil)
+		channelPolicyGoverns(mockACS, h.th.BasicChannel.Id, false)
+
+		channel := h.th.BasicChannel.DeepCopy()
+		channel.PolicyEnforced = true
+
+		require.True(t, h.th.App.HasChannelReadAccess(h.rctx, h.th.BasicUser.Id, channel))
+		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+	})
+
+	t.Run("evaluates anyway when the channel policy check errors", func(t *testing.T) {
+		// Both answers occur: the enterprise service reports governed with every error,
+		// and false alongside an error must not read as an all-clear either.
+		for _, reported := range []bool{true, false} {
+			h := setupChannelReadAccessTest(t)
+			mockACS := h.mockACS(t)
+			mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
+				Return(false, nil)
+			mockACS.On("ResourcePolicyGovernsAction", mock.Anything, h.th.BasicChannel.Id, model.AccessControlPolicyActionChannelReadAccess).
+				Return(reported, model.NewAppError("ResourcePolicyGovernsAction", "boom", nil, "", http.StatusInternalServerError))
+			decides(mockACS, false)
+
+			channel := h.th.BasicChannel.DeepCopy()
+			channel.PolicyEnforced = true
+
+			require.False(t, h.th.App.HasChannelReadAccess(h.rctx, h.th.BasicUser.Id, channel), "reported=%t", reported)
+			mockACS.AssertCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+		}
+	})
+
+	// Only the channel's own policy picks rules by channel role, so the role is looked up
+	// only when that policy declares the action, whatever a system policy says.
+	t.Run("leaves the channel role out when only a system policy governs", func(t *testing.T) {
+		for _, policyEnforced := range []bool{false, true} {
+			h := setupChannelReadAccessTest(t)
+			mockACS := h.mockACS(t)
+			governed(mockACS)
+			channelPolicyGoverns(mockACS, h.th.BasicChannel.Id, false)
+			requests := capturesRequests(mockACS, true)
+
+			channel := h.th.BasicChannel.DeepCopy()
+			channel.PolicyEnforced = policyEnforced
+
+			require.True(t, h.th.App.HasChannelReadAccess(h.rctx, h.th.BasicUser.Id, channel))
+			require.Len(t, *requests, 1)
+			require.Empty(t, (*requests)[0].Subject.RoleForScope(model.AccessControlSubjectScopeChannel), "policyEnforced=%t", policyEnforced)
+			if !policyEnforced {
+				mockACS.AssertNotCalled(t, "ResourcePolicyGovernsAction", mock.Anything, mock.Anything, mock.Anything)
+			}
+		}
+	})
+
+	t.Run("adds the channel role when the channel's own policy declares the action", func(t *testing.T) {
+		for _, bySystemPolicy := range []bool{false, true} {
+			h := setupChannelReadAccessTest(t)
+			mockACS := h.mockACS(t)
+			mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
+				Return(bySystemPolicy, nil)
+			channelPolicyGoverns(mockACS, h.th.BasicChannel.Id, true)
+			requests := capturesRequests(mockACS, true)
+
+			channel := h.th.BasicChannel.DeepCopy()
+			channel.PolicyEnforced = true
+
+			wantRole, appErr := h.th.App.GetSubjectChannelRole(h.rctx, h.th.BasicUser.Id, channel.Id)
+			require.Nil(t, appErr)
+			require.NotEmpty(t, wantRole, "BasicUser must be a member of BasicChannel for this to be meaningful")
+
+			require.True(t, h.th.App.HasChannelReadAccess(h.rctx, h.th.BasicUser.Id, channel))
+			require.Len(t, *requests, 1)
+			require.Equal(t, wantRole, (*requests)[0].Subject.RoleForScope(model.AccessControlSubjectScopeChannel), "bySystemPolicy=%t", bySystemPolicy)
+		}
 	})
 
 	t.Run("evaluates anyway when the governance check errors", func(t *testing.T) {
@@ -638,6 +737,181 @@ func TestEvaluateChannelReadAccessGovernanceCheckFailsClosed(t *testing.T) {
 	require.False(t, h.th.BasicChannel.PolicyEnforced, "the channel must not carry its own policy for this to be meaningful")
 	require.False(t, h.th.App.HasChannelReadAccess(h.rctx, h.th.BasicUser.Id, h.th.BasicChannel))
 	mockACS.AssertCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+}
+
+// A list request evaluates many channels for one user, and only the channel role
+// differs between them, so the rest of the subject is built once per request.
+func TestChannelReadAccessSubjectIsBuiltOncePerRequest(t *testing.T) {
+	t.Run("reuses the user's subject across channels", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		other := h.th.CreateChannel(t, h.th.BasicTeam)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		requests := capturesRequests(mockACS, true)
+
+		require.True(t, h.th.App.HasChannelReadAccess(h.rctx, h.th.BasicUser.Id, h.th.BasicChannel))
+
+		// Swap the memoised subject for a marked one: the next channel only sees the
+		// mark if it reuses the memo instead of building its own.
+		memo := getChannelReadAccessMemo(h.rctx)
+		require.NotNil(t, memo.getSubject(h.th.BasicUser.Id))
+		memo.setSubject(h.th.BasicUser.Id, &model.Subject{
+			ID:         h.th.BasicUser.Id,
+			Type:       "user",
+			Attributes: map[string]any{"marker": "reused"},
+		})
+
+		require.True(t, h.th.App.HasChannelReadAccess(h.rctx, h.th.BasicUser.Id, other))
+		require.Len(t, *requests, 2)
+		require.Equal(t, "reused", (*requests)[1].Subject.Attributes["marker"])
+	})
+
+	t.Run("does not carry one channel's role into another", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		withoutRule := h.th.CreateChannel(t, h.th.BasicTeam)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		requests := capturesRequests(mockACS, true)
+
+		withRule := h.th.BasicChannel.DeepCopy()
+		withRule.PolicyEnforced = true
+		channelPolicyGoverns(mockACS, withRule.Id, true)
+
+		require.True(t, h.th.App.HasChannelReadAccess(h.rctx, h.th.BasicUser.Id, withRule))
+		require.True(t, h.th.App.HasChannelReadAccess(h.rctx, h.th.BasicUser.Id, withoutRule))
+
+		require.Len(t, *requests, 2)
+		require.NotEmpty(t, (*requests)[0].Subject.RoleForScope(model.AccessControlSubjectScopeChannel))
+		require.Empty(t, (*requests)[1].Subject.RoleForScope(model.AccessControlSubjectScopeChannel))
+		require.Empty(t, getChannelReadAccessMemo(h.rctx).getSubject(h.th.BasicUser.Id).RoleForScope(model.AccessControlSubjectScopeChannel),
+			"the memoised subject must stay free of channel roles")
+	})
+}
+
+func TestPrepareChannelReadAccess(t *testing.T) {
+	roleOf := func(h *channelReadAccessHarness, channelID string) (string, bool) {
+		return getChannelReadAccessMemo(h.rctx).getChannelRole(channelReadAccessKey{userID: h.th.BasicUser.Id, channelID: channelID})
+	}
+
+	t.Run("fetches roles only for channels whose own policy declares the action", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		notMember, appErr := h.th.App.CreateChannel(h.th.Context, &model.Channel{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        "name_" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      h.th.BasicTeam.Id,
+			CreatorId:   h.th.BasicUser2.Id,
+		}, false)
+		require.Nil(t, appErr)
+		noRule := h.th.CreateChannel(t, h.th.BasicTeam)
+		noPolicy := h.th.CreateChannel(t, h.th.BasicTeam)
+
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		member := h.th.BasicChannel.DeepCopy()
+		member.PolicyEnforced = true
+		channelPolicyGoverns(mockACS, member.Id, true)
+		notMember.PolicyEnforced = true
+		channelPolicyGoverns(mockACS, notMember.Id, true)
+		noRule.PolicyEnforced = true
+		channelPolicyGoverns(mockACS, noRule.Id, false)
+
+		h.th.App.PrepareChannelReadAccess(h.rctx, h.th.BasicUser.Id, []*model.Channel{member, notMember, noRule, noPolicy})
+
+		wantRole, appErr := h.th.App.GetSubjectChannelRole(h.rctx, h.th.BasicUser.Id, member.Id)
+		require.Nil(t, appErr)
+		role, ok := roleOf(h, member.Id)
+		require.True(t, ok)
+		require.Equal(t, wantRole, role)
+
+		role, ok = roleOf(h, notMember.Id)
+		require.True(t, ok, "a channel the user is not in is a fetched answer, not a gap")
+		require.Empty(t, role)
+
+		_, ok = roleOf(h, noRule.Id)
+		require.False(t, ok, "a channel whose policy does not declare the action needs no role")
+		_, ok = roleOf(h, noPolicy.Id)
+		require.False(t, ok)
+	})
+
+	t.Run("evaluation takes the fetched role instead of reading the member row", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		requests := capturesRequests(mockACS, true)
+
+		channel := h.th.BasicChannel.DeepCopy()
+		channel.PolicyEnforced = true
+		channelPolicyGoverns(mockACS, channel.Id, true)
+
+		// A role BasicUser does not hold: the subject carries it only if evaluation took
+		// the memo's answer.
+		getChannelReadAccessMemo(h.rctx).setChannelRole(channelReadAccessKey{userID: h.th.BasicUser.Id, channelID: channel.Id}, model.ChannelGuestRoleId)
+
+		require.True(t, h.th.App.HasChannelReadAccess(h.rctx, h.th.BasicUser.Id, channel))
+		require.Len(t, *requests, 1)
+		require.Equal(t, model.ChannelGuestRoleId, (*requests)[0].Subject.RoleForScope(model.AccessControlSubjectScopeChannel))
+	})
+
+	t.Run("does nothing without a request memo", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+
+		channel := h.th.BasicChannel.DeepCopy()
+		channel.PolicyEnforced = true
+
+		h.th.App.PrepareChannelReadAccess(h.th.Context, h.th.BasicUser.Id, []*model.Channel{channel})
+		mockACS.AssertNotCalled(t, "ActionHasPermissionPolicy", mock.Anything, mock.Anything)
+		mockACS.AssertNotCalled(t, "ResourcePolicyGovernsAction", mock.Anything, mock.Anything, mock.Anything)
+	})
+
+	t.Run("by IDs reads from the store whether each channel has a policy", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		withPolicy := h.th.CreateChannel(t, h.th.BasicTeam)
+		withoutPolicy := h.th.CreateChannel(t, h.th.BasicTeam)
+
+		// PolicyEnforced is computed from the policy table when a channel is read, so a
+		// stored row is what makes the channel count as having one.
+		_, err := h.th.App.Srv().Store().AccessControlPolicy().Save(h.th.Context, &model.AccessControlPolicy{
+			ID:       withPolicy.Id,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Active:   true,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"membership"}, Expression: "true"},
+			},
+		})
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = h.th.App.Srv().Store().AccessControlPolicy().Delete(h.th.Context, withPolicy.Id) })
+		h.th.App.Srv().Store().Channel().InvalidateChannel(withPolicy.Id)
+
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		channelPolicyGoverns(mockACS, withPolicy.Id, true)
+
+		h.th.App.PrepareChannelReadAccessByIDs(h.rctx, h.th.BasicUser.Id, []string{withPolicy.Id, withoutPolicy.Id})
+
+		_, ok := roleOf(h, withPolicy.Id)
+		require.True(t, ok)
+		_, ok = roleOf(h, withoutPolicy.Id)
+		require.False(t, ok)
+	})
+
+	t.Run("a filter prepares its page before evaluating it", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		decides(mockACS, true)
+
+		channel := h.th.BasicChannel.DeepCopy()
+		channel.PolicyEnforced = true
+		channelPolicyGoverns(mockACS, channel.Id, true)
+
+		require.Len(t, h.th.App.FilterChannelsByReadAccess(h.rctx, h.th.BasicUser.Id, []*model.Channel{channel}), 1)
+		_, ok := roleOf(h, channel.Id)
+		require.True(t, ok, "the filter must fetch the page's roles up front")
+	})
 }
 
 // Every channel-scoped permission must be deliberately classified as a read or a

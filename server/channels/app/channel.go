@@ -2550,7 +2550,11 @@ func (a *App) fillChannelPage(rctx request.CTX, userID string, offset, limit int
 
 	kept, truncated, err := putils.FetchUntil(offset, limit,
 		func(from int) ([]*model.Channel, error) {
-			return fetch(from, limit)
+			page, err := fetch(from, limit)
+			if err == nil {
+				a.PrepareChannelReadAccess(rctx, userID, page)
+			}
+			return page, err
 		},
 		func(channel *model.Channel) bool {
 			return a.HasChannelReadAccess(rctx, userID, channel)
