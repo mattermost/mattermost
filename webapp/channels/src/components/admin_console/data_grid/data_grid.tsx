@@ -6,9 +6,15 @@ import React from 'react';
 import type {CSSProperties, JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {
+    ChevronLeftIcon,
+    ChevronRightIcon,
+} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import type {FilterOptions} from 'components/admin_console/filter/filter';
-import NextIcon from 'components/widgets/icons/fa_next_icon';
-import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import DataGridHeader from './data_grid_header';
@@ -268,24 +274,26 @@ class DataGrid extends React.PureComponent<Props, State> {
                                 }}
                             />
                         </span>
-                        <button
-                            aria-label='Previous page'
-                            type='button'
-                            className={'btn btn-quaternary btn-icon btn-sm ml-2 prev ' + (firstPage ? 'disabled' : '')}
-                            onClick={prevPageFn}
-                            disabled={firstPage}
-                        >
-                            <PreviousIcon/>
-                        </button>
-                        <button
-                            aria-label='Next page'
-                            type='button'
-                            className={'btn btn-quaternary btn-icon btn-sm next ' + (lastPage ? 'disabled' : '')}
-                            onClick={nextPageFn}
-                            disabled={lastPage}
-                        >
-                            <NextIcon/>
-                        </button>
+                        <WithTooltip title='Previous page'>
+                            <IconButton
+                                size='small'
+                                className='ml-2 prev'
+                                icon={<Icon glyph={<ChevronLeftIcon/>}/>}
+                                onClick={prevPageFn}
+                                disabled={firstPage}
+                                aria-label='Previous page'
+                            />
+                        </WithTooltip>
+                        <WithTooltip title='Next page'>
+                            <IconButton
+                                size='small'
+                                className='next'
+                                icon={<Icon glyph={<ChevronRightIcon/>}/>}
+                                onClick={nextPageFn}
+                                disabled={lastPage}
+                                aria-label='Next page'
+                            />
+                        </WithTooltip>
                     </div>
                 </div>
             );

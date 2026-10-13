@@ -176,7 +176,8 @@ describe('Verify Accessibility Support in Post', () => {
 
                 for (let i = 0; i < 3; i++) {
                     // * Verify focus is on the reactions button
-                    cy.get(`#recent_reaction_${i}`).should('have.class', 'emoticon--post-menu').and('have.attr', 'aria-label');
+                    cy.get(`#recent_reaction_${i}`).should('have.class', 'post-menu__emoticon').find('.emoticon--post-menu').should('exist').and('have.attr', 'aria-hidden', 'true');
+                    cy.get(`#recent_reaction_${i}`).should('have.attr', 'aria-label');
                     cy.focused().tab();
                 }
 
@@ -236,7 +237,8 @@ describe('Verify Accessibility Support in Post', () => {
                 cy.focused().tab().tab();
 
                 // * Verify focus is on most recent action
-                cy.get('#recent_reaction_0').should('have.class', 'emoticon--post-menu').and('have.attr', 'aria-label');
+                cy.get('#recent_reaction_0').should('have.class', 'post-menu__emoticon').find('.emoticon--post-menu').should('exist').and('have.attr', 'aria-hidden', 'true');
+                cy.get('#recent_reaction_0').should('have.attr', 'aria-label');
                 cy.focused().tab();
 
                 // * Verify focus is on the reactions button

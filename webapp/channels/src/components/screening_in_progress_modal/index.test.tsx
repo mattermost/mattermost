@@ -20,7 +20,10 @@ describe('ScreeningInProgressModal', () => {
         jest.spyOn(controlModalHooks, 'useControlScreeningInProgressModal').mockImplementation(() => ({close: mockClose, open: jest.fn()}));
 
         renderWithContext(<ScreeningInProgressModal/>);
-        await userEvent.click(screen.getAllByText('Close')[1]);
+        const closeButtons = screen.getAllByRole('button', {name: 'Close'});
+        const cancelButton = closeButtons.find((button) => !button.className.includes('GenericModal__close'));
+        expect(cancelButton).toBeDefined();
+        await userEvent.click(cancelButton!);
         expect(mockClose).toHaveBeenCalled();
     });
 });

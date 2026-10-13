@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {PureComponent} from 'react';
 import type {ChangeEvent, DragEvent, MouseEvent, TouchEvent, RefObject} from 'react';
 import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
 import {PaperclipIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo, FileUploadResponse} from '@mattermost/types/files';
@@ -653,23 +654,24 @@ export class FileUpload extends PureComponent<Props, State> {
         // reason the control stays visible. Every upload entry point checks disabledByPolicy.
         const attachmentButton = (onActivate?: (e: MouseEvent<HTMLButtonElement | HTMLAnchorElement> | TouchEvent) => void) => (
             <WithTooltip title={uploadTooltip}>
-                <button
-                    type='button'
+                <IconButton
                     id='fileUploadButton'
+                    size='small'
+                    icon={
+                        <Icon
+                            glyph={
+                                <PaperclipIcon
+                                    color='currentColor'
+                                    aria-label={iconAriaLabel}
+                                />
+                            }
+                        />
+                    }
                     aria-label={buttonAriaLabel}
                     aria-disabled={disabledByPolicy}
-                    className={classNames('style--none AdvancedTextEditor__action-button', {
-                        disabled: dimmed,
-                    })}
                     onClick={onActivate}
                     onTouchEnd={onActivate}
-                >
-                    <PaperclipIcon
-                        size={18}
-                        color={'currentColor'}
-                        aria-label={iconAriaLabel}
-                    />
-                </button>
+                />
             </WithTooltip>
         );
 
@@ -683,6 +685,7 @@ export class FileUpload extends PureComponent<Props, State> {
                     {attachmentButton(this.simulateInputClick)}
                     <input
                         id='fileUploadInput'
+                        className='file-attachment-menu-item-input'
                         tabIndex={-1}
                         aria-label={formatMessage(holders.uploadFile)}
                         ref={this.fileInput}

@@ -34,6 +34,10 @@ Cypress.Commands.add('uiCloseButton', () => {
     return cy.uiGetButton('Close');
 });
 
+Cypress.Commands.add('uiCloseTeamSettingsModal', () => {
+    return cy.get('#teamSettingsModal').find('.modal-header button[aria-label="Close"]').should('be.visible').click();
+});
+
 Cypress.Commands.add('uiGetRadioButton', (name) => {
     return cy.findByRole('radio', {name}).should('be.visible');
 });

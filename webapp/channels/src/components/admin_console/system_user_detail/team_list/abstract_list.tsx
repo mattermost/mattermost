@@ -1,18 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {type JSX} from 'react';
-import type {MessageDescriptor} from 'react-intl';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl, type MessageDescriptor, type WrappedComponentProps} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {
+    ChevronLeftIcon,
+    ChevronRightIcon,
+} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Team} from '@mattermost/types/teams';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
-
-import NextIcon from 'components/widgets/icons/fa_next_icon';
-import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 
 import type {TeamWithMembership} from './types';
 
@@ -20,7 +21,7 @@ import './abstract_list.scss';
 
 const PAGE_SIZE = 10;
 
-type Props = {
+type Props = WrappedComponentProps & {
     userId: string;
     headerLabels: Array<{
         label?: MessageDescriptor;
@@ -48,7 +49,7 @@ type Paging = {
     total: number;
 };
 
-export default class AbstractList extends React.PureComponent<Props, State> {
+class AbstractList extends React.PureComponent<Props, State> {
     public static defaultProps = {
         data: [],
     };
@@ -169,28 +170,32 @@ export default class AbstractList extends React.PureComponent<Props, State> {
                                 }}
                             />
                         </div>
-                        <Button
-                            type='button'
-                            emphasis='tertiary'
-                            className={classNames('prev', {disabled: firstPage})}
-                            onClick={firstPage ? () => null : this.previousPage}
-                            disabled={firstPage}
-                        >
-                            <PreviousIcon/>
-                        </Button>
-                        <Button
-                            type='button'
-                            emphasis='tertiary'
-                            className={classNames('next', {disabled: lastPage})}
-                            onClick={lastPage ? () => null : this.nextPage}
-                            disabled={lastPage}
-                        >
-                            <NextIcon/>
-                        </Button>
+                        <WithTooltip title={this.props.intl.formatMessage({id: 'adminConsole.list.table.pagination.previous', defaultMessage: 'Go to previous page'})}>
+                            <IconButton
+                                size='small'
+                                className='prev'
+                                icon={<Icon glyph={<ChevronLeftIcon/>}/>}
+                                onClick={this.previousPage}
+                                disabled={firstPage}
+                                aria-label={this.props.intl.formatMessage({id: 'adminConsole.list.table.pagination.previous', defaultMessage: 'Go to previous page'})}
+                            />
+                        </WithTooltip>
+                        <WithTooltip title={this.props.intl.formatMessage({id: 'adminConsole.list.table.pagination.next', defaultMessage: 'Go to next page'})}>
+                            <IconButton
+                                size='small'
+                                className='next'
+                                icon={<Icon glyph={<ChevronRightIcon/>}/>}
+                                onClick={this.nextPage}
+                                disabled={lastPage}
+                                aria-label={this.props.intl.formatMessage({id: 'adminConsole.list.table.pagination.next', defaultMessage: 'Go to next page'})}
+                            />
+                        </WithTooltip>
                     </div>
                 }
             </div>
         );
     };
 }
+
+export default injectIntl(AbstractList);
 

@@ -305,15 +305,10 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .SidebarFilters .SidebarFilters_filterButton {
-        display: block;
-        width: 28px;
-        height: 28px;
         border-radius: 4px;
         color: rgba(var(--sidebar-text-rgb), 0.64);
         font-size: 18px;
         font-weight: 400;
-        line-height: 26px;
-        text-align: center;
     }
 
     .SidebarFilters .SidebarFilters_filterButton:hover {
@@ -457,30 +452,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         }
     }
 
-    .SidebarMenu_menuButton {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        border: none;
-        border-radius: 4px;
-        background: transparent;
-        color: rgba(var(--sidebar-text-rgb), 0.64);
-        font-size: 16px;
-        line-height: 16px;
-
-        &:hover,
-        &:active,
-        &:focus {
-            color: var(--sidebar-text);
-            cursor: pointer;
-        }
-    }
-
-    .SidebarMenu_menuButton:focus {
-        outline-style: none;
-    }
-
     .SidebarNavContainer {
         position: relative;
         display: flex;
@@ -619,14 +590,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         transition: box-shadow 0.25s ease-in-out;
 
         .SidebarMenu_menuButton {
-            width: 28px;
-            height: 28px;
             margin: 2px 16px 2px 2px;
-
-            &:hover,
-            &:focus {
-                background-color: rgba(255, 255, 255, 0.08);
-            }
 
             &.sortingMenu {
                 margin: 0;
@@ -850,27 +814,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
     .SidebarChannelGroupHeader_addButton {
         z-index: 1;
-        width: 28px;
-        min-width: 28px;
-        height: 28px;
-        padding: 0;
-        border: none;
-        border-radius: 4px;
         margin: 2px 16px 2px 2px;
-        background: transparent;
-        color: rgba(var(--sidebar-text-rgb), 0.64);
-        font-size: 18px;
-        line-height: 16px;
-    }
-
-    .SidebarChannelGroupHeader_addButton:hover {
-        background-color: rgba(255, 255, 255, 0.08);
-        color: var(--sidebar-text);
-        cursor: pointer;
-    }
-
-    .SidebarChannelGroupHeader_addButton:focus {
-        outline-style: none;
     }
 
     .SidebarChannelGroupHeader_sortButton {
@@ -998,11 +942,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
             &:hover {
                 opacity: 1;
             }
-        }
-
-        .SidebarMenu_menuButton {
-            width: 28px;
-            height: 28px;
         }
 
         .SidebarChannel__selectedCount {

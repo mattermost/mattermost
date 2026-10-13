@@ -30,57 +30,97 @@ exports[`component/view_user_group_modal should match snapshot 1`] = `
           <div
             class="modal-header"
           >
-            <div
-              class="d-flex align-items-center"
+            <button
+              aria-label="Back"
+              class="_icon-button_mytxt_2 _icon-button--size-medium_mytxt_83 modal-header-back-button"
+              type="button"
             >
-              <button
-                aria-label="Back"
-                class="modal-header-back-button btn btn-icon"
-                type="button"
+              <span
+                aria-hidden="true"
+                class="_icon-button__icon-slot_mytxt_33"
               >
-                <i
-                  class="icon icon-arrow-left"
-                />
-              </button>
+                <div
+                  aria-hidden="true"
+                  class="_icon_1i355_2 _icon--size-20_1i355_46"
+                >
+                  <div
+                    class="_icon__glyph-area_1i355_9"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </span>
+            </button>
+            <div
+              class="user-groups-modal__header-title-block"
+            >
               <h1
                 class="modal-title"
                 id="viewUserGroupModalLabel"
               >
                 Group Name
               </h1>
+              <div
+                class="user-groups-modal__header-subtitle"
+              >
+                <span
+                  class="group-name"
+                >
+                  @group
+                </span>
+              </div>
             </div>
             <div
-              class="d-flex align-items-center"
-            />
-            <button
-              aria-label="Close"
-              class="close"
-              type="button"
+              class="user-groups-modal__header-actions d-flex align-items-center"
             >
-              <span
-                aria-hidden="true"
+              <button
+                aria-label="Close"
+                class="_icon-button_mytxt_2 _icon-button--size-medium_mytxt_83 user-groups-modal__header-close"
+                type="button"
               >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
-              </span>
-            </button>
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_mytxt_33"
+                >
+                  <div
+                    aria-hidden="true"
+                    class="_icon_1i355_2 _icon--size-20_1i355_46"
+                  >
+                    <div
+                      class="_icon__glyph-area_1i355_9"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="24"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </span>
+              </button>
+            </div>
           </div>
           <div
             class="modal-body"
           >
-            <div
-              class="group-mention-name"
-            >
-              <span
-                class="group-name"
-              >
-                @group
-              </span>
-            </div>
             <div
               class="user-groups-search"
             >

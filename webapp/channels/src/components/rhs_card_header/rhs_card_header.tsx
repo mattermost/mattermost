@@ -4,6 +4,14 @@
 import React from 'react';
 import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
 
+import {
+    ArrowBackIosIcon,
+    ArrowCollapseIcon,
+    ArrowExpandIcon,
+    CloseIcon,
+} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import KeyboardShortcutSequence, {
@@ -118,15 +126,13 @@ class RhsCardHeader extends React.PureComponent<Props> {
                 <WithTooltip
                     title={title}
                 >
-                    <button
-                        className='sidebar--right__back btn btn-icon btn-sm'
+                    <IconButton
+                        size='small'
+                        className='sidebar--right__back'
+                        icon={<Icon glyph={<ArrowBackIosIcon/>}/>}
                         onClick={this.handleBack}
                         aria-label={this.props.intl.formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Back Icon'})}
-                    >
-                        <i
-                            className='icon icon-arrow-back-ios'
-                        />
-                    </button>
+                    />
                 </WithTooltip>
             );
         }
@@ -150,19 +156,13 @@ class RhsCardHeader extends React.PureComponent<Props> {
                     <WithTooltip
                         title={this.props.isExpanded ? shrinkSidebarTooltip : expandSidebarTooltip}
                     >
-                        <button
-                            type='button'
-                            className='sidebar--right__expand btn btn-icon btn-sm'
+                        <IconButton
+                            size='small'
+                            className='sidebar--right__expand'
+                            icon={<Icon glyph={this.props.isExpanded ? <ArrowCollapseIcon/> : <ArrowExpandIcon/>}/>}
                             aria-label={this.props.isExpanded ? collapseIconLabel : expandIconLabel}
                             onClick={this.props.actions.toggleRhsExpanded}
-                        >
-                            <i
-                                className='icon icon-arrow-expand'
-                            />
-                            <i
-                                className='icon icon-arrow-collapse'
-                            />
-                        </button>
+                        />
                     </WithTooltip>
                     <WithTooltip
                         title={
@@ -172,17 +172,13 @@ class RhsCardHeader extends React.PureComponent<Props> {
                             />
                         }
                     >
-                        <button
-                            type='button'
-                            className='sidebar--right__close btn btn-icon btn-sm'
-                            aria-label='Close'
+                        <IconButton
+                            size='small'
+                            className='sidebar--right__close'
+                            icon={<Icon glyph={<CloseIcon/>}/>}
+                            aria-label={this.props.intl.formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
                             onClick={this.props.actions.closeRightHandSide}
-                        >
-                            <i
-                                className='icon icon-close'
-                                aria-label={this.props.intl.formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
-                            />
-                        </button>
+                        />
                     </WithTooltip>
                 </div>
             </div>

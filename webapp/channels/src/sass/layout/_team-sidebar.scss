@@ -134,6 +134,10 @@
         .team-container a:hover {
             text-decoration: none;
         }
+
+        .team-container .add-team-button {
+            border-radius: var(--radius-m);
+        }
     }
 }
 

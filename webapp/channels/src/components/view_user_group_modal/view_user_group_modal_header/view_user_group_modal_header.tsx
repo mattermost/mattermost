@@ -5,8 +5,16 @@ import React, {useCallback} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
+import {
+    ArchiveOutlineIcon,
+    ArrowLeftIcon,
+    CloseIcon,
+} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import {GroupSource, PluginGroupSourcePrefix} from '@mattermost/types/groups';
 import type {Group} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -83,23 +91,56 @@ const ViewUserGroupModalHeader = ({
                 permissionToArchiveGroup;
     }, [permissionToEditGroup, permissionToJoinGroup, permissionToLeaveGroup, permissionToArchiveGroup]);
 
+    const groupSubtitle = useCallback(() => {
+        if (!group) {
+            return null;
+        }
+
+        return (
+            <div className='user-groups-modal__header-subtitle'>
+                <span className='group-name'>{`@${group.name}`}</span>
+                {
+                    group.source.toLowerCase() === GroupSource.Ldap &&
+                    <span className='group-source'>
+                        <FormattedMessage
+                            id='view_user_group_modal.ldapSynced'
+                            defaultMessage='AD/LDAP SYNCED'
+                        />
+                    </span>
+                }
+                {
+                    group.source.toLowerCase().startsWith(PluginGroupSourcePrefix.Plugin) &&
+                    <span className='group-source'>
+                        <FormattedMessage
+                            id='view_user_group_modal.pluginSynced'
+                            defaultMessage='Plugin SYNCED'
+                        />
+                    </span>
+                }
+            </div>
+        );
+    }, [group]);
+
     const modalTitle = useCallback(() => {
         if (group) {
             return (
-                <Modal.Title
-                    componentClass='h1'
-                    id='viewUserGroupModalLabel'
-                >
-                    {group.display_name}
-                    {
-                        group.delete_at > 0 &&
-                        <ArchiveOutlineIcon size={18}/>
-                    }
-                </Modal.Title>
+                <div className='user-groups-modal__header-title-block'>
+                    <Modal.Title
+                        componentClass='h1'
+                        id='viewUserGroupModalLabel'
+                    >
+                        {group.display_name}
+                        {
+                            group.delete_at > 0 &&
+                            <ArchiveOutlineIcon size={18}/>
+                        }
+                    </Modal.Title>
+                    {groupSubtitle()}
+                </div>
             );
         }
         return (<></>);
-    }, [group]);
+    }, [group, groupSubtitle]);
 
     const addPeopleButton = useCallback(() => {
         if (permissionToJoinGroup) {
@@ -107,7 +148,6 @@ const ViewUserGroupModalHeader = ({
                 <Button
                     emphasis='secondary'
                     size='sm'
-                    className='mr-2'
                     onClick={goToAddPeopleModal}
                 >
                     <FormattedMessage
@@ -165,39 +205,31 @@ const ViewUserGroupModalHeader = ({
     }, [backButtonCallback, onExited]);
 
     return (
-        <Modal.Header>
-            <div className='d-flex align-items-center'>
-                <button
-                    type='button'
-                    className='modal-header-back-button btn btn-icon'
+        <Modal.Header closeButton={false}>
+            <WithTooltip title={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}>
+                <IconButton
+                    size='medium'
+                    className='modal-header-back-button'
+                    icon={<Icon glyph={<ArrowLeftIcon/>}/>}
                     aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
                     onClick={goBack}
-                >
-                    <i
-                        className='icon icon-arrow-left'
-                    />
-                </button>
-                {modalTitle()}
-            </div>
-            <div className='d-flex align-items-center'>
+                />
+            </WithTooltip>
+            {modalTitle()}
+            <div className='user-groups-modal__header-actions d-flex align-items-center'>
                 {addPeopleButton()}
                 {restoreGroupButton()}
                 {subMenuButton()}
-            </div>
-            <button
-                type='button'
-                className='close'
-                onClick={onExited}
-                aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
-            >
-                <span aria-hidden='true'>{'×'}</span>
-                <span className='sr-only'>
-                    <FormattedMessage
-                        id='generic.close'
-                        defaultMessage='Close'
+                <WithTooltip title={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}>
+                    <IconButton
+                        className='user-groups-modal__header-close'
+                        size='medium'
+                        icon={<Icon glyph={<CloseIcon/>}/>}
+                        onClick={onExited}
+                        aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
                     />
-                </span>
-            </button>
+                </WithTooltip>
+            </div>
         </Modal.Header>
     );
 };

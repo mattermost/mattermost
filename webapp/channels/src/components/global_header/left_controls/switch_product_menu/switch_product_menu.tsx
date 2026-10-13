@@ -32,6 +32,8 @@ import ProductSwitcherUserGroupsMenuItem from './switch_product_user_groups_menu
 
 import ProductBranding from '../product_branding';
 
+import '../../header_icon_button/header_icon_button.scss';
+
 export const ELEMENT_ID_FOR_SWITCH_PRODUCT_MENU = 'switchProductMenu';
 export const ELEMENT_ID_FOR_SWITCH_PRODUCT_MENU_BUTTON = 'switchProductMenuButton';
 
@@ -78,7 +80,7 @@ export function SwitchProductMenu(props: Props) {
             menuButton={{
                 id: ELEMENT_ID_FOR_SWITCH_PRODUCT_MENU_BUTTON,
 
-                // HeaderIconButton is the same classname as the HeaderIconButton component
+                // Styled by header_icon_button.scss, imported above
                 class: 'HeaderIconButton globalHeader-leftControls-productMenuButton',
 
                 // The branding sits inside the button so that clicking the product

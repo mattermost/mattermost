@@ -138,7 +138,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
                 cy.get('input[type="email"]').type(email);
                 cy.get('button.btn-primary.confirm').click();
                 cy.get('.error').should('be.visible').and('have.text', 'The email you provided does not belong to an accepted domain for guest accounts. Please contact your administrator or sign up with a different email.');
-                cy.get('.close').click();
+                cy.get('button[aria-label="Close"]').click();
             });
         });
     });

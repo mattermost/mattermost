@@ -319,7 +319,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         });
 
         // Click next to get to page 1 (both prev and next should be available with total=401)
-        const nextButton = screen.getByTitle('Next Icon').closest('button')!;
+        const nextButton = screen.getByRole('button', {name: 'Go to next page'});
         await userEvent.click(nextButton);
 
         await waitFor(() => {
@@ -383,7 +383,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         });
 
         // Click next to get to page 1, then prev is enabled
-        const nextButton = screen.getByTitle('Next Icon').closest('button')!;
+        const nextButton = screen.getByRole('button', {name: 'Go to next page'});
         await userEvent.click(nextButton);
 
         await waitFor(() => {
@@ -421,8 +421,8 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
             expect(screen.getByText('test1')).toBeInTheDocument();
         });
 
-        const nextButton = screen.getByTitle('Next Icon').closest('button')!;
-        const prevButton = screen.getByTitle('Previous Icon').closest('button')!;
+        const nextButton = screen.getByRole('button', {name: 'Go to next page'});
+        const prevButton = screen.getByRole('button', {name: 'Go to previous page'});
 
         // Navigate to page 2: click next twice
         await userEvent.click(nextButton);
@@ -480,7 +480,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
             expect(screen.getByText('test1')).toBeInTheDocument();
         });
 
-        const prevButton = screen.getByTitle('Previous Icon').closest('button')!;
+        const prevButton = screen.getByRole('button', {name: 'Go to previous page'});
 
         // On page 0, previous button should be disabled
         expect(prevButton).toBeDisabled();
@@ -518,7 +518,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
             expect(screen.getByText('test1')).toBeInTheDocument();
         });
 
-        const nextButton = screen.getByTitle('Next Icon').closest('button')!;
+        const nextButton = screen.getByRole('button', {name: 'Go to next page'});
 
         // Select some groups
         await userEvent.click(screen.getByText('test1'));

@@ -15,9 +15,11 @@ import {
 } from '@floating-ui/react';
 import classNames from 'classnames';
 import React, {useId, useRef, type JSX} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {TourTipBackdrop} from './tour_tip_backdrop';
 
@@ -116,6 +118,7 @@ export const TourTip = ({
     const FIRST_STEP_INDEX = 0;
     const titleId = useId();
     const arrowRef = useRef<SVGSVGElement>(null);
+    const {formatMessage} = useIntl();
     const onJump = (event: React.MouseEvent, jumpToStep: number) => {
         handleJump?.(event, jumpToStep);
     };
@@ -191,13 +194,15 @@ export const TourTip = ({
                 >
                     {title}
                 </h4>
-                <button
-                    className='btn btn-sm btn-icon'
-                    onClick={handleDismiss}
-                    data-testid={'close_tutorial_tip'}
-                >
-                    <i className='icon icon-close'/>
-                </button>
+                <WithTooltip title={formatMessage({id: 'tutorial_tip.close', defaultMessage: 'Close'})}>
+                    <IconButton
+                        size='small'
+                        icon={<i className='icon icon-close' aria-hidden='true'/>}
+                        onClick={handleDismiss}
+                        aria-label={formatMessage({id: 'tutorial_tip.close', defaultMessage: 'Close'})}
+                        data-testid={'close_tutorial_tip'}
+                    />
+                </WithTooltip>
             </div>
             <div className='tour-tip__body'>
                 {screen}

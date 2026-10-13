@@ -62,7 +62,7 @@ describe('Messaging', () => {
             cy.get(`#post_${postId}`).findByText('Pinned').should('exist');
 
             // * Assert that the reply count exists and is correct
-            cy.get(`#CENTER_commentIcon_${postId}`).find('span').eq(0).find('span').eq(1).should('have.text', '5');
+            cy.get(`#CENTER_commentIcon_${postId}`).find('[class*="icon-button__count"]').should('have.text', '5');
         });
     });
 });

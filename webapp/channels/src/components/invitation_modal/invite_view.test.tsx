@@ -183,6 +183,21 @@ describe('InviteView', () => {
         };
     }
 
+    it('calls onClose when the header close control is clicked', async () => {
+        const onClose = jest.fn();
+        renderWithContext(
+            <InviteView
+                {...props}
+                onClose={onClose}
+            />,
+            state,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Close'}));
+
+        expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
     it('shows InviteAs component when user can choose to invite guests or users', async () => {
         renderWithContext(
             <InviteView {...props}/>,

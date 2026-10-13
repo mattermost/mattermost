@@ -5,7 +5,7 @@ import {waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import AbstractList from './abstract_list';
 import type {TeamWithMembership} from './types';
@@ -200,9 +200,8 @@ describe('admin_console/system_user_detail/team_list/AbstractList', () => {
         });
 
         // Click next page button to go to page 1
-        const nextButton = container.querySelector('button.next');
-        expect(nextButton).toBeInTheDocument();
-        await userEvent.click(nextButton!);
+        const nextButton = screen.getByRole('button', {name: 'Go to next page'});
+        await userEvent.click(nextButton);
 
         // Wait for loading to finish again after page change
         await waitFor(() => {

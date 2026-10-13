@@ -41,6 +41,32 @@ describe('components/channel_header/components/HeaderIconWrapper', () => {
         });
     });
 
+    test('should forward active to IconButton', () => {
+        renderWithContext(
+            <HeaderIconWrapper
+                {...baseProps}
+                active={true}
+            />,
+        );
+
+        expect(screen.getByLabelText('Recent mentions')).toHaveAttribute('data-active', 'true');
+    });
+
+    test('should forward count to IconButton and apply countId', () => {
+        renderWithContext(
+            <HeaderIconWrapper
+                {...baseProps}
+                count={12}
+                countId='channelMemberCountText'
+            />,
+        );
+
+        const countEl = document.getElementById('channelMemberCountText');
+        expect(countEl).toBeVisible();
+        expect(countEl).toHaveTextContent('12');
+        expect(screen.getByLabelText('Recent mentions').contains(countEl)).toBe(true);
+    });
+
     test('should show the shortcut in its tooltip', async () => {
         renderWithContext(
             <HeaderIconWrapper

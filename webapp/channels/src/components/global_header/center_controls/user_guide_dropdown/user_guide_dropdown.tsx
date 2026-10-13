@@ -5,9 +5,11 @@ import React from 'react';
 import {injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
+import {HelpCircleOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
-import HeaderIconButton from 'components/global_header/header_icon_button';
 import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
@@ -120,11 +122,16 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
             >
                 <WithTooltip
                     title={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
+                    forcedPlacement='bottom'
                 >
-                    <HeaderIconButton
+                    <IconButton
+                        style='inverted'
+                        size='small'
+                        padding='compact'
+                        icon={<Icon glyph={<HelpCircleOutlineIcon/>}/>}
                         aria-controls='userHelpGuide'
-                        icon={'help-circle-outline'}
                         aria-label={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
+                        active={this.state.buttonActive}
                         aria-expanded={this.state.buttonActive}
                         aria-haspopup={true}
                     />

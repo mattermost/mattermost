@@ -43,47 +43,6 @@
     }
 }
 
-.channelBookmarksDotMenuButton {
-    display: flex;
-    width: 18px;
-    height: 18px;
-    align-items: center;
-    padding: 0;
-    border: none;
-    border-radius: 4px;
-    background: rgba(var(--center-channel-color-rgb), 8%);
-    background: color-mix(in sRGB, var(--center-channel-bg), var(--center-channel-color) 8%);
-    color: rgba(var(--center-channel-color-rgb), 0.56);
-    font-family: Open Sans;
-    font-size: 12px;
-    font-weight: 600;
-
-    &:hover {
-        background: rgba(var(--button-bg-rgb), 16%);
-        background: color-mix(in sRGB, var(--center-channel-bg), var(--center-channel-color) 16%);
-        color: rgba(var(--center-channel-color-rgb), 0.72);
-    }
-
-    &:focus-visible {
-        box-shadow: 0 0 0 2px var(--link-color) inset;
-        outline: none;
-    }
-
-    &:active,
-    &[aria-expanded="true"] {
-        background: rgba(var(--button-bg-rgb), 16%);
-        background: color-mix(in sRGB, var(--center-channel-bg), var(--button-bg) 16%);
-        color: rgb(var(--button-bg-rgb));
-    }
-
-    &.channelBookmarksDotMenuButton--overflow {
-        width: 28px;
-        height: 28px;
-        justify-content: center;
-        border-radius: 4px;
-    }
-}
-
 #bookmark-create-file-input,
 #bookmark-create-file-input-in-modal {
     display: none;

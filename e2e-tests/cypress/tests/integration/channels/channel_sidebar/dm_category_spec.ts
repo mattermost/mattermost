@@ -45,7 +45,7 @@ describe('MM-T3156 DM category', () => {
             cy.get('.SidebarChannelGroupHeader_addButton').click();
         });
         cy.get('#moreDmModal').should('be.visible');
-        cy.get('#moreDmModal .close').click();
+        cy.get('#moreDmModal').find('button[aria-label="Close"]').click();
     });
 
     it('MM-T3156_2 should order DMs based on recent interactions', () => {

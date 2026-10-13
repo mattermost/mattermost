@@ -51,6 +51,7 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
 
         const {container} = renderWithContext(
             <AbstractList
+                data={[]}
                 onPageChangedCallback={jest.fn()}
                 total={0}
                 header={header}

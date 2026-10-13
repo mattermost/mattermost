@@ -70,10 +70,10 @@ describe('components/channel_header/components/UserGuideDropdown', () => {
             <UserGuideDropdown {...baseProps}/>,
         );
 
-        // The button should not have the 'active' class initially
-        const button = container.querySelector('.HeaderIconButton');
+        // The button should not be pressed/expanded initially
+        const button = container.querySelector('button[aria-label="Help"]');
         expect(button).toBeInTheDocument();
-        expect(button).not.toHaveClass('active');
+        expect(button).toHaveAttribute('aria-expanded', 'false');
     });
 
     test('Should open keyboard shortcuts modal on click', async () => {

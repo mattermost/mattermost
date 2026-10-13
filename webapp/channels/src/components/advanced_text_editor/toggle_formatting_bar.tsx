@@ -5,11 +5,11 @@ import React, {memo, type JSX} from 'react';
 import {useIntl} from 'react-intl';
 
 import {ChevronDownIcon, ChevronUpIcon, FormatLetterCaseIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-
-import {IconContainer} from './formatting_bar/formatting_icon';
 
 interface ToggleFormattingBarProps {
     onClick: React.MouseEventHandler;
@@ -43,24 +43,31 @@ const ToggleFormattingBar = (props: ToggleFormattingBarProps): JSX.Element => {
         <WithTooltip
             title={title}
         >
-            <IconContainer
-                type='button'
+            <IconButton
                 id='toggleFormattingBarButton'
+                className='ToggleFormattingBarButton'
+                size='small'
                 onClick={onClick}
                 disabled={disabled}
                 aria-label={buttonAriaLabel}
-            >
-                <FormatLetterCaseIcon
-                    size={18}
-                    color={'currentColor'}
-                    aria-label={iconAriaLabel}
-                />
-                <ChevronIcon
-                    size={12}
-                    color={'currentColor'}
-                    aria-label={iconAriaLabel}
-                />
-            </IconContainer>
+                icon={
+                    <>
+                        <Icon
+                            glyph={
+                                <FormatLetterCaseIcon
+                                    color='currentColor'
+                                    aria-label={iconAriaLabel}
+                                />
+                            }
+                        />
+                        <ChevronIcon
+                            size={12}
+                            color='currentColor'
+                            aria-label={iconAriaLabel}
+                        />
+                    </>
+                }
+            />
         </WithTooltip>
     );
 };

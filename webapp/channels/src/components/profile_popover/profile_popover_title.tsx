@@ -5,6 +5,13 @@ import React, {useEffect, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {
+    CloseIcon,
+} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import {getChannelMember} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam, getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import {isGuest, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
@@ -144,14 +151,16 @@ const ProfilePopoverTitle = ({
                     size={'sm'}
                 />
             )}
-            <button
-                ref={closeRef}
-                className='btn btn-icon btn-sm closeButtonRelativePosition'
-                onClick={handleClose}
-                aria-label={formatMessage({id: 'user_profile.close', defaultMessage: 'Close user profile popover'})}
-            >
-                <i className='icon icon-close'/>
-            </button>
+            <WithTooltip title={formatMessage({id: 'user_profile.close', defaultMessage: 'Close user profile popover'})}>
+                <IconButton
+                    ref={closeRef}
+                    size='small'
+                    className='closeButtonRelativePosition'
+                    icon={<Icon glyph={<CloseIcon/>}/>}
+                    onClick={handleClose}
+                    aria-label={formatMessage({id: 'user_profile.close', defaultMessage: 'Close user profile popover'})}
+                />
+            </WithTooltip>
         </div>
     );
 };

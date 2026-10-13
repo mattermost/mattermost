@@ -19,7 +19,10 @@
     text-align: right;
 
     .backstage-footer__cell {
+        display: flex;
         width: 100%;
+        align-items: center;
+        justify-content: flex-end;
         text-align: right;
     }
 }

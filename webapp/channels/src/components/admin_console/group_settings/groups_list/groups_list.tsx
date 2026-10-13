@@ -1,11 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {type JSX} from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 
+import {
+    ChevronLeftIcon,
+    ChevronRightIcon,
+} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {GroupSearchOpts, MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -13,15 +19,13 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import GroupRow from 'components/admin_console/group_settings/group_row';
 import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
-import NextIcon from 'components/widgets/icons/fa_next_icon';
-import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 import SearchIcon from 'components/widgets/icons/search_icon';
 
 import {Constants} from 'utils/constants';
 
 const LDAP_GROUPS_PAGE_SIZE = 200;
 
-type Props = {
+type Props = WrappedComponentProps & {
     groups: MixedUnlinkedGroupRedux[];
     total: number;
     readOnly?: boolean;
@@ -71,7 +75,7 @@ const FILTER_STATE_SEARCH_KEY_MAPPING: FilterSearchMap = {
     filterIsUnlinked: {filter: 'is:notlinked', option: {is_linked: false}},
 };
 
-export default class GroupsList extends React.PureComponent<Props, State> {
+class GroupsList extends React.PureComponent<Props, State> {
     public static defaultProps: Partial<Props> = {
         groups: [],
     };
@@ -520,24 +524,24 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                                 }}
                             />
                         </div>
-                        <Button
-                            type='button'
-                            emphasis='tertiary'
-                            className={classNames({disabled: firstPage})}
-                            onClick={(e: any) => this.previousPage(e)}
-                            disabled={firstPage}
-                        >
-                            <PreviousIcon/>
-                        </Button>
-                        <Button
-                            type='button'
-                            emphasis='tertiary'
-                            className={classNames({disabled: lastPage})}
-                            onClick={(e: any) => this.nextPage(e)}
-                            disabled={lastPage}
-                        >
-                            <NextIcon/>
-                        </Button>
+                        <WithTooltip title={this.props.intl.formatMessage({id: 'adminConsole.list.table.pagination.previous', defaultMessage: 'Go to previous page'})}>
+                            <IconButton
+                                size='small'
+                                icon={<Icon glyph={<ChevronLeftIcon/>}/>}
+                                onClick={(e: any) => this.previousPage(e)}
+                                disabled={firstPage}
+                                aria-label={this.props.intl.formatMessage({id: 'adminConsole.list.table.pagination.previous', defaultMessage: 'Go to previous page'})}
+                            />
+                        </WithTooltip>
+                        <WithTooltip title={this.props.intl.formatMessage({id: 'adminConsole.list.table.pagination.next', defaultMessage: 'Go to next page'})}>
+                            <IconButton
+                                size='small'
+                                icon={<Icon glyph={<ChevronRightIcon/>}/>}
+                                onClick={(e: any) => this.nextPage(e)}
+                                disabled={lastPage}
+                                aria-label={this.props.intl.formatMessage({id: 'adminConsole.list.table.pagination.next', defaultMessage: 'Go to next page'})}
+                            />
+                        </WithTooltip>
                     </div>
                 }
             </div>
@@ -545,3 +549,4 @@ export default class GroupsList extends React.PureComponent<Props, State> {
     }
 }
 
+export default injectIntl(GroupsList);

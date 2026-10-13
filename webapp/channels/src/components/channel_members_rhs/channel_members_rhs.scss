@@ -108,22 +108,7 @@
 
     &__send-message {
         display: none;
-        width: 24px;
-        height: 24px;
-        padding: 0;
-        border: 0;
-        border-radius: 4px;
         margin-left: 8px;
-        background-color: transparent;
-
-        &:hover {
-            background-color: rgba(var(--center-channel-color-rgb), 0.12);
-        }
-
-        .icon {
-            color: rgba(var(--center-channel-color-rgb), 0.64);
-            font-size: 14.4px;
-        }
     }
 
     &__role-chooser {
