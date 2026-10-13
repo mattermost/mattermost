@@ -214,6 +214,7 @@ func testCreatePropertyFieldPermissions(t *testing.T, _ request.CTX, ss store.St
 	}
 
 	t.Run("should store one grants row per action in each grant's allow list", func(t *testing.T) {
+		userID := model.NewId()
 		field := &model.PropertyField{
 			GroupID:    model.NewId(),
 			Name:       "Field with grants",
@@ -227,7 +228,7 @@ func testCreatePropertyFieldPermissions(t *testing.T, _ request.CTX, ss store.St
 						Allow:    []string{model.PropertyActionValueWrite, model.PropertyActionOptionWrite},
 					},
 					{
-						Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: model.NewId()},
+						Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: userID},
 						Allow:    []string{model.PropertyActionValueRead},
 					},
 				},
@@ -250,7 +251,7 @@ func testCreatePropertyFieldPermissions(t *testing.T, _ request.CTX, ss store.St
 		require.ElementsMatch(t, []grantRow{
 			{Type: model.PropertyOwnerTypeRole, ID: "system_admin", Action: model.PropertyActionValueWrite},
 			{Type: model.PropertyOwnerTypeRole, ID: "system_admin", Action: model.PropertyActionOptionWrite},
-			{Type: model.PropertyOwnerTypeUser, ID: rows[2].ID, Action: model.PropertyActionValueRead},
+			{Type: model.PropertyOwnerTypeUser, ID: userID, Action: model.PropertyActionValueRead},
 		}, rows)
 	})
 
