@@ -581,7 +581,7 @@ exports[`components/integrations/EditOutgoingWebhook should match snapshot, load
       class="loading__content"
     >
       <span
-        class="LoadingSpinner with-text stacked"
+        class="LoadingSpinner with-text"
         data-testid="loadingSpinner"
         id="loadingSpinner"
       >
@@ -589,7 +589,7 @@ exports[`components/integrations/EditOutgoingWebhook should match snapshot, load
           aria-label="Loading Icon"
           class="_spinner_3elm7_10 spinner"
           role="status"
-          style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
+          style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
         />
         Loading
       </span>

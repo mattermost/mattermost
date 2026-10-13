@@ -78,7 +78,7 @@ exports[`components/ChannelMembersModal should match snapshot 1`] = `
               class="loading__content"
             >
               <span
-                class="LoadingSpinner with-text stacked"
+                class="LoadingSpinner with-text"
                 data-testid="loadingSpinner"
                 id="loadingSpinner"
               >
@@ -86,7 +86,7 @@ exports[`components/ChannelMembersModal should match snapshot 1`] = `
                   aria-label="Loading Icon"
                   class="_spinner_3elm7_10 spinner"
                   role="status"
-                  style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
+                  style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                 />
                 Loading
               </span>
@@ -171,7 +171,7 @@ exports[`components/ChannelMembersModal should match snapshot with archived chan
               class="loading__content"
             >
               <span
-                class="LoadingSpinner with-text stacked"
+                class="LoadingSpinner with-text"
                 data-testid="loadingSpinner"
                 id="loadingSpinner"
               >
@@ -179,7 +179,7 @@ exports[`components/ChannelMembersModal should match snapshot with archived chan
                   aria-label="Loading Icon"
                   class="_spinner_3elm7_10 spinner"
                   role="status"
-                  style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
+                  style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                 />
                 Loading
               </span>

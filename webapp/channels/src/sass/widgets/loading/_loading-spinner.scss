@@ -7,14 +7,5 @@
             flex-shrink: 0;
             margin-right: 5px;
         }
-
-        &.stacked {
-            flex-direction: column;
-
-            .spinner {
-                margin-right: 0;
-                margin-bottom: 8px;
-            }
-        }
     }
 }

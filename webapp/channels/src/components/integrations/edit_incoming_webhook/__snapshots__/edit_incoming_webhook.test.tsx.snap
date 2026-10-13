@@ -417,7 +417,7 @@ exports[`components/integrations/EditIncomingWebhook should not call getIncoming
       class="loading__content"
     >
       <span
-        class="LoadingSpinner with-text stacked"
+        class="LoadingSpinner with-text"
         data-testid="loadingSpinner"
         id="loadingSpinner"
       >
@@ -425,7 +425,7 @@ exports[`components/integrations/EditIncomingWebhook should not call getIncoming
           aria-label="Loading Icon"
           class="_spinner_3elm7_10 spinner"
           role="status"
-          style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
+          style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
         />
         Loading
       </span>
@@ -637,7 +637,7 @@ exports[`components/integrations/EditIncomingWebhook should show Loading screen 
       class="loading__content"
     >
       <span
-        class="LoadingSpinner with-text stacked"
+        class="LoadingSpinner with-text"
         data-testid="loadingSpinner"
         id="loadingSpinner"
       >
@@ -645,7 +645,7 @@ exports[`components/integrations/EditIncomingWebhook should show Loading screen 
           aria-label="Loading Icon"
           class="_spinner_3elm7_10 spinner"
           role="status"
-          style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
+          style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
         />
         Loading
       </span>

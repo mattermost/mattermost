@@ -30,7 +30,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
               class="loading__content"
             >
               <span
-                class="LoadingSpinner with-text stacked"
+                class="LoadingSpinner with-text"
                 data-testid="loadingSpinner"
                 id="loadingSpinner"
               >
@@ -38,7 +38,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
                   aria-label="Loading Icon"
                   class="_spinner_3elm7_10 spinner"
                   role="status"
-                  style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
+                  style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                 />
                 Loading
               </span>
@@ -390,7 +390,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
               class="loading__content"
             >
               <span
-                class="LoadingSpinner with-text stacked"
+                class="LoadingSpinner with-text"
                 data-testid="loadingSpinner"
                 id="loadingSpinner"
               >
@@ -398,7 +398,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
                   aria-label="Loading Icon"
                   class="_spinner_3elm7_10 spinner"
                   role="status"
-                  style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
+                  style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                 />
                 Loading
               </span>
@@ -750,7 +750,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
               class="loading__content"
             >
               <span
-                class="LoadingSpinner with-text stacked"
+                class="LoadingSpinner with-text"
                 data-testid="loadingSpinner"
                 id="loadingSpinner"
               >
@@ -758,7 +758,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
                   aria-label="Loading Icon"
                   class="_spinner_3elm7_10 spinner"
                   role="status"
-                  style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
+                  style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                 />
                 Loading
               </span>
@@ -1110,7 +1110,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
               class="loading__content"
             >
               <span
-                class="LoadingSpinner with-text stacked"
+                class="LoadingSpinner with-text"
                 data-testid="loadingSpinner"
                 id="loadingSpinner"
               >
@@ -1118,7 +1118,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
                   aria-label="Loading Icon"
                   class="_spinner_3elm7_10 spinner"
                   role="status"
-                  style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
+                  style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                 />
                 Loading
               </span>

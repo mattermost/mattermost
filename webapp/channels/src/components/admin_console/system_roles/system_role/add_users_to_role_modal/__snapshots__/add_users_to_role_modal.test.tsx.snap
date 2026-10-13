@@ -159,7 +159,7 @@ exports[`admin_console/add_users_to_role_modal search should not include bot use
                     class="loading__content"
                   >
                     <span
-                      class="LoadingSpinner with-text stacked"
+                      class="LoadingSpinner with-text"
                       data-testid="loadingSpinner"
                       id="loadingSpinner"
                     >
@@ -167,7 +167,7 @@ exports[`admin_console/add_users_to_role_modal search should not include bot use
                         aria-label="Loading Icon"
                         class="_spinner_3elm7_10 spinner"
                         role="status"
-                        style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
+                        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                       />
                       Loading
                     </span>
@@ -346,7 +346,7 @@ exports[`admin_console/add_users_to_role_modal should exclude user 1`] = `
                     class="loading__content"
                   >
                     <span
-                      class="LoadingSpinner with-text stacked"
+                      class="LoadingSpinner with-text"
                       data-testid="loadingSpinner"
                       id="loadingSpinner"
                     >
@@ -354,7 +354,7 @@ exports[`admin_console/add_users_to_role_modal should exclude user 1`] = `
                         aria-label="Loading Icon"
                         class="_spinner_3elm7_10 spinner"
                         role="status"
-                        style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
+                        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                       />
                       Loading
                     </span>
@@ -533,7 +533,7 @@ exports[`admin_console/add_users_to_role_modal should have single passed value 1
                     class="loading__content"
                   >
                     <span
-                      class="LoadingSpinner with-text stacked"
+                      class="LoadingSpinner with-text"
                       data-testid="loadingSpinner"
                       id="loadingSpinner"
                     >
@@ -541,7 +541,7 @@ exports[`admin_console/add_users_to_role_modal should have single passed value 1
                         aria-label="Loading Icon"
                         class="_spinner_3elm7_10 spinner"
                         role="status"
-                        style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
+                        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                       />
                       Loading
                     </span>
@@ -720,7 +720,7 @@ exports[`admin_console/add_users_to_role_modal should include additional user 1`
                     class="loading__content"
                   >
                     <span
-                      class="LoadingSpinner with-text stacked"
+                      class="LoadingSpinner with-text"
                       data-testid="loadingSpinner"
                       id="loadingSpinner"
                     >
@@ -728,7 +728,7 @@ exports[`admin_console/add_users_to_role_modal should include additional user 1`
                         aria-label="Loading Icon"
                         class="_spinner_3elm7_10 spinner"
                         role="status"
-                        style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
+                        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                       />
                       Loading
                     </span>
@@ -907,7 +907,7 @@ exports[`admin_console/add_users_to_role_modal should not include bot user 1`] =
                     class="loading__content"
                   >
                     <span
-                      class="LoadingSpinner with-text stacked"
+                      class="LoadingSpinner with-text"
                       data-testid="loadingSpinner"
                       id="loadingSpinner"
                     >
@@ -915,7 +915,7 @@ exports[`admin_console/add_users_to_role_modal should not include bot user 1`] =
                         aria-label="Loading Icon"
                         class="_spinner_3elm7_10 spinner"
                         role="status"
-                        style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
+                        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                       />
                       Loading
                     </span>
