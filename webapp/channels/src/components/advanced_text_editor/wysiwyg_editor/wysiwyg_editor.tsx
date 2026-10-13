@@ -251,7 +251,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             defaultLanguage: 'plaintext',
             HTMLAttributes: {class: 'hljs'},
         }),
-        Link.configure({
+        Link.extend({inclusive: () => false}).configure({
             openOnClick: false,
             autolink: true,
             linkOnPaste: true,

@@ -98,6 +98,17 @@ describe('WysiwygEditor interactions', () => {
         expect(editor.getHTML()).toContain('<p>[ ] todo</p>');
     });
 
+    test('text typed after a link is not part of the link', () => {
+        const {editor} = renderEditor('');
+        act(() => {
+            editor.commands.insertContent({type: 'text', text: 'https://mattermost.com', marks: [{type: 'link', attrs: {href: 'https://mattermost.com'}}]});
+        });
+
+        typeText(editor, ' hello');
+
+        expect(editor.getHTML()).toMatch(/https:\/\/mattermost\.com<\/a> hello<\/p>/);
+    });
+
     describe('switching channels', () => {
         const switchTo = (rerender: (ui: React.ReactElement) => void, ref: React.RefObject<WysiwygEditorHandle | null>, value: string, channelId: string) => {
             rerender(
