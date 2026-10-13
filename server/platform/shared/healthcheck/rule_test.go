@@ -31,7 +31,7 @@ func validRule(code string) Rule {
 		Code:       code,
 		Area:       model.AreaPlatform,
 		Severity:   SeverityWarning,
-		RuleText:   model.RuleText{SummaryID: "health.rule." + strings.ToLower(code) + ".summary", RemediationID: "health.rule." + strings.ToLower(code) + ".remediation"},
+		RuleText:   model.RuleText{TitleID: "health.rule." + strings.ToLower(code) + ".title", RemediationID: "health.rule." + strings.ToLower(code) + ".remediation"},
 		Surface:    SurfaceProduct,
 		Volatility: VolatilityStable,
 		Subject:    "ServiceSettings.SiteURL",

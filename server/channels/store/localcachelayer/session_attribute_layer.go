@@ -5,7 +5,9 @@ package localcachelayer
 
 import (
 	"bytes"
+	"errors"
 	"maps"
+	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -16,6 +18,7 @@ import (
 type sessionAttributeEntry struct {
 	Attrs      map[string]any
 	Timestamps map[string]int64
+	ChangedAt  int64
 }
 
 type LocalCacheSessionAttributeStore struct {
@@ -51,11 +54,17 @@ func (s *LocalCacheSessionAttributeStore) Refresh(sessionID string, attrs map[st
 	if err := s.rootStore.doStandardReadCache(s.rootStore.sessionAttributeCache, sessionID, &existing); err == nil && existing != nil {
 		maps.Copy(entry.Attrs, existing.Attrs)
 		maps.Copy(entry.Timestamps, existing.Timestamps)
+		entry.ChangedAt = existing.ChangedAt
 	}
 
 	for key, value := range attrs {
 		if entry.Timestamps[key] > updatedAt {
 			continue
+		}
+		// only update the changed at timestamp if the value has changed
+		// so that we don't refresh the other caches unnecessarily
+		if existingValue, ok := entry.Attrs[key]; !ok || existingValue != value {
+			entry.ChangedAt = updatedAt
 		}
 		entry.Attrs[key] = value
 		entry.Timestamps[key] = updatedAt
@@ -86,4 +95,19 @@ func (s *LocalCacheSessionAttributeStore) Get(sessionID string) (map[string]any,
 	}
 
 	return entry.Attrs, entry.Timestamps, nil
+}
+
+func (s *LocalCacheSessionAttributeStore) GetEpoch(sessionID string) (string, error) {
+	var entry *sessionAttributeEntry
+	if err := s.rootStore.doStandardReadCache(s.rootStore.sessionAttributeCache, sessionID, &entry); err != nil {
+		if errors.Is(err, cache.ErrKeyNotFound) {
+			return "0", nil
+		}
+		return "", err
+	}
+	if entry == nil {
+		return "0", nil
+	}
+
+	return strconv.FormatInt(entry.ChangedAt, 10), nil
 }

@@ -1,0 +1,475 @@
+{
+  "Mattermost": {
+    "target": "Mattermost",
+    "note": "Inflect with a hyphen/colon only when unavoidable: 'Mattermostin', 'Mattermostissa' are fine as the name ends in a consonant."
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition"
+  },
+  "Team Edition": {
+    "target": "Team Edition",
+    "note": "Legacy catalog has 'Joukkuemuunnelma' / 'Yritysmuunnelma' in about.* — do not follow; edition names stay in English."
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud",
+    "note": "Legacy about.cloudEdition has 'Pilvi'; the product name stays in English."
+  },
+  "Channels": {
+    "target": "Channels",
+    "note": "As a product name keep English. The common noun 'channels' is 'kanavat'."
+  },
+  "Playbooks": {
+    "target": "Playbooks"
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls",
+    "note": "Product name stays English; the common noun 'call' is 'puhelu'."
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth",
+    "note": "Compound with a hyphen: 'OAuth 2.0 -sovellus', 'OAuth-sovellus'."
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP",
+    "note": "'AD/LDAP' stays as-is; compound with a hyphen: 'AD/LDAP-käyttäjänimi'."
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA",
+    "note": "Spelled out, the catalog uses 'monivaiheinen tunnistautuminen' (admin) and 'kaksivaiheinen tunnistautuminen' (user settings); prefer 'monivaiheinen tunnistautuminen'."
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID",
+    "note": "Legacy login.office365 has 'Entra-tunnus' — do not follow."
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Gossip": {
+    "target": "Gossip",
+    "note": "Protocol name; never render literally as 'juoru'."
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay",
+    "note": "Compound with a hyphen: 'Global Relay -palvelin', 'Global Relay EML -vienti'."
+  },
+  "System Console": {
+    "target": "Järjestelmäkonsoli",
+    "note": "Established rendering (järjestelmäkonsoli, järjestelmäkonsoliin). Capitalize as a named UI area in menu labels."
+  },
+  "marketplace": {
+    "target": "Markkinapaikka",
+    "note": "Plugin marketplace. Not in the existing catalog yet; 'lisäosien markkinapaikka' when context is needed."
+  },
+  "channel": {
+    "target": "kanava",
+    "note": "Plural 'kanavat'. The catalog uses both 'kanavalle/kanavalta' and 'kanavaan/kanavasta'; prefer the inner cases 'kanavaan', 'kanavassa', 'kanavasta' except in established 'Poistu kanavalta' / 'Kiinnitä kanavaan'."
+  },
+  "team": {
+    "target": "tiimi",
+    "note": "Majority rendering (60 vs 40). The older strings use 'joukkue' (joukkueeseen, joukkueen) — do not reintroduce. Compounds: tiimin jäsenet, tiimin nimi."
+  },
+  "post": {
+    "target": "viesti",
+    "note": "Same as message; 'julkaisu' is not used."
+  },
+  "message": {
+    "target": "viesti",
+    "note": "Plural 'viestit'. Compounds: viestilaatikko, järjestelmäviesti."
+  },
+  "thread": {
+    "target": "ketju",
+    "note": "Plural 'ketjut'; the Threads view is 'Ketjut'. 'Viestiketju' is acceptable when a bare 'ketju' would be unclear. Never 'säie'."
+  },
+  "reply": {
+    "target": "vastaus",
+    "note": "Noun: vastaus, plural vastaukset. Verb: vastata; button 'Vastaa'."
+  },
+  "direct message": {
+    "target": "suoraviesti",
+    "note": "Established (17). Plural 'suoraviestit'. Keep the DM abbreviation as-is."
+  },
+  "group message": {
+    "target": "ryhmäviesti",
+    "note": "Plural 'ryhmäviestit'. Keep the GM abbreviation as-is."
+  },
+  "mention": {
+    "target": "maininta",
+    "note": "Noun: maininta, plural maininnat. Verb: mainita. '@mention' → '@-maininta'."
+  },
+  "notification": {
+    "target": "ilmoitus",
+    "note": "Plural 'ilmoitukset'. Compounds: sähköposti-ilmoitukset, työpöytäilmoitukset, push-ilmoitukset."
+  },
+  "pin": {
+    "target": "kiinnittää",
+    "note": "Button 'Kiinnitä kanavaan'; pinned = 'Kiinnitetty', pinned messages = 'Kiinnitetyt viestit'; unpin = 'Poista kiinnitys'."
+  },
+  "bookmark": {
+    "target": "kirjanmerkki",
+    "note": "Plural 'kirjanmerkit' (established in server catalog). Verb: 'Lisää kirjanmerkki'."
+  },
+  "saved messages": {
+    "target": "Tallennetut viestit",
+    "note": "save = 'Tallenna', unsave = 'Poista tallennus'."
+  },
+  "draft": {
+    "target": "luonnos",
+    "note": "Plural 'luonnokset'; Drafts view = 'Luonnokset'."
+  },
+  "scheduled post": {
+    "target": "ajoitettu viesti",
+    "note": "Plural 'ajoitetut viestit'. Verb 'schedule' = 'ajoita'."
+  },
+  "emoji": {
+    "target": "emoji",
+    "note": "Established (99 vs 2 'hymiö'). Plural 'emojit'; do not use 'hymiö'."
+  },
+  "custom emoji": {
+    "target": "mukautettu emoji",
+    "note": "Plural 'mukautetut emojit'. The catalog also has 'Omat Emojit' in admin strings; prefer 'mukautettu emoji' (matches emoji_picker.custom 'Mukautettu')."
+  },
+  "reaction": {
+    "target": "reaktio",
+    "note": "Verb 'react' = reagoida; 'Add reaction' = 'Lisää reaktio'."
+  },
+  "status": {
+    "target": "tila",
+    "note": "Availability status; 'Aseta tila'."
+  },
+  "custom status": {
+    "target": "mukautettu tila"
+  },
+  "do not disturb": {
+    "target": "Älä häiritse",
+    "note": "Keep the DND abbreviation as-is."
+  },
+  "away": {
+    "target": "Poissa",
+    "note": "Established status label (modal.manual_status.title_away). Lowercase 'poissa' in sentences."
+  },
+  "online": {
+    "target": "Paikalla",
+    "note": "Use for the availability status; in prose 'verkossa' is acceptable."
+  },
+  "offline": {
+    "target": "Offline",
+    "note": "Loanword used in Finnish UIs and in the existing catalog ('kun olet offline'). Legacy 'Ei-verkkotilassa' (modal.manual_status) is awkward — do not follow. Compound: 'offline-tila'."
+  },
+  "out of office": {
+    "target": "Poissa toimistolta",
+    "note": "Established status label."
+  },
+  "guest": {
+    "target": "vieras",
+    "note": "Plural 'vieraat'. Guest access = vieraskäyttö; guest account = vierastili."
+  },
+  "member": {
+    "target": "jäsen",
+    "note": "Plural 'jäsenet'. Compounds: kanavan jäsenet, tiimin jäsenet."
+  },
+  "user": {
+    "target": "käyttäjä",
+    "note": "Plural 'käyttäjät'."
+  },
+  "system admin": {
+    "target": "järjestelmänvalvoja",
+    "note": "Established (majority). Plural 'järjestelmänvalvojat'. Avoid 'pääkäyttäjä' (one legacy string)."
+  },
+  "team admin": {
+    "target": "tiimin ylläpitäjä",
+    "note": "Catalog mixes 'tiimin valvoja' and 'joukkueen järjestelmänvalvoja'; prefer 'tiimin ylläpitäjä' so it is distinct from 'järjestelmänvalvoja'."
+  },
+  "channel admin": {
+    "target": "kanavan ylläpitäjä"
+  },
+  "session": {
+    "target": "istunto",
+    "note": "Plural 'istunnot'."
+  },
+  "sign in": {
+    "target": "kirjautua sisään",
+    "note": "Button 'Kirjaudu sisään'; noun 'kirjautuminen'. Translate 'sign in' and 'log in' identically."
+  },
+  "sign out": {
+    "target": "kirjautua ulos",
+    "note": "Button 'Kirjaudu ulos'. Translate 'sign out' and 'log out' identically."
+  },
+  "join": {
+    "target": "liittyä",
+    "note": "Button 'Liity'; 'Liity kanavaan', 'joined the channel' = 'liittyi kanavaan'."
+  },
+  "leave": {
+    "target": "poistua",
+    "note": "Button 'Poistu kanavalta' / 'Poistu tiimistä' (established)."
+  },
+  "archive": {
+    "target": "arkistoida",
+    "note": "Button 'Arkistoi kanava'; 'archived' = arkistoitu, 'Archived channels' = 'Arkistoidut kanavat'."
+  },
+  "unarchive": {
+    "target": "palauttaa arkistosta",
+    "note": "Button 'Palauta arkistoitu kanava' (channel_header.unarchive)."
+  },
+  "mute": {
+    "target": "mykistää",
+    "note": "Button 'Mykistä kanava'; muted = 'mykistetty'; unmute = 'Poista mykistys' (established)."
+  },
+  "follow": {
+    "target": "seurata",
+    "note": "Button 'Seuraa ketjua'; 'following' = 'Seurataan'."
+  },
+  "unfollow": {
+    "target": "lopettaa seuraaminen",
+    "note": "Button 'Lopeta seuraaminen'."
+  },
+  "favorite": {
+    "target": "suosikki",
+    "note": "Plural 'suosikit'; sidebar category 'Suosikit'. Verb: 'Lisää suosikkeihin'; unfavorite: 'Poista suosikeista' (established)."
+  },
+  "search": {
+    "target": "haku",
+    "note": "Noun 'haku'; verb 'hakea'. The search button/label is 'Etsi' in the existing catalog (channel_header.search, accessibility); keep 'Etsi' for buttons, 'Hae' is also acceptable."
+  },
+  "integration": {
+    "target": "integraatio",
+    "note": "Plural 'integraatiot'."
+  },
+  "slash command": {
+    "target": "kauttaviivakomento",
+    "note": "Catalog mixes 'kauttaviivakomento' and 'slash-komento'; prefer 'kauttaviivakomento'. Plural 'kauttaviivakomennot'."
+  },
+  "webhook": {
+    "target": "webhook",
+    "note": "Kept in English (115 occurrences); 'web-koukku' appears once — do not follow. Inflect: webhookin, webhookit. Compound with a hyphen: webhook-URL."
+  },
+  "incoming webhook": {
+    "target": "saapuva webhook",
+    "note": "Plural 'saapuvat webhookit'."
+  },
+  "outgoing webhook": {
+    "target": "lähtevä webhook",
+    "note": "Plural 'lähtevät webhookit'."
+  },
+  "trigger word": {
+    "target": "laukaisusana",
+    "note": "Established (9). Plural 'laukaisusanat'."
+  },
+  "plugin": {
+    "target": "lisäosa",
+    "note": "Established (11). Plural 'lisäosat'; not 'laajennus' or 'liitännäinen'."
+  },
+  "bot": {
+    "target": "botti",
+    "note": "Plural 'botit'. Bot account = bottitili."
+  },
+  "role": {
+    "target": "rooli",
+    "note": "Plural 'roolit'."
+  },
+  "permission": {
+    "target": "käyttöoikeus",
+    "note": "Plural 'käyttöoikeudet'. Avoid 'lupa' (one legacy string)."
+  },
+  "scheme": {
+    "target": "malli",
+    "note": "Permission scheme = 'käyttöoikeusmalli', team override scheme = 'tiimin ohitusmalli'. The catalog mixes 'kaava', 'järjestely', 'suunnitelma' and 'malli'; prefer 'malli'."
+  },
+  "license": {
+    "target": "lisenssi",
+    "note": "'licensed' = lisensoitu; license key = lisenssiavain."
+  },
+  "seat": {
+    "target": "käyttäjäpaikka",
+    "note": "Plural 'käyttäjäpaikat'."
+  },
+  "trial": {
+    "target": "kokeilujakso",
+    "note": "'Start trial' = 'Aloita kokeilujakso'; 'trial license' = 'kokeilulisenssi'."
+  },
+  "workspace": {
+    "target": "työtila",
+    "note": "Plural 'työtilat'."
+  },
+  "subscription": {
+    "target": "tilaus"
+  },
+  "deactivate": {
+    "target": "deaktivoida",
+    "note": "Established (10). Button 'Deaktivoi'; 'deactivated' = deaktivoitu. 'reactivate' = aktivoida uudelleen."
+  },
+  "invite": {
+    "target": "kutsua",
+    "note": "Button 'Kutsu'; noun = kutsu."
+  },
+  "invitation": {
+    "target": "kutsu",
+    "note": "Plural 'kutsut'."
+  },
+  "sidebar": {
+    "target": "sivupalkki",
+    "note": "Established. The right-hand side panel may be 'oikea sivupaneeli'."
+  },
+  "unread": {
+    "target": "lukematon",
+    "note": "Plural 'lukemattomat'. 'Unreads' filter = 'Lukemattomat'."
+  },
+  "attachment": {
+    "target": "liite",
+    "note": "Plural 'liitteet'. 'liitetiedosto' is fine in prose when the attachment is a file."
+  },
+  "public channel": {
+    "target": "julkinen kanava",
+    "note": "Plural 'julkiset kanavat'."
+  },
+  "private channel": {
+    "target": "yksityinen kanava",
+    "note": "Plural 'yksityiset kanavat'."
+  },
+  "shared channel": {
+    "target": "jaettu kanava",
+    "note": "Plural 'jaetut kanavat'."
+  },
+  "channel header": {
+    "target": "kanavan otsikko",
+    "note": "Established in edit_channel_header_modal. Bare 'header' = otsikko. Do not use 'ylätunniste' (appears in a few accessibility strings)."
+  },
+  "channel purpose": {
+    "target": "kanavan tarkoitus",
+    "note": "Bare 'purpose' = tarkoitus."
+  },
+  "system message": {
+    "target": "järjestelmäviesti",
+    "note": "Plural 'järjestelmäviestit'."
+  },
+  "persistent notification": {
+    "target": "pysyvä ilmoitus",
+    "note": "Plural 'pysyvät ilmoitukset'."
+  },
+  "message priority": {
+    "target": "viestin prioriteetti"
+  },
+  "urgent": {
+    "target": "Kiireellinen",
+    "note": "Priority label; 'Important' = 'Tärkeä', 'Standard' = 'Normaali'."
+  },
+  "recap": {
+    "target": "kooste",
+    "note": "AI-generated activity recap. Plural 'koosteet'. Use 'yhteenveto' for the generic 'summary'."
+  },
+  "agent": {
+    "target": "agentti",
+    "note": "AI assistant. Plural 'agentit'; 'AI agent' = 'tekoälyagentti'. The product name 'Agents' stays English."
+  },
+  "burn-on-read": {
+    "target": "luettaessa tuhoutuva",
+    "note": "Adjective; the message label is 'TUHOUTUU LUETTAESSA' and the message type 'luettaessa tuhoutuva viesti'."
+  },
+  "magic link": {
+    "target": "taikalinkki",
+    "note": "Plural 'taikalinkit'."
+  },
+  "personal access token": {
+    "target": "henkilökohtainen käyttöoikeustunnus",
+    "note": "Plural 'henkilökohtaiset käyttöoikeustunnukset'. One legacy string has 'access token' in English — do not follow. Bare 'token' = tunnus."
+  },
+  "announcement banner": {
+    "target": "ilmoitusbanneri",
+    "note": "Established (admin.customization.announcement). Bare 'banner' = banneri."
+  },
+  "channel banner": {
+    "target": "kanavabanneri"
+  },
+  "keyword": {
+    "target": "avainsana",
+    "note": "Plural 'avainsanat' (established)."
+  },
+  "user group": {
+    "target": "käyttäjäryhmä",
+    "note": "Plural 'käyttäjäryhmät'. Bare 'group' = ryhmä."
+  },
+  "permalink": {
+    "target": "pysyvä linkki",
+    "note": "Menu item 'Copy link' is 'Kopioi linkki' (established)."
+  },
+  "profile": {
+    "target": "profiili",
+    "note": "Profile picture = profiilikuva."
+  },
+  "username": {
+    "target": "käyttäjänimi",
+    "note": "Established."
+  },
+  "nickname": {
+    "target": "kutsumanimi",
+    "note": "Established (user.settings.general.nickname)."
+  },
+  "display name": {
+    "target": "näyttönimi",
+    "note": "Established."
+  },
+  "collapsed reply threads": {
+    "target": "Tiivistetyt vastausketjut",
+    "note": "Feature name; not in the existing catalog yet. 'vastausketju' is used for reply threads in notification settings."
+  },
+  "auto-translation": {
+    "target": "automaattinen käännös",
+    "note": "'auto-translated' = 'automaattisesti käännetty'; label 'AUTOMAATTISESTI KÄÄNNETTY'."
+  },
+  "data retention": {
+    "target": "tietojen säilytys",
+    "note": "Policy = 'tietojen säilytyskäytäntö' (legacy has the solid compound 'tietojensäilytyskäytäntö'; either is acceptable, prefer the two-word form)."
+  },
+  "compliance export": {
+    "target": "vaatimustenmukaisuusvienti",
+    "note": "The one legacy string has 'compliance-vienti'; prefer the Finnish term. 'Compliance' alone = vaatimustenmukaisuus."
+  },
+  "access control": {
+    "target": "pääsynhallinta",
+    "note": "Attribute-based access control = 'attribuuttipohjainen pääsynhallinta'; policy = käytäntö."
+  },
+  "attribute": {
+    "target": "attribuutti",
+    "note": "Established in LDAP strings. Plural 'attribuutit'. Custom profile attribute = 'mukautettu profiiliattribuutti'."
+  },
+  "onboarding": {
+    "target": "perehdytys",
+    "note": "Not in the existing catalog yet; 'käyttöönotto' only for server/admin setup contexts."
+  },
+  "Town Square": {
+    "target": "Kaupungin aukio",
+    "note": "Established default-channel name in server i18n (api.channel.create_default_channels.town_square). Legacy webapp string has lowercase 'town-square' — do not follow."
+  },
+  "Off-Topic": {
+    "target": "Aiheen ulkopuolella",
+    "note": "Established default-channel name in server i18n (api.channel.create_default_channels.off_topic)."
+  },
+  "read-only": {
+    "target": "vain luku",
+    "note": "Adjective form 'vain luku -tilassa oleva kanava' or 'kirjoitussuojattu kanava'; prefer 'vain luku -kanava'."
+  },
+  "server": {
+    "target": "palvelin",
+    "note": "Plural 'palvelimet'."
+  }
+}

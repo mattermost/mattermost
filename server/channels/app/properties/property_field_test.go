@@ -933,6 +933,41 @@ func TestLinkedPropertyFields(t *testing.T) {
 		assert.Equal(t, "saml", model.GetPropertyFieldSyncSource(samlLinked))
 	})
 
+	t.Run("create linked field does not copy ldap/saml attrs to non-user object types", func(t *testing.T) {
+		// A template with both ldap and saml attrs set.
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "SyncSourceNonUser-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrLDAP: "sAMAccountName",
+				model.PropertyFieldAttrSAML: "employeeID",
+			},
+		})
+
+		for _, objectType := range []string{
+			model.PropertyFieldObjectTypeChannel,
+			model.PropertyFieldObjectTypePost,
+		} {
+			t.Run(objectType, func(t *testing.T) {
+				linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+					GroupID:       group.ID,
+					ObjectType:    objectType,
+					TargetType:    string(model.PropertyFieldTargetLevelSystem),
+					Name:          "SyncLinked-" + objectType + "-" + model.NewId(),
+					Type:          model.PropertyFieldTypeText,
+					LinkedFieldID: &source.ID,
+				})
+				require.NoError(t, err)
+				assert.Empty(t, linked.Attrs[model.PropertyFieldAttrLDAP], "ldap attr must not be copied to %s field", objectType)
+				assert.Empty(t, linked.Attrs[model.PropertyFieldAttrSAML], "saml attr must not be copied to %s field", objectType)
+				assert.Equal(t, "", model.GetPropertyFieldSyncSource(linked))
+			})
+		}
+	})
+
 	t.Run("create linked field inherits source permission values when the caller sends none", func(t *testing.T) {
 		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:          group.ID,

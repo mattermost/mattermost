@@ -1020,7 +1020,15 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         const fieldBody = (
             <>
                 {field.type === 'graph' ? (
-                    <label htmlFor={`cpa-graph-button-${field.id}`}>
+                    <label
+                        htmlFor={`cpa-graph-button-${field.id}`}
+                        onClick={() => {
+                            // Graph Menu triggers are <div role="button"> so chip
+                            // removes can be real buttons. Divs are not labelable,
+                            // so htmlFor alone does not open the menu — click it.
+                            document.getElementById(`cpa-graph-button-${field.id}`)?.click();
+                        }}
+                    >
                         {fieldName}
                     </label>
                 ) : fieldName}
@@ -1032,9 +1040,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             </>
         );
 
-        // A graph picker is a button with chip-remove controls inside it. Wrapping
-        // that in <label> forwards chip clicks to the trigger, so the X opens the
-        // menu instead of removing the value. Point the name at the trigger instead.
+        // A graph picker is a div trigger with chip-remove buttons inside it.
+        // Wrapping that in <label> forwards chip clicks to the trigger, so the X
+        // opens the menu instead of removing the value. Point the name at the
+        // trigger instead (with a click forwarder — divs are not labelable).
         if (field.type === 'graph') {
             return (
                 <div

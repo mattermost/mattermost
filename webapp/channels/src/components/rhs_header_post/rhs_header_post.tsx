@@ -9,6 +9,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 
 import ChannelAttributeLabels from 'components/channel_attributes/channel_attribute_labels';
+import {ChannelLabelSurface} from 'components/common/hooks/useChannelLabels';
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
@@ -205,7 +206,7 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                     }
                     <ChannelAttributeLabels
                         channelId={this.props.channel.id}
-                        surface={['info', 'header']}
+                        surface={[ChannelLabelSurface.INFO, ChannelLabelSurface.HEADER]}
                         allowEmptyVisible={true}
                     />
                 </div>

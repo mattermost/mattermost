@@ -66,6 +66,7 @@ export default class ChannelsPage {
     readonly userGroupsModal;
     readonly leaveTeamModal;
     readonly archivedChannelMessage;
+    readonly switchProductMenu;
 
     readonly postContainer;
     readonly channelMenu;
@@ -138,6 +139,7 @@ export default class ChannelsPage {
         this.userAccountMenu = new components.UserAccountMenu(page.locator('#userAccountMenu'));
         this.scheduleMessageMenu = new components.ScheduleMessageMenu(page.locator('#dropdown_send_post_options'));
         this.teamMenu = new components.TeamMenu(page.locator('#sidebarTeamMenu'));
+        this.switchProductMenu = new components.SwitchProductMenu(page.locator('#switchProductMenu'));
 
         // Popovers
         this.emojiGifPickerPopup = new components.EmojiGifPicker(page.locator('#emojiGifPicker'));
@@ -502,6 +504,18 @@ export default class ChannelsPage {
         return popover;
     }
 
+    async openScheduleMessageModal() {
+        await expect(this.centerView.postCreate.scheduleMessageButton).toBeVisible();
+        await this.centerView.postCreate.scheduleMessageButton.click();
+
+        await this.scheduleMessageMenu.toBeVisible();
+        await this.scheduleMessageMenu.selectCustomTime();
+
+        await this.scheduleMessageModal.toBeVisible();
+
+        return this.scheduleMessageModal;
+    }
+
     async scheduleMessage(
         message: string,
         dayFromToday: number = 0,
@@ -510,13 +524,9 @@ export default class ChannelsPage {
     ) {
         await this.centerView.postCreate.writeMessage(message);
 
-        await expect(this.centerView.postCreate.scheduleMessageButton).toBeVisible();
-        await this.centerView.postCreate.scheduleMessageButton.click();
+        const scheduleMessageModal = await this.openScheduleMessageModal();
 
-        await this.scheduleMessageMenu.toBeVisible();
-        await this.scheduleMessageMenu.selectCustomTime();
-
-        return this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex, repeatWeekly);
+        return scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex, repeatWeekly);
     }
 
     async scheduleMessageFromThread(

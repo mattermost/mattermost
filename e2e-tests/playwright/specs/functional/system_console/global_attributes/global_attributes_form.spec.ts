@@ -8,7 +8,7 @@
  * Local runs: upload or use a license with SkuShortName `enterprise`, `entry`, or `advanced`.
  */
 
-import type {Page} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 import type {PropertyField} from '@mattermost/types/properties';
 
 import {expect, test} from '@mattermost/playwright-lib';
@@ -39,6 +39,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * that shows up back in the Attribute Management list.
          */
         test('creates a bare Text attribute via the New attribute page and shows it in the list', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             // Avoids an "E2E" prefix: slugifyForCEL's camelCase/digit-boundary regex
@@ -103,6 +104,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         test('shows an inline error and does not navigate away when the auto-derived Name is a reserved word', async ({
             pw,
         }) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
             // # Log in and open the Attribute Management page
@@ -133,6 +135,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         test('blocks Done, Enter, and blur while the manual Unique name is a reserved word, then commits once corrected', async ({
             pw,
         }) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -245,6 +248,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * Escape (which discards), without ever having to fix the value first.
          */
         test('leaves both escape hatches open when the manual Unique name is invalid', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -302,6 +306,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * Display name changes no longer rewrite it. Mirrors the channel URL field in create/settings.
          */
         test('treats clicking away from Unique name as Done: no-op keeps derivation, an edit pins', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -358,6 +363,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * and the saved attribute shows the correct type/option count back in the list.
          */
         test('creates a Select attribute with two options via the options editor', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -414,6 +420,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * attribute shows the correct type/option count in the list.
          */
         test('creates a Rank attribute, reorders an option via the Rank popover, and saves', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -480,6 +487,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         test('type menu lists Text, Phone, URL, Select, Multiselect, and Ranked, with Text checked and Email hidden', async ({
             pw,
         }) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -517,6 +525,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
              * subtype rather than Text.
              */
             test(`creates a ${uiType} attribute as type text with attrs.value_type ${valueType}`, async ({pw}) => {
+                await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
                 const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
                 const timestamp = Date.now();
@@ -568,6 +577,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * discarding them, per the ticket's "freely switch types" requirement.
          */
         test('preserves already-entered options when switching type away and back', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -601,6 +611,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * value with no further changes needed on that page.
          */
         test('creates a Text attribute linked to AD/LDAP via the external source picker', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -658,6 +669,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         test('links both AD/LDAP and SAML, excludes an already-linked source from the menu, and shows the linked value in each chip', async ({
             pw,
         }) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -721,12 +733,104 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         });
 
         /**
+         * @objective Ensure changing a template's AD/LDAP sync source on Save also updates the
+         * already-linked Users field. LDAP sync reads attrs.ldap on the Users field (copied only
+         * at create), so a template-only edit would otherwise leave sync on the stale mapping.
+         */
+        test('cascades an edited AD/LDAP sync source onto an already-linked Users field on Save', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_sync_cascade_${timestamp}`;
+            const displayName = `Playwright Sync Cascade ${timestamp}`;
+
+            try {
+                const template = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName, ldap: 'oldDept'},
+                });
+                await createLinkedDependentField(adminClient, name, template.id, 'text', 'user', {
+                    display_name: displayName,
+                });
+
+                // * Create copied ldap onto the Users field (the sync mapping LDAP actually reads)
+                let linkedFields = await fetchLinkedFieldsForTemplate(adminClient, template.id);
+                let userField = linkedFields.find((f) => f.object_type === 'user');
+                expect(userField?.attrs?.ldap).toBe('oldDept');
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}/attribute_details/${template.id}`);
+
+                // # Edit the AD/LDAP chip to a new directory attribute and save
+                await page.getByTestId('attributeExternalSourceChip-ldap-edit').click();
+                const input = page.getByPlaceholder('department');
+                await expect(input).toHaveValue('oldDept');
+                await input.fill('newDept');
+                await page.getByRole('button', {name: 'Save'}).click();
+                await expect(page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText('AD/LDAP: newDept');
+
+                await page.getByTestId('saveSetting').click();
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                // * The linked Users field's attrs.ldap moved with the template — not left at oldDept
+                linkedFields = await fetchLinkedFieldsForTemplate(adminClient, template.id);
+                userField = linkedFields.find((f) => f.object_type === 'user');
+                expect(userField?.attrs?.ldap).toBe('newDept');
+            } finally {
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective Ensure clearing a template's AD/LDAP sync source on Save also clears it on
+         * the already-linked Users field, so LDAP sync stops writing that field.
+         */
+        test('clears ldap on an already-linked Users field when the template sync source is removed', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_sync_clear_${timestamp}`;
+            const displayName = `Playwright Sync Clear ${timestamp}`;
+
+            try {
+                const template = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName, ldap: 'oldDept'},
+                });
+                await createLinkedDependentField(adminClient, name, template.id, 'text', 'user', {
+                    display_name: displayName,
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}/attribute_details/${template.id}`);
+
+                // # Remove the AD/LDAP link and save
+                await page.getByTestId('attributeExternalSourceChip-ldap-remove').click();
+                await expect(page.getByTestId('attributeExternalSourceChip-ldap')).toHaveCount(0);
+                await page.getByTestId('saveSetting').click();
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                // * Users field no longer carries attrs.ldap (empty/absent — sync will skip it)
+                const linkedFields = await fetchLinkedFieldsForTemplate(adminClient, template.id);
+                const userField = linkedFields.find((f) => f.object_type === 'user');
+                expect(userField?.attrs?.ldap || '').toBe('');
+            } finally {
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
+            }
+        });
+
+        /**
          * @objective Ensure a linked chip's edit action reopens the modal pre-filled and commits
          * a changed value, and that its remove action clears the link immediately with no modal.
          */
         test("edits a linked chip's value via its edit action, and removes a link via its remove action with no modal", async ({
             pw,
         }) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -770,6 +874,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         test('warns before converting a non-Text field, and locks Type to Text while a source is linked', async ({
             pw,
         }) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -813,6 +918,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * correctly, with no resources and both "Add resource" triggers available.
          */
         test('shows the empty state with both Add-resource triggers, and no rows', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -840,14 +946,8 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         test('offers only unselected types, renders a row per addition, and hides both triggers once all three are added', async ({
             pw,
         }) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
-
-            // Channels and Posts are each gated behind their own feature flag
-            // (use_allowed_resource_types.ts) -- Channels additionally needs the
-            // Enterprise Advanced tier. Without both flags on, the picker offers
-            // fewer types and the 3-item assertion below fails.
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-            await pw.skipIfFeatureFlagNotSet('PostAttributes', true);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
@@ -894,11 +994,8 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * picker again.
          */
         test('removes a pending resource locally with no confirm modal and no delete request', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
-
-            // See the "offers only unselected types" test above: Channels requires the
-            // ChannelAttributes flag on top of the Enterprise-tier license.
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
@@ -944,11 +1041,8 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * hardcoded placeholder (see Out of Scope).
          */
         test('saves the template plus one linked field per selected resource', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-
-            // See the "offers only unselected types" test above: Channels requires the
-            // ChannelAttributes flag on top of the Enterprise-tier license.
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const timestamp = Date.now();
             const displayName = `Playwright Applies To ${timestamp}`;
@@ -1005,13 +1099,8 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * leaves Save retryable, rather than leaving an orphaned template or linked field behind.
          */
         test('rolls back a partial save and lets the admin retry successfully', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-
-            // See the "offers only unselected types" test above: Channels requires the
-            // ChannelAttributes flag on top of the Enterprise-tier license, and Posts
-            // requires PostAttributes. This test adds all three resources.
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-            await pw.skipIfFeatureFlagNotSet('PostAttributes', true);
 
             const timestamp = Date.now();
             // Kept short: see the "saves Profile display..." test below -- a full
@@ -1113,6 +1202,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * graph saves with named parents and shows Hierarchical in the list.
          */
         test('creates a Hierarchical attribute with a parent and child and persists named parents', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireHierarchicalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -1182,6 +1272,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * disable Save on the already-valid graph.
          */
         test('rejects a duplicate graph value name and leaves Save enabled for the existing graph', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser} = await requireHierarchicalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -1223,6 +1314,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * from Hierarchical drops graph values.
          */
         test('clears options when switching to Hierarchical and when switching away', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser} = await requireHierarchicalAttributesEnabled(pw);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -1258,6 +1350,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * a candidate still applies.
          */
         test('keeps the Parents of menu fixed-height when search suggestions open', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireHierarchicalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -1289,8 +1382,12 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 // Measure the pane, not role=menu. Nested MUI Modal aria-hides the
                 // parent menu paper; its getBoundingClientRect can shift ~16px even
                 // when the suggestion list is portaled.
+                //
+                // The menu itself mounts with a grow transition, so read the height only
+                // once that has settled — otherwise this baseline lands mid-animation
+                // and every later reading looks like unrelated growth.
                 const pane = page.locator('.attribute-graph-parents-pane');
-                const heightBeforeSearch = await pane.evaluate((el) => el.getBoundingClientRect().height);
+                const heightBeforeSearch = await waitForStableRectHeight(pane);
                 await page.getByTestId('attributeGraphParentsPane__search').click();
 
                 const suggestions = page.getByTestId('attributeGraphParentsPane__suggestions');
@@ -1327,8 +1424,10 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 const mountedValueMenu = page.getByRole('menu', {name: 'Edit Air', includeHidden: true});
 
                 // * Pane does not grow by a suggestion row (~36px). Focus and the
-                // nested modal can still shift getBoundingClientRect by ~6–16px.
-                const heightAfterSearch = await pane.evaluate((el) => el.getBoundingClientRect().height);
+                // nested modal can still shift getBoundingClientRect by ~6–16px. Read the
+                // height only once the focus/modal transition has stopped moving it —
+                // sampling mid-transition is what made this assertion flaky.
+                const heightAfterSearch = await waitForStableRectHeight(pane);
                 expect(Math.abs(heightAfterSearch - heightBeforeSearch)).toBeLessThan(24);
                 await expect(mountedValueMenu).toBeAttached();
 
@@ -1344,6 +1443,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * {parent} as a parent? and, once confirmed with Add, records both parent names.
          */
         test('confirms a parent grant from the Parents pane and records both parents', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireHierarchicalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -1412,6 +1512,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * and saves the remaining root.
          */
         test('blocks deleting a parent that would orphan a child, then deletes the leaf', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireHierarchicalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -1478,6 +1579,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         test('saves Profile display and Who can set the value directly on a new Users row, for every option', async ({
             pw,
         }) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -1567,6 +1669,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * directions.
          */
         test('updates config on an already-saved Users row via patch, in both directions', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -1621,6 +1724,120 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
             }
         });
+
+        /**
+         * @objective Ensure a Users row on an AD/LDAP-synced attribute surfaces a Managed by
+         * indicator naming that source, greyed out and impossible to interact with, carrying the
+         * same sync icon the Definition block's synced chip uses, alongside helper text saying
+         * the values are not editable in Mattermost.
+         */
+        test('shows a disabled AD/LDAP Managed by indicator on the Users row of a synced attribute', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_managed_by_ldap_${timestamp}`;
+            const displayName = `Playwright Managed By Ldap ${timestamp}`;
+
+            try {
+                const template = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName, ldap: 'employeeID'},
+                });
+                await createLinkedDependentField(adminClient, name, template.id, 'text', 'user', {
+                    display_name: displayName,
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}/attribute_details/${template.id}`);
+                await page.getByTestId('attributeAppliesToRow-user-toggle').click();
+
+                // * The Managed by indicator names AD/LDAP, above the "not editable" helper text
+                const managedBy = page.getByTestId('attributeAppliesToUserManagedBy');
+                await expect(managedBy).toContainText('AD/LDAP');
+                await expect(
+                    page.getByTestId('attributeAppliesToRow-user-body').getByText('Not editable in Mattermost.'),
+                ).toBeVisible();
+
+                // * It carries the same glyph as the Definition block's synced chip, compared by
+                // path data so the two cannot drift apart unnoticed
+                const chipIcon = await page
+                    .getByTestId('attributeExternalSourceChip-ldap')
+                    .locator('svg path')
+                    .first()
+                    .getAttribute('d');
+                expect(chipIcon).toBeTruthy();
+                await expect(managedBy.locator('svg path').first()).toHaveAttribute('d', chipIcon!);
+
+                // * It is greyed out and cannot be operated: it carries no chevron to suggest a
+                // menu, and forcing a click past the disabled state still opens none
+                await expect(managedBy).toBeDisabled();
+                await expect(managedBy).toHaveAccessibleName(/^Managed by: AD\/LDAP\./);
+                await expect(managedBy.locator('.AttributeSelect__value')).toHaveCSS('opacity', '0.6');
+                await expect(managedBy.locator('.icon-chevron-down')).toHaveCount(0);
+                await managedBy.click({force: true});
+                await expect(page.getByRole('menuitemradio')).toHaveCount(0);
+
+                // * The row's editable settings are still there -- the indicator reports the
+                // source, it does not lock the rest of the card
+                await expect(page.getByTestId('attributeAppliesToUserProfileDisplay-always')).toBeEnabled();
+                await expect(page.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeEnabled();
+            } finally {
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective Ensure the Managed by indicator tracks the linked source live: absent while
+         * the attribute is managed in Mattermost, naming SAML once SAML is linked, and gone again
+         * once the link is removed.
+         */
+        test('adds and removes the Managed by indicator as a source is linked and unlinked', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
+            const {adminUser} = await requireGlobalAttributesEnabled(pw);
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            const {page} = systemConsolePage;
+            await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+            await page.getByTestId('newAttributeButton').click();
+
+            await page.getByTestId('attributeAppliesToAddResourceButtonHeader').click();
+            await page.getByRole('menuitem', {name: 'Users'}).click();
+            await page.getByTestId('attributeAppliesToRow-user-toggle').click();
+
+            // * An attribute managed in Mattermost has no Managed by row at all
+            await expect(page.getByTestId('attributeAppliesToRow-user-body')).toBeVisible();
+            await expect(page.getByTestId('attributeAppliesToUserManagedBy')).toHaveCount(0);
+            await expect(page.getByText('Not editable in Mattermost.')).toHaveCount(0);
+
+            // # Link SAML
+            await page.getByTestId('attributeExternalSourceTrigger').click();
+            await page.getByRole('menuitem', {name: /^SAML/}).click();
+            await page.getByPlaceholder('department').fill('position');
+            await page.getByRole('button', {name: 'Save'}).click();
+
+            // * The indicator appears naming SAML, not AD/LDAP
+            const managedBy = page.getByTestId('attributeAppliesToUserManagedBy');
+            await expect(managedBy).toContainText('SAML');
+            await expect(managedBy).not.toContainText('AD/LDAP');
+
+            // * ...with the same glyph the SAML chip in the Definition block carries
+            const chipIcon = await page
+                .getByTestId('attributeExternalSourceChip-saml')
+                .locator('svg path')
+                .first()
+                .getAttribute('d');
+            expect(chipIcon).toBeTruthy();
+            await expect(managedBy.locator('svg path').first()).toHaveAttribute('d', chipIcon!);
+
+            // # Unlink it again
+            await page.getByTestId('attributeExternalSourceChip-saml-remove').click();
+
+            // * The indicator and its helper text go away with the link
+            await expect(page.getByTestId('attributeAppliesToUserManagedBy')).toHaveCount(0);
+            await expect(page.getByText('Not editable in Mattermost.')).toHaveCount(0);
+        });
     });
 
     test.describe('display name rendering', () => {
@@ -1631,6 +1848,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         test('renders display name across the profile popover, account settings, and admin user detail page', async ({
             pw,
         }) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             await requireGlobalAttributesEnabled(pw);
             const {adminClient, adminUser, team, user} = await pw.initSetup();
 
@@ -1702,6 +1920,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * PATCHes the existing template rather than creating a second one.
          */
         test('opens an existing attribute, PATCHes a display-name change, and shows it in the list', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -1747,8 +1966,8 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * display_name, and the Save path cascades only when it still matches.
          */
         test('renames a matching linked channel display_name when the template display name changes', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const timestamp = Date.now();
             const name = `business_unit_${timestamp}`;
@@ -1791,8 +2010,8 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * must keep that custom label when the template is renamed.
          */
         test('does not overwrite a diverged linked channel display_name when renaming the template', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const timestamp = Date.now();
             const name = `department_${timestamp}`;
@@ -1843,6 +2062,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         test('does not unpin Unique name after a no-op Edit/Done round-trip, even when the loaded name matches the current auto-slug', async ({
             pw,
         }) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -1884,6 +2104,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * confirms Escape (which never touches the pin) was never the problem, only Done was.
          */
         test('does not unpin Unique name after a no-op Edit/Escape round-trip', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -1920,6 +2141,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * Remove is local until Save, which DELETEs the linked field and leaves the template.
          */
         test('locks Type while a resource is applied, and Save deletes a removed linked field', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -1978,6 +2200,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * persisted linked field (and therefore must not wipe stored values).
          */
         test('does not delete a linked field that is removed then re-added before Save', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -2025,6 +2248,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         test('locks Unique name editing while a resource is applied, and unlocks only once Save persists its removal', async ({
             pw,
         }) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -2076,6 +2300,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * no DELETE, and the admin stays on the form with the persisted linked field untouched.
          */
         test('cancelling the remove-applies-to warning leaves the linked field untouched', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -2125,6 +2350,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         test('does not delete a confirmed-removed linked field when the PATCH fails and type is unchanged', async ({
             pw,
         }) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -2193,6 +2419,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         test('shows the real server name_conflict error when renaming to a name already taken by another attribute', async ({
             pw,
         }) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -2260,6 +2487,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * adding an option, renaming one via its chip popover, and rejects a duplicate label.
          */
         test('adds, renames, and rejects a duplicate option on an already-persisted Select attribute', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -2367,4 +2595,26 @@ async function openGraphRowDelete(page: Page, optionName: string, parentName = '
     const row = graphRow(page, optionName, parentName);
     await row.hover();
     await row.getByTestId('attributeOptionsGraphRow__delete').click();
+}
+
+// Polls getBoundingClientRect().height until two consecutive reads agree, so callers
+// don't sample a value mid CSS-transition (e.g. a focus ring or nested modal mount).
+// expect.poll runs the first probe immediately, so that reading is only a baseline;
+// compare only after a later probe that has waited for the poll interval.
+async function waitForStableRectHeight(locator: Locator): Promise<number> {
+    let lastHeight: number | undefined;
+
+    await expect
+        .poll(
+            async () => {
+                const height = await locator.evaluate((el) => el.getBoundingClientRect().height);
+                const isStable = lastHeight !== undefined && height === lastHeight;
+                lastHeight = height;
+                return isStable;
+            },
+            {timeout: 2000, intervals: [50, 100, 150, 300]},
+        )
+        .toBe(true);
+
+    return lastHeight!;
 }
