@@ -5,6 +5,8 @@ import React, {type JSX} from 'react';
 
 import {ProgressBar} from '@mattermost/compass-ui/components/progress-bar';
 
+import {getUsageProgressBarProps} from 'utils/limits';
+
 import './limit_card.scss';
 
 type Props = {
@@ -38,12 +40,7 @@ const LimitCard = (props: Props) => {
             {(props.percent > 100) && <i className='icon icon-alert-outline'/>}
             {props.status}
         </div>
-        <ProgressBar
-            value={props.percent}
-            size='large'
-            semanticColors={true}
-            style={{width: barWidth}}
-        />
+        <ProgressBar {...getUsageProgressBarProps(props.percent, barWidth)}/>
     </div>);
 };
 export default LimitCard;

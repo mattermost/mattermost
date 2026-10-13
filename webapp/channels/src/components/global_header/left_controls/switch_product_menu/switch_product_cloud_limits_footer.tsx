@@ -19,7 +19,7 @@ import * as Menu from 'components/menu';
 import {dismissMenu} from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
-import {limitThresholds} from 'utils/limits';
+import {getUsageProgressBarProps, limitThresholds} from 'utils/limits';
 
 interface Props {
     isUserAdmin: boolean;
@@ -90,12 +90,7 @@ export default function ProductSwitcherCloudLimitsFooter(props: Props) {
                     {words.description}
                 </div>
                 <div className='footerUsage'>
-                    <ProgressBar
-                        value={usagePercent}
-                        size='large'
-                        semanticColors={true}
-                        style={{width: '155px'}}
-                    />
+                    <ProgressBar {...getUsageProgressBarProps(usagePercent, '155px')}/>
                     <span className='footerUsageLabel'>
                         {words.status}
                     </span>
