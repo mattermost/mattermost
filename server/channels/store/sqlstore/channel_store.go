@@ -802,7 +802,6 @@ func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model
 		return nil, err // we just pass through the error as-is for now.
 	}
 
-	// Space channels are exempt from the per-team channel limit. A limit of 0 or less means no limit.
 	if channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup && channel.Type != model.ChannelTypeSpace && maxChannelsPerTeam > 0 {
 		var count int64
 		if err := transaction.Get(&count, "SELECT COUNT(0) FROM Channels WHERE TeamId = ? AND DeleteAt = 0 AND (Type = ? OR Type = ?)", channel.TeamId, model.ChannelTypeOpen, model.ChannelTypePrivate); err != nil {

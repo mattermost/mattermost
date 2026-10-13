@@ -189,7 +189,6 @@ func (a *App) CreateChannelWithUserAndPropertyValues(rctx request.CTX, channel *
 		return nil, model.NewAppError("CreateChannelWithUser", "app.channel.create_channel.no_team_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// A limit of 0 means no limit.
 	if maxChannelsPerTeam := *a.Config().TeamSettings.MaxChannelsPerTeam; maxChannelsPerTeam > 0 {
 		// Get total number of channels on current team
 		count, err := a.GetNumberOfChannelsOnTeam(rctx, channel.TeamId)

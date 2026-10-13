@@ -860,7 +860,6 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 		defaultTeamRolesByTeam[defaultRoles.Id] = defaultRoles
 	}
 
-	// A limit of 0 or less means no limit.
 	if maxUsersPerTeam > 0 {
 		queryCount := s.getQueryBuilder().
 			Select(
