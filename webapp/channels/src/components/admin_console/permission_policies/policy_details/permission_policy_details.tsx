@@ -39,20 +39,17 @@ import TableEditor from '../../access_control/editors/table_editor/table_editor'
 
 import './permission_policy_details.scss';
 
-const AddPermissionMenuTrigger = forwardRef<HTMLButtonElement, MenuButtonComponentProps>(
-    function AddPermissionMenuTrigger(props, ref) {
-        return (
-            <Button
-                {...props}
-                ref={ref}
-                emphasis='tertiary'
-                size='small'
-                className='pp-add-permission-button'
-                leadingIcon={<Icon glyph={<PlusIcon/>}/>}
-            />
-        );
-    },
-);
+const AddPermissionMenuTrigger = forwardRef<HTMLButtonElement, MenuButtonComponentProps>((props, ref) => (
+    <Button
+        {...props}
+        ref={ref}
+        emphasis='tertiary'
+        size='small'
+        className='pp-add-permission-button'
+        leadingIcon={<Icon glyph={<PlusIcon/>}/>}
+    />
+));
+AddPermissionMenuTrigger.displayName = 'AddPermissionMenuTrigger';
 
 const roleMessages = defineMessages({
     guestLabel: {id: 'admin.permission_policies.role.system_guest.label', defaultMessage: 'Guest users'},

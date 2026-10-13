@@ -28,20 +28,17 @@ import './attribute_external_source.scss';
 
 const TRIGGER_ID = 'attribute-external-source-trigger';
 
-const ExternalSourceMenuTrigger = forwardRef<HTMLButtonElement, MenuButtonComponentProps>(
-    function ExternalSourceMenuTrigger(props, ref) {
-        return (
-            <Button
-                {...props}
-                ref={ref}
-                emphasis='quaternary'
-                className='AttributeExternalSource__trigger'
-                leadingIcon={<Icon glyph={<RefreshIcon/>}/>}
-                trailingIcon={<Icon glyph={<ChevronDownIcon/>}/>}
-            />
-        );
-    },
-);
+const ExternalSourceMenuTrigger = forwardRef<HTMLButtonElement, MenuButtonComponentProps>((props, ref) => (
+    <Button
+        {...props}
+        ref={ref}
+        emphasis='quaternary'
+        className='AttributeExternalSource__trigger'
+        leadingIcon={<Icon glyph={<RefreshIcon/>}/>}
+        trailingIcon={<Icon glyph={<ChevronDownIcon/>}/>}
+    />
+));
+ExternalSourceMenuTrigger.displayName = 'ExternalSourceMenuTrigger';
 
 type Props = {
     ldapAttr: string;
