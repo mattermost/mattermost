@@ -29,7 +29,7 @@ import './attribute_external_source.scss';
 const TRIGGER_ID = 'attribute-external-source-trigger';
 
 const ExternalSourceMenuTrigger = forwardRef<HTMLButtonElement, MenuButtonComponentProps>((props, ref) => {
-    const {children, className: _className, ...rest} = props;
+    const {children, ...rest} = props;
     return (
         <Button
             {...rest}

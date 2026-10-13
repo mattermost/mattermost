@@ -40,7 +40,7 @@ import TableEditor from '../../access_control/editors/table_editor/table_editor'
 import './permission_policy_details.scss';
 
 const AddPermissionMenuTrigger = forwardRef<HTMLButtonElement, MenuButtonComponentProps>((props, ref) => {
-    const {children, className: _className, ...rest} = props;
+    const {children, ...rest} = props;
     return (
         <Button
             {...rest}
