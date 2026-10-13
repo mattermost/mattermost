@@ -28,16 +28,21 @@ import './attribute_external_source.scss';
 
 const TRIGGER_ID = 'attribute-external-source-trigger';
 
-const ExternalSourceMenuTrigger = forwardRef<HTMLButtonElement, MenuButtonComponentProps>((props, ref) => (
-    <Button
-        {...props}
-        ref={ref}
-        emphasis='quaternary'
-        className='AttributeExternalSource__trigger'
-        leadingIcon={<Icon glyph={<RefreshIcon/>}/>}
-        trailingIcon={<Icon glyph={<ChevronDownIcon/>}/>}
-    />
-));
+const ExternalSourceMenuTrigger = forwardRef<HTMLButtonElement, MenuButtonComponentProps>((props, ref) => {
+    const {children, className: _className, ...rest} = props;
+    return (
+        <Button
+            {...rest}
+            ref={ref}
+            emphasis='quaternary'
+            className='AttributeExternalSource__trigger'
+            leadingIcon={<Icon glyph={<RefreshIcon/>}/>}
+            trailingIcon={<Icon glyph={<ChevronDownIcon/>}/>}
+        >
+            {children}
+        </Button>
+    );
+});
 ExternalSourceMenuTrigger.displayName = 'ExternalSourceMenuTrigger';
 
 type Props = {

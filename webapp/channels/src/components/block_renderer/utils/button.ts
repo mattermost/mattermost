@@ -67,8 +67,12 @@ function resolveMmButtonThemeColor(style: string, theme: Theme): string | undefi
     return undefined;
 }
 
+export type MmBlocksButtonCSSProperties = CSSProperties & {
+    '--button-fg'?: string;
+};
+
 /** Inline colors for hex values and theme keys (e.g. `onlineIndicator`), matching legacy `ActionButton`. */
-export function mmBlocksButtonInlineStyle(style: string | undefined, theme: Theme): CSSProperties | undefined {
+export function mmBlocksButtonInlineStyle(style: string | undefined, theme: Theme): MmBlocksButtonCSSProperties | undefined {
     if (!style || isMmButtonSemanticStyle(style)) {
         return undefined;
     }
@@ -82,11 +86,11 @@ export function mmBlocksButtonInlineStyle(style: string | undefined, theme: Them
     return mmBlocksButtonColorStyle(themeColor);
 }
 
-function mmBlocksButtonColorStyle(color: string): CSSProperties {
+function mmBlocksButtonColorStyle(color: string): MmBlocksButtonCSSProperties {
     // Compass Button paints label/icon via `--button-fg`, not inherited `color`.
     return {
         backgroundColor: changeOpacity(color, 0.08),
         color,
-        ['--button-fg' as string]: color,
+        '--button-fg': color,
     };
 }

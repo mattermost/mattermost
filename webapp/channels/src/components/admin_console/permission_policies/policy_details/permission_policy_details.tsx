@@ -39,16 +39,21 @@ import TableEditor from '../../access_control/editors/table_editor/table_editor'
 
 import './permission_policy_details.scss';
 
-const AddPermissionMenuTrigger = forwardRef<HTMLButtonElement, MenuButtonComponentProps>((props, ref) => (
-    <Button
-        {...props}
-        ref={ref}
-        emphasis='tertiary'
-        size='small'
-        className='pp-add-permission-button'
-        leadingIcon={<Icon glyph={<PlusIcon/>}/>}
-    />
-));
+const AddPermissionMenuTrigger = forwardRef<HTMLButtonElement, MenuButtonComponentProps>((props, ref) => {
+    const {children, className: _className, ...rest} = props;
+    return (
+        <Button
+            {...rest}
+            ref={ref}
+            emphasis='tertiary'
+            size='small'
+            className='pp-add-permission-button'
+            leadingIcon={<Icon glyph={<PlusIcon/>}/>}
+        >
+            {children}
+        </Button>
+    );
+});
 AddPermissionMenuTrigger.displayName = 'AddPermissionMenuTrigger';
 
 const roleMessages = defineMessages({

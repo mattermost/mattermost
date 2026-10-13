@@ -281,7 +281,7 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
             <ProfilePicture
                 src={Utils.imageURLForUser(teammate.id, teammate.last_picture_update)}
                 status={teammate.is_bot ? undefined : status}
-                size='small'
+                size='sm'
             />
         );
     }

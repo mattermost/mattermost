@@ -179,7 +179,7 @@ function PendingJoinRequestRow({
                 >
                     <div className='channel-members-rhs__avatar'>
                         <ProfilePicture
-                            size='small'
+                            size='sm'
                             userId={request.user_id}
                             username={displayName}
                             src={userProfileSrc}
