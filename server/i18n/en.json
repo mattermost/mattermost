@@ -11116,6 +11116,11 @@
     "description": "API error when deleting a property field that other linked fields still depend on; the user must unlink or delete the dependents first."
   },
   {
+    "id": "app.property_field.delete.mask_holdings.app_error",
+    "translation": "Cannot delete this field because a masked template reads each person's holdings from it. Change or remove the template's masking first.",
+    "description": "API error when deleting a property field that a masked template names as the field holding each person's own values ('holdings'); masking shows a reader only the values that overlap their own."
+  },
+  {
     "id": "app.property_field.delete.not_found.app_error",
     "translation": "Property field not found.",
     "description": "API error when the property field targeted for deletion does not exist."
@@ -11289,6 +11294,11 @@
     "id": "app.property_field.update.type_change_with_dependents.app_error",
     "translation": "Cannot change type of a field with active linked dependents.",
     "description": "API error when changing the data type of a property field that linked fields still depend on."
+  },
+  {
+    "id": "app.property_field.update.unlink_mask_holdings.app_error",
+    "translation": "Cannot unlink this field because a masked template reads each person's holdings from it. Change or remove the template's masking first.",
+    "description": "API error when unlinking a property field from its template while that masked template names it as the field holding each person's own values ('holdings'); masking shows a reader only the values that overlap their own."
   },
   {
     "id": "app.property_field.version_mismatch.app_error",

@@ -2780,6 +2780,159 @@ func TestLinkedFieldSelfWritableHoldings(t *testing.T) {
 	})
 }
 
+func TestMaskHoldingsFieldStaysLinked(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "test-plugin" })
+	t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
+	rctxPlugin := RequestContextWithCallerID(th.Context, "test-plugin")
+
+	fieldWriteGrant := []model.Grant{{
+		Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "test-plugin"},
+		Allow:    []string{model.PropertyActionFieldWrite},
+	}}
+
+	linkedField := func(t *testing.T, templateID string) *model.PropertyField {
+		t.Helper()
+		field, err := th.service.CreatePropertyField(rctxPlugin, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "Linked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &templateID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelEveryone}},
+				Grants:       fieldWriteGrant,
+			},
+		})
+		require.NoError(t, err)
+		return field
+	}
+
+	// maskedScheme creates a template masked against a holdings field linked to
+	// it, plus a second linked field the masking does not name.
+	maskedScheme := func(t *testing.T) (template, holdings, sibling *model.PropertyField) {
+		t.Helper()
+		template, err := th.service.CreatePropertyField(rctxPlugin, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "HoldingsTemplate-" + model.NewId(),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelEveryone}},
+				Grants:       fieldWriteGrant,
+			},
+		})
+		require.NoError(t, err)
+
+		holdings = linkedField(t, template.ID)
+		sibling = linkedField(t, template.ID)
+
+		// Straight to the store: naming the holdings field is the template's own
+		// update, which is not what these tests are about.
+		template.Permissions.Masking = &model.Masking{MaskByFieldID: holdings.ID}
+		updated, err := th.dbStore.PropertyField().Update(th.CPAGroupID, []*model.PropertyField{template}, nil)
+		require.NoError(t, err)
+
+		return updated[0], holdings, sibling
+	}
+
+	unlinked := func(t *testing.T, id string) *model.PropertyField {
+		t.Helper()
+		field, err := th.service.fieldStore.Get(th.Context, th.CPAGroupID, id)
+		require.NoError(t, err)
+		empty := ""
+		field.LinkedFieldID = &empty
+		return field
+	}
+
+	requireConflict := func(t *testing.T, err error, id string) {
+		t.Helper()
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+		assert.Equal(t, id, appErr.Id)
+	}
+
+	t.Run("unlinking the holdings field is refused", func(t *testing.T) {
+		_, holdings, _ := maskedScheme(t)
+
+		_, _, err := th.service.UpdatePropertyField(rctxPlugin, th.CPAGroupID, unlinked(t, holdings.ID))
+		requireConflict(t, err, "app.property_field.update.unlink_mask_holdings.app_error")
+
+		stored, err := th.service.fieldStore.Get(th.Context, th.CPAGroupID, holdings.ID)
+		require.NoError(t, err)
+		require.NotNil(t, stored.LinkedFieldID)
+	})
+
+	t.Run("unlinking the holdings field and raising its value.write together is refused", func(t *testing.T) {
+		_, holdings, _ := maskedScheme(t)
+
+		field := unlinked(t, holdings.ID)
+		field.Permissions.Restrictions.Value.Write = model.PermissionLevelMember
+		_, _, err := th.service.UpdatePropertyField(rctxPlugin, th.CPAGroupID, field)
+		requireConflict(t, err, "app.property_field.update.unlink_mask_holdings.app_error")
+	})
+
+	t.Run("a linked field the masking does not name can be unlinked", func(t *testing.T) {
+		_, _, sibling := maskedScheme(t)
+
+		_, _, err := th.service.UpdatePropertyField(rctxPlugin, th.CPAGroupID, unlinked(t, sibling.ID))
+		require.NoError(t, err)
+	})
+
+	t.Run("the holdings field can be unlinked in the call that stops the template naming it", func(t *testing.T) {
+		template, holdings, _ := maskedScheme(t)
+
+		template.Permissions.Masking = nil
+		_, _, _, err := th.service.UpdatePropertyFields(rctxPlugin, th.CPAGroupID, []*model.PropertyField{template, unlinked(t, holdings.ID)})
+		require.NoError(t, err)
+	})
+
+	t.Run("a call that names the holdings field while unlinking it is refused", func(t *testing.T) {
+		template, holdings, sibling := maskedScheme(t)
+
+		// The stored template names holdings; this call moves the name to
+		// sibling while unlinking sibling, which leaves sibling named and unlinked.
+		template.Permissions.Masking = &model.Masking{MaskByFieldID: sibling.ID}
+		_, _, _, err := th.service.UpdatePropertyFields(rctxPlugin, th.CPAGroupID, []*model.PropertyField{template, unlinked(t, sibling.ID)})
+		requireConflict(t, err, "app.property_field.update.unlink_mask_holdings.app_error")
+
+		// ...while unlinking the field it stops naming is fine.
+		_, _, _, err = th.service.UpdatePropertyFields(rctxPlugin, th.CPAGroupID, []*model.PropertyField{template, unlinked(t, holdings.ID)})
+		require.NoError(t, err)
+	})
+
+	t.Run("deleting the holdings field is refused", func(t *testing.T) {
+		_, holdings, _ := maskedScheme(t)
+
+		err := th.service.DeletePropertyField(rctxPlugin, th.CPAGroupID, holdings.ID)
+		requireConflict(t, err, "app.property_field.delete.mask_holdings.app_error")
+
+		stored, err := th.service.fieldStore.Get(th.Context, th.CPAGroupID, holdings.ID)
+		require.NoError(t, err)
+		assert.Zero(t, stored.DeleteAt)
+	})
+
+	t.Run("a linked field the masking does not name can be deleted", func(t *testing.T) {
+		_, _, sibling := maskedScheme(t)
+
+		require.NoError(t, th.service.DeletePropertyField(rctxPlugin, th.CPAGroupID, sibling.ID))
+	})
+
+	t.Run("the holdings field can be deleted once the template stops naming it", func(t *testing.T) {
+		template, holdings, _ := maskedScheme(t)
+
+		template.Permissions.Masking = nil
+		_, _, err := th.service.UpdatePropertyField(rctxPlugin, th.CPAGroupID, template)
+		require.NoError(t, err)
+
+		require.NoError(t, th.service.DeletePropertyField(rctxPlugin, th.CPAGroupID, holdings.ID))
+	})
+}
+
 func TestOptionsChanged(t *testing.T) {
 	// attrsFromJSON simulates what arrives over the wire: JSON bytes
 	// deserialized into model.StringInterface, where options become
