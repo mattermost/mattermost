@@ -203,7 +203,10 @@ function createGMIntroMessage(
 
         const actionButtons = (
             <div className='channel-intro__actions'>
-                {createFavoriteButton(isFavorite, toggleFavorite)}
+                <FavoriteButton
+                    isFavorite={isFavorite}
+                    toggleFavorite={toggleFavorite}
+                />
                 <SetHeaderButton channel={channel}/>
                 {!isMobileView && (
                     <NotificationPrefsButton
@@ -276,7 +279,10 @@ function createDMIntroMessage(
 
         const actionButtons = (
             <div className='channel-intro__actions'>
-                {createFavoriteButton(isFavorite, toggleFavorite)}
+                <FavoriteButton
+                    isFavorite={isFavorite}
+                    toggleFavorite={toggleFavorite}
+                />
                 {setHeaderButton}
                 {pluggableButton}
             </div>
@@ -379,7 +385,11 @@ function createOffTopicIntroMessage(
     } else {
         actionButtons = (
             <div className='channel-intro__actions'>
-                {createFavoriteButton(isFavorite, toggleFavorite, isInManagedCategory)}
+                <FavoriteButton
+                    isFavorite={isFavorite}
+                    toggleFavorite={toggleFavorite}
+                    disabled={isInManagedCategory}
+                />
                 {setHeaderButton}
                 <NotificationPrefsButton
                     channel={channel}
@@ -499,7 +509,11 @@ function createDefaultIntroMessage(
     } else {
         actionButtons = (
             <div className='channel-intro__actions'>
-                {createFavoriteButton(isFavorite, toggleFavorite, isInManagedCategory)}
+                <FavoriteButton
+                    isFavorite={isFavorite}
+                    toggleFavorite={toggleFavorite}
+                    disabled={isInManagedCategory}
+                />
                 {setHeaderButton}
                 <NotificationPrefsButton
                     channel={channel}
@@ -707,7 +721,11 @@ function createStandardIntroMessage(
     } else {
         actionButtons = (
             <div className='channel-intro__actions'>
-                {createFavoriteButton(isFavorite, toggleFavorite, isInManagedCategory)}
+                <FavoriteButton
+                    isFavorite={isFavorite}
+                    toggleFavorite={toggleFavorite}
+                    disabled={isInManagedCategory}
+                />
                 {teamInviteLink}
                 {setHeaderButton}
                 {!isMobileView && (
@@ -801,18 +819,17 @@ const NotificationPrefsButton = ({channel, currentUser}: {channel: Channel; curr
     );
 };
 
-function createFavoriteButton(isFavorite: boolean, toggleFavorite: () => void, disabled?: boolean) {
-    const favoriteLabel = isFavorite ? (
-        <FormattedMessage
-            id='channel_info_rhs.top_buttons.favorited'
-            defaultMessage='Favorited'
-        />
-    ) : (
-        <FormattedMessage
-            id='channel_info_rhs.top_buttons.favorite'
-            defaultMessage='Favorite'
-        />
-    );
+const FavoriteButton = ({
+    isFavorite,
+    toggleFavorite,
+    disabled,
+}: {
+    isFavorite: boolean;
+    toggleFavorite: () => void;
+    disabled?: boolean;
+}) => {
+    const {formatMessage} = useIntl();
+    const label = isFavorite ? formatMessage({id: 'channel_info_rhs.top_buttons.favorited', defaultMessage: 'Favorited'}) : formatMessage({id: 'channel_info_rhs.top_buttons.favorite', defaultMessage: 'Favorite'});
 
     const button = (
         <ActionButton
@@ -820,9 +837,9 @@ function createFavoriteButton(isFavorite: boolean, toggleFavorite: () => void, d
             active={isFavorite}
             onClick={toggleFavorite}
             disabled={disabled}
-            aria-label='Favorite'
+            aria-label={label}
             icon={<Icon glyph={isFavorite ? <StarIcon/> : <StarOutlineIcon/>}/>}
-            label={favoriteLabel}
+            label={label}
         />
     );
 
@@ -842,4 +859,4 @@ function createFavoriteButton(isFavorite: boolean, toggleFavorite: () => void, d
     }
 
     return button;
-}
+};
