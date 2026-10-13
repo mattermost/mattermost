@@ -4,6 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {KeyboardEvent, MouseEvent} from 'react';
+import {IntlContext} from 'react-intl';
 
 import type {FileInfo} from '@mattermost/types/files';
 
@@ -44,6 +45,9 @@ type State = {
 };
 
 export default class SingleImageView extends React.PureComponent<Props, State> {
+    static contextType = IntlContext;
+    declare context: React.ContextType<typeof IntlContext>;
+
     private mounted = false;
     static defaultProps = {
         compactDisplay: false,
@@ -218,7 +222,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                 key='toggle'
                 className='style--none single-image-view__toggle'
                 data-expanded={this.props.isEmbedVisible}
-                aria-label='Toggle Embed Visibility'
+                aria-label={this.context.formatMessage({id: 'accessibility.toggle_embed_visibility', defaultMessage: 'Toggle Embed Visibility'})}
                 onClick={this.toggleEmbedVisibility}
             >
                 <span

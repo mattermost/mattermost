@@ -119,7 +119,7 @@ function ADLDAPUpsellBanner() {
                 {btn}
                 <button
                     type='button'
-                    aria-label='Close'
+                    aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
                     className='banner-close'
                     onClick={() => setShow(false)}
                 >

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useMemo, type JSX} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 
@@ -29,6 +29,7 @@ const SystemPolicyIndicator: React.FC<SystemPolicyIndicatorProps> = ({
     testId = 'system-policy-indicator',
     onMorePoliciesClick,
 }) => {
+    const {formatMessage} = useIntl();
     // Handle malformed data - ensure policies is always an array
     const safePolicies = useMemo(() => {
         if (!policies || !Array.isArray(policies)) {
@@ -221,7 +222,7 @@ const SystemPolicyIndicator: React.FC<SystemPolicyIndicatorProps> = ({
                 <div
                     className='system-policy-indicator__description'
                     role='region'
-                    aria-label='System policy details'
+                    aria-label={formatMessage({id: 'accessibility.system_policy_details', defaultMessage: 'System policy details'})}
                 >
                     {description}
                 </div>

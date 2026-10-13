@@ -202,7 +202,7 @@ export default function FileAttachment(props: Props) {
         if (enablePublicLink) {
             defaultItems.push(
                 <Menu.ItemAction
-                    data-title='Public Image'
+                    data-title={formatMessage({id: 'file_attachment.public_image', defaultMessage: 'Public Image'})}
                     key={fileInfo.id + '_publiclinkmenuitem'}
                     onClick={handleGetPublicLink}
                     ariaLabel={formatMessage({id: 'view_image_popover.publicLink', defaultMessage: 'Get a public link'})}

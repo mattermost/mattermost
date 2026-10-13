@@ -87,7 +87,17 @@ describe('components/ProfilePopoverPhone', () => {
         expect(phoneLink).toBeInTheDocument();
         expect(phoneLink.tagName).toBe('A');
         expect(screen.getByTitle(phone)).toBeInTheDocument();
-        expect(screen.getByLabelText('phone icon')).toBeInTheDocument();
+        expect(screen.getByLabelText('Phone')).toBeInTheDocument();
+    });
+
+    test('should translate the phone label into Brazilian Portuguese', () => {
+        renderWithContext(<ProfilePopoverPhone {...baseProps}/>, {}, {
+            locale: 'pt-BR',
+            intlMessages: {'accessibility.phone_icon': 'Telefone'},
+        });
+
+        expect(screen.getByLabelText('Telefone')).toBeInTheDocument();
+        expect(screen.queryByLabelText('Phone')).not.toBeInTheDocument();
     });
 
     test('should handle international phone numbers', () => {

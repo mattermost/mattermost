@@ -382,18 +382,22 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                                 <div
                                     className='CustomPolicy__fields'
                                 >
-                                    <Input
-                                        name='policyName'
-                                        aria-label='Policy name'
-                                        type='text'
-                                        value={this.state.policyName}
-                                        onChange={(e) => {
-                                            this.setState({policyName: e.target.value, saveNeeded: true});
-                                            this.props.actions.setNavigationBlocked(true);
-                                        }}
-                                        placeholder={messages.policyName}
-                                        customMessage={{type: ItemStatus.ERROR, value: this.state.inputErrorText}}
-                                    />
+                                    <FormattedMessage {...messages.policyName}>
+                                        {(label) => (
+                                            <Input
+                                                name='policyName'
+                                                aria-label={label.join('')}
+                                                type='text'
+                                                value={this.state.policyName}
+                                                onChange={(e) => {
+                                                    this.setState({policyName: e.target.value, saveNeeded: true});
+                                                    this.props.actions.setNavigationBlocked(true);
+                                                }}
+                                                placeholder={messages.policyName}
+                                                customMessage={{type: ItemStatus.ERROR, value: this.state.inputErrorText}}
+                                            />
+                                        )}
+                                    </FormattedMessage>
                                     <DropdownInputHybrid
                                         onDropdownChange={(value) => {
                                             if (this.state.messageRetentionDropdownValue.value !== value.value) {

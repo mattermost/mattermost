@@ -635,7 +635,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                     <div className='more-modal__actions'>
                         <button
                             className='more-modal__actions--round'
-                            aria-label='Add channel to invite'
+                            aria-label={props.intl.formatMessage({id: 'accessibility.add_channel_to_invite', defaultMessage: 'Add channel to invite'})}
                         >
                             <i
                                 className='icon icon-plus'

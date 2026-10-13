@@ -268,24 +268,38 @@ class DataGrid extends React.PureComponent<Props, State> {
                                 }}
                             />
                         </span>
-                        <button
-                            aria-label='Previous page'
-                            type='button'
-                            className={'btn btn-quaternary btn-icon btn-sm ml-2 prev ' + (firstPage ? 'disabled' : '')}
-                            onClick={prevPageFn}
-                            disabled={firstPage}
+                        <FormattedMessage
+                            id='admin.accessibility.previous_page'
+                            defaultMessage='Previous page'
                         >
-                            <PreviousIcon/>
-                        </button>
-                        <button
-                            aria-label='Next page'
-                            type='button'
-                            className={'btn btn-quaternary btn-icon btn-sm next ' + (lastPage ? 'disabled' : '')}
-                            onClick={nextPageFn}
-                            disabled={lastPage}
+                            {(label) => (
+                                <button
+                                    aria-label={label.join('')}
+                                    type='button'
+                                    className={'btn btn-quaternary btn-icon btn-sm ml-2 prev ' + (firstPage ? 'disabled' : '')}
+                                    onClick={prevPageFn}
+                                    disabled={firstPage}
+                                >
+                                    <PreviousIcon/>
+                                </button>
+                            )}
+                        </FormattedMessage>
+                        <FormattedMessage
+                            id='admin.accessibility.next_page'
+                            defaultMessage='Next page'
                         >
-                            <NextIcon/>
-                        </button>
+                            {(label) => (
+                                <button
+                                    aria-label={label.join('')}
+                                    type='button'
+                                    className={'btn btn-quaternary btn-icon btn-sm next ' + (lastPage ? 'disabled' : '')}
+                                    onClick={nextPageFn}
+                                    disabled={lastPage}
+                                >
+                                    <NextIcon/>
+                                </button>
+                            )}
+                        </FormattedMessage>
                     </div>
                 </div>
             );

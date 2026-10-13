@@ -109,7 +109,7 @@ function SearchResultsHeader(props: Props) {
                             id='searchResultsCloseButton'
                             type='button'
                             className='sidebar--right__close btn btn-icon btn-sm'
-                            aria-label='Close'
+                            aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
                             onClick={props.actions.closeRightHandSide}
                         >
                             <i

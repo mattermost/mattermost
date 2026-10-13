@@ -175,7 +175,7 @@ class RhsCardHeader extends React.PureComponent<Props> {
                         <button
                             type='button'
                             className='sidebar--right__close btn btn-icon btn-sm'
-                            aria-label='Close'
+                            aria-label={this.props.intl.formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
                             onClick={this.props.actions.closeRightHandSide}
                         >
                             <i
