@@ -13,6 +13,7 @@ type Props = {
     isDisabled?: boolean;
     onClick?: () => void;
     tooltipText?: string;
+    destructive?: boolean;
 };
 
 // This component can be used in the card header
@@ -21,6 +22,7 @@ const TitleAndButtonCardHeader: React.FC<Props> = (props: Props) => {
         <Button
             disabled={props.isDisabled}
             emphasis='primary'
+            destructive={props.destructive}
             onClick={props.onClick}
         >
             {props.buttonText}
