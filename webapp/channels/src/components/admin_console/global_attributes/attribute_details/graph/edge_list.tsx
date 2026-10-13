@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import MuiPopover from '@mui/material/Popover';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {
     ChevronLeftIcon,
@@ -12,12 +14,27 @@ import {
 } from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
+import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+
+import CompassDesignProvider from 'components/compass_design_provider';
 import * as Menu from 'components/menu';
 import Input from 'components/widgets/inputs/input/input';
 
 import {GraphParentEdgeAlert} from './edge_alert';
 import type {EdgeDirection, Suggestion} from './edge_candidates';
 import type {CheckParentEdgeInvalid} from './graph_utils';
+
+export const SEARCH_FIELD_CLASS = 'attribute-graph-parents-pane__search-field';
+export const SUGGESTIONS_PAPER_CLASS = 'attribute-graph-parents-pane__suggestions-paper';
+export const SUGGESTIONS_POPOVER_CLASS = 'attribute-graph-parents-pane__suggestions-popover';
+
+function isNodeInSearchUi(node: Node, combobox: HTMLElement | null): boolean {
+    if (combobox?.contains(node)) {
+        return true;
+    }
+    const el = node instanceof Element ? node : node.parentElement;
+    return Boolean(el?.closest(`.${SUGGESTIONS_PAPER_CLASS}`));
+}
 
 export type EdgeListLabels = {
     back: MessageDescriptor;
@@ -118,11 +135,13 @@ export function EdgeList({
     onRemoveEdge,
 }: EdgeListProps) {
     const {formatMessage} = useIntl();
+    const theme = useSelector(getTheme);
     const comboboxRef = useRef<HTMLDivElement>(null);
+    const searchFieldBoxRef = useRef<HTMLDivElement>(null);
 
     const handleSearchBlur = useCallback((event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const next = event.relatedTarget;
-        if (next instanceof Node && comboboxRef.current?.contains(next)) {
+        if (next instanceof Node && isNodeInSearchUi(next, comboboxRef.current)) {
             return;
         }
         onSearchClose();
@@ -135,7 +154,7 @@ export function EdgeList({
 
         const handlePointerDown = (event: PointerEvent) => {
             const target = event.target;
-            if (target instanceof Node && comboboxRef.current?.contains(target)) {
+            if (target instanceof Node && isNodeInSearchUi(target, comboboxRef.current)) {
                 return;
             }
             onSearchClose();
@@ -172,6 +191,7 @@ export function EdgeList({
 
     const labels = edgeListLabels(direction);
     const showSuggestions = searchOpen && suggestions.length > 0 && !disabled;
+    const searchFieldBox = searchFieldBoxRef.current;
     const alertChildName = labels.anchorIs === 'parent' ? alertRelatedName : optionName;
     const alertParentName = labels.anchorIs === 'parent' ? optionName : alertRelatedName;
 
@@ -255,69 +275,110 @@ export function EdgeList({
                 ref={comboboxRef}
                 className='attribute-graph-parents-pane__combobox'
             >
-                <Input
-                    name={labels.searchName}
-                    type='text'
-                    useLegend={false}
-                    placeholder={formatMessage(labels.searchPlaceholder)}
-                    aria-label={formatMessage(labels.searchAria, {name: optionName})}
-                    value={query}
-                    onChange={(event) => onQueryChange(event.target.value)}
-                    onFocus={onSearchOpen}
-                    onBlur={handleSearchBlur}
-                    onKeyDown={handleSearchKeyDown}
-                    onKeyUp={(event) => event.stopPropagation()}
-                    disabled={disabled || atMax}
-                    autoComplete='off'
-                    data-testid={labels.searchTestId}
-                />
-                {showSuggestions && (
-                    <ul
-                        className='attribute-graph-parents-pane__suggestions'
-                        data-testid={labels.suggestionsTestId}
-                    >
-                        {suggestions.map((row) => {
-                            if (row.kind === 'create') {
-                                return (
-                                    <li key='__create'>
-                                        <button
-                                            type='button'
-                                            className='attribute-graph-parents-pane__suggestion attribute-graph-parents-pane__suggestion--create'
-                                            data-testid={labels.createTestId}
-                                            disabled={disabled || atMax}
-                                            onMouseDown={(event) => event.preventDefault()}
-                                            onClick={() => onCreate(row.name)}
-                                        >
-                                            <PlusIcon
-                                                size={16}
-                                                aria-hidden={true}
-                                            />
-                                            <FormattedMessage
-                                                {...messages.createParent}
-                                                values={{name: row.name}}
-                                            />
-                                        </button>
-                                    </li>
-                                );
-                            }
-                            return (
-                                <li key={row.name}>
-                                    <button
-                                        type='button'
-                                        className='attribute-graph-parents-pane__suggestion'
-                                        data-testid={`attributeGraphParentsPane__candidate-${row.name}`}
-                                        disabled={disabled || atMax}
-                                        onMouseDown={(event) => event.preventDefault()}
-                                        onClick={() => onAddExisting(row.name)}
-                                    >
-                                        {row.name}
-                                    </button>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                )}
+                <div
+                    ref={searchFieldBoxRef}
+                    className={SEARCH_FIELD_CLASS}
+                >
+                    <Input
+                        name={labels.searchName}
+                        type='text'
+                        useLegend={false}
+                        placeholder={formatMessage(labels.searchPlaceholder)}
+                        aria-label={formatMessage(labels.searchAria, {name: optionName})}
+                        value={query}
+                        onChange={(event) => onQueryChange(event.target.value)}
+                        onFocus={onSearchOpen}
+                        onBlur={handleSearchBlur}
+                        onKeyDown={handleSearchKeyDown}
+                        onKeyUp={(event) => event.stopPropagation()}
+                        disabled={disabled || atMax}
+                        autoComplete='off'
+                        data-testid={labels.searchTestId}
+                    />
+                </div>
             </div>
+            {showSuggestions && searchFieldBox && (
+                <CompassDesignProvider theme={theme}>
+                    <MuiPopover
+                        open={true}
+                        anchorEl={searchFieldBox}
+                        onClose={onSearchClose}
+                        hideBackdrop={true}
+                        disableAutoFocus={true}
+                        disableEnforceFocus={true}
+                        disableRestoreFocus={true}
+                        disableScrollLock={true}
+                        className={SUGGESTIONS_POPOVER_CLASS}
+                        anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
+                        transformOrigin={{vertical: 'top', horizontal: 'left'}}
+                        marginThreshold={0}
+                        PaperProps={{
+                            className: SUGGESTIONS_PAPER_CLASS,
+                            style: {
+                                width: searchFieldBox.offsetWidth,
+                                pointerEvents: 'auto',
+                            },
+                            onMouseDown: (event: React.MouseEvent<HTMLDivElement>) => {
+                                event.preventDefault();
+                            },
+                            onPointerDown: (event: React.PointerEvent<HTMLDivElement>) => {
+                                event.stopPropagation();
+                            },
+                        }}
+                    >
+                        <ul
+                            className='attribute-graph-parents-pane__suggestions'
+                            data-testid={labels.suggestionsTestId}
+                        >
+                            {suggestions.map((row) => {
+                                switch (row.kind) {
+                                case 'create':
+                                    return (
+                                        <li key='__create'>
+                                            <button
+                                                type='button'
+                                                className='attribute-graph-parents-pane__suggestion attribute-graph-parents-pane__suggestion--create'
+                                                data-testid={labels.createTestId}
+                                                disabled={disabled || atMax}
+                                                onMouseDown={(event) => event.preventDefault()}
+                                                onClick={() => onCreate(row.name)}
+                                            >
+                                                <PlusIcon
+                                                    size={16}
+                                                    aria-hidden={true}
+                                                />
+                                                <FormattedMessage
+                                                    {...messages.createParent}
+                                                    values={{name: row.name}}
+                                                />
+                                            </button>
+                                        </li>
+                                    );
+                                case 'existing':
+                                    return (
+                                        <li key={row.name}>
+                                            <button
+                                                type='button'
+                                                className='attribute-graph-parents-pane__suggestion'
+                                                data-testid={`attributeGraphParentsPane__candidate-${row.name}`}
+                                                disabled={disabled || atMax}
+                                                onMouseDown={(event) => event.preventDefault()}
+                                                onClick={() => onAddExisting(row.name)}
+                                            >
+                                                {row.name}
+                                            </button>
+                                        </li>
+                                    );
+                                default: {
+                                    const exhaustive: never = row;
+                                    return exhaustive;
+                                }
+                                }
+                            })}
+                        </ul>
+                    </MuiPopover>
+                </CompassDesignProvider>
+            )}
         </>
     );
 }

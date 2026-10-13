@@ -7,8 +7,9 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     id="helpMenuPortal"
   >
     <button
-      aria-controls="AddChannelDropdown"
+      aria-controls="userHelpGuide"
       aria-expanded="false"
+      aria-haspopup="true"
       aria-label="Help"
       class="HeaderIconButton"
     >
@@ -27,8 +28,9 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     id="helpMenuPortal"
   >
     <button
-      aria-controls="AddChannelDropdown"
+      aria-controls="userHelpGuide"
       aria-expanded="false"
+      aria-haspopup="true"
       aria-label="Help"
       class="HeaderIconButton"
     >
@@ -47,8 +49,9 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     id="helpMenuPortal"
   >
     <button
-      aria-controls="AddChannelDropdown"
+      aria-controls="userHelpGuide"
       aria-expanded="false"
+      aria-haspopup="true"
       aria-label="Help"
       class="HeaderIconButton"
     >

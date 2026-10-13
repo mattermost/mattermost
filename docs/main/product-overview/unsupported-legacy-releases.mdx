@@ -365,7 +365,7 @@ See [this walkthrough video](https://mattermost.com/video/video-mattermost-v9-9-
  - Removed the ``PostPriority`` feature flag.
  - Improved the error message of ``NotFound`` errors in store.
  - Added support for post priority to incoming webhooks and outgoing webhook responses.
- - Added a validation that the payload for an open Interactive Dialog request is valid according to the rules at https://developers.mattermost.com/integrate/plugins/interactive-dialogs/.
+ - Added a validation that the payload for an open Interactive Dialog request is valid according to the rules at https://docs.mattermost.com/developers/integrate/plugins/interactive-dialogs/.
  - Unblocked notification calls by using usernames instead of full names in case of a missing user profile.
  - Increased the maximum password limit from 64 to 72 characters (``PasswordMaximumLength``).
 
@@ -691,7 +691,7 @@ See [this walkthrough video](https://mattermost.com/video/changelog-v9-6/) on so
 #### User Interface (UI)
  - Pre-packaged Calls version [v0.24.0](https://github.com/mattermost/mattermost-plugin-calls/releases/tag/v0.24.0).
  - Pre-packaged GitLab plugin version [v1.8.0](https://github.com/mattermost/mattermost-plugin-gitlab/releases/tag/v1.8.0).
- - Added the [Outgoing OAuth Connections](https://developers.mattermost.com/integrate/slash-commands/outgoing-oauth-connections/) integration type.
+ - Added the [Outgoing OAuth Connections](https://docs.mattermost.com/developers/integrate/slash-commands/outgoing-oauth-connections/) integration type.
  - Re-designed the **System Console > User Management** screen, and added the ability to batch export users in CSV format (Professional and Enterprise plans). On MySQL, users cannot view live results of the batch export in the user interface.
  - Improved the appearance of profile/account menus.
  - Added support for checkbox types in the **System Console** settings.
@@ -1691,7 +1691,7 @@ Support for Mattermost Server v8.0 [Major Release](https://docs.mattermost.com/a
  - Removed deprecated ``model.CommandArgs.Session``.
  - Pass a ``context.Context`` to Client4 methods.
  - For servers wanting to allow websockets to connect from origins other than the origin of the site URL, please set the ``ServiceSettings.AllowCorsFrom`` [configuration setting](https://docs.mattermost.com/configure/integrations-configuration-settings.html#enable-cross-origin-requests-from). Also ensure that the ``siteURL`` is set correctly.
- - In v8.0, the following repositories are merged into one: ``mattermost-server``, ``mattermost-webapp`` and ``mmctl``. Developers should read the updated [Developer Guide](https://developers.mattermost.com/contribute/developer-setup/) for details.
+ - In v8.0, the following repositories are merged into one: ``mattermost-server``, ``mattermost-webapp`` and ``mmctl``. Developers should read the updated [Developer Guide](https://docs.mattermost.com/developers/contribute/developer-setup/) for details.
  - Fixed an issue caused by a migration in the previous release. Query takes around 11ms on a PostgreSQL 14 DB t3.medium RDS instance. Locks on the preferences table will only be acquired if there are rows to delete, but the time taken is negligible.
  - Fixed an issue where a user would still see threads in the threads view of channels they have left. Migration execution time in PostgreSQL: Execution time: 58.11 sec, DELETE 2766690. Migration execution time in MySQL: Query OK, 2766769 rows affected (4 min 47.57 sec).
  - The file info stats query is now optimized by denormalizing the ``channelID`` column into the table itself. This will speed up the query to get the file count for a channel when selecting the right-hand pane. Migration times:
@@ -1904,7 +1904,7 @@ Mattermost v7.10.0 contains low to medium severity level security fixes. [Upgrad
 
 ### Important Upgrade Notes
 
- - In the next release, v7.11, the following repositories will be merged into one: ``mattermost-server``, ``mattermost-webapp``, ``focalboard`` and ``mattermost-plugin-playbooks``. Developers should read the updated [Developer Guide](https://developers.mattermost.com/contribute/developer-setup/) for details. **Playbooks and Boards will be core parts of the product that cannot be disabled**.
+ - In the next release, v7.11, the following repositories will be merged into one: ``mattermost-server``, ``mattermost-webapp``, ``focalboard`` and ``mattermost-plugin-playbooks``. Developers should read the updated [Developer Guide](https://docs.mattermost.com/developers/contribute/developer-setup/) for details. **Playbooks and Boards will be core parts of the product that cannot be disabled**.
 
 <Important>
 
@@ -3508,7 +3508,7 @@ If you upgrade from a release earlier than v6.5, please read the other [Importan
  - Added additional performance debugging settings.
  - The support email field has moved from **Customization** to **Notifications** in the System Console. Also, a support email is now required when configuring email notifications.
  - The ping endpoint can now receive a device ID, which will report whether the device is able to receive push notifications.
- - [Feature flags](https://developers.mattermost.com/contribute/server/feature-flags/) are now automatically refreshed when the server undergoes a restart.
+ - [Feature flags](https://docs.mattermost.com/developers/contribute/more-info/server/feature-flags/) are now automatically refreshed when the server undergoes a restart.
  - Added a sort order to the category API, and included category data in the websocket category update event.
  - Permissions for private playbooks are now hidden unless running an Enterprise license.
 
@@ -8018,7 +8018,7 @@ Mattermost v5.12.0 contains low to medium level security fixes. [Upgrading](http
 
 ### Breaking changes since last release
 
- - If your plugin uses the ``DeleteEphemeralMessage`` plugin API, update it to accept a ``postId string`` parameter. See [documentation](https://developers.mattermost.com/extend/plugins/server/reference/#API.DeleteEphemeralPost) to learn more.
+ - If your plugin uses the ``DeleteEphemeralMessage`` plugin API, update it to accept a ``postId string`` parameter. See [documentation](https://docs.mattermost.com/developers/integrate/reference/server#API.DeleteEphemeralPost) to learn more.
  - Image link and YouTube previews do not display unless **System Console > Enable Link Previews** is enabled. Please ensure that your Mattermost server is connected to the internet and has network access to the websites from which previews are expected to appear. [Learn more here](https://docs.mattermost.com/administration/config-settings.html#enable-link-previews).
  - ``ExperimentalEnablePostMetadata`` setting was removed. Post metadata, including post dimensions, is now stored in the database to correct scroll position and eliminate scroll jumps as content loads in a channel.
 
@@ -8037,7 +8037,7 @@ If you upgrade from a release earlier than 5.11, please read the other [Importan
  - Users no longer have to rely on creating fake user accounts to act as bots for integrations. Instead, create a real bot account and use it to generate bot access tokens to interact with users and complete tasks.
  - Users can can also use these bots to post to any channel in the system, whether it’s a private team, private channel or a direct message channel.
  - For Enterprise deployments, bot accounts no longer count as an active user towards licensing subscriptions.
- - To learn more about bot accounts, see [the documentation](https://developers.mattermost.com/integrate/reference/bot-accounts/).
+ - To learn more about bot accounts, see [the documentation](https://docs.mattermost.com/developers/integrate/reference/bot-accounts/).
  
 #### Jira Plugin 2.0
  - Enhanced existing plugin for a deep two-way integration between Jira and Mattermost.
@@ -8264,7 +8264,7 @@ If you upgrade from a release earlier than 5.9, please read the other [Important
 ### Highlights
  
 #### Interactive Ephemeral Messages
- - Added support for [message actions and buttons](https://developers.mattermost.com/integrate/plugins/interactive-messages/) in ephemeral messages.
+ - Added support for [message actions and buttons](https://docs.mattermost.com/developers/integrate/plugins/interactive-messages/) in ephemeral messages.
 
 #### Configuration in Database
  - Added experimental support for storing ``config.json`` in the database, improving the system console experience on read-only filesystems. Storing the configuration in the database is optional, as the existing ``config.json`` remains fully supported.
@@ -8681,7 +8681,7 @@ If you upgrade from another release than 5.5, please read the [Important Upgrade
 ### Highlights
 
 #### Interactive Dialogs
- - Added support for interactive dialogs to more easily collect structured information from users to perform an action or submit a request via an integration. [Learn more here](https://developers.mattermost.com/integrate/plugins/interactive-messages/)
+ - Added support for interactive dialogs to more easily collect structured information from users to perform an action or submit a request via an integration. [Learn more here](https://docs.mattermost.com/developers/integrate/plugins/interactive-messages/)
 
 #### Languages
  - Added support for Ukrainian language, bringing the number of supported languages to 16.
@@ -8770,7 +8770,7 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 #### Plugin API Changes
  - **Changed ``GetTeamMembers(teamId string, offset, limit int)`` to ``GetTeamMembers(teamId string, page, perPage int)`` to be clearer and consistent with other APIs**
  - **Changed ``GetPublicChannelsForTeam(teamId string, offset, limit int)`` to ``GetPublicChannelsForTeam(teamId string, page, perPage int)`` to be clearer and more consistent with other APIs**
- - Added the following plugin API methods. For more information on each method, see the [server plugin reference](https://developers.mattermost.com/extend/plugins/server/reference/).
+ - Added the following plugin API methods. For more information on each method, see the [server plugin reference](https://docs.mattermost.com/developers/integrate/reference/server).
      - ``GetChannelsForTeamForUser``     
      - ``GetChannelMembers``
      - ``GetChannelMembersByIds``
@@ -9128,7 +9128,7 @@ If you upgrade from another release than 5.1, please read the [Important Upgrade
 #### Plugins
  - Added support to add/delete and enable/disable plugins via the CLI.
  - See our [demo plugin](https://github.com/mattermost/mattermost-plugin-demo) that demonstrates the capabilities of a Mattermost plugin. For a starting point to write a Mattermost plugin, see our [sample plugin](https://github.com/mattermost/mattermost-plugin-sample).
- - Breaking changes to the plugins framework introduced. To migrate your existing plugins to be compatible with Mattermost 5.2 and later, see our [migration guide](https://developers.mattermost.com/extend/plugins/migration/).
+ - Breaking changes to the plugins framework introduced. To migrate your existing plugins to be compatible with Mattermost 5.2 and later, see our [migration guide](https://docs.mattermost.com/developers/integrate/plugins/migration/).
 
 #### Searching Archived Channels
  - Added ability to search for archived channel content on desktop and mobile clients.
@@ -11159,7 +11159,7 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 - Built-in JIRA integration that can post to multiple channels using a single webhook. See the [Jira integration](https://docs.mattermost.com/integrate/jira.html) documentation for details.
 
 #### Personal Access Tokens
-- Enables easier and more flexible integrations by authenticating against the REST API. See the [personal access token](https://developers.mattermost.com/integrate/reference/personal-access-token/) developers documentation for details.
+- Enables easier and more flexible integrations by authenticating against the REST API. See the [personal access token](https://docs.mattermost.com/developers/integrate/reference/personal-access-token/) developers documentation for details.
 
 #### Updated iOS and Android Apps
 - v1.1 of the Native [iOS](https://apps.apple.com/us/app/mattermost/id1257222717) and [Android](https://play.google.com/store/apps/details?id=com.mattermost.rn&hl=en_CA&gl=US) Apps are released with support for search, group messaging, viewing emoji reactions and improved performance on poor connections.
@@ -13990,7 +13990,7 @@ Localization
 
 Integrations
 
-- Integrations now support advanced formatting through [message attachments](https://developers.mattermost.com/integrate/reference/message-attachments/).
+- Integrations now support advanced formatting through [message attachments](https://docs.mattermost.com/developers/integrate/reference/message-attachments/).
 - Added support for sending `@channel` notifications by using `<!channel>`.
 - Added support for raw new lines in the text payload.
 - Added validation for command trigger words.
@@ -14542,7 +14542,7 @@ Localization
 
 Slash Commands
 
-- Added [Slack-compatible slash commands](https://developers.mattermost.com/integrate/slash-commands/slack/) to integrate with external systems
+- Added [Slack-compatible slash commands](https://docs.mattermost.com/developers/integrate/slash-commands/slack/) to integrate with external systems
 
 iOS
 
@@ -14945,7 +14945,7 @@ To limit the impact of this security issue, Mattermost v1.2.0 has been removed f
 
 #### Outgoing webhooks
 
-- Mattermost users can now interact with external applications using [outgoing webhooks](https://developers.mattermost.com/integrate/webhooks/outgoing/)
+- Mattermost users can now interact with external applications using [outgoing webhooks](https://docs.mattermost.com/developers/integrate/webhooks/outgoing/)
 - An [application template](https://github.com/mattermost/mattermost-integration-giphy) demonstrating user queries sent to the Giphy search engine via Mattermost webhooks now available
 - A community application, [Matterbridge](https://github.com/42wim/matterbridge?files=1), shows how to use webhooks to connect Mattermost with IRC
 
@@ -14985,7 +14985,7 @@ Search
 
 Integrations
 
-- [Outgoing webhooks](https://developers.mattermost.com/integrate/webhooks/outgoing/) now available
+- [Outgoing webhooks](https://docs.mattermost.com/developers/integrate/webhooks/outgoing/) now available
 - Made available [application template showing outgoing webhooks working with Mattermost and external application](https://github.com/mattermost/mattermost-integration-giphy)
 
 User Interface

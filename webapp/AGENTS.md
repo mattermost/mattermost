@@ -6,20 +6,22 @@ Guidance for coding agents working inside `webapp/`.
 
 Follow `webapp/STYLE_GUIDE.md` for canonical style, accessibility, and testing standards.
 
-## Shared Components
+## UI components (Compass)
 
-Prefer the shared components from `@mattermost/shared` over hand-rolled equivalents:
-
-- **`Button`** — use for text-based button UI instead of building bespoke `<button>` elements or styling.
-  ```typescript
-  import {Button} from '@mattermost/shared/components/button';
-  ```
-- **`WithTooltip`** — use for tooltips instead of wiring up Floating UI or other tooltip primitives directly.
-  ```typescript
-  import {WithTooltip} from '@mattermost/shared/components/tooltip';
-  ```
-
-Always import via the full package name (`@mattermost/shared/...`), never via relative paths into `platform/shared/`.
+- **Catalog / APIs**: inspect `@mattermost/compass-ui` (package exports / component types) before inventing UI or props.
+- **New UI**: prefer `@mattermost/compass-ui` when a published (on npm) component exists. Import via subpaths:
+  `import {Button} from '@mattermost/compass-ui/components/button';`
+  Do not use the root barrel. Do not recreate Compass primitives.
+- **Do not mass-migrate** existing UI components to Compass. Only switch when building new UI or when the task is an intentional migration of the code you are already changing.
+- **`@mattermost/compass-proto`**: prototyping package not published to npm (shells, call composites, hardcoded menu recipes, proto `WithTooltip`). Not for Mattermost webapp product code — do not add the dependency or import from it unless explicitly adopting that package. Prefer existing webapp / shared / MUI stacks for those surfaces.
+- **Exceptions (keep current stacks)**: icons → `@mattermost/compass-icons`; emoji → `Emoji` (`@mattermost/shared`); modals → existing shared / `GenericModal`; menus → existing MUI menus. Do not switch Modal/Menu to compass-ui yet.
+- **Icon slots**: when passing icons into compass-ui (`leadingIcon`, `trailingIcon`, `icon`), wrap the compass-icons glyph in Compass `Icon` and omit `size`:
+  `import {Icon} from '@mattermost/compass-ui/components/icon';`
+- **Tooltips**: use `WithTooltip` from `@mattermost/shared` instead of wiring up Floating UI, compass-proto `WithTooltip`, or other tooltip primitives directly.
+  `import {WithTooltip} from '@mattermost/shared/components/tooltip';`
+- **Tokens**: Compass foundation CSS variables are global via `@mattermost/compass-ui/styles`. Prefer `var(--…)` over hard-coded radius/spacing/elevation/font/motion values. Theme colors stay on app semantic vars (`--center-channel-*`, etc.). For pills, use `var(--radius-pill)` — webapp `--radius-full` is `50%` and wins over Compass.
+- **Standards**: `webapp/STYLE_GUIDE.md`.
+- Always import via the full package name (`@mattermost/compass-ui/...`, `@mattermost/shared/...`), never via relative paths into the package (e.g. `platform/shared/` or `node_modules/@mattermost/compass-ui/`).
 
 ## Plugin-facing surface on `window.WebappUtils`
 

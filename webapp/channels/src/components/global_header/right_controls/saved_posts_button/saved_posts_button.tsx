@@ -10,7 +10,7 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {closeRightHandSide, showFlaggedPosts} from 'actions/views/rhs';
 import {getRhsState} from 'selectors/rhs';
 
-import IconButton from 'components/global_header/header_icon_button';
+import HeaderIconButton from 'components/global_header/header_icon_button';
 
 import {RHSStates} from 'utils/constants';
 
@@ -39,7 +39,7 @@ const SavedPostsButton = (): JSX.Element | null => {
                 />
             }
         >
-            <IconButton
+            <HeaderIconButton
                 icon={'bookmark-outline'}
                 toggled={rhsState === RHSStates.FLAG}
                 onClick={savedPostsButtonClick}

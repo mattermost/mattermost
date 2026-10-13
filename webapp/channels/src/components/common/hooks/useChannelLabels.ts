@@ -8,11 +8,16 @@ import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities
 
 import useResolvedChannelAttributes from './useResolvedChannelAttributes';
 
-export type ChannelLabelSurface = 'header' | 'info';
+export const ChannelLabelSurface = {
+    HEADER: 'header',
+    INFO: 'info',
+} as const;
+
+export type ChannelLabelSurface = (typeof ChannelLabelSurface)[keyof typeof ChannelLabelSurface];
 
 const ACTION_BY_SURFACE: Record<ChannelLabelSurface, string> = {
-    header: DISPLAY_LABEL_HEADER,
-    info: DISPLAY_LABEL_INFO,
+    [ChannelLabelSurface.HEADER]: DISPLAY_LABEL_HEADER,
+    [ChannelLabelSurface.INFO]: DISPLAY_LABEL_INFO,
 };
 
 const EMPTY: ResolvedChannelAttribute[] = [];

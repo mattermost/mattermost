@@ -54,11 +54,30 @@ Because of these reasons we also don't support migrations directly from MariaDB 
 
 ### Unsupported authentication for MySQL
 
-If you are facing an error due to authentication with MySQL v8, it may be related to a [known issue](https://github.com/dimitri/pgloader/issues/782) with pgloader. The fix is to set the default authentication method to `mysql_native_password` in your MySQL configuration. To do so, add the `default-authentication-plugin=mysql_native_password` value to your `mysql.cnf` file. Also, do not forget to update your user to use this authentication method.
+If you are facing an error due to authentication with MySQL v8, pull the latest `mattermost/mattermost-pgloader` Docker image, or build it yourself from the [mattermost-pgloader-docker](https://github.com/mattermost/mattermost-pgloader-docker) repository, then retry the migration. If neither is possible, use a `pgloader` built from January 2025 onward, which is required for MySQL's default `caching_sha2_password` authentication plugin.
+
+If authentication errors persist, set the default authentication method to `mysql_native_password` in your MySQL configuration.
+
+- **MySQL 8.0 - 8.3**: add the `default-authentication-plugin=mysql_native_password` value to your `mysql.cnf` file.
+- **MySQL 8.4**: `default-authentication-plugin` was removed, and the `mysql_native_password` plugin is disabled by default. Add `mysql_native_password=ON` under `[mysqld]` in your MySQL configuration and restart MySQL, then set `authentication_policy`:
+
+``` sql
+SET PERSIST authentication_policy='mysql_native_password,,';
+```
+
+This does not apply to MySQL 9.0+, which removes the `mysql_native_password` plugin entirely.
+
+Also, do not forget to update your user to use this authentication method.
 
 ``` sql
 ALTER USER '<mysql_user>'@'%' IDENTIFIED WITH mysql_native_password BY '<mysql_password>';
 ```
+
+<Note>
+
+`mysql_native_password` is disabled by default starting with MySQL 8.4 and removed entirely in MySQL 9.x. This workaround is only needed for the migration itself; once you're running on PostgreSQL, you can revert MySQL back to its original authentication method.
+
+</Note>
 
 ### Errors during the pgloader command execution
 

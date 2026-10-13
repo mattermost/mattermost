@@ -126,6 +126,65 @@ describe('translatePostProps', () => {
         });
     });
 
+    describe('attachment fields', () => {
+        const fieldsContainerOf = (fields: unknown[]) => {
+            const result = translatePostProps({attachments: [{fields}]}, mockIntl);
+            return result?.[0].type === 'container' ? result[0].content[0] : undefined;
+        };
+
+        it('should render titles of fields with empty values', () => {
+            expect(fieldsContainerOf([
+                {title: 'Great (1 vote)', value: '', short: true},
+                {title: 'Meh (0 votes)', value: '', short: true},
+            ])).toEqual({
+                type: 'container',
+                flow: 'vertical',
+                gap: 'medium',
+                content: [{
+                    type: 'column_set',
+                    columns: [
+                        {type: 'column', width: 'stretch', gap: 'none', items: [{type: 'text', text: '**Great (1 vote):**'}]},
+                        {type: 'column', width: 'stretch', gap: 'none', items: [{type: 'text', text: '**Meh (0 votes):**'}]},
+                    ],
+                }],
+            });
+        });
+
+        it('should render a titled field with a null value alongside fields that have values', () => {
+            expect(fieldsContainerOf([
+                {title: 'Monday', value: '@alice, @bob'},
+                {title: 'Friday', value: null},
+            ])).toEqual({
+                type: 'container',
+                flow: 'vertical',
+                gap: 'medium',
+                content: [
+                    {type: 'container', flow: 'vertical', gap: 'none', content: [{type: 'text', text: '**Monday:**'}, {type: 'text', text: '@alice, @bob'}]},
+                    {type: 'container', flow: 'vertical', gap: 'none', content: [{type: 'text', text: '**Friday:**'}]},
+                ],
+            });
+        });
+
+        it('should skip fields with neither a title nor a value', () => {
+            expect(fieldsContainerOf([
+                {title: '', value: ''},
+                {title: ' ', value: null},
+                {value: 'kept'},
+            ])).toEqual({
+                type: 'container',
+                flow: 'vertical',
+                gap: 'medium',
+                content: [
+                    {type: 'container', flow: 'vertical', gap: 'none', content: [{type: 'text', text: 'kept'}]},
+                ],
+            });
+        });
+
+        it('should omit the fields container when every field is empty', () => {
+            expect(translatePostProps({attachments: [{fields: [{title: '', value: ''}]}]}, mockIntl)).toEqual([]);
+        });
+    });
+
     describe('malformed inputs', () => {
         it('should fall through when mm_blocks is not an array and use attachments', () => {
             expect(translatePostProps({

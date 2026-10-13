@@ -13,6 +13,8 @@ const (
 	PushNotifyAndroid            = "android"
 	PushNotifyAppleReactNative   = "apple_rn"
 	PushNotifyAndroidReactNative = "android_rn"
+	PushNotifyAppleOxide         = "apple_oxide"
+	PushNotifyAndroidOxide       = "android_oxide"
 
 	PushTypeMessage     = "message"
 	PushTypeClear       = "clear"

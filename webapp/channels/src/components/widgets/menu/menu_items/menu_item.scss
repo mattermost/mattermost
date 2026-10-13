@@ -262,59 +262,6 @@
         }
     }
 
-    .MenuItemCloudLimit {
-        padding: 16px 20px;
-        margin-top: 0;
-        background-color: rgba(var(--mention-highlight-bg-rgb), 0.16);
-
-        &--critical {
-            background-color: rgba(var(--error-text-color-rgb), 0.16);
-        }
-
-        .icon-information-outline {
-            color: var(--button-bg);
-            cursor: pointer;
-        }
-
-        a {
-            // overriding 4 deep selector
-            color: var(--button-bg) !important;
-            font-weight: bold;
-            text-decoration: none;
-
-            &:hover {
-                // overriding 4 deep selector
-                background: inherit !important;
-            }
-        }
-
-        &__title {
-            display: flex;
-            align-items: center;
-            padding-bottom: 5px;
-            color: var(--center-channel-color);
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        &__description {
-            padding-bottom: 12px;
-            font-size: 12px;
-        }
-
-        &__usage {
-            display: flex;
-            align-items: center;
-        }
-
-        &__usage-label {
-            padding-left: 18px;
-            color: rgba(var(--center-channel-color-rgb), 0.75);
-            font-size: 11px;
-            font-weight: bold;
-        }
-    }
-
     .MenuStartTrial {
         display: flex;
         flex-direction: column;

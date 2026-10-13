@@ -57,6 +57,13 @@
     gap: 2px;
 }
 
+.GlobalAttributesTable__nameRow {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+}
+
 .GlobalAttributesTable__name {
     overflow: hidden;
     color: var(--center-channel-color);
@@ -65,24 +72,17 @@
     white-space: nowrap;
 }
 
-.GlobalAttributesTable__name--classification {
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+.GlobalAttributesTable__nameConflict {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    color: var(--away-indicator);
 }
 
 .GlobalAttributesTable__subtitle {
     color: rgba(var(--center-channel-color-rgb), 0.64);
     font-size: 12px;
     white-space: normal;
-}
-
-.GlobalAttributesTable__subtitle--classification {
-    color: rgba(var(--center-channel-color-rgb), 0.56);
-}
-
-.GlobalAttributesTable__actions--classification {
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-end;
 }
 
 .GlobalAttributesTable__link--classification {

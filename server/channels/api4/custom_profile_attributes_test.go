@@ -2492,3 +2492,50 @@ func TestUserValuesTargetAccessAudit(t *testing.T) {
 		assert.NotContains(t, entry.Parameters, "target_access")
 	})
 }
+
+func TestCPALinkedFieldBlocked(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	rctx := request.TestContext(t)
+	group, appErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	// Create a template + linked user field via the app layer, simulating a
+	// field that was migrated to Global Attributes.
+	tmpl, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, appErr)
+
+	linkedField, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:       group.ID,
+		Name:          celSafeName(),
+		Type:          model.PropertyFieldTypeText,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &tmpl.ID,
+	}, false, "")
+	require.Nil(t, appErr)
+
+	t.Run("patch of a linked field is rejected", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.PatchCPAField(context.Background(), linkedField.ID, &model.PropertyFieldPatch{
+			Name: model.NewPointer(celSafeName()),
+		})
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.custom_profile_attributes.linked_field.app_error")
+	})
+
+	t.Run("delete of a linked field is rejected", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DeleteCPAField(context.Background(), linkedField.ID)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.custom_profile_attributes.linked_field.app_error")
+	})
+}

@@ -24,11 +24,11 @@ import {getDefaultAgent} from 'mattermost-redux/selectors/entities/agents';
 
 import AgentDropdown from 'components/common/agents/agent_dropdown';
 import * as Menu from 'components/menu';
-import Input from 'components/widgets/inputs/input/input';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {IconContainer} from './formatting_bar/formatting_icon';
 import {RewriteAction} from './rewrite_action';
+import RewritePromptInput from './rewrite_prompt_input';
 
 import './use_rewrite.scss';
 
@@ -177,12 +177,9 @@ export default function RewriteMenu({
                         </div>
                     }
                     {!isProcessing &&
-                        <Input
+                        <RewritePromptInput
                             ref={customPromptRef}
-                            inputPrefix={<CreationOutlineIcon size={18}/>}
-                            label={placeholderText}
                             placeholder={placeholderText}
-                            disabled={isProcessing}
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
                             onKeyDown={onCustomPromptKeyDown}
@@ -397,12 +394,9 @@ export function RewriteSubMenuHeader({
                 </div>
             }
             {!isProcessing &&
-                <Input
+                <RewritePromptInput
                     ref={customPromptRef}
-                    inputPrefix={<CreationOutlineIcon size={18}/>}
-                    label={placeholderText}
                     placeholder={placeholderText}
-                    disabled={isProcessing}
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     onKeyDown={onCustomPromptKeyDown}

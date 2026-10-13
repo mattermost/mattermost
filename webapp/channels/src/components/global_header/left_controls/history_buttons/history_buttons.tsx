@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState, type JSX} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
-import styled from 'styled-components';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
-import IconButton from 'components/global_header/header_icon_button';
+import HeaderIconButton from 'components/global_header/header_icon_button';
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
@@ -17,16 +16,7 @@ import type {
 
 import DesktopApp from 'utils/desktop_api';
 
-const HistoryButtonsContainer = styled.nav`
-    display: flex;
-    align-items: center;
-
-    > :first-child {
-           margin-right: 1px;
-    }
-`;
-
-const HistoryButtons = (): JSX.Element => {
+export const HistoryButtons = () => {
     const history = useHistory();
     const intl = useIntl();
 
@@ -67,11 +57,11 @@ const HistoryButtons = (): JSX.Element => {
     }, []);
 
     return (
-        <HistoryButtonsContainer>
+        <div className='globalHeader-leftControls-historyButtons'>
             <WithTooltip
                 title={getTooltip(KEYBOARD_SHORTCUTS.browserChannelPrev)}
             >
-                <IconButton
+                <HeaderIconButton
                     icon={'arrow-left'}
                     onClick={goBack}
                     disabled={!canGoBack}
@@ -81,15 +71,13 @@ const HistoryButtons = (): JSX.Element => {
             <WithTooltip
                 title={getTooltip(KEYBOARD_SHORTCUTS.browserChannelNext)}
             >
-                <IconButton
+                <HeaderIconButton
                     icon={'arrow-right'}
                     onClick={goForward}
                     disabled={!canGoForward}
                     aria-label={intl.formatMessage({id: 'sidebar_left.channel_navigator.goForwardLabel', defaultMessage: 'Forward'})}
                 />
             </WithTooltip>
-        </HistoryButtonsContainer>
+        </div>
     );
 };
-
-export default HistoryButtons;

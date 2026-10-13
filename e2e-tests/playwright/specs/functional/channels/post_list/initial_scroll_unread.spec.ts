@@ -6,7 +6,7 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {Page} from '@playwright/test';
 
-import {expect, setupFileServer, test, testConfig} from '@mattermost/playwright-lib';
+import {expect, setupFileServer, test} from '@mattermost/playwright-lib';
 import type {ChannelsPage, PlaywrightClient4} from '@mattermost/playwright-lib';
 
 import {watchPostListScroll, type PostListScrollWatcher} from './scroll_helpers';
@@ -154,17 +154,22 @@ test.describe('Post list initial scroll in unread channel', () => {
                     channel_id: channel.id,
                 });
 
+                // The server only builds permalink previews for links under its own SiteURL, which
+                // can differ from testConfig.internalBaseURL on a server shared with other specs.
+                const {ServiceSettings} = await adminClient.getConfig();
+                const permalink = `${ServiceSettings.SiteURL}/${team.name}/pl/${linkedPost.id}`;
+
                 for (let i = 0; i < 80; i++) {
                     await userClient.createTestPost({
                         channel_id: channel.id,
-                        message: `${testConfig.internalBaseURL}/${team.name}/pl/${linkedPost.id}`,
+                        message: permalink,
                     });
                 }
 
                 for (let i = 0; i < 80; i++) {
                     await adminClient.createTestPost({
                         channel_id: channel.id,
-                        message: `${testConfig.internalBaseURL}/${team.name}/pl/${linkedPost.id}`,
+                        message: permalink,
                     });
                 }
             },
@@ -183,6 +188,10 @@ test.describe('Post list initial scroll in unread channel', () => {
 
                 // * Verify that the New Messages line is actually visible
                 await expect(channelsPage.centerView.notificationSeparator).toBeVisible();
+
+                if (testCase.name === 'with multiple pages of post previews') {
+                    await settleAfterPermalinkPreviewsLoad(watcher);
+                }
 
                 expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
             });
@@ -203,6 +212,10 @@ test.describe('Post list initial scroll in unread channel', () => {
                 // * Verify that the New Messages line is still visible
                 await expect(channelsPage.centerView.notificationSeparator).toBeVisible();
 
+                if (testCase.name === 'with multiple pages of post previews') {
+                    await settleAfterPermalinkPreviewsLoad(watcher);
+                }
+
                 // * Verify that the post list didn't scroll or change height
                 expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
             });
@@ -221,5 +234,15 @@ test.describe('Post list initial scroll in unread channel', () => {
 
         // # Wait until the post list hasn't scrolled for 500ms before returning results
         return watcher.waitForObservations(500);
+    }
+
+    // Permalink previews resolve their linked post asynchronously, so the post list
+    // legitimately grows once they render in, producing one expected scroll observation
+    // before things truly settle. Wait for that to happen and reset the watcher so it
+    // only reports genuinely unexpected scroll changes afterward.
+    async function settleAfterPermalinkPreviewsLoad(watcher: PostListScrollWatcher) {
+        const lastPost = await channelsPage.centerView.getLastPost();
+        await lastPost.postPreview.waitFor();
+        await watcher.reset();
     }
 });

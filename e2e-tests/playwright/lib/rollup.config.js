@@ -37,9 +37,11 @@ export default {
         'luxon',
         'minio',
         'node:child_process',
+        'node:crypto',
         'node:path',
         'node:fs',
         'node:fs/promises',
+        'node:net',
         'node:os',
         'node:url',
         'node:util',
@@ -48,6 +50,5 @@ export default {
         'uuid',
         'async-wait-until',
         'chalk',
-        'deepmerge',
     ],
 };

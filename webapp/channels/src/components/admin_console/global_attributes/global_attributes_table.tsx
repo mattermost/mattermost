@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {createColumnHelper, getCoreRowModel, useReactTable, type ColumnDef} from '@tanstack/react-table';
-import classNames from 'classnames';
 import type {ComponentType} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
@@ -11,16 +10,17 @@ import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
-import {ChevronDownCircleOutlineIcon, DotsHorizontalIcon, EyeOutlineIcon, FormatListBulletedIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SitemapIcon, SortAscendingIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {AlertOutlineIcon, DotsHorizontalIcon, EyeOutlineIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldType, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {valueRefersToOptions} from '@mattermost/types/properties';
+import type {PropertyFieldOwner} from '@mattermost/types/properties_user';
 
 import PropertyTypes from 'mattermost-redux/action_types/properties';
 import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
 import {getConfig as getAdminConfig} from 'mattermost-redux/selectors/entities/admin';
-import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getPropertyGroupByName, getUnlinkedSystemFieldsForGroup, makeGetPropertyFieldsForObjectTypeAndGroup} from 'mattermost-redux/selectors/entities/properties';
 import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 
@@ -28,26 +28,34 @@ import {getPluginDisplayName} from 'selectors/plugins';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import {
+    CLASSIFICATIONS_FIELD_TYPE,
     CLASSIFICATIONS_MARKINGS_ADMIN_URL,
     CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
 } from 'components/admin_console/classification_markings/utils';
 import AlertBanner from 'components/alert_banner';
-import {useIsFieldOrphaned, usePluginInventoryLoaded} from 'components/common/hooks/use_field_orphaned';
+import {useInstalledPluginIds, useIsFieldOrphaned, usePluginInventoryLoaded} from 'components/common/hooks/use_field_orphaned';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {getHistory} from 'utils/browser_history';
 import {LicenseSkus} from 'utils/constants';
-import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
+import {allOwnersAreUninstalledPlugins} from 'utils/properties';
 
 import type {GlobalState} from 'types/store';
 
 import {ALL_RESOURCE_TYPES, resourceTypeLabels} from './attribute_details/attribute_applies_to_constants';
 import type {ResourceObjectType} from './attribute_details/attribute_applies_to_constants';
+import type {AttributeTypeId} from './attribute_type';
+import {ATTRIBUTE_TYPE_DESCRIPTOR, ATTRIBUTE_TYPE_FALLBACK_LABEL, getAttributeTypeDescriptor, getTypeLabelForField} from './attribute_type';
 import {CLASSIFICATION_ATTRIBUTE_ROUTE} from './classification_attribute';
 import {attributeDetailsRoute, GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
 import {useGlobalAttributeFieldDelete} from './global_attribute_delete_modal';
+import type {NameConflict} from './name_conflict';
+import {findNameConflict, nameConflictText} from './name_conflict';
+import useAllowedResourceTypes from './use_allowed_resource_types';
+import {getFieldOwners, NO_OWNERS, useOwnersLabel} from './use_owners_label';
 import {appliedResourceTypesByTemplateId, deleteAttributeField} from './utils';
 
 import {it} from '../admin_definition_helpers';
@@ -57,17 +65,8 @@ import './global_attributes_table.scss';
 
 const columnHelper = createColumnHelper<PropertyField>();
 
-// Same set as the User Attributes page's type selector (user_properties_type_menu.tsx).
-const TYPE_ICONS: Partial<Record<FieldType, ComponentType<IconProps>>> = {
-    text: MenuVariantIcon,
-    select: ChevronDownCircleOutlineIcon,
-    multiselect: FormatListBulletedIcon,
-    rank: SortAscendingIcon,
-    graph: SitemapIcon,
-};
-
-export function getTypeIcon(fieldType: FieldType): ComponentType<IconProps> {
-    return TYPE_ICONS[fieldType] ?? MenuVariantIcon;
+export function getTypeIcon(typeId: AttributeTypeId | FieldType): ComponentType<IconProps> {
+    return ATTRIBUTE_TYPE_DESCRIPTOR[typeId as AttributeTypeId]?.icon ?? MenuVariantIcon;
 }
 
 export function getDisplayName(field: PropertyField): string {
@@ -75,28 +74,34 @@ export function getDisplayName(field: PropertyField): string {
 }
 
 // Identifies the single Classification Markings template field by its literal
-// name + object_type + group_id combo. There is no data-driven ownership flag
-// (attrs.protected/top-level `protected`) for this template field.
+// name + type + object_type + group_id combo. There is no data-driven ownership
+// flag (attrs.protected/top-level `protected`) for this template field.
+//
+// The type is part of it because the name alone is not reserved: an attribute
+// named `classification` of any other type is an ordinary attribute, and must
+// stay editable and deletable here — that is the only way to clear the conflict
+// the Classification Markings page reports.
 export function isClassificationMarkingsField(field: PropertyField, groupId: string): boolean {
     return (
         field.name === CLASSIFICATIONS_TEMPLATE_FIELD_NAME &&
+        field.type === CLASSIFICATIONS_FIELD_TYPE &&
         field.object_type === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE &&
         field.group_id === groupId
     );
 }
 
 // Mirrors admin_definition.tsx's own `classification_markings` route visibility rule
-// (isHidden: it.any(it.not(it.minLicenseTier(Enterprise)), it.not(it.configIsTrue('FeatureFlags',
-// 'ClassificationMarkings')))) by calling the exact same `it.minLicenseTier`/`it.configIsTrue`
-// helpers the route rule itself calls — not a re-implementation of their bodies, so the two can
-// never drift — reading from the same entities/admin config tree the route rule itself reads.
-// Without this, the chevron/subtitle could point at a route that's actually hidden (independent
-// flag from the one gating this listing page).
+// (isHidden: it.any(it.not(it.minLicenseTier(EnterpriseAdvanced)), it.not(it.configIsTrue(
+// 'FeatureFlags', 'ClassificationMarkings')))) by calling the exact same `it.minLicenseTier`/
+// `it.configIsTrue` helpers the route rule itself calls — not a re-implementation of their
+// bodies, so the two can never drift — reading from the same entities/admin config tree the
+// route rule itself reads. Without this, the chevron/subtitle could point at a route that's
+// actually hidden (independent flag from the one gating this listing page).
 function useClassificationMarkingsReachable(): boolean {
     return useSelector((state: GlobalState) => {
         const config = getAdminConfig(state);
         const license = getLicense(state);
-        return it.minLicenseTier(LicenseSkus.Enterprise)(config, state, license) &&
+        return it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)(config, state, license) &&
             it.configIsTrue('FeatureFlags', 'ClassificationMarkings')(config);
     });
 }
@@ -112,8 +117,8 @@ function useClassificationAttributePageReachable(): boolean {
     });
 }
 
-export function getTypeLabel(fieldType: FieldType): MessageDescriptor {
-    return (typeLabels as Partial<Record<FieldType, MessageDescriptor>>)[fieldType] ?? typeLabels.fallback;
+export function getTypeLabel(typeId: AttributeTypeId | FieldType): MessageDescriptor {
+    return ATTRIBUTE_TYPE_DESCRIPTOR[typeId as AttributeTypeId]?.label ?? ATTRIBUTE_TYPE_FALLBACK_LABEL;
 }
 
 export function fieldMatchesSearch(field: PropertyField, query: string, typeLabel: string): boolean {
@@ -162,43 +167,70 @@ type ClassificationAwareCellProps = {
     isClassificationRow: boolean;
 };
 
-function SourceCell({field, isClassificationRow}: ClassificationAwareCellProps) {
+function SourceCell({field, isClassificationRow, owners}: ClassificationAwareCellProps & {owners: PropertyFieldOwner[]}) {
+    const ownersLabel = useOwnersLabel(owners);
     const pluginId = field.attrs?.source_plugin_id as string | undefined;
     const pluginDisplayName = useSelector((state: GlobalState) => getPluginDisplayName(state, pluginId));
 
     const kind = getSourceKind(field);
+    const syncLabel = SYNC_LABELS[kind];
+    const SyncKindIcon = getSourceIcon(kind);
 
     let content: React.ReactNode;
     if (isClassificationRow) {
+        // Not a plugin, LDAP, or SAML source, so it gets no source icon.
         content = <FormattedMessage {...sourceLabels.classificationMarkings}/>;
     } else if (kind === 'plugin') {
-        content = pluginDisplayName;
-    } else if (kind === 'ldap_and_saml') {
-        content = <FormattedMessage {...sourceLabels.ldapAndSaml}/>;
-    } else if (kind === 'ldap') {
-        content = <FormattedMessage {...sourceLabels.ldap}/>;
-    } else if (kind === 'saml') {
-        content = <FormattedMessage {...sourceLabels.saml}/>;
+        content = (
+            <>
+                <PowerPlugOutlineIcon size={16}/>
+                {pluginDisplayName}
+            </>
+        );
+    } else if (owners.length > 0 || syncLabel) {
+        // An owned field can also be synced from LDAP/SAML, so both are shown.
+        content = (
+            <>
+                {owners.length > 0 && (
+                    <span className='GlobalAttributesTable__source'>
+                        <PowerPlugOutlineIcon size={16}/>
+                        <FormattedMessage
+                            {...sourceLabels.ownedBy}
+                            values={{owners: ownersLabel}}
+                        />
+                    </span>
+                )}
+                {syncLabel && (
+                    <span className='GlobalAttributesTable__source'>
+                        {SyncKindIcon && <SyncKindIcon size={16}/>}
+                        <FormattedMessage {...syncLabel}/>
+                    </span>
+                )}
+            </>
+        );
     } else {
         content = <FormattedMessage {...sourceLabels.managed}/>;
     }
-
-    // The classification row identifies its source via text alone ("Classification
-    // Markings"), not a plugin/ldap/saml/managed kind, so it doesn't get one of those icons.
-    const Icon = isClassificationRow ? undefined : getSourceIcon(kind);
 
     return (
         <span
             className='GlobalAttributesTable__source'
             data-testid='global-attribute-source'
         >
-            {Icon && <Icon size={16}/>}
             {content}
         </span>
     );
 }
 
-function AppliesToCell({types}: {types: ResourceObjectType[]}) {
+function AppliesToCell({types, loading}: {types: ResourceObjectType[]; loading?: boolean}) {
+    if (loading && types.length === 0) {
+        return (
+            <span data-testid='global-attribute-applies-to'>
+                <LoadingSpinner/>
+            </span>
+        );
+    }
+
     if (types.length === 0) {
         return <span data-testid='global-attribute-applies-to'>{'—'}</span>;
     }
@@ -242,19 +274,49 @@ function classificationSubtitleId(fieldId: string): string {
     return `global-attribute-classification-subtitle-${fieldId}`;
 }
 
-function AttributeCell({field, isClassificationRow}: ClassificationAwareCellProps) {
+type AttributeCellProps = ClassificationAwareCellProps & {
+    nameConflict?: NameConflict;
+};
+
+function AttributeCell({field, isClassificationRow, nameConflict}: AttributeCellProps) {
+    const {formatMessage} = useIntl();
+    const conflictText = nameConflict ? nameConflictText(nameConflict, formatMessage) : '';
+
     return (
         <span className='GlobalAttributesTable__attribute'>
-            <span
-                className={classNames('GlobalAttributesTable__name', {'GlobalAttributesTable__name--classification': isClassificationRow})}
-                data-testid='global-attribute-name'
-            >
-                {getDisplayName(field)}
+            <span className='GlobalAttributesTable__nameRow'>
+                <span
+                    className='GlobalAttributesTable__name'
+                    data-testid='global-attribute-name'
+                >
+                    {getDisplayName(field)}
+                </span>
+                {nameConflict && (
+                    <WithTooltip title={conflictText}>
+                        <span
+                            className='GlobalAttributesTable__nameConflict'
+
+                            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child, so without this the warning is mouse-only
+                            tabIndex={0}
+
+                            // The icon is the whole content, so the element needs a
+                            // role that admits a name for aria-label to be announced.
+                            role='img'
+                            aria-label={conflictText}
+                            data-testid={`global-attribute-name-conflict-${field.id}`}
+                        >
+                            <AlertOutlineIcon
+                                size={16}
+                                aria-hidden={true}
+                            />
+                        </span>
+                    </WithTooltip>
+                )}
             </span>
             {isClassificationRow && (
                 <span
                     id={classificationSubtitleId(field.id)}
-                    className='GlobalAttributesTable__subtitle GlobalAttributesTable__subtitle--classification'
+                    className='GlobalAttributesTable__subtitle'
                     data-testid={`global-attribute-classification-subtitle-${field.id}`}
                 >
                     <FormattedMessage {...messages.classificationSubtitle}/>
@@ -265,14 +327,16 @@ function AttributeCell({field, isClassificationRow}: ClassificationAwareCellProp
 }
 
 type ActionsCellProps = ClassificationAwareCellProps & {
-    canEditClassification: boolean;
     isMobileView: boolean;
+    owners: PropertyFieldOwner[];
+    resourcesLoaded: boolean;
     pluginInventoryLoaded: boolean;
+    disabled: boolean;
     onDeleteError: (message: string | null) => void;
     onDeleteModalExited: () => void;
 };
 
-function ActionsCell({field, isClassificationRow, canEditClassification, isMobileView, pluginInventoryLoaded, onDeleteError, onDeleteModalExited}: ActionsCellProps) {
+function ActionsCell({field, isClassificationRow, isMobileView, owners, resourcesLoaded, pluginInventoryLoaded, disabled, onDeleteError, onDeleteModalExited}: ActionsCellProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const promptDelete = useGlobalAttributeFieldDelete();
@@ -289,6 +353,29 @@ function ActionsCell({field, isClassificationRow, canEditClassification, isMobil
     const isOrphaned = pluginInventoryLoaded && fieldLooksOrphaned;
     const isPluginManaged = isPluginOwned && !isOrphaned;
 
+    // Deleting an attribute deletes its owned Users field, so an owned attribute
+    // is deletable only once every owner is an uninstalled plugin. Until the
+    // Users fields and plugin inventory settle, ownership is not known yet.
+    const installedPluginIds = useInstalledPluginIds();
+    const ownersLabel = useOwnersLabel(owners);
+    const isOwned = owners.length > 0;
+    const ownersGone = pluginInventoryLoaded && allOwnersAreUninstalledPlugins(owners, installedPluginIds);
+    const isResolving = !resourcesLoaded && field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE;
+    const isOwnerManaged = isOwned && !ownersGone;
+
+    // Page-level read-only (non-sysadmin via schema isDisabled) and plugin-owned
+    // fields both open the details page as view-only; Delete stays off for those
+    // plus still-installed plugin-managed or owner-managed rows.
+    const isViewOnly = disabled || isPluginOwned;
+    const isDeleteDisabled = disabled || isPluginManaged || isResolving || isOwnerManaged;
+
+    let orphanInfo: {ownerPluginIds: string[]} | {sourcePluginId?: string} | undefined;
+    if (isOwned) {
+        orphanInfo = {ownerPluginIds: owners.map((owner) => owner.id)};
+    } else if (isOrphaned) {
+        orphanInfo = {sourcePluginId: field.attrs?.source_plugin_id as string | undefined};
+    }
+
     const handleConfirmed = useCallback(async () => {
         onDeleteError(null);
 
@@ -302,9 +389,12 @@ function ActionsCell({field, isClassificationRow, canEditClassification, isMobil
         }
     }, [dispatch, field.id, formatMessage, onDeleteError]);
 
+    // Classification's definition lives on Classification Markings; this row only
+    // offers the open-in-new link there. Row click still opens the attribute page
+    // when that route is reachable.
     if (isClassificationRow) {
         const classificationLinkLabel = formatMessage(actionsLabels.classificationLink);
-        const externalLink = (
+        return (
             <WithTooltip
                 title={classificationLinkLabel}
                 disabled={isMobileView}
@@ -322,47 +412,6 @@ function ActionsCell({field, isClassificationRow, canEditClassification, isMobil
                     />
                 </Link>
             </WithTooltip>
-        );
-
-        if (!canEditClassification) {
-            return externalLink;
-        }
-
-        // Both destinations: Edit configures which resources classification applies
-        // to, the link goes to where its levels are defined.
-        return (
-            <div className='GlobalAttributesTable__actions--classification'>
-                <Menu.Container
-                    menuButton={{
-                        id: `${menuId}-button`,
-                        class: 'btn btn-transparent GlobalAttributesTable__actionsButton',
-                        children: <DotsHorizontalIcon size={18}/>,
-                        dataTestId: menuId,
-                        'aria-label': formatMessage(actionsLabels.tooltip),
-                    }}
-                    menuButtonTooltip={{text: formatMessage(actionsLabels.tooltip)}}
-                    menu={{
-                        id: `${menuId}-menu`,
-                        'aria-label': formatMessage(actionsLabels.menuLabel),
-                    }}
-                    anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
-                    transformOrigin={{vertical: 'top', horizontal: 'right'}}
-                >
-                    <Menu.LinkItem
-                        id={`${menuId}-edit`}
-                        to={CLASSIFICATION_ATTRIBUTE_ROUTE}
-                        leadingElement={<PencilOutlineIcon size={18}/>}
-                        labels={<span><FormattedMessage {...actionsLabels.edit}/></span>}
-                    />
-                    <Menu.LinkItem
-                        id={`${menuId}-markings`}
-                        to={CLASSIFICATIONS_MARKINGS_ADMIN_URL}
-                        leadingElement={<OpenInNewIcon size={18}/>}
-                        labels={<span><FormattedMessage {...actionsLabels.classificationLink}/></span>}
-                    />
-                </Menu.Container>
-                {externalLink}
-            </div>
         );
     }
 
@@ -385,25 +434,33 @@ function ActionsCell({field, isClassificationRow, canEditClassification, isMobil
         >
             <Menu.Item
                 id={`${menuId}-edit`}
-                leadingElement={isPluginOwned ? <EyeOutlineIcon size={18}/> : <PencilOutlineIcon size={18}/>}
+                leadingElement={isViewOnly ? <EyeOutlineIcon size={18}/> : <PencilOutlineIcon size={18}/>}
                 onClick={() => getHistory().push(attributeDetailsRoute(field.id))}
-                labels={<FormattedMessage {...(isPluginOwned ? actionsLabels.view : actionsLabels.edit)}/>}
+                labels={<FormattedMessage {...(isViewOnly ? actionsLabels.view : actionsLabels.edit)}/>}
             />
             <Menu.Item
                 id={`${menuId}-delete`}
-                disabled={isPluginManaged}
+                disabled={isDeleteDisabled}
                 isDestructive={true}
                 leadingElement={<TrashCanOutlineIcon size={18}/>}
-                onClick={isPluginManaged ? undefined : () => promptDelete(
+                onClick={isDeleteDisabled ? undefined : () => promptDelete(
                     getDisplayName(field),
                     handleConfirmed,
-                    isOrphaned ? {sourcePluginId: field.attrs?.source_plugin_id as string | undefined} : undefined,
+                    orphanInfo,
                     onDeleteModalExited,
                 )}
                 labels={(
                     <>
                         <span><FormattedMessage {...actionsLabels.delete}/></span>
                         {isPluginManaged && <span><FormattedMessage {...actionsLabels.pluginManaged}/></span>}
+                        {!isPluginManaged && isOwnerManaged && (
+                            <span>
+                                <FormattedMessage
+                                    {...actionsLabels.ownerManaged}
+                                    values={{owners: ownersLabel}}
+                                />
+                            </span>
+                        )}
                     </>
                 )}
             />
@@ -413,13 +470,15 @@ function ActionsCell({field, isClassificationRow, canEditClassification, isMobil
 
 type GlobalAttributesTableProps = {
     searchQuery?: string;
+    disabled?: boolean;
 };
 
-export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttributesTableProps) {
+export default function GlobalAttributesTable({searchQuery = '', disabled = false}: GlobalAttributesTableProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
     const [loaded, setLoaded] = useState(false);
+    const [resourcesLoaded, setResourcesLoaded] = useState(false);
     const [loadError, setLoadError] = useState(false);
     const [suppressedScopes, setSuppressedScopes] = useState<ReadonlySet<ResourceObjectType>>(() => new Set());
     const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -466,31 +525,41 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
         ]),
         [channelLinkedFields, suppressedScopes, postLinkedFields, userLinkedFields],
     );
+    const ownersByTemplateId = useMemo(() => {
+        const byTemplate: Record<string, PropertyFieldOwner[]> = {};
+        if (suppressedScopes.has('user')) {
+            return byTemplate;
+        }
+        for (const field of userLinkedFields) {
+            if (field.linked_field_id && field.delete_at === 0) {
+                byTemplate[field.linked_field_id] = getFieldOwners(field);
+            }
+        }
+        return byTemplate;
+    }, [suppressedScopes, userLinkedFields]);
     const unlinkedFields = useSelector((state: GlobalState) =>
         getUnlinkedSystemFieldsForGroup(state, groupId),
     );
 
-    // Same gate the details page applies. Channel is fetched only when channel
-    // attributes are licensed and enabled: the server 501s a channel-scoped
-    // access_control GET below Enterprise Advanced, and this page is reachable at
-    // plain Enterprise.
-    const channelAttributesEnabled = useSelector((state: GlobalState) =>
-        getFeatureFlagValue(state, 'ChannelAttributes') === 'true' && isMinimumEnterpriseAdvancedLicense(getLicense(state)));
-
-    const resourceTypesToFetch = useMemo(
-        () => ALL_RESOURCE_TYPES.filter((type) => channelAttributesEnabled || type !== 'channel'),
-        [channelAttributesEnabled],
-    );
+    // Same gate the details page applies, so a resource this server does not
+    // offer is never fetched or listed here either.
+    const resourceTypesToFetch = useAllowedResourceTypes();
 
     useEffect(() => {
         let active = true;
 
         const load = async () => {
             try {
+                // Paint the table from template fields first; Applies-to chips and
+                // unlinked resource rows fill in once the background scope fetches
+                // settle.
                 await dispatch(fetchPropertyFields(GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE));
                 if (!active) {
                     return;
                 }
+                setLoadError(false);
+                setLoaded(true);
+                setResourcesLoaded(false);
 
                 // Both non-template rows and applies-to chips come from the
                 // per-resource fields. A rejected fetch does not replace that
@@ -516,16 +585,14 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                     }
                 });
                 setSuppressedScopes(suppressed);
-                setLoadError(false);
+                setResourcesLoaded(true);
             } catch (error) {
                 // Surface an error state instead of a misleading empty state.
                 console.error('GlobalAttributesTable-load: ', error); // eslint-disable-line no-console
                 if (active) {
                     setLoadError(true);
-                }
-            } finally {
-                if (active) {
                     setLoaded(true);
+                    setResourcesLoaded(true);
                 }
             }
         };
@@ -540,19 +607,69 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
     // getUnlinkedSystemFieldsForGroup reads every cached user/channel/post field.
     // Channel fields can already be in the store (channel-header labels, a prior
     // visit while licensed) after resourceTypesToFetch has dropped that scope, so
-    // keep the table in lockstep with what this page actually fetched.
+    // keep the table in lockstep with what this page actually fetched. Unlinked
+    // rows also wait on resourcesLoaded so they do not flash before suppressedScopes
+    // is known.
+    // Hide the Classification template when Classification Markings is not reachable
+    // (below Enterprise Advanced, or flag off). Showing it as an ordinary editable row
+    // would offer Edit/Delete for a system field whose real home page is hidden.
     const allRows = useMemo(
-        () => [...fields, ...unlinkedFields.filter((field) => !suppressedScopes.has(field.object_type as ResourceObjectType))].sort(
-            (a, b) => getDisplayName(a).localeCompare(getDisplayName(b)),
-        ),
-        [fields, unlinkedFields, suppressedScopes],
+        () => [
+            ...fields,
+            ...(resourcesLoaded ? unlinkedFields.filter((field) => !suppressedScopes.has(field.object_type as ResourceObjectType)) : []),
+        ].
+            filter((field) =>
+                !isClassificationMarkingsField(field, groupId) || classificationMarkingsReachable,
+            ).
+            sort(
+                (a, b) => getDisplayName(a).localeCompare(getDisplayName(b)),
+            ),
+        [classificationMarkingsReachable, fields, groupId, unlinkedFields, suppressedScopes, resourcesLoaded],
     );
 
-    // The Source column resolves plugin-owned rows to a plugin display name, but
-    // server-only plugins are absent from the webapp manifest registry — their names
-    // live in the admin plugin statuses, which nothing else on this page loads.
-    // Fetched once, and only when a plugin-owned row is actually present.
-    const hasPluginOwnedFields = useMemo(() => allRows.some((field) => Boolean(field.attrs?.source_plugin_id)), [allRows]);
+    const ownersFor = useCallback((field: PropertyField): PropertyFieldOwner[] => {
+        if (field.object_type === 'user') {
+            return getFieldOwners(field);
+        }
+        return ownersByTemplateId[field.id] ?? NO_OWNERS;
+    }, [ownersByTemplateId]);
+
+    // Attribute Management hides a template's linked children, so the only trace
+    // of one is the template's own row -- which says nothing about the name that
+    // child carries. Two attributes an admin reads as one (a `clearance` user
+    // field owned by Classification and an unrelated `Clearance` template) are
+    // therefore invisible to each other here. Resolved against the live user
+    // fields, since a CEL rule names one of those.
+    //
+    // Waits on resourcesLoaded like the unlinked rows do: suppressedScopes is
+    // only populated once the scope fetches settle, so warning before that
+    // would read a cache this page has not confirmed it can still fetch.
+    const nameConflictsByFieldId = useMemo(() => {
+        const liveUserFields = resourcesLoaded && !suppressedScopes.has('user') ? userLinkedFields : [];
+        const byFieldId: Record<string, NameConflict> = {};
+        for (const field of allRows) {
+            // Only rows that share the user namespace. A channel or post field
+            // is `resource.attributes.<name>` in CEL, which never resolves to a
+            // user field however alike the two names look; a template counts
+            // because applying it to Users would put it in that namespace.
+            if (field.object_type !== GLOBAL_ATTRIBUTES_OBJECT_TYPE && field.object_type !== 'user') {
+                continue;
+            }
+            const conflict = findNameConflict(field.name, liveUserFields, fields, field.id);
+            if (conflict) {
+                byFieldId[field.id] = conflict;
+            }
+        }
+        return byFieldId;
+    }, [allRows, fields, resourcesLoaded, suppressedScopes, userLinkedFields]);
+
+    // The Source column resolves plugin-created and plugin-owned rows to a plugin
+    // display name, but server-only plugins are absent from the webapp manifest
+    // registry — their names live in the admin plugin statuses, which nothing else
+    // on this page loads. Fetched once, and only when such a row is actually present.
+    const hasPluginOwnedFields = useMemo(() => allRows.some((field) => (
+        Boolean(field.attrs?.source_plugin_id) || ownersFor(field).some((owner) => owner.type === 'plugin')
+    )), [allRows, ownersFor]);
 
     // Whether the plugin inventory is known yet. This gates the orphan check
     // rather than the Source column, which degrades harmlessly to the plugin ID:
@@ -599,7 +716,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
     }, [deleteError, deleteModalExited]);
 
     const rows = useMemo(
-        () => allRows.filter((field) => fieldMatchesSearch(field, searchQuery, formatMessage(getTypeLabel(field.type)))),
+        () => allRows.filter((field) => fieldMatchesSearch(field, searchQuery, formatMessage(getTypeLabelForField(field)))),
         [allRows, formatMessage, searchQuery],
     );
 
@@ -609,8 +726,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
             return;
         }
 
-        // Same destinations as the row's Edit/View action: classification has
-        // its own page (or the markings page when that edit route is hidden).
+        // Classification has its own page (or the markings page when that edit route is hidden).
         if (isClassificationMarkingsField(field, groupId) && classificationMarkingsReachable) {
             getHistory().push(classificationAttributePageReachable ? CLASSIFICATION_ATTRIBUTE_ROUTE : CLASSIFICATIONS_MARKINGS_ADMIN_URL);
             return;
@@ -638,6 +754,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                     <AttributeCell
                         field={row.original}
                         isClassificationRow={isClassificationRow(row.original)}
+                        nameConflict={nameConflictsByFieldId[row.original.id]}
                     />
                 ),
                 enableSorting: false,
@@ -646,9 +763,10 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
             columnHelper.accessor('type', {
                 id: 'type',
                 header: () => <FormattedMessage {...messages.type}/>,
-                cell: ({getValue}) => {
-                    const fieldType = getValue();
-                    const Icon = getTypeIcon(fieldType);
+                cell: ({row}) => {
+                    const descriptor = getAttributeTypeDescriptor(row.original);
+                    const label = getTypeLabelForField(row.original);
+                    const Icon = descriptor.fieldType === row.original.type ? descriptor.icon : MenuVariantIcon;
 
                     return (
                         <span
@@ -656,7 +774,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                             data-testid='global-attribute-type'
                         >
                             <Icon size={16}/>
-                            <FormattedMessage {...getTypeLabel(fieldType)}/>
+                            <FormattedMessage {...label}/>
                         </span>
                     );
                 },
@@ -667,7 +785,10 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                 id: 'applies_to',
                 header: () => <FormattedMessage {...messages.appliesTo}/>,
                 cell: ({row}) => (
-                    <AppliesToCell types={appliesToFor(row.original)}/>
+                    <AppliesToCell
+                        types={appliesToFor(row.original)}
+                        loading={!resourcesLoaded}
+                    />
                 ),
                 enableHiding: false,
             }),
@@ -678,6 +799,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                     <SourceCell
                         field={row.original}
                         isClassificationRow={isClassificationRow(row.original)}
+                        owners={ownersFor(row.original)}
                     />
                 ),
                 enableHiding: false,
@@ -702,9 +824,11 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                         <ActionsCell
                             field={row.original}
                             isClassificationRow={isClassificationRow(row.original)}
-                            canEditClassification={classificationAttributePageReachable}
                             isMobileView={isMobileView}
+                            owners={ownersFor(row.original)}
+                            resourcesLoaded={resourcesLoaded}
                             pluginInventoryLoaded={pluginInventoryLoadedRef.current}
+                            disabled={disabled}
                             onDeleteError={setDeleteError}
                             onDeleteModalExited={handleDeleteModalExited}
                         />
@@ -713,7 +837,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                 enableHiding: false,
             }),
         ];
-    }, [appliesToByTemplateId, groupId, classificationMarkingsReachable, classificationAttributePageReachable, isMobileView, handleDeleteModalExited]);
+    }, [appliesToByTemplateId, groupId, classificationMarkingsReachable, isMobileView, handleDeleteModalExited, nameConflictsByFieldId, resourcesLoaded, ownersFor, disabled]);
 
     const table = useReactTable<PropertyField>({
         data: rows,
@@ -747,6 +871,13 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
     }
 
     if (rows.length === 0) {
+        // Template list can be empty while unlinked resource fields are still
+        // in flight — stay on the loading screen so the empty state does not
+        // flash before those rows arrive.
+        if (!resourcesLoaded && allRows.length === 0) {
+            return <LoadingScreen/>;
+        }
+
         const isSearchEmpty = allRows.length > 0 && Boolean(searchQuery.trim());
         return (
             <div
@@ -809,25 +940,35 @@ const messages = defineMessages({
     loadError: {id: 'admin.global_attributes.table.load_error', defaultMessage: 'There was an error while loading attributes.'},
 });
 
-export const typeLabels = defineMessages({
-    text: {id: 'admin.global_attributes.table.type.text', defaultMessage: 'Text'},
-    select: {id: 'admin.global_attributes.table.type.select', defaultMessage: 'Select'},
-    multiselect: {id: 'admin.global_attributes.table.type.multiselect', defaultMessage: 'Multiselect'},
-    rank: {id: 'admin.global_attributes.table.type.rank', defaultMessage: 'Ranked'},
-    graph: {id: 'admin.global_attributes.table.type.graph', defaultMessage: 'Hierarchical'},
-    fallback: {id: 'admin.global_attributes.table.type.fallback', defaultMessage: 'Other'},
-});
+export const typeLabels = {
+    text: ATTRIBUTE_TYPE_DESCRIPTOR.text.label,
+    email: ATTRIBUTE_TYPE_DESCRIPTOR.email.label,
+    phone: ATTRIBUTE_TYPE_DESCRIPTOR.phone.label,
+    url: ATTRIBUTE_TYPE_DESCRIPTOR.url.label,
+    select: ATTRIBUTE_TYPE_DESCRIPTOR.select.label,
+    multiselect: ATTRIBUTE_TYPE_DESCRIPTOR.multiselect.label,
+    rank: ATTRIBUTE_TYPE_DESCRIPTOR.rank.label,
+    graph: ATTRIBUTE_TYPE_DESCRIPTOR.graph.label,
+    fallback: ATTRIBUTE_TYPE_FALLBACK_LABEL,
+};
 
 const sourceLabels = defineMessages({
     ldapAndSaml: {id: 'admin.global_attributes.table.source.ldap_and_saml', defaultMessage: 'AD/LDAP, SAML'},
     ldap: {id: 'admin.global_attributes.table.source.ldap', defaultMessage: 'AD/LDAP'},
     saml: {id: 'admin.global_attributes.table.source.saml', defaultMessage: 'SAML'},
     managed: {id: 'admin.global_attributes.table.source.managed', defaultMessage: 'Managed here'},
+    ownedBy: {id: 'admin.global_attributes.table.source.owned_by', defaultMessage: 'Managed by {owners}'},
     classificationMarkings: {
         id: 'admin.global_attributes.table.source.classification_markings',
         defaultMessage: 'Classification Markings',
     },
 });
+
+const SYNC_LABELS: Partial<Record<SourceKind, MessageDescriptor>> = {
+    ldap_and_saml: sourceLabels.ldapAndSaml,
+    ldap: sourceLabels.ldap,
+    saml: sourceLabels.saml,
+};
 
 const optionsLabels = defineMessages({
     freeText: {id: 'admin.global_attributes.table.options.free_text', defaultMessage: 'Free Text'},
@@ -841,6 +982,7 @@ export const actionsLabels = defineMessages({
     view: {id: 'admin.global_attributes.table.actions.view', defaultMessage: 'View attribute'},
     delete: {id: 'admin.global_attributes.table.actions.delete', defaultMessage: 'Delete attribute'},
     pluginManaged: {id: 'admin.global_attributes.table.actions.plugin_managed', defaultMessage: 'Plugin-managed'},
+    ownerManaged: {id: 'admin.global_attributes.table.actions.owner_managed', defaultMessage: 'Managed by {owners}'},
     deleteErrorHasDependents: {
         id: 'admin.global_attributes.confirm.delete.error.has_dependents',
         defaultMessage: "This attribute can't be deleted because other attributes are still linked to it. Remove those links first, then try again.",

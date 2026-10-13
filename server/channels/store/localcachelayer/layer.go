@@ -102,6 +102,9 @@ const (
 
 	UserPropertyValuesEpochCacheSize = 25000 // Per-user CPA epochs
 	UserPropertyValuesEpochCacheSec  = 15 * 60
+
+	UserAttributesCacheSize = 25000 // Per-user CPA attribute blobs (Subject.Attributes)
+	UserAttributesCacheSec  = 15 * 60
 )
 
 var clearCacheMessageData = []byte("")
@@ -187,6 +190,7 @@ type LocalCacheStore struct {
 
 	attributes                   LocalCacheAttributesStore
 	userPropertyValuesEpochCache cache.Cache
+	userAttributesCache          cache.Cache
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheProvider cache.Provider, logger mlog.LoggerIFace) (localCacheStore LocalCacheStore, err error) {
@@ -553,6 +557,16 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}); err != nil {
 		return
 	}
+
+	// User attributes (CPA)
+	if localCacheStore.userAttributesCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   UserAttributesCacheSize,
+		Name:                   "UserAttributes",
+		DefaultExpiry:          UserAttributesCacheSec * time.Second,
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForUserAttributes,
+	}); err != nil {
+		return
+	}
 	localCacheStore.attributes = LocalCacheAttributesStore{AttributesStore: baseStore.Attributes(), rootStore: &localCacheStore}
 
 	if cluster != nil {
@@ -589,6 +603,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForPropertyFields, localCacheStore.propertyField.handleClusterInvalidatePropertyField)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForAccessControlPolicyEtag, localCacheStore.accessControlPolicy.handleClusterInvalidateAccessControlPolicyEtag)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForUserPropertyValuesEpoch, localCacheStore.attributes.handleClusterInvalidateUserPropertyValuesEpoch)
+		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForUserAttributes, localCacheStore.attributes.handleClusterInvalidateUserAttributes)
 	}
 	return
 }
@@ -823,6 +838,7 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.propertyFieldCache)
 	s.doClearCacheCluster(s.accessControlPolicyEtagCache)
 	s.doClearCacheCluster(s.userPropertyValuesEpochCache)
+	s.doClearCacheCluster(s.userAttributesCache)
 }
 
 // allocateCacheTargets is used to fill target value types
