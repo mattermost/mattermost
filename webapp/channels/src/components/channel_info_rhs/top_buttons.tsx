@@ -24,11 +24,17 @@ import Constants from 'utils/constants';
 
 const ChannelInfoRhsTopButtons = styled.div`
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--spacing-xs);
     color: rgba(var(--center-channel-color-rgb), 0.75);
     margin-top: 24px;
     padding: 0 18px;
+
+    /* ActionButton defaults to a fixed 88px width; share the RHS row evenly. */
+    > button {
+        flex: 1 1 0;
+        width: auto;
+        min-width: 0;
+    }
 `;
 
 export interface Props {
