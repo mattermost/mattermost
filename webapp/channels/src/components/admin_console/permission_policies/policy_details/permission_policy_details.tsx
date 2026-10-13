@@ -399,20 +399,16 @@ function PermissionPolicyDetails({
                                 />
                             </div>
 
-                            {/* Info Banner */}
-                            <div className='pp-info-banner'>
-                                <i className='icon icon-information-outline'/>
-                                <div className='pp-info-banner-content'>
-                                    <span className='pp-info-banner-title'>
+                            <div className='pp-info-notice'>
+                                <SectionNotice
+                                    type='info'
+                                    title={
                                         <FormattedMessage
                                             id='admin.permission_policies.edit.info_banner.title'
                                             defaultMessage='The permissions defined in this policy override the {link} when its conditions are met'
                                             values={{
                                                 link: (
-                                                    <BlockableLink
-                                                        to='/admin_console/user_management/permissions'
-                                                        className='pp-info-banner-link'
-                                                    >
+                                                    <BlockableLink to='/admin_console/user_management/permissions'>
                                                         <FormattedMessage
                                                             id='admin.permission_policies.edit.info_banner.link'
                                                             defaultMessage='system permission schemes'
@@ -421,14 +417,14 @@ function PermissionPolicyDetails({
                                                 ),
                                             }}
                                         />
-                                    </span>
-                                    <span className='pp-info-banner-subtitle'>
+                                    }
+                                    description={
                                         <FormattedMessage
                                             id='admin.permission_policies.edit.info_banner.evaluation_order'
                                             defaultMessage='Permissions evaluation order: Permission policies (evaluated first) → System scheme / Team override scheme (fallback when no policy applies).'
                                         />
-                                    </span>
-                                </div>
+                                    }
+                                />
                             </div>
 
                             {noUsableAttributes && (
