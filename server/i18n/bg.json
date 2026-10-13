@@ -14560,7 +14560,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Невалиден режим на уеб сървъра {{.Value}}. Трябва да бъде 'gzip', 'nogzip' или 'disabled'."
+    "translation": "Невалиден режим на уеб сървъра {{.Value}}. Трябва да бъде 'gzip', 'uncompressed' или 'disabled'."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",

@@ -126,10 +126,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Headlines target Trade Gothic Next Heavy proportions: tighter set
- * than Archivo Black's default. We tune letter-spacing per size and
- * apply a mild horizontal squeeze via font-stretch where the platform
- * supports it (no-op on Archivo Black, which is fixed-width).
+/* Headlines run a tighter set than Archivo Black's default. We tune
+ * letter-spacing per size and apply a mild horizontal squeeze via
+ * font-stretch where the platform supports it (no-op on Archivo Black,
+ * which is fixed-width).
  *
  * h1 used to be 900-weight Archivo Black, but that read as too
  * heavy/shouty for page titles at body-copy reading distance — same
