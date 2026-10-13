@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ProgressBar} from '@mattermost/compass-ui/components/progress-bar';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import {ProgressBar} from '@mattermost/compass-ui/components/progress-bar';
 
 import FilenameOverlay from 'components/file_attachment/filename_overlay';
 
