@@ -952,6 +952,12 @@ func (s *SqlPropertyFieldStore) CountLinkedFields(fieldID string) (int64, error)
 // ones based on field.Permissions.Grants. Each grant's allow list is expanded into
 // individual rows, one per action. If Permissions is nil or has no grants, only the
 // delete is run (which is a no-op if the field had no prior grants).
+//
+// The table is an index over the grants stored in the permissions column, and
+// its key leaves out scopes, so two grants can map to the same row: one identity
+// listed under two scopes with an action in common, or an action repeated in one
+// allow list. Each row is written once. Nothing is lost, because the column
+// keeps every grant as submitted.
 func (s *SqlPropertyFieldStore) syncPropertyFieldGrants(transaction *sqlxTxWrapper, fieldID string, permissions *model.Permissions, now int64) error {
 	builder := s.getQueryBuilder().
 		Delete("PropertyFieldGrants").
@@ -968,8 +974,15 @@ func (s *SqlPropertyFieldStore) syncPropertyFieldGrants(transaction *sqlxTxWrapp
 	insertBuilder := s.getQueryBuilder().Insert("PropertyFieldGrants").
 		Columns("FieldID", "Type", "ID", "Action")
 
+	type grantRow struct{ identityType, id, action string }
+	written := make(map[grantRow]bool)
 	for _, grant := range permissions.Grants {
 		for _, action := range grant.Allow {
+			row := grantRow{grant.Type, grant.ID, action}
+			if written[row] {
+				continue
+			}
+			written[row] = true
 			insertBuilder = insertBuilder.Values(fieldID, grant.Type, grant.ID, action)
 		}
 	}
