@@ -5,6 +5,7 @@ import React, {useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {AccountPlusOutlineIcon} from '@mattermost/compass-icons/components';
 import {ActionButton} from '@mattermost/compass-ui/components/action-button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {buttonClassNames} from '@mattermost/shared/components/button';
@@ -131,17 +132,7 @@ const MoreThanMaxFreeUsers = ({channel, pluginButtons}: {channel: Channel; plugi
                     <ActionButton
                         onClick={handleAddPeople}
                         aria-label={addLabel}
-                        icon={
-                            <Icon
-                                glyph={
-                                    <i
-                                        className='icon-account-plus-outline'
-                                        title={formatMessage({id: 'generic_icons.add', defaultMessage: 'Add Icon'})}
-                                        aria-hidden='true'
-                                    />
-                                }
-                            />
-                        }
+                        icon={<Icon glyph={<AccountPlusOutlineIcon/>}/>}
                         label={addLabel}
                     />
                 </ChannelPermissionGate>

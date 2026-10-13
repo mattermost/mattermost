@@ -769,7 +769,7 @@ const SetHeaderButton = ({channel}: {channel: Channel}) => {
     return (
         <ActionButton
             aria-label={label}
-            icon={<Icon glyph={<PencilOutlineIcon size={18}/>}/>}
+            icon={<Icon glyph={<PencilOutlineIcon/>}/>}
             label={label}
             onClick={handleClick}
         />
@@ -794,7 +794,7 @@ const NotificationPrefsButton = ({channel, currentUser}: {channel: Channel; curr
         <ActionButton
             id='channelIntroNotificationPreferencesButton'
             aria-label={label}
-            icon={<Icon glyph={<BellRingOutlineIcon size={18}/>}/>}
+            icon={<Icon glyph={<BellRingOutlineIcon/>}/>}
             label={label}
             onClick={handleClick}
         />
@@ -821,7 +821,7 @@ function createFavoriteButton(isFavorite: boolean, toggleFavorite: () => void, d
             onClick={toggleFavorite}
             disabled={disabled}
             aria-label='Favorite'
-            icon={<Icon glyph={isFavorite ? <StarIcon size={18}/> : <StarOutlineIcon size={18}/>}/>}
+            icon={<Icon glyph={isFavorite ? <StarIcon/> : <StarOutlineIcon/>}/>}
             label={favoriteLabel}
         />
     );

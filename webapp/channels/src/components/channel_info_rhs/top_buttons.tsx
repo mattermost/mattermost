@@ -73,15 +73,15 @@ export default function TopButtons({
     const canCopyLink = [Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(channelType);
 
     // Favorite Button State
-    const favoriteIcon = isFavorite ? <StarIcon size={18}/> : <StarOutlineIcon size={18}/>;
+    const favoriteIcon = isFavorite ? <StarIcon/> : <StarOutlineIcon/>;
     const favoriteText = isFavorite ? formatMessage({id: 'channel_info_rhs.top_buttons.favorited', defaultMessage: 'Favorited'}) : formatMessage({id: 'channel_info_rhs.top_buttons.favorite', defaultMessage: 'Favorite'});
 
     // Mute Button State
-    const mutedIcon = isMuted ? <BellOffOutlineIcon size={18}/> : <BellOutlineIcon size={18}/>;
+    const mutedIcon = isMuted ? <BellOffOutlineIcon/> : <BellOutlineIcon/>;
     const mutedText = isMuted ? formatMessage({id: 'channel_info_rhs.top_buttons.muted', defaultMessage: 'Muted'}) : formatMessage({id: 'channel_info_rhs.top_buttons.mute', defaultMessage: 'Mute'});
 
     // Copy Button State
-    const copyIcon = copyLink.copiedRecently ? <CheckIcon size={18}/> : <LinkVariantIcon size={18}/>;
+    const copyIcon = copyLink.copiedRecently ? <CheckIcon/> : <LinkVariantIcon/>;
     const copyText = copyLink.copiedRecently ? formatMessage({id: 'channel_info_rhs.top_buttons.copied', defaultMessage: 'Copied'}) : formatMessage({id: 'channel_info_rhs.top_buttons.copy', defaultMessage: 'Copy Link'});
 
     return (
@@ -142,7 +142,7 @@ export default function TopButtons({
                         active={isInvitingPeople}
                         id='channelInfoRHSAddPeopleButton'
                         aria-label={formatMessage({id: 'channel_info_rhs.top_buttons.add_people', defaultMessage: 'Add People'})}
-                        icon={<Icon glyph={<AccountPlusOutlineIcon size={18}/>}/>}
+                        icon={<Icon glyph={<AccountPlusOutlineIcon/>}/>}
                         label={
                             <FormattedMessage
                                 id='channel_info_rhs.top_buttons.add_people'
