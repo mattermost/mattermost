@@ -10,7 +10,7 @@ off-origin fetches (fonts, screenshots, OpenAPI icons, video iframes).
 
 ## Build the bundle
 
-Needs Node and Go (API reference generation). Expect about five minutes.
+Needs Node and Go (API reference generation).
 
 ```sh
 # One-time: the docs build reads content from a submodule.
