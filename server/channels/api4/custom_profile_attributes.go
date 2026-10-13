@@ -336,9 +336,12 @@ func getCPAGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 // property API, performs the same session-bound checks as the generic value
 // patch handler (target access, batch caps, per-field permission), routes
 // the upsert through App.UpsertPropertyValues, and emits the CPA-specific
-// websocket event. It records the granting target_access path on the
-// caller's audit record.
-func cpaPatchValues(c *Context, w http.ResponseWriter, r *http.Request, auditRec *model.AuditRecord, userID string, updates map[string]json.RawMessage) {
+// websocket event.
+func cpaPatchValues(c *Context, w http.ResponseWriter, r *http.Request, userID string, updates map[string]json.RawMessage) {
+	auditRec := c.MakeAuditRecord(model.AuditEventPatchCPAValues, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", userID)
+
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 	group, appErr := c.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
@@ -449,6 +452,9 @@ func cpaPatchValues(c *Context, w http.ResponseWriter, r *http.Request, auditRec
 	message.Add("values", broadcastResults)
 	c.App.Publish(message)
 
+	auditRec.Success()
+	auditRec.AddEventObjectType("patchCPAValues")
+
 	if err := json.NewEncoder(w).Encode(results); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -463,17 +469,7 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventPatchCPAValues, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "user_id", userID)
-
-	cpaPatchValues(c, w, r, auditRec, userID, updates)
-	if c.Err != nil {
-		return
-	}
-
-	auditRec.Success()
-	auditRec.AddEventObjectType("patchCPAValues")
+	cpaPatchValues(c, w, r, userID, updates)
 }
 
 func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -526,15 +522,5 @@ func patchCPAValuesForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventPatchCPAValues, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "user_id", userID)
-
-	cpaPatchValues(c, w, r, auditRec, userID, updates)
-	if c.Err != nil {
-		return
-	}
-
-	auditRec.Success()
-	auditRec.AddEventObjectType("patchCPAValues")
+	cpaPatchValues(c, w, r, userID, updates)
 }

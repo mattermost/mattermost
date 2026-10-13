@@ -1020,33 +1020,7 @@ func hasTargetAccess(c *Context, groupName, objectType, targetID string, write b
 			return "", false
 		}
 	case model.PropertyFieldObjectTypeUser:
-		if targetID == c.AppContext.Session().UserId {
-			return targetAccessSelf, true
-		}
-		if c.AppContext.Session().IsUnrestricted() {
-			return targetAccessLocal, true
-		}
-		if write {
-			if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionEditOtherUsers) {
-				return targetAccessEditOtherUsers, true
-			}
-			// Bot managers may write their bots' access_control values.
-			if groupName == model.AccessControlPropertyGroupName && canManageBotTarget(c, targetID) {
-				return targetAccessBotManager, true
-			}
-			c.SetPermissionError(model.PermissionEditOtherUsers)
-			return "", false
-		}
-		// Reading another user's values requires being able to see them.
-		canSee, appErr := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, targetID)
-		if appErr != nil {
-			c.Err = appErr
-			return "", false
-		}
-		if !canSee {
-			c.SetPermissionError(model.PermissionViewMembers)
-			return "", false
-		}
+		return userTargetAccess(c, groupName, targetID, write)
 	case model.PropertyFieldObjectTypeSystem:
 		// Any authenticated user can read system-scoped property values.
 		// Only a system administrator can write them.
@@ -1064,6 +1038,40 @@ func hasTargetAccess(c *Context, groupName, objectType, targetID string, write b
 		return "", false
 	}
 	return targetAccessPermission, true
+}
+
+// userTargetAccess applies the user-object rules of hasTargetAccess.
+func userTargetAccess(c *Context, groupName, targetID string, write bool) (targetAccessPath, bool) {
+	session := c.AppContext.Session()
+	if targetID == session.UserId {
+		return targetAccessSelf, true
+	}
+	if session.IsUnrestricted() {
+		return targetAccessLocal, true
+	}
+
+	if !write {
+		canSee, appErr := c.App.UserCanSeeOtherUser(c.AppContext, session.UserId, targetID)
+		if appErr != nil {
+			c.Err = appErr
+			return "", false
+		}
+		if !canSee {
+			c.SetPermissionError(model.PermissionViewMembers)
+			return "", false
+		}
+		return targetAccessPermission, true
+	}
+
+	if c.App.SessionHasPermissionTo(*session, model.PermissionEditOtherUsers) {
+		return targetAccessEditOtherUsers, true
+	}
+	// Bot managers may write their bots' access_control values.
+	if groupName == model.AccessControlPropertyGroupName && canManageBotTarget(c, targetID) {
+		return targetAccessBotManager, true
+	}
+	c.SetPermissionError(model.PermissionEditOtherUsers)
+	return "", false
 }
 
 // canManageBotTarget reports whether the session can manage the bot with the
