@@ -224,8 +224,9 @@ func (worker *ElasticsearchAggregatorWorker) DoJob(job *model.Job) {
 		rctx,
 		model.JobTypeElasticsearchPostIndexing,
 		map[string]string{
-			"start_time": strconv.FormatInt(reindexingStartDate.UnixNano()/int64(time.Millisecond), 10),
-			"end_time":   strconv.FormatInt(reindexingEndDate.UnixNano()/int64(time.Millisecond), 10),
+			"start_time":  strconv.FormatInt(reindexingStartDate.UnixNano()/int64(time.Millisecond), 10),
+			"end_time":    strconv.FormatInt(reindexingEndDate.UnixNano()/int64(time.Millisecond), 10),
+			"index_files": strconv.FormatBool(*worker.jobServer.Config().ElasticsearchSettings.EnableFileIndexing),
 		},
 	); appErr != nil {
 		logger.Error("Worker: Failed to create indexing job.", mlog.Err(appErr))

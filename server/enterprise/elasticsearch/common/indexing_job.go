@@ -123,13 +123,13 @@ func (ip *IndexingProgress) CurrentProgress() int64 {
 	return progress
 }
 
-func (ip *IndexingProgress) IsDone(cfg *model.Config, job *model.Job) bool {
+func (ip *IndexingProgress) IsDone(job *model.Job) bool {
 	// an entity's progress is completed if it was specified not to be indexed, or if it's completed indexing.
 
 	donePosts := job.Data["index_posts"] == "false" || ip.DonePosts
 	doneChannels := job.Data["index_channels"] == "false" || ip.DoneChannels
 	doneUsers := job.Data["index_users"] == "false" || ip.DoneUsers
-	doneFiles := !shouldIndexFiles(cfg, job) || ip.DoneFiles
+	doneFiles := job.Data["index_files"] == "false" || ip.DoneFiles
 
 	return donePosts && doneChannels && doneUsers && doneFiles
 }
@@ -219,10 +219,6 @@ func (worker *IndexerWorker) initEntitiesToIndex(job *model.Job) {
 
 	indexFilesRaw, ok := job.Data["index_files"]
 	job.Data["index_files"] = strconv.FormatBool(!ok || indexFilesRaw == "true")
-}
-
-func shouldIndexFiles(cfg *model.Config, job *model.Job) bool {
-	return job.Data["index_files"] == "true" && *cfg.ElasticsearchSettings.EnableFileIndexing
 }
 
 func (worker *IndexerWorker) DoJob(job *model.Job) {
@@ -335,7 +331,7 @@ func (worker *IndexerWorker) DoJob(job *model.Job) {
 				return
 			}
 
-			if progress.IsDone(worker.jobServer.Config(), job) {
+			if progress.IsDone(job) {
 				doClose()
 				if numFailed > 0 {
 					logger.Error("Worker: Indexing job finished with bulk write failures; some documents were not indexed",
@@ -380,7 +376,7 @@ func (worker *IndexerWorker) IndexBatch(logger mlog.LoggerIFace, progress Indexi
 		return worker.IndexUsersBatch(logger, progress)
 	}
 
-	if shouldIndexFiles(worker.jobServer.Config(), job) && !progress.DoneFiles {
+	if job.Data["index_files"] != "false" && !progress.DoneFiles {
 		worker.logger.Debug("Worker: indexing files batch...")
 		return worker.IndexFilesBatch(logger, progress)
 	}
@@ -894,7 +890,7 @@ func setEntityCount(logger mlog.LoggerIFace, jobServer *jobs.JobServer, progress
 		}
 	}
 
-	if shouldIndexFiles(jobServer.Config(), job) {
+	if job.Data["index_files"] == "true" {
 		// Same possible fail as above can happen when counting files
 		if count, err := jobServer.Store.FileInfo().CountAll(); err != nil {
 			fallback := entityCountFallback(job, "total_files_count", estimatedFilesCount, progress.DoneFilesCount)

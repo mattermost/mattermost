@@ -6,6 +6,7 @@ package app
 import (
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -91,6 +92,14 @@ func (a *App) CreateJob(rctx request.CTX, job *model.Job) (*model.Job, *model.Ap
 	case model.JobTypeAccessControlTeamSync:
 		// Route team ABAC jobs to specialized deduplication handler
 		return a.CreateAccessControlTeamSyncJob(rctx, job.Data)
+	case model.JobTypeElasticsearchPostIndexing:
+		if _, ok := job.Data["index_files"]; !ok {
+			if job.Data == nil {
+				job.Data = model.StringMap{}
+			}
+			job.Data["index_files"] = strconv.FormatBool(*a.Config().ElasticsearchSettings.EnableFileIndexing)
+		}
+		return a.Srv().Jobs.CreateJob(rctx, job.Type, job.Data)
 	default:
 		return a.Srv().Jobs.CreateJob(rctx, job.Type, job.Data)
 	}
