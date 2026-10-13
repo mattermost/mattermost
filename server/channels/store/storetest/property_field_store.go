@@ -204,13 +204,26 @@ func testCreatePropertyField(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
-func testCreatePropertyFieldPermissions(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
+func testCreatePropertyFieldPermissions(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	countGrants := func(t *testing.T, fieldID string) int {
 		t.Helper()
 		var count int
 		require.NoError(t, s.GetMaster().Get(&count,
 			"SELECT COUNT(*) FROM PropertyFieldGrants WHERE FieldID = $1", fieldID))
 		return count
+	}
+
+	type grantRow struct {
+		Type   string `db:"type"`
+		ID     string `db:"id"`
+		Action string `db:"action"`
+	}
+	selectGrantRows := func(t *testing.T, fieldID string) []grantRow {
+		t.Helper()
+		var rows []grantRow
+		require.NoError(t, s.GetMaster().Select(&rows,
+			"SELECT Type, ID, Action FROM PropertyFieldGrants WHERE FieldID = $1", fieldID))
+		return rows
 	}
 
 	t.Run("should store one grants row per action in each grant's allow list", func(t *testing.T) {
@@ -239,20 +252,54 @@ func testCreatePropertyFieldPermissions(t *testing.T, _ request.CTX, ss store.St
 		require.NoError(t, err)
 		require.Equal(t, 3, countGrants(t, created.ID))
 
-		type grantRow struct {
-			Type   string `db:"type"`
-			ID     string `db:"id"`
-			Action string `db:"action"`
-		}
-		var rows []grantRow
-		require.NoError(t, s.GetMaster().Select(&rows,
-			"SELECT Type, ID, Action FROM PropertyFieldGrants WHERE FieldID = $1", created.ID))
-
 		require.ElementsMatch(t, []grantRow{
 			{Type: model.PropertyOwnerTypeRole, ID: "system_admin", Action: model.PropertyActionValueWrite},
 			{Type: model.PropertyOwnerTypeRole, ID: "system_admin", Action: model.PropertyActionOptionWrite},
 			{Type: model.PropertyOwnerTypeUser, ID: userID, Action: model.PropertyActionValueRead},
-		}, rows)
+		}, selectGrantRows(t, created.ID))
+	})
+
+	t.Run("should write a grants row once when several grants map to it", func(t *testing.T) {
+		pluginID := model.NewId()
+		grants := []model.Grant{
+			{
+				Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: pluginID},
+				Scopes:   []string{"entra"},
+				Allow:    []string{model.PropertyActionValueRead, model.PropertyActionValueWrite},
+			},
+			{
+				Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: pluginID},
+				Scopes:   []string{"okta"},
+				Allow:    []string{model.PropertyActionValueWrite, model.PropertyActionValueWrite},
+			},
+		}
+		field := &model.PropertyField{
+			GroupID:     model.NewId(),
+			Name:        "Field with overlapping grants",
+			Type:        model.PropertyFieldTypeText,
+			ObjectType:  model.PropertyFieldObjectTypeTemplate,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{Grants: grants},
+		}
+
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+
+		require.ElementsMatch(t, []grantRow{
+			{Type: model.PropertyOwnerTypePlugin, ID: pluginID, Action: model.PropertyActionValueRead},
+			{Type: model.PropertyOwnerTypePlugin, ID: pluginID, Action: model.PropertyActionValueWrite},
+		}, selectGrantRows(t, created.ID))
+
+		// The column still holds both grants, scopes and all.
+		stored, err := ss.PropertyField().Get(rctx, created.GroupID, created.ID)
+		require.NoError(t, err)
+		require.Equal(t, grants, stored.Permissions.Grants)
+
+		// An update runs the same sync.
+		stored.Name = "Field with overlapping grants, renamed"
+		_, err = ss.PropertyField().Update(stored.GroupID, []*model.PropertyField{stored}, nil)
+		require.NoError(t, err)
+		require.Equal(t, 2, countGrants(t, created.ID))
 	})
 
 	t.Run("should store NULL permissions and no grants when Permissions is nil", func(t *testing.T) {
