@@ -8,13 +8,13 @@ exports[`components/FileUpload should match snapshot 1`] = `
     <div>
       <button
         aria-label="attachment"
-        class="_icon-button_g2m23_2 _icon-button--size-small_g2m23_69"
+        class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
         id="fileUploadButton"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_g2m23_33"
+          class="_icon-button__icon-slot_13ryy_41"
         >
           <div
             aria-hidden="true"

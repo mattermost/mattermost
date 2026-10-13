@@ -208,12 +208,20 @@
                 }
 
                 button {
-                    display: none;
+                    visibility: hidden;
                 }
             }
 
-            &:hover .actionIcon button {
-                display: inline-flex;
+            &:hover .actionIcon button,
+            .actionIcon:focus-within button,
+            .actionIcon button[aria-expanded='true'] {
+                visibility: visible;
+            }
+
+            @media (hover: none) {
+                .actionIcon button {
+                    visibility: visible;
+                }
             }
 
             .DataGrid_cell {
