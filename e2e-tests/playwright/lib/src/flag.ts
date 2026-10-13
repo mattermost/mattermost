@@ -82,13 +82,6 @@ export async function skipIfNoLicense() {
     test.skip(license.IsLicensed === 'false', 'Skipping test - server not licensed');
 }
 
-export async function skipIfFeatureFlagNotSet(name: string, value: string | boolean) {
-    const {adminClient} = await getAdminClient();
-    const cfg = await adminClient.getConfig();
-
-    test.skip(cfg.FeatureFlags[name] !== value, `Skipping test - Feature Flag ${name} needs to be set to ${value}`);
-}
-
 // ensureServerDeployment is used to ensure server deployment type is as expected.
 // If server is not deployed as expected, test will fail.
 export async function ensureServerDeployment() {

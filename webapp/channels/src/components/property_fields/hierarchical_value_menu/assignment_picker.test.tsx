@@ -91,6 +91,7 @@ function CommittedIdLabel({field, id}: {field: GraphFieldRef; id: string}) {
 }
 
 const trigger = () => screen.getByTestId('assignment-trigger');
+const triggerButton = trigger;
 
 const openMenu = async () => {
     await userEvent.click(trigger());
@@ -190,7 +191,7 @@ describe('AssignmentGraphPicker', () => {
     test('P10: forwards disabled to the trigger', () => {
         renderPicker({disabled: true});
 
-        expect(trigger()).toBeDisabled();
+        expect(triggerButton()).toHaveAttribute('aria-disabled', 'true');
     });
 
     test('shows payload names as chips without fetching', async () => {

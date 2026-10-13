@@ -10,8 +10,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func TestUpdateScheduledPost(t *testing.T) {
@@ -172,31 +173,31 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.Empty(t, fetchedPost.RepeatTimezone)
 	})
 
-	t.Run("system post types", func(t *testing.T) {
+	t.Run("updated post types are ignored", func(t *testing.T) {
 		testCases := []struct {
-			name     string
-			postType string
-			rejected bool
+			name            string
+			initialPostType string
+			updatedPostType string
 		}{
 			{
-				name:     "generic system post type",
-				postType: model.PostTypeSystemGeneric,
-				rejected: true,
+				name:            "generic system post type",
+				initialPostType: model.PostTypeDefault,
+				updatedPostType: model.PostTypeBurnOnRead,
 			},
 			{
-				name:     "structured system post type",
-				postType: model.PostTypeAddToTeam,
-				rejected: true,
+				name:            "structured system post type",
+				initialPostType: model.PostTypeDefault,
+				updatedPostType: model.PostTypeAddToTeam,
 			},
 			{
-				name:     "default post type",
-				postType: model.PostTypeDefault,
-				rejected: false,
+				name:            "default post type",
+				initialPostType: model.PostTypeDefault,
+				updatedPostType: model.PostTypeSystemGeneric,
 			},
 			{
-				name:     "attachment post type",
-				postType: model.PostTypeMessageAttachment,
-				rejected: false,
+				name:            "attachment post type",
+				initialPostType: model.PostTypeMessageAttachment,
+				updatedPostType: model.PostTypeDefault,
 			},
 		}
 
@@ -208,6 +209,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 						UserId:    th.BasicUser.Id,
 						ChannelId: th.BasicChannel.Id,
 						Message:   "this is a scheduled post",
+						Type:      testCase.initialPostType,
 					},
 					ScheduledAt: model.GetMillis() + 100000,
 				}
@@ -215,23 +217,16 @@ func TestUpdateScheduledPost(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, created)
 
-				created.Type = testCase.postType
 				created.ScheduledAt = model.GetMillis() + 200000
+				created.Type = testCase.updatedPostType
+				updated, _, err := th.Client.UpdateScheduledPost(context.Background(), created)
 
-				updated, resp, err := th.Client.UpdateScheduledPost(context.Background(), created)
-
-				if !testCase.rejected {
-					require.NoError(t, err)
-					require.NotNil(t, updated)
-					return
-				}
-
-				require.Error(t, err)
-				CheckBadRequestStatus(t, resp)
+				require.NoError(t, err)
+				require.NotNil(t, updated)
 
 				fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, created.Id)
 				require.NoError(t, storeErr)
-				require.NotEqual(t, testCase.postType, fetched.Type, "a scheduled post must not keep a reserved system post type")
+				require.Equal(t, testCase.initialPostType, fetched.Type, "a scheduled post must not allow its type to be updated")
 			})
 		}
 	})

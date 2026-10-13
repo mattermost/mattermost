@@ -51,16 +51,20 @@ func (ps *PlatformService) initLogging() error {
 		// if the config is locked then a unit test has already configured and locked the logger; not an error.
 		if !errors.Is(err, mlog.ErrConfigurationLock) {
 			// revert to default logger if the config is invalid
-			mlog.InitGlobalLogger(nil)
+			if !ps.skipGlobalLogger {
+				mlog.InitGlobalLogger(nil)
+			}
 			return err
 		}
 	}
 
-	// redirect default Go logger to app logger.
-	ps.logger.RedirectStdLog(mlog.LvlWarn)
+	if !ps.skipGlobalLogger {
+		// redirect default Go logger to app logger.
+		ps.logger.RedirectStdLog(mlog.LvlWarn)
 
-	// use the app logger as the global logger (eventually remove all instances of global logging).
-	mlog.InitGlobalLogger(ps.logger)
+		// use the app logger as the global logger (eventually remove all instances of global logging).
+		mlog.InitGlobalLogger(ps.logger)
+	}
 
 	return nil
 }

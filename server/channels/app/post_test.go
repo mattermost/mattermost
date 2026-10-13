@@ -7205,7 +7205,7 @@ func TestAppendABACEtag(t *testing.T) {
 	t.Run("returns the base ETag untouched and reads no store when ABAC is off", func(t *testing.T) {
 		th, mockACP, mockAttributes := setup(t, false)
 
-		assert.Equal(t, base, th.App.AppendABACEtag(base, model.NewId(), model.NewId()))
+		assert.Equal(t, base, th.App.AppendABACEtag(th.Context.WithSession(&model.Session{UserId: model.NewId()}), base, model.NewId()))
 
 		mockACP.AssertNotCalled(t, "GetEtagEpoch", mock.Anything, mock.Anything)
 		mockAttributes.AssertNotCalled(t, "GetUserPropertyValuesEpoch", mock.Anything, mock.Anything)
@@ -7219,19 +7219,19 @@ func TestAppendABACEtag(t *testing.T) {
 		mockACP.On("GetEtagEpoch", mock.Anything, channelID).Return("111-2", nil).Once()
 		mockAttributes.On("GetUserPropertyValuesEpoch", mock.Anything, userID).Return("222-3", nil).Once()
 
-		assert.Equal(t, base+".111-2.222-3", th.App.AppendABACEtag(base, userID, channelID))
+		assert.Equal(t, base+".111-2.222-3."+unknownABACEtagEpoch, th.App.AppendABACEtag(th.Context.WithSession(&model.Session{UserId: userID}), base, channelID))
 
 		mockACP.AssertExpectations(t)
 		mockAttributes.AssertExpectations(t)
 	})
 
-	t.Run("skips the attribute epoch when there is no user in scope", func(t *testing.T) {
+	t.Run("skips the attribute and session epochs when there is no session in scope", func(t *testing.T) {
 		th, mockACP, mockAttributes := setup(t, true)
 		channelID := model.NewId()
 
 		mockACP.On("GetEtagEpoch", mock.Anything, channelID).Return("111-2", nil).Once()
 
-		assert.Equal(t, base+".111-2."+unknownABACEtagEpoch, th.App.AppendABACEtag(base, "", channelID))
+		assert.Equal(t, base+".111-2."+unknownABACEtagEpoch+"."+unknownABACEtagEpoch, th.App.AppendABACEtag(th.Context, base, channelID))
 
 		mockAttributes.AssertNotCalled(t, "GetUserPropertyValuesEpoch", mock.Anything, mock.Anything)
 	})
@@ -7244,11 +7244,42 @@ func TestAppendABACEtag(t *testing.T) {
 		mockACP.On("GetEtagEpoch", mock.Anything, channelID).Return("", errors.New("boom")).Twice()
 		mockAttributes.On("GetUserPropertyValuesEpoch", mock.Anything, userID).Return("222-3", nil).Twice()
 
-		etag := th.App.AppendABACEtag(base, userID, channelID)
+		etag := th.App.AppendABACEtag(th.Context.WithSession(&model.Session{UserId: userID}), base, channelID)
 
 		assert.NotEqual(t, base, etag, "a failed epoch lookup must not collapse back onto the ungated ETag")
 		assert.Contains(t, etag, unknownABACEtagEpoch)
-		assert.NotEqual(t, etag, th.App.AppendABACEtag(base, userID, channelID),
+		assert.NotEqual(t, etag, th.App.AppendABACEtag(th.Context.WithSession(&model.Session{UserId: userID}), base, channelID),
 			"two failed lookups must not produce the same ETag, or a policy change between them would 304")
+	})
+
+	t.Run("changes only when a session attribute value changes", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+		rctx := th.Context.WithSession(session)
+
+		noAttrs := th.App.AppendABACEtag(rctx, base, th.BasicChannel.Id)
+
+		require.NoError(t, th.App.Srv().Store().SessionAttribute().Refresh(session.Id, map[string]any{
+			model.SessionAttributesPropertyFieldClientVersion: "6.2.0",
+		}, 1000))
+		first := th.App.AppendABACEtag(rctx, base, th.BasicChannel.Id)
+		assert.NotEqual(t, noAttrs, first)
+
+		require.NoError(t, th.App.Srv().Store().SessionAttribute().Refresh(session.Id, map[string]any{
+			model.SessionAttributesPropertyFieldClientVersion: "6.2.0",
+		}, 2000))
+		assert.Equal(t, first, th.App.AppendABACEtag(rctx, base, th.BasicChannel.Id),
+			"refreshing with the same values must not change the ETag")
+
+		require.NoError(t, th.App.Srv().Store().SessionAttribute().Refresh(session.Id, map[string]any{
+			model.SessionAttributesPropertyFieldClientVersion: "6.4.0",
+		}, 3000))
+		assert.NotEqual(t, first, th.App.AppendABACEtag(rctx, base, th.BasicChannel.Id))
 	})
 }

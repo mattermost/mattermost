@@ -20,6 +20,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	smocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
@@ -69,6 +70,16 @@ func TestGenerateSupportPacket(t *testing.T) {
 			rFileNames = append(rFileNames, fileData.Filename)
 		}
 		return rFileNames
+	}
+
+	getFileDataByName := func(fileDatas []model.FileData, filename string) *model.FileData {
+		for _, fileData := range fileDatas {
+			if fileData.Filename == filename {
+				return &fileData
+			}
+		}
+
+		return nil
 	}
 
 	expectedFileNames := []string{
@@ -175,6 +186,40 @@ func TestGenerateSupportPacket(t *testing.T) {
 		assert.Contains(t, rFileNames, "warning.txt")
 		assert.Contains(t, rFileNames, "stats.yaml")
 		assert.ElementsMatch(t, append(expectedFileNames, "warning.txt"), rFileNames)
+
+		statsFile := getFileDataByName(fileDatas, "stats.yaml")
+		require.NotNil(t, statsFile)
+		var stats model.SupportPacketStats
+		require.NoError(t, yaml.Unmarshal(statsFile.Body, &stats))
+		assert.Nil(t, stats.Posts)
+
+		warningsFile := getFileDataByName(fileDatas, "warning.txt")
+		require.NotNil(t, warningsFile)
+		assert.Contains(t, string(warningsFile.Body), "failed to get post count")
+	})
+
+	t.Run("collector nil result does not abort support packet generation", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = false
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.Enable = true
+			})
+		})
+
+		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        false,
+		})
+		rFileNames := getFileNames(t, fileDatas)
+		assert.NotContains(t, rFileNames, "plugins.json")
+		assert.Contains(t, rFileNames, "warning.txt")
+		assert.Contains(t, rFileNames, "stats.yaml")
+
+		warningsFile := getFileDataByName(fileDatas, "warning.txt")
+		require.NotNil(t, warningsFile)
+		assert.Contains(t, string(warningsFile.Body), "failed to get plugin list for Support Packet")
 	})
 
 	pluginID := "testplugin"
@@ -291,28 +336,21 @@ func TestGenerateSupportPacket(t *testing.T) {
 	})
 }
 
-func TestGetPluginsFile(t *testing.T) {
+func TestGetPluginsList(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	getJobList := func(t *testing.T) *model.SupportPacketPluginList {
+	getPluginList := func(t *testing.T) *model.SupportPacketPluginList {
 		t.Helper()
 
-		fileData, err := th.App.getPluginsFile(th.Context)
+		plugins, err := th.App.getPluginsList(th.Context)
 		assert.NoError(t, err)
-		require.NotNil(t, fileData)
-		assert.Equal(t, "plugins.json", fileData.Filename)
-		assert.Positive(t, len(fileData.Body))
-
-		var pl model.SupportPacketPluginList
-		err = json.Unmarshal(fileData.Body, &pl)
-		require.NoError(t, err)
-
-		return &pl
+		require.NotNil(t, plugins)
+		return plugins
 	}
 
 	t.Run("no errors if no plugins are installed", func(t *testing.T) {
-		pl := getJobList(t)
+		pl := getPluginList(t)
 		assert.Len(t, pl.Enabled, 0)
 		assert.Len(t, pl.Disabled, 0)
 	})
@@ -335,7 +373,7 @@ func TestGetPluginsFile(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, "testplugin2", manifest2.Id)
 
-		pl := getJobList(t)
+		pl := getPluginList(t)
 		require.Len(t, pl.Enabled, 1)
 		assert.Equal(t, "testplugin", pl.Enabled[0].Id)
 		require.Len(t, pl.Disabled, 1)
@@ -349,8 +387,8 @@ func TestGetPluginsFile(t *testing.T) {
 		})
 
 		// Plugins off in settings so no fileData and we get a warning instead
-		fileData, err := th.App.getPluginsFile(th.Context)
-		assert.Nil(t, fileData)
+		plugins, err := th.App.getPluginsList(th.Context)
+		assert.Nil(t, plugins)
 		assert.ErrorContains(t, err, "failed to get plugin list for Support Packet")
 	})
 }
@@ -363,17 +401,17 @@ func TestGetSupportPacketStats(t *testing.T) {
 
 		require.NoError(t, a.Srv().Store().Post().RefreshPostStats())
 
-		fileData, err := a.getSupportPacketStats(rctx)
-		require.NotNil(t, fileData)
-		assert.Equal(t, "stats.yaml", fileData.Filename)
-		assert.Positive(t, len(fileData.Body))
+		packet, err := a.getSupportPacketStats(rctx)
+		require.NotNil(t, packet)
 		assert.NoError(t, err)
 
-		var packet model.SupportPacketStats
-		err = yaml.Unmarshal(fileData.Body, &packet)
-		require.NoError(t, err)
+		return packet
+	}
 
-		return &packet
+	assertStatValue := func(t *testing.T, stat *int64, expected int64) {
+		t.Helper()
+		require.NotNil(t, stat)
+		assert.Equal(t, expected, *stat)
 	}
 
 	th := Setup(t)
@@ -381,20 +419,20 @@ func TestGetSupportPacketStats(t *testing.T) {
 	t.Run("fresh server", func(t *testing.T) {
 		sp := generateStats(t, th.Context, th.App)
 
-		assert.Equal(t, int64(0), sp.RegisteredUsers)
-		assert.Equal(t, int64(0), sp.ActiveUsers)
-		assert.Equal(t, int64(0), sp.DailyActiveUsers)
-		assert.Equal(t, int64(0), sp.MonthlyActiveUsers)
-		assert.Equal(t, int64(0), sp.DeactivatedUsers)
-		assert.Equal(t, int64(0), sp.Guests)
-		assert.Equal(t, int64(0), sp.SingleChannelGuests)
-		assert.Equal(t, int64(0), sp.BotAccounts)
-		assert.Equal(t, int64(0), sp.Posts)
-		assert.Equal(t, int64(0), sp.Channels)
-		assert.Equal(t, int64(0), sp.Teams)
-		assert.Equal(t, int64(0), sp.SlashCommands)
-		assert.Equal(t, int64(0), sp.IncomingWebhooks)
-		assert.Equal(t, int64(0), sp.OutgoingWebhooks)
+		assertStatValue(t, sp.RegisteredUsers, 0)
+		assertStatValue(t, sp.ActiveUsers, 0)
+		assertStatValue(t, sp.DailyActiveUsers, 0)
+		assertStatValue(t, sp.MonthlyActiveUsers, 0)
+		assertStatValue(t, sp.DeactivatedUsers, 0)
+		assertStatValue(t, sp.Guests, 0)
+		assertStatValue(t, sp.SingleChannelGuests, 0)
+		assertStatValue(t, sp.BotAccounts, 0)
+		assertStatValue(t, sp.Posts, 0)
+		assertStatValue(t, sp.Channels, 0)
+		assertStatValue(t, sp.Teams, 0)
+		assertStatValue(t, sp.SlashCommands, 0)
+		assertStatValue(t, sp.IncomingWebhooks, 0)
+		assertStatValue(t, sp.OutgoingWebhooks, 0)
 	})
 
 	t.Run("Happy path", func(t *testing.T) {
@@ -451,49 +489,112 @@ func TestGetSupportPacketStats(t *testing.T) {
 
 		sp := generateStats(t, th.Context, th.App)
 
-		assert.Equal(t, int64(9), sp.RegisteredUsers)
-		assert.Equal(t, int64(6), sp.ActiveUsers)
-		assert.Equal(t, int64(0), sp.DailyActiveUsers)
-		assert.Equal(t, int64(0), sp.MonthlyActiveUsers)
-		assert.Equal(t, int64(3), sp.DeactivatedUsers)
-		assert.Equal(t, int64(2), sp.Guests)
-		assert.Equal(t, int64(0), sp.SingleChannelGuests)
-		assert.Equal(t, int64(1), sp.BotAccounts)
-		assert.Equal(t, int64(4), sp.Posts)    // 1 from the bot creation and 3 created directly
-		assert.Equal(t, int64(3), sp.Channels) // 2 from the team creation and 1 created directly
-		assert.Equal(t, int64(1), sp.Teams)
-		assert.Equal(t, int64(1), sp.SlashCommands)
-		assert.Equal(t, int64(1), sp.IncomingWebhooks)
-		assert.Equal(t, int64(1), sp.OutgoingWebhooks)
+		assertStatValue(t, sp.RegisteredUsers, 9)
+		assertStatValue(t, sp.ActiveUsers, 6)
+		assertStatValue(t, sp.DailyActiveUsers, 0)
+		assertStatValue(t, sp.MonthlyActiveUsers, 0)
+		assertStatValue(t, sp.DeactivatedUsers, 3)
+		assertStatValue(t, sp.Guests, 2)
+		assertStatValue(t, sp.SingleChannelGuests, 0)
+		assertStatValue(t, sp.BotAccounts, 1)
+		assertStatValue(t, sp.Posts, 4)    // 1 from the bot creation and 3 created directly
+		assertStatValue(t, sp.Channels, 3) // 2 from the team creation and 1 created directly
+		assertStatValue(t, sp.Teams, 1)
+		assertStatValue(t, sp.SlashCommands, 1)
+		assertStatValue(t, sp.IncomingWebhooks, 1)
+		assertStatValue(t, sp.OutgoingWebhooks, 1)
 	})
 
 	t.Run("single channel guests are counted when a guest is in exactly one channel", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
-		channel := th.CreateChannel(t, th.BasicTeam)
+		basicTh := Setup(t).InitBasic(t)
+		channel := basicTh.CreateChannel(t, basicTh.BasicTeam)
 
-		guest := th.CreateGuest(t)
-		th.LinkUserToTeam(t, guest, th.BasicTeam)
-		th.AddUserToChannel(t, guest, channel)
+		guest := basicTh.CreateGuest(t)
+		basicTh.LinkUserToTeam(t, guest, basicTh.BasicTeam)
+		basicTh.AddUserToChannel(t, guest, channel)
 
-		sp := generateStats(t, th.Context, th.App)
-		assert.Equal(t, int64(1), sp.SingleChannelGuests)
+		sp := generateStats(t, basicTh.Context, basicTh.App)
+		assertStatValue(t, sp.SingleChannelGuests, 1)
 	})
 
 	t.Run("post count should be present if number of users extends AnalyticsSettings.MaxUsersForStatistics", func(t *testing.T) {
 		// Setup a new test helper
-		th := Setup(t).InitBasic(t)
-		th.App.UpdateConfig(func(cfg *model.Config) {
+		basicTh := Setup(t).InitBasic(t)
+		basicTh.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AnalyticsSettings.MaxUsersForStatistics = new(1)
 		})
 
 		for range 5 {
-			p := th.CreatePost(t, th.BasicChannel)
+			p := basicTh.CreatePost(t, basicTh.BasicChannel)
 			require.NotNil(t, p)
 		}
 
 		// InitBasic(t) already creats 5 posts
-		sp := generateStats(t, th.Context, th.App)
-		assert.Equal(t, int64(10), sp.Posts)
+		sp := generateStats(t, basicTh.Context, basicTh.App)
+		assertStatValue(t, sp.Posts, 10)
+	})
+
+	t.Run("channel count is omitted when a channel query fails and errors include every failed stat", func(t *testing.T) {
+		mockStore := smocks.Store{}
+		channelStore := &smocks.ChannelStore{}
+		postStore := &smocks.PostStore{}
+
+		channelStore.On("AnalyticsTypeCount", "", model.ChannelTypeOpen).Return(int64(0), errors.New("open query failed"))
+		postStore.On("AnalyticsPostCount", &model.PostCountOptions{}).Return(int64(0), errors.New("post query failed"))
+		postStore.On("RefreshPostStats").Return(nil)
+		postStore.On("ClearCaches")
+
+		mockStore.On("User").Return(th.App.Srv().Store().User())
+		mockStore.On("Post").Return(postStore)
+		mockStore.On("Channel").Return(channelStore)
+		mockStore.On("Team").Return(th.App.Srv().Store().Team())
+		mockStore.On("Command").Return(th.App.Srv().Store().Command())
+		mockStore.On("Webhook").Return(th.App.Srv().Store().Webhook())
+		mockStore.On("ClearCaches")
+		mockStore.On("Close").Return(nil)
+
+		oldStore := th.App.Srv().Store()
+		t.Cleanup(func() {
+			th.App.Srv().SetStore(oldStore)
+		})
+		th.App.Srv().SetStore(&mockStore)
+
+		packet, err := th.App.getSupportPacketStats(th.Context)
+		require.NotNil(t, packet)
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "failed to get post count")
+		assert.ErrorContains(t, err, "failed to get channel count")
+		assert.Nil(t, packet.Channels)
+		assert.Nil(t, packet.Posts)
+	})
+
+	t.Run("channel count is omitted when only the private channel query fails", func(t *testing.T) {
+		mockStore := smocks.Store{}
+		channelStore := &smocks.ChannelStore{}
+
+		channelStore.On("AnalyticsTypeCount", "", model.ChannelTypeOpen).Return(int64(5), nil)
+		channelStore.On("AnalyticsTypeCount", "", model.ChannelTypePrivate).Return(int64(0), errors.New("private query failed"))
+
+		mockStore.On("User").Return(th.App.Srv().Store().User())
+		mockStore.On("Post").Return(th.App.Srv().Store().Post())
+		mockStore.On("Channel").Return(channelStore)
+		mockStore.On("Team").Return(th.App.Srv().Store().Team())
+		mockStore.On("Command").Return(th.App.Srv().Store().Command())
+		mockStore.On("Webhook").Return(th.App.Srv().Store().Webhook())
+		mockStore.On("ClearCaches")
+		mockStore.On("Close").Return(nil)
+
+		oldStore := th.App.Srv().Store()
+		t.Cleanup(func() {
+			th.App.Srv().SetStore(oldStore)
+		})
+		th.App.Srv().SetStore(&mockStore)
+
+		packet, err := th.App.getSupportPacketStats(th.Context)
+		require.NotNil(t, packet)
+		require.ErrorContains(t, err, "failed to get channel count")
+		assert.Nil(t, packet.Channels)
+		assert.NotNil(t, packet.Posts)
 	})
 }
 
@@ -504,17 +605,10 @@ func TestGetSupportPacketJobList(t *testing.T) {
 	getJobList := func(t *testing.T) *model.SupportPacketJobList {
 		t.Helper()
 
-		fileData, err := th.App.getSupportPacketJobList(th.Context)
+		jobs, err := th.App.getSupportPacketJobList(th.Context)
 		require.NoError(t, err)
-		require.NotNil(t, fileData)
-		assert.Equal(t, "jobs.yaml", fileData.Filename)
-		assert.Positive(t, len(fileData.Body))
-
-		var jobs model.SupportPacketJobList
-		err = yaml.Unmarshal(fileData.Body, &jobs)
-		require.NoError(t, err)
-
-		return &jobs
+		require.NotNil(t, jobs)
+		return jobs
 	}
 
 	t.Run("no jobs run yet", func(t *testing.T) {
@@ -614,17 +708,10 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 	generatePermissionInfo := func(t *testing.T) *model.SupportPacketPermissionInfo {
 		t.Helper()
 
-		fileData, err := th.App.getSupportPacketPermissionsInfo(th.Context)
-		require.NotNil(t, fileData)
-		assert.Equal(t, "permissions.yaml", fileData.Filename)
-		assert.Positive(t, len(fileData.Body))
+		permissions, err := th.App.getSupportPacketPermissionsInfo(th.Context)
+		require.NotNil(t, permissions)
 		assert.NoError(t, err)
-
-		var permissions model.SupportPacketPermissionInfo
-		err = yaml.Unmarshal(fileData.Body, &permissions)
-		require.NoError(t, err)
-
-		return &permissions
+		return permissions
 	}
 
 	t.Run("No custom permissions", func(t *testing.T) {
@@ -695,19 +782,13 @@ func TestGetSupportPacketMetadata(t *testing.T) {
 	th := Setup(t)
 
 	t.Run("Happy path", func(t *testing.T) {
-		fileData, err := th.App.getSupportPacketMetadata(th.Context)
+		metadata, err := th.App.getSupportPacketMetadata(th.Context)
 		require.NoError(t, err)
-		require.NotNil(t, fileData)
-		assert.Equal(t, "metadata.yaml", fileData.Filename)
-		assert.Positive(t, len(fileData.Body))
-
-		metadate, err := model.ParsePacketMetadata(fileData.Body)
-		assert.NoError(t, err)
-		require.NotNil(t, metadate)
-		assert.Equal(t, model.SupportPacketType, metadate.Type)
-		assert.Equal(t, model.CurrentVersion, metadate.ServerVersion)
-		assert.NotEmpty(t, metadate.ServerID)
-		assert.NotEmpty(t, metadate.GeneratedAt)
+		require.NotNil(t, metadata)
+		assert.Equal(t, model.SupportPacketType, metadata.Type)
+		assert.Equal(t, model.CurrentVersion, metadata.ServerVersion)
+		assert.NotEmpty(t, metadata.ServerID)
+		assert.NotEmpty(t, metadata.GeneratedAt)
 	})
 }
 
@@ -802,5 +883,132 @@ func TestGetSupportPacketDatabaseSchema(t *testing.T) {
 
 			break
 		}
+	}
+}
+
+func TestSupportPacketMarshalGolden(t *testing.T) {
+	t.Parallel()
+
+	statsCount := int64(42)
+	dailyActive := int64(15)
+
+	jobFactory := func(id, jobType string) *model.Job {
+		return &model.Job{
+			Id:             id,
+			Type:           jobType,
+			CreateAt:       1111,
+			StartAt:        2222,
+			LastActivityAt: 3333,
+			Status:         model.JobStatusSuccess,
+			Data:           model.StringMap{"result": "ok"},
+		}
+	}
+
+	role := &model.Role{
+		Id:          "role-id",
+		Name:        "team_admin",
+		Permissions: []string{"manage_system", "manage_team"},
+	}
+
+	scheme := &model.Scheme{
+		Id:          "scheme-id",
+		Name:        "scheme-name",
+		DisplayName: "Scheme Name",
+		Scope:       model.SchemeScopeTeam,
+	}
+
+	cases := []struct {
+		name     string
+		filename string
+		// Jobs and roles format their timestamps in server-local time, so their goldens are recorded in UTC.
+		localTime bool
+		marshal   func() (*model.FileData, error)
+	}{
+		{
+			name:     "metadata",
+			filename: "metadata.yaml",
+			marshal: func() (*model.FileData, error) {
+				return supportPacketMetadataFile(&model.PacketMetadata{
+					Version:       1,
+					Type:          model.SupportPacketType,
+					GeneratedAt:   1735689600000,
+					ServerVersion: "11.0.0",
+					ServerID:      "server-id-fixed",
+					LicenseID:     "license-id-fixed",
+					CustomerID:    "customer-id-fixed",
+					Extras: map[string]any{
+						"region": "us-east",
+						"tier":   "enterprise",
+					},
+				}, nil)
+			},
+		},
+		{
+			name:     "stats",
+			filename: "stats.yaml",
+			marshal: func() (*model.FileData, error) {
+				return supportPacketStatsFile(&model.SupportPacketStats{
+					RegisteredUsers:  &statsCount,
+					DailyActiveUsers: &dailyActive,
+				}, nil)
+			},
+		},
+		{
+			name:      "jobs",
+			filename:  "jobs.yaml",
+			localTime: true,
+			marshal: func() (*model.FileData, error) {
+				return supportPacketJobsFile(&model.SupportPacketJobList{
+					LDAPSyncJobs:               []*model.Job{jobFactory("job-ldap", model.JobTypeLdapSync)},
+					DataRetentionJobs:          []*model.Job{jobFactory("job-retention", model.JobTypeDataRetention)},
+					MessageExportJobs:          []*model.Job{jobFactory("job-export", model.JobTypeMessageExport)},
+					ElasticPostIndexingJobs:    []*model.Job{jobFactory("job-index", model.JobTypeElasticsearchPostIndexing)},
+					ElasticPostAggregationJobs: []*model.Job{jobFactory("job-agg", model.JobTypeElasticsearchPostAggregation)},
+					MigrationJobs:              []*model.Job{jobFactory("job-migrate", model.JobTypeMigrations)},
+				}, nil)
+			},
+		},
+		{
+			name:      "permissions",
+			filename:  "permissions.yaml",
+			localTime: true,
+			marshal: func() (*model.FileData, error) {
+				return supportPacketPermissionsFile(&model.SupportPacketPermissionInfo{
+					Roles:   []*model.Role{role},
+					Schemes: []*model.Scheme{scheme},
+				}, nil)
+			},
+		},
+		{
+			name:     "plugins",
+			filename: "plugins.json",
+			marshal: func() (*model.FileData, error) {
+				return supportPacketPluginsFile(&model.SupportPacketPluginList{
+					Enabled: []model.Manifest{
+						{Id: "com.mattermost.enabled", Name: "Enabled Plugin", Version: "1.2.3"},
+					},
+					Disabled: []model.Manifest{
+						{Id: "com.mattermost.disabled", Name: "Disabled Plugin", Version: "2.3.4"},
+					},
+				}, nil)
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if _, offset := time.Unix(0, 0).Zone(); tc.localTime && offset != 0 {
+				t.Skip("golden recorded in UTC; run with TZ=UTC")
+			}
+
+			fileData, err := tc.marshal()
+			require.NoError(t, err)
+			require.NotNil(t, fileData)
+			require.Equal(t, tc.filename, fileData.Filename)
+
+			expected, err := os.ReadFile(filepath.Join(server.GetPackagePath(), "channels", "app", "testdata", "support_packet", tc.filename))
+			require.NoError(t, err)
+			require.Equal(t, string(expected), string(fileData.Body))
+		})
 	}
 }

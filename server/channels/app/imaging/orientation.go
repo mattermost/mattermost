@@ -70,6 +70,10 @@ type bufReadSeeker struct {
 // EXIF data lives near the file start in all common formats.
 const maxExifScanSize = 10 * 1024 * 1024
 
+// maxExifTagValueSize bounds the size of an individual EXIF tag value read
+// while locating the orientation tag, which is a small inline value.
+const maxExifTagValueSize = 8
+
 func (b *bufReadSeeker) Read(p []byte) (int, error) {
 	if b.pos < int64(len(b.buf)) {
 		n := copy(p, b.buf[b.pos:])
@@ -172,8 +176,9 @@ func GetImageOrientation(input io.Reader, format string) (int, error) {
 			// We only care about the orientation tag.
 			return tag.Tag == "Orientation"
 		},
-		Sources:     imagemeta.EXIF, // We only care about EXIF data.
-		ImageFormat: imgFormat,
+		Sources:      imagemeta.EXIF, // We only care about EXIF data.
+		ImageFormat:  imgFormat,
+		LimitTagSize: maxExifTagValueSize,
 	}
 
 	if _, err := imagemeta.Decode(opts); err != nil {

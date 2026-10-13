@@ -48,15 +48,17 @@ import {
     POSTGRES_IMAGE,
 } from './default_images';
 import {startInbucketContainer} from './inbucket_container';
-import {logTestcontainers} from './log';
+import {logTestcontainers, warnTestcontainers} from './log';
 import {resolveMattermostBootEnv, startMattermostContainer} from './mattermost_container';
+import {withStackLock} from './lock';
 import {getNetwork, getNetworkGatewayIp, stopNetwork} from './network';
+import {removeOrphanedServerContainers} from './orphans';
 import {startPostgresContainer} from './postgres_container';
 import {ADDITIONAL_SERVICE_STARTERS} from './requirements';
 import {startWebhookContainer} from './webhook_container';
 
 import {clearClientCache} from '@/server/client';
-import {defaultBootEnv, testConfig} from '@/test_config';
+import {defaultBootEnv, reloadTestConfig, testConfig} from '@/test_config';
 import type {TestContainersServiceName} from '@/test_config';
 import {isUpgradeToPhaseProjectSelected, upgradeToStackNotRunningError} from '@/upgrade_env';
 import {duration} from '@/util';
@@ -96,6 +98,12 @@ export async function startStack(): Promise<void> {
         return;
     }
 
+    await withStackLock('start the stack', startStackLocked);
+}
+
+async function startStackLocked(): Promise<void> {
+    // Another process may have brought the stack up while this one waited for the lock.
+    reloadTestConfig();
     if (await reuseExistingStack()) {
         return;
     }
@@ -191,6 +199,19 @@ export async function startStack(): Promise<void> {
     logStackStarted(started);
 }
 
+// A worker is killed without cleanup when a run is interrupted. If that happens mid-restart, the new server keeps
+// running but nothing records it. The main process survives and runs this at teardown.
+async function removeStrandedServerContainers(): Promise<void> {
+    try {
+        await withStackLock('clean up after the run', async () => {
+            reloadTestConfig();
+            await removeOrphanedServerContainers(testConfig.mattermostContainerId);
+        });
+    } catch (error) {
+        warnTestcontainers(`could not clean up stranded server containers: ${String(error)}`);
+    }
+}
+
 /**
  * True if .env.testcontainers points at a Mattermost container that's still running — i.e. some
  * OTHER process already brought up a stack this process should reuse instead of duplicating.
@@ -274,6 +295,8 @@ export async function stopStack(options: {force?: boolean} = {}): Promise<void> 
         return;
     }
 
+    await removeStrandedServerContainers();
+
     if (reused) {
         reused = false;
         logTestcontainers('this process reused an existing server — leaving it untouched.');
@@ -332,10 +355,19 @@ export function bootEnvMatches(env: Record<string, string>): boolean {
  * result, new container id, and new baseURL are appended to .env.testcontainers so any other
  * process picks up the real current state instead of a stale or default one.
  *
+ * `unset` removes keys from the overrides, so the server boots with the baseline value (or none).
+ *
  * Always performs the restart without checking whether `env` is already active — callers (e.g.
  * ensureMinio()/ensureAzurite()) own that decision via bootEnvMatches().
  */
-export async function restartMattermostContainer(env: Record<string, string>): Promise<void> {
+export async function restartMattermostContainer(env: Record<string, string>, unset: string[] = []): Promise<void> {
+    await withStackLock('restart the server', () => restartMattermostContainerLocked(env, unset));
+}
+
+async function restartMattermostContainerLocked(env: Record<string, string>, unset: string[]): Promise<void> {
+    // Another process may have replaced the server while this one waited for the lock.
+    reloadTestConfig();
+
     if (!testConfig.useTestContainers) {
         throw new Error('restartMattermostContainer requires PW_USE_TESTCONTAINERS=true.');
     }
@@ -347,7 +379,11 @@ export async function restartMattermostContainer(env: Record<string, string>): P
 
     extendTimeoutForRestart();
 
-    testConfig.bootEnvOverrides = {...testConfig.bootEnvOverrides, ...env};
+    const overrides = {...testConfig.bootEnvOverrides, ...env};
+    for (const key of unset) {
+        delete overrides[key];
+    }
+    testConfig.bootEnvOverrides = overrides;
 
     await execFileAsync('docker', ['rm', '-f', testConfig.mattermostContainerId]);
 
@@ -360,11 +396,49 @@ export async function restartMattermostContainer(env: Record<string, string>): P
     testConfig.mattermostContainerId = mattermost.getId();
     clearClientCache();
 
-    const redactedEnv = redactServerEnv(env);
-    appendEnvFile(`restart requested by ${describeCurrentTest()} — env ${JSON.stringify(redactedEnv)}`);
+    const change = describeRestartChange(redactServerEnv(env), unset);
+    appendEnvFile(`restart requested by ${describeCurrentTest()} — ${change}`);
 
-    logTestcontainers(`restarted server (${testConfig.serverImage}) with ${JSON.stringify(redactedEnv)}.`);
+    logTestcontainers(`restarted server (${testConfig.serverImage}): ${change}.`);
     await logServerImageAge(testConfig.serverImage);
+}
+
+// Spells out what a restart changed, since an empty env object alone reads as "nothing".
+function describeRestartChange(set: Record<string, string>, unset: string[]): string {
+    const parts: string[] = [];
+    if (Object.keys(set).length > 0) {
+        parts.push(`set ${JSON.stringify(set)}`);
+    }
+    if (unset.length > 0) {
+        parts.push(`removed ${unset.join(', ')}`);
+    }
+
+    return parts.length > 0 ? parts.join('; ') : 'no env changes';
+}
+
+/** The env the running server container was actually started with. */
+export async function getMattermostContainerEnv(): Promise<Record<string, string>> {
+    const {stdout} = await execFileAsync('docker', [
+        'inspect',
+        '--format',
+        '{{json .Config.Env}}',
+        testConfig.mattermostContainerId,
+    ]).catch((error: Error) => {
+        if (String(error.message).includes('no such object')) {
+            throw new Error(
+                `Server container ${testConfig.mattermostContainerId} no longer exists (a restart or start likely failed). Run "npm run testcontainers:down" and retry.`,
+                {cause: error},
+            );
+        }
+        throw error;
+    });
+
+    return Object.fromEntries(
+        (JSON.parse(stdout) as string[]).map((entry) => {
+            const separator = entry.indexOf('=');
+            return [entry.slice(0, separator), entry.slice(separator + 1)];
+        }),
+    );
 }
 
 // Empties the server's bind-mounted data directory on a fresh boot. The server writes as UID 2000
