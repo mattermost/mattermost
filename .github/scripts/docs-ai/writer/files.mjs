@@ -47,13 +47,23 @@ export function hasVersionAnchor(content, version) {
   return VERSION_ANCHOR_RE.test(content);
 }
 
-// Reject pages that document capability without an anchor when a milestone was supplied.
+// Every authored page needs an anchor. A known milestone version may be that version
+// or the human-judgment phrase. With no milestone, only the human-judgment phrase
+// counts — a guessed "From Mattermost vX.Y" is not an anchor.
 export function assertVersionAnchors(files, {milestoneVersion, required = true} = {}) {
-  if (!required || !milestoneVersion) return;
+  if (!required) return;
   for (const f of files) {
-    if (!hasVersionAnchor(f.content, milestoneVersion)) {
+    if (milestoneVersion) {
+      if (!hasVersionAnchor(f.content, milestoneVersion)) {
+        throw new Error(
+          `${f.path}: missing version anchor (expected "From Mattermost ${milestoneVersion}" or "${HUMAN_JUDGMENT_VERSION_ANCHOR}")`,
+        );
+      }
+      continue;
+    }
+    if (!f.content.includes(HUMAN_JUDGMENT_VERSION_ANCHOR)) {
       throw new Error(
-        `${f.path}: missing version anchor (expected "From Mattermost ${milestoneVersion}" or "${HUMAN_JUDGMENT_VERSION_ANCHOR}")`,
+        `${f.path}: missing version anchor (expected "${HUMAN_JUDGMENT_VERSION_ANCHOR}" because no milestone version was supplied)`,
       );
     }
   }

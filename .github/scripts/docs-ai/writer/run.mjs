@@ -82,7 +82,9 @@ async function main() {
   const milestoneTitle = process.env.MILESTONE_TITLE || '';
   const milestoneVersion = versionFromMilestone(milestoneTitle);
   if (!milestoneVersion) {
-    throw new Error('milestone title must contain vMAJOR.MINOR (version anchor source)');
+    console.error(
+      '[writer] no milestone version; pages will use "From Mattermost [NOT PRESENT — REQUIRES HUMAN JUDGMENT]"',
+    );
   }
 
   const brief = await loadBrief({repo, pr});
@@ -105,7 +107,7 @@ async function main() {
   const {files, trail} = await authorLoop({brief, input});
 
   writeFileSync(join(outDir, 'trail.json'), `${JSON.stringify(trail, null, 2)}\n`);
-  const body = renderPrBody({sourcePr: pr, trail, brief});
+  const body = renderPrBody({sourcePr: pr, trail, brief, milestoneVersion});
   writeFileSync(join(outDir, 'pr-body.md'), body);
 
   if (process.env.DRY_RUN === '1') {

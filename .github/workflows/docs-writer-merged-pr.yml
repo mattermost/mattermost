@@ -92,7 +92,6 @@ jobs:
           EVENT_AUTHOR: ${{ github.event.pull_request.user.login }}
           EVENT_AUTHOR_TYPE: ${{ github.event.pull_request.user.type }}
           EVENT_MILESTONE_TITLE: ${{ github.event.pull_request.milestone.title }}
-          EVENT_MILESTONE_NUMBER: ${{ github.event.pull_request.milestone.number }}
         run: |
           set -euo pipefail
           mkdir -p .docs-ai/writer
@@ -108,7 +107,6 @@ jobs:
             AUTHOR=$(echo "$DATA" | jq -r '.user.login')
             AUTHOR_TYPE=$(echo "$DATA" | jq -r '.user.type')
             MILESTONE_TITLE=$(echo "$DATA" | jq -r '.milestone.title // ""')
-            MILESTONE_NUMBER=$(echo "$DATA" | jq -r '.milestone.number // ""')
             MERGED=$(echo "$DATA" | jq -r '.merged')
             LABELS=$(echo "$DATA" | jq -r '[.labels[].name] | join(",")')
             if [ "$MERGED" != "true" ]; then
@@ -125,12 +123,13 @@ jobs:
             AUTHOR="$EVENT_AUTHOR"
             AUTHOR_TYPE="$EVENT_AUTHOR_TYPE"
             MILESTONE_TITLE="$EVENT_MILESTONE_TITLE"
-            MILESTONE_NUMBER="$EVENT_MILESTONE_NUMBER"
           fi
 
-          if [ -z "$MILESTONE_NUMBER" ] || [ "$MILESTONE_NUMBER" = "null" ]; then
-            echo "::error title=Missing milestone::Set a milestone on #${PR_NUMBER} before Docs/Needed can draft pages (version anchor source)."
-            exit 1
+          # A missing milestone is a human follow-up, not a reason to skip the draft.
+          # Pages use the human-judgment version anchor until someone sets the release.
+          if [ -z "$MILESTONE_TITLE" ] || [ "$MILESTONE_TITLE" = "null" ]; then
+            echo "::warning title=Missing milestone::#${PR_NUMBER} has no milestone. Draft pages will use \"From Mattermost [NOT PRESENT — REQUIRES HUMAN JUDGMENT]\" until a human sets the version."
+            MILESTONE_TITLE=""
           fi
 
           # Docs draft reviewer: source author, or one human reviewer of the
