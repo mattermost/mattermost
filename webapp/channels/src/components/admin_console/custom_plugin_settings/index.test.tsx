@@ -159,7 +159,7 @@ describe('custom plugin sections and settings', () => {
         expect(badge).not.toHaveTextContent(error);
         expect(screen.getByTestId('admin-console-header')).toContainElement(badge);
         expect(screen.getByTestId('plugin-metadata-status-error')).toHaveTextContent(error);
-        expect(document.querySelector('.sectionNoticeContainer.warning')).toBeInTheDocument();
+        expect(document.querySelector('[class*="section-notice--type-warning"]')).toBeInTheDocument();
     });
 
     it('renders top-level settings together with sections', () => {

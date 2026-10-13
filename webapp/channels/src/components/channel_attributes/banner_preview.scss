@@ -5,35 +5,6 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-
-    // Compact the shared SectionNotice for this narrow preview slot.
-    .sectionNoticeContainer [class*='section-notice__content'] {
-        padding: 8px 12px;
-        gap: 8px;
-    }
-
-    .sectionNoticeContainer [class*='section-notice__icon'] {
-        font-size: 16px;
-    }
-
-    .sectionNoticeContainer [class*='section-notice__title'] {
-        font-size: 12px;
-        line-height: 16px;
-    }
-
-    .sectionNoticeContainer [class*='section-notice__body'] {
-        gap: 2px;
-    }
-
-    .sectionNoticeContainer [class*='section-notice__description'] {
-        font-size: 12px;
-        line-height: 16px;
-
-        p {
-            font-size: 12px;
-            line-height: 16px;
-        }
-    }
 }
 
 // Matches the banner text field's width, and truncates like the real banner. The

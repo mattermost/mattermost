@@ -5,6 +5,9 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import type {Channel, ChannelBanner} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
@@ -35,7 +38,6 @@ import useResolvedChannelAttributes from 'components/common/hooks/useResolvedCha
 import ConfirmModal from 'components/confirm_modal';
 import DropdownInput from 'components/dropdown_input';
 import type {ValueType} from 'components/dropdown_input';
-import SectionNotice from 'components/section_notice';
 import Toggle from 'components/toggle';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import type {SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
@@ -934,14 +936,14 @@ function ChannelSettingsConfigurationTab({
                         <div className='channel_banner_section_body'>
                             <SectionNotice
                                 type='warning'
-                                iconOverride='icon-information-outline'
+                                icon={<Icon glyph={<InformationOutlineIcon/>}/>}
                                 title={
                                     <FormattedMessage
                                         id='admin.classification_markings.notice.title'
                                         defaultMessage='Classification markings are informational only'
                                     />
                                 }
-                                text={formatMessage({id: 'admin.classification_markings.notice.body', defaultMessage: 'Markings are not tied to access control decisions at this time and are for display purposes only.'})}
+                                description={formatMessage({id: 'admin.classification_markings.notice.body', defaultMessage: 'Markings are not tied to access control decisions at this time and are for display purposes only.'})}
                             />
 
                             <div className='setting_section'>

@@ -121,7 +121,7 @@ describe('Verify users can receive notification on browser', () => {
 });
 
 function triggertestNotification() {
-    cy.get('.sectionNoticeContent').scrollIntoView().should('be.visible');
-    cy.get('.btn-tertiary').should('be.visible').should('have.text', 'Troubleshooting docs');
-    cy.get('.btn-primary').should('be.visible').should('have.text', 'Send a test notification').click();
+    cy.findByText('Troubleshooting notifications').scrollIntoView().should('be.visible');
+    cy.findByRole('button', {name: 'Troubleshooting docs'}).should('be.visible');
+    cy.findByRole('button', {name: 'Send a test notification'}).should('be.visible').click();
 }

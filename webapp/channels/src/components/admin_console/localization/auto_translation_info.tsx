@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import './auto_translation_info.scss';
 
-import SectionNotice from 'components/section_notice';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 
 const AutoTranslationInfo = () => {
     return (

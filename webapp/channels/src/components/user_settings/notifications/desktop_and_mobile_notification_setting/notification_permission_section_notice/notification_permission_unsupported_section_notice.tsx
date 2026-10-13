@@ -4,7 +4,10 @@
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
-import SectionNotice from 'components/section_notice';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
+
+import SectionNoticeActions from 'components/user_settings/notifications/section_notice_actions';
 
 export default function NotificationPermissionUnsupportedSectionNotice() {
     const intl = useIntl();
@@ -21,17 +24,26 @@ export default function NotificationPermissionUnsupportedSectionNotice() {
                     id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionUnsupported.title',
                     defaultMessage: 'Browser notifications unsupported',
                 })}
-                text={intl.formatMessage({
-                    id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionUnsupported.message',
-                    defaultMessage: 'You\'re missing important message and call notifications from Mattermost. To start receiving notifications, please update to a supported browser.',
-                })}
-                tertiaryButton={{
-                    text: intl.formatMessage({
-                        id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionUnsupported.button',
-                        defaultMessage: 'Update your browser',
-                    }),
-                    onClick: handleClick,
-                }}
+                description={
+                    <>
+                        {intl.formatMessage({
+                            id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionUnsupported.message',
+                            defaultMessage: 'You\'re missing important message and call notifications from Mattermost. To start receiving notifications, please update to a supported browser.',
+                        })}
+                        <SectionNoticeActions>
+                            <Button
+                                emphasis='tertiary'
+                                size='small'
+                                onClick={handleClick}
+                            >
+                                {intl.formatMessage({
+                                    id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionUnsupported.button',
+                                    defaultMessage: 'Update your browser',
+                                })}
+                            </Button>
+                        </SectionNoticeActions>
+                    </>
+                }
             />
         </div>
     );
