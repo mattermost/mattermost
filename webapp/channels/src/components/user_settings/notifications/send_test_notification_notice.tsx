@@ -4,7 +4,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 
-import {AlertOutlineIcon, CheckIcon, OpenInNewIcon} from '@mattermost/compass-icons/components';
+import {AlertOutlineIcon, CheckIcon, LightbulbOutlineIcon, OpenInNewIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
@@ -116,6 +116,7 @@ const SendTestNotificationNotice = ({
             <div style={sectionNoticeContainerStyle}>
                 <SectionNotice
                     type='hint'
+                    icon={<Icon glyph={<LightbulbOutlineIcon/>}/>}
                     title={intl.formatMessage({id: 'user_settings.notifications.test_notification.title', defaultMessage: 'Troubleshooting notifications'})}
                     description={
                         <>
