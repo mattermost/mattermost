@@ -14563,7 +14563,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Invalid webserver mode {{.Value}}. Must be 'gzip', 'nogzip', or 'disabled'."
+    "translation": "Invalid webserver mode {{.Value}}. Must be 'gzip', 'uncompressed', or 'disabled'."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",
