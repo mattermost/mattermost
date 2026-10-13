@@ -47,6 +47,7 @@ func (ch *Channels) DetachPlugin(pluginID string) *model.AppError {
 
 	// Deactivate and remove any existing plugin, if present.
 	pluginsEnvironment.Deactivate(pluginID)
+	ch.getAutomationRegistry().drop(pluginID)
 	pluginsEnvironment.RemovePlugin(pluginID)
 
 	return nil

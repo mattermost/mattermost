@@ -75,6 +75,8 @@ const (
 	DraftWillBeUpsertedID                     = 55
 	MessagesWillBeConsumedWithContextID       = 56
 	OnLicenseChangedID                        = 57
+	OnAutomationSignalID                      = 58
+	OnAutomationActionID                      = 59
 	TotalHooksID                              = iota
 )
 
@@ -533,4 +535,17 @@ type Hooks interface {
 	//
 	// Minimum server version: 11.9
 	DraftWillBeUpserted(c *Context, draft *model.Draft) (*model.Draft, string)
+
+	// OnAutomationSignal is invoked after a plugin emits a registered automation signal.
+	// Delivery is best-effort. Only plugins that implement this hook are called.
+	//
+	// Minimum server version: 11.11
+	OnAutomationSignal(c *Context, event *model.AutomationSignalEvent)
+
+	// OnAutomationAction runs one registered action. The non-empty string is an
+	// application error. A transport failure is reported by the WithRPCErr companion.
+	// The server stamps CallerPluginID before the call.
+	//
+	// Minimum server version: 11.11
+	OnAutomationAction(c *Context, req *model.AutomationActionRequest) (*model.AutomationActionResponse, string)
 }

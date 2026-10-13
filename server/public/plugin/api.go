@@ -1846,6 +1846,45 @@ type API interface {
 	// @tag AccessControl
 	// Minimum server version: 11.10
 	GetAccessControlVisualAST(actingUserID, resourceType, expression string) (*model.VisualExpression, *model.AppError)
+
+	// RegisterAutomationGroup publishes a palette group for this plugin. The plugin id
+	// is taken from the RPC context. A second call with the same label replaces the group.
+	//
+	// Minimum server version: 11.11
+	RegisterAutomationGroup(group model.AutomationGroupDescriptor) error
+
+	// RegisterAutomationSignal publishes a signal this plugin may emit. The plugin id
+	// is taken from the RPC context. A second call with the same name replaces the signal.
+	//
+	// Minimum server version: 11.11
+	RegisterAutomationSignal(signal model.AutomationSignalDescriptor) error
+
+	// RegisterAutomationAction publishes a palette action. Weave runs it through
+	// OnAutomationAction. Method and Path are recorded and not used for execution.
+	// The plugin id is taken from the RPC context.
+	//
+	// Minimum server version: 11.11
+	RegisterAutomationAction(action model.AutomationActionDescriptor) error
+
+	// EmitAutomationSignal delivers a registered signal to plugins that implement
+	// OnAutomationSignal. traceToken is empty for a new chain. A token invented by the
+	// caller is rejected. Signal values are ids, enums, bools, and ints.
+	//
+	// Minimum server version: 11.11
+	EmitAutomationSignal(name string, payload map[string]model.AutomationValue, traceToken string) error
+
+	// ExecuteAutomationAction runs a registered action on the plugin that declared it.
+	// Only a plugin that implements OnAutomationSignal may call it. The server stamps
+	// CallerPluginID from that caller.
+	//
+	// Minimum server version: 11.11
+	ExecuteAutomationAction(req *model.AutomationActionRequest) (*model.AutomationActionResponse, error)
+
+	// ListAutomationContributions returns every registered group, signal, and action.
+	// Only a plugin that implements OnAutomationSignal may call it.
+	//
+	// Minimum server version: 11.11
+	ListAutomationContributions() ([]model.AutomationGroupDescriptor, []model.AutomationSignalDescriptor, []model.AutomationActionDescriptor, error)
 }
 
 var handshake = plugin.HandshakeConfig{

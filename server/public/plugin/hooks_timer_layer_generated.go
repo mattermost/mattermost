@@ -377,6 +377,19 @@ func (hooks *hooksTimerLayer) DraftWillBeUpserted(c *Context, draft *model.Draft
 	return _returnsA, _returnsB
 }
 
+func (hooks *hooksTimerLayer) OnAutomationSignal(c *Context, event *model.AutomationSignalEvent) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnAutomationSignal(c, event)
+	hooks.recordTime(startTime, "OnAutomationSignal", true)
+}
+
+func (hooks *hooksTimerLayer) OnAutomationAction(c *Context, req *model.AutomationActionRequest) (*model.AutomationActionResponse, string) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.OnAutomationAction(c, req)
+	hooks.recordTime(startTime, "OnAutomationAction", true)
+	return _returnsA, _returnsB
+}
+
 func (hooks *hooksTimerLayer) OnDeactivateWithRPCErr() (error, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.OnDeactivateWithRPCErr()
@@ -668,5 +681,19 @@ func (hooks *hooksTimerLayer) DraftWillBeUpsertedWithRPCErr(c *Context, draft *m
 	startTime := timePkg.Now()
 	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.DraftWillBeUpsertedWithRPCErr(c, draft)
 	hooks.recordTime(startTime, "DraftWillBeUpsertedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsA, _returnsB, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) OnAutomationSignalWithRPCErr(c *Context, event *model.AutomationSignalEvent) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.OnAutomationSignalWithRPCErr(c, event)
+	hooks.recordTime(startTime, "OnAutomationSignalWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) OnAutomationActionWithRPCErr(c *Context, req *model.AutomationActionRequest) (*model.AutomationActionResponse, string, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.OnAutomationActionWithRPCErr(c, req)
+	hooks.recordTime(startTime, "OnAutomationActionWithRPCErr", _returnsRPCErr == nil)
 	return _returnsA, _returnsB, _returnsRPCErr
 }

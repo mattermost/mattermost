@@ -2240,6 +2240,112 @@ func (s *hooksRPCServer) DraftWillBeUpserted(args *Z_DraftWillBeUpsertedArgs, re
 	return nil
 }
 
+func init() {
+	hookNameToId["OnAutomationSignal"] = OnAutomationSignalID
+}
+
+type Z_OnAutomationSignalArgs struct {
+	A *Context
+	B *model.AutomationSignalEvent
+}
+
+type Z_OnAutomationSignalReturns struct {
+}
+
+func (g *hooksRPCClient) OnAutomationSignal(c *Context, event *model.AutomationSignalEvent) {
+	_args := &Z_OnAutomationSignalArgs{c, event}
+	_returns := &Z_OnAutomationSignalReturns{}
+	if g.implemented[OnAutomationSignalID] {
+		if err := g.client.Call("Plugin.OnAutomationSignal", _args, _returns); err != nil {
+			g.log.Error("RPC call OnAutomationSignal to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+// OnAutomationSignalWithRPCErr returns the same values as OnAutomationSignal, with an additional trailing error
+// for the RPC transport — always the LAST return slot.
+func (g *hooksRPCClient) OnAutomationSignalWithRPCErr(c *Context, event *model.AutomationSignalEvent) error {
+	_args := &Z_OnAutomationSignalArgs{c, event}
+	_returns := &Z_OnAutomationSignalReturns{}
+	var _err error
+	if g.implemented[OnAutomationSignalID] {
+		_err = g.client.Call("Plugin.OnAutomationSignal", _args, _returns)
+		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
+			_returns = &Z_OnAutomationSignalReturns{}
+			g.log.Debug("RPC call OnAutomationSignal to plugin failed.", mlog.Err(_err))
+		}
+	}
+	return _err
+}
+
+func (s *hooksRPCServer) OnAutomationSignal(args *Z_OnAutomationSignalArgs, returns *Z_OnAutomationSignalReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnAutomationSignal(c *Context, event *model.AutomationSignalEvent)
+	}); ok {
+		hook.OnAutomationSignal(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnAutomationSignal called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["OnAutomationAction"] = OnAutomationActionID
+}
+
+type Z_OnAutomationActionArgs struct {
+	A *Context
+	B *model.AutomationActionRequest
+}
+
+type Z_OnAutomationActionReturns struct {
+	A *model.AutomationActionResponse
+	B string
+}
+
+func (g *hooksRPCClient) OnAutomationAction(c *Context, req *model.AutomationActionRequest) (*model.AutomationActionResponse, string) {
+	_args := &Z_OnAutomationActionArgs{c, req}
+	_returns := &Z_OnAutomationActionReturns{}
+	if g.implemented[OnAutomationActionID] {
+		if err := g.client.Call("Plugin.OnAutomationAction", _args, _returns); err != nil {
+			g.log.Error("RPC call OnAutomationAction to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+// OnAutomationActionWithRPCErr returns the same values as OnAutomationAction, with an additional trailing error
+// for the RPC transport — always the LAST return slot.
+func (g *hooksRPCClient) OnAutomationActionWithRPCErr(c *Context, req *model.AutomationActionRequest) (*model.AutomationActionResponse, string, error) {
+	_args := &Z_OnAutomationActionArgs{c, req}
+	_returns := &Z_OnAutomationActionReturns{}
+	var _err error
+	if g.implemented[OnAutomationActionID] {
+		_err = g.client.Call("Plugin.OnAutomationAction", _args, _returns)
+		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
+			_returns = &Z_OnAutomationActionReturns{}
+			g.log.Debug("RPC call OnAutomationAction to plugin failed.", mlog.Err(_err))
+		}
+	}
+	return _returns.A, _returns.B, _err
+}
+
+func (s *hooksRPCServer) OnAutomationAction(args *Z_OnAutomationActionArgs, returns *Z_OnAutomationActionReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnAutomationAction(c *Context, req *model.AutomationActionRequest) (*model.AutomationActionResponse, string)
+	}); ok {
+		returns.A, returns.B = hook.OnAutomationAction(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnAutomationAction called but not implemented."))
+	}
+	return nil
+}
+
 // HooksWithRPCErrGenerated provides a WithRPCErr variant for every generated hook. The last error return
 // is always the RPC transport error — if non-nil, the plugin's other return values are zero. For
 // hooks whose base signature already returns error, the tuple is (originalReturns..., rpcErr)
@@ -2334,6 +2440,10 @@ type HooksWithRPCErrGenerated interface {
 	ScheduledPostWillBeCreatedWithRPCErr(c *Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string, error)
 
 	DraftWillBeUpsertedWithRPCErr(c *Context, draft *model.Draft) (*model.Draft, string, error)
+
+	OnAutomationSignalWithRPCErr(c *Context, event *model.AutomationSignalEvent) error
+
+	OnAutomationActionWithRPCErr(c *Context, req *model.AutomationActionRequest) (*model.AutomationActionResponse, string, error)
 }
 
 type Z_RegisterCommandArgs struct {
@@ -9808,6 +9918,185 @@ func (s *apiRPCServer) GetAccessControlVisualAST(args *Z_GetAccessControlVisualA
 		returns.A, returns.B = hook.GetAccessControlVisualAST(args.A, args.B, args.C)
 	} else {
 		return encodableError(fmt.Errorf("API GetAccessControlVisualAST called but not implemented."))
+	}
+	return nil
+}
+
+type Z_RegisterAutomationGroupArgs struct {
+	A model.AutomationGroupDescriptor
+}
+
+type Z_RegisterAutomationGroupReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) RegisterAutomationGroup(group model.AutomationGroupDescriptor) error {
+	_args := &Z_RegisterAutomationGroupArgs{group}
+	_returns := &Z_RegisterAutomationGroupReturns{}
+	if err := g.client.Call("Plugin.RegisterAutomationGroup", _args, _returns); err != nil {
+		log.Printf("RPC call to RegisterAutomationGroup API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RegisterAutomationGroup(args *Z_RegisterAutomationGroupArgs, returns *Z_RegisterAutomationGroupReturns) error {
+	if hook, ok := s.impl.(interface {
+		RegisterAutomationGroup(group model.AutomationGroupDescriptor) error
+	}); ok {
+		returns.A = hook.RegisterAutomationGroup(args.A)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API RegisterAutomationGroup called but not implemented."))
+	}
+	return nil
+}
+
+type Z_RegisterAutomationSignalArgs struct {
+	A model.AutomationSignalDescriptor
+}
+
+type Z_RegisterAutomationSignalReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) RegisterAutomationSignal(signal model.AutomationSignalDescriptor) error {
+	_args := &Z_RegisterAutomationSignalArgs{signal}
+	_returns := &Z_RegisterAutomationSignalReturns{}
+	if err := g.client.Call("Plugin.RegisterAutomationSignal", _args, _returns); err != nil {
+		log.Printf("RPC call to RegisterAutomationSignal API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RegisterAutomationSignal(args *Z_RegisterAutomationSignalArgs, returns *Z_RegisterAutomationSignalReturns) error {
+	if hook, ok := s.impl.(interface {
+		RegisterAutomationSignal(signal model.AutomationSignalDescriptor) error
+	}); ok {
+		returns.A = hook.RegisterAutomationSignal(args.A)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API RegisterAutomationSignal called but not implemented."))
+	}
+	return nil
+}
+
+type Z_RegisterAutomationActionArgs struct {
+	A model.AutomationActionDescriptor
+}
+
+type Z_RegisterAutomationActionReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) RegisterAutomationAction(action model.AutomationActionDescriptor) error {
+	_args := &Z_RegisterAutomationActionArgs{action}
+	_returns := &Z_RegisterAutomationActionReturns{}
+	if err := g.client.Call("Plugin.RegisterAutomationAction", _args, _returns); err != nil {
+		log.Printf("RPC call to RegisterAutomationAction API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RegisterAutomationAction(args *Z_RegisterAutomationActionArgs, returns *Z_RegisterAutomationActionReturns) error {
+	if hook, ok := s.impl.(interface {
+		RegisterAutomationAction(action model.AutomationActionDescriptor) error
+	}); ok {
+		returns.A = hook.RegisterAutomationAction(args.A)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API RegisterAutomationAction called but not implemented."))
+	}
+	return nil
+}
+
+type Z_EmitAutomationSignalArgs struct {
+	A string
+	B map[string]model.AutomationValue
+	C string
+}
+
+type Z_EmitAutomationSignalReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) EmitAutomationSignal(name string, payload map[string]model.AutomationValue, traceToken string) error {
+	_args := &Z_EmitAutomationSignalArgs{name, payload, traceToken}
+	_returns := &Z_EmitAutomationSignalReturns{}
+	if err := g.client.Call("Plugin.EmitAutomationSignal", _args, _returns); err != nil {
+		log.Printf("RPC call to EmitAutomationSignal API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) EmitAutomationSignal(args *Z_EmitAutomationSignalArgs, returns *Z_EmitAutomationSignalReturns) error {
+	if hook, ok := s.impl.(interface {
+		EmitAutomationSignal(name string, payload map[string]model.AutomationValue, traceToken string) error
+	}); ok {
+		returns.A = hook.EmitAutomationSignal(args.A, args.B, args.C)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API EmitAutomationSignal called but not implemented."))
+	}
+	return nil
+}
+
+type Z_ExecuteAutomationActionArgs struct {
+	A *model.AutomationActionRequest
+}
+
+type Z_ExecuteAutomationActionReturns struct {
+	A *model.AutomationActionResponse
+	B error
+}
+
+func (g *apiRPCClient) ExecuteAutomationAction(req *model.AutomationActionRequest) (*model.AutomationActionResponse, error) {
+	_args := &Z_ExecuteAutomationActionArgs{req}
+	_returns := &Z_ExecuteAutomationActionReturns{}
+	if err := g.client.Call("Plugin.ExecuteAutomationAction", _args, _returns); err != nil {
+		log.Printf("RPC call to ExecuteAutomationAction API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) ExecuteAutomationAction(args *Z_ExecuteAutomationActionArgs, returns *Z_ExecuteAutomationActionReturns) error {
+	if hook, ok := s.impl.(interface {
+		ExecuteAutomationAction(req *model.AutomationActionRequest) (*model.AutomationActionResponse, error)
+	}); ok {
+		returns.A, returns.B = hook.ExecuteAutomationAction(args.A)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API ExecuteAutomationAction called but not implemented."))
+	}
+	return nil
+}
+
+type Z_ListAutomationContributionsArgs struct {
+}
+
+type Z_ListAutomationContributionsReturns struct {
+	A []model.AutomationGroupDescriptor
+	B []model.AutomationSignalDescriptor
+	C []model.AutomationActionDescriptor
+	D error
+}
+
+func (g *apiRPCClient) ListAutomationContributions() ([]model.AutomationGroupDescriptor, []model.AutomationSignalDescriptor, []model.AutomationActionDescriptor, error) {
+	_args := &Z_ListAutomationContributionsArgs{}
+	_returns := &Z_ListAutomationContributionsReturns{}
+	if err := g.client.Call("Plugin.ListAutomationContributions", _args, _returns); err != nil {
+		log.Printf("RPC call to ListAutomationContributions API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B, _returns.C, _returns.D
+}
+
+func (s *apiRPCServer) ListAutomationContributions(args *Z_ListAutomationContributionsArgs, returns *Z_ListAutomationContributionsReturns) error {
+	if hook, ok := s.impl.(interface {
+		ListAutomationContributions() ([]model.AutomationGroupDescriptor, []model.AutomationSignalDescriptor, []model.AutomationActionDescriptor, error)
+	}); ok {
+		returns.A, returns.B, returns.C, returns.D = hook.ListAutomationContributions()
+		returns.D = encodableError(returns.D)
+	} else {
+		return encodableError(fmt.Errorf("API ListAutomationContributions called but not implemented."))
 	}
 	return nil
 }

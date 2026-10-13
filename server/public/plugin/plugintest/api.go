@@ -1303,6 +1303,24 @@ func (_m *API) DisablePlugin(id string) *model.AppError {
 	return r0
 }
 
+// EmitAutomationSignal provides a mock function with given fields: name, payload, traceToken
+func (_m *API) EmitAutomationSignal(name string, payload map[string]model.AutomationValue, traceToken string) error {
+	ret := _m.Called(name, payload, traceToken)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EmitAutomationSignal")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, map[string]model.AutomationValue, string) error); ok {
+		r0 = rf(name, payload, traceToken)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // EnablePlugin provides a mock function with given fields: id
 func (_m *API) EnablePlugin(id string) *model.AppError {
 	ret := _m.Called(id)
@@ -1378,6 +1396,36 @@ func (_m *API) EvaluateAccessControl(userID string, resourceType string, resourc
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
 		}
+	}
+
+	return r0, r1
+}
+
+// ExecuteAutomationAction provides a mock function with given fields: req
+func (_m *API) ExecuteAutomationAction(req *model.AutomationActionRequest) (*model.AutomationActionResponse, error) {
+	ret := _m.Called(req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ExecuteAutomationAction")
+	}
+
+	var r0 *model.AutomationActionResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.AutomationActionRequest) (*model.AutomationActionResponse, error)); ok {
+		return rf(req)
+	}
+	if rf, ok := ret.Get(0).(func(*model.AutomationActionRequest) *model.AutomationActionResponse); ok {
+		r0 = rf(req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AutomationActionResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.AutomationActionRequest) error); ok {
+		r1 = rf(req)
+	} else {
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -4592,6 +4640,54 @@ func (_m *API) KVSetWithOptions(key string, value []byte, options model.PluginKV
 	return r0, r1
 }
 
+// ListAutomationContributions provides a mock function with no fields
+func (_m *API) ListAutomationContributions() ([]model.AutomationGroupDescriptor, []model.AutomationSignalDescriptor, []model.AutomationActionDescriptor, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListAutomationContributions")
+	}
+
+	var r0 []model.AutomationGroupDescriptor
+	var r1 []model.AutomationSignalDescriptor
+	var r2 []model.AutomationActionDescriptor
+	var r3 error
+	if rf, ok := ret.Get(0).(func() ([]model.AutomationGroupDescriptor, []model.AutomationSignalDescriptor, []model.AutomationActionDescriptor, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() []model.AutomationGroupDescriptor); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]model.AutomationGroupDescriptor)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func() []model.AutomationSignalDescriptor); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]model.AutomationSignalDescriptor)
+		}
+	}
+
+	if rf, ok := ret.Get(2).(func() []model.AutomationActionDescriptor); ok {
+		r2 = rf()
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).([]model.AutomationActionDescriptor)
+		}
+	}
+
+	if rf, ok := ret.Get(3).(func() error); ok {
+		r3 = rf()
+	} else {
+		r3 = ret.Error(3)
+	}
+
+	return r0, r1, r2, r3
+}
+
 // ListBuiltInCommands provides a mock function with no fields
 func (_m *API) ListBuiltInCommands() ([]*model.Command, error) {
 	ret := _m.Called()
@@ -5065,6 +5161,60 @@ func (_m *API) ReceiveSharedChannelSyncMsg(remoteID string, msg *model.SyncMsg) 
 	}
 
 	return r0, r1
+}
+
+// RegisterAutomationAction provides a mock function with given fields: action
+func (_m *API) RegisterAutomationAction(action model.AutomationActionDescriptor) error {
+	ret := _m.Called(action)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterAutomationAction")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(model.AutomationActionDescriptor) error); ok {
+		r0 = rf(action)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RegisterAutomationGroup provides a mock function with given fields: group
+func (_m *API) RegisterAutomationGroup(group model.AutomationGroupDescriptor) error {
+	ret := _m.Called(group)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterAutomationGroup")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(model.AutomationGroupDescriptor) error); ok {
+		r0 = rf(group)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RegisterAutomationSignal provides a mock function with given fields: signal
+func (_m *API) RegisterAutomationSignal(signal model.AutomationSignalDescriptor) error {
+	ret := _m.Called(signal)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterAutomationSignal")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(model.AutomationSignalDescriptor) error); ok {
+		r0 = rf(signal)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // RegisterChannelGuard provides a mock function with given fields: channelID

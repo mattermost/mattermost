@@ -53,6 +53,9 @@ type Channels struct {
 	pluginLicenseListenerID       string
 	pluginClusterLeaderListenerID string
 
+	automationRegistryOnce sync.Once
+	automationRegistry     *automationRegistry
+
 	// guardCache caches ChannelGuards rows by ChannelId -> []*store.ChannelGuard.
 	guardCache atomic.Pointer[sync.Map]
 

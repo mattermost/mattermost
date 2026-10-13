@@ -62,6 +62,9 @@ const (
 	ClusterEventInvalidateCacheForUserAttributes            ClusterEvent = "inv_user_attributes"
 	ClusterEventAutoTranslationTask                         ClusterEvent = "autotranslation_task"
 	ClusterEventBusyStateChanged                            ClusterEvent = "busy_state_change"
+	// ClusterEventAutomationSignal forwards a signal to other nodes only when
+	// the emitting node has no active OnAutomationSignal subscriber.
+	ClusterEventAutomationSignal                            ClusterEvent = "automation_signal"
 	// Note: if you are adding a new event, please also add it in the slice of
 	// m.ClusterEventMap in metrics/metrics.go file.
 

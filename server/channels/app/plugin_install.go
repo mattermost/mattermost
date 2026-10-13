@@ -615,6 +615,7 @@ func (ch *Channels) removePluginLocally(id string) *model.AppError {
 	}
 
 	pluginsEnvironment.Deactivate(id)
+	ch.getAutomationRegistry().drop(id)
 	pluginsEnvironment.RemovePlugin(id)
 	ch.unregisterPluginCommands(id)
 

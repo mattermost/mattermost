@@ -54,6 +54,18 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 	})
 }
 
+// clusterAutomationSignalHandler delivers a signal that the emitting node could
+// not, because no subscriber was active there. The claim keeps a single node
+// from a set of app nodes starting the flow.
+func (s *Server) clusterAutomationSignalHandler(msg *model.ClusterMessage) {
+	var event model.AutomationSignalEvent
+	if err := json.Unmarshal(msg.Data, &event); err != nil {
+		s.Log().Warn("Failed to decode automation signal", mlog.Err(err))
+		return
+	}
+	s.Channels().deliverForwardedAutomationSignal(&event)
+}
+
 // registerClusterHandlers registers the cluster message handlers that are handled by the server.
 //
 // The cluster event handlers are spread across this function and NewLocalCacheLayer.
@@ -62,6 +74,7 @@ func (s *Server) registerClusterHandlers() {
 	s.platform.RegisterClusterMessageHandler(model.ClusterEventInstallPlugin, s.clusterInstallPluginHandler)
 	s.platform.RegisterClusterMessageHandler(model.ClusterEventRemovePlugin, s.clusterRemovePluginHandler)
 	s.platform.RegisterClusterMessageHandler(model.ClusterEventPluginEvent, s.clusterPluginEventHandler)
+	s.platform.RegisterClusterMessageHandler(model.ClusterEventAutomationSignal, s.clusterAutomationSignalHandler)
 	s.platform.RegisterClusterMessageHandler(clusterEventInvalidateChannelGuardCache, s.Channels().clusterInvalidateGuardCacheHandler)
 
 	s.platform.RegisterClusterHandlers()

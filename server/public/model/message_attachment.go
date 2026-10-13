@@ -290,3 +290,9 @@ func ParseMessageAttachment(post *Post, attachments []*MessageAttachment) {
 func ParseSlackLinksToMarkdown(text string) string {
 	return linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 }
+
+// SlackAttachment and SlackAttachmentField keep the names plugins compiled
+// against earlier server versions still use.
+type SlackAttachment = MessageAttachment
+type SlackAttachmentField = MessageAttachmentField
+

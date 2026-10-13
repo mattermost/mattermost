@@ -108,6 +108,7 @@ func (a *App) ServeInternalPluginRequest(userID string, w http.ResponseWriter, r
 // ServeInterPluginRequest handles inter-plugin HTTP requests.
 // This function does not set user authentication headers, unlike ServeInternalPluginRequest.
 func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string) {
+	a.bindAutomationTrace(automationTraceFromRequest(r), sourcePluginId, destinationPluginId)
 	// Call ServeInternalPluginRequest with empty userID since this function doesn't handle user authentication
 	a.ServeInternalPluginRequest("", w, r, sourcePluginId, destinationPluginId)
 }
