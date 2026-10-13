@@ -107,26 +107,6 @@
         right: 0;
         bottom: 0;
         left: 0;
-        overflow: hidden;
-        height: 4px;
         border-radius: 0 0 3px 3px;
-        background: rgba(var(--center-channel-color-rgb), 0.12);
-    }
-
-    &__uploadProgressBar {
-        width: 40%;
-        height: 100%;
-        animation: PluginManagement-upload-progress 1.2s ease-in-out infinite;
-        background: var(--button-bg);
-    }
-}
-
-@keyframes PluginManagement-upload-progress {
-    0% {
-        transform: translateX(-100%);
-    }
-
-    100% {
-        transform: translateX(250%);
     }
 }
