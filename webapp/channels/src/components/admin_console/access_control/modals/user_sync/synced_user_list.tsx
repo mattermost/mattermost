@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect, useCallback, type JSX} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import type {UserProfile} from '@mattermost/types/users';
@@ -30,7 +30,6 @@ const USERS_PER_PAGE = 10;
 // - improve search
 
 export const SyncedUserList = ({userIds, noResultsMessageId, noResultsDefaultMessage, actions}: SyncedUserListProps): JSX.Element => {
-    const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [currentPage, setCurrentPage] = useState(0);
@@ -73,7 +72,7 @@ export const SyncedUserList = ({userIds, noResultsMessageId, noResultsDefaultMes
         return (
             <div
                 className='no-user-message'
-                aria-label={formatMessage({id: 'admin.user_grid.notFound', defaultMessage: 'No users found'})}
+                aria-label='No users found'
             >
 
                 <UserGroupsSVG className='empty-state-svg'/>

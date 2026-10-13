@@ -30,6 +30,7 @@ const SystemPolicyIndicator: React.FC<SystemPolicyIndicatorProps> = ({
     onMorePoliciesClick,
 }) => {
     const {formatMessage} = useIntl();
+
     // Handle malformed data - ensure policies is always an array
     const safePolicies = useMemo(() => {
         if (!policies || !Array.isArray(policies)) {

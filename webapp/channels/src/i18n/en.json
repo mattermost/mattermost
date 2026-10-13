@@ -115,13 +115,13 @@
     "defaultMessage": "Access History",
     "description": "Title of the Access History modal, which lists the user's login and security audit events."
   },
-  "accessibility.add_channel_to_invite": {
-    "defaultMessage": "Add channel to invite",
-    "description": "Accessible aria-label in channel_invite_modal/channel_invite_modal.tsx. Keep the label concise; it describes the control or content."
-  },
   "accessibility.add_groups_to_channel": {
     "defaultMessage": "Add groups to channel",
     "description": "Accessible aria-label in add_groups_to_channel_modal/add_groups_to_channel_modal.tsx. Keep the label concise; it describes the control or content."
+  },
+  "accessibility.add_user_to_invite": {
+    "defaultMessage": "Add user to invite",
+    "description": "Accessible label for adding a user to the invitation."
   },
   "accessibility.add_users_to_team": {
     "defaultMessage": "Add users to team",
@@ -190,14 +190,6 @@
   "accessibility.mobile_menu": {
     "defaultMessage": "Mobile menu",
     "description": "Accessible aria-label in mobile_sidebar_right/mobile_sidebar_right.tsx. Keep the label concise; it describes the control or content."
-  },
-  "accessibility.phone_icon": {
-    "defaultMessage": "Phone",
-    "description": "Accessible aria-label in profile_popover/profile_popover_phone.tsx. Keep the label concise; it describes the control or content."
-  },
-  "accessibility.remove_link_preview": {
-    "defaultMessage": "Remove",
-    "description": "Accessible aria-label in post_view/post_attachment_opengraph/post_attachment_opengraph.tsx. Keep the label concise; it describes the control or content."
   },
   "accessibility.sections.centerContent": {
     "defaultMessage": "message list main region",
@@ -2094,10 +2086,6 @@
   "admin.accessibility.add_users_to_role": {
     "defaultMessage": "Add users to role",
     "description": "Accessible label for the multi-select used to add users to a system role in System Console."
-  },
-  "admin.accessibility.cel_expression_editor": {
-    "defaultMessage": "CEL Expression Editor",
-    "description": "Accessible label for the Common Expression Language editor used to configure attribute-based access rules in System Console."
   },
   "admin.accessibility.delete_orphaned_field": {
     "defaultMessage": "Delete orphaned field",
@@ -22498,10 +22486,6 @@
   "FIFTY_TO_100": {
     "defaultMessage": "51-100",
     "description": "Company size option '51-100' employees in the Start Trial form dropdown; keep the numeric range."
-  },
-  "file_attachment.public_image": {
-    "defaultMessage": "Public Image",
-    "description": "Accessible data-title in file_attachment/file_attachment.tsx. Keep the label concise; it describes the control or content."
   },
   "file_attachment.thumbnail": {
     "defaultMessage": "file thumbnail",

@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useIntl} from 'react-intl';
 
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
@@ -13,7 +12,6 @@ type Props = {
 };
 
 const ProfilePopoverPhone = ({attribute, userProfile}: Props) => {
-    const {formatMessage} = useIntl();
     const phone = userProfile.custom_profile_attributes?.[attribute.id] as string;
 
     if (!phone) {
@@ -33,7 +31,7 @@ const ProfilePopoverPhone = ({attribute, userProfile}: Props) => {
             <i
                 className='icon icon-phone-outline'
                 aria-hidden='true'
-                aria-label={formatMessage({id: 'accessibility.phone_icon', defaultMessage: 'Phone'})}
+                aria-label='phone icon'
             />
             <a
                 href={`tel:${phone}`}

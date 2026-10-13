@@ -457,7 +457,7 @@ function CELEditor({
                 {!editorState.expression && (
                     <div
                         className='policy-editor-placeholder'
-                        aria-label={intl.formatMessage({id: 'admin.accessibility.cel_expression_editor', defaultMessage: 'CEL Expression Editor'})}
+                        aria-label='CEL Expression Editor'
                     >
                         {placeholder}
                     </div>

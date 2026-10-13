@@ -18,6 +18,8 @@ import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import PostBodyAdditionalContent from './post_body_additional_content';
 import type {Props} from './post_body_additional_content';
 
+jest.unmock('react-intl');
+
 jest.mock('mattermost-redux/utils/post_utils', () => {
     const actual = jest.requireActual('mattermost-redux/utils/post_utils');
     return {
@@ -386,7 +388,10 @@ describe('PostBodyAdditionalContent', () => {
         });
     });
 
-    test('should call toggleEmbedVisibility with post id', async () => {
+    test.each([
+        ['en', 'Toggle Embed Visibility'],
+        ['pt-BR', 'Alternar visibilidade do conteúdo incorporado'],
+    ])('should expose a localized embed toggle and toggle the post in %s', async (locale, label) => {
         const imageUrl = 'https://example.com/image.png';
         const props = {
             ...baseProps,
@@ -408,9 +413,12 @@ describe('PostBodyAdditionalContent', () => {
             },
         };
 
-        renderWithContext(<PostBodyAdditionalContent {...props}/>);
+        renderWithContext(<PostBodyAdditionalContent {...props}/>, {}, {
+            locale,
+            intlMessages: {'accessibility.toggle_embed_visibility': label},
+        });
 
-        const toggleButton = screen.getByRole('button', {name: 'Toggle Embed Visibility'});
+        const toggleButton = screen.getByRole('button', {name: label});
         await userEvent.click(toggleButton);
 
         expect(baseProps.actions.toggleEmbedVisibility).toHaveBeenCalledTimes(1);

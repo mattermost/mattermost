@@ -173,7 +173,7 @@ const PostAttachmentOpenGraph = ({openGraphData, post, actions, link, isInPermal
                     <button
                         type='button'
                         className='remove-button style--none'
-                        aria-label={formatMessage({id: 'accessibility.remove_link_preview', defaultMessage: 'Remove'})}
+                        aria-label={formatMessage({id: 'link_preview.remove_link_preview', defaultMessage: 'Remove link preview'})}
                         onClick={handleRemovePreview}
                         data-testid='removeLinkPreviewButton'
                     >
