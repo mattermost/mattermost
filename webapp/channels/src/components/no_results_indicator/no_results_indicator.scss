@@ -15,6 +15,12 @@
     text-align: center;
     word-break: break-word;
 
+    &.no-results__wrapper--compass {
+        width: 100%;
+        max-width: none;
+        padding: 0;
+    }
+
     &.horizontal-layout {
         flex-direction: row;
 
@@ -67,6 +73,12 @@
         color: var(--button-bg);
         font-size: 62px;
     }
+}
+
+.no-results__empty-state {
+    width: 100%;
+    height: 100%;
+    background: transparent;
 }
 
 .no-results__mini_icon {

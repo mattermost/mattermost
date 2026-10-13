@@ -6,8 +6,9 @@ import React from 'react';
 import type {ReactNode, CSSProperties} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
-import {SearchSVG, ChannelSearchSVG, MentionsSVG, SavedMessagesSVG, PinSVG, ChannelFilesSVG, UserGroupsSVG} from 'components/common/svg_images_components';
+import {EmptyState} from '@mattermost/compass-ui/components/empty-state';
 
+import {renderNoResultsVariantIllustration} from './no_results_variant_illustration';
 import {NoResultsVariant, NoResultsLayout} from './types';
 import './no_results_indicator.scss';
 
@@ -24,20 +25,6 @@ interface Props {
     titleClassName?: string;
     subtitleClassName?: string;
 }
-
-const iconMap: {[key in NoResultsVariant]: React.ReactNode} = {
-    [NoResultsVariant.Search]: <SearchSVG className='no-results__icon'/>,
-    [NoResultsVariant.ChannelSearch]: <ChannelSearchSVG className='no-results__icon'/>,
-    [NoResultsVariant.Files]: <ChannelFilesSVG className='no-results__icon'/>,
-    [NoResultsVariant.Mentions]: <MentionsSVG className='no-results__icon'/>,
-    [NoResultsVariant.FlaggedPosts]: <SavedMessagesSVG className='no-results__icon'/>,
-    [NoResultsVariant.PinnedPosts]: <PinSVG className='no-results__icon'/>,
-    [NoResultsVariant.ChannelFiles]: <ChannelFilesSVG className='no-results__icon'/>,
-    [NoResultsVariant.ChannelFilesFiltered]: <ChannelFilesSVG className='no-results__icon'/>,
-    [NoResultsVariant.UserGroups]: <UserGroupsSVG className='no-results__icon'/>,
-    [NoResultsVariant.UserGroupMembers]: <UserGroupsSVG className='no-results__icon'/>,
-    [NoResultsVariant.UserGroupsArchived]: <UserGroupsSVG className='no-results__icon'/>,
-};
 
 const titleMap = defineMessages({
     [NoResultsVariant.Search]: {
@@ -137,58 +124,105 @@ const NoResultsIndicator = ({
     expanded,
     style,
     variant,
-    iconGraphic = variant ? (
-        <div className='no-results__variant-wrapper'>
-            {iconMap[variant]}
-        </div>
-    ) : null,
+    iconGraphic,
     titleValues,
-    title = variant ? (
-        <FormattedMessage
-            {...titleMap[variant]}
-            values={titleValues}
-        />
-    ) : null,
+    title: titleProp,
     subtitleValues,
-    subtitle = variant ? (
-        <FormattedMessage
-            {...subtitleMap[variant]}
-            values={subtitleValues}
-        />
-    ) : null,
+    subtitle: subtitleProp,
     layout = NoResultsLayout.Vertical,
     titleClassName,
     subtitleClassName,
 }: Props) => {
-    let content = (
-        <div
-            className={classNames('no-results__wrapper', {'horizontal-layout': layout === NoResultsLayout.Horizontal})}
-            data-testid='no-results-wrapper'
-            style={style}
-        >
-            {iconGraphic}
+    const defaultTitle = variant ? (
+        <FormattedMessage
+            {...titleMap[variant]}
+            values={titleValues}
+        />
+    ) : null;
 
+    const defaultSubtitle = variant ? (
+        <FormattedMessage
+            {...subtitleMap[variant]}
+            values={subtitleValues}
+        />
+    ) : null;
+
+    const title = titleProp !== undefined ? titleProp : defaultTitle;
+    const subtitle = subtitleProp !== undefined ? subtitleProp : defaultSubtitle;
+
+    const resolvedIllustration = iconGraphic !== undefined ? (
+        iconGraphic
+    ) : (
+        variant ? renderNoResultsVariantIllustration(variant) : null
+    );
+
+    const useCompassEmptyState = layout === NoResultsLayout.Vertical && Boolean(title || subtitle || resolvedIllustration);
+
+    let content;
+
+    if (useCompassEmptyState) {
+        content = (
             <div
-                className='no-results__text-container'
+                className={classNames('no-results__wrapper', 'no-results__wrapper--compass')}
+                data-testid='no-results-wrapper'
+                style={style}
             >
-                {title && (
-                    <h3
-                        className={classNames('no-results__title', {'only-title': !subtitle}, titleClassName)}
-                        data-testid='no-results-title'
-                    >
-                        {title}
-                    </h3>
-                )}
-
-                {subtitle && (
-                    <div className={classNames('no-results__subtitle', subtitleClassName)}>
-                        {subtitle}
+                <EmptyState
+                    className='no-results__empty-state'
+                    illustration={resolvedIllustration ? {
+                        'aria-label': '',
+                        children: resolvedIllustration,
+                    } : undefined}
+                    title={title != null ? (
+                        <span
+                            className={classNames(titleClassName)}
+                            data-testid='no-results-title'
+                        >
+                            {title}
+                        </span>
+                    ) : (
+                        ''
+                    )}
+                    description={subtitle ? (
+                        <span className={classNames(subtitleClassName)}>
+                            {subtitle}
+                        </span>
+                    ) : undefined}
+                />
+            </div>
+        );
+    } else {
+        content = (
+            <div
+                className={classNames('no-results__wrapper', {'horizontal-layout': layout === NoResultsLayout.Horizontal})}
+                data-testid='no-results-wrapper'
+                style={style}
+            >
+                {resolvedIllustration && (
+                    <div className='no-results__variant-wrapper'>
+                        {resolvedIllustration}
                     </div>
                 )}
-            </div>
 
-        </div>
-    );
+                <div className='no-results__text-container'>
+                    {title && (
+                        <h3
+                            className={classNames('no-results__title', {'only-title': !subtitle}, titleClassName)}
+                            data-testid='no-results-title'
+                        >
+                            {title}
+                        </h3>
+                    )}
+
+                    {subtitle && (
+                        <div className={classNames('no-results__subtitle', subtitleClassName)}>
+                            {subtitle}
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
 
     if (expanded) {
         content = (
