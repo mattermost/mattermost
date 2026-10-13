@@ -3,10 +3,9 @@
 
 import React from 'react';
 
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-
 import {ActionButton} from '@mattermost/compass-ui/components/action-button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 
 import type {ChannelIntroButtonAction} from 'types/store/plugins';
 

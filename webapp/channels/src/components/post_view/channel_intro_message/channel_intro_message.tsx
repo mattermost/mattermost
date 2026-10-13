@@ -17,16 +17,15 @@ import {NotificationLevel} from 'mattermost-redux/constants/channels';
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 
 import {openModal} from 'actions/views/modals';
-
 import {getChannelIntroOverride} from 'selectors/channel_intro';
 
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
 import ChannelIntroRenderer from 'components/channel_intro_renderer/channel_intro_renderer';
+import ChannelNotificationsModal from 'components/channel_notifications_modal';
 import {ChannelIcon} from 'components/channel_type_icon';
 import ChannelIntroPrivateSvg from 'components/common/svg_images_components/channel_intro_private_svg';
 import ChannelIntroPublicSvg from 'components/common/svg_images_components/channel_intro_public_svg';
 import ChannelIntroTownSquareSvg from 'components/common/svg_images_components/channel_intro_town_square_svg';
-import ChannelNotificationsModal from 'components/channel_notifications_modal';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
@@ -206,7 +205,12 @@ function createGMIntroMessage(
             <div className='channel-intro__actions'>
                 {createFavoriteButton(isFavorite, toggleFavorite)}
                 <SetHeaderButton channel={channel}/>
-                {!isMobileView && <NotificationPrefsButton channel={channel} currentUser={currentUser}/>}
+                {!isMobileView && (
+                    <NotificationPrefsButton
+                        channel={channel}
+                        currentUser={currentUser}
+                    />
+                )}
                 <PluggableIntroButtons channel={channel}/>
             </div>
         );
@@ -377,7 +381,10 @@ function createOffTopicIntroMessage(
             <div className='channel-intro__actions'>
                 {createFavoriteButton(isFavorite, toggleFavorite, isInManagedCategory)}
                 {setHeaderButton}
-                <NotificationPrefsButton channel={channel} currentUser={currentUser}/>
+                <NotificationPrefsButton
+                    channel={channel}
+                    currentUser={currentUser}
+                />
             </div>
         );
     }
@@ -494,7 +501,10 @@ function createDefaultIntroMessage(
             <div className='channel-intro__actions'>
                 {createFavoriteButton(isFavorite, toggleFavorite, isInManagedCategory)}
                 {setHeaderButton}
-                <NotificationPrefsButton channel={channel} currentUser={currentUser}/>
+                <NotificationPrefsButton
+                    channel={channel}
+                    currentUser={currentUser}
+                />
                 {teamIsGroupConstrained && pluginButtons}
             </div>
         );
@@ -700,7 +710,12 @@ function createStandardIntroMessage(
                 {createFavoriteButton(isFavorite, toggleFavorite, isInManagedCategory)}
                 {teamInviteLink}
                 {setHeaderButton}
-                {!isMobileView && <NotificationPrefsButton channel={channel} currentUser={currentUser}/>}
+                {!isMobileView && (
+                    <NotificationPrefsButton
+                        channel={channel}
+                        currentUser={currentUser}
+                    />
+                )}
                 <PluggableIntroButtons channel={channel}/>
             </div>
         );

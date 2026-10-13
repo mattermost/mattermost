@@ -5,6 +5,8 @@ import React, {useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {ActionButton} from '@mattermost/compass-ui/components/action-button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 
@@ -20,8 +22,6 @@ import ChannelPermissionGate from 'components/permissions_gates/channel_permissi
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 import ToggleModalButton from 'components/toggle_modal_button';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import {ActionButton} from '@mattermost/compass-ui/components/action-button';
-import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
 
@@ -96,9 +96,6 @@ const MoreThanMaxFreeUsers = ({channel, pluginButtons}: {channel: Channel; plugi
     const dispatch = useDispatch();
 
     const channelIsArchived = channel.delete_at !== 0;
-    if (channelIsArchived) {
-        return null;
-    }
     const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
 
     const modalId = channel.group_constrained ? ModalIdentifiers.ADD_GROUPS_TO_CHANNEL : ModalIdentifiers.CHANNEL_INVITE;
@@ -111,6 +108,10 @@ const MoreThanMaxFreeUsers = ({channel, pluginButtons}: {channel: Channel; plugi
             dialogProps: {channel},
         }));
     }, [channel, dispatch, modal, modalId]);
+
+    if (channelIsArchived) {
+        return null;
+    }
 
     const addLabel = channel.group_constrained ? formatMessage({id: 'intro_messages.inviteGropusToChannel.button', defaultMessage: 'Add groups'}) : formatMessage({id: 'intro_messages.inviteMembersToChannel.button', defaultMessage: 'Add people'});
 
