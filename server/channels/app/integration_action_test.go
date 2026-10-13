@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -1857,17 +1858,17 @@ func TestDoActionRequest(t *testing.T) {
 		type redirectCase struct {
 			name          string
 			expectReached bool
-			setup         func(t *testing.T) (siteURL, actionURL string, destReached *bool, cleanup func())
+			setup         func(t *testing.T) (siteURL, actionURL string, destReached *atomic.Bool, cleanup func())
 		}
 
 		cases := []redirectCase{
 			{
 				name:          "different origin is not followed",
 				expectReached: false,
-				setup: func(t *testing.T) (string, string, *bool, func()) {
-					destReached := false
+				setup: func(t *testing.T) (string, string, *atomic.Bool, func()) {
+					var destReached atomic.Bool
 					dest := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-						destReached = true
+						destReached.Store(true)
 						w.WriteHeader(http.StatusOK)
 						_, _ = w.Write([]byte(`{"ok":true}`))
 					}))
@@ -1883,14 +1884,14 @@ func TestDoActionRequest(t *testing.T) {
 			{
 				name:          "same host outside the plugin path is not followed",
 				expectReached: false,
-				setup: func(t *testing.T) (string, string, *bool, func()) {
-					destReached := false
+				setup: func(t *testing.T) (string, string, *atomic.Bool, func()) {
+					var destReached atomic.Bool
 					origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 						if strings.HasPrefix(r.URL.Path, "/plugins/") {
 							http.Redirect(w, r, "/api/v4/users/me", http.StatusFound)
 							return
 						}
-						destReached = true
+						destReached.Store(true)
 						w.WriteHeader(http.StatusOK)
 						_, _ = w.Write([]byte(`{"ok":true}`))
 					}))
@@ -1900,10 +1901,10 @@ func TestDoActionRequest(t *testing.T) {
 			{
 				name:          "same host different port is not followed",
 				expectReached: false,
-				setup: func(t *testing.T) (string, string, *bool, func()) {
-					destReached := false
+				setup: func(t *testing.T) (string, string, *atomic.Bool, func()) {
+					var destReached atomic.Bool
 					dest := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-						destReached = true
+						destReached.Store(true)
 						w.WriteHeader(http.StatusOK)
 						_, _ = w.Write([]byte(`{"ok":true}`))
 					}))
@@ -1919,14 +1920,14 @@ func TestDoActionRequest(t *testing.T) {
 			{
 				name:          "same host remaining on the plugin path is followed",
 				expectReached: true,
-				setup: func(t *testing.T) (string, string, *bool, func()) {
-					destReached := false
+				setup: func(t *testing.T) (string, string, *atomic.Bool, func()) {
+					var destReached atomic.Bool
 					origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 						if r.URL.Path == "/plugins/myplugin/action" {
 							http.Redirect(w, r, "/plugins/myplugin/other", http.StatusFound)
 							return
 						}
-						destReached = true
+						destReached.Store(true)
 						w.WriteHeader(http.StatusOK)
 						_, _ = w.Write([]byte(`{"ok":true}`))
 					}))
@@ -1957,7 +1958,7 @@ func TestDoActionRequest(t *testing.T) {
 					resp.Body.Close()
 				}
 
-				assert.Equal(t, tc.expectReached, *destReached)
+				assert.Equal(t, tc.expectReached, destReached.Load())
 			})
 		}
 	})
