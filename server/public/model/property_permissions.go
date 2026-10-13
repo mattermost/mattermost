@@ -129,6 +129,10 @@ func (pp *PermissionsPatch) ApplyTo(existing *Permissions) (*Permissions, error)
 			result.Restrictions = &r
 		}
 		result.Grants = slices.Clone(existing.Grants)
+		for i := range result.Grants {
+			result.Grants[i].Scopes = slices.Clone(result.Grants[i].Scopes)
+			result.Grants[i].Allow = slices.Clone(result.Grants[i].Allow)
+		}
 		if existing.Masking != nil {
 			m := *existing.Masking
 			m.Except = slices.Clone(existing.Masking.Except)
