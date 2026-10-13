@@ -8,15 +8,18 @@ exports[`components/post_view/post_list_row should have class hideAnimation for 
     <div
       class="loading__content hideAnimation"
     >
-      <div
-        class="round round-1"
-      />
-      <div
-        class="round round-2"
-      />
-      <div
-        class="round round-3"
-      />
+      <span
+        class="LoadingSpinner"
+        data-testid="loadingSpinner"
+        id="loadingSpinner"
+      >
+        <span
+          aria-label="Loading Icon"
+          class="_spinner_3elm7_10 spinner"
+          role="status"
+          style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+        />
+      </span>
     </div>
   </div>
 </div>
@@ -30,15 +33,18 @@ exports[`components/post_view/post_list_row should have class hideAnimation for 
     <div
       class="loading__content hideAnimation"
     >
-      <div
-        class="round round-1"
-      />
-      <div
-        class="round round-2"
-      />
-      <div
-        class="round round-3"
-      />
+      <span
+        class="LoadingSpinner"
+        data-testid="loadingSpinner"
+        id="loadingSpinner"
+      >
+        <span
+          aria-label="Loading Icon"
+          class="_spinner_3elm7_10 spinner"
+          role="status"
+          style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+        />
+      </span>
     </div>
   </div>
 </div>
@@ -92,15 +98,18 @@ exports[`components/post_view/post_list_row should render more messages loading 
     <div
       class="loading__content"
     >
-      <div
-        class="round round-1"
-      />
-      <div
-        class="round round-2"
-      />
-      <div
-        class="round round-3"
-      />
+      <span
+        class="LoadingSpinner"
+        data-testid="loadingSpinner"
+        id="loadingSpinner"
+      >
+        <span
+          aria-label="Loading Icon"
+          class="_spinner_3elm7_10 spinner"
+          role="status"
+          style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+        />
+      </span>
     </div>
   </div>
 </div>

@@ -27,6 +27,7 @@ import {getSearchPopoutTitle} from 'components/rhs_search_popout/title';
 import type {SearchFilterType} from 'components/search/types';
 import SearchHint from 'components/search_hint/search_hint';
 import SearchResultsHeader from 'components/search_results_header';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {searchHintOptions, DataSearchTypes, RHSStates} from 'utils/constants';
@@ -393,9 +394,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         loadingMorePostsComponent = (showLoadMore) ? (
             <div className='loading-screen'>
                 <div className='loading__content'>
-                    <div className='round round-1'/>
-                    <div className='round round-2'/>
-                    <div className='round round-3'/>
+                    <LoadingSpinner/>
                 </div>
             </div>
         ) : null;

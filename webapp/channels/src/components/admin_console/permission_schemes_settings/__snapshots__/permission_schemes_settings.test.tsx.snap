@@ -10,18 +10,19 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
     <div
       class="loading__content"
     >
-      <p>
+      <span
+        class="LoadingSpinner with-text"
+        data-testid="loadingSpinner"
+        id="loadingSpinner"
+      >
+        <span
+          aria-label="Loading Icon"
+          class="_spinner_3elm7_10 spinner"
+          role="status"
+          style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+        />
         Loading
-      </p>
-      <div
-        class="round round-1"
-      />
-      <div
-        class="round round-2"
-      />
-      <div
-        class="round round-3"
-      />
+      </span>
     </div>
   </div>
 </div>
