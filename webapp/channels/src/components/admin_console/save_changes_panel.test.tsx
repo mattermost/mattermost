@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {createBrowserHistory} from 'history';
 import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
@@ -32,7 +33,7 @@ describe('components/admin_console/SaveChangesPanel', () => {
 
     function renderPanel(
         props: Partial<React.ComponentProps<typeof SaveChangesPanel>> & {cancelLink?: string; onCancel?: () => void} = {},
-        options: {navigationBlocked?: boolean} = {},
+        options: {navigationBlocked?: boolean; history?: ReturnType<typeof createBrowserHistory>} = {},
     ) {
         const initialState: DeepPartial<GlobalState> = {
             views: {
@@ -52,27 +53,36 @@ describe('components/admin_console/SaveChangesPanel', () => {
                 {...props}
             />,
             initialState,
+            {history: options.history},
         );
     }
 
-    test('renders Cancel as a tertiary compass-ui button when cancelLink is provided', () => {
+    test('renders Cancel as a tertiary compass-ui link when cancelLink is provided', () => {
         renderPanel({cancelLink: '/admin_console/user_management/teams'});
 
-        const cancel = screen.getByRole('button', {name: 'Cancel'});
+        const cancel = screen.getByRole('link', {name: 'Cancel'});
         expect(cancel).toBeInTheDocument();
         expect(cancel).toHaveAttribute('id', 'cancelButtonSettings');
-        expect(cancel.tagName).toBe('BUTTON');
+        expect(cancel).toHaveAttribute('href', '/admin_console/user_management/teams');
+        expect(cancel.tagName).toBe('A');
         expect(cancel.className).toMatch(/button--emphasis-tertiary/);
         expect(cancel.className).not.toMatch(/\bbtn-tertiary\b/);
         expect(cancel.className).not.toMatch(/\bbtn-quaternary\b/);
     });
 
     test('navigates immediately on Cancel when navigation is not blocked', async () => {
-        renderPanel({cancelLink: '/admin_console/user_management/teams'});
+        const history = createBrowserHistory();
+        const historyPush = jest.spyOn(history, 'push');
+        renderPanel(
+            {cancelLink: '/admin_console/user_management/teams'},
+            {history},
+        );
 
-        await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
+        await userEvent.click(screen.getByRole('link', {name: 'Cancel'}));
 
-        expect(push).toHaveBeenCalledWith('/admin_console/user_management/teams');
+        expect(historyPush).toHaveBeenCalledWith(
+            expect.objectContaining({pathname: '/admin_console/user_management/teams'}),
+        );
     });
 
     test('defers Cancel navigation when navigation is blocked', async () => {
@@ -81,7 +91,7 @@ describe('components/admin_console/SaveChangesPanel', () => {
             {navigationBlocked: true},
         );
 
-        await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
+        await userEvent.click(screen.getByRole('link', {name: 'Cancel'}));
 
         expect(push).not.toHaveBeenCalled();
         expect(store.getState().views.admin.navigationBlock.showNavigationPrompt).toBe(true);

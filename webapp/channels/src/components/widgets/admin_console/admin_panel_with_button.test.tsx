@@ -41,7 +41,7 @@ describe('components/widgets/admin_console/AdminPanelWithButton', () => {
 
         const button = screen.getByTestId('test-button-text-default');
         expect(button).toBeInTheDocument();
-        expect(button).toHaveClass('btn', 'btn-primary');
+        expect(button.className).toMatch(/button--emphasis-primary/);
         expect(button).not.toHaveClass('disabled');
         expect(screen.getByText('test-button-text-default')).toBeInTheDocument();
     });
@@ -60,7 +60,8 @@ describe('components/widgets/admin_console/AdminPanelWithButton', () => {
 
         const button = screen.getByTestId('test-button-text-default');
         expect(button).toBeInTheDocument();
-        expect(button).toHaveClass('btn', 'btn-primary', 'disabled');
+        expect(button.className).toMatch(/button--emphasis-primary/);
+        expect(button).toHaveClass('disabled');
     });
 
     test('should call onButtonClick when button is clicked', async () => {

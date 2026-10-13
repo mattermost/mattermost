@@ -140,9 +140,14 @@ exports[`components/pricing_modal/downgrade_team_removal_modal matches snapshot 
               class="IconMessage-button"
             >
               <button
-                class="btn btn-primary"
+                class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-medium_aa8j5_56"
+                type="button"
               >
-                Return to workspace
+                <span
+                  class="_button__label_aa8j5_31"
+                >
+                  Return to workspace
+                </span>
               </button>
             </div>
           </div>
