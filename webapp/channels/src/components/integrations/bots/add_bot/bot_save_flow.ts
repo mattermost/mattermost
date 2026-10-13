@@ -155,7 +155,7 @@ async function saveBotDetails(actions: BotSaveActions, userId: string, input: Bo
     const errors: BotSaveStepErrors = {};
 
     if (input.pictureFile === 'default') {
-        await actions.setDefaultProfileImage(userId);
+        errors.image = stepError(await actions.setDefaultProfileImage(userId));
     } else if (input.pictureFile) {
         errors.image = stepError(await actions.uploadProfileImage(userId, input.pictureFile));
     }
@@ -218,7 +218,11 @@ export async function saveBotCreate(actions: BotSaveActions, input: BotSaveInput
     );
     const token = tokenResult && !tokenResult.error ? tokenResult.data?.token : undefined;
 
-    const errors = await saveBotDetails(actions, data.user_id, {...input, pictureFile: input.pictureFile || 'default'});
+    // Only an explicit reset to the default icon reports a failure.
+    if (!input.pictureFile) {
+        await actions.setDefaultProfileImage(data.user_id);
+    }
+    const errors = await saveBotDetails(actions, data.user_id, input);
 
     return {
         ok: true,

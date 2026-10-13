@@ -108,6 +108,14 @@ describe('bot_save_flow', () => {
             expect(actions.setDefaultProfileImage).not.toHaveBeenCalled();
         });
 
+        test('a failed explicit reset to the default image is reported', async () => {
+            const actions = buildActions({setDefaultProfileImage: jest.fn().mockResolvedValue({error: {message: 'Reset failed'}})});
+
+            const result = await saveBotEdit(actions, {...base, pictureFile: 'default'});
+
+            expect(result).toEqual({ok: true, failures: [{key: 'image', message: botSaveMessages.imageFailed, error: 'Reset failed'}], savedAttributes: {}});
+        });
+
         test('a failed attributes save is not reported as saved', async () => {
             const actions = buildActions({updateUserCustomProfileAttributeValues: jest.fn().mockResolvedValue({error: {message: 'Nope'}})});
 
@@ -140,6 +148,20 @@ describe('bot_save_flow', () => {
 
             await expect(saveBotCreate(actions, base)).resolves.toEqual({ok: true, redirectUrl: CONFIRM_URL});
             expect(actions.setDefaultProfileImage).toHaveBeenCalledWith('bot-user-id');
+        });
+
+        test('a failed automatic default image is not surfaced as a warning', async () => {
+            const actions = buildActions({setDefaultProfileImage: jest.fn().mockResolvedValue({error: {message: 'Reset failed'}})});
+
+            await expect(saveBotCreate(actions, base)).resolves.toEqual({ok: true, redirectUrl: CONFIRM_URL});
+            expect(actions.setDefaultProfileImage).toHaveBeenCalledTimes(1);
+        });
+
+        test('a failed explicit reset to the default image is surfaced as a warning', async () => {
+            const actions = buildActions({setDefaultProfileImage: jest.fn().mockResolvedValue({error: {message: 'Reset failed'}})});
+
+            await expect(saveBotCreate(actions, {...base, pictureFile: 'default'})).resolves.toEqual({ok: true, redirectUrl: `${CONFIRM_URL}&bot_warnings=image`});
+            expect(actions.setDefaultProfileImage).toHaveBeenCalledTimes(1);
         });
 
         test('an image failure is surfaced as a warning', async () => {
