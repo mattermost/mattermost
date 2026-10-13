@@ -2379,7 +2379,7 @@ Classification markings define reusable classification levels that can be displa
 
 <Note>
 
-Classification markings are informational only and aren't tied to access control decisions at this time.
+Classification markings and channel attributes are informational in this release. They aren't evaluated by access policies and don't control access to channels, messages, or files.
 
 </Note>
 
@@ -2397,6 +2397,16 @@ Configure classification markings:
 
 7. Select the **Global classification level** to display.
 8. Select **Save**.
+
+### Classification and channel attributes
+
+From Mattermost v12.0, when the `ChannelAttributes` feature flag is enabled, Classification is also represented as a global attribute under **System Attributes \> Attribute Management**. Its definition is read-only there: classification levels, ranks, colors, and the global banner continue to be managed on the Classification Markings page. The resources Classification applies to and its channel display locations are managed from Attribute Management.
+
+When Classification Markings are enabled, Mattermost adds a **Channels** resource to Classification and configures it for banner display by default. Channel admins then assign the classification value from Channel Info or **Channel Settings \> Info**. The previous Classification control under **Channel Settings \> Configuration** is hidden.
+
+When Classification is included in a channel banner, the selected level's color controls the banner color. A channel banner manager can customize the banner text and combine Classification with other channel attributes. Removing the Classification token from the banner returns control of the banner color to the channel without clearing the classification value.
+
+See [Channel attributes](/administration-guide/manage/admin/channel-attributes#classification-markings-and-channel-attributes) for configuration, assignment, upgrade, and banner behavior.
 
 ------------------------------------------------------------------------------------------------------------------------
 
