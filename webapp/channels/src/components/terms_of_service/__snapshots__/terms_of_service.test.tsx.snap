@@ -138,8 +138,10 @@ exports[`components/terms_of_service/TermsOfService should match snapshot, on ac
               id="loadingSpinner"
             >
               <span
-                class="fa fa-spinner fa-fw fa-pulse spinner"
-                title="Loading Icon"
+                aria-label="Loading Icon"
+                class="_spinner_3elm7_10 spinner"
+                role="status"
+                style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
               />
             </span>
             I Agree
@@ -218,8 +220,10 @@ exports[`components/terms_of_service/TermsOfService should match snapshot, on re
               id="loadingSpinner"
             >
               <span
-                class="fa fa-spinner fa-fw fa-pulse spinner"
-                title="Loading Icon"
+                aria-label="Loading Icon"
+                class="_spinner_3elm7_10 spinner"
+                role="status"
+                style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
               />
             </span>
             I Disagree

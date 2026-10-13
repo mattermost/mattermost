@@ -60,8 +60,10 @@ exports[`components/SaveButton should match snapshot, on savingMessage 1`] = `
       id="loadingSpinner"
     >
       <span
-        class="fa fa-spinner fa-fw fa-pulse spinner"
-        title="Loading Icon"
+        aria-label="Loading Icon"
+        class="_spinner_3elm7_10 spinner"
+        role="status"
+        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
       />
       Saving
     </span>
@@ -84,8 +86,10 @@ exports[`components/SaveButton should match snapshot, on savingMessage 2`] = `
       id="loadingSpinner"
     >
       <span
-        class="fa fa-spinner fa-fw fa-pulse spinner"
-        title="Loading Icon"
+        aria-label="Loading Icon"
+        class="_spinner_3elm7_10 spinner"
+        role="status"
+        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
       />
       Saving Config...
     </span>
