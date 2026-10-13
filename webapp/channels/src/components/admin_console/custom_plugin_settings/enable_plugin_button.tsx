@@ -188,10 +188,7 @@ export function PluginEnableButton({actions, disabled, homepageUrl, id, saveNeed
             <div className='PluginMetadataPanel__actions'>
                 <div className='PluginMetadataPanel__enable'>
                     {toggling ? (
-                        <LoadingSpinner
-                            text={loadingLabel}
-                            size='12'
-                        />
+                        <LoadingSpinner text={loadingLabel}/>
                     ) : (
                         <FormattedMessage
                             id={pluginEnabled ? 'admin.plugin.enabled.toggle' : 'admin.plugin.disabled.toggle'}

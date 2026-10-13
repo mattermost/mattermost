@@ -72,12 +72,6 @@ describe('components/widgets/loadingLoadingSpinner', () => {
         expect(screen.queryByTitle('Loading Icon')).not.toBeInTheDocument();
     });
 
-    test('renders the Compass spinner at the given size', () => {
-        renderWithContext(<LoadingSpinner size='12'/>);
-
-        expect(screen.getByRole('status', {name: 'Loading Icon'})).toHaveStyle({width: '12px', height: '12px'});
-    });
-
     test('renders the Font Awesome spinner when legacy', () => {
         renderWithContext(<LoadingSpinner legacy={true}/>);
 
