@@ -524,7 +524,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
 
 
                 <b>
-                  Note- Please ensure no other indexing job is in progress in the table above.
+                  Note: Please ensure no other indexing job is in progress in the table above.
                 </b>
               </div>
             </div>
@@ -1268,7 +1268,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
 
 
                 <b>
-                  Note- Please ensure no other indexing job is in progress in the table above.
+                  Note: Please ensure no other indexing job is in progress in the table above.
                 </b>
               </div>
             </div>
@@ -2013,7 +2013,7 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
 
 
                 <b>
-                  Note- Please ensure no other indexing job is in progress in the table above.
+                  Note: Please ensure no other indexing job is in progress in the table above.
                 </b>
               </div>
             </div>

@@ -148,7 +148,7 @@ const HelpMentioning = (): JSX.Element => {
                     <p>
                         <FormattedMessage
                             id='help.mentioning.recent.description'
-                            defaultMessage='Click <code>@</code> icon in right side of the top bar next to your profile picture to view your most recent @mentions and words that trigger mentions.'
+                            defaultMessage='Click the <code>@</code> icon on the right side of the top bar next to your profile picture to view your most recent @mentions and words that trigger mentions.'
                             values={{
                                 code: (chunks: React.ReactNode) => <code>{chunks}</code>,
                             }}
