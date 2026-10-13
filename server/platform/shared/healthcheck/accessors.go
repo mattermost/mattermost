@@ -57,6 +57,20 @@ func (s *Snapshot) ConfigInt(get func(*model.Config) *int) (int, bool) {
 	return *value, true
 }
 
+// Stat returns a workspace stat, or ok=false when stats were not collected or the query for this stat failed.
+func (s *Snapshot) Stat(get func(*model.SupportPacketStats) *int64) (int64, bool) {
+	if get == nil || s == nil || s.Stats == nil {
+		return 0, false
+	}
+
+	value := get(s.Stats)
+	if value == nil {
+		return 0, false
+	}
+
+	return *value, true
+}
+
 func (s *Snapshot) DataSource() (string, bool) {
 	return s.ConfigString(func(cfg *model.Config) *string {
 		return cfg.SqlSettings.DataSource

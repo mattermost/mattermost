@@ -788,25 +788,24 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'bool',
                                     key: 'AccessControlSettings.EnableAttributeBasedAccessControl',
                                     label: defineMessage({id: 'admin.accesscontrol.enableTitle', defaultMessage: 'Allow attribute based access controls on this server'}),
-                                    help_text: defineMessage({id: 'admin.accesscontrol.enableDesc', defaultMessage: 'Allow access restrictions based on user attributes using custom access policies. To effectively use this feature, you must define user attributes in the {userAttributes} section.'}), // eslint-disable-line formatjs/enforce-placeholders -- userAttributes provided via help_text_values
+                                    help_text: defineMessage({id: 'admin.accesscontrol.enableDesc', defaultMessage: 'Allow access restrictions based on user attributes using custom access policies. To effectively use this feature, you must define attributes in the {userAttributes} section.'}), // eslint-disable-line formatjs/enforce-placeholders -- userAttributes provided via help_text_values
                                     help_text_values: {
                                         userAttributes: (
-                                            <a href='../system_attributes/user_attributes'>
+                                            <Link to='/admin_console/system_attributes/manage_attributes'>
                                                 <FormattedMessage
                                                     id='admin.accesscontrol.user_properties.link.label'
-                                                    defaultMessage='User Attributes'
+                                                    defaultMessage='Attribute Management'
                                                 />
-                                            </a>
+                                            </Link>
                                         ),
                                     },
                                 },
                                 {
                                     type: 'bool',
                                     key: 'AccessControlSettings.EnableAccessControlAuditLogging',
-                                    isHidden: true, // TODO: Remove when the PR#37771 is merged
-                                    label: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.title', defaultMessage: 'Enable audit logging for access control decisions'}),
-                                    help_text: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.desc', defaultMessage: 'When enabled, attribute-based access control policy decisions are written to the server audit log. Requires server audit logging to be active.'}),
-                                    disabled_help_text: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.disabled', defaultMessage: 'When enabled, attribute-based access control policy decisions are written to the server audit log. This setting requires attribute-based access control to be enabled and server audit logging to be active (enable file audit logging or configure an advanced audit logging target).'}),
+                                    label: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.title', defaultMessage: 'Enable audit logging for membership policy decisions'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.desc', defaultMessage: 'When enabled, membership policy decisions are written to the server audit log. Requires server audit logging to be active.'}),
+                                    disabled_help_text: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.disabled', defaultMessage: 'When enabled, membership policy decisions are written to the server audit log. This setting requires attribute-based access control to be enabled and server audit logging to be active (enable file audit logging or configure an advanced audit logging target).'}),
                                     isDisabled: it.any(
                                         it.stateIsFalse('AccessControlSettings.EnableAttributeBasedAccessControl'),
                                         it.clientConfigIsFalse('AuditLoggingActive'),

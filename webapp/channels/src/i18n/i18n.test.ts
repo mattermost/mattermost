@@ -42,7 +42,7 @@ describe('i18n', () => {
             entities: {
                 general: {
                     config: {
-                        AvailableLocales: 'de,cs',
+                        AvailableLocales: 'de,fy',
                     },
                 },
             },
@@ -60,7 +60,7 @@ describe('i18n', () => {
         });
 
         // a locale that is not supported
-        expect(getLanguageInfo('cs')).not.toBeDefined();
+        expect(getLanguageInfo('fy')).not.toBeDefined();
         expect(getLanguageInfo('invalid')).not.toBeDefined();
     });
 
@@ -75,6 +75,6 @@ describe('i18n', () => {
         } as GlobalState;
 
         expect(isLanguageAvailable(state, 'de')).toBe(true);
-        expect(isLanguageAvailable(state, 'cs')).toBe(false);
+        expect(isLanguageAvailable(state, 'fy')).toBe(false);
     });
 });

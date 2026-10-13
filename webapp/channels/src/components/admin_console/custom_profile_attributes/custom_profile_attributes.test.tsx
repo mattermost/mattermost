@@ -274,6 +274,91 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
         expect(warning).toBeInTheDocument();
     });
 
+    describe('linked fields (Global Attribute template)', () => {
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        const linkedAttr: UserPropertyField = {
+            ...baseField,
+            id: 'linked-user-field-id',
+            name: 'job_title',
+            linked_field_id: 'template-field-id',
+            attrs: {
+                sort_order: 0,
+                visibility: 'when_set',
+                value_type: '',
+                ldap: 'title',
+            },
+        };
+
+        test('should patch template and user field via property API, not legacy CPA endpoint', async () => {
+            jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as any);
+
+            renderWithContext(
+                <CustomProfileAttributes {...baseProps}/>,
+                createInitialState({linkedAttr}),
+            );
+
+            const input = await screen.findByDisplayValue('title');
+            await userEvent.clear(input);
+            await userEvent.type(input, 'new-title');
+
+            const saveAction = baseProps.registerSaveAction.mock.calls.at(-1)[0];
+            await act(async () => {
+                await saveAction();
+            });
+
+            expect(Client4.patchPropertyField).toHaveBeenCalledWith(
+                'access_control', 'template', 'template-field-id', {attrs: {ldap: 'new-title'}},
+            );
+            expect(Client4.patchPropertyField).toHaveBeenCalledWith(
+                'access_control', 'user', 'linked-user-field-id', {attrs: {ldap: 'new-title'}},
+            );
+            expect(Client4.patchCustomProfileAttributeField).not.toHaveBeenCalled();
+        });
+
+        test('should disable input and show tooltip for linked non-text field', async () => {
+            const linkedSelectAttr: UserPropertyField = {
+                ...linkedAttr,
+                type: 'select' as UserPropertyFieldType,
+            };
+
+            renderWithContext(
+                <CustomProfileAttributes {...baseProps}/>,
+                createInitialState({linkedAttr: linkedSelectAttr}),
+            );
+
+            const input = await screen.findByDisplayValue('title');
+            expect(input).toBeDisabled();
+            expect(await screen.findByText(/management attribute of type select/i)).toBeInTheDocument();
+        });
+
+        test('should send null when the attribute value is cleared', async () => {
+            jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as any);
+
+            renderWithContext(
+                <CustomProfileAttributes {...baseProps}/>,
+                createInitialState({linkedAttr}),
+            );
+
+            const input = await screen.findByDisplayValue('title');
+            await userEvent.clear(input);
+
+            const saveAction = baseProps.registerSaveAction.mock.calls.at(-1)[0];
+            await act(async () => {
+                await saveAction();
+            });
+
+            expect(Client4.patchPropertyField).toHaveBeenCalledWith(
+                'access_control', 'template', 'template-field-id', {attrs: {ldap: null}},
+            );
+            expect(Client4.patchPropertyField).toHaveBeenCalledWith(
+                'access_control', 'user', 'linked-user-field-id', {attrs: {ldap: null}},
+            );
+        });
+    });
+
     describe('display_name labels', () => {
         test('should render TextSetting label and help text using display_name', async () => {
             const displayNameAttr: UserPropertyField = {

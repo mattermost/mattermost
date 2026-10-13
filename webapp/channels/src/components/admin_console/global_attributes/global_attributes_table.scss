@@ -57,12 +57,26 @@
     gap: 2px;
 }
 
+.GlobalAttributesTable__nameRow {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+}
+
 .GlobalAttributesTable__name {
     overflow: hidden;
     color: var(--center-channel-color);
     font-weight: variables.$font-weight--semibold;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.GlobalAttributesTable__nameConflict {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    color: var(--away-indicator);
 }
 
 .GlobalAttributesTable__subtitle {

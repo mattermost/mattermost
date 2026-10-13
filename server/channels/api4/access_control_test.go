@@ -3618,3 +3618,35 @@ func TestGetChannelAccessControlAttributes(t *testing.T) {
 		mockACS.AssertCalled(t, "GetPolicyRuleAttributes", mock.Anything, th.BasicChannel.Id, model.AccessControlPolicyActionMembership)
 	})
 }
+
+// TestCreateAccessControlPolicyBurnOnRead ensures create_burn_on_read_post action
+// is gated by the umbrella feature flag for Permission Policies.
+func TestCreateAccessControlPolicyBurnOnRead(t *testing.T) {
+	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
+
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.True(t, ok, "SetLicense should return true")
+
+	updateTestFeatureFlags(t, th, func(cfg *model.Config) {
+		restoreABACFeatureFlagDefaults(cfg)
+		cfg.FeatureFlags.PermissionPolicies = false
+	})
+
+	channelPolicy := &model.AccessControlPolicy{
+		ID:       th.BasicChannel.Id,
+		Type:     model.AccessControlPolicyTypeChannel,
+		Version:  model.AccessControlPolicyVersionV0_4,
+		Revision: 1,
+		Rules: []model.AccessControlPolicyRule{{
+			Name:       "BoR for engineering",
+			Role:       model.ChannelUserRoleId,
+			Expression: "user.attributes.department == 'engineering'",
+			Actions:    []string{model.AccessControlPolicyActionCreateBurnOnReadPost},
+		}},
+	}
+
+	_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), channelPolicy)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, resp)
+	CheckErrorID(t, err, "api.access_control_policy.channel_permission_policies.feature_disabled")
+}

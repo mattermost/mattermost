@@ -12,7 +12,6 @@ import type {GlobalState} from 'types/store';
 import {
     isBurnOnReadEnabled,
     getBurnOnReadDurationMinutes,
-    canUserSendBurnOnRead,
     hasSeenBurnOnReadTourTip,
     BURN_ON_READ_TOUR_TIP_PREFERENCE,
 } from './burn_on_read';
@@ -138,39 +137,6 @@ describe('selectors/burn_on_read', () => {
             state.entities.general.config.BurnOnReadDurationSeconds = '300';
             const result = getBurnOnReadDurationMinutes(state);
             expect(result).toBe(5);
-        });
-    });
-
-    describe('canUserSendBurnOnRead', () => {
-        it('should return true when feature is enabled and license is Enterprise Advanced', () => {
-            state.entities.general.config.EnableBurnOnRead = 'true';
-            state.entities.general.license = WebappTestHelper.getLicenseMock({
-                IsLicensed: 'true',
-                SkuShortName: LicenseSkus.EnterpriseAdvanced,
-            });
-            const result = canUserSendBurnOnRead(state);
-            expect(result).toBe(true);
-        });
-
-        it('should return false when feature is enabled but license is insufficient', () => {
-            state.entities.general.config.EnableBurnOnRead = 'true';
-            state.entities.general.license = WebappTestHelper.getLicenseMock({
-                IsLicensed: 'true',
-                SkuShortName: LicenseSkus.Professional,
-            });
-            const result = canUserSendBurnOnRead(state);
-            expect(result).toBe(false);
-        });
-
-        it('should return false when feature is disabled', () => {
-            state.entities.general.config.EnableBurnOnRead = 'false';
-            const result = canUserSendBurnOnRead(state);
-            expect(result).toBe(false);
-        });
-
-        it('should return false when feature is not configured', () => {
-            const result = canUserSendBurnOnRead(state);
-            expect(result).toBe(false);
         });
     });
 
