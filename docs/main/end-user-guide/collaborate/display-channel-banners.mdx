@@ -26,9 +26,26 @@ Create a channel banner:
 
 You can change the banner text or color at any time by following the same steps above. The new banner text or color displays immediately.
 
+### Include channel attributes
+
+From Mattermost v12.0, when channel attributes are enabled, the banner text editor can include channel attribute tokens. Each token is replaced with that attribute's value for the channel.
+
+- Use the attribute control to insert an attribute token.
+- Combine tokens with text to provide context.
+- Remove a token to stop displaying that attribute in the banner. Removing a token doesn't clear the channel attribute value.
+- Use the preview to review the resolved banner before saving.
+
+If an attribute doesn't have a value, it doesn't appear in the banner. Mattermost removes adjacent single- or double-character separators, such as `·`, `.`, `/`, or `?`, where possible. The banner is hidden when no text remains.
+
+System admins choose which attributes appear in a new channel banner by default. See [Channel attributes](/administration-guide/manage/admin/channel-attributes#display-attributes-in-the-channel-banner).
+
 ## Remove a channel banner
 
 Disable the **Channel Banner** option in the channel settings to remove the banner from the channel.
+
+When channel attributes are enabled, this also hides all attribute-driven banner content, including Classification. Mattermost preserves the channel's attribute values and saved banner template, so enabling the banner again restores the resolved content.
+
+When channel attributes aren't enabled, an active Classification marking locks the **Channel Banner** option on. Disable the channel's Classification setting separately to remove that banner.
 
 <Tip>
 
@@ -42,4 +59,8 @@ From Mattermost v11.8, system admins can configure classification markings that 
 
 Classification markings use predefined or custom classification levels, including the classification name and banner color. These markings are informational only and don't control access to channels, messages, files, or other Mattermost resources.
 
-When a channel classification is applied, Mattermost displays the selected classification as the channel banner. Classification markings take priority over a custom channel banner when both are configured for the same channel.
+From Mattermost v12.0, when channel attributes are enabled, channel admins assign Classification from Channel Info or **Channel Settings \> Info**. If Classification is configured for banner display, its token is included by default when the channel has never saved custom banner text. Existing custom banner templates aren't changed automatically.
+
+While the Classification token remains in the banner text, the selected classification level's color controls the banner color. Channel banner managers can customize the surrounding text and combine Classification with other channel attributes. Removing the Classification token returns control of the color to the channel without clearing its classification value.
+
+See [Classification Markings and channel attributes](/administration-guide/manage/admin/channel-attributes#classification-markings-and-channel-attributes) for details.
