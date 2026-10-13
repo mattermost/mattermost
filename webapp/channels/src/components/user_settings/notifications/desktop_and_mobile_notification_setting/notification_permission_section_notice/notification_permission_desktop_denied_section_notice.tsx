@@ -4,10 +4,7 @@
 import React, {useCallback, useState} from 'react';
 import {useIntl} from 'react-intl';
 
-import {Button} from '@mattermost/compass-ui/components/button';
 import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
-
-import SectionNoticeActions from 'components/user_settings/notifications/section_notice_actions';
 
 import {NotificationPermissionDenied} from 'utils/notifications';
 
@@ -52,34 +49,18 @@ export default function NotificationPermissionDesktopDeniedSectionNotice(props: 
             <SectionNotice
                 type='danger'
                 title={title}
-                description={
-                    <>
-                        {text}
-                        <SectionNoticeActions>
-                            <Button
-                                emphasis='primary'
-                                size='small'
-                                onClick={handleCheckPermissionButtonClick}
-                                disabled={checkedPermissionDenied}
-                            >
-                                {intl.formatMessage({
-                                    id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.checkPermissionButton',
-                                    defaultMessage: 'Check permission',
-                                })}
-                            </Button>
-                            <Button
-                                emphasis='tertiary'
-                                size='small'
-                                onClick={handleInstructionButtonClick}
-                            >
-                                {intl.formatMessage({
-                                    id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDenied.instructionButton',
-                                    defaultMessage: 'How to enable notifications',
-                                })}
-                            </Button>
-                        </SectionNoticeActions>
-                    </>
-                }
+                description={text}
+                primaryButtonLabel={intl.formatMessage({
+                    id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.checkPermissionButton',
+                    defaultMessage: 'Check permission',
+                })}
+                onPrimaryAction={handleCheckPermissionButtonClick}
+                primaryActionDisabled={checkedPermissionDenied}
+                secondaryButtonLabel={intl.formatMessage({
+                    id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDenied.instructionButton',
+                    defaultMessage: 'How to enable notifications',
+                })}
+                onSecondaryAction={handleInstructionButtonClick}
             />
         </div>
     );
