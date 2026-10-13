@@ -159,6 +159,22 @@ describe('components/threading/global_threads/thread_list', () => {
 
             composer.remove();
         });
+
+        test('should move threads from a non-editable element inside a contenteditable host', () => {
+            renderWithContext(<ThreadList {...props}/>);
+
+            const host = document.createElement('div');
+            host.setAttribute('contenteditable', 'true');
+            const readOnly = document.createElement('span');
+            readOnly.setAttribute('contenteditable', 'false');
+            host.appendChild(readOnly);
+            document.body.appendChild(host);
+
+            pressArrowDown(readOnly);
+            expect(mockRouting.select).toHaveBeenCalledWith('2');
+
+            host.remove();
+        });
     });
 
     test('should support getThreads', async () => {
