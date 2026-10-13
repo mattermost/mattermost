@@ -26599,14 +26599,6 @@
     "defaultMessage": "More tools can be added once your workspace is set up. To see all available integrations, <a>visit the Marketplace.</a>",
     "description": "Footnote on the plugin selection step of the setup wizard; the <a> tags wrap a link to the in-product integrations Marketplace."
   },
-  "onboarding_wizard.plugins.servicenow": {
-    "defaultMessage": "ServiceNow",
-    "description": "Product name on a selectable tool card in the setup wizard's plugin selection step; usually left untranslated."
-  },
-  "onboarding_wizard.plugins.servicenow.tooltip": {
-    "defaultMessage": "This plugin serves as an integration between Mattermost and ServiceNow.",
-    "description": "Tooltip describing the ServiceNow plugin on the onboarding wizard's plugins step."
-  },
   "onboarding_wizard.plugins.zoom": {
     "defaultMessage": "Zoom",
     "description": "Product name on a selectable tool card in the setup wizard's plugin selection step; usually left untranslated."
