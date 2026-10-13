@@ -260,18 +260,14 @@ func fixEmailAddressDisplayNames(cfg *model.Config) bool {
 }
 
 // fixWebserverMode replaces an unrecognized webserver mode with uncompressed, which servers
-// before v12 silently used for any value other than gzip or disabled. It also migrates
-// nogzip, which v12 release candidates required in place of uncompressed.
+// before v12 silently used for any value other than gzip or disabled.
 func fixWebserverMode(cfg *model.Config) bool {
 	switch *cfg.ServiceSettings.WebserverMode {
 	case "gzip", "uncompressed", "disabled":
 		return false
-	case "nogzip":
-		mlog.Info("Migrating ServiceSettings.WebserverMode from nogzip to uncompressed.")
-	default:
-		mlog.Warn("ServiceSettings.WebserverMode is not a supported mode. Setting WebserverMode to uncompressed.", mlog.String("webserver_mode", *cfg.ServiceSettings.WebserverMode))
 	}
 
+	mlog.Warn("ServiceSettings.WebserverMode is not a supported mode. Setting WebserverMode to uncompressed.", mlog.String("webserver_mode", *cfg.ServiceSettings.WebserverMode))
 	*cfg.ServiceSettings.WebserverMode = "uncompressed"
 	return true
 }

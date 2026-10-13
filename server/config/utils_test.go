@@ -355,7 +355,7 @@ func TestFixWebserverMode(t *testing.T) {
 		})
 	}
 
-	for _, mode := range []string{"nogzip", "", "GZIP", "none"} {
+	for _, mode := range []string{"", "GZIP", "none"} {
 		t.Run("unsupported "+mode, func(t *testing.T) {
 			cfg := &model.Config{}
 			cfg.SetDefaults()
