@@ -157,3 +157,73 @@ func TestHubBroadcastDelivery(t *testing.T) {
 		})
 	})
 }
+
+// rejectForUserHook rejects the event for one user, as a per-recipient access check does.
+type rejectForUserHook struct {
+	userID string
+}
+
+func (h *rejectForUserHook) Process(msg *HookedWebSocketEvent, webConn *WebConn, _ map[string]any) error {
+	if webConn.UserId == h.userID {
+		msg.Reject()
+	}
+	return nil
+}
+
+func TestHubBroadcastRejectedByHook(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	marker := &model.PostDeliveryMarker{
+		PostId:    model.NewId(),
+		ChannelId: th.BasicChannel.Id,
+		UserId:    th.BasicUser.Id,
+	}
+
+	const hookID = "reject_for_user"
+	hub := &Hub{
+		platform:       th.Service,
+		broadcastHooks: map[string]BroadcastHook{hookID: &rejectForUserHook{userID: th.BasicUser2.Id}},
+	}
+
+	// The denied connection can come before the allowed one or after it, when the allowed
+	// one's event is already queued; its rejection must reach neither.
+	for _, tc := range []struct {
+		name        string
+		deniedFirst bool
+	}{
+		{name: "denied connection first", deniedFirst: true},
+		{name: "denied connection last", deniedFirst: false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			spy := &deliveryRecorderSpy{}
+			th.Service.SetPostDeliveryRecorder(spy.record)
+			t.Cleanup(func() { th.Service.SetPostDeliveryRecorder(nil) })
+
+			connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, false)
+			denied := newDeliveryTestConn(t, th, connIndex, th.BasicUser2.Id, 1)
+			allowed := newDeliveryTestConn(t, th, connIndex, th.SystemAdminUser.Id, 1)
+
+			// One event for every connection, as the hub's broadcast loop hands it out.
+			event := model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, "")
+			event.Add("post", "{}")
+			order := []*WebConn{allowed, denied}
+			if tc.deniedFirst {
+				order = []*WebConn{denied, allowed}
+			}
+			for _, wc := range order {
+				hub.broadcastToConn(connIndex, wc, event, marker, []string{hookID}, []map[string]any{{}})
+			}
+
+			require.Empty(t, denied.send, "a rejected event must not be queued")
+			require.Len(t, allowed.send, 1)
+			delivered, ok := (<-allowed.send).(*model.WebSocketEvent)
+			require.True(t, ok)
+			require.False(t, delivered.IsRejected(), "one connection's rejection must not reach another")
+			require.False(t, event.IsRejected())
+
+			require.Len(t, spy.calls, 1, "only the connection that got the event is recorded")
+			require.Equal(t, th.SystemAdminUser.Id, spy.calls[0].userID)
+		})
+	}
+}

@@ -9,14 +9,14 @@ import "testing"
 type require struct{}
 type assert struct{}
 
-func (r *require) NoError(t *testing.T, err error, msgAndArgs ...interface{})                  {}
+func (r *require) NoError(t *testing.T, err error, msgAndArgs ...interface{}) {}
 func (r *require) Equal(t *testing.T, expected, actual interface{}, msgAndArgs ...interface{}) {}
-func (r *require) True(t *testing.T, value bool, msgAndArgs ...interface{})                    {}
-func (r *require) NotNil(t *testing.T, object interface{}, msgAndArgs ...interface{})          {}
+func (r *require) True(t *testing.T, value bool, msgAndArgs ...interface{}) {}
+func (r *require) NotNil(t *testing.T, object interface{}, msgAndArgs ...interface{}) {}
 
-func (a *assert) NoError(t *testing.T, err error, msgAndArgs ...interface{})                  {}
+func (a *assert) NoError(t *testing.T, err error, msgAndArgs ...interface{}) {}
 func (a *assert) Equal(t *testing.T, expected, actual interface{}, msgAndArgs ...interface{}) {}
-func (a *assert) True(t *testing.T, value bool, msgAndArgs ...interface{})                    {}
+func (a *assert) True(t *testing.T, value bool, msgAndArgs ...interface{}) {}
 
 var Require = &require{}
 var Assert = &assert{}

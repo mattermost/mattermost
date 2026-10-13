@@ -19,7 +19,7 @@ import ChannelReadAccessDeniedModal from 'components/channel_read_access_denied_
 
 import {ModalIdentifiers} from 'utils/constants';
 
-import type {ThunkActionFunc} from 'types/store';
+import type {DispatchFunc, GetStateFunc, ThunkActionFunc} from 'types/store';
 
 // A channel missing from the response only means "denied" if the response could have
 // carried it. DMs and GMs are exempt from channel_read_access on the server, and the
@@ -39,56 +39,112 @@ function isGoverned(channel: Channel): boolean {
  * membership, followed threads, saved posts and unread counts all survive on the
  * server, so the channel reappears intact once access returns.
  */
+async function reconcile(doDispatch: DispatchFunc, doGetState: GetStateFunc) {
+    const before = doGetState();
+    const knownChannelIds = Object.keys(getMyChannelMemberships(before));
+
+    const currentChannelId = getCurrentChannelId(before);
+
+    const {data: channels} = await doDispatch(fetchAllMyTeamsChannels());
+    if (!channels) {
+        // Dropping local state on a network error would hide channels the
+        // policy still allows.
+        return;
+    }
+
+    const stillAccessible = new Set((channels as Channel[]).map((channel) => channel.id));
+
+    const after = doGetState();
+    const dropped = knownChannelIds.filter((channelId) => {
+        if (stillAccessible.has(channelId)) {
+            return false;
+        }
+        const channel = after.entities.channels.channels[channelId];
+        return Boolean(channel) && isGoverned(channel);
+    });
+
+    if (dropped.length === 0) {
+        return;
+    }
+
+    doDispatch(batchActions(dropped.map((channelId) => ({
+        type: ChannelTypes.LEAVE_CHANNEL,
+        data: {
+            id: channelId,
+            user_id: after.entities.users.currentUserId,
+            team_id: after.entities.channels.channels[channelId]?.team_id,
+        },
+    }))));
+
+    const rhsChannelId = getSelectedChannelId(after);
+    if (rhsChannelId && dropped.includes(rhsChannelId)) {
+        doDispatch(closeRightHandSide());
+    }
+
+    if (currentChannelId && dropped.includes(currentChannelId)) {
+        doDispatch(openModal({
+            modalId: ModalIdentifiers.CHANNEL_ACCESS_DENIED,
+            dialogType: ChannelReadAccessDeniedModal,
+            dialogProps: {channelName: before.entities.channels.channels[currentChannelId]?.display_name},
+        }));
+        redirectUserToDefaultTeam();
+    }
+}
+
+// Set while a reconcile runs. A request made meanwhile can't rely on that run, whose
+// response may predate the change behind the request, so it asks for one more; every
+// request made during the same run shares it.
+let running: Promise<void> | undefined;
+let rerunRequested = false;
+
+/**
+ * Reconciles channel read access, one run at a time. The returned promise settles once
+ * a run that started after the request has finished.
+ */
 export function reconcileChannelReadAccess(): ThunkActionFunc<Promise<void>> {
-    return async (doDispatch, doGetState) => {
-        const before = doGetState();
-        const knownChannelIds = Object.keys(getMyChannelMemberships(before));
-
-        const currentChannelId = getCurrentChannelId(before);
-
-        const {data: channels} = await doDispatch(fetchAllMyTeamsChannels());
-        if (!channels) {
-            // Dropping local state on a network error would hide channels the
-            // policy still allows.
-            return;
+    return (doDispatch, doGetState) => {
+        if (running) {
+            rerunRequested = true;
+            return running;
         }
 
-        const stillAccessible = new Set((channels as Channel[]).map((channel) => channel.id));
+        running = (async () => {
+            try {
+                do {
+                    rerunRequested = false;
 
-        const after = doGetState();
-        const dropped = knownChannelIds.filter((channelId) => {
-            if (stillAccessible.has(channelId)) {
-                return false;
+                    // eslint-disable-next-line no-await-in-loop
+                    await reconcile(doDispatch, doGetState);
+                } while (rerunRequested);
+            } finally {
+                running = undefined;
             }
-            const channel = after.entities.channels.channels[channelId];
-            return Boolean(channel) && isGoverned(channel);
-        });
+        })();
 
-        if (dropped.length === 0) {
+        return running;
+    };
+}
+
+const POLICY_EVENT_RECONCILE_MAX_DELAY_MS = 30 * 1000;
+
+// Set while a jittered reconcile waits to start. Its fetch is still to come, so it
+// already covers any request made meanwhile.
+let pendingJitter: ReturnType<typeof setTimeout> | undefined;
+
+/**
+ * Reconciles after a random delay of up to 30 seconds. A policy event reaches every
+ * affected client at once, and without the spread they would all fetch their channel
+ * list in the same second.
+ */
+export function reconcileChannelReadAccessWithJitter(): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        if (pendingJitter) {
             return;
         }
 
-        doDispatch(batchActions(dropped.map((channelId) => ({
-            type: ChannelTypes.LEAVE_CHANNEL,
-            data: {
-                id: channelId,
-                user_id: after.entities.users.currentUserId,
-                team_id: after.entities.channels.channels[channelId]?.team_id,
-            },
-        }))));
-
-        const rhsChannelId = getSelectedChannelId(after);
-        if (rhsChannelId && dropped.includes(rhsChannelId)) {
-            doDispatch(closeRightHandSide());
-        }
-
-        if (currentChannelId && dropped.includes(currentChannelId)) {
-            doDispatch(openModal({
-                modalId: ModalIdentifiers.CHANNEL_ACCESS_DENIED,
-                dialogType: ChannelReadAccessDeniedModal,
-                dialogProps: {channelName: before.entities.channels.channels[currentChannelId]?.display_name},
-            }));
-            redirectUserToDefaultTeam();
-        }
+        pendingJitter = setTimeout(() => {
+            pendingJitter = undefined;
+            doDispatch(reconcileChannelReadAccess());
+        }, Math.random() * POLICY_EVENT_RECONCILE_MAX_DELAY_MS);
     };
 }

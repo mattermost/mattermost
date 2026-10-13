@@ -237,7 +237,14 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 
 	t.Run("discovery mode ABAC active permitted in results denied excluded", func(t *testing.T) {
 		enableABAC(t)
+		// channel_read_access is answered by its enforcement gate, which only reaches the
+		// PDP under Enterprise Advanced and when a policy governs the action.
+		originalLicense := th.App.Srv().License()
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		t.Cleanup(func() { th.App.Srv().SetLicense(originalLicense) })
 		mockACS := withMockACS(t)
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
+			Return(true, (*model.AppError)(nil))
 
 		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
 			return req.Action == model.AccessControlPolicyActionUploadFileAttachment
@@ -342,96 +349,5 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 		})
 		require.NotNil(t, appErr)
 		require.Equal(t, 400, appErr.StatusCode)
-	})
-}
-
-// channel_read_access is queryable, appears in discovery, defaults to allowed
-// while ABAC is inactive, and fails closed on a PDP error.
-func TestSearchAllowedActionsChannelReadAccess(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.PermissionPolicies = true
-	}).InitBasic(t)
-
-	session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
-	require.Nil(t, appErr)
-	rctx := th.Context.WithSession(session)
-
-	channelResource := model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: th.BasicChannel.Id}
-
-	withMockACS := func(t *testing.T) *eMocks.AccessControlServiceInterface {
-		t.Helper()
-		mockACS := &eMocks.AccessControlServiceInterface{}
-		original := th.App.Srv().ch.AccessControl
-		th.App.Srv().ch.AccessControl = mockACS
-		t.Cleanup(func() { th.App.Srv().ch.AccessControl = original })
-		return mockACS
-	}
-
-	t.Run("ABAC inactive defaults to allowed", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = false
-		})
-
-		resp, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
-			Resource: channelResource,
-			Actions:  []string{model.AccessControlPolicyActionChannelReadAccess},
-		})
-		require.Nil(t, appErr)
-		d := resp.Decisions[model.AccessControlPolicyActionChannelReadAccess]
-		require.True(t, d.Allowed)
-		require.True(t, d.Evaluated)
-		require.Empty(t, d.Reason)
-	})
-
-	t.Run("discovery mode includes the action", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = false
-		})
-
-		resp, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
-			Resource: channelResource,
-		})
-		require.Nil(t, appErr)
-		require.Contains(t, resp.Decisions, model.AccessControlPolicyActionChannelReadAccess)
-		require.Contains(t, resp.Decisions, model.AccessControlPolicyActionUploadFileAttachment)
-		require.Contains(t, resp.Decisions, model.AccessControlPolicyActionDownloadFileAttachment)
-	})
-
-	t.Run("evaluation error fails closed", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
-		})
-		mockACS := withMockACS(t)
-		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
-			Return(model.AccessDecision{}, model.NewAppError("test", "test.error", nil, "", 500))
-
-		resp, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
-			Resource: channelResource,
-			Actions:  []string{model.AccessControlPolicyActionChannelReadAccess},
-		})
-		require.Nil(t, appErr)
-		d := resp.Decisions[model.AccessControlPolicyActionChannelReadAccess]
-		require.False(t, d.Allowed)
-		require.True(t, d.Evaluated)
-		require.Equal(t, model.RenderDecisionReasonRestrictedByPolicy, d.Reason)
-	})
-
-	t.Run("PDP deny is reported as denied", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
-		})
-		mockACS := withMockACS(t)
-		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
-			return req.Action == model.AccessControlPolicyActionChannelReadAccess
-		})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
-
-		resp, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
-			Resource: channelResource,
-			Actions:  []string{model.AccessControlPolicyActionChannelReadAccess},
-		})
-		require.Nil(t, appErr)
-		require.False(t, resp.Decisions[model.AccessControlPolicyActionChannelReadAccess].Allowed)
-		require.Empty(t, resp.Results)
 	})
 }

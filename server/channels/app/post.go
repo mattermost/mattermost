@@ -2642,10 +2642,6 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 		mlog.Int("rounds", putils.FetchUntilMaxRounds),
 	)
 
-	if appErr := a.filterSuppressedMembershipPosts(rctx, postSearchResults.PostList); appErr != nil {
-		return nil, false, appErr
-	}
-
 	return postSearchResults, allPostHaveMembership, nil
 }
 
@@ -2676,6 +2672,10 @@ func (a *App) searchPostsForUserPage(rctx request.CTX, finalParamsList []*model.
 	}
 
 	if appErr = a.filterBurnOnReadPosts(postSearchResults.PostList); appErr != nil {
+		return nil, 0, false, appErr
+	}
+
+	if appErr = a.filterSuppressedMembershipPosts(rctx, postSearchResults.PostList); appErr != nil {
 		return nil, 0, false, appErr
 	}
 
@@ -3147,11 +3147,6 @@ func (a *App) GetPostIfAuthorized(rctx request.CTX, postID string, session *mode
 		return nil, err, false
 	}
 
-	if !a.HasChannelReadAccess(rctx, session.UserId, channel) {
-		return nil, model.NewAppError("GetPostIfAuthorized", "api.channel.channel_read_access.abac_denied.app_error", nil,
-			"userId="+session.UserId+", channelId="+channel.Id, http.StatusForbidden), false
-	}
-
 	ok, isMember := a.SessionHasPermissionToReadChannelRBACOnly(rctx, *session, channel)
 	if !ok {
 		if channel.Type == model.ChannelTypeOpen && !*a.Config().ComplianceSettings.Enable {
@@ -3161,6 +3156,14 @@ func (a *App) GetPostIfAuthorized(rctx request.CTX, postID string, session *mode
 		} else {
 			return nil, model.MakePermissionError(session, []*model.Permission{model.PermissionReadChannelContent}), false
 		}
+	}
+
+	// After RBAC, as in the other read gates: a session RBAC already refuses gets the
+	// generic error without a policy evaluation. Nothing above bypasses this check, so
+	// every allowed path, the public-channel fallback included, still meets it.
+	if !a.HasChannelReadAccess(rctx, session.UserId, channel) {
+		return nil, model.NewAppError("GetPostIfAuthorized", "api.channel.channel_read_access.abac_denied.app_error", nil,
+			"userId="+session.UserId+", channelId="+channel.Id, http.StatusForbidden), false
 	}
 
 	return post, nil, isMember

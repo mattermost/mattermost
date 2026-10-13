@@ -356,6 +356,11 @@ func updateViewSortOrder(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("")
 
+	// The response lists every view in the channel, not just the one moved.
+	if !sessionCanReadChannel(c, c.Params.ChannelId) {
+		views = []*model.View{}
+	}
+
 	if err := json.NewEncoder(w).Encode(views); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}

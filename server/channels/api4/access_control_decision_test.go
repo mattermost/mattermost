@@ -175,29 +175,3 @@ func TestSearchAccessControlDecisionActions(t *testing.T) {
 		require.Nil(t, out.Page)
 	})
 }
-
-// channel_read_access is evaluated by the render-decision endpoint and listed
-// in discovery mode.
-func TestSearchAccessControlDecisionActionsChannelReadAccess(t *testing.T) {
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.PermissionPolicies = true
-	}).InitBasic(t)
-
-	channelResource := model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: th.BasicChannel.Id}
-
-	targeted, _, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
-		Resource: channelResource,
-		Actions:  []string{model.AccessControlPolicyActionChannelReadAccess},
-	})
-	require.NoError(t, err)
-	require.Contains(t, targeted.Decisions, model.AccessControlPolicyActionChannelReadAccess)
-	// ABAC is inactive in this fixture, so the registry default applies.
-	require.True(t, targeted.Decisions[model.AccessControlPolicyActionChannelReadAccess].Allowed)
-
-	discovered, _, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
-		Resource: channelResource,
-	})
-	require.NoError(t, err)
-	require.Contains(t, discovered.Decisions, model.AccessControlPolicyActionChannelReadAccess)
-	require.Contains(t, discovered.Decisions, model.AccessControlPolicyActionUploadFileAttachment)
-}

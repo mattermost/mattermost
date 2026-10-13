@@ -748,6 +748,11 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("")
 
+	// A patch that changes nothing still returns the whole channel.
+	if !sessionCanReadChannel(c, rchannel.Id) {
+		rchannel = channelWithoutContent(rchannel)
+	}
+
 	if err := json.NewEncoder(w).Encode(rchannel); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}

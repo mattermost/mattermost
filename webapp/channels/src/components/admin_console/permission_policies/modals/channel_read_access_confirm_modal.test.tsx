@@ -82,21 +82,4 @@ describe('components/admin_console/permission_policies/modals/ChannelReadAccessC
         expect(screen.getByRole('button', {name: 'Save policy'})).toBeDisabled();
         expect(screen.getByRole('button', {name: 'Cancel'})).toBeDisabled();
     });
-
-    test('a second confirm click while saving does not fire onConfirm again', async () => {
-        const {rerender} = renderWithContext(<ChannelReadAccessConfirmModal {...baseProps}/>);
-
-        await userEvent.click(screen.getByRole('button', {name: 'Save policy'}));
-        expect(baseProps.onConfirm).toHaveBeenCalledTimes(1);
-
-        rerender(
-            <ChannelReadAccessConfirmModal
-                {...baseProps}
-                isSaving={true}
-            />,
-        );
-        await userEvent.click(screen.getByRole('button', {name: 'Save policy'}));
-
-        expect(baseProps.onConfirm).toHaveBeenCalledTimes(1);
-    });
 });

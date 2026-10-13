@@ -773,6 +773,11 @@ func (_m *MockAppIface) SendEphemeralPost(rctx request.CTX, userId string, post 
 	return r0, r1
 }
 
+// SetupBroadcastHookForChannelReadAccess provides a mock function with given fields: channelID, message
+func (_m *MockAppIface) SetupBroadcastHookForChannelReadAccess(channelID string, message *model.WebSocketEvent) {
+	_m.Called(channelID, message)
+}
+
 // UpdatePost provides a mock function with given fields: rctx, post, updatePostOptions
 func (_m *MockAppIface) UpdatePost(rctx request.CTX, post *model.Post, updatePostOptions *model.UpdatePostOptions) (*model.Post, bool, *model.AppError) {
 	ret := _m.Called(rctx, post, updatePostOptions)
