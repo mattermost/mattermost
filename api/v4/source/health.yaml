@@ -10,7 +10,7 @@
 
         The server evaluates its health rules once an hour, so a finding can be up to an hour old.
         `evaluated_at` is when the server last evaluated, whatever the `muted` filter; it is 0 if the
-        server has not evaluated yet.
+        server has not evaluated yet or no health rule has fired yet.
 
         __Minimum server version__: 12.1
 

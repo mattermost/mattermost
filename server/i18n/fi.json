@@ -13732,7 +13732,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Virheellinen web-palvelimen tila {{.Value}}. On oltava 'gzip', 'nogzip' tai 'disabled'."
+    "translation": "Virheellinen web-palvelimen tila {{.Value}}. On oltava 'gzip', 'uncompressed' tai 'disabled'."
   },
   {
     "id": "model.cpa_field.name.invalid_charset.app_error",

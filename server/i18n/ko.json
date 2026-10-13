@@ -14551,7 +14551,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "잘못된 웹 서버 모드입니다: {{.Value}}. 'gzip', 'nogzip', 'disabled' 중 하나여야 합니다."
+    "translation": "잘못된 웹 서버 모드입니다: {{.Value}}. 'gzip', 'uncompressed', 'disabled' 중 하나여야 합니다."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",

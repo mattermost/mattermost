@@ -13073,7 +13073,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Neispravan način rada web servera {{.Value}}. Mora biti 'gzip', 'nogzip' ili 'disabled'."
+    "translation": "Neispravan način rada web servera {{.Value}}. Mora biti 'gzip', 'uncompressed' ili 'disabled'."
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",

@@ -457,27 +457,23 @@ func TestHealthCheckPushURLRoundTrip(t *testing.T) {
 	}
 
 	setPushServer("https://push.example.com")
-	before := checkPushFindings()
-	require.Contains(t, before, "PUSH_BAD_SCHEME")
-	for code, f := range before {
-		assert.Equal(t, string(healthcheck.StateResolved), f.State, code)
-	}
+	assert.Empty(t, checkPushFindings())
 
 	setPushServer("http://push.example.com")
 	firing := checkPushFindings()
+	require.Len(t, firing, 1)
 	badScheme := firing["PUSH_BAD_SCHEME"]
 	require.NotNil(t, badScheme)
 	assert.Equal(t, string(healthcheck.StateFiring), badScheme.State)
 	assert.Equal(t, "health.rule.push_bad_scheme.message.http", badScheme.MessageID)
 	assert.NotEmpty(t, badScheme.Message)
-	assert.Equal(t, string(healthcheck.StateResolved), firing["PUSH_EMPTY_URL"].State)
-	assert.Equal(t, string(healthcheck.StateResolved), firing["PUSH_TEST_PROXY"].State)
 
 	setPushServer("https://push.example.com")
 	after := checkPushFindings()
-	for code, f := range after {
-		assert.Equal(t, string(healthcheck.StateResolved), f.State, code)
-	}
-	assert.Equal(t, before["PUSH_BAD_SCHEME"].Fingerprint, after["PUSH_BAD_SCHEME"].Fingerprint)
-	assert.Equal(t, before["PUSH_BAD_SCHEME"].FirstSeenAt, after["PUSH_BAD_SCHEME"].FirstSeenAt)
+	require.Len(t, after, 1)
+	cleared := after["PUSH_BAD_SCHEME"]
+	require.NotNil(t, cleared)
+	assert.Equal(t, string(healthcheck.StateResolved), cleared.State)
+	assert.Equal(t, badScheme.Fingerprint, cleared.Fingerprint)
+	assert.Equal(t, badScheme.FirstSeenAt, cleared.FirstSeenAt)
 }

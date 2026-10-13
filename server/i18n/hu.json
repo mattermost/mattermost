@@ -14560,7 +14560,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Érvénytelen webszerver-mód: {{.Value}}. Értéke 'gzip', 'nogzip' vagy 'disabled' lehet."
+    "translation": "Érvénytelen webszerver-mód: {{.Value}}. Értéke 'gzip', 'uncompressed' vagy 'disabled' lehet."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",

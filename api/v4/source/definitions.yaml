@@ -5486,7 +5486,7 @@ components:
         evaluated_at:
           type: integer
           format: int64
-          description: The time in milliseconds the server last evaluated its health rules, or 0 if it has not evaluated yet.
+          description: The time in milliseconds the server last evaluated its health rules, or 0 if it has not evaluated yet or no health rule has fired yet.
         findings:
           type: array
           items:
