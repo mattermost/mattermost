@@ -8,6 +8,8 @@ import styled from 'styled-components';
 
 import type {Channel, ChannelStats} from '@mattermost/types/channels';
 
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+
 import {openModal} from 'actions/views/modals';
 import {canAccessChannelSettings} from 'selectors/views/channel_settings';
 
@@ -15,6 +17,7 @@ import ChannelSettingsModal from 'components/channel_settings_modal/channel_sett
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
+import {canSearchFiles} from 'utils/file_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -139,6 +142,7 @@ export default function Menu(props: MenuProps) {
     const showChannelSettings = channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL && !isArchived;
     const fileCount = channelStats?.files_count >= 0 ? channelStats?.files_count : 0;
     const canAccessSettings = useSelector((state: GlobalState) => canAccessChannelSettings(state, channel.id));
+    const showFiles = useSelector((state: GlobalState) => canSearchFiles(getConfig(state)));
 
     useEffect(() => {
         actions.getChannelStats(channel.id, true).then(() => {
@@ -216,16 +220,18 @@ export default function Menu(props: MenuProps) {
                 badge={channelStats?.pinnedpost_count}
                 onClick={() => actions.showPinnedPosts(channel.id)}
             />
-            <MenuItem
-                icon={<i className='icon icon-file-text-outline'/>}
-                text={formatMessage({
-                    id: 'channel_info_rhs.menu.files',
-                    defaultMessage: 'Files',
-                })}
-                opensSubpanel={true}
-                badge={loadingStats ? <LoadingSpinner/> : fileCount}
-                onClick={() => actions.showChannelFiles(channel.id)}
-            />
+            {showFiles && (
+                <MenuItem
+                    icon={<i className='icon icon-file-text-outline'/>}
+                    text={formatMessage({
+                        id: 'channel_info_rhs.menu.files',
+                        defaultMessage: 'Files',
+                    })}
+                    opensSubpanel={true}
+                    badge={loadingStats ? <LoadingSpinner/> : fileCount}
+                    onClick={() => actions.showChannelFiles(channel.id)}
+                />
+            )}
         </MenuContainer>
     );
 }

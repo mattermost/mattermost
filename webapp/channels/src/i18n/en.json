@@ -1201,6 +1201,8 @@
   "admin.file_upload.uploadFile": "Upload",
   "admin.file.enableFileAttachments": "Allow File Sharing:",
   "admin.file.enableFileAttachmentsDesc": "When false, disables file sharing on the server. All file and image uploads on messages are forbidden across clients and devices, including mobile.",
+  "admin.file.enableFileSearchDesc": "When false, users cannot search for files and the Files tab is hidden from search results.",
+  "admin.file.enableFileSearchTitle": "Enable File Search:",
   "admin.file.enableMobileDownloadDesc": "When false, disables file downloads on mobile apps. Users can still download files from a mobile web browser.",
   "admin.file.enableMobileDownloadTitle": "Allow File Downloads on Mobile:",
   "admin.file.enableMobileUploadDesc": "When false, disables file uploads on mobile apps. If Allow File Sharing is set to true, users can still upload files from a mobile web browser.",

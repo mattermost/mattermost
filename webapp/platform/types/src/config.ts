@@ -74,6 +74,7 @@ export type ClientConfig = {
     EnableEmailInvitations: string;
     EnableEmojiPicker: string;
     EnableFileAttachments: string;
+    EnableFileSearch: string;
     EnableFile: string;
     EnableGifPicker: string;
     EnableGuestAccounts: string;
