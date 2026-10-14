@@ -433,8 +433,10 @@ jobs:
           ref-branch: ${{ inputs.ref_branch }}
           commit-status-context: ${{ inputs.context_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      # Answers from an earlier attempt at the same commit, so a re-run does not
-      # pay for the same question twice. Restore and save are separate steps:
+      # Answers from earlier runs on the same PR (the same commit on master), so a
+      # re-run does not pay for the same question twice. The file also keeps this
+      # lane's AI spend on the PR, for the per-PR budget (pr-budget-usd, $2 by
+      # default, split between the lanes). Restore and save are separate steps:
       # the cache action saves only when the job succeeds, and a red run is the
       # one most likely to be re-run.
       - name: Restore triage answers
@@ -443,8 +445,8 @@ jobs:
         uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: e2e-triage-answers.json
-          key: e2e-triage-answers-${{ inputs.context_name }}-${{ fromJSON(needs.prepare-run.outputs.composite-identity-json).commit_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: e2e-triage-answers-${{ inputs.context_name }}-${{ fromJSON(needs.prepare-run.outputs.composite-identity-json).commit_sha }}-
+          key: e2e-triage-answers-${{ inputs.context_name }}-${{ fromJSON(needs.prepare-run.outputs.composite-identity-json).gh_pr_number && format('pr{0}', fromJSON(needs.prepare-run.outputs.composite-identity-json).gh_pr_number) || fromJSON(needs.prepare-run.outputs.composite-identity-json).commit_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: e2e-triage-answers-${{ inputs.context_name }}-${{ fromJSON(needs.prepare-run.outputs.composite-identity-json).gh_pr_number && format('pr{0}', fromJSON(needs.prepare-run.outputs.composite-identity-json).gh_pr_number) || fromJSON(needs.prepare-run.outputs.composite-identity-json).commit_sha }}-
       - name: ci/e2e-triage
         id: triage
         # Runs on master as well as on PRs. On master the question changes from
@@ -458,7 +460,7 @@ jobs:
         # it to change.
         if: always() && steps.summary.outcome != 'success'
         continue-on-error: true
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-triage@a4970f0ecd440dbf9f2937791b80828fea9f5b6c # actions/e2e-triage
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-triage@0b8cf9af18d29fd1060ba665fa9c6095faf173ee # actions/e2e-triage
         with:
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
           status-context: ${{ inputs.context_name }}
@@ -476,7 +478,7 @@ jobs:
         uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: e2e-triage-answers.json
-          key: e2e-triage-answers-${{ inputs.context_name }}-${{ fromJSON(needs.prepare-run.outputs.composite-identity-json).commit_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: e2e-triage-answers-${{ inputs.context_name }}-${{ fromJSON(needs.prepare-run.outputs.composite-identity-json).gh_pr_number && format('pr{0}', fromJSON(needs.prepare-run.outputs.composite-identity-json).gh_pr_number) || fromJSON(needs.prepare-run.outputs.composite-identity-json).commit_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: ci/publish-webhook
         if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
         env:
