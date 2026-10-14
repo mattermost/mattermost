@@ -183,7 +183,7 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
         // * Ensure message is disabled and manage members for members is disabled
         visitChannelConfigPage(testChannel);
         cy.findByTestId('allow-all-toggle').within(() => {
-            cy.findByText('Public channel or private channel').should('be.visible');
+            cy.findByText('Public channel').should('be.visible');
         });
         cy.findByTestId('allow-all-toggle-button').should('be.checked');
         cy.findByTestId('admin-channel_settings-channel_moderation-manageMembers-disabledMember').
@@ -196,7 +196,7 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
 
         // * Ensure it is private and no error message is shown and that manage members for members is not disabled
         cy.findByTestId('allow-all-toggle').within(() => {
-            cy.findByText('Public channel or private channel').should('be.visible');
+            cy.findByText('Private channel').should('be.visible');
         });
         cy.findByTestId('allow-all-toggle-button').should('not.be.checked');
         cy.findByTestId('admin-channel_settings-channel_moderation-manageMembers-disabledMember').
@@ -209,7 +209,7 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
 
         // * ensure it got reverted back to a Public channel
         cy.findByTestId('allow-all-toggle').within(() => {
-            cy.findByText('Public channel or private channel').should('be.visible');
+            cy.findByText('Public channel').should('be.visible');
         });
         cy.findByTestId('allow-all-toggle-button').should('be.checked');
     });
@@ -230,7 +230,7 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
 
         // * Ensure that error message is not displayed and manage members for members is not disabled
         cy.findByTestId('allow-all-toggle').within(() => {
-            cy.findByText('Public channel or private channel').should('be.visible');
+            cy.findByText('Public channel').should('be.visible');
         });
         cy.findByTestId('allow-all-toggle-button').should('be.checked');
         cy.findByTestId('admin-channel_settings-channel_moderation-manageMembers-disabledMember').
@@ -243,7 +243,7 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
 
         // * Ensure it is a private channel and that a message is disabled and also manage members for members is disabled
         cy.findByTestId('allow-all-toggle').within(() => {
-            cy.findByText('Public channel or private channel').should('be.visible');
+            cy.findByText('Private channel').should('be.visible');
         });
         cy.findByTestId('allow-all-toggle-button').should('not.be.checked');
         cy.findByTestId('admin-channel_settings-channel_moderation-manageMembers-disabledMember').
@@ -256,7 +256,7 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
 
         // * Ensure it got reset back to a public channel
         cy.findByTestId('allow-all-toggle').within(() => {
-            cy.findByText('Public channel or private channel').should('be.visible');
+            cy.findByText('Public channel').should('be.visible');
         });
         cy.findByTestId('allow-all-toggle-button').should('be.checked');
     });
