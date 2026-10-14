@@ -172,6 +172,16 @@ func TestBuildCPAValueAuditRecord(t *testing.T) {
 		})
 		assert.NotContains(t, otherValueRec.Meta, "basis_holdings_change")
 
+		// Deleting their own value can only narrow what the caller sees.
+		ownDeleteRec := th.App.buildCPAValueAuditRecord(rctx, properties.ValueAuditEvent{
+			Action:     properties.ValueAuditActionDelete,
+			TargetType: model.PropertyFieldObjectTypeUser,
+			TargetID:   th.BasicUser.Id,
+			FieldID:    maskedField.ID,
+			Prev:       &model.PropertyValue{Value: []byte(`"v"`)},
+		})
+		assert.NotContains(t, ownDeleteRec.Meta, "basis_holdings_change")
+
 		unmaskedField := createField(t, &model.PropertyField{
 			Name:       "unmasked holdings basis",
 			Type:       model.PropertyFieldTypeText,
