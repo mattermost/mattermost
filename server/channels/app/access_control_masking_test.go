@@ -1951,3 +1951,37 @@ func TestGetMaskedVisualAST_GraphWithheldOptionList(t *testing.T) {
 		mockACS.AssertExpectations(t)
 	})
 }
+
+func TestEffectiveAccessModeUsingFailsClosedOnTemplateRead(t *testing.T) {
+	templateID := model.NewId()
+	linked := &model.PropertyField{
+		ID:            model.NewId(),
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		LinkedFieldID: &templateID,
+		Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+			Value:  model.ReadWrite{Read: model.PermissionLevelEveryone},
+			Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+		}},
+	}
+
+	t.Run("a template read error reports the linked field masked", func(t *testing.T) {
+		mode := effectiveAccessModeUsing(linked, func(string) (*model.PropertyField, error) {
+			return nil, fmt.Errorf("store unavailable")
+		})
+		assert.Equal(t, model.PropertyAccessModeSharedOnly, mode)
+	})
+
+	t.Run("a missing template reports the linked field masked", func(t *testing.T) {
+		mode := effectiveAccessModeUsing(linked, func(string) (*model.PropertyField, error) {
+			return nil, nil
+		})
+		assert.Equal(t, model.PropertyAccessModeSharedOnly, mode)
+	})
+
+	t.Run("a readable public template reports the linked field public", func(t *testing.T) {
+		mode := effectiveAccessModeUsing(linked, func(string) (*model.PropertyField, error) {
+			return &model.PropertyField{ID: templateID, Permissions: linked.Permissions}, nil
+		})
+		assert.Equal(t, model.PropertyAccessModePublic, mode)
+	})
+}
