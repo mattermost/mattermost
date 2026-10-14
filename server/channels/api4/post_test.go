@@ -3233,6 +3233,110 @@ func TestPatchPost(t *testing.T) {
 	})
 }
 
+func TestPatchBurnOnReadPost(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	enableBurnOnReadFeature(th)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
+
+	recipientClient := th.CreateClient()
+	th.LoginBasic2WithClient(t, recipientClient)
+
+	createBurnOnReadPost := func(t *testing.T) *model.Post {
+		t.Helper()
+		post, resp, err := th.Client.CreatePost(context.Background(), &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "burn on read https://example.com",
+			Type:      model.PostTypeBurnOnRead,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		return post
+	}
+
+	removeLinkPreviewPatch := func() *model.PostPatch {
+		return &model.PostPatch{Props: &model.StringInterface{model.PostPropsRemoveLinkPreview: "true"}}
+	}
+
+	t.Run("author can remove the link preview for every viewer", func(t *testing.T) {
+		post := createBurnOnReadPost(t)
+
+		patchedPost, resp, err := th.Client.PatchPost(context.Background(), post.Id, removeLinkPreviewPatch())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.Equal(t, post.Message, patchedPost.Message)
+		assert.Equal(t, model.PostTypeBurnOnRead, patchedPost.Type)
+		assert.Equal(t, "true", patchedPost.GetProp(model.PostPropsRemoveLinkPreview))
+		assert.Equal(t, post.GetProp(model.PostPropsExpireAt), patchedPost.GetProp(model.PostPropsExpireAt))
+		assert.Equal(t, post.GetProp(model.PostPropsReadDurationSeconds), patchedPost.GetProp(model.PostPropsReadDurationSeconds))
+		assert.Zero(t, patchedPost.EditAt)
+
+		revealedPost, resp, err := recipientClient.RevealPost(context.Background(), post.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.Equal(t, post.Message, revealedPost.Message)
+		assert.Equal(t, "true", revealedPost.GetProp(model.PostPropsRemoveLinkPreview))
+	})
+
+	t.Run("admin removing the link preview does not receive the content", func(t *testing.T) {
+		th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+		th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)
+		post := createBurnOnReadPost(t)
+
+		patchedPost, resp, err := th.SystemAdminClient.PatchPost(context.Background(), post.Id, removeLinkPreviewPatch())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.Empty(t, patchedPost.Message)
+		assert.Empty(t, patchedPost.FileIds)
+		assert.Equal(t, "true", patchedPost.GetProp(model.PostPropsRemoveLinkPreview))
+
+		revealedPost, _, err := recipientClient.RevealPost(context.Background(), post.Id)
+		require.NoError(t, err)
+		assert.Equal(t, post.Message, revealedPost.Message)
+		assert.Equal(t, "true", revealedPost.GetProp(model.PostPropsRemoveLinkPreview))
+	})
+
+	t.Run("other changes are still rejected", func(t *testing.T) {
+		post := createBurnOnReadPost(t)
+
+		withMessage := removeLinkPreviewPatch()
+		withMessage.Message = new("edited message")
+		withPin := removeLinkPreviewPatch()
+		withPin.IsPinned = new(true)
+
+		for name, patch := range map[string]*model.PostPatch{
+			"message":                     {Message: new("edited message")},
+			"pin":                         {IsPinned: new(true)},
+			"other props":                 {Props: &model.StringInterface{"custom": "value"}},
+			"keep preview":                {Props: &model.StringInterface{model.PostPropsRemoveLinkPreview: "false"}},
+			"remove preview with message": withMessage,
+			"remove preview with pin":     withPin,
+		} {
+			t.Run(name, func(t *testing.T) {
+				_, resp, err := th.Client.PatchPost(context.Background(), post.Id, patch)
+				CheckErrorID(t, err, "api.post.patch_post.can_not_update_burn_on_read_post.error")
+				CheckBadRequestStatus(t, resp)
+			})
+		}
+
+		_, resp, err := th.Client.UpdatePost(context.Background(), post.Id, &model.Post{
+			Id:        post.Id,
+			ChannelId: post.ChannelId,
+			Message:   "edited message",
+			Type:      model.PostTypeBurnOnRead,
+		})
+		CheckErrorID(t, err, "api.post.update_post.burn_on_read.app_error")
+		CheckBadRequestStatus(t, resp)
+
+		revealedPost, _, err := recipientClient.RevealPost(context.Background(), post.Id)
+		require.NoError(t, err)
+		assert.Equal(t, post.Message, revealedPost.Message)
+		assert.False(t, revealedPost.IsPinned)
+		assert.Nil(t, revealedPost.GetProp("custom"))
+	})
+}
+
 func TestPinPost(t *testing.T) {
 	mainHelper.Parallel(t)
 
