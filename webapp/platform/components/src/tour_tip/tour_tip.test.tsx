@@ -90,15 +90,14 @@ describe('TourTip', () => {
         });
     });
 
-    test('renders the Floating UI arrow and resolved placement on the floating box', async () => {
+    test('renders Compass TourPoint pointer and resolved placement on the positioner', async () => {
         renderTourTip({placement: 'bottom-start'});
 
         const dialog = await screen.findByRole('dialog');
-        const arrow = dialog.querySelector('svg.tour-tip__arrow');
+        const pointer = dialog.querySelector('[class*="tour-point__pointer"]');
 
-        expect(dialog).toHaveClass('tour-tip__box');
-        expect(arrow).toBeInTheDocument();
-        expect(arrow?.tagName.toLowerCase()).toBe('svg');
+        expect(dialog).toHaveClass('tour-tip__positioner');
+        expect(pointer).toBeInTheDocument();
         expect(dialog).toHaveAttribute('data-placement');
         expect(dialog.getAttribute('data-placement')).toMatch(/^(top|bottom|left|right)(-start|-end)?$/);
     });

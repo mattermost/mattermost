@@ -290,6 +290,18 @@ $z-index-tour-tips-backdrop: 1250;
         }
     }
 
+    &__positioner {
+        position: relative;
+    }
+
+    &__host-footer {
+        display: flex;
+        flex-direction: column;
+        margin-top: 1.2rem;
+        gap: 1.2rem;
+        color: var(--center-channel-color);
+    }
+
     &__footer {
         display: flex;
         flex-direction: column;

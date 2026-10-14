@@ -7,18 +7,18 @@ import {
     offset as floatingOffset,
     flip,
     shift,
-    arrow,
-    FloatingArrow,
     FloatingPortal,
     useTransitionStyles,
     type Placement,
 } from '@floating-ui/react';
 import classNames from 'classnames';
-import React, {useId, useRef, type JSX} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React, {useId, type JSX} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 
+import {TourPoint} from '@mattermost/compass-ui/components/tour-point';
 import {Button} from '@mattermost/shared/components/button';
 
+import {placementToPointerPosition} from './placement_to_pointer_position';
 import {TourTipBackdrop} from './tour_tip_backdrop';
 
 import type {Props as PunchOutCoordsHeightAndWidth} from '../common/hooks/useMeasurePunchouts';
@@ -31,10 +31,6 @@ export type TourTipEventSource = 'next' | 'prev' | 'dismiss' | 'jump' | 'skipped
 // If this needs to alter, change in _variables $z-index-tour-tips-popover as well
 const DEFAULT_Z_INDEX_TOUR_TIPS_POPOVER = 1300;
 const ROOT_PORTAL_ID = 'root-portal';
-const OverlayArrow = {
-    WIDTH: 12,
-    HEIGHT: 8,
-};
 const TRANSITION_STYLE_PROPS = {
     duration: {
         open: 250,
@@ -113,12 +109,8 @@ export const TourTip = ({
     hideBackdrop = false,
     tippyBlueStyle = false,
 }: Props) => {
-    const FIRST_STEP_INDEX = 0;
     const titleId = useId();
-    const arrowRef = useRef<SVGSVGElement>(null);
-    const onJump = (event: React.MouseEvent, jumpToStep: number) => {
-        handleJump?.(event, jumpToStep);
-    };
+    const {formatMessage} = useIntl();
 
     const rootPortal = document.getElementById(ROOT_PORTAL_ID);
     const backdropPortal = rootPortal ?? document.body;
@@ -139,10 +131,6 @@ export const TourTip = ({
             }),
             flip(),
             shift({padding: 8}),
-            arrow({
-                element: arrowRef,
-                padding: 8,
-            }),
         ],
     });
     const {isMounted, styles: transitionStyles} = useTransitionStyles(
@@ -155,110 +143,19 @@ export const TourTip = ({
         transitionStyles.transform,
     ].filter(Boolean).join(' ');
 
-    const dots = [];
-    if (!singleTip && tourSteps) {
-        for (let dot = FIRST_STEP_INDEX; dot < (Object.values(tourSteps).length - 1); dot++) {
-            let className = 'tour-tip__dot';
-            let circularRing = 'tour-tip__dot-ring';
+    const tourStepCount = tourSteps ? Object.values(tourSteps).length - 1 : 0;
+    const showProgress = !singleTip && tourSteps && tourStepCount > 0;
 
-            if (dot === step) {
-                className += ' active';
-                circularRing += ' tour-tip__dot-ring-active';
-            }
-            dots.push(
-                <div className={circularRing}>
-                    <a
-                        href='#'
-                        key={'dotactive' + dot}
-                        className={className}
-                        data-screen={dot}
-                        onClick={(e) => onJump(e, dot)}
-                    />
-                </div>,
-            );
+    const pointerPosition = placementToPointerPosition(resolvedPlacement);
+
+    const invokeMouseHandler = (handler?: (e: React.MouseEvent) => void) => {
+        if (!handler) {
+            return undefined;
         }
-    }
+        return () => handler({} as React.MouseEvent);
+    };
 
-    const content = (
-        <>
-            <div
-                className='tour-tip__header'
-                data-testid={'current_tutorial_tip'}
-            >
-                <h4
-                    id={titleId}
-                    className='tour-tip__header__title'
-                >
-                    {title}
-                </h4>
-                <button
-                    className='btn btn-sm btn-icon'
-                    onClick={handleDismiss}
-                    data-testid={'close_tutorial_tip'}
-                >
-                    <i className='icon icon-close'/>
-                </button>
-            </div>
-            <div className='tour-tip__body'>
-                {screen}
-            </div>
-            {imageURL && (
-                <div className='tour-tip__image'>
-                    <img
-                        src={imageURL}
-                        alt={'tutorial tour tip product image'}
-                    />
-                </div>
-            )}
-            {(nextBtn || prevBtn || showOptOut) && (<div className='tour-tip__footer'>
-                <div className='tour-tip__footer-buttons'>
-                    <div className='tour-tip__dot-ctr'>{dots}</div>
-                    <div className={'tour-tip__btn-ctr'}>
-                        {step !== 0 && prevBtn && (
-                            <Button
-                                id='tipPreviousButton'
-                                emphasis='tertiary'
-                                size='sm'
-                                onClick={handlePrevious}
-                            >
-                                {prevBtn}
-                            </Button>
-                        )}
-                        {nextBtn && (
-                            <Button
-                                id='tipNextButton'
-                                emphasis='primary'
-                                size='sm'
-                                onClick={handleNext}
-                            >
-                                {nextBtn}
-                            </Button>
-                        )}
-                    </div>
-                </div>
-                {showOptOut && (
-                    <div className='tour-tip__opt'>
-                        <FormattedMessage
-                            id='tutorial_tip.seen'
-                            defaultMessage='Seen this before? '
-                        />
-                        <Button
-                            emphasis='link'
-                            variant='inverted'
-                            size='xs'
-                            onClick={handleSkip}
-                        >
-                            <FormattedMessage
-                                id='tutorial_tip.out'
-                                defaultMessage='Opt out of these tips.'
-                            />
-                        </Button>
-                    </div>
-                )}
-            </div>
-            )}
-        </>
-    );
+    const showHostFooter = Boolean((step !== 0 && prevBtn) || showOptOut);
 
     return (
         <>
@@ -290,7 +187,7 @@ export const TourTip = ({
                     <div
                         ref={setFloating}
                         className={classNames(
-                            'tour-tip__box',
+                            'tour-tip__positioner',
                             className,
                             {'tippy-blue-style': tippyBlueStyle},
                         )}
@@ -305,17 +202,67 @@ export const TourTip = ({
                         role='dialog'
                         aria-labelledby={titleId}
                     >
-                        {content}
-                        <FloatingArrow
-                            ref={arrowRef}
-                            context={floatingContext}
-                            className='tour-tip__arrow'
-                            width={OverlayArrow.WIDTH}
-                            height={OverlayArrow.HEIGHT}
-                            fill='var(--button-bg)'
-                            stroke='rgba(var(--center-channel-color-rgb), 0.16)'
-                            strokeWidth={1}
-                        />
+                        <TourPoint
+                            data-testid='current_tutorial_tip'
+                            title={<span id={titleId}>{title}</span>}
+                            pointerPosition={pointerPosition}
+                            showPulsingDot={false}
+                            onClose={invokeMouseHandler(handleDismiss)}
+                            closeLabel={formatMessage({id: 'tutorial_tip.close', defaultMessage: 'Close'})}
+                            closeButtonProps={{'data-testid': 'close_tutorial_tip'}}
+                            media={imageURL ? (
+                                <img
+                                    src={imageURL}
+                                    alt='tutorial tour tip product image'
+                                />
+                            ) : undefined}
+                            progress={showProgress ? {
+                                pages: tourStepCount,
+                                activePage: step + 1,
+                                onPageChange: (page: number) => {
+                                    handleJump?.({} as React.MouseEvent, page - 1);
+                                },
+                            } : undefined}
+                            primaryAction={nextBtn ? {
+                                label: nextBtn,
+                                onClick: invokeMouseHandler(handleNext),
+                            } : undefined}
+                        >
+                            {screen}
+                        </TourPoint>
+                        {showHostFooter && (
+                            <div className='tour-tip__host-footer'>
+                                {step !== 0 && prevBtn && (
+                                    <Button
+                                        id='tipPreviousButton'
+                                        emphasis='tertiary'
+                                        size='sm'
+                                        onClick={handlePrevious}
+                                    >
+                                        {prevBtn}
+                                    </Button>
+                                )}
+                                {showOptOut && (
+                                    <div className='tour-tip__opt'>
+                                        <FormattedMessage
+                                            id='tutorial_tip.seen'
+                                            defaultMessage='Seen this before? '
+                                        />
+                                        <Button
+                                            emphasis='link'
+                                            variant='inverted'
+                                            size='xs'
+                                            onClick={handleSkip}
+                                        >
+                                            <FormattedMessage
+                                                id='tutorial_tip.out'
+                                                defaultMessage='Opt out of these tips.'
+                                            />
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </FloatingPortal>
             )}
