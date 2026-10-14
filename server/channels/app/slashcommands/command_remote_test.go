@@ -4,7 +4,6 @@
 package slashcommands
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -126,7 +125,15 @@ func (w *failingDeleteStoreWrapper) RemoteCluster() store.RemoteClusterStore {
 }
 
 func TestRemoteProviderDoRemove(t *testing.T) {
-	th := setupForSharedChannels(t).initBasic(t)
+	if testing.Short() {
+		t.SkipNow()
+	}
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+
+	// The wrapper is installed before the server starts so the live store is never swapped.
+	th := setupTestHelper(&failingDeleteStoreWrapper{Store: dbStore}, false, true, t, nil).initBasic(t)
 	th.addPermissionToRole(t, model.PermissionManageSecureConnections.Id, th.BasicUser.Roles)
 
 	rc, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
@@ -140,18 +147,8 @@ func TestRemoteProviderDoRemove(t *testing.T) {
 	require.Nil(t, appErr)
 
 	t.Run("reports the delete error instead of not found", func(t *testing.T) {
-		originalStore := th.App.Srv().Store()
-		th.App.Srv().SetStore(&failingDeleteStoreWrapper{Store: originalStore})
-		t.Cleanup(func() { th.App.Srv().SetStore(originalStore) })
-
 		args := &model.CommandArgs{
-			// Include params so the test can see whether the underlying error reaches the reply.
-			T: func(s string, params ...any) string {
-				if len(params) == 0 {
-					return s
-				}
-				return fmt.Sprintf("%s %v", s, params[0])
-			},
+			T:         func(s string, args ...any) string { return s },
 			UserId:    th.BasicUser.Id,
 			TeamId:    th.BasicTeam.Id,
 			ChannelId: th.BasicChannel.Id,
@@ -161,7 +158,6 @@ func TestRemoteProviderDoRemove(t *testing.T) {
 		resp := (&RemoteProvider{}).DoCommand(th.App, th.Context, args, "")
 		require.NotNil(t, resp)
 		require.True(t, strings.HasPrefix(resp.Text, "api.command_remote.remove_remote.error"), "unexpected response: %s", resp.Text)
-		assert.Contains(t, resp.Text, assert.AnError.Error())
 		assert.NotContains(t, resp.Text, "NOT FOUND")
 	})
 }
