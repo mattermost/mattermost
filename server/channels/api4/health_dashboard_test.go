@@ -207,6 +207,8 @@ func TestGetHealthFindingsRendering(t *testing.T) {
 			assert.Empty(t, f.Title)
 			assert.Empty(t, f.Remediation)
 			assert.Empty(t, f.Message)
+			assert.Empty(t, f.DocsURL)
+			assert.Empty(t, f.ConsolePath)
 		}
 	})
 
@@ -222,6 +224,8 @@ func TestGetHealthFindingsRendering(t *testing.T) {
 		assert.Equal(t, "Serve via HTTPS and update SiteURL accordingly.", rendered.Remediation)
 		assert.Equal(t, "SiteURL is http://example.com. Session cookies and auth tokens traverse cleartext.", rendered.Message)
 		assert.Equal(t, finding.MessageID, rendered.MessageID)
+		assert.Equal(t, "https://mattermost.com/pl/configure-site-url", rendered.DocsURL)
+		assert.Equal(t, "/admin_console/environment/web_server", rendered.ConsolePath)
 	})
 
 	t.Run("untranslated locale falls back to English", func(t *testing.T) {
