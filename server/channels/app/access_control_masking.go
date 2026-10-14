@@ -203,11 +203,14 @@ func (a *App) holdingsFieldFor(rctx request.CTX, groupID, objectType, fieldName 
 }
 
 // effectiveAccessModeUsing is model.EffectiveAccessMode, reading a linked
-// field's template via getTemplate and falling back to the field's own mode
-// when that read fails. Shared by callers that read the template through
-// different paths: the hook-mediated property service (effectiveAccessMode)
-// and the direct store read GetAccessControlPolicyAttributes uses to bypass
-// those hooks.
+// field's template via getTemplate. Shared by callers that read the template
+// through different paths: the hook-mediated property service
+// (effectiveAccessMode) and the direct store read
+// GetAccessControlPolicyAttributes uses to bypass those hooks.
+//
+// A linked field whose template can't be read is reported masked. Its own
+// mode would usually say public, since a linked field never carries masking
+// of its own, and these callers decide from the answer which values to strip.
 //
 // A field that could hold a permissions object and does not is reported
 // masked rather than public. The backfill fills one in for every PSAv2/v3
@@ -226,9 +229,11 @@ func effectiveAccessModeUsing(field *model.PropertyField, getTemplate func(id st
 	}
 	var template *model.PropertyField
 	if field.Permissions.Masking == nil && field.LinkSourceID() != "" {
-		if t, err := getTemplate(field.LinkSourceID()); err == nil {
-			template = t
+		t, err := getTemplate(field.LinkSourceID())
+		if err != nil || t == nil {
+			return model.PropertyAccessModeSharedOnly
 		}
+		template = t
 	}
 	return model.EffectiveAccessMode(field, template)
 }
