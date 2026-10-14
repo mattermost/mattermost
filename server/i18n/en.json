@@ -11351,6 +11351,11 @@
     "description": "API error when a request tries to replace the whole option list of a property field that has too many options to be loaded at once. {{.Max}} is that option count limit."
   },
   {
+    "id": "app.property_field.update.permissions_with_legacy_keys.app_error",
+    "translation": "Cannot change this field's permissions and its permission levels, owners, access mode, protected or sync settings in the same update. Send the change in one form or the other.",
+    "description": "API error when one update to a property field both changes its permissions object and changes one of the older permission settings (permission levels, owners, access mode, protected, or LDAP/SAML sync attributes). The caller must send the change using only one of the two forms."
+  },
+  {
     "id": "app.property_field.update.protected.app_error",
     "translation": "Cannot update a protected property field.",
     "description": "API error returned when a request tries to modify a property field that is marked protected (system-managed) and cannot be edited."
