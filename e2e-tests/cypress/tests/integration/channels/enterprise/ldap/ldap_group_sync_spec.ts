@@ -218,7 +218,7 @@ context('ldap', () => {
 
             // * Ensure it still public
             cy.findByTestId('allow-all-toggle').within(() => {
-                cy.findByText('Public').should('be.visible');
+                cy.findByText('Public channel or private channel').should('be.visible');
             });
             cy.findByTestId('allow-all-toggle-button').should('be.checked');
 
@@ -233,7 +233,7 @@ context('ldap', () => {
 
             // * Ensure it is Private
             cy.findByTestId('allow-all-toggle').within(() => {
-                cy.findByText('Private').should('be.visible');
+                cy.findByText('Public channel or private channel').should('be.visible');
             });
             cy.findByTestId('allow-all-toggle-button').should('not.be.checked');
 
@@ -274,7 +274,7 @@ context('ldap', () => {
                 // Make it public and save
                 // * Ensure it still showing the channel as private
                 cy.findByTestId('allow-all-toggle').within(() => {
-                    cy.findByText('Private').should('be.visible');
+                    cy.findByText('Public channel or private channel').should('be.visible');
                 });
                 cy.findByTestId('allow-all-toggle-button').should('not.be.checked').click({force: true});
                 cy.get('#saveSetting').should('be.enabled').click();
@@ -287,7 +287,7 @@ context('ldap', () => {
 
                 // * Ensure it is showing the channel as public
                 cy.findByTestId('allow-all-toggle').within(() => {
-                    cy.findByText('Public').should('be.visible');
+                    cy.findByText('Public channel or private channel').should('be.visible');
                 });
                 cy.findByTestId('allow-all-toggle-button').should('be.checked');
 

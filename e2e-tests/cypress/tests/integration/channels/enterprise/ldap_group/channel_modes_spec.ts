@@ -60,13 +60,13 @@ describe('LDAP Group Sync - Test channel public/private toggle', () => {
             cy.findByTestId('syncGroupSwitch-button').click({force: true});
             cy.findByTestId('syncGroupSwitch-button').click({force: true});
             cy.findByTestId('allow-all-toggle').within(() => {
-                cy.findByText('Public').should('be.visible');
+                cy.findByText('Public channel or private channel').should('be.visible');
             });
             cy.findByTestId('allow-all-toggle-button').should('be.checked').click({force: true});
             cy.findByTestId('syncGroupSwitch-button').click({force: true});
             cy.findByTestId('syncGroupSwitch-button').click({force: true});
             cy.findByTestId('allow-all-toggle').within(() => {
-                cy.findByText('Private').should('be.visible');
+                cy.findByText('Public channel or private channel').should('be.visible');
             });
             cy.findByTestId('allow-all-toggle-button').should('not.be.checked');
         });
@@ -83,7 +83,7 @@ describe('LDAP Group Sync - Test channel public/private toggle', () => {
                     cy.findByTestId('syncGroupSwitch-button').should('be.disabled');
                 });
                 cy.findByTestId('allow-all-toggle').within(() => {
-                    cy.findByText('Public').should('be.visible');
+                    cy.findByText('Public channel or private channel').should('be.visible');
                     cy.findByTestId('allow-all-toggle-button').should('be.disabled');
                 });
             });

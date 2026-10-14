@@ -65,6 +65,9 @@ const AllowAllToggle = (props: Props): JSX.Element | null => {
     if (isSynced) {
         return null;
     }
+    // Static title + checked=public / unchecked=private. Compass Switch already
+    // exposes role="switch" and aria-checked, so AT hears the name with on/off
+    // state (public when checked, private when not).
     return (
         <AdminSettingsSwitch
             id='allow-all-toggle'
@@ -90,17 +93,10 @@ const AllowAllToggle = (props: Props): JSX.Element | null => {
                 />
             )}
         >
-            {isPublic ? (
-                <FormattedMessage
-                    id='channel_toggle_button.public'
-                    defaultMessage='Public'
-                />
-            ) : (
-                <FormattedMessage
-                    id='channel_toggle_button.private'
-                    defaultMessage='Private'
-                />
-            )}
+            <FormattedMessage
+                id='admin.channel_settings.channel_details.isPublic'
+                defaultMessage='Public channel or private channel'
+            />
         </AdminSettingsSwitch>
     );
 };

@@ -39,7 +39,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelModes should match s
               <span
                 class="_switch__label_1hx2q_33"
               >
-                Public
+                Public channel or private channel
               </span>
               <span
                 class="_switch__secondary-label_1hx2q_16"
@@ -178,7 +178,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelModes should match s
               <span
                 class="_switch__label_1hx2q_33"
               >
-                Public
+                Public channel or private channel
               </span>
               <span
                 class="_switch__secondary-label_1hx2q_16"
