@@ -14578,7 +14578,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Неверный режим веб-сервера {{.Value}}. Должно быть 'gzip', 'nogzip' или 'disabled'."
+    "translation": "Неверный режим веб-сервера {{.Value}}. Должно быть 'gzip', 'uncompressed' или 'disabled'."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",

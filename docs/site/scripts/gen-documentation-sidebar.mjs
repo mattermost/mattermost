@@ -496,6 +496,7 @@ const ADMIN_MANAGE_GROUPS = {
       {label: 'Attribute-based access control', landing: 'admin/attribute-based-access-control', items: [
         'admin/attribute-management',
         'admin/user-attributes',
+        'admin/channel-attributes',
         'admin/abac-system-wide-policies',
         'admin/abac-team-membership',
         'admin/abac-team-channel-policies',
@@ -565,7 +566,7 @@ const ADMIN_MANAGE_ORDER = [
 
 const ADMIN_MANAGE_HIDDEN = new Set([
   'admin/server-maintenance',
-  'admin/user-management', 'admin/attribute-management', 'admin/user-attributes', 'team-channel-members',
+  'admin/user-management', 'admin/attribute-management', 'admin/user-attributes', 'admin/channel-attributes', 'team-channel-members',
   'admin/attribute-based-access-control', 'admin/abac-system-wide-policies',
   'admin/abac-team-channel-policies', 'admin/abac-team-membership', 'admin/abac-channel-access-rules',
   'admin/session-attributes',

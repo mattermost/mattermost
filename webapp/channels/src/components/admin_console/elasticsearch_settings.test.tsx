@@ -34,6 +34,7 @@ describe('components/ElasticSearchSettings', () => {
                 EnableSearching: false,
                 EnableAutocomplete: false,
                 EnableSearchPublicChannelsWithoutMembership: false,
+                EnableFileIndexing: true,
                 IgnoredPurgeIndexes: '',
             },
         };
@@ -62,6 +63,7 @@ describe('components/ElasticSearchSettings', () => {
                 EnableSearching: false,
                 EnableAutocomplete: false,
                 EnableSearchPublicChannelsWithoutMembership: false,
+                EnableFileIndexing: true,
                 IgnoredPurgeIndexes: '',
             },
         };
@@ -90,6 +92,7 @@ describe('components/ElasticSearchSettings', () => {
                 EnableSearching: false,
                 EnableAutocomplete: false,
                 EnableSearchPublicChannelsWithoutMembership: false,
+                EnableFileIndexing: true,
                 IgnoredPurgeIndexes: '',
             },
         };
@@ -118,6 +121,7 @@ describe('components/ElasticSearchSettings', () => {
                 EnableSearching: false,
                 EnableAutocomplete: false,
                 EnableSearchPublicChannelsWithoutMembership: false,
+                EnableFileIndexing: true,
                 IgnoredPurgeIndexes: '',
             },
         };
@@ -146,6 +150,7 @@ describe('components/ElasticSearchSettings', () => {
                 EnableSearching: false,
                 EnableAutocomplete: false,
                 EnableSearchPublicChannelsWithoutMembership: false,
+                EnableFileIndexing: true,
                 IgnoredPurgeIndexes: '',
             },
         };
@@ -174,6 +179,7 @@ describe('components/ElasticSearchSettings', () => {
                 EnableSearching: false,
                 EnableAutocomplete: false,
                 EnableSearchPublicChannelsWithoutMembership: false,
+                EnableFileIndexing: true,
                 IgnoredPurgeIndexes: '',
             },
         };
