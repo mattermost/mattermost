@@ -1224,15 +1224,15 @@
     "translation": "Error obteniendo el token de acceso desde la BD antes de ser eliminado."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "El registro de usuario está inhabilitado."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "El enlace de registro ha expirado."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "El enlace de registro parece ser inválido."
   },
   {
@@ -3092,11 +3092,11 @@
     "translation": "No se puede establecer el estado al trabajo de error"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "No se pudo analizar el URL."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "No se pudo obtener los canales."
   },
   {
@@ -7956,7 +7956,7 @@
     "translation": "No se pudo obtener todos los jobs por tipo y estado."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "La versión del complemento preempaquetado no pudo ser analizado."
   },
   {
@@ -11417,11 +11417,11 @@
     "translation": "Error al eliminar el mensaje de notificación persistente"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "No se pudo obtener la prioridad del mensaje"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "No se pudo obtener la prioridad del mensaje con contexto"
   },
   {

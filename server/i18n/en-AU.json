@@ -2792,11 +2792,11 @@
     "translation": "Mattermost Security Bulletin"
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Unable to get channels."
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Unable to parse URL."
   },
   {
@@ -4968,15 +4968,15 @@
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "The sign-up link does not appear to be valid."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "The sign-up link has expired."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "User sign-up is disabled."
   },
   {
@@ -8034,7 +8034,7 @@
     "translation": "Unable to get the all jobs by type and status."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "A prepackged plugin version could not be parsed."
   },
   {
@@ -8290,7 +8290,7 @@
     "translation": "Invalid post ID."
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Unable to get post priority for post"
   },
   {
@@ -12962,7 +12962,7 @@
     "translation": "Unable to get the posts for the view."
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Unable to get postpriority for post with context"
   },
   {
