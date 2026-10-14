@@ -261,19 +261,18 @@ func validateLinkedFieldOptionReadCeiling(caller string, field, template *model.
 // view by writing their holdings. It shares holdingsFieldIDFor with
 // resolveFieldMasking so the write gate and the read filter cannot drift.
 //
-// A nil field.Permissions is safe and skipped: on update, updatePropertyFields
-// copies the stored permissions forward when none was submitted, so value.write
-// cannot have changed; on create, a field with none is defaulted from legacy
-// settings, which never yield a self-writable holdings field.
+// A nil field.Permissions carries no value.write tier, so it is skipped. On
+// update, updatePropertyFields passes a nil through to the store, which clears
+// the typed permissions object rather than keeping the stored one; on create, a
+// field with none is defaulted from legacy settings, which never yield a
+// self-writable holdings field.
+//
+// validateDependentSelfWritableHoldings applies the same rule from the
+// template's side, when masking is added to a template that already has
+// linked fields.
 func refuseSelfWritableHoldings(caller string, field, template *model.PropertyField) error {
-	if field.Permissions == nil || template == nil || template.Permissions == nil || template.Permissions.Masking == nil {
-		return nil
-	}
-	if holdingsFieldIDFor(field, template.Permissions.Masking) != field.ID {
-		return nil
-	}
-	w := field.Permissions.Restrictions.TierFor(model.PropertyActionValueWrite)
-	if w != model.PermissionLevelMember && w != model.PermissionLevelEveryone {
+	w, selfWritable := selfWritableHoldingsTier(field, template)
+	if !selfWritable {
 		return nil
 	}
 	return model.NewAppError(
@@ -283,6 +282,74 @@ func refuseSelfWritableHoldings(caller string, field, template *model.PropertyFi
 		fmt.Sprintf("field %q is its masked template's holdings source, so its value.write may not be %q", field.ID, w),
 		http.StatusBadRequest,
 	)
+}
+
+// selfWritableHoldingsTier reports whether template's masking reads field's
+// holdings from field itself while field's own value.write admits member or
+// everyone, and if so which of the two it admits.
+func selfWritableHoldingsTier(field, template *model.PropertyField) (model.PermissionLevel, bool) {
+	if field.Permissions == nil || template == nil || template.Permissions == nil || template.Permissions.Masking == nil {
+		return "", false
+	}
+	if holdingsFieldIDFor(field, template.Permissions.Masking) != field.ID {
+		return "", false
+	}
+	w := field.Permissions.Restrictions.TierFor(model.PropertyActionValueWrite)
+	if w != model.PermissionLevelMember && w != model.PermissionLevelEveryone {
+		return "", false
+	}
+	return w, true
+}
+
+// validateDependentSelfWritableHoldings refuses a template update that adds
+// masking, or changes the field its mask_by_field_id names, while a field
+// linked to it would then be its own holdings source and writable by member
+// or everyone. refuseSelfWritableHoldings holds a linked field to the rule
+// whenever that field is written, but a template that gains masking later
+// would otherwise put an already-writable dependent under it unchecked.
+//
+// An unchanged masking needs no check: each dependent was already held to it
+// when it was written. incoming holds every field in the same
+// UpdatePropertyFields call, keyed by ID, so a dependent this same call also
+// updates is judged as the call leaves it, as in
+// validateDependentOptionReadCeilings.
+func (ps *PropertyService) validateDependentSelfWritableHoldings(field, existing *model.PropertyField, incoming map[string]*model.PropertyField) error {
+	if field.Permissions == nil || field.Permissions.Masking == nil {
+		return nil
+	}
+	if existing.Permissions != nil && existing.Permissions.Masking != nil &&
+		existing.Permissions.Masking.MaskByFieldID == field.Permissions.Masking.MaskByFieldID {
+		return nil
+	}
+
+	dependents, err := ps.fieldStore.GetLinkedFields([]string{field.ID}, nil)
+	if err != nil {
+		return fmt.Errorf("failed to get linked fields for self-writable holdings check: %w", err)
+	}
+
+	for _, dependent := range dependents {
+		if inc, ok := incoming[dependent.ID]; ok {
+			// A dependent this same call unlinks is no longer masked by this
+			// template. Both nil and "" mean unlinked here, for the same
+			// reason as in validateDependentOptionReadCeilings.
+			if inc.LinkedFieldID == nil || *inc.LinkedFieldID == "" {
+				continue
+			}
+			dependent = inc
+		}
+
+		if w, selfWritable := selfWritableHoldingsTier(dependent, field); selfWritable {
+			return model.NewAppError(
+				"UpdatePropertyFields",
+				"app.property_field.update.self_writable_holdings_dependents.app_error",
+				map[string]any{"DependentID": dependent.ID, "ValueWrite": string(w)},
+				fmt.Sprintf("linked field %q would be its own holdings source under this masking, but its value.write is %q", dependent.ID, w),
+				http.StatusConflict,
+			)
+		}
+	}
+
+	return nil
 }
 
 // templateNamesHoldingsField reports whether template's masking names fieldID
@@ -735,6 +802,13 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 		// field's own option.read below what a field linked to it already
 		// sits at is the same breach reached from the other direction.
 		if err := ps.validateDependentOptionReadCeilings(field, existing, incoming); err != nil {
+			return nil, nil, nil, err
+		}
+
+		// Likewise for the self-writable holdings rule: a template gaining
+		// masking must not put a dependent that members can already write
+		// under it.
+		if err := ps.validateDependentSelfWritableHoldings(field, existing, incoming); err != nil {
 			return nil, nil, nil, err
 		}
 
