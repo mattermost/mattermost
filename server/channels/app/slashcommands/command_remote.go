@@ -202,14 +202,14 @@ func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs ma
 
 // doRemove removes a remote cluster from the database, effectively revoking the trust relationship.
 func (rp *RemoteProvider) doRemove(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
-	id, ok := margs["connectionID"]
-	if !ok {
-		return response(args.T("api.command_remote.missing_empty", map[string]any{"Arg": "remoteId"}))
+	id := margs["connectionID"]
+	if id == "" {
+		return response(args.T("api.command_remote.missing_empty", map[string]any{"Arg": "connectionID"}))
 	}
 
 	deleted, err := a.DeleteRemoteCluster(id)
 	if err != nil {
-		response(args.T("api.command_remote.remove_remote.error", map[string]any{"Error": err.Error()}))
+		return response(args.T("api.command_remote.remove_remote.error", map[string]any{"Error": err.Error()}))
 	}
 
 	result := "removed"
