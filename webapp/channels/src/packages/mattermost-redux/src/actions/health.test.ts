@@ -48,6 +48,7 @@ describe('Actions.Health', () => {
         const list = {evaluated_at: 5000, findings: [finding]};
         nock(Client4.getBaseRoute()).
             get('/health/findings').
+            query({muted: 'included'}).
             reply(200, list);
 
         const result = await store.dispatch(Actions.getHealthFindings());
@@ -71,11 +72,105 @@ describe('Actions.Health', () => {
     test('getHealthFindings returns the error and keeps the store unchanged on failure', async () => {
         nock(Client4.getBaseRoute()).
             get('/health/findings').
+            query({muted: 'included'}).
             reply(403, {message: 'forbidden', status_code: 403});
 
         const result = await store.dispatch(Actions.getHealthFindings());
 
         expect(result.error).toBeDefined();
         expect(store.getState().entities.health).toEqual({findings: {}, evaluatedAt: 0});
+    });
+
+    describe('mute and unmute', () => {
+        const muted: HealthFinding = {...finding, muted_at: 4000, muted_by: 'admin2'};
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        function storeWith(stored: HealthFinding) {
+            return configureStore({
+                entities: {
+                    users: {currentUserId: 'admin1'},
+                    health: {findings: {[stored.fingerprint]: stored}, evaluatedAt: 5000},
+                },
+            });
+        }
+
+        function stored(s: ReturnType<typeof configureStore>) {
+            return s.getState().entities.health.findings[finding.fingerprint];
+        }
+
+        test('muteHealthFinding marks the finding muted by the current user before the server answers', async () => {
+            jest.spyOn(Date, 'now').mockReturnValue(6000);
+            store = storeWith(finding);
+            nock(Client4.getBaseRoute()).
+                post(`/health/findings/${finding.fingerprint}/mute`).
+                reply(200, {status: 'OK'});
+
+            const pending = store.dispatch(Actions.muteHealthFinding(finding.fingerprint));
+            expect(stored(store)).toEqual({...finding, muted_at: 6000, muted_by: 'admin1'});
+
+            expect(await pending).toEqual({data: true});
+            expect(stored(store)).toEqual({...finding, muted_at: 6000, muted_by: 'admin1'});
+        });
+
+        test('muteHealthFinding restores the unmuted finding and returns the error when the request fails', async () => {
+            store = storeWith(finding);
+            nock(Client4.getBaseRoute()).
+                post(`/health/findings/${finding.fingerprint}/mute`).
+                reply(500, {message: 'failed', status_code: 500});
+
+            const pending = store.dispatch(Actions.muteHealthFinding(finding.fingerprint));
+            expect(stored(store).muted_at).toBeDefined();
+
+            const result = await pending;
+            expect(result.error).toBeDefined();
+            expect(stored(store)).toEqual(finding);
+        });
+
+        test('unmuteHealthFinding clears the mute before the server answers', async () => {
+            store = storeWith(muted);
+            nock(Client4.getBaseRoute()).
+                delete(`/health/findings/${finding.fingerprint}/mute`).
+                reply(200, {status: 'OK'});
+
+            const pending = store.dispatch(Actions.unmuteHealthFinding(finding.fingerprint));
+            expect(stored(store).muted_at).toBeUndefined();
+            expect(stored(store).muted_by).toBeUndefined();
+
+            expect(await pending).toEqual({data: true});
+            expect(stored(store).muted_at).toBeUndefined();
+        });
+
+        test('a failed request does not undo a later mute or unmute of the same finding', async () => {
+            store = storeWith(muted);
+            nock(Client4.getBaseRoute()).
+                delete(`/health/findings/${finding.fingerprint}/mute`).
+                delay(50).
+                reply(500, {message: 'failed', status_code: 500});
+            nock(Client4.getBaseRoute()).
+                post(`/health/findings/${finding.fingerprint}/mute`).
+                reply(200, {status: 'OK'});
+
+            jest.spyOn(Date, 'now').mockReturnValue(7000);
+            const unmute = store.dispatch(Actions.unmuteHealthFinding(finding.fingerprint));
+            await store.dispatch(Actions.muteHealthFinding(finding.fingerprint));
+
+            expect((await unmute).error).toBeDefined();
+            expect(stored(store)).toEqual({...finding, muted_at: 7000, muted_by: 'admin1'});
+        });
+
+        test('unmuteHealthFinding restores the mute and returns the error when the request fails', async () => {
+            store = storeWith(muted);
+            nock(Client4.getBaseRoute()).
+                delete(`/health/findings/${finding.fingerprint}/mute`).
+                reply(403, {message: 'forbidden', status_code: 403});
+
+            const result = await store.dispatch(Actions.unmuteHealthFinding(finding.fingerprint));
+
+            expect(result.error).toBeDefined();
+            expect(stored(store)).toEqual(muted);
+        });
     });
 });

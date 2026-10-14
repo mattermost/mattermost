@@ -23,7 +23,7 @@ type Props = RowState & {
     expandAll: boolean;
 };
 
-const AreaAccordion = ({area, findings, expandAll, now, expanded, onToggle}: Props) => {
+const AreaAccordion = ({area, findings, expandAll, now, expanded, onToggle, onMute, onUnmute}: Props) => {
     const panelId = useId();
     const counts = countHealthFindingsByTab(findings, now);
     const [open, setOpen] = useState(expandAll || counts.critical > 0);
@@ -94,6 +94,8 @@ const AreaAccordion = ({area, findings, expandAll, now, expanded, onToggle}: Pro
                         now={now}
                         expanded={expanded === finding.fingerprint}
                         onToggle={onToggle}
+                        onMute={onMute}
+                        onUnmute={onUnmute}
                         hideArea={true}
                     />
                 ))}

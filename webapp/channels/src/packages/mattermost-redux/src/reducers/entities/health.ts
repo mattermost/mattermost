@@ -3,7 +3,7 @@
 
 import {combineReducers} from 'redux';
 
-import type {HealthFindingList, HealthState} from '@mattermost/types/health';
+import type {HealthFinding, HealthFindingList, HealthState} from '@mattermost/types/health';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {HealthTypes, UserTypes} from 'mattermost-redux/action_types';
@@ -17,6 +17,10 @@ function findings(state: HealthState['findings'] = {}, action: MMReduxAction): H
             next[finding.fingerprint] = finding;
         }
         return next;
+    }
+    case HealthTypes.RECEIVED_HEALTH_FINDING: {
+        const finding = action.data as HealthFinding;
+        return {...state, [finding.fingerprint]: finding};
     }
     case UserTypes.LOGOUT_SUCCESS:
         return {};

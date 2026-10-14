@@ -96,6 +96,60 @@
         font-size: 11px;
     }
 
+    &__mutedToggle {
+        display: inline-flex;
+        height: 36px;
+        align-items: center;
+        padding: 0 14px;
+        border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
+        border-radius: var(--radius-s);
+        margin-left: auto;
+        background: var(--sys-center-channel-bg);
+        color: rgba(var(--sys-center-channel-color-rgb), 0.72);
+        font-size: 13px;
+        font-weight: 600;
+        gap: 6px;
+        transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+
+        &:hover {
+            background: rgba(var(--sys-center-channel-color-rgb), 0.04);
+            color: var(--sys-center-channel-color);
+        }
+
+        &--active,
+        &--active:hover {
+            border-color: var(--sys-button-bg);
+            background: rgba(var(--sys-button-bg-rgb), 0.06);
+            color: var(--sys-button-bg);
+        }
+    }
+
+    &__mutedToggle--active &__tabCount {
+        background: rgba(var(--sys-button-bg-rgb), 0.16);
+    }
+
+    &__muteError {
+        margin-bottom: 16px;
+    }
+
+    &__mutedNote {
+        display: flex;
+        align-items: flex-start;
+        padding: 11px 14px;
+        border-radius: var(--radius-m);
+        margin: 0 0 14px;
+        background: rgba(var(--sys-center-channel-color-rgb), 0.04);
+        color: rgba(var(--sys-center-channel-color-rgb), 0.72);
+        font-size: 13px;
+        gap: 8px;
+        line-height: 19px;
+
+        svg {
+            flex-shrink: 0;
+            color: rgba(var(--sys-center-channel-color-rgb), 0.56);
+        }
+    }
+
     &__groupBy {
         display: flex;
         align-items: center;
@@ -297,15 +351,29 @@
         box-shadow: var(--elevation-2);
     }
 
+    &--muted {
+        border-left-color: rgba(var(--sys-center-channel-color-rgb), 0.24);
+    }
+
+    &--muted &__header {
+        opacity: 0.72;
+    }
+
     &--expanded {
         border-color: var(--sys-button-bg);
         border-left-color: var(--health-tone);
         box-shadow: 0 0 0 1px var(--sys-button-bg), var(--elevation-2);
     }
 
+    &__summary {
+        display: flex;
+        align-items: flex-start;
+    }
+
     &__header {
         display: flex;
-        width: 100%;
+        min-width: 0;
+        flex: 1;
         align-items: flex-start;
         padding: 16px;
         border: none;
@@ -380,9 +448,31 @@
         gap: 5px;
     }
 
+    // Inline, not flex: react-intl wraps the sentence in a span, so this sits in a line of text.
+    &__mutedBy {
+        color: rgba(var(--sys-center-channel-color-rgb), 0.88);
+        font-weight: 600;
+
+        .Avatar {
+            margin-right: 4px;
+            vertical-align: text-bottom;
+        }
+    }
+
     &__chevron {
         flex-shrink: 0;
         color: rgba(var(--sys-center-channel-color-rgb), 0.56);
+    }
+
+    &__action:not(:empty) {
+        flex-shrink: 0;
+        padding: 12px 16px 0 0;
+    }
+
+    &__muteButton {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
     }
 
     &__detail {

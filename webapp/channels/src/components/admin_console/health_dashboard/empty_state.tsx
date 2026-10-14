@@ -50,10 +50,33 @@ const bodies: Record<HealthFindingTab, MessageDescriptor> = {
     unknown: defineMessage({id: 'admin.health_dashboard.empty_tab.unknown_body', defaultMessage: 'Checks that cannot run are listed here as unknown, never as healthy.'}),
 };
 
-export const TabEmptyState = ({tab}: {tab: HealthFindingTab}) => (
-    <EmptyState
-        icon={true}
-        title={<FormattedMessage {...titles[tab]}/>}
-        body={<FormattedMessage {...bodies[tab]}/>}
-    />
-);
+// Muted findings are still there, so a tab emptied by muting must not read as all clear.
+export const TabEmptyState = ({tab, muted}: {tab: HealthFindingTab; muted: number}) => {
+    if (muted > 0) {
+        return (
+            <EmptyState
+                title={
+                    <FormattedMessage
+                        id='admin.health_dashboard.empty_tab.muted_title'
+                        defaultMessage='{count, plural, one {# finding here is muted} other {# findings here are muted}}'
+                        values={{count: muted}}
+                    />
+                }
+                body={
+                    <FormattedMessage
+                        id='admin.health_dashboard.empty_tab.muted_body'
+                        defaultMessage='Muted findings are still checked but hidden from this list. Open Muted to review or unmute them.'
+                    />
+                }
+            />
+        );
+    }
+
+    return (
+        <EmptyState
+            icon={true}
+            title={<FormattedMessage {...titles[tab]}/>}
+            body={<FormattedMessage {...bodies[tab]}/>}
+        />
+    );
+};

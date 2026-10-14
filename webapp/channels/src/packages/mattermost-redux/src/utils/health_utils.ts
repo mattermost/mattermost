@@ -25,6 +25,14 @@ export function compareHealthFindings(a: HealthFinding, b: HealthFinding) {
         a.scope.localeCompare(b.scope);
 }
 
+export function isHealthFindingMuted(finding: HealthFinding) {
+    return Boolean(finding.muted_at);
+}
+
+export function isHealthFindingOpen(finding: HealthFinding) {
+    return finding.state === 'firing' || finding.state === 'unknown';
+}
+
 // A check that passed on its first run is stored as resolved without ever having changed state.
 export function isRecentlyResolved(finding: HealthFinding, now: number) {
     return finding.state === 'resolved' &&
@@ -39,7 +47,7 @@ export function getHealthFindingSection(finding: HealthFinding): HealthFindingSe
 export function isInHealthFindingTab(finding: HealthFinding, tab: HealthFindingTab, now: number) {
     switch (tab) {
     case 'open':
-        return finding.state === 'firing' || finding.state === 'unknown';
+        return isHealthFindingOpen(finding);
     case 'resolved':
         return isRecentlyResolved(finding, now);
     case 'unknown':
