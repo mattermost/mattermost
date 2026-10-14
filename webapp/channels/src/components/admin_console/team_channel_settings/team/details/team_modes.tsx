@@ -18,12 +18,12 @@ type Props = {
     isDisabled?: boolean;
 };
 
-const SyncGroupsToggle = ({syncChecked, allAllowedChecked, allowedDomainsChecked, allowedDomains, onToggle, isDisabled}: Props) => (
+const SyncGroupsToggle = ({syncChecked, allAllowedChecked, allowedDomainsChecked, allowedDomains, onToggle, isDisabled, last}: Props & {last?: boolean}) => (
     <AdminSettingsSwitch
         id='syncGroupSwitch'
         disabled={isDisabled}
         checked={syncChecked}
-        last={syncChecked}
+        last={last}
         onChange={() => onToggle(!syncChecked, allAllowedChecked, allowedDomainsChecked, allowedDomains)}
         secondaryLabel={(
             <FormattedMessage
@@ -126,8 +126,8 @@ const PolicyEnforceToggle = ({syncChecked, policyEnforced, policyEnforcedToggleA
         disabled={isDisabled || syncChecked || !policyEnforcedToggleAvailable}
         checked={policyEnforced}
 
-        // The email-domains row renders after this one unless group sync hides it,
-        // in which case this is the last row.
+        // Email-domains (and anyone-can-join) hide when synced; this row stays
+        // visible (disabled) and is then the last row.
         last={syncChecked}
         onChange={() => {
             if (syncChecked || !policyEnforcedToggleAvailable) {
@@ -162,16 +162,32 @@ type TeamModesProps = Props & {
     onPolicyEnforcedToggle?: (policyEnforced: boolean) => void;
 };
 
-export const TeamModes = ({allAllowedChecked, syncChecked, allowedDomains, allowedDomainsChecked, onToggle, isDisabled, isLicensedForLDAPGroups, abacSupported, policyEnforced, policyEnforcedToggleAvailable, onPolicyEnforcedToggle}: TeamModesProps) => (
-    <AdminPanel
-        id='team_manage'
-        title={defineMessage({id: 'admin.team_settings.team_detail.manageTitle', defaultMessage: 'Team Management'})}
-        subtitle={defineMessage({id: 'admin.team_settings.team_detail.manageDescription', defaultMessage: 'Choose between inviting members manually or syncing members automatically from groups.'})}
-    >
-        <div className='group-teams-and-channels'>
-            <div className='group-teams-and-channels--body'>
-                {isLicensedForLDAPGroups && !policyEnforced &&
-                    <SyncGroupsToggle
+export const TeamModes = ({allAllowedChecked, syncChecked, allowedDomains, allowedDomainsChecked, onToggle, isDisabled, isLicensedForLDAPGroups, abacSupported, policyEnforced, policyEnforcedToggleAvailable, onPolicyEnforcedToggle}: TeamModesProps) => {
+    // Omit the Sync row separator only when nothing else in this panel is
+    // visible. ABAC still renders (disabled) while synced, so sync-on alone
+    // must not set last.
+    const syncIsLastVisible = Boolean(syncChecked && !abacSupported);
+
+    return (
+        <AdminPanel
+            id='team_manage'
+            title={defineMessage({id: 'admin.team_settings.team_detail.manageTitle', defaultMessage: 'Team Management'})}
+            subtitle={defineMessage({id: 'admin.team_settings.team_detail.manageDescription', defaultMessage: 'Choose between inviting members manually or syncing members automatically from groups.'})}
+        >
+            <div className='group-teams-and-channels'>
+                <div className='group-teams-and-channels--body'>
+                    {isLicensedForLDAPGroups && !policyEnforced &&
+                        <SyncGroupsToggle
+                            allAllowedChecked={allAllowedChecked}
+                            allowedDomainsChecked={allowedDomainsChecked}
+                            allowedDomains={allowedDomains}
+                            syncChecked={syncChecked}
+                            onToggle={onToggle}
+                            isDisabled={isDisabled}
+                            last={syncIsLastVisible}
+                        />
+                    }
+                    <AllowAllToggle
                         allAllowedChecked={allAllowedChecked}
                         allowedDomainsChecked={allowedDomainsChecked}
                         allowedDomains={allowedDomains}
@@ -179,32 +195,25 @@ export const TeamModes = ({allAllowedChecked, syncChecked, allowedDomains, allow
                         onToggle={onToggle}
                         isDisabled={isDisabled}
                     />
-                }
-                <AllowAllToggle
-                    allAllowedChecked={allAllowedChecked}
-                    allowedDomainsChecked={allowedDomainsChecked}
-                    allowedDomains={allowedDomains}
-                    syncChecked={syncChecked}
-                    onToggle={onToggle}
-                    isDisabled={isDisabled}
-                />
-                {abacSupported &&
-                    <PolicyEnforceToggle
+                    {abacSupported &&
+                        <PolicyEnforceToggle
+                            syncChecked={syncChecked}
+                            policyEnforced={Boolean(policyEnforced)}
+                            policyEnforcedToggleAvailable={Boolean(policyEnforcedToggleAvailable)}
+                            onToggle={onPolicyEnforcedToggle}
+                            isDisabled={isDisabled}
+                        />
+                    }
+                    <AllowedDomainsToggle
+                        allAllowedChecked={allAllowedChecked}
+                        allowedDomainsChecked={allowedDomainsChecked}
+                        allowedDomains={allowedDomains}
                         syncChecked={syncChecked}
-                        policyEnforced={Boolean(policyEnforced)}
-                        policyEnforcedToggleAvailable={Boolean(policyEnforcedToggleAvailable)}
-                        onToggle={onPolicyEnforcedToggle}
+                        onToggle={onToggle}
                         isDisabled={isDisabled}
                     />
-                }
-                <AllowedDomainsToggle
-                    allAllowedChecked={allAllowedChecked}
-                    allowedDomainsChecked={allowedDomainsChecked}
-                    allowedDomains={allowedDomains}
-                    syncChecked={syncChecked}
-                    onToggle={onToggle}
-                    isDisabled={isDisabled}
-                />
+                </div>
             </div>
-        </div>
-    </AdminPanel>);
+        </AdminPanel>
+    );
+};
