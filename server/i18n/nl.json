@@ -14575,7 +14575,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Ongeldige webservermodus {{.Value}}. Moet 'gzip', 'nogzip' of 'disabled' zijn."
+    "translation": "Ongeldige webservermodus {{.Value}}. Moet 'gzip', 'uncompressed' of 'disabled' zijn."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",

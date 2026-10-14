@@ -76,7 +76,7 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
         class="help-text"
         data-testid="MySettinghelp-text"
       >
-        When true, external guest can be invited to channels within teams. Please see 
+        When true, external guests can be invited to channels within teams. Please see 
         <a
           href="/admin_console/user_management/permissions/system_scheme"
         >
@@ -165,7 +165,7 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
         class="help-text"
         data-testid="MySettinghelp-text"
       >
-        When true, external guest can be invited to channels within teams. Please see 
+        When true, external guests can be invited to channels within teams. Please see 
         <a
           href="/admin_console/user_management/permissions/system_scheme"
         >

@@ -13018,7 +13018,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Netinkamas žiniatinklio serverio režimas {{.Value}}. Turi būti 'gzip', 'nogzip' arba 'disabled'."
+    "translation": "Netinkamas žiniatinklio serverio režimas {{.Value}}. Turi būti 'gzip', 'uncompressed' arba 'disabled'."
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",

@@ -254,6 +254,10 @@ const state: GlobalState = {
             invalidatedAt: 0,
             invalidatedAtByResource: {},
         },
+        health: {
+            findings: {},
+            evaluatedAt: 0,
+        },
     },
     errors: [],
     requests: {

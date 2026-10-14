@@ -14551,7 +14551,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Web 服务器模式 {{.Value}} 无效。必须为 'gzip'、'nogzip' 或 'disabled'。"
+    "translation": "Web 服务器模式 {{.Value}} 无效。必须为 'gzip'、'uncompressed' 或 'disabled'。"
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",
