@@ -7,7 +7,8 @@
         "TLSMinVer": "1.2",
         "Forward80To443": false,
         "EnableIncomingWebhooks": true,
-        "EnableOutgoingWebhooks": true
+        "EnableOutgoingWebhooks": true,
+        "ExtendSessionLengthWithActivity": true
     },
     "SqlSettings": {
         "DriverName": "postgres",
@@ -25,6 +26,29 @@
         "SendPushNotifications": true,
         "PushNotificationServer": "http://push.example.com",
         "PushNotificationContents": "full"
+    },
+    "LdapSettings": {
+        "Enable": false,
+        "EnableSync": true,
+        "LdapServer": "dc1.example.com",
+        "LdapPort": 636,
+        "ConnectionSecurity": "TLS",
+        "BaseDN": "dc=example,dc=com",
+        "IdAttribute": "objectGUID",
+        "SyncIntervalMinutes": 60,
+        "SkipCertificateVerification": false,
+        "QueryTimeout": 60
+    },
+    "SamlSettings": {
+        "Enable": true,
+        "Verify": true,
+        "Encrypt": false,
+        "SignRequest": false,
+        "IdpURL": "https://adfs.example.com/adfs/ls/",
+        "IdpDescriptorURL": "https://adfs.example.com/adfs/services/trust",
+        "IdpMetadataURL": "https://adfs.example.com/FederationMetadata/2007-06/FederationMetadata.xml",
+        "SignatureAlgorithm": "RSAwithSHA256",
+        "IdAttribute": "objectGUID"
     },
     "ClusterSettings": {
         "Enable": true,

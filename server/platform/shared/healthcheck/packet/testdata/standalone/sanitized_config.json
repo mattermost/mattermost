@@ -7,7 +7,8 @@
         "TLSMinVer": "1.2",
         "Forward80To443": false,
         "EnableIncomingWebhooks": true,
-        "EnableOutgoingWebhooks": true
+        "EnableOutgoingWebhooks": true,
+        "ExtendSessionLengthWithActivity": false
     },
     "SqlSettings": {
         "DriverName": "postgres",
@@ -25,6 +26,28 @@
         "SendPushNotifications": true,
         "PushNotificationServer": "https://push-test.mattermost.com",
         "PushNotificationContents": "full"
+    },
+    "LdapSettings": {
+        "Enable": false,
+        "EnableSync": false,
+        "LdapServer": "",
+        "LdapPort": 389,
+        "ConnectionSecurity": "",
+        "BaseDN": "",
+        "IdAttribute": "",
+        "SyncIntervalMinutes": 60,
+        "SkipCertificateVerification": false,
+        "QueryTimeout": 60
+    },
+    "SamlSettings": {
+        "Enable": false,
+        "Verify": true,
+        "Encrypt": true,
+        "IdpURL": "",
+        "IdpDescriptorURL": "",
+        "IdpMetadataURL": "",
+        "SignatureAlgorithm": "RSAwithSHA256",
+        "IdAttribute": ""
     },
     "ClusterSettings": {
         "Enable": false,
