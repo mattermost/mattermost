@@ -39,39 +39,38 @@ exports[`admin_console/team_channel_settings/channel/ChannelModes should match s
               class="line-switch__toggle"
               data-testid="allow-all-toggle"
             >
-              <span
-                class="Toggle Toggle--with-state-label"
+              <label
+                class="_switch_1hx2q_2 _switch--size-large_1hx2q_126 _switch--semi-bold_1hx2q_145"
+                for="allow-all-toggle"
               >
-                <label
-                  class="_switch_1hx2q_2 _switch--size-large_1hx2q_126"
-                  for="allow-all-toggle"
+                <span
+                  class="_switch__labels_1hx2q_33"
                 >
                   <span
-                    class="_switch__track_1hx2q_47"
+                    class="_switch__label_1hx2q_33"
                   >
-                    <input
-                      aria-checked="true"
-                      checked=""
-                      class="_switch__input_1hx2q_12"
-                      data-testid="allow-all-toggle-button"
-                      id="allow-all-toggle"
-                      role="switch"
-                      tabindex="0"
-                      type="checkbox"
-                    />
-                    <span
-                      aria-hidden="true"
-                      class="_switch__knob_1hx2q_77"
-                    />
+                    Public
                   </span>
-                </label>
-                <span
-                  aria-hidden="true"
-                  class="Toggle__state-label"
-                >
-                  Public
                 </span>
-              </span>
+                <span
+                  class="_switch__track_1hx2q_47"
+                >
+                  <input
+                    aria-checked="true"
+                    checked=""
+                    class="_switch__input_1hx2q_12"
+                    data-testid="allow-all-toggle-button"
+                    id="allow-all-toggle"
+                    role="switch"
+                    tabindex="0"
+                    type="checkbox"
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="_switch__knob_1hx2q_77"
+                  />
+                </span>
+              </label>
             </div>
           </div>
           <div
@@ -210,39 +209,38 @@ exports[`admin_console/team_channel_settings/channel/ChannelModes should match s
               class="line-switch__toggle"
               data-testid="allow-all-toggle"
             >
-              <span
-                class="Toggle Toggle--with-state-label"
+              <label
+                class="_switch_1hx2q_2 _switch--size-large_1hx2q_126 _switch--semi-bold_1hx2q_145"
+                for="allow-all-toggle"
               >
-                <label
-                  class="_switch_1hx2q_2 _switch--size-large_1hx2q_126"
-                  for="allow-all-toggle"
+                <span
+                  class="_switch__labels_1hx2q_33"
                 >
                   <span
-                    class="_switch__track_1hx2q_47"
+                    class="_switch__label_1hx2q_33"
                   >
-                    <input
-                      aria-checked="true"
-                      checked=""
-                      class="_switch__input_1hx2q_12"
-                      data-testid="allow-all-toggle-button"
-                      id="allow-all-toggle"
-                      role="switch"
-                      tabindex="0"
-                      type="checkbox"
-                    />
-                    <span
-                      aria-hidden="true"
-                      class="_switch__knob_1hx2q_77"
-                    />
+                    Public
                   </span>
-                </label>
-                <span
-                  aria-hidden="true"
-                  class="Toggle__state-label"
-                >
-                  Public
                 </span>
-              </span>
+                <span
+                  class="_switch__track_1hx2q_47"
+                >
+                  <input
+                    aria-checked="true"
+                    checked=""
+                    class="_switch__input_1hx2q_12"
+                    data-testid="allow-all-toggle-button"
+                    id="allow-all-toggle"
+                    role="switch"
+                    tabindex="0"
+                    type="checkbox"
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="_switch__knob_1hx2q_77"
+                  />
+                </span>
+              </label>
             </div>
           </div>
           <div

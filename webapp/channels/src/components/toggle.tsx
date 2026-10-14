@@ -3,10 +3,7 @@
 
 import {Switch} from '@mattermost/compass-ui/components/switch';
 import type {SwitchSize} from '@mattermost/compass-ui/components/switch';
-import classNames from 'classnames';
 import React, {useCallback} from 'react';
-
-import './toggle.scss';
 
 type Props = {
     onToggle: () => void;
@@ -32,9 +29,9 @@ function stateLabel(
     toggled?: boolean,
     onText?: React.ReactNode,
     offText?: React.ReactNode,
-): React.ReactNode | null {
+): React.ReactNode | undefined {
     if ((toggled && !onText) || (!toggled && !offText)) {
-        return null;
+        return undefined;
     }
     return toggled ? onText : offText;
 }
@@ -65,7 +62,7 @@ const Toggle: React.FC<Props> = (props: Props) => {
 
     const label = stateLabel(toggled, onText, offText);
 
-    const switchControl = (
+    return (
         <Switch
             id={id}
             className={toggleClassName}
@@ -76,23 +73,10 @@ const Toggle: React.FC<Props> = (props: Props) => {
             aria-label={ariaLabel}
             data-testid={dataTestId}
             tabIndex={tabIndex}
-        />
-    );
-
-    if (!label) {
-        return switchControl;
-    }
-
-    return (
-        <span className={classNames('Toggle', 'Toggle--with-state-label')}>
-            {switchControl}
-            <span
-                className='Toggle__state-label'
-                aria-hidden={true}
-            >
-                {label}
-            </span>
-        </span>
+            semiBold={Boolean(label)}
+        >
+            {label}
+        </Switch>
     );
 };
 

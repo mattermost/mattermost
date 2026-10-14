@@ -39,18 +39,23 @@ describe('components/Toggle', () => {
         expect(onToggle).toHaveBeenCalledTimes(1);
     });
 
-    it('shows on/off text as a sibling label', () => {
+    it('shows on/off text as the Switch label on the left', async () => {
+        const onToggle = jest.fn();
         renderWithContext(
             <Toggle
                 id='labeled-toggle'
                 toggled={true}
-                onToggle={jest.fn()}
+                onToggle={onToggle}
                 onText='On label'
                 offText='Off label'
             />,
         );
 
-        expect(screen.getByText('On label')).toHaveClass('Toggle__state-label');
+        const control = screen.getByRole('switch', {name: 'On label'});
+        expect(control).toBeChecked();
         expect(screen.queryByText('Off label')).not.toBeInTheDocument();
+
+        await userEvent.click(screen.getByText('On label'));
+        expect(onToggle).toHaveBeenCalledTimes(1);
     });
 });
