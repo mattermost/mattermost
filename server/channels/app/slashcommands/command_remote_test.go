@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -97,9 +96,7 @@ func TestRemoteProviderDoRemove(t *testing.T) {
 
 		output := runRemove(t, "/secure-connection remove --connectionID "+model.NewId())
 
-		require.True(t, strings.HasPrefix(output, "Could not remove secure connection: "), "unexpected reply: %q", output)
-		require.Contains(t, output, "database is unavailable")
-		require.NotContains(t, output, "NOT FOUND")
+		require.Equal(t, "Could not remove secure connection: We encountered an error deleting the secure connection.", output)
 	})
 
 	t.Run("rejects a missing or empty connectionID without deleting", func(t *testing.T) {
@@ -209,60 +206,5 @@ func TestRemoteProviderDoStatus(t *testing.T) {
 			require.Greater(t, idx, lastIdx, "expected %q to appear after the previous row", name)
 			lastIdx = idx
 		}
-	})
-}
-
-type failingDeleteRemoteClusterStore struct {
-	store.RemoteClusterStore
-}
-
-func (s *failingDeleteRemoteClusterStore) Delete(string) (bool, error) {
-	return false, assert.AnError
-}
-
-// failingDeleteStoreWrapper fails only RemoteCluster().Delete; all other calls use the real store.
-type failingDeleteStoreWrapper struct {
-	store.Store
-}
-
-func (w *failingDeleteStoreWrapper) RemoteCluster() store.RemoteClusterStore {
-	return &failingDeleteRemoteClusterStore{RemoteClusterStore: w.Store.RemoteCluster()}
-}
-
-func TestRemoteProviderDoRemove(t *testing.T) {
-	if testing.Short() {
-		t.SkipNow()
-	}
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-
-	// The wrapper is installed before the server starts so the live store is never swapped.
-	th := setupTestHelper(&failingDeleteStoreWrapper{Store: dbStore}, false, true, t, nil).initBasic(t)
-	th.addPermissionToRole(t, model.PermissionManageSecureConnections.Id, th.BasicUser.Roles)
-
-	rc, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
-		RemoteId:    model.NewId(),
-		Name:        "remote-" + model.NewId(),
-		DisplayName: "Remote",
-		SiteURL:     "https://" + model.NewId() + ".example.com",
-		Token:       model.NewId(),
-		CreatorId:   th.BasicUser.Id,
-	})
-	require.Nil(t, appErr)
-
-	t.Run("reports the delete error instead of not found", func(t *testing.T) {
-		args := &model.CommandArgs{
-			T:         func(s string, args ...any) string { return s },
-			UserId:    th.BasicUser.Id,
-			TeamId:    th.BasicTeam.Id,
-			ChannelId: th.BasicChannel.Id,
-			Command:   "/secure-connection remove --connectionID " + rc.RemoteId,
-		}
-
-		resp := (&RemoteProvider{}).DoCommand(th.App, th.Context, args, "")
-		require.NotNil(t, resp)
-		require.True(t, strings.HasPrefix(resp.Text, "api.command_remote.remove_remote.error"), "unexpected response: %s", resp.Text)
-		assert.NotContains(t, resp.Text, "NOT FOUND")
 	})
 }
