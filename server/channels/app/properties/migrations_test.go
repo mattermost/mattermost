@@ -1171,13 +1171,13 @@ func TestCPAMigrationAfterBackfillMatchesLinkFirst(t *testing.T) {
 		})
 
 		if backfillFirst {
-			_, _, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
+			_, _, _, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
 			require.NoError(t, err)
 		}
 		migrated, _, _, err := th.service.MigrateCPAFieldsToGlobalAttributes(th.Context)
 		require.NoError(t, err)
 		require.Equal(t, 1, migrated)
-		_, _, err = th.service.MigrateBackfillPropertyPermissions(th.Context)
+		_, _, _, err = th.service.MigrateBackfillPropertyPermissions(th.Context)
 		require.NoError(t, err)
 
 		linked, err := th.service.getPropertyField(th.Context, th.CPAGroupID, seeded.ID)
@@ -1198,7 +1198,7 @@ func TestCPAMigrationAfterBackfillMatchesLinkFirst(t *testing.T) {
 	t.Run("permissions changed since the backfill are left unlinked", func(t *testing.T) {
 		th := setupMigrationTestHelper(t)
 		seeded := seedCPAField(t, th, "department", model.StringInterface{})
-		_, _, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
+		_, _, _, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
 		require.NoError(t, err)
 
 		authored, err := th.service.getPropertyField(th.Context, th.CPAGroupID, seeded.ID)
@@ -1225,7 +1225,7 @@ func TestCPAMigrationAfterBackfillMatchesLinkFirst(t *testing.T) {
 // migration, has converted the fields the migration left without one.
 func servedOptionNames(t *testing.T, th *TestHelper, fieldID string) []string {
 	t.Helper()
-	_, _, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
+	_, _, _, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
 	require.NoError(t, err)
 
 	page, err := th.service.GetFieldOptions(RequestContextWithCallerID(th.Context, model.NewId()), th.CPAGroupID, fieldID, 0, "", 100)
@@ -1299,8 +1299,8 @@ func TestPermissionsBackfillConvertBatch(t *testing.T) {
 		before := field.Permissions
 
 		b := newPermissionsBackfill(th.service, accessControlGroupID)
-		converted, err := b.convertBatch(th.Context, []*model.PropertyField{field})
-		require.NoError(t, err)
+		converted, failed := b.convertBatch(th.Context, []*model.PropertyField{field})
+		require.Zero(t, failed)
 		assert.Empty(t, converted)
 		assert.Equal(t, before, field.Permissions)
 	})
@@ -1351,8 +1351,8 @@ func TestPermissionsBackfillConvertBatch(t *testing.T) {
 		})
 
 		b := newPermissionsBackfill(th.service, accessControlGroupID)
-		converted, err := b.convertBatch(th.Context, []*model.PropertyField{acField, otherField})
-		require.NoError(t, err)
+		converted, failed := b.convertBatch(th.Context, []*model.PropertyField{acField, otherField})
+		require.Zero(t, failed)
 		require.Len(t, converted, 2)
 
 		require.NotNil(t, acField.Permissions)
@@ -1402,8 +1402,8 @@ func TestPermissionsBackfillConvertBatch(t *testing.T) {
 		t.Cleanup(func() { th.service.fieldStore = counter.PropertyFieldStore })
 
 		b := newPermissionsBackfill(th.service, accessControlGroupID)
-		converted, err := b.convertBatch(th.Context, []*model.PropertyField{linked1, linked2})
-		require.NoError(t, err)
+		converted, failed := b.convertBatch(th.Context, []*model.PropertyField{linked1, linked2})
+		require.Zero(t, failed)
 		assert.Len(t, converted, 2)
 		assert.Equal(t, 1, counter.gets)
 	})
@@ -1440,8 +1440,8 @@ func TestPermissionsBackfillConvertBatch(t *testing.T) {
 		buffer := captureMaskingFailureLog(t, th)
 
 		b := newPermissionsBackfill(th.service, accessControlGroupID)
-		converted, err := b.convertBatch(th.Context, []*model.PropertyField{linked})
-		require.NoError(t, err)
+		converted, failed := b.convertBatch(th.Context, []*model.PropertyField{linked})
+		require.Zero(t, failed)
 		require.Len(t, converted, 1)
 
 		require.NotNil(t, linked.Permissions)
@@ -1570,7 +1570,7 @@ func TestMigrateBackfillPropertyPermissions_Paging(t *testing.T) {
 		newField(otherGroup.ID, "other-two"),
 	}
 
-	converted, skipped, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
+	converted, skipped, _, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
 	require.NoError(t, err)
 	assert.Equal(t, len(fields), converted)
 	assert.Equal(t, 0, skipped)
@@ -1583,7 +1583,7 @@ func TestMigrateBackfillPropertyPermissions_Paging(t *testing.T) {
 
 	// A re-run must find every field already converted rather than reverting
 	// or reconverting it.
-	converted, skipped, err = th.service.MigrateBackfillPropertyPermissions(th.Context)
+	converted, skipped, _, err = th.service.MigrateBackfillPropertyPermissions(th.Context)
 	require.NoError(t, err)
 	assert.Equal(t, 0, converted)
 	assert.Equal(t, len(fields), skipped)
@@ -1613,7 +1613,7 @@ func TestMigrateBackfillPropertyPermissions_OversizedOptions(t *testing.T) {
 	require.NoError(t, err)
 	requireOptionsWithheld(t, before)
 
-	converted, skipped, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
+	converted, skipped, _, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
 	require.NoError(t, err)
 	assert.Equal(t, 1, converted)
 	assert.Equal(t, 0, skipped)
@@ -1667,7 +1667,7 @@ func TestMigrateBackfillPropertyPermissions_LinkedFieldInheritsTemplateMasking(t
 		LinkedFieldID: &template.ID,
 	})
 
-	converted, skipped, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
+	converted, skipped, _, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
 	require.NoError(t, err)
 	assert.Equal(t, 2, converted)
 	assert.Equal(t, 0, skipped)
@@ -1732,7 +1732,7 @@ func TestMigrateBackfillPropertyPermissions_LinkedFieldDropsOptionReadGrant(t *t
 		},
 	})
 
-	converted, skipped, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
+	converted, skipped, _, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
 	require.NoError(t, err)
 	assert.Equal(t, 2, converted)
 	assert.Equal(t, 0, skipped)
@@ -1757,4 +1757,131 @@ func TestMigrateBackfillPropertyPermissions_LinkedFieldDropsOptionReadGrant(t *t
 		model.PropertyActionValueRead,
 		model.PropertyActionValueWrite,
 	}, linkedAllow)
+}
+
+// TestMigrateBackfillPropertyPermissionsSkipsFieldsThatFailToConvert covers
+// data the conversion can't turn into a valid permissions object. Each such
+// field is logged and left without one, which the hook treats as refusing
+// everyone, and the run carries on: a field beside it in the same group and
+// page still converts.
+func TestMigrateBackfillPropertyPermissionsSkipsFieldsThatFailToConvert(t *testing.T) {
+	member := model.PermissionLevelMember
+	none := model.PermissionLevelNone
+	pluginOwnedSharedOnly := func() model.StringInterface {
+		return model.StringInterface{
+			model.PropertyAttrsProtected:      true,
+			model.PropertyAttrsSourcePluginID: "some-plugin",
+			model.PropertyAttrsAccessMode:     model.PropertyAccessModeSharedOnly,
+		}
+	}
+
+	tests := []struct {
+		name string
+		// seed stores the fields under test and returns the ones that may be
+		// left unconverted; wantFailed of them must be.
+		seed       func(t *testing.T, th *TestHelper) []string
+		wantFailed int
+	}{
+		{
+			name: "a protected shared_only channel field, which has no field to mask by",
+			seed: func(t *testing.T, th *TestHelper) []string {
+				field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+					GroupID: th.CPAGroupID, Name: "Channel-" + model.NewId(), Type: model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypeChannel, TargetType: string(model.PropertyFieldTargetLevelSystem),
+					Protected: true, PermissionField: &none, PermissionValues: &none, PermissionOptions: &none,
+					Attrs: pluginOwnedSharedOnly(),
+				})
+				return []string{field.ID}
+			},
+			wantFailed: 1,
+		},
+		{
+			name: "a linked field whose template was soft-deleted",
+			seed: func(t *testing.T, th *TestHelper) []string {
+				template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+					GroupID: th.CPAGroupID, Name: "Template-" + model.NewId(), Type: model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypeTemplate, TargetType: string(model.PropertyFieldTargetLevelSystem),
+					PermissionField: &member, PermissionValues: &member, PermissionOptions: &member,
+				})
+				linked := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+					GroupID: th.CPAGroupID, Name: "Linked-" + model.NewId(), Type: model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypeUser, TargetType: string(model.PropertyFieldTargetLevelSystem),
+					LinkedFieldID: &template.ID, PermissionField: &member, PermissionValues: &member, PermissionOptions: &member,
+				})
+				require.NoError(t, th.dbStore.PropertyField().Delete(th.CPAGroupID, template.ID))
+				return []string{linked.ID}
+			},
+			wantFailed: 1,
+		},
+		{
+			name: "a linked field whose template no longer exists",
+			seed: func(t *testing.T, th *TestHelper) []string {
+				missing := model.NewId()
+				linked := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+					GroupID: th.CPAGroupID, Name: "Linked-" + model.NewId(), Type: model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypeUser, TargetType: string(model.PropertyFieldTargetLevelSystem),
+					LinkedFieldID: &missing, PermissionField: &member, PermissionValues: &member, PermissionOptions: &member,
+				})
+				return []string{linked.ID}
+			},
+			wantFailed: 1,
+		},
+		{
+			// Whichever of the two is written second is refused: the template's
+			// masking would read holdings from a field its members can write.
+			name: "a member-writable linked field under a template that became shared_only",
+			seed: func(t *testing.T, th *TestHelper) []string {
+				template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+					GroupID: th.CPAGroupID, Name: "Template-" + model.NewId(), Type: model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypeTemplate, TargetType: string(model.PropertyFieldTargetLevelSystem),
+					Protected: true, PermissionField: &none, PermissionValues: &none, PermissionOptions: &none,
+					Attrs: pluginOwnedSharedOnly(),
+				})
+				linked := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+					GroupID: th.CPAGroupID, Name: "Linked-" + model.NewId(), Type: model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypeUser, TargetType: string(model.PropertyFieldTargetLevelSystem),
+					LinkedFieldID: &template.ID, PermissionField: &member, PermissionValues: &member, PermissionOptions: &member,
+					Attrs: model.StringInterface{model.PropertyAttrsSourcePluginID: "some-plugin"},
+				})
+				return []string{template.ID, linked.ID}
+			},
+			wantFailed: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			th := Setup(t).RegisterCPAPropertyGroup(t)
+			candidates := tt.seed(t, th)
+			healthy := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+				GroupID: th.CPAGroupID, Name: "Healthy-" + model.NewId(), Type: model.PropertyFieldTypeText,
+				ObjectType: model.PropertyFieldObjectTypeUser, TargetType: string(model.PropertyFieldTargetLevelSystem),
+				PermissionField: &member, PermissionValues: &member, PermissionOptions: &member,
+			})
+
+			_, _, failed, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantFailed, failed)
+
+			unconverted := 0
+			for _, id := range candidates {
+				stored, getErr := th.dbStore.PropertyField().Get(th.Context, th.CPAGroupID, id)
+				require.NoError(t, getErr)
+				if stored.Permissions == nil {
+					unconverted++
+				}
+			}
+			assert.Equal(t, tt.wantFailed, unconverted, "each failed field must be left without a permissions object")
+
+			stored, getErr := th.dbStore.PropertyField().Get(th.Context, th.CPAGroupID, healthy.ID)
+			require.NoError(t, getErr)
+			assert.NotNil(t, stored.Permissions, "a field beside a failing one must still convert")
+
+			// The failures are retried on the next run and fail the same way,
+			// without stopping it.
+			_, _, failedAgain, err := th.service.MigrateBackfillPropertyPermissions(th.Context)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantFailed, failedAgain)
+		})
+	}
 }
