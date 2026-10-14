@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
@@ -209,12 +210,14 @@ func (rp *RemoteProvider) doRemove(a *app.App, args *model.CommandArgs, margs ma
 
 	deleted, err := a.DeleteRemoteCluster(id)
 	if err != nil {
-		return response(args.T("api.command_remote.remove_remote.error", map[string]any{"Error": err.Error()}))
+		a.Log().Warn("Failed to remove secure connection", mlog.String("remote_id", id), mlog.Err(err))
+		err.Translate(args.T)
+		return response(args.T("api.command_remote.remove_remote.error", map[string]any{"Error": err.Message}))
 	}
 
-	result := "removed"
+	result := args.T("api.command_remote.cluster_removed.result_removed")
 	if !deleted {
-		result = "**NOT FOUND**"
+		result = args.T("api.command_remote.cluster_removed.result_not_found")
 	}
 	return response("##### " + args.T("api.command_remote.cluster_removed", map[string]any{"RemoteId": id, "Result": result}))
 }
