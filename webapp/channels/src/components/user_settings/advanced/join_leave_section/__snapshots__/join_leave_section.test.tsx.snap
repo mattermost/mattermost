@@ -69,7 +69,7 @@ exports[`components/user_settings/advanced/JoinLeaveSection should match snapsho
               Enable Join/Leave Messages
             </legend>
             <div
-              class="radio no-padding"
+              class="settings-radio-group"
             >
               <label
                 class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
@@ -97,11 +97,6 @@ exports[`components/user_settings/advanced/JoinLeaveSection should match snapsho
                   On
                 </span>
               </label>
-              <br />
-            </div>
-            <div
-              class="radio no-padding"
-            >
               <label
                 class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
                 for="joinLeaveOff"
@@ -127,7 +122,6 @@ exports[`components/user_settings/advanced/JoinLeaveSection should match snapsho
                   Off
                 </span>
               </label>
-              <br />
             </div>
             <div
               class="mt-5"

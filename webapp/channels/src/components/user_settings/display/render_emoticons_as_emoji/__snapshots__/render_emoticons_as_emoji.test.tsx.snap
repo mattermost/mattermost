@@ -28,7 +28,7 @@ exports[`components/user_settings/display/render_emoticons_as_emoji/render_emoti
               Render emoticons as emojis
             </legend>
             <div
-              class="radio no-padding"
+              class="settings-radio-group"
             >
               <label
                 class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
@@ -56,11 +56,6 @@ exports[`components/user_settings/display/render_emoticons_as_emoji/render_emoti
                   On
                 </span>
               </label>
-              <br />
-            </div>
-            <div
-              class="radio no-padding"
-            >
               <label
                 class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
                 for="renderEmoticonsAsEmojiOff"
@@ -86,7 +81,6 @@ exports[`components/user_settings/display/render_emoticons_as_emoji/render_emoti
                   Off
                 </span>
               </label>
-              <br />
             </div>
             <div
               class="mt-5"

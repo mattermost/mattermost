@@ -53,7 +53,7 @@ describe('radio', () => {
         const props = getBaseProps();
         renderWithContext(<Radio {...props}/>);
 
-        await userEvent.click(screen.getByText(OPTION_1_TEXT));
+        await userEvent.click(screen.getByRole('radio', {name: OPTION_1_TEXT}));
 
         expect(props.onChange).toHaveBeenCalledWith('1');
     });

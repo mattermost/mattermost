@@ -31,7 +31,7 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
               Send notifications for:
             </legend>
             <div
-              class="radio no-padding"
+              class="settings-radio-group"
             >
               <label
                 class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
@@ -58,10 +58,6 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
                   All new messages
                 </span>
               </label>
-            </div>
-            <div
-              class="radio no-padding"
-            >
               <label
                 class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
                 for="_r_1_"
@@ -87,10 +83,6 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
                   Mentions, direct messages, and group messages
                 </span>
               </label>
-            </div>
-            <div
-              class="radio no-padding"
-            >
               <label
                 class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
                 for="_r_2_"
@@ -315,7 +307,7 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
               Send notifications for:
             </legend>
             <div
-              class="radio no-padding"
+              class="settings-radio-group"
             >
               <label
                 class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
@@ -342,10 +334,6 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
                   All new messages
                 </span>
               </label>
-            </div>
-            <div
-              class="radio no-padding"
-            >
               <label
                 class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
                 for="_r_4_"
@@ -371,10 +359,6 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
                   Mentions, direct messages, and group messages
                 </span>
               </label>
-            </div>
-            <div
-              class="radio no-padding"
-            >
               <label
                 class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
                 for="_r_5_"

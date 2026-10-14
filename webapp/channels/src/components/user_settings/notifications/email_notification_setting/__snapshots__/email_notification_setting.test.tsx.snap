@@ -24,7 +24,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
           <fieldset>
             <fieldset>
               <div
-                class="radio no-padding"
+                class="settings-radio-group"
               >
                 <label
                   class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
@@ -52,10 +52,6 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     On
                   </span>
                 </label>
-              </div>
-              <div
-                class="radio no-padding"
-              >
                 <label
                   class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
                   for="emailNotificationNever"
@@ -269,7 +265,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
             </legend>
             <fieldset>
               <div
-                class="radio no-padding"
+                class="settings-radio-group"
               >
                 <label
                   class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
@@ -297,10 +293,6 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     As soon as you’re away for 5 minutes
                   </span>
                 </label>
-              </div>
-              <div
-                class="radio no-padding"
-              >
                 <label
                   class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
                   for="emailNotificationMinutes"
@@ -327,10 +319,6 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     Every 15 minutes
                   </span>
                 </label>
-              </div>
-              <div
-                class="radio no-padding"
-              >
                 <label
                   class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
                   for="emailNotificationHour"
@@ -357,10 +345,6 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     Every hour
                   </span>
                 </label>
-              </div>
-              <div
-                class="radio no-padding"
-              >
                 <label
                   class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
                   for="emailNotificationNever"
@@ -500,7 +484,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
           <fieldset>
             <fieldset>
               <div
-                class="radio no-padding"
+                class="settings-radio-group"
               >
                 <label
                   class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
@@ -528,10 +512,6 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     On
                   </span>
                 </label>
-              </div>
-              <div
-                class="radio no-padding"
-              >
                 <label
                   class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
                   for="emailNotificationNever"
@@ -646,7 +626,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
           <fieldset>
             <fieldset>
               <div
-                class="radio no-padding"
+                class="settings-radio-group"
               >
                 <label
                   class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
@@ -675,10 +655,6 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     On
                   </span>
                 </label>
-              </div>
-              <div
-                class="radio no-padding"
-              >
                 <label
                   class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
                   for="emailNotificationNever"
@@ -785,7 +761,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
           <fieldset>
             <fieldset>
               <div
-                class="radio no-padding"
+                class="settings-radio-group"
               >
                 <label
                   class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
@@ -813,10 +789,6 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     On
                   </span>
                 </label>
-              </div>
-              <div
-                class="radio no-padding"
-              >
                 <label
                   class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
                   for="emailNotificationNever"
