@@ -7,7 +7,7 @@ exports[`/components/common/RadioButtonGroup should match snapshot 1`] = `
     data-testid=""
   >
     <div
-      class="radio no-padding"
+      class="radio-list__option"
     >
       <label
         class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
@@ -36,7 +36,7 @@ exports[`/components/common/RadioButtonGroup should match snapshot 1`] = `
       </label>
     </div>
     <div
-      class="radio no-padding"
+      class="radio-list__option"
     >
       <label
         class="_radio_11lrl_2 _radio--size-medium_11lrl_138 selected"
@@ -66,7 +66,7 @@ exports[`/components/common/RadioButtonGroup should match snapshot 1`] = `
       </label>
     </div>
     <div
-      class="radio no-padding"
+      class="radio-list__option"
     >
       <label
         class="_radio_11lrl_2 _radio--size-medium_11lrl_138"

@@ -27,7 +27,10 @@ const Radio = ({
     onChange,
 }: Props) => {
     return (
-        <fieldset key={setting.name}>
+        <fieldset
+            key={setting.name}
+            className='radio-option-list'
+        >
             <legend className='form-legend hidden-label'>
                 {setting.title || setting.name}
             </legend>

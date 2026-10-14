@@ -16,7 +16,7 @@ exports[`components/cloud_start_trial_btn/cloud_start_trial_btn should match sna
         data-testid=""
       >
         <div
-          class="radio no-padding"
+          class="radio-list__option"
         >
           <label
             class="_radio_11lrl_2 _radio--size-medium_11lrl_138 selected"
@@ -47,7 +47,7 @@ exports[`components/cloud_start_trial_btn/cloud_start_trial_btn should match sna
           </label>
         </div>
         <div
-          class="radio no-padding"
+          class="radio-list__option"
         >
           <label
             class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
