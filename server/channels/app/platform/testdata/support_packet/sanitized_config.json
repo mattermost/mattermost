@@ -569,7 +569,8 @@
         "ClientKey": null,
         "Trace": null,
         "IgnoredPurgeIndexes": null,
-        "EnableSearchPublicChannelsWithoutMembership": null
+        "EnableSearchPublicChannelsWithoutMembership": null,
+        "EnableFileIndexing": null
     },
     "DataRetentionSettings": {
         "EnableMessageDeletion": null,
@@ -753,6 +754,7 @@
         "ClusterGracefulDrain": false,
         "EnableMFIPluginSignaturePublicKey": false,
         "RecurringScheduledPosts": false,
-        "PostDeliveryTracking": false
+        "PostDeliveryTracking": false,
+        "HealthDashboard": false
     }
 }

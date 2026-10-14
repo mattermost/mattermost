@@ -25,8 +25,8 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
      * @objective Verify a required attribute is asked for at creation and blocks it until filled.
      */
     test('blocks channel creation until a required attribute is filled', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -83,9 +83,8 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
      * @objective Verify a value changed elsewhere reaches an open session without a reload.
      */
     test('updates an open session when a value changes, and when it is cleared', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -136,9 +135,8 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
      * @objective Verify a required attribute left unset after creation is visible and recoverable from Channel Info.
      */
     test('shows a required attribute as unset and lets it be filled from Channel Info', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -203,9 +201,8 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
      * @objective Verify the banner renders attribute tokens, and that a manual banner text still wins.
      */
     test('renders a token banner and honours a manual override', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -270,9 +267,8 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
      * @objective Verify a direct message shows no attribute chips even when values exist through the API.
      */
     test('shows no chips on a direct message', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
@@ -311,9 +307,8 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
      * @objective Verify the configured colour reaches the chip, since a marking's colour is part of how it is read.
      */
     test('applies the configured colour to a chip', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];

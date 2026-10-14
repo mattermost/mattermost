@@ -7,12 +7,10 @@ import type {ReactNode} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessages, useIntl} from 'react-intl';
 
-import {
-    AlertOutlineIcon,
-    CloseIcon,
-} from '@mattermost/compass-icons/components';
+import {AlertOutlineIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 
+import AttributeChip, {AttributeChipRemoveButton} from 'components/channel_attributes/attribute_chip';
 import Input from 'components/widgets/inputs/input/input';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
@@ -129,54 +127,31 @@ export function SelectedValueChips({selectedIds, labelForId, disabled, onRemove,
         <span className='hierarchical-value-menu__chips'>
             {selectedIds.map((id) => {
                 const {text, state} = labelForId(id);
+                const removeLabel = state === 'named' ?
+                    formatMessage(messages.removeValue, {name: text}) :
+                    formatMessage(messages.removeUnnamedValue);
 
                 return (
-                    <span
+                    <AttributeChip
                         key={id}
+                        label={text || removeLabel}
+                        value={text}
+                        size='medium'
+                        announceLabel={false}
                         className={classNames('hierarchical-value-menu__chip', {
+                            'AttributeChip--pending': state === 'pending',
+                            'AttributeChip--unavailable': state === 'unavailable',
                             'hierarchical-value-menu__chip--pending': state === 'pending',
                             'hierarchical-value-menu__chip--unavailable': state === 'unavailable',
                         })}
                     >
-                        <span className='hierarchical-value-menu__chip-label'>{text}</span>
                         {!disabled && (
-                            <span
-                                className='hierarchical-value-menu__chip-remove'
-                                role='button'
-                                tabIndex={0}
-                                data-option-id={id}
-                                data-menu-prevent-open={true}
-                                aria-label={state === 'named' ? formatMessage(messages.removeValue, {name: text}) : formatMessage(messages.removeUnnamedValue)}
-
-                                // Inside the trigger, and often inside a <label> that
-                                // points at that trigger: pointerdown must be canceled
-                                // or the label/button activates and the click never
-                                // reaches onRemove.
-                                onPointerDown={(event) => {
-                                    if (event.button !== 0) {
-                                        return;
-                                    }
-                                    event.stopPropagation();
-                                    event.preventDefault();
-                                    onRemove(id);
-                                }}
-                                onClick={(event) => {
-                                    event.stopPropagation();
-                                    event.preventDefault();
-                                    onRemove(id);
-                                }}
-                                onKeyDown={(event) => {
-                                    if (event.key === 'Enter' || event.key === ' ') {
-                                        event.stopPropagation();
-                                        event.preventDefault();
-                                        onRemove(id);
-                                    }
-                                }}
-                            >
-                                <CloseIcon size={12}/>
-                            </span>
+                            <AttributeChipRemoveButton
+                                onRemove={() => onRemove(id)}
+                                removeLabel={removeLabel}
+                            />
                         )}
-                    </span>
+                    </AttributeChip>
                 );
             })}
             {trailingChips}

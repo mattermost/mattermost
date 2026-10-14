@@ -36,8 +36,8 @@ test.describe('Channel attribute banner settings', {tag: ['@channel_attributes']
      * classification is in the banner text, and is the channel's to set once it is removed.
      */
     test('locks the colour to classification only while its token is in the banner', async ({pw}) => {
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -108,8 +108,8 @@ test.describe('Channel attribute banner settings', {tag: ['@channel_attributes']
      * designated attributes when it is switched back on.
      */
     test('keeps a deliberately emptied banner empty when it is switched back on', async ({pw}) => {
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -167,8 +167,8 @@ test.describe('Channel attribute banner settings', {tag: ['@channel_attributes']
      * @objective Verify the unsaved-changes panel comes back for an edit made after a save.
      */
     test('offers to save an edit made after a previous save', async ({pw}) => {
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -224,8 +224,8 @@ test.describe('Channel attribute banner settings', {tag: ['@channel_attributes']
      * and switching it back on restores it.
      */
     test('hides an attribute-driven banner once it is switched off', async ({pw}) => {
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
