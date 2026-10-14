@@ -146,7 +146,7 @@ func TestRemoteProviderDoRemove(t *testing.T) {
 	})
 	require.Nil(t, appErr)
 
-	t.Run("returns the delete error instead of the cluster-removed success message", func(t *testing.T) {
+	t.Run("reports the delete error instead of not found", func(t *testing.T) {
 		args := &model.CommandArgs{
 			T:         func(s string, args ...any) string { return s },
 			UserId:    th.BasicUser.Id,
@@ -159,5 +159,6 @@ func TestRemoteProviderDoRemove(t *testing.T) {
 		require.NotNil(t, resp)
 		require.True(t, strings.HasPrefix(resp.Text, "api.command_remote.remove_remote.error"), "unexpected response: %s", resp.Text)
 		assert.NotContains(t, resp.Text, "api.command_remote.cluster_removed")
+		assert.NotContains(t, resp.Text, "NOT FOUND")
 	})
 }
