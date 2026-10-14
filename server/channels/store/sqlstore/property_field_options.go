@@ -1116,7 +1116,7 @@ func storedFieldPermissions(field *model.PropertyField) any {
 // field reports the v2 view of its permissions object rather than whatever its
 // columns held when it was converted -- and a load-modify-save does not look like a
 // legacy-column change. A field with no permissions object is skipped and keeps the
-// columns as stored.
+// columns as stored. Create and Update apply it to the fields they return too.
 func applyProjectedPermissionColumns(fields []*model.PropertyField) {
 	for _, field := range fields {
 		if field == nil || field.Permissions == nil {

@@ -103,6 +103,12 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 		return nil, errors.Wrap(err, "property_field_create_commit_transaction")
 	}
 
+	// Returned with the columns as stored, not as submitted, so the caller holds
+	// what a read would give it. A caller that changed this copy and sent it back
+	// would otherwise send stale columns, which an update reads as a deliberate
+	// legacy edit and applies, widening a stricter permissions object.
+	applyProjectedPermissionColumns([]*model.PropertyField{field})
+
 	return field, nil
 }
 
@@ -619,6 +625,10 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 	if err = transaction.Commit(); err != nil {
 		return nil, errors.Wrap(err, "property_field_update_commit_transaction")
 	}
+
+	// Returned with the columns as stored, for the reason given in Create. The
+	// dependents were read back, so they already are.
+	applyProjectedPermissionColumns(fields)
 
 	return append(fields, dependents...), nil
 }
