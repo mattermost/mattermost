@@ -17,6 +17,7 @@ exports[`components/cloud_start_trial_btn/cloud_start_trial_btn should match sna
       >
         <div
           class="radio-list__option"
+          data-testid="inviteMembersLink"
         >
           <label
             class="_radio_11lrl_2 _radio--size-medium_11lrl_138 selected"
@@ -25,7 +26,6 @@ exports[`components/cloud_start_trial_btn/cloud_start_trial_btn should match sna
             <input
               checked=""
               class="_radio__input_11lrl_13"
-              data-testid="inviteMembersLink"
               id="_r_0_"
               name="invite-as"
               type="radio"
@@ -48,6 +48,7 @@ exports[`components/cloud_start_trial_btn/cloud_start_trial_btn should match sna
         </div>
         <div
           class="radio-list__option"
+          data-testid="inviteGuestLink"
         >
           <label
             class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
@@ -55,7 +56,6 @@ exports[`components/cloud_start_trial_btn/cloud_start_trial_btn should match sna
           >
             <input
               class="_radio__input_11lrl_13"
-              data-testid="inviteGuestLink"
               id="_r_1_"
               name="invite-as"
               type="radio"

@@ -35,14 +35,15 @@ const RadioButtonGroup = ({
     const options = [];
     for (const {value: val, key, testId: optionTestId} of values) {
         const disabled = isDisabled ? isDisabled(val) : false;
-        const moreProps: {'data-testid'?: string} = {};
-        if (optionTestId) {
-            moreProps['data-testid'] = optionTestId;
-        }
+
+        // Put data-testid on the visible option wrapper. Compass Radio applies
+        // extra DOM props to the native input, which is opacity:0 and skipped by
+        // Testing Library / Cypress visibility queries.
         options.push(
             <div
                 className='radio-list__option'
                 key={val}
+                data-testid={optionTestId}
             >
                 <Radio
                     className={val === value ? 'selected' : ''}
@@ -51,7 +52,6 @@ const RadioButtonGroup = ({
                     checked={val === value}
                     onChange={handleChange}
                     disabled={disabled}
-                    {...moreProps}
                 >
                     {key}
                     {(sideLegend && val === sideLegend?.matchVal) &&

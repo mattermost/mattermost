@@ -290,6 +290,22 @@
         }
     }
 
+    // Compass Radio defaults to width: 100%; keep Yes/No pairs side-by-side.
+    // Offset the group to match Bootstrap .form-horizontal .control-label
+    // padding-top (7px), same approach as System Console BooleanRadioOption /
+    // RadioSetting (margin-top: 8px on each radio).
+    .backstage-form__radio-group-inline {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        padding-top: 7px;
+        gap: var(--spacing-xl);
+
+        > label {
+            width: auto;
+        }
+    }
+
     .form-control {
         background: variables.$white;
 

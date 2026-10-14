@@ -46,6 +46,11 @@ describe('Settings > Display > Channel Display Mode', () => {
     });
 
     it('should render in max setting view', () => {
+        // # Re-open Display settings (viewport beforeEach can drop modal state)
+        cy.uiOpenSettingsModal('Display');
+        cy.get('#displayButton').should('be.visible').click();
+        cy.get('#channel_display_modeTitle').scrollIntoView();
+
         // # Click "Edit" to the right of "Channel Display"
         cy.get('#channel_display_modeEdit').click();
 
@@ -53,16 +58,16 @@ describe('Settings > Display > Channel Display Mode', () => {
         cy.get('.section-max').scrollIntoView();
 
         // * Check that it changed into the Channel Display section
-        // * Check the max setting view if each element is present and contains expected text values
-        cy.get('#channel_display_modeFormatA').should('be.visible');
-        cy.get('#channel_display_modeFormatB').should('be.visible');
+        // Compass Radio hides the native input; assert the visible labels.
+        cy.get('#channel_display_modeFormatA').closest('label').should('be.visible');
+        cy.get('#channel_display_modeFormatB').closest('label').should('be.visible');
         cy.get('#saveSetting').should('contain', 'Save');
         cy.get('#cancelSetting').should('contain', 'Cancel');
     });
 
     it('MM-T296 change channel display mode setting to "Full width"', () => {
         // # Click the radio button for "Full width"
-        cy.get('#channel_display_modeFormatA').click();
+        cy.get('#channel_display_modeFormatA').check({force: true});
 
         // # Click "Save"
         cy.uiSave();
@@ -102,7 +107,7 @@ describe('Settings > Display > Channel Display Mode', () => {
         cy.get('.section-max').scrollIntoView();
 
         // # Click the radio button for "Fixed width, centered"
-        cy.get('#channel_display_modeFormatB').click();
+        cy.get('#channel_display_modeFormatB').check({force: true});
 
         // # Click "Save"
         cy.uiSave();
