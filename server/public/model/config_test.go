@@ -1396,6 +1396,46 @@ func TestConfigDefaultNPSPluginState(t *testing.T) {
 	})
 }
 
+func TestConfigDefaultMetricsPluginState(t *testing.T) {
+	t.Run("should not enable metrics plugin by default", func(t *testing.T) {
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.False(t, c1.PluginSettings.PluginStates[PluginIdMetrics].Enable)
+	})
+
+	t.Run("should enable metrics plugin if performance monitoring is enabled", func(t *testing.T) {
+		c1 := Config{
+			MetricsSettings: MetricsSettings{
+				Enable: new(true),
+			},
+		}
+
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates[PluginIdMetrics].Enable)
+	})
+
+	t.Run("should not re-enable metrics plugin after it has been disabled", func(t *testing.T) {
+		c1 := Config{
+			MetricsSettings: MetricsSettings{
+				Enable: new(true),
+			},
+			PluginSettings: PluginSettings{
+				PluginStates: map[string]*PluginState{
+					PluginIdMetrics: {
+						Enable: false,
+					},
+				},
+			},
+		}
+
+		c1.SetDefaults()
+
+		assert.False(t, c1.PluginSettings.PluginStates[PluginIdMetrics].Enable)
+	})
+}
+
 func TestConfigDefaultChannelExportPluginState(t *testing.T) {
 	t.Run("should not enable ChannelExport plugin by default", func(t *testing.T) {
 		BuildEnterpriseReady = "true"
@@ -3177,7 +3217,7 @@ func TestPluginSettingsSanitize(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			c := PluginSettings{}
-			c.SetDefaults(*NewLogSettings())
+			c.SetDefaults(*NewLogSettings(), MetricsSettings{})
 
 			c.Plugins[pluginID1] = make(map[string]any)
 			maps.Copy(c.Plugins[pluginID1], settingsPlugin1)
