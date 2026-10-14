@@ -33,24 +33,11 @@ import {getHistory} from 'utils/browser_history';
 import CELEditor from '../../access_control/editors/cel_editor/editor';
 import {hasUsableAttributes, isSimpleExpression, mergeSessionAttributes, toCELEditorAttributes} from '../../access_control/editors/shared';
 import TableEditor from '../../access_control/editors/table_editor/table_editor';
+import {AVAILABLE_ROLES, BOT_ROLE_KEY, roleMessages} from '../roles';
 
 import './permission_policy_details.scss';
 
-const roleMessages = defineMessages({
-    guestLabel: {id: 'admin.permission_policies.role.system_guest.label', defaultMessage: 'Guest users'},
-    guestDescription: {id: 'admin.permission_policies.role.system_guest.description', defaultMessage: 'Applies only to guest users'},
-    memberLabel: {id: 'admin.permission_policies.role.system_user.label', defaultMessage: 'Members'},
-    memberDescription: {id: 'admin.permission_policies.role.system_user.description', defaultMessage: 'Applies to regular members. System administrators also fall back to this rule if no admin-specific policy with the same permissions exists.'},
-    adminLabel: {id: 'admin.permission_policies.role.system_admin.label', defaultMessage: 'System administrators'},
-    adminDescription: {id: 'admin.permission_policies.role.system_admin.description', defaultMessage: 'Applies only to system administrators'},
-    selectRole: {id: 'admin.permission_policies.role.select', defaultMessage: 'Select a role'},
-});
-
-const AVAILABLE_ROLES: RoleDefinition[] = [
-    {value: 'system_guest', label: roleMessages.guestLabel, description: roleMessages.guestDescription},
-    {value: 'system_user', label: roleMessages.memberLabel, description: roleMessages.memberDescription},
-    {value: 'system_admin', label: roleMessages.adminLabel, description: roleMessages.adminDescription},
-];
+const SELECTABLE_ROLES = AVAILABLE_ROLES.filter((role) => role.value !== BOT_ROLE_KEY);
 
 const permissionMessages = defineMessages({
     downloadLabel: {id: 'admin.permission_policies.permission.download_file.label', defaultMessage: 'Download Files'},
@@ -78,12 +65,6 @@ const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
         description: permissionMessages.createBorDescription,
     },
 ];
-
-interface RoleDefinition {
-    value: string;
-    label: MessageDescriptor;
-    description: MessageDescriptor;
-}
 
 interface PermissionDefinition {
     value: string;
@@ -494,7 +475,7 @@ function PermissionPolicyDetails({
                                                 children: (
                                                     <>
                                                         <span>{(() => {
-                                                            const found = AVAILABLE_ROLES.find((r) => r.value === selectedRole);
+                                                            const found = SELECTABLE_ROLES.find((r) => r.value === selectedRole);
                                                             return found ? formatMessage(found.label) : formatMessage(roleMessages.selectRole);
                                                         })()}</span>
                                                         <i className='icon icon-chevron-down'/>
@@ -509,7 +490,7 @@ function PermissionPolicyDetails({
                                                 }),
                                             }}
                                         >
-                                            {AVAILABLE_ROLES.map((role) => (
+                                            {SELECTABLE_ROLES.map((role) => (
                                                 <Menu.Item
                                                     key={role.value}
                                                     id={`pp-role-option-${role.value}`}

@@ -10589,7 +10589,15 @@
   },
   "admin.permission_policies.role": {
     "defaultMessage": "Role",
-    "description": "Column header in the Permission Policies table showing the system role (guests, members, admins) each policy applies to."
+    "description": "Column header in the Permission Policies table showing the system role (guests, members, admins, bot accounts) each policy applies to."
+  },
+  "admin.permission_policies.role.bot.description": {
+    "defaultMessage": "Applies only to bot accounts",
+    "description": "Description under the 'Bot accounts' option in the role dropdown of the permission policy editor."
+  },
+  "admin.permission_policies.role.bot.label": {
+    "defaultMessage": "Bot accounts",
+    "description": "Option label in the role dropdown of the permission policy editor, and role label in the Permission Policies list, for policies that apply only to bot accounts."
   },
   "admin.permission_policies.role.select": {
     "defaultMessage": "Select a role",
