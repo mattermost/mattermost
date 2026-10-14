@@ -927,6 +927,33 @@ func TestValueWriteVisibility(t *testing.T) {
 		require.NoError(t, createErr, "no stored value yet means nothing is hidden, so a caller who holds nothing may still tag an untagged object")
 	})
 
+	t.Run("a cleared value hides nothing, so a caller may set it again", func(t *testing.T) {
+		for _, tc := range []struct {
+			name      string
+			fieldType model.PropertyFieldType
+			holding   any
+			cleared   any
+			newValue  string
+		}{
+			{"select", model.PropertyFieldTypeSelect, "opt_a", "", `"opt_a"`},
+			{"multiselect", model.PropertyFieldTypeMultiselect, []string{"opt_a"}, []string{}, `["opt_a"]`},
+			{"text", model.PropertyFieldTypeText, "opt_a", nil, `"opt_a"`},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				field, err := th.service.CreatePropertyField(th.Context, maskedField(th.CPAGroupID, "Write-Cleared-"+tc.name, tc.fieldType, &model.Masking{}))
+				require.NoError(t, err)
+
+				caller := model.NewId()
+				writeValueDirect(t, th, field.ID, "user", caller, tc.holding)
+				cleared := writeValueDirect(t, th, field.ID, "channel", model.NewId(), tc.cleared)
+
+				cleared.Value = json.RawMessage(tc.newValue)
+				_, upErr := th.service.UpsertPropertyValue(RequestContextWithCallerID(th.Context, caller), cleared)
+				require.NoError(t, upErr)
+			})
+		}
+	})
+
 	t.Run("a masking failure during a write is reported as a failure, not a refusal", func(t *testing.T) {
 		field, err := th.service.CreatePropertyField(th.Context, maskedField(th.CPAGroupID, "Write-MaskingFailure", model.PropertyFieldTypeText, &model.Masking{}))
 		require.NoError(t, err)
