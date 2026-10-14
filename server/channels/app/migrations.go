@@ -38,7 +38,6 @@ const (
 	boardsPropertyMigrationVersion                 = "v2"
 	cpaDisplayNameBackfillKey                      = "cpa_display_name_backfill_done"
 	cpaToGlobalAttributesMigrationKey              = "cpa_to_global_attributes_migration_done"
-	propertyPermissionsBackfillKey                 = "property_permissions_backfill_done"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
 	ContentFlaggingPropertyNameStatus              = "status"
@@ -1244,36 +1243,28 @@ func (s *Server) doSetupCPAToGlobalAttributesMigration(rctx request.CTX) error {
 }
 
 // doSetupPropertyPermissionsBackfill converts every PropertyField's legacy
-// permission settings into the normalized permissions object once, across the
+// permission settings into the normalized permissions object, across the
 // whole deployment. This is unconditional: it does not read
 // FeatureFlags.PropertyFieldPermissionsV3, which only gates whether the new
 // payload and API behaviour are served, not whether the data converts.
+//
+// It runs on every startup rather than once behind a System key. A release
+// that predates the permissions object writes fields without one, from an old
+// node during a rolling upgrade or while rolled back, and the access control
+// hook refuses such a field to everyone. Only fields still missing an object
+// are written, so a startup with nothing to convert reads the fields and
+// writes nothing.
 func (s *Server) doSetupPropertyPermissionsBackfill(rctx request.CTX) error {
-	var nfErr *store.ErrNotFound
-	data, err := s.Store().System().GetByName(propertyPermissionsBackfillKey)
-	if err != nil && !errors.As(err, &nfErr) {
-		return fmt.Errorf("could not query property permissions backfill migration: %w", err)
-	}
-
-	if data != nil {
-		return nil
-	}
-
 	converted, skipped, err := s.propertyService.MigrateBackfillPropertyPermissions(rctx)
 	if err != nil {
 		return fmt.Errorf("failed to backfill property permissions: %w", err)
 	}
 
-	mlog.Info("Property permissions backfill migration completed",
-		mlog.Int("converted", converted),
-		mlog.Int("skipped", skipped),
-	)
-
-	if err := s.Store().System().SaveOrUpdate(&model.System{
-		Name:  propertyPermissionsBackfillKey,
-		Value: "true",
-	}); err != nil {
-		return fmt.Errorf("failed to mark property permissions backfill as complete: %w", err)
+	if converted > 0 {
+		mlog.Info("Property permissions backfill converted fields with no permissions object",
+			mlog.Int("converted", converted),
+			mlog.Int("skipped", skipped),
+		)
 	}
 
 	return nil

@@ -601,29 +601,11 @@ func TestCPAToGlobalAttributesMigration_RerunClearsAlreadyLinkedFieldDuplicatedO
 	assert.Len(t, pageAgain.Options, 2)
 }
 
-// clearPropertyPermissionsBackfillMarker removes the System-key marker for the
-// property permissions backfill, the same way clearCPABackfillMarker does for
-// the CPA display_name backfill: Setup(t) has already run this migration once,
-// so without clearing it the test would pass on the short-circuit rather than
-// on the conversion.
-func clearPropertyPermissionsBackfillMarker(t *testing.T, th *TestHelper) {
-	t.Helper()
-	_, err := th.Store.System().PermanentDeleteByName(propertyPermissionsBackfillKey)
-	require.NoError(t, err, "failed to clear property permissions backfill marker for test isolation")
-}
-
 func TestPropertyPermissionsBackfill_NoExistingFields(t *testing.T) {
 	th := Setup(t)
 
-	clearPropertyPermissionsBackfillMarker(t, th)
-
 	err := th.Server.doSetupPropertyPermissionsBackfill(th.Context)
 	require.NoError(t, err)
-
-	data, sysErr := th.Store.System().GetByName(propertyPermissionsBackfillKey)
-	require.NoError(t, sysErr)
-	require.NotNil(t, data)
-	require.Equal(t, "true", data.Value)
 }
 
 func TestPropertyPermissionsBackfill_Idempotent(t *testing.T) {
@@ -632,8 +614,6 @@ func TestPropertyPermissionsBackfill_Idempotent(t *testing.T) {
 	// Enterprise license; the seed CreatePropertyField call below would
 	// otherwise be rejected with app.property.license_error.
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
-
-	clearPropertyPermissionsBackfillMarker(t, th)
 
 	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
 	require.Nil(t, appErr)
@@ -662,17 +642,13 @@ func TestPropertyPermissionsBackfill_Idempotent(t *testing.T) {
 	err := th.Server.doSetupPropertyPermissionsBackfill(th.Context)
 	require.NoError(t, err)
 
-	data, sysErr := th.Store.System().GetByName(propertyPermissionsBackfillKey)
-	require.NoError(t, sysErr)
-	require.Equal(t, "true", data.Value)
-
 	converted, appErr := th.App.GetPropertyField(th.Context, group.ID, field.ID)
 	require.Nil(t, appErr)
 	require.NotNil(t, converted.Permissions, "field must carry a permissions object after the backfill runs")
 	firstUpdateAt := converted.UpdateAt
 
-	// Second run: the idempotency check fires immediately, so it must neither
-	// change the converted object nor rewrite the row.
+	// Second run: the field already carries an object, so the run must neither
+	// change it nor rewrite the row.
 	err = th.Server.doSetupPropertyPermissionsBackfill(th.Context)
 	require.NoError(t, err)
 
@@ -685,7 +661,6 @@ func TestPropertyPermissionsBackfill_Idempotent(t *testing.T) {
 func TestPropertyPermissionsBackfillStoredColumns(t *testing.T) {
 	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
-	clearPropertyPermissionsBackfillMarker(t, th)
 
 	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
 	require.Nil(t, appErr)
@@ -713,6 +688,36 @@ func TestPropertyPermissionsBackfillStoredColumns(t *testing.T) {
 	require.Equal(t, model.PermissionLevelMember, got.Permissions.Restrictions.Option.Write)
 	require.Equal(t, model.PermissionLevelEveryone, got.Permissions.Restrictions.Value.Read)
 	require.Equal(t, model.PermissionLevelEveryone, got.Permissions.Restrictions.Option.Read)
+}
+
+func TestPropertyPermissionsBackfillConvertsFieldsWrittenAfterAnEarlierRun(t *testing.T) {
+	th := Setup(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	// Setup(t) has already run the backfill once.
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	// A release that predates the permissions object writes a field without
+	// one, as an old node does during a rolling upgrade or while rolled back.
+	// Seeded with raw SQL for the same reason as in
+	// TestPropertyPermissionsBackfillStoredColumns.
+	fieldID := model.NewId()
+	now := model.GetMillis()
+	_, err := th.Store.GetInternalMasterDB().Exec(
+		`INSERT INTO PropertyFields
+		(ID, GroupID, Name, Type, Attrs, TargetID, TargetType, ObjectType, CreateAt, UpdateAt, DeleteAt, PermissionField, PermissionValues, PermissionOptions)
+		VALUES ($1, $2, $3, 'text', '{}'::jsonb, '', 'system', 'user', $4, $5, 0, $6, $7, $8)`,
+		fieldID, group.ID, "written-by-an-older-release", now, now, "sysadmin", "member", "sysadmin",
+	)
+	require.NoError(t, err)
+
+	require.NoError(t, th.Server.doSetupPropertyPermissionsBackfill(th.Context))
+
+	got, err := th.Store.PropertyField().Get(th.Context, group.ID, fieldID)
+	require.NoError(t, err)
+	require.NotNil(t, got.Permissions, "a later startup must convert a field written without a permissions object")
+	assert.Equal(t, model.PermissionLevelMember, got.Permissions.Restrictions.Value.Write)
 }
 
 var expectedOSPlatformOptions = []string{"macos", "windows", "linux", "ios", "android"}
