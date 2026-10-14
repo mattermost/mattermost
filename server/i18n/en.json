@@ -4220,6 +4220,11 @@
     "description": "API error when a user who does not administer the channel, team or system a new custom property field belongs to (e.g. a channel attribute) submits a permissions configuration with it. Such users can still create the field, but it gets the default permissions."
   },
   {
+    "id": "api.property_field.create.permissions_require_system_admin.app_error",
+    "translation": "Only a system administrator can set permissions when creating an attribute field.",
+    "description": "API error when a non-system-administrator submits a permissions configuration while creating a field in the attribute-based access control group (user and channel attributes used by access policies). Such users can still create the field, but it gets the default permissions."
+  },
+  {
     "id": "api.property_field.create.protected_via_api.app_error",
     "translation": "Cannot create a protected property field via API.",
     "description": "API error when a client tries to create a system-protected property field through the public API, which is not allowed."
