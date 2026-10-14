@@ -5,10 +5,6 @@ This page describes features that are removed from support for Mattermost, or wi
 
 ## Upcoming deprecations
 
-### Mattermost Server v12.0 (October 2026)
-
-- ``ServiceSettings.ExperimentalEnableHardenedMode`` is deprecated and replaced by ``ServiceSettings.EnableHardenedMode``, which has moved from **System Console > Experimental > Features** to **System Console > Environment > Web Server**. An existing value is carried over to ``EnableHardenedMode`` automatically on upgrade. After that, the server reads only ``EnableHardenedMode``, so update any configuration management, environment variables, or scripts that still set the old setting.
-
 ### Mattermost Mobile App v2.45 (October 2026)
 
 - Starting with Mattermost Mobile App v2.45 (October 2026), the minimum supported mobile operating systems will be iOS v18 and Android v11. Devices running iOS v17 or earlier, or Android v10 or earlier, will no longer receive new versions of the app from the App Store or Google Play; the installed version will continue to work but will not receive further updates, including security fixes. Users should update to iOS v18 or Android v11 or newer before the v2.45 release. See the [forum post](https://forum.mattermost.com/t/deprecation-notice-ios-16-versions/26074) for full details.
@@ -40,6 +36,7 @@ This page describes features that are removed from support for Mattermost, or wi
 - The ``EnableConcurrentReact`` feature flag has been removed. The web app now always renders with concurrent React, and the flag is ignored if it is still set.
 - The ``EmailLoginButtonColor``, ``EmailLoginButtonBorderColor``, and ``EmailLoginButtonTextColor`` client configuration fields have been removed, along with the ``EmailSettings`` login button color settings. These fields were never applied by any client.
 - The channel member API endpoints no longer return ``last_viewed_at`` and ``last_update_at`` for other users' memberships. They previously returned an invalid value of ``-1``; the fields are now omitted from the response when they belong to a user other than the requester. Clients reading those fields for other users must handle their absence.
+- ``ServiceSettings.ExperimentalEnableHardenedMode`` is deprecated and replaced by ``ServiceSettings.EnableHardenedMode``, which has moved from **System Console > Experimental > Features** to **System Console > Environment > Web Server**. An existing value is carried over to ``EnableHardenedMode`` automatically on upgrade. After that, the server reads only ``EnableHardenedMode``, so update any configuration management, environment variables, or scripts that still set the old setting.
 
 ### Mattermost Desktop App v6.1 (March 2026)
 
