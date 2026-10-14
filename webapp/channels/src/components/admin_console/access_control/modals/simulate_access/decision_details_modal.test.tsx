@@ -6,6 +6,7 @@ import React from 'react';
 import type {
     AccessControlPolicy,
     PolicySimulationActionDecision,
+    PolicySimulationBlame,
     PolicySimulationEvaluationNode,
 } from '@mattermost/types/access_control';
 import {POLICY_SIMULATION_BLAME_SOURCES} from '@mattermost/types/access_control';
@@ -13,6 +14,12 @@ import {POLICY_SIMULATION_BLAME_SOURCES} from '@mattermost/types/access_control'
 import {renderWithContext, screen, userEvent, within} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
+import {
+    SINGLE_RULE_BOT_WITHOUT_ATTRIBUTE,
+    SINGLE_RULE_PERSON,
+    TWO_RULE_FOLD_BOT_WITHOUT_ATTRIBUTE,
+    TWO_RULE_FOLD_PERSON,
+} from './bot_scope_trace_test_fixtures';
 import DecisionDetailsModal from './decision_details_modal';
 
 const ACTION = 'upload_file_attachment';
@@ -488,5 +495,118 @@ describe('DecisionDetailsModal bot-scope unwrapping', () => {
         expect(within(tree).getByTestId('simulate-access-trace-node-or-false')).toBeInTheDocument();
         expect(within(tree).getAllByTestId('simulate-access-trace-node-compare-false')).toHaveLength(2);
         expect(within(tree).getByText('ANY of the following may hold (OR)')).toBeInTheDocument();
+    });
+});
+
+describe('DecisionDetailsModal bot-scope unwrapping (captured server traces)', () => {
+    const SECRET = 'user.attributes.QA3Clearance == "Secret"';
+    const TOP_SECRET = 'user.attributes.QA3Clearance == "TopSecret"';
+
+    function draftBlameOf(decision: PolicySimulationActionDecision): PolicySimulationBlame {
+        const blame = decision.blame?.find((b) => b.source === POLICY_SIMULATION_BLAME_SOURCES.THIS_RULE);
+        if (!blame) {
+            throw new Error('fixture has no this_rule blame');
+        }
+        return blame;
+    }
+
+    function foldRules(decision: PolicySimulationActionDecision): PolicySimulationEvaluationNode[] {
+        const children = draftBlameOf(decision).evaluation_tree?.children;
+        if (!children || children.length !== 2) {
+            throw new Error('fixture is not a two-rule fold');
+        }
+        return children;
+    }
+
+    test.each([
+        ['single rule', SINGLE_RULE_PERSON, 1],
+        ['two-rule fold', TWO_RULE_FOLD_PERSON, 2],
+    ])('an allowed person keeps the guard on the draft section (%s)', async (_, decision, guards) => {
+        renderDetails(decision);
+
+        await expandTrace();
+        const draftSection = screen.getByTestId(`simulate-access-details-policy-${ACTION}-1`);
+        const peerSection = screen.getByTestId(`simulate-access-details-policy-${ACTION}-2`);
+
+        expect(within(draftSection).getByText('Your policy: Allowed')).toBeInTheDocument();
+        expect(within(draftSection).getAllByTestId('simulate-access-trace-node-not-true')).toHaveLength(guards);
+        expect(within(draftSection).getAllByTestId('simulate-access-trace-node-compare-error')).toHaveLength(guards);
+        expect(within(peerSection).getByText('Policy: QA3-BotScope-bfbcf6')).toBeInTheDocument();
+    });
+
+    test('a denied bot sees only the rule body (single rule)', async () => {
+        renderDetails(SINGLE_RULE_BOT_WITHOUT_ATTRIBUTE);
+
+        await expandTrace();
+        const tree = screen.getByTestId(`simulate-access-details-tree-${ACTION}`);
+
+        expect(within(tree).queryByTestId('simulate-access-trace-node-or-error')).not.toBeInTheDocument();
+        expect(within(tree).queryByTestId('simulate-access-trace-node-not-false')).not.toBeInTheDocument();
+        expect(within(tree).getByTestId('simulate-access-trace-node-compare-error')).toBeInTheDocument();
+        expect(within(tree).getByText(SECRET)).toBeInTheDocument();
+        expect(tree).not.toHaveTextContent('user.isbot');
+    });
+
+    test('a denied bot sees only the rule bodies (two-rule fold)', async () => {
+        renderDetails(TWO_RULE_FOLD_BOT_WITHOUT_ATTRIBUTE);
+
+        await expandTrace();
+        const tree = screen.getByTestId(`simulate-access-details-tree-${ACTION}`);
+
+        expect(within(tree).getAllByTestId('simulate-access-trace-node-or-error')).toHaveLength(1);
+        expect(within(tree).getAllByTestId('simulate-access-trace-node-compare-error')).toHaveLength(2);
+        expect(within(tree).queryByTestId('simulate-access-trace-node-not-false')).not.toBeInTheDocument();
+        expect(tree).not.toHaveTextContent('user.isbot');
+    });
+
+    test('without a tree the flat text is unwrapped as before', async () => {
+        renderDetails({decision: false, blame: [{...draftBlameOf(SINGLE_RULE_PERSON), evaluation_tree: undefined}]});
+
+        const ruleBlock = await expandTrace();
+
+        expect(flatExpression(ruleBlock)).toBe(SECRET);
+        expect(ruleBlock).not.toHaveTextContent('user.isbot');
+    });
+
+    test('a merged rule without its own tree follows the merged tree for an allowed person', async () => {
+        const [rule1, rule2] = foldRules(TWO_RULE_FOLD_PERSON);
+        renderDetails({
+            decision: true,
+            blame: [{
+                ...draftBlameOf(TWO_RULE_FOLD_PERSON),
+                merged_rules: [
+                    {name: 'rule1', expression: rule1.expression, evaluation_tree: rule1},
+                    {name: 'rule2', expression: rule2.expression},
+                ],
+            }],
+        });
+
+        await expandTrace();
+        const first = screen.getByTestId(`simulate-access-details-merged-rule-${ACTION}-1`);
+        const second = screen.getByTestId(`simulate-access-details-merged-rule-${ACTION}-2`);
+
+        expect(within(first).getByTestId('simulate-access-trace-node-not-true')).toBeInTheDocument();
+        expect(flatExpression(second)).toBe(`(!(user.isbot)) || (${TOP_SECRET})`);
+    });
+
+    test('a merged rule without its own tree follows the merged tree for a denied bot', async () => {
+        const [rule1, rule2] = foldRules(TWO_RULE_FOLD_BOT_WITHOUT_ATTRIBUTE);
+        renderDetails({
+            decision: false,
+            blame: [{
+                ...draftBlameOf(TWO_RULE_FOLD_BOT_WITHOUT_ATTRIBUTE),
+                merged_rules: [
+                    {name: 'rule1', expression: rule1.expression, evaluation_tree: rule1},
+                    {name: 'rule2', expression: rule2.expression},
+                ],
+            }],
+        });
+
+        await expandTrace();
+        const first = screen.getByTestId(`simulate-access-details-merged-rule-${ACTION}-1`);
+        const second = screen.getByTestId(`simulate-access-details-merged-rule-${ACTION}-2`);
+
+        expect(first).not.toHaveTextContent('user.isbot');
+        expect(flatExpression(second)).toBe(TOP_SECRET);
     });
 });

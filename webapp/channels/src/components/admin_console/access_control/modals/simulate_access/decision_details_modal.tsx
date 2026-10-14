@@ -25,7 +25,7 @@ import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import ProfilePicture from 'components/profile_picture';
 
-import {unwrapBotTraceExpression, unwrapBotTraceTree} from './bot_scope_trace';
+import {unwrapBotTraceExpressionForTree, unwrapBotTraceTree} from './bot_scope_trace';
 import DecisionChip from './decision_chip';
 
 import './decision_details_modal.scss';
@@ -878,7 +878,7 @@ function buildTraceFromBlame(
         return null;
     }
     const trace: DenyTrace = {
-        expression: unwrapBotTraceExpression(expression),
+        expression: unwrapBotTraceExpressionForTree(expression, blame.evaluation_tree),
         outcome: blame.outcome === 'allow' ? 'allow' : 'deny',
     };
     if (blame.rule_name) {
@@ -918,7 +918,7 @@ function buildTraceFromBlame(
     if (blame.merged_rules && blame.merged_rules.length > 1) {
         trace.mergedRules = blame.merged_rules.map((m) => ({
             name: m.name,
-            expression: m.expression && unwrapBotTraceExpression(m.expression),
+            expression: m.expression && unwrapBotTraceExpressionForTree(m.expression, m.evaluation_tree ?? blame.evaluation_tree),
             evaluationTree: m.evaluation_tree && unwrapBotTraceTree(m.evaluation_tree),
         }));
     } else if (
@@ -932,7 +932,7 @@ function buildTraceFromBlame(
     ) {
         const merged = (policy.rules ?? []).
             filter((r) => r.role === blame.role && (r.actions ?? []).includes(action)).
-            map((r) => ({name: r.name ?? '', expression: unwrapBotTraceExpression(r.expression)})).
+            map((r) => ({name: r.name ?? '', expression: unwrapBotTraceExpressionForTree(r.expression, blame.evaluation_tree)})).
             filter((m) => m.name);
         if (merged.length > 1) {
             trace.mergedRules = merged;

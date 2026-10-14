@@ -132,3 +132,12 @@ export function unwrapBotTraceTree(node: PolicySimulationEvaluationNode): Policy
     }
     return {...node, expression: unwrapBotTraceExpression(node.expression), children: [left, right]};
 }
+
+// Flat text has no outcomes, so when a tree is available it decides: the guard is
+// stripped from the text only if unwrapBotTraceTree stripped it from the tree.
+export function unwrapBotTraceExpressionForTree(expr: string, tree?: PolicySimulationEvaluationNode): string {
+    if (tree && unwrapBotTraceTree(tree) === tree) {
+        return expr;
+    }
+    return unwrapBotTraceExpression(expr);
+}

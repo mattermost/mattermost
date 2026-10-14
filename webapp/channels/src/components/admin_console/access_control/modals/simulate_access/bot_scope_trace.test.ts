@@ -1,9 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PolicySimulationEvaluationNode} from '@mattermost/types/access_control';
+import type {
+    PolicySimulationActionDecision,
+    PolicySimulationBlame,
+    PolicySimulationEvaluationNode,
+} from '@mattermost/types/access_control';
+import {POLICY_SIMULATION_BLAME_SOURCES} from '@mattermost/types/access_control';
 
-import {unwrapBotTraceExpression, unwrapBotTraceTree} from './bot_scope_trace';
+import {unwrapBotTraceExpression, unwrapBotTraceExpressionForTree, unwrapBotTraceTree} from './bot_scope_trace';
+import {
+    SINGLE_RULE_BOT_WITH_ATTRIBUTE,
+    SINGLE_RULE_BOT_WITHOUT_ATTRIBUTE,
+    SINGLE_RULE_PERSON,
+    TWO_RULE_FOLD_BOT_WITHOUT_ATTRIBUTE,
+    TWO_RULE_FOLD_PERSON,
+} from './bot_scope_trace_test_fixtures';
 
 const CLEARANCE = 'user.attributes.Clearance == "Secret"';
 const A = 'user.attributes.A == "x"';
@@ -358,5 +370,56 @@ describe('unwrapBotTraceTree', () => {
             const root = or(`!user.attributes.Flag || ${A}`, [notOther, leaf(A)]);
             expect(unwrapBotTraceTree(root)).toBe(root);
         });
+    });
+});
+
+describe('unwrapBotTraceExpressionForTree (captured server traces)', () => {
+    const SECRET = 'user.attributes.QA3Clearance == "Secret"';
+    const TOP_SECRET = 'user.attributes.QA3Clearance == "TopSecret"';
+
+    function blameOf(decision: PolicySimulationActionDecision, source: PolicySimulationBlame['source']) {
+        const blame = decision.blame?.find((b) => b.source === source);
+        if (!blame?.expression || !blame.evaluation_tree) {
+            throw new Error(`fixture has no ${source} blame with a tree`);
+        }
+        return {expression: blame.expression, tree: blame.evaluation_tree};
+    }
+
+    const draftBlame = (decision: PolicySimulationActionDecision) => blameOf(decision, POLICY_SIMULATION_BLAME_SOURCES.THIS_RULE);
+
+    test.each([
+        ['single rule', SINGLE_RULE_PERSON],
+        ['two-rule fold', TWO_RULE_FOLD_PERSON],
+    ])('an allowed person keeps the guard in both the text and the tree (%s)', (_, decision) => {
+        const blame = draftBlame(decision);
+
+        expect(unwrapBotTraceTree(blame.tree)).toBe(blame.tree);
+        expect(unwrapBotTraceExpressionForTree(blame.expression, blame.tree)).toBe(blame.expression);
+    });
+
+    test.each([
+        ['allowed bot, single rule', SINGLE_RULE_BOT_WITH_ATTRIBUTE, SECRET, 'compare'],
+        ['denied bot, single rule', SINGLE_RULE_BOT_WITHOUT_ATTRIBUTE, SECRET, 'compare'],
+        ['denied bot, two-rule fold', TWO_RULE_FOLD_BOT_WITHOUT_ATTRIBUTE, `(${SECRET}) || (${TOP_SECRET})`, 'or'],
+    ])('a %s loses the guard in both the text and the tree', (_, decision, expectedText, rootKind) => {
+        const blame = draftBlame(decision);
+        const tree = unwrapBotTraceTree(blame.tree);
+
+        expect(unwrapBotTraceExpressionForTree(blame.expression, blame.tree)).toBe(expectedText);
+        expect(tree.kind).toBe(rootKind);
+        expect(JSON.stringify(tree)).not.toContain('user.isbot');
+    });
+
+    test('without a tree the text is unwrapped as before', () => {
+        const blame = draftBlame(SINGLE_RULE_PERSON);
+
+        expect(unwrapBotTraceExpressionForTree(blame.expression)).toBe(SECRET);
+        expect(unwrapBotTraceExpressionForTree(blame.expression)).toBe(unwrapBotTraceExpression(blame.expression));
+    });
+
+    test('a peer policy without the guard is returned unchanged', () => {
+        const blame = blameOf(SINGLE_RULE_PERSON, POLICY_SIMULATION_BLAME_SOURCES.PEER_POLICY);
+
+        expect(unwrapBotTraceExpressionForTree(blame.expression, blame.tree)).toBe(blame.expression);
     });
 });
