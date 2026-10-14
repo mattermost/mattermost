@@ -1853,6 +1853,110 @@ func TestPatchCPAValuesForBotTarget(t *testing.T) {
 	})
 }
 
+// TestBotWritesOwnCPAValues covers a bot authenticated with its own token
+// writing its own values, as opposed to a bot manager writing on its behalf.
+func TestBotWritesOwnCPAValues(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+		*cfg.ServiceSettings.EnableUserAccessTokens = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	createField := func(t *testing.T, attrs model.StringInterface) *model.PropertyField {
+		t.Helper()
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), &model.PropertyField{
+			Name:  celSafeName(),
+			Type:  model.PropertyFieldTypeText,
+			Attrs: attrs,
+		})
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		return created
+	}
+	regularField := createField(t, nil)
+	adminField := createField(t, model.StringInterface{model.CustomProfileAttributesPropertyAttrsManaged: "admin"})
+
+	newBotClient := func(t *testing.T, roles string) (*model.Client4, string) {
+		t.Helper()
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{Username: GenerateTestUsername(), OwnerId: th.BasicUser.Id})
+		require.Nil(t, appErr)
+		if roles != "" {
+			_, appErr = th.App.UpdateUserRoles(th.Context, bot.UserId, roles, false)
+			require.Nil(t, appErr)
+		}
+		token, appErr := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{UserId: bot.UserId, Description: "bot token"})
+		require.Nil(t, appErr)
+		client := th.CreateClient()
+		client.SetToken(token.Token)
+		return client, bot.UserId
+	}
+	requireStored := func(t *testing.T, botUserID, fieldID, want string) {
+		t.Helper()
+		stored, resp, err := th.SystemAdminClient.ListCPAValues(context.Background(), botUserID)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		var got string
+		require.NoError(t, json.Unmarshal(stored[fieldID], &got))
+		require.Equal(t, want, got)
+	}
+
+	t.Run("member bot", func(t *testing.T) {
+		botClient, botUserID := newBotClient(t, "")
+
+		_, resp, err := th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), botUserID, map[string]json.RawMessage{
+			adminField.ID: json.RawMessage(`"admin set"`),
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		t.Run("can write a regular field", func(t *testing.T) {
+			_, resp, err := botClient.PatchCPAValues(context.Background(), map[string]json.RawMessage{
+				regularField.ID: json.RawMessage(`"bot set"`),
+			})
+			CheckOKStatus(t, resp)
+			require.NoError(t, err)
+			requireStored(t, botUserID, regularField.ID, "bot set")
+		})
+
+		t.Run("cannot write an admin-managed field via the self route", func(t *testing.T) {
+			_, resp, err := botClient.PatchCPAValues(context.Background(), map[string]json.RawMessage{
+				adminField.ID: json.RawMessage(`"bot set"`),
+			})
+			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
+			requireStored(t, botUserID, adminField.ID, "admin set")
+		})
+
+		t.Run("cannot write an admin-managed field via the user route", func(t *testing.T) {
+			_, resp, err := botClient.PatchCPAValuesForUser(context.Background(), botUserID, map[string]json.RawMessage{
+				adminField.ID: json.RawMessage(`"bot set"`),
+			})
+			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
+			requireStored(t, botUserID, adminField.ID, "admin set")
+		})
+
+		t.Run("cannot write an admin-managed field via the generic API", func(t *testing.T) {
+			_, resp, err := botClient.PatchPropertyValues(context.Background(), model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeUser, botUserID,
+				[]model.PropertyValuePatchItem{{FieldID: adminField.ID, Value: json.RawMessage(`"bot set"`)}})
+			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
+			requireStored(t, botUserID, adminField.ID, "admin set")
+		})
+	})
+
+	t.Run("system admin bot can write an admin-managed field", func(t *testing.T) {
+		botClient, botUserID := newBotClient(t, model.SystemUserRoleId+" "+model.SystemAdminRoleId)
+		_, resp, err := botClient.PatchCPAValues(context.Background(), map[string]json.RawMessage{
+			adminField.ID: json.RawMessage(`"bot set"`),
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		requireStored(t, botUserID, adminField.ID, "bot set")
+	})
+}
+
 // TestCPANonAdminWriteOwnValueViaGenericAPI confirms a non-admin user can set
 // their own value on a regular CPA field via the generic property API.
 func TestCPANonAdminWriteOwnValueViaGenericAPI(t *testing.T) {
