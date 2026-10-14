@@ -256,6 +256,61 @@ func TestListCPAFields(t *testing.T) {
 	})
 }
 
+// TestCPAFieldWithoutOwnersHasNoOwnersAttr guards the v2 read of an unowned
+// field. Clients take any attrs.owners entry to mean an integration owns the
+// values and lock the field for people, so the plugin wildcard every unowned
+// field converts to must not surface there.
+func TestCPAFieldWithoutOwnersHasNoOwnersAttr(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	createdField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), &model.PropertyField{
+		Name:  celSafeName(),
+		Type:  model.PropertyFieldTypeText,
+		Attrs: map[string]any{"sort_order": 0},
+	})
+	CheckCreatedStatus(t, resp)
+	require.NoError(t, err)
+	require.NotContains(t, createdField.Attrs, model.PropertyAttrsOwners)
+
+	findField := func(t *testing.T, fields []*model.PropertyField) *model.PropertyField {
+		t.Helper()
+		for _, field := range fields {
+			if field.ID == createdField.ID {
+				return field
+			}
+		}
+		require.FailNow(t, "created field not listed")
+		return nil
+	}
+
+	t.Run("the CPA endpoint", func(t *testing.T) {
+		fields, resp, err := th.Client.ListCPAFields(context.Background())
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		assert.NotContains(t, findField(t, fields).Attrs, model.PropertyAttrsOwners)
+	})
+
+	t.Run("the generic properties endpoint", func(t *testing.T) {
+		fields, resp, err := th.Client.GetPropertyFields(context.Background(), model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeUser, model.PropertyFieldSearch{
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			PerPage:    100,
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		assert.NotContains(t, findField(t, fields).Attrs, model.PropertyAttrsOwners)
+	})
+
+	t.Run("the user can still set their own value", func(t *testing.T) {
+		_, resp, err := th.Client.PatchCPAValues(context.Background(), map[string]json.RawMessage{
+			createdField.ID: json.RawMessage(`"Self Value"`),
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+	})
+}
+
 func TestPatchCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {

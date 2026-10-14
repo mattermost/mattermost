@@ -1223,8 +1223,8 @@ func legacySourceOf(existing *model.PropertyField) *model.PropertyField {
 // The owners / access_mode / protected attrs are still stored, and count as
 // changed only when they differ from both existing.Attrs and the projection:
 // api4 echoes the raw row, whose owners attr can carry fewer entries than the
-// projection once a source plugin, a sync lock or the ambient-access wildcard
-// has added a grant of its own, while plugin API and v2 readers echo the
+// projection once a source plugin or a sync lock has added a grant of its
+// own, while plugin API and v2 readers echo the
 // projection. The sync-source attrs are not projected, so they compare against
 // existing.Attrs alone. The projected access_mode follows existing's linked
 // template, passed in as template, as every v2 read of the field does.
@@ -1305,8 +1305,9 @@ func comparableOwners(field *model.PropertyField) []model.PropertyOwner {
 
 // dropSyntheticOwners removes from field's owners every identity the
 // projection of existing reports as an owner but its stored owners attr does
-// not: the source plugin, the sync identity and the plugin:* wildcard, whose
-// grants the conversion derives from the other attrs. Echoed back as owners,
+// not: the source plugin and the sync identity, whose grants the conversion
+// derives from the other attrs. The plugin:* wildcard is never projected, so
+// it never comes back here. Echoed back as owners,
 // they would make the field owner-managed, freeze those grants' actions at
 // their pre-change values, and be saved as real owners.
 //
