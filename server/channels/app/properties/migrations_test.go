@@ -1131,10 +1131,9 @@ func TestMigrateCPAFieldsToGlobalAttributes_RerunLeavesPluginManagedLinkedFieldA
 
 // TestCPAMigrationAfterBackfillMatchesLinkFirst covers an unlicensed first
 // boot: the CPA migration skips without its marker, the permissions backfill
-// converts the still-unlinked field and marks itself done, and a later
-// licensed boot links a field that already carries permissions. The result
-// must match the licensed order, where the backfill converts the field
-// already linked to its template.
+// converts the still-unlinked field, and a later licensed boot links a field
+// that already carries permissions. The result must match the licensed order,
+// where the backfill converts the field already linked to its template.
 func TestCPAMigrationAfterBackfillMatchesLinkFirst(t *testing.T) {
 	member := model.PermissionLevelMember
 	sysadmin := model.PermissionLevelSysadmin
@@ -1453,9 +1452,8 @@ func TestPermissionsBackfillConvertBatch(t *testing.T) {
 	})
 }
 
-// TestMigrateBackfillPropertyPermissions_Paging covers the driver on top of
-// convertBatch: paging across groups with no group filter, and idempotency on
-// a second run.
+// TestWarnIfMaskedTemplateHasWritableHoldings covers the backfill's warning
+// for a masked template whose holdings field its members can already write.
 func TestWarnIfMaskedTemplateHasWritableHoldings(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 
@@ -1543,6 +1541,9 @@ func TestWarnIfMaskedTemplateHoldingsTheBackfillCloses(t *testing.T) {
 	requireWarnNotLogged(t, th, buffer, "widen their own masked view")
 }
 
+// TestMigrateBackfillPropertyPermissions_Paging covers the driver on top of
+// convertBatch: paging across groups with no group filter, and idempotency on
+// a second run.
 func TestMigrateBackfillPropertyPermissions_Paging(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	otherGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
