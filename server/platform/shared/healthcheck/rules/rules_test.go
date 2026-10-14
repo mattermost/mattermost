@@ -15,7 +15,7 @@ func TestBuiltinRegistry(t *testing.T) {
 	registry := healthcheck.Builtin()
 	require.NoError(t, registry.Validate())
 
-	for _, code := range []string{"PUSH_EMPTY_URL", "PUSH_BAD_SCHEME", "PUSH_TEST_PROXY", "SITE_URL_EMPTY", "SITE_URL_HTTP"} {
+	for _, code := range []string{"PUSH_EMPTY_URL", "PUSH_BAD_SCHEME", "PUSH_TEST_PROXY", "SITE_URL_EMPTY", "SITE_URL_HTTP", "JOB_STUCK", "JOB_WEDGED_AT_ZERO", "JOB_FAILED"} {
 		_, ok := registry.Get(code)
 		assert.True(t, ok, code)
 	}

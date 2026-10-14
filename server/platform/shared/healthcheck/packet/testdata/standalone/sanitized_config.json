@@ -26,6 +26,9 @@
         "PushNotificationServer": "https://push-test.mattermost.com",
         "PushNotificationContents": "full"
     },
+    "LdapSettings": {
+        "EnableSync": true
+    },
     "ClusterSettings": {
         "Enable": false,
         "ClusterName": "",
@@ -37,6 +40,12 @@
         "EnableGossipCompression": true,
         "ReadOnlyConfig": true,
         "GossipPort": 8074
+    },
+    "ElasticsearchSettings": {
+        "EnableIndexing": false
+    },
+    "MessageExportSettings": {
+        "EnableExport": false
     },
     "FeatureFlags": {
         "TestFeature": "off",
