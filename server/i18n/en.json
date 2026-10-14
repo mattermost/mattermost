@@ -4215,6 +4215,11 @@
     "description": "API error when creating a custom property field with an unsupported target type (the kind of object the field attaches to)."
   },
   {
+    "id": "api.property_field.create.permissions_require_scope_admin.app_error",
+    "translation": "Only an administrator of the field's channel, team or system can set its permissions when creating it.",
+    "description": "API error when a user who does not administer the channel, team or system a new custom property field belongs to (e.g. a channel attribute) submits a permissions configuration with it. Such users can still create the field, but it gets the default permissions."
+  },
+  {
     "id": "api.property_field.create.protected_via_api.app_error",
     "translation": "Cannot create a protected property field via API.",
     "description": "API error when a client tries to create a system-protected property field through the public API, which is not allowed."

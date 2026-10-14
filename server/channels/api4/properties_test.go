@@ -1137,8 +1137,8 @@ func TestCreatePropertyField(t *testing.T) {
 			Permissions: &model.Permissions{
 				Restrictions: &model.Restrictions{
 					// There is no existing field yet to hold field.write on, so a
-					// creator setting their own new field's permissions is legal
-					// regardless of what the restrictions say.
+					// scope admin setting their own new field's permissions is
+					// legal regardless of what the restrictions say.
 					Field: model.WriteOnly{Write: model.PermissionLevelSysadmin},
 				},
 			},
@@ -1148,6 +1148,88 @@ func TestCreatePropertyField(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 		require.NotNil(t, created.Permissions)
+	})
+
+	t.Run("create with permissions in a v3 group requires administering the field's scope", func(t *testing.T) {
+		v3Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_create_permissions_scope", Version: model.PropertyGroupVersionV3})
+		require.Nil(t, appErr)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PropertyFieldPermissionsV3 = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PropertyFieldPermissionsV3 = false
+		})
+
+		// field.write none with a grant naming only the creator: stored, it
+		// would leave no administrator able to edit or delete the field.
+		lockingField := func(creatorID string) *model.PropertyField {
+			return &model.PropertyField{
+				Name:       model.NewId(),
+				Type:       model.PropertyFieldTypeText,
+				TargetType: "channel",
+				TargetID:   th.BasicChannel.Id,
+				Permissions: &model.Permissions{
+					Restrictions: &model.Restrictions{
+						Field: model.WriteOnly{Write: model.PermissionLevelNone},
+					},
+					Grants: []model.Grant{{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: creatorID},
+						Allow:    []string{model.PropertyActionFieldWrite},
+					}},
+				},
+			}
+		}
+
+		t.Run("a plain channel member is refused and nothing is stored", func(t *testing.T) {
+			th.LoginBasic(t)
+
+			field := lockingField(th.BasicUser.Id)
+			_, resp, err := th.Client.CreatePropertyField(context.Background(), v3Group.Name, "post", field)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+
+			stored, appErr := th.App.SearchPropertyFields(th.Context, v3Group.ID, model.PropertyFieldSearchOpts{
+				ObjectTypes: []string{"post"},
+				TargetIDs:   []string{th.BasicChannel.Id},
+				PerPage:     100,
+			})
+			require.Nil(t, appErr)
+			for _, f := range stored {
+				require.NotEqual(t, field.Name, f.Name)
+			}
+		})
+
+		t.Run("the same member can still create the field without one", func(t *testing.T) {
+			th.LoginBasic(t)
+
+			field := lockingField(th.BasicUser.Id)
+			field.Permissions = nil
+			created, resp, err := th.Client.CreatePropertyField(context.Background(), v3Group.Name, "post", field)
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+			require.Nil(t, created.Permissions)
+		})
+
+		t.Run("a channel admin may submit one", func(t *testing.T) {
+			channelAdmin := th.CreateUser(t)
+			th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+			_, appErr := th.App.AddUserToChannel(th.Context, channelAdmin, th.BasicChannel, false)
+			require.Nil(t, appErr)
+			_, appErr = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, channelAdmin.Id,
+				model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+			require.Nil(t, appErr)
+
+			client := th.CreateClient()
+			_, _, err := client.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
+			require.NoError(t, err)
+
+			created, resp, err := client.CreatePropertyField(context.Background(), v3Group.Name, "post", lockingField(channelAdmin.Id))
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+			require.NotNil(t, created.Permissions)
+			require.Equal(t, model.PermissionLevelNone, created.Permissions.Restrictions.Field.Write)
+		})
 	})
 
 	t.Run("a non-scope-admin cannot pin the creator permission level", func(t *testing.T) {

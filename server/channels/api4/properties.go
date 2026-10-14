@@ -209,9 +209,8 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// A group not serving the v3 payload has no place for a permissions
 	// object in its shape, so accepting one would store something the
-	// caller was never shown. There is no existing field to hold field.write
-	// on yet, so a creator setting their own new field's permissions stays
-	// legal by design -- only the shape is checked here.
+	// caller was never shown. Who may submit one is decided below, with the
+	// permission levels it replaces.
 	if field.Permissions != nil && !servesV3(c, group) {
 		c.Err = model.NewAppError("createPropertyField", "api.property_field.patch.permissions_not_supported.app_error", nil, "", http.StatusBadRequest)
 		return
@@ -270,6 +269,17 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	defaultLevel := app.DefaultPropertyFieldPermissionLevel(field)
 	defaultValuesLevel := app.DefaultPropertyFieldValuesPermissionLevel(field)
 	if !canPin {
+		// A permissions object is the same configuration the levels are, and
+		// once stored it decides alone, so it takes the same authority. Refused
+		// rather than replaced by the defaults, since the levels' silent pin
+		// would leave the caller believing their object was applied. Without
+		// this, anyone able to create a field could set field.write none with
+		// a grant naming only themselves, and no administrator could then edit
+		// or delete it.
+		if field.Permissions != nil {
+			c.Err = model.NewAppError("createPropertyField", "api.property_field.create.permissions_require_scope_admin.app_error", nil, "", http.StatusForbidden)
+			return
+		}
 		field.PermissionField = &defaultLevel
 		field.PermissionValues = &defaultValuesLevel
 		field.PermissionOptions = &defaultLevel
