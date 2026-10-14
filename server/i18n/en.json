@@ -11291,6 +11291,11 @@
     "description": "API error returned when a request tries to modify a property field that is marked protected (system-managed) and cannot be edited."
   },
   {
+    "id": "app.property_field.update.self_writable_holdings_dependents.app_error",
+    "translation": "Cannot update: linked field {{.DependentID}} would supply its own holdings under this masking, but its value write level is '{{.ValueWrite}}'. Lower that field's value write level to admin or below first.",
+    "description": "API error returned when an admin or integration adds masking to a shared property template while a field linked to it can be edited by regular members. DependentID is a field ID; ValueWrite is a permission level such as 'member' or 'everyone'."
+  },
+  {
     "id": "app.property_field.update.type_change_with_dependents.app_error",
     "translation": "Cannot change type of a field with active linked dependents.",
     "description": "API error when changing the data type of a property field that linked fields still depend on."

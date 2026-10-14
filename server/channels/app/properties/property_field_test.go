@@ -2778,6 +2778,99 @@ func TestLinkedFieldSelfWritableHoldings(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 		assert.Contains(t, appErr.Error(), "holdings source")
 	})
+
+	t.Run("a template update that adds masking over a member-writable linked field", func(t *testing.T) {
+		fieldWriteGrant := []model.Grant{{
+			Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "test-plugin"},
+			Allow:    []string{model.PropertyActionFieldWrite},
+		}}
+
+		// unmaskedScheme creates an unmasked template and a linked field its
+		// members may write, which is allowed while nothing masks it.
+		unmaskedScheme := func(t *testing.T) (template, linked *model.PropertyField) {
+			t.Helper()
+			template, err := th.service.CreatePropertyField(rctxPlugin, &model.PropertyField{
+				GroupID:    th.CPAGroupID,
+				ObjectType: model.PropertyFieldObjectTypeTemplate,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				Type:       model.PropertyFieldTypeText,
+				Name:       "LaterMaskedTemplate-" + model.NewId(),
+				Permissions: &model.Permissions{
+					Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelEveryone}},
+					Grants:       fieldWriteGrant,
+				},
+			})
+			require.NoError(t, err)
+
+			linked, err = th.service.CreatePropertyField(rctxPlugin, &model.PropertyField{
+				GroupID:       th.CPAGroupID,
+				ObjectType:    model.PropertyFieldObjectTypeUser,
+				TargetType:    string(model.PropertyFieldTargetLevelSystem),
+				Name:          "MemberWritable-" + model.NewId(),
+				Type:          model.PropertyFieldTypeText,
+				LinkedFieldID: &template.ID,
+				Permissions: &model.Permissions{
+					Restrictions: &model.Restrictions{
+						Value:  model.ReadWrite{Write: model.PermissionLevelMember},
+						Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+					},
+					Grants: fieldWriteGrant,
+				},
+			})
+			require.NoError(t, err)
+			return template, linked
+		}
+
+		t.Run("is refused when the field would supply its own holdings", func(t *testing.T) {
+			template, linked := unmaskedScheme(t)
+
+			template.Permissions.Masking = &model.Masking{}
+			_, _, err := th.service.UpdatePropertyField(rctxPlugin, th.CPAGroupID, template)
+			require.Error(t, err)
+			var appErr *model.AppError
+			require.ErrorAs(t, err, &appErr)
+			assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+			assert.Equal(t, "app.property_field.update.self_writable_holdings_dependents.app_error", appErr.Id)
+			assert.Contains(t, appErr.DetailedError, linked.ID)
+
+			stored, err := th.service.fieldStore.Get(th.Context, th.CPAGroupID, template.ID)
+			require.NoError(t, err)
+			require.NotNil(t, stored.Permissions)
+			assert.Nil(t, stored.Permissions.Masking)
+		})
+
+		t.Run("is allowed when the same call lowers the field's value.write", func(t *testing.T) {
+			template, linked := unmaskedScheme(t)
+
+			template.Permissions.Masking = &model.Masking{}
+			linked.Permissions.Restrictions.Value.Write = model.PermissionLevelAdmin
+			_, _, _, err := th.service.UpdatePropertyFields(rctxPlugin, th.CPAGroupID, []*model.PropertyField{template, linked})
+			require.NoError(t, err)
+		})
+
+		t.Run("is allowed when the masking reads holdings from a different field", func(t *testing.T) {
+			template, _ := unmaskedScheme(t)
+			holdings, err := th.service.CreatePropertyField(rctxPlugin, &model.PropertyField{
+				GroupID:       th.CPAGroupID,
+				ObjectType:    model.PropertyFieldObjectTypeUser,
+				TargetType:    string(model.PropertyFieldTargetLevelSystem),
+				Name:          "AdminWritableHoldings-" + model.NewId(),
+				Type:          model.PropertyFieldTypeText,
+				LinkedFieldID: &template.ID,
+				Permissions: &model.Permissions{
+					Restrictions: &model.Restrictions{
+						Value:  model.ReadWrite{Write: model.PermissionLevelAdmin},
+						Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+					},
+				},
+			})
+			require.NoError(t, err)
+
+			template.Permissions.Masking = &model.Masking{MaskByFieldID: holdings.ID}
+			_, _, err = th.service.UpdatePropertyField(rctxPlugin, th.CPAGroupID, template)
+			require.NoError(t, err)
+		})
+	})
 }
 
 func TestMaskHoldingsFieldStaysLinked(t *testing.T) {
