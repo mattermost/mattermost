@@ -1985,4 +1985,22 @@ describe('TableEditor picker filter and help text', () => {
 
         expect(await screen.findByText(/must be met for a user to comply/)).toBeInTheDocument();
     });
+
+    test('a custom emptyStateText replaces the default empty-table message', async () => {
+        renderWithContext(
+            <TableEditor
+                {...baseProps}
+                emptyStateText='Select a bot attribute and values to create a rule'
+            />,
+        );
+
+        expect(await screen.findByText('Select a bot attribute and values to create a rule')).toBeInTheDocument();
+        expect(screen.queryByText('Select a user attribute and values to create a rule')).not.toBeInTheDocument();
+    });
+
+    test('renders the default empty-table message when emptyStateText is omitted', async () => {
+        renderWithContext(<TableEditor {...baseProps}/>);
+
+        expect(await screen.findByText('Select a user attribute and values to create a rule')).toBeInTheDocument();
+    });
 });

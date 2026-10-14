@@ -828,6 +828,10 @@ function PermissionPolicyDetails({
                                                 id: 'admin.permission_policies.edit.table_help_text_bot',
                                                 defaultMessage: 'Each row is a single condition that must be met for a bot to comply with the policy. All rules are combined with logical AND operator (`&&`).',
                                             }) : undefined}
+                                            emptyStateText={isBotScope ? formatMessage({
+                                                id: 'admin.permission_policies.edit.table_empty_bot',
+                                                defaultMessage: 'Select a bot attribute and values to create a rule',
+                                            }) : undefined}
                                             hiddenPickerAttributeNames={isBotScope ? BOT_SCOPE_HIDDEN_NATIVE : undefined}
                                             testButtonDisabled={legacyTestBlocked}
                                             testButtonTooltip={legacyTestTooltip}

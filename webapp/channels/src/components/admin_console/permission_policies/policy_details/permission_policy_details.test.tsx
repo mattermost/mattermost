@@ -350,6 +350,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         const HAS_ANY_OF = '"a" in user.attributes.teams || "b" in user.attributes.teams';
         const HAS_ANY_OF_PARENTHESIZED = `(${HAS_ANY_OF})`;
         const BOT_HELP_TEXT = 'Each row is a single condition that must be met for a bot to comply with the policy. All rules are combined with logical AND operator (`&&`).';
+        const BOT_EMPTY_STATE_TEXT = 'Select a bot attribute and values to create a rule';
 
         const renderWithPolicy = (policy: {roles?: string[]; expressions: string[]}, initialState = {}) => {
             mockFetchPolicy.mockResolvedValue({
@@ -1053,6 +1054,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
                 expect(screen.getByText('Select attributes and values that bots must have for this policy')).toBeInTheDocument();
                 expect(screen.queryByText('User attribute requirements')).not.toBeInTheDocument();
                 expect(lastTableProps().helpText).toBe(BOT_HELP_TEXT);
+                expect(lastTableProps().emptyStateText).toBe(BOT_EMPTY_STATE_TEXT);
             });
 
             test('Members keeps the default copy', async () => {
@@ -1064,6 +1066,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
                 expect(screen.getByText('Select attributes and values that users must have for this policy')).toBeInTheDocument();
                 expect(screen.queryByText('Bot attribute requirements')).not.toBeInTheDocument();
                 expect(lastTableProps().helpText).toBeUndefined();
+                expect(lastTableProps().emptyStateText).toBeUndefined();
             });
 
             test('switching to Bot accounts swaps the copy', async () => {
@@ -1074,6 +1077,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
 
                 expect(screen.getByText('Bot attribute requirements')).toBeInTheDocument();
                 expect(lastTableProps().helpText).toBe(BOT_HELP_TEXT);
+                expect(lastTableProps().emptyStateText).toBe(BOT_EMPTY_STATE_TEXT);
             });
         });
 

@@ -196,6 +196,9 @@ export interface TableEditorProps {
 
     /** Replaces the default help text under the table. Rendered as Markdown. */
     helpText?: string;
+
+    /** Replaces the default message shown when the table has no rows. */
+    emptyStateText?: string;
 }
 
 // Finds the first available (non-disabled) attribute from a list of user attributes.
@@ -388,6 +391,7 @@ function TableEditor({
     onMaskedStateChange,
     hiddenPickerAttributeNames,
     helpText,
+    emptyStateText,
 }: TableEditorProps): JSX.Element {
     const {formatMessage} = useIntl();
 
@@ -765,7 +769,7 @@ function TableEditor({
                                 className='table-editor__blank-state'
                             >
                                 <span>
-                                    {formatMessage({
+                                    {emptyStateText ?? formatMessage({
                                         id: 'admin.access_control.table_editor.blank_state',
                                         defaultMessage: 'Select a user attribute and values to create a rule',
                                     })}
