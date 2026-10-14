@@ -194,12 +194,6 @@ export const languages = {
         order: 28,
         url: langFiles.fi,
     },
-    be: {
-        value: 'be',
-        name: 'Беларуская (Experimental)',
-        order: 29,
-        url: langFiles.be,
-    },
 };
 
 export function getAllLanguages(): Record<string, Language> {

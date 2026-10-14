@@ -6,6 +6,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {getMoreFilesForSearch, getMorePostsForSearch} from 'mattermost-redux/actions/search';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {filterFilesSearchByExt, showChannelFiles, showSearchResults, updateSearchTeam as updateSearchTeamAction, updateSearchTerms as updateSearchTermsAction, updateSearchType as updateSearchTypeAction} from 'actions/views/rhs';
 import {getExplicitSearchTeam, getRhsState, getSearchTeam, getSearchTerms} from 'selectors/rhs';
@@ -13,7 +14,9 @@ import {getExplicitSearchTeam, getRhsState, getSearchTeam, getSearchTerms} from 
 import type {SearchFilterType} from 'components/search/types';
 
 import {RHSStates} from 'utils/constants';
+import {canSearchFiles} from 'utils/file_utils';
 
+import type {GlobalState} from 'types/store';
 import type {SearchType} from 'types/store/rhs';
 
 export default function useSearchResultsActions() {
@@ -23,6 +26,7 @@ export default function useSearchResultsActions() {
     const rhsState = useSelector(getRhsState);
     const searchTerms = useSelector(getSearchTerms);
     const currentChannel = useSelector(getCurrentChannel);
+    const isFileSearchAvailable = useSelector((state: GlobalState) => canSearchFiles(getConfig(state)));
     const isMentionSearch = rhsState === RHSStates.MENTION;
     const isChannelFiles = rhsState === RHSStates.CHANNEL_FILES;
 
@@ -37,8 +41,11 @@ export default function useSearchResultsActions() {
     }, [dispatch, isAllTeamsSearch, searchTeam]);
 
     const getMoreFilesForSearchCallback = useCallback(() => {
+        if (!isFileSearchAvailable) {
+            return;
+        }
         dispatch(getMoreFilesForSearch(isAllTeamsSearch ? '' : searchTeam));
-    }, [dispatch, isAllTeamsSearch, searchTeam]);
+    }, [dispatch, isFileSearchAvailable, isAllTeamsSearch, searchTeam]);
 
     const handleSetSearchFilter = useCallback((filterType: SearchFilterType) => {
         switch (filterType) {

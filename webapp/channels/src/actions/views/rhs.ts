@@ -18,6 +18,7 @@ import {
     searchFilesWithParams,
 } from 'mattermost-redux/actions/search';
 import {getCurrentChannelId, getCurrentChannelNameForSearchShortcut, getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getMyGroupMentionKeys} from 'mattermost-redux/selectors/entities/groups';
 import {getLatestInteractablePostId, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
@@ -39,6 +40,7 @@ import {
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 import {ActionTypes, RHSStates, Constants} from 'utils/constants';
+import {canSearchFiles} from 'utils/file_utils';
 import {buildMentionSearchQuery, defaultMentionFilters, mentionKeysForTypes} from 'utils/mention_search';
 import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 import {quoteSearchTerms} from 'utils/search';
@@ -230,7 +232,7 @@ export function performSearch(terms: string, teamId: string, isMentionSearch?: b
         const userCurrentTimezone = getCurrentTimezone(getState());
         const timezoneOffset = ((userCurrentTimezone && (userCurrentTimezone.length > 0)) ? getUtcOffsetForTimeZone(userCurrentTimezone) : getBrowserUtcOffset()) * 60;
         const messagesPromise = dispatch(searchPostsWithParams(teamId, {terms: searchTerms, is_or_search: Boolean(isMentionSearch), include_deleted_channels: true, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
-        const filesPromise = dispatch(searchFilesWithParams(teamId, {terms: termsWithExtensionsFilters, is_or_search: Boolean(isMentionSearch), include_deleted_channels: true, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
+        const filesPromise = canSearchFiles(getConfig(getState())) ? dispatch(searchFilesWithParams(teamId, {terms: termsWithExtensionsFilters, is_or_search: Boolean(isMentionSearch), include_deleted_channels: true, time_zone_offset: timezoneOffset, page: 0, per_page: 20})) : Promise.resolve({data: undefined});
         return Promise.all([filesPromise, messagesPromise]);
     };
 }
