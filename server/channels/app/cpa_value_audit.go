@@ -75,10 +75,12 @@ func (a *App) addCPAValueAuditBasis(rctx request.CTX, rec *model.AuditRecord, e 
 
 	// A caller writing their own value on a masked user-object field widens
 	// what they can subsequently read, so that write is called out
-	// specifically. A machine caller's ID is a manifest ID, so it never
-	// equals e.TargetID (a user ID) here — not a coincidence that this never
-	// fires for one, just that the two ID spaces never collide.
-	basis.HoldingsChange = field.Permissions != nil && field.Permissions.Masking != nil &&
+	// specifically. Deleting it can only narrow their view, so a delete is not
+	// marked. A machine caller's ID is a manifest ID, so it never equals
+	// e.TargetID (a user ID) here — not a coincidence that this never fires
+	// for one, just that the two ID spaces never collide.
+	basis.HoldingsChange = e.Action != properties.ValueAuditActionDelete &&
+		field.Permissions != nil && field.Permissions.Masking != nil &&
 		field.ObjectType == model.PropertyFieldObjectTypeUser && e.TargetID == callerID
 
 	if basis.Tier != "" {
