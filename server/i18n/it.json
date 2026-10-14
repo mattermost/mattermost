@@ -14496,7 +14496,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Modalità del server web {{.Value}} non valida. Deve essere 'gzip', 'nogzip' o 'disabled'."
+    "translation": "Modalità del server web {{.Value}} non valida. Deve essere 'gzip', 'uncompressed' o 'disabled'."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",
