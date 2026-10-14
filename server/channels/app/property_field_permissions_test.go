@@ -232,7 +232,6 @@ func TestDecidePropertyFieldPermission(t *testing.T) {
 		assert.True(t, basis.Allowed)
 		assert.Equal(t, model.PermissionLevelEveryone, basis.Tier)
 		assert.Empty(t, basis.GrantID)
-		assert.False(t, basis.Legacy)
 	})
 
 	t.Run("restrictions deny and a matching user grant lists the action", func(t *testing.T) {
@@ -365,48 +364,36 @@ func TestDecidePropertyFieldPermission(t *testing.T) {
 		assert.False(t, basis.Allowed)
 	})
 
-	t.Run("nil Permissions falls back to the legacy columns", func(t *testing.T) {
+	t.Run("nil Permissions denies every action, even to a sysadmin", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID:     groupID,
-			Name:        "legacy protected",
-			Type:        model.PropertyFieldTypeText,
-			ObjectType:  model.PropertyFieldObjectTypeUser,
-			TargetType:  string(model.PropertyFieldTargetLevelSystem),
-			Protected:   true,
-			Permissions: nil,
+			GroupID:           groupID,
+			Name:              "legacy columns only",
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypeUser,
+			TargetType:        string(model.PropertyFieldTargetLevelSystem),
+			PermissionField:   model.NewPointer(model.PermissionLevelEveryone),
+			PermissionOptions: model.NewPointer(model.PermissionLevelEveryone),
+			PermissionValues:  model.NewPointer(model.PermissionLevelEveryone),
 		}
 
-		basis := th.App.decidePropertyFieldPermission(th.Context, th.SystemAdminUser.Id, field, model.PropertyActionFieldWrite, "")
-		assert.False(t, basis.Allowed)
-		assert.True(t, basis.Legacy)
+		for _, action := range []string{
+			model.PropertyActionFieldWrite,
+			model.PropertyActionOptionRead,
+			model.PropertyActionOptionWrite,
+			model.PropertyActionValueRead,
+			model.PropertyActionValueWrite,
+		} {
+			basis := th.App.decidePropertyFieldPermission(th.Context, th.SystemAdminUser.Id, field, action, "")
+			assert.False(t, basis.Allowed, "action %s should be denied", action)
+		}
 
-		field.Protected = false
 		field.Permissions = &model.Permissions{
 			Restrictions: &model.Restrictions{
 				Field: model.WriteOnly{Write: model.PermissionLevelSysadmin},
 			},
 		}
-		basis = th.App.decidePropertyFieldPermission(th.Context, th.SystemAdminUser.Id, field, model.PropertyActionFieldWrite, "")
+		basis := th.App.decidePropertyFieldPermission(th.Context, th.SystemAdminUser.Id, field, model.PropertyActionFieldWrite, "")
 		assert.True(t, basis.Allowed)
-		assert.False(t, basis.Legacy)
-	})
-
-	t.Run("nil Permissions allows value.read and option.read", func(t *testing.T) {
-		field := &model.PropertyField{
-			GroupID:    groupID,
-			Name:       "legacy reads",
-			Type:       model.PropertyFieldTypeText,
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-		}
-
-		basis := th.App.decidePropertyFieldPermission(th.Context, th.BasicUser.Id, field, model.PropertyActionValueRead, "")
-		assert.True(t, basis.Allowed)
-		assert.True(t, basis.Legacy)
-
-		basis = th.App.decidePropertyFieldPermission(th.Context, th.BasicUser.Id, field, model.PropertyActionOptionRead, "")
-		assert.True(t, basis.Allowed)
-		assert.True(t, basis.Legacy)
 	})
 }
 
@@ -637,6 +624,51 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 		assert.Equal(t, model.PropertyFieldAttrLDAP, basis.GrantID)
 	})
 
+	t.Run("a system caller allowed by a service grant on its group", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "system caller basis allowed",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeService, ID: model.BoardsPropertyGroupName},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+
+		rctx := RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem)
+		basis := th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionValueWrite, "")
+		assert.True(t, basis.Allowed)
+		assert.Equal(t, model.PropertyOwnerTypeService, basis.CallerType)
+		assert.Equal(t, model.BoardsPropertyGroupName, basis.GrantID)
+	})
+
+	t.Run("a system caller with no matching service grant is denied", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "system caller basis denied",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value: model.ReadWrite{Write: model.PermissionLevelEveryone},
+				},
+			},
+		}
+
+		rctx := RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem)
+		basis := th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionValueWrite, "")
+		assert.False(t, basis.Allowed)
+		assert.Empty(t, basis.GrantID)
+		assert.Empty(t, basis.Tier)
+	})
+
 	t.Run("a SAML sync caller allowed by a service grant on saml", func(t *testing.T) {
 		field := &model.PropertyField{
 			GroupID:    groupID,
@@ -661,19 +693,27 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 		assert.Equal(t, model.PropertyFieldAttrSAML, basis.GrantID)
 	})
 
-	t.Run("a field with no permissions falls back to the legacy columns", func(t *testing.T) {
+	t.Run("a field with no permissions denies every action", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID:    groupID,
-			Name:       "legacy basis",
-			Type:       model.PropertyFieldTypeText,
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			GroupID:          groupID,
+			Name:             "no permissions basis",
+			Type:             model.PropertyFieldTypeText,
+			ObjectType:       model.PropertyFieldObjectTypeUser,
+			TargetType:       string(model.PropertyFieldTargetLevelSystem),
+			PermissionValues: model.NewPointer(model.PermissionLevelEveryone),
 		}
 
 		rctx := RequestContextWithCallerID(th.Context, th.BasicUser.Id)
-		basis := th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionValueRead, "")
-		assert.True(t, basis.Legacy)
-		assert.True(t, basis.Allowed)
+		for _, action := range []string{
+			model.PropertyActionFieldWrite,
+			model.PropertyActionOptionRead,
+			model.PropertyActionOptionWrite,
+			model.PropertyActionValueRead,
+			model.PropertyActionValueWrite,
+		} {
+			basis := th.App.PropertyPermissionBasisFor(rctx, field, action, "")
+			assert.False(t, basis.Allowed, "action %s should be denied", action)
+		}
 	})
 
 	t.Run("a local-mode caller is unrestricted", func(t *testing.T) {
@@ -712,7 +752,9 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 			},
 		}
 
-		basis := th.App.PropertyPermissionBasisFor(th.Context, field, model.PropertyActionFieldWrite, "")
+		// Explicitly anonymous: th.Context names a local-mode admin, which the
+		// ladder admits without a lookup, so it cannot stand in for "nobody".
+		basis := th.App.PropertyPermissionBasisFor(th.emptyContextWithCallerID(anonymousCallerId), field, model.PropertyActionFieldWrite, "")
 		assert.False(t, basis.Allowed)
 	})
 
@@ -735,7 +777,6 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 		assert.False(t, basis.Allowed)
 		assert.Empty(t, basis.Tier)
 		assert.Empty(t, basis.GrantID)
-		assert.False(t, basis.Legacy)
 	})
 
 	t.Run("a nil field is denied without panicking", func(t *testing.T) {
@@ -743,7 +784,6 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 		require.NotPanics(t, func() {
 			basis := th.App.PropertyPermissionBasisFor(rctx, nil, model.PropertyActionFieldWrite, "")
 			assert.False(t, basis.Allowed)
-			assert.False(t, basis.Legacy)
 		})
 	})
 }

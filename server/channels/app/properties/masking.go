@@ -269,12 +269,7 @@ func (h *AccessControlHook) maskValue(rctx request.CTX, c maskingContext, field 
 // caller's holdings; that is exactly what masking exists to withhold. Called
 // once, from the read path that hides the value on this error
 // (applyValueReadAccessControl); the write path that refuses on this error
-// reports it as a failure instead, so it has no log line of its own. The
-// legacy shared_only path's logHiddenGraphValue logs the equivalent failure
-// for its own graph-only clamp; the two stay separate because masking and
-// shared_only disagree on purpose about what a caller sees when they hold
-// only some of an option's ancestors, and merging the logging would blur
-// that.
+// reports it as a failure instead, so it has no log line of its own.
 func logMaskingFailure(rctx request.CTX, field *model.PropertyField, value *model.PropertyValue, err error) {
 	rctx.Logger().Error(
 		"Hiding a masked property value because what the caller may see of it could not be established",
@@ -369,14 +364,10 @@ func (c maskingContext) visibleOptionIDs(h *AccessControlHook, rctx request.CTX,
 	return visible, nil
 }
 
-// maskFieldOptions returns a copy of field whose inline option list is
-// filtered to what callerID may see, given the masking fm already resolved
-// for it. Mirrors filterSharedOnlyFieldOptions's shape and Attrs handling
-// (access_control.go), using copyPropertyField and extractOptionIDList the
-// same way -- but never applies the rank ladder that function keeps for a
-// field with no permissions: a masked rank field's options are exact-option
-// membership, the same rule select and multiselect use, so
-// filterSharedOnlyRankFieldOptions is never called from here.
+// maskFieldOptions filters field's inline option list to what callerID may
+// see. A masked rank field's options are exact-option membership, the same
+// rule select and multiselect use, so this path never applies the rank
+// ladder.
 //
 // This runs only on the branch permissionsAllows already admitted for
 // option.read; a caller the gate refused never reaches it.
@@ -436,15 +427,8 @@ func (h *AccessControlHook) maskFieldOptions(rctx request.CTX, c maskingContext,
 	return filteredField
 }
 
-// filterMaskedOptionPage keeps the options in one page of a masked field's
-// paged option listing that callerID may see, and strips each kept option's
-// parents. Generalizes filterSharedOnlyGraphOptionPage (access_control.go)
-// off graph-only and access_mode onto every option-supporting type and
-// masking, via visibleOptionIDs -- same page-not-reach framing (judging the
-// page bounds the work to the page size, where building the caller's full
-// reach walks the whole hierarchy), same parent-stripping reasoning (an
-// option's parent is by definition above it, so reporting it would hand a
-// caller who holds an option exactly the name masking withholds).
+// filterMaskedOptionPage judges only this page so the work stays bounded by
+// page size; building the caller's full reach would walk the whole hierarchy.
 //
 // A resolution failure is returned as an error rather than answered with an
 // empty page: every other masking path hides because it has nowhere to put a
@@ -471,8 +455,9 @@ func (h *AccessControlHook) filterMaskedOptionPage(rctx request.CTX, c maskingCo
 		if !visible[option.ID] {
 			continue
 		}
-		// See filterSharedOnlyGraphOptionPage for why parents come off: an absent
-		// parents key means "not reported", not "this is a root".
+		// A parent is above the kept option, so reporting it would name
+		// something masking withholds. Clearing Parents means "not reported",
+		// not "this is a root".
 		copied := *option
 		copied.Parents = nil
 		shown = append(shown, &copied)

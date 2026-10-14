@@ -132,8 +132,15 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 	require.NoError(tb, err)
 
 	th := &TestHelper{
-		App:               New(ServerConnector(s.Channels())),
-		Context:           request.EmptyContext(testLogger),
+		App: New(ServerConnector(s.Channels())),
+		// Tagged as a local-mode admin, the caller an `mmctl --local` request
+		// carries. The access control hook gates every PSAv2/v3 property group
+		// and refuses a caller that names nobody, so an untagged context would
+		// fail every property write in this package for want of an identity
+		// rather than for the reason the test is about. Tests that need a
+		// specific caller -- including an anonymous one -- build their own
+		// context with emptyContextWithCallerID or contextAsCaller.
+		Context:           localAdminTestContext(testLogger),
 		Server:            s,
 		LogBuffer:         buffer,
 		TestLogger:        testLogger,
@@ -864,4 +871,12 @@ const anonymousCallerId = ""
 func (th *TestHelper) emptyContextWithCallerID(callerID string) request.CTX {
 	ctx := model.WithCallerID(request.EmptyContext(th.App.Log()).Context(), callerID)
 	return request.EmptyContext(th.App.Log()).WithContext(ctx)
+}
+
+// localAdminTestContext is th.Context: an empty request context tagged as a
+// local-mode (unrestricted) admin, which the property ladder admits without a
+// user lookup.
+func localAdminTestContext(logger mlog.LoggerIFace) *request.Context {
+	rctx := request.EmptyContext(logger)
+	return rctx.WithContext(model.WithCallerID(rctx.Context(), model.CallerIDLocalAdmin)).(*request.Context)
 }

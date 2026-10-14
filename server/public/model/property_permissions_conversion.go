@@ -141,6 +141,14 @@ func PermissionsFromLegacy(field *PropertyField, opts LegacyConversionOpts) *Per
 // first. A wildcard grant is never projected: v2 has no owner meaning "any
 // plugin", and expresses that access by listing no owners at all.
 func ProjectLegacyPermissions(field *PropertyField) *PropertyField {
+	return ProjectLegacyPermissionsWithTemplate(field, nil)
+}
+
+// ProjectLegacyPermissionsWithTemplate is ProjectLegacyPermissions with
+// access_mode taken from EffectiveAccessMode, so a linked field reports its
+// template's mode. template is nil when field isn't linked or its template
+// couldn't be read.
+func ProjectLegacyPermissionsWithTemplate(field, template *PropertyField) *PropertyField {
 	if field.Permissions == nil {
 		return field
 	}
@@ -176,7 +184,7 @@ func ProjectLegacyPermissions(field *PropertyField) *PropertyField {
 		delete(projected.Attrs, PropertyAttrsOwners)
 	}
 
-	if accessMode := field.GetAccessMode(); accessMode == PropertyAccessModePublic {
+	if accessMode := EffectiveAccessMode(field, template); accessMode == PropertyAccessModePublic {
 		// An absent key already means public.
 		delete(projected.Attrs, PropertyAttrsAccessMode)
 	} else {
