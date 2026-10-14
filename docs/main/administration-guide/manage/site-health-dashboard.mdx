@@ -1,0 +1,91 @@
+---
+title: "Site health dashboard"
+---
+
+From Mattermost v12.1, the Site health dashboard gives system administrators a single view of active health findings across their Mattermost deployment.
+
+<Important>
+
+The Site health dashboard is controlled by the `HealthDashboard` feature flag, which is off by default. Contact your Mattermost account team to enable it.
+
+</Important>
+
+## Access the dashboard
+
+Go to **System Console \> Reporting \> Site health**. The page is only accessible to system administrators. Non-admin users cannot navigate to the route, and the underlying API returns 403.
+
+## Understanding findings
+
+The dashboard continuously evaluates your deployment and surfaces findings in one of three states:
+
+| State | Meaning |
+| --- | --- |
+| Firing | The check is failing and requires attention. |
+| Unknown | The check cannot run and its result is indeterminate. |
+| Resolved | The check was previously failing and has since passed. |
+
+Each finding row shows its severity, title, category area, and how long the condition has been in its current state. Select a row to expand it and read the full description and any remediation guidance.
+
+### Filter by tab
+
+Findings are grouped into tabs:
+
+- **Open** — all firing and unknown findings.
+- **Critical**, **Warning**, **Info** — firing findings filtered by severity.
+- **Recently resolved** — findings that have cleared.
+- **Unknown** — checks that could not run.
+
+Tab counts reflect only unmuted findings. If every finding in a tab is muted, the tab displays how many findings are muted rather than an all-clear message, so muting a critical finding never makes the page appear healthy.
+
+### Group by
+
+Use the **Group by** control to switch between grouping findings by **Severity** (the default) or **Category**.
+
+## Muting findings
+
+Muting suppresses a finding from the open list without stopping the underlying check. The check continues to run; the finding is simply hidden from the tab views. Use muting for known conditions you are tracking separately or have accepted as a temporary state.
+
+Mutes are workspace-wide: a finding muted by one administrator is muted for all administrators.
+
+### Mute a finding
+
+Firing and unknown findings have a **Mute** button at the right end of the row. Select **Mute** to suppress the finding immediately. No confirmation dialog appears — unmuting is one click away in the Muted list.
+
+Resolved findings cannot be muted.
+
+### View muted findings
+
+A **Muted** button with a bell-off icon and the current muted count sits to the right of the filter tabs. It is always visible, including when the count is zero. Select it to open the muted findings list.
+
+While the muted list is open, no tab is selected. The **Group by** control still applies, so you can view muted findings grouped by severity or category.
+
+Each muted finding row shows:
+
+- Who muted it (avatar, display name, and `@username` when the display name matches the username).
+- When it was muted (relative time, shown as "just now" for the first minute).
+- An **Unmute** button.
+
+Display names follow the **Teammate name display** setting configured in **System Console \> Site configuration \> Users and teams**.
+
+### Unmute a finding
+
+Select **Unmute** on any row in the muted list. The finding returns to the open list immediately.
+
+### Error handling
+
+If a mute or unmute request fails, the change is rolled back and a dismissible error banner appears:
+
+- Mute failure: *The finding could not be muted, so it is still in the open list. Try again.*
+- Unmute failure: *The finding could not be unmuted, so it is still muted. Try again.*
+
+## API endpoints
+
+The dashboard uses the following REST API endpoints:
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/v4/health/findings` | Retrieve findings. Pass `muted=included` to include muted findings in the response. |
+| `POST` | `/api/v4/health/findings/{fingerprint}/mute` | Mute a finding by its fingerprint. |
+| `DELETE` | `/api/v4/health/findings/{fingerprint}/mute` | Unmute a finding by its fingerprint. |
+
+All endpoints require a system administrator session. Non-admin requests receive a `403` response.
