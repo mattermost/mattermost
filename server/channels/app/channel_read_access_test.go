@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	putils "github.com/mattermost/mattermost/server/public/utils"
+	emailmocks "github.com/mattermost/mattermost/server/v8/channels/app/email/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	eMocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/stretchr/testify/require"
@@ -1395,4 +1396,111 @@ func captureWebsocketEvents(t *testing.T, h *channelReadAccessHarness, run func(
 		events[event.EventType()] = append(events[event.EventType()], event)
 	}
 	return events
+}
+
+// An email reaches no session, so a policy can't be evaluated for its recipient: while
+// channel_read_access governs the channel, every recipient gets the generic email.
+func TestNotificationEmailWithholdsContentsUnderReadAccessPolicy(t *testing.T) {
+	buildFor := func(t *testing.T, h *channelReadAccessHarness, channel *model.Channel) *model.EmailNotification {
+		t.Helper()
+
+		post := h.th.CreatePost(t, channel)
+		notification := buildTestPostNotification(post, channel, h.th.BasicUser)
+		return h.th.App.buildEmailNotification(h.rctx, notification, h.th.BasicUser2, h.th.BasicTeam)
+	}
+
+	requireWithheld := func(t *testing.T, email *model.EmailNotification) {
+		t.Helper()
+		require.Empty(t, email.MessageHTML)
+		require.Empty(t, email.MessageText)
+	}
+
+	requireFull := func(t *testing.T, email *model.EmailNotification) {
+		t.Helper()
+		require.NotEmpty(t, email.MessageHTML)
+		require.NotEmpty(t, email.MessageText)
+	}
+
+	t.Run("withheld when a permission policy governs the action", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		governed(h.mockACS(t))
+
+		requireWithheld(t, buildFor(t, h, h.th.BasicChannel))
+	})
+
+	t.Run("withheld when the channel's own policy governs the action", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
+			Return(false, nil)
+		channelPolicyGoverns(mockACS, h.th.BasicChannel.Id, true)
+
+		channel := h.th.BasicChannel.DeepCopy()
+		channel.PolicyEnforced = true
+		requireWithheld(t, buildFor(t, h, channel))
+	})
+
+	t.Run("full when the channel's policy governs only other actions", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
+			Return(false, nil)
+		channelPolicyGoverns(mockACS, h.th.BasicChannel.Id, false)
+
+		channel := h.th.BasicChannel.DeepCopy()
+		channel.PolicyEnforced = true
+		requireFull(t, buildFor(t, h, channel))
+	})
+
+	t.Run("full when enforcement is off", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		governed(h.mockACS(t))
+		h.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = false
+		})
+
+		requireFull(t, buildFor(t, h, h.th.BasicChannel))
+	})
+
+	t.Run("full in a group message, which the action never governs", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+
+		channel := h.th.CreateGroupChannel(t, h.th.BasicUser2, h.th.CreateUser(t))
+		requireFull(t, buildFor(t, h, channel))
+		mockACS.AssertNotCalled(t, "ActionHasPermissionPolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("a batched email carries the decision to the batch", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		governed(h.mockACS(t))
+		h.th.App.UpdateConfig(func(cfg *model.Config) {
+			// Batching is invalid without a site URL.
+			*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+			*cfg.EmailSettings.EnableEmailBatching = true
+		})
+		require.True(t, *h.th.App.Config().EmailSettings.EnableEmailBatching)
+		require.Nil(t, h.th.App.UpdatePreferences(h.th.Context, h.th.BasicUser2.Id, model.Preferences{{
+			UserId:   h.th.BasicUser2.Id,
+			Category: model.PreferenceCategoryNotifications,
+			Name:     model.PreferenceNameEmailInterval,
+			Value:    "900",
+		}}))
+
+		emailServiceMock := &emailmocks.ServiceInterface{}
+		emailServiceMock.On("AddNotificationEmailToBatch", mock.Anything, mock.Anything, mock.Anything, true).Return(nil)
+		emailServiceMock.On("InitEmailBatching").Return().Maybe()
+		emailServiceMock.On("Stop").Return().Maybe()
+		original := h.th.App.Srv().EmailService
+		h.th.App.Srv().EmailService = emailServiceMock
+		t.Cleanup(func() { h.th.App.Srv().EmailService = original })
+
+		post := h.th.CreatePost(t, h.th.BasicChannel)
+		notification := buildTestPostNotification(post, h.th.BasicChannel, h.th.BasicUser)
+		emailNotification, err := h.th.App.sendNotificationEmail(h.rctx, notification, h.th.BasicUser2, h.th.BasicTeam, nil)
+		require.NoError(t, err)
+		requireWithheld(t, emailNotification)
+		emailServiceMock.AssertExpectations(t)
+	})
 }

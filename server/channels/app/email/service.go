@@ -176,7 +176,7 @@ type ServiceInterface interface {
 	SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, messageID string, inReplyTo string, references string, category string) error
 	SendLicenseUpForRenewalEmail(email, locale string, daysToExpiration int) error
 	SendRemoveExpiredLicenseEmail(email, locale string) error
-	AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError
+	AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team, withholdContents bool) *model.AppError
 	GetMessageForNotification(post *model.Post, teamName, siteUrl string, translateFunc i18n.TranslateFunc) string
 	GenerateHyperlinkForChannels(postMessage, teamName, teamURL string) (string, error)
 	InitEmailBatching()

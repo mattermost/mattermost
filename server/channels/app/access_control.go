@@ -2424,12 +2424,15 @@ func (a *App) publishPermissionPolicyUpdate(rctx request.CTX, actions []string) 
 // policyRuleActions returns the distinct actions the policies' rules declare.
 func policyRuleActions(policies ...*model.AccessControlPolicy) []string {
 	actions := []string{}
+	seen := map[string]struct{}{}
 	for _, policy := range policies {
 		for _, rule := range policy.EffectiveRules() {
 			for _, action := range rule.Actions {
-				if !slices.Contains(actions, action) {
-					actions = append(actions, action)
+				if _, ok := seen[action]; ok {
+					continue
 				}
+				seen[action] = struct{}{}
+				actions = append(actions, action)
 			}
 		}
 	}

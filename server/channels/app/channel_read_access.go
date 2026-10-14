@@ -170,6 +170,15 @@ func (a *App) channelReadAccessEnforcementActive() bool {
 		a.Srv().Channels().AccessControl != nil
 }
 
+func (a *App) channelReadAccessWithholdsEmailContents(rctx request.CTX, channel *model.Channel) bool {
+	if channel == nil || channel.IsGroupOrDirect() || !a.channelReadAccessEnforcementActive() {
+		return false
+	}
+
+	governed, _ := a.channelReadAccessGoverned(rctx, channel)
+	return governed
+}
+
 func (a *App) setupBroadcastHookForChannelReadAccess(channelID string, message *model.WebSocketEvent) {
 	if channelID == "" || !a.channelReadAccessEnforcementActive() {
 		return
