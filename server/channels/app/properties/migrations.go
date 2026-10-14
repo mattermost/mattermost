@@ -645,9 +645,9 @@ var propertyPermissionsBackfillPageSize = 200
 // rationale as MigrateBackfillCPADisplayName: it reads and writes through the
 // unexported field accessors so the access-control layer never filters or
 // refuses a protected or plugin-owned field mid-conversion, and it is
-// idempotent at the field level so a partial run resumes cleanly. The
-// System-key wrapper that stops the whole migration running twice belongs to
-// its caller (app/migrations.go), as with the CPA backfill.
+// idempotent at the field level so a partial run resumes cleanly. Its caller
+// (app/migrations.go) runs it on every startup, so a field written by a
+// release that predates the permissions object is converted too.
 //
 // Fields are read with no group filter and paged by (CreateAt, Id), which
 // walks every group with one cursor. Writes go through the unexported
