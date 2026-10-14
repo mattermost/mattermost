@@ -946,6 +946,8 @@
   "admin.elasticsearch.elasticsearch_test_button": "Test Connection",
   "admin.elasticsearch.enableAutocompleteDescription": "Requires a successful connection to the Elasticsearch server. When true, Elasticsearch will be used for all autocompletion queries on users and channels using the latest index. Autocompletion results may be incomplete until a bulk index of the existing users and channels database is finished. When false, database autocomplete is used.",
   "admin.elasticsearch.enableAutocompleteTitle": "Enable Elasticsearch for autocomplete queries:",
+  "admin.elasticsearch.enableFileIndexingDescription": "When false, new or updated file attachments are not indexed. File search continues to return previously indexed files, but files uploaded while this setting is false are not searchable until a bulk index is run after re-enabling it.",
+  "admin.elasticsearch.enableFileIndexingTitle": "Enable file indexing:",
   "admin.elasticsearch.enableIndexingDescription": "When true, indexing of new posts occurs automatically. Search queries will use database search until \"Enable Elasticsearch for search queries\" is enabled. <link>Learn more about Elasticsearch in our documentation.</link>",
   "admin.elasticsearch.enableIndexingTitle": "Enable Elasticsearch Indexing:",
   "admin.elasticsearch.enableSearchingDescription": "Requires a successful connection to the Elasticsearch server. When true, Elasticsearch will be used for all search queries using the latest index. Search results may be incomplete until a bulk index of the existing post database is finished. When false, database search is used.",

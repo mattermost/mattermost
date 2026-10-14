@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 )
 
 func TestGetJob(t *testing.T) {
@@ -580,6 +582,45 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
 	}
+}
+
+func TestCreateElasticsearchPostIndexingJob(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	worker := jobs.NewSimpleWorker(model.JobTypeElasticsearchPostIndexing, th.Server.Jobs, func(mlog.LoggerIFace, *model.Job) error { return nil }, func(*model.Config) bool { return false })
+	th.Server.Jobs.RegisterJobType(model.JobTypeElasticsearchPostIndexing, worker, nil)
+
+	createJob := func(t *testing.T, data model.StringMap) *model.Job {
+		job, appErr := th.App.CreateJob(th.Context, &model.Job{Type: model.JobTypeElasticsearchPostIndexing, Data: data})
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_, err := th.App.Srv().Store().Job().Delete(job.Id)
+			require.NoError(t, err)
+		})
+		return job
+	}
+
+	t.Run("indexes files by default when file indexing is enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ElasticsearchSettings.EnableFileIndexing = true })
+
+		job := createJob(t, nil)
+		assert.Equal(t, "true", job.Data["index_files"])
+	})
+
+	t.Run("skips files by default when file indexing is disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ElasticsearchSettings.EnableFileIndexing = false })
+
+		job := createJob(t, nil)
+		assert.Equal(t, "false", job.Data["index_files"])
+	})
+
+	t.Run("keeps an explicit index_files value", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ElasticsearchSettings.EnableFileIndexing = false })
+
+		job := createJob(t, model.StringMap{"index_files": "true"})
+		assert.Equal(t, "true", job.Data["index_files"])
+	})
 }
 
 func TestGetJobByType(t *testing.T) {
