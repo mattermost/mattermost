@@ -65,7 +65,7 @@ const RadioSetting = ({
 
                     return (
                         <div
-                            className='radio'
+                            className='radio no-padding'
                             key={option}
                         >
                             <Radio

@@ -16,42 +16,72 @@ exports[`components/cloud_start_trial_btn/cloud_start_trial_btn should match sna
         data-testid=""
       >
         <div
-          class="radio"
+          class="radio no-padding"
         >
           <label
-            class="selected"
+            class="_radio_11lrl_2 _radio--size-medium_11lrl_138 selected"
+            for="_r_0_"
           >
             <input
               checked=""
+              class="_radio__input_11lrl_13"
               data-testid="inviteMembersLink"
+              id="_r_0_"
               name="invite-as"
               type="radio"
               value="MEMBER"
             />
-            Member
+            <span
+              class="_radio__circle_11lrl_33"
+            >
+              <span
+                aria-hidden="true"
+                class="_radio__dot_11lrl_59"
+              />
+            </span>
+            <span
+              class="_radio__label_11lrl_116"
+            >
+              Member
+            </span>
           </label>
         </div>
         <div
-          class="radio"
+          class="radio no-padding"
         >
           <label
-            class=""
+            class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+            for="_r_1_"
           >
             <input
+              class="_radio__input_11lrl_13"
               data-testid="inviteGuestLink"
+              id="_r_1_"
               name="invite-as"
               type="radio"
               value="GUEST"
             />
             <span
-              class="InviteAs__label "
+              class="_radio__circle_11lrl_33"
             >
-              Guest
               <span
-                class="InviteAs__label--parenthetical"
+                aria-hidden="true"
+                class="_radio__dot_11lrl_59"
+              />
+            </span>
+            <span
+              class="_radio__label_11lrl_116"
+            >
+              <span
+                class="InviteAs__label "
               >
-                 - 
-                limited to select channels and teams
+                Guest
+                <span
+                  class="InviteAs__label--parenthetical"
+                >
+                   - 
+                  limited to select channels and teams
+                </span>
               </span>
             </span>
           </label>
