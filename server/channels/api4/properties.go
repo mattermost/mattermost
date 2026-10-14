@@ -47,15 +47,15 @@ func (api *API) InitProperties() {
 	}
 }
 
-// getV2Group resolves c.Params.GroupName to a PSAv2 property group.
-// On any error (not found, or not a v2 group) it sets c.Err and returns nil.
-func getV2Group(c *Context, callerName string) *model.PropertyGroup {
+// getPropertyAPIGroup resolves c.Params.GroupName to a PSAv2/PSAv3 property group.
+// On any error (not found, or not a v2/v3 group) it sets c.Err and returns nil.
+func getPropertyAPIGroup(c *Context, callerName string) *model.PropertyGroup {
 	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
 	if appErr != nil {
 		c.Err = appErr
 		return nil
 	}
-	if !group.IsPSAv2() {
+	if !group.IsPSAv2() && !group.IsPSAv3() {
 		c.Err = model.NewAppError(callerName, "api.property.v2_group_not_found.app_error", nil, "", http.StatusNotFound)
 		return nil
 	}
@@ -137,12 +137,19 @@ func resolvePropertyGroupParam(c *Context, r *http.Request) string {
 	}
 
 	c.Params.GroupName = raw
-	group := getV2Group(c, "resolvePropertyGroupParam")
+	group := getPropertyAPIGroup(c, "resolvePropertyGroupParam")
 	if group == nil {
 		return ""
 	}
 
 	return group.ID
+}
+
+// servesV3 reports whether group's payload should carry the shaped
+// Permissions object -- both the group's own version and the rollout flag
+// have to agree, so a v3 group with the flag off still serves the v2 shape.
+func servesV3(c *Context, group *model.PropertyGroup) bool {
+	return group.IsPSAv3() && c.App.Config().FeatureFlags.PropertyFieldPermissionsV3
 }
 
 func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -151,7 +158,7 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group := getV2Group(c, "createPropertyField")
+	group := getPropertyAPIGroup(c, "createPropertyField")
 	if c.Err != nil {
 		return
 	}
@@ -168,9 +175,6 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	field.ObjectType = c.Params.ObjectType
 	field.GroupID = group.ID
-	// This API can neither show nor change a permissions object, so one it
-	// accepted here would be enforced out of the caller's sight.
-	field.Permissions = nil
 
 	auditRec := c.MakeAuditRecord(model.AuditEventCreatePropertyField, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
@@ -189,6 +193,15 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if field.Protected {
 		c.Err = model.NewAppError("createPropertyField", "api.property_field.create.protected_via_api.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	// A group not serving the v3 payload has no place for a permissions
+	// object in its shape, so accepting one would store something the
+	// caller was never shown. Who may submit one is decided below, with the
+	// permission levels it replaces.
+	if field.Permissions != nil && !servesV3(c, group) {
+		c.Err = model.NewAppError("createPropertyField", "api.property_field.patch.permissions_not_supported.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -245,6 +258,17 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	defaultLevel := app.DefaultPropertyFieldPermissionLevel(field)
 	defaultValuesLevel := app.DefaultPropertyFieldValuesPermissionLevel(field)
 	if !canPin {
+		// A permissions object is the same configuration the levels are, and
+		// once stored it decides alone, so it takes the same authority. Refused
+		// rather than replaced by the defaults, since the levels' silent pin
+		// would leave the caller believing their object was applied. Without
+		// this, anyone able to create a field could set field.write none with
+		// a grant naming only themselves, and no administrator could then edit
+		// or delete it.
+		if field.Permissions != nil {
+			c.Err = model.NewAppError("createPropertyField", "api.property_field.create.permissions_require_scope_admin.app_error", nil, "", http.StatusForbidden)
+			return
+		}
 		field.PermissionField = &defaultLevel
 		field.PermissionValues = &defaultValuesLevel
 		field.PermissionOptions = &defaultLevel
@@ -281,8 +305,10 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(createdField)
 	auditRec.AddEventObjectType("property_field")
 
+	shapedField := c.App.ShapePropertyFieldForCaller(rctx, *c.AppContext.Session(), createdField, servesV3(c, group))
+
 	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(createdField); err != nil {
+	if err := json.NewEncoder(w).Encode(shapedField); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -293,7 +319,7 @@ func getPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group := getV2Group(c, "getPropertyFields")
+	group := getPropertyAPIGroup(c, "getPropertyFields")
 	if c.Err != nil {
 		return
 	}
@@ -358,7 +384,7 @@ func searchPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group := getV2Group(c, "searchPropertyFields")
+	group := getPropertyAPIGroup(c, "searchPropertyFields")
 	if c.Err != nil {
 		return
 	}
@@ -459,7 +485,9 @@ func searchPropertyFieldsCore(c *Context, w http.ResponseWriter, group *model.Pr
 
 	auditRec.Success()
 
-	if err := json.NewEncoder(w).Encode(fields); err != nil {
+	shapedFields := c.App.ShapePropertyFieldsForCaller(rctx, *c.AppContext.Session(), fields, servesV3(c, group))
+
+	if err := json.NewEncoder(w).Encode(shapedFields); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -539,7 +567,7 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group := getV2Group(c, "patchPropertyField")
+	group := getPropertyAPIGroup(c, "patchPropertyField")
 	if c.Err != nil {
 		return
 	}
@@ -655,6 +683,24 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddEventPriorState(&orig)
 
+	// Permissions rides its own patch type (PermissionsPatch) rather than
+	// Patch's field-by-field copy, so it is applied here rather than inside
+	// Patch: absent leaves the stored object alone, null clears it, an
+	// object replaces it outright.
+	if patch.Permissions != nil {
+		if !servesV3(c, group) {
+			c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.permissions_not_supported.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
+		updatedPermissions, err := patch.Permissions.ApplyTo(existingField.Permissions)
+		if err != nil {
+			c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.invalid_permissions.app_error", nil, err.Error(), http.StatusBadRequest)
+			return
+		}
+		existingField.Permissions = updatedPermissions
+	}
+
 	existingField.Patch(patch, true)
 	existingField.UpdatedBy = c.AppContext.Session().UserId
 	connectionID := r.Header.Get(model.ConnectionId)
@@ -669,7 +715,9 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(updatedField)
 	auditRec.AddEventObjectType("property_field")
 
-	if err := json.NewEncoder(w).Encode(updatedField); err != nil {
+	shapedField := c.App.ShapePropertyFieldForCaller(rctx, *c.AppContext.Session(), updatedField, servesV3(c, group))
+
+	if err := json.NewEncoder(w).Encode(shapedField); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -680,7 +728,7 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group := getV2Group(c, "deletePropertyField")
+	group := getPropertyAPIGroup(c, "deletePropertyField")
 	if c.Err != nil {
 		return
 	}
@@ -768,7 +816,7 @@ func getSystemPropertyValues(c *Context, w http.ResponseWriter, r *http.Request)
 }
 
 func getPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request, objectType, targetID string) {
-	group := getV2Group(c, "getPropertyValues")
+	group := getPropertyAPIGroup(c, "getPropertyValues")
 	if c.Err != nil {
 		return
 	}
@@ -883,7 +931,7 @@ func patchSystemPropertyValues(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func patchPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request, objectType, targetID string) {
-	group := getV2Group(c, "patchPropertyValues")
+	group := getPropertyAPIGroup(c, "patchPropertyValues")
 	if c.Err != nil {
 		return
 	}
@@ -1150,7 +1198,10 @@ func isOptionsOnlyPatch(patch *model.PropertyFieldPatch) bool {
 	// PermissionValues in particular must never ride through on the weaker
 	// options-permission check (SessionHasPermissionToManagePropertyFieldOptions,
 	// keyed on PermissionOptions) -- it requires the full-edit permission tier.
-	if patch.Name != nil || patch.Type != nil || patch.TargetID != nil || patch.TargetType != nil || patch.LinkedFieldID != nil || patch.PermissionValues != nil {
+	// Permissions counts too: a permissions-bearing patch must be gated on
+	// field.write, not the narrower option.write, since it can change who
+	// may read or write the field's own definition.
+	if patch.Name != nil || patch.Type != nil || patch.TargetID != nil || patch.TargetType != nil || patch.LinkedFieldID != nil || patch.PermissionValues != nil || patch.Permissions != nil {
 		return false
 	}
 

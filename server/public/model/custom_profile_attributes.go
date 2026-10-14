@@ -275,6 +275,7 @@ func NewCPAFieldFromPropertyField(pf *PropertyField) (*CPAField, error) {
 		PropertyField: *pf,
 		Attrs:         attrs,
 	}
+	cpaField.Permissions = nil
 
 	return cpaField, nil
 }
