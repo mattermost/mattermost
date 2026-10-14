@@ -52,7 +52,13 @@ func TestConvertSystemOwnedFields(t *testing.T) {
 
 		again, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem), boardsGroup.ID, legacyField.ID)
 		require.NoError(t, err)
-		require.Len(t, again.Permissions.Grants, 1, "a second run must not duplicate the grant")
+		serviceGrants := 0
+		for _, grant := range again.Permissions.Grants {
+			if grant.Identity == (model.Identity{Type: model.PropertyOwnerTypeService, ID: model.BoardsPropertyGroupName}) {
+				serviceGrants++
+			}
+		}
+		require.Equal(t, 1, serviceGrants, "a second run must not duplicate the grant")
 	})
 
 	t.Run("the owning subsystem can write the converted field", func(t *testing.T) {

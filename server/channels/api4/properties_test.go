@@ -8778,7 +8778,12 @@ func TestPatchPropertyFieldLegacyAttrs(t *testing.T) {
 	}}
 
 	t.Run("an owners change on permissions the legacy shape can express succeeds", func(t *testing.T) {
-		field := createField(t, nil)
+		// Outside access_control the legacy shape converts to the wildcard
+		// plugin grant alone, so that is the grant set it can express.
+		field := createField(t, []model.Grant{{
+			Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "*"},
+			Allow:    []string{model.PropertyActionFieldWrite, model.PropertyActionOptionRead, model.PropertyActionOptionWrite, model.PropertyActionValueRead, model.PropertyActionValueWrite},
+		}})
 
 		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "post", field.ID, ownersPatch)
 		require.NoError(t, err)
