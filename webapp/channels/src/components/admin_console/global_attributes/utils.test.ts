@@ -17,6 +17,7 @@ import {
     deleteLinkedAttributeField,
     fetchAttributeField,
     fetchLinkedFieldsForTemplate,
+    findNameConflicts,
     formatAttributeHeadingName,
     isAttributeFieldType,
     linkedFieldsByResourceType,
@@ -448,6 +449,40 @@ describe('global_attributes/utils', () => {
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'field-id', expect.anything());
         });
 
+        it('sends resourceAttrs next to the definition attrs and permissionValues as permission_values', async () => {
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
+
+            await updateAttributeField('user', 'field-id', {
+                type: 'text',
+                displayName: 'Cost center',
+                options: [],
+                ldapAttr: '',
+                samlAttr: '',
+                resourceAttrs: {visibility: 'hidden', managed: 'admin'},
+                permissionValues: 'sysadmin',
+            });
+
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'field-id', {
+                type: 'text',
+                attrs: expect.objectContaining({display_name: 'Cost center', visibility: 'hidden', managed: 'admin'}),
+                permission_values: 'sysadmin',
+            });
+        });
+
+        it('sends no permission_values without permissionValues', async () => {
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
+
+            await updateAttributeField('user', 'field-id', {
+                type: 'text',
+                displayName: 'Cost center',
+                options: [],
+                ldapAttr: '',
+                samlAttr: '',
+            });
+
+            expect(patchPropertyField.mock.calls[0][3]).not.toHaveProperty('permission_values');
+        });
+
         it('preserves option metadata such as color when PATCHing a standalone channel select', async () => {
             const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
 
@@ -707,6 +742,50 @@ describe('global_attributes/utils', () => {
             expect(byType.user?.id).toBe('u1');
             expect(byType.channel?.id).toBe('c1');
             expect(byType.post).toBeUndefined();
+        });
+    });
+
+    describe('findNameConflicts', () => {
+        it('matches ignoring case in both directions', () => {
+            const lower = {id: 'u1', object_type: 'user', name: 'clearance', delete_at: 0} as PropertyField;
+            expect(findNameConflicts('Clearance', [lower])).toEqual([lower]);
+
+            const upper = {id: 'u2', object_type: 'user', name: 'Clearance', delete_at: 0} as PropertyField;
+            expect(findNameConflicts('clearance', [upper])).toEqual([upper]);
+        });
+
+        it('never treats a soft-deleted field as a conflict', () => {
+            expect(findNameConflicts('clearance', [
+                {id: 'u1', object_type: 'user', name: 'clearance', delete_at: 123} as PropertyField,
+            ])).toEqual([]);
+        });
+
+        it('excludes the field whose id is templateId, since an attribute never conflicts with itself', () => {
+            expect(findNameConflicts('clearance', [
+                {id: 'template-id', object_type: 'user', name: 'clearance', delete_at: 0} as PropertyField,
+            ], 'template-id')).toEqual([]);
+        });
+
+        it("excludes a field linked to templateId, since a template's own child is not a conflict", () => {
+            expect(findNameConflicts('clearance', [
+                {id: 'u1', object_type: 'user', name: 'clearance', linked_field_id: 'template-id', delete_at: 0} as PropertyField,
+            ], 'template-id')).toEqual([]);
+        });
+
+        it('excludes nothing when no templateId is passed, as on the create form', () => {
+            const fields = [
+                {id: 'template-id', object_type: 'user', name: 'clearance', delete_at: 0} as PropertyField,
+                {id: 'u1', object_type: 'user', name: 'clearance', linked_field_id: 'template-id', delete_at: 0} as PropertyField,
+            ];
+
+            expect(findNameConflicts('clearance', fields)).toEqual(fields);
+        });
+
+        it('returns no conflicts for a name nothing shares', () => {
+            expect(findNameConflicts('clearance', [
+                {id: 'u1', object_type: 'user', name: 'department', delete_at: 0} as PropertyField,
+                {id: 'u2', object_type: 'user', name: 'clearance_level', delete_at: 0} as PropertyField,
+            ])).toEqual([]);
         });
     });
 });

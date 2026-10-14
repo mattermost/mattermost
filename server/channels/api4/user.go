@@ -974,6 +974,13 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// The in_team scope is evaluated once here rather than per branch, since
+	// several of the filter combinations below scope their listing by it.
+	if inTeamId != "" && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), inTeamId, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
 	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
@@ -1087,11 +1094,6 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			profiles, appErr = c.App.GetUsersNotInTeamPage(notInTeamId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 		}
 	} else if inTeamId != "" {
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), inTeamId, model.PermissionViewTeam) {
-			c.SetPermissionError(model.PermissionViewTeam)
-			return
-		}
-
 		if sort == "last_activity_at" {
 			profiles, appErr = c.App.GetRecentlyActiveUsersForTeamPage(c.AppContext, inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 		} else if sort == "create_at" {
@@ -3960,6 +3962,7 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Cache-Control", "no-store")
 	if err := json.NewEncoder(w).Encode(thread); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	} else {
@@ -4047,6 +4050,8 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Unread state changes constantly, so intermediaries must not replay these responses.
+	w.Header().Set("Cache-Control", "no-store")
 	if err := json.NewEncoder(w).Encode(threads); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 		return

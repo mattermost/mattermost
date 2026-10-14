@@ -1,5 +1,9 @@
 @use "utils/variables";
 
+a.MuiMenuItem-root {
+    text-decoration: none;
+}
+
 .MuiPopover-root.MuiModal-root.menu_menuStyled {
     z-index: variables.$z-index-menu;
 
@@ -15,6 +19,8 @@
         pointer-events: none;
         & .MuiPaper-root {
             box-shadow: var(--elevation-5), 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.12) inset;
+            // Scrollbar lives on the paper; without this, hover passes through and closes the submenu.
+            pointer-events: auto;
         }
     }
 }

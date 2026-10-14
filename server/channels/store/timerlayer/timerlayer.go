@@ -11455,6 +11455,22 @@ func (s *TimerLayerSessionAttributeStore) Get(sessionID string) (map[string]any,
 	return result, resultVar1, err
 }
 
+func (s *TimerLayerSessionAttributeStore) GetEpoch(sessionID string) (string, error) {
+	start := time.Now()
+
+	result, err := s.SessionAttributeStore.GetEpoch(sessionID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionAttributeStore.GetEpoch", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSessionAttributeStore) Invalidate(sessionID string) error {
 	start := time.Now()
 

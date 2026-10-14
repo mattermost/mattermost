@@ -214,7 +214,6 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                         definitionKey={key}
                         parentLink='/admin_console'
                         icon={section.icon}
-                        sectionClass=''
                         title={typeof section.sectionTitle === 'string' ? section.sectionTitle : (
                             <FormattedMessage
                                 {...section.sectionTitle}

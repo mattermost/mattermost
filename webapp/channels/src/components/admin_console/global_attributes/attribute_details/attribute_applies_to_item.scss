@@ -176,6 +176,12 @@
     }
 }
 
+.AttributeAppliesToItem__managedBy {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 .AttributeAppliesToItem__whoCanSet {
     display: flex;
     flex-direction: column;
