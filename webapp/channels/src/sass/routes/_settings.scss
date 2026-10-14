@@ -793,7 +793,7 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 16px;
+    gap: var(--spacing-xxl);
 
     // Compass Radio defaults to width: 100%; keep Premade / Custom side-by-side
     label {
