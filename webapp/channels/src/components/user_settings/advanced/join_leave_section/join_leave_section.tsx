@@ -101,7 +101,7 @@ export default class JoinLeaveSection extends React.PureComponent<Props, State> 
                                     defaultMessage='Enable Join/Leave Messages'
                                 />
                             </legend>
-                            <div className='radio no-padding'>
+                            <div className='settings-radio-group'>
                                 <Radio
                                     id='joinLeaveOn'
                                     value={'true'}
@@ -114,9 +114,6 @@ export default class JoinLeaveSection extends React.PureComponent<Props, State> 
                                         defaultMessage='On'
                                     />
                                 </Radio>
-                                <br/>
-                            </div>
-                            <div className='radio no-padding'>
                                 <Radio
                                     id='joinLeaveOff'
                                     value={'false'}
@@ -129,7 +126,6 @@ export default class JoinLeaveSection extends React.PureComponent<Props, State> 
                                         defaultMessage='Off'
                                     />
                                 </Radio>
-                                <br/>
                             </div>
                             <div className='mt-5'>
                                 <FormattedMessage

@@ -37,10 +37,12 @@ const RadioOption = ({
                 {option.text}
             </Radio>
             {option.helpText && (
-                <Markdown
-                    message={option.helpText}
-                    options={markdownOptions}
-                />
+                <div className='settings-radio-option-help'>
+                    <Markdown
+                        message={option.helpText}
+                        options={markdownOptions}
+                    />
+                </div>
             )}
         </div>
     );

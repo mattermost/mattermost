@@ -96,12 +96,10 @@ const WysiwygEditorSection: React.FC<Props> = ({active, areAllSectionsInactive, 
                         defaultMessage='Rich text editing (Beta)'
                     />
                 </legend>
-                {options.map(({option, inputId, messageId, defaultMessage}) => (
-                    <div
-                        className='radio no-padding'
-                        key={option}
-                    >
+                <div className='settings-radio-group'>
+                    {options.map(({option, inputId, messageId, defaultMessage}) => (
                         <Radio
+                            key={option}
                             id={inputId}
                             name='wysiwygEditor'
                             value={option}
@@ -113,9 +111,8 @@ const WysiwygEditorSection: React.FC<Props> = ({active, areAllSectionsInactive, 
                                 defaultMessage={defaultMessage}
                             />
                         </Radio>
-                        <br/>
-                    </div>
-                ))}
+                    ))}
+                </div>
                 <div className='mt-5'>
                     <FormattedMessage
                         id='user.settings.display.wysiwygEditorDesc'

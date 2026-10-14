@@ -274,7 +274,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                                     defaultMessage='Enable Post Formatting'
                                 />
                             </legend>
-                            <div className='radio no-padding'>
+                            <div className='settings-radio-group'>
                                 <Radio
                                     id='postFormattingOn'
                                     name='formatting'
@@ -286,9 +286,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                                         defaultMessage='On'
                                     />
                                 </Radio>
-                                <br/>
-                            </div>
-                            <div className='radio no-padding'>
                                 <Radio
                                     id='postFormattingOff'
                                     name='formatting'
@@ -300,7 +297,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                                         defaultMessage='Off'
                                     />
                                 </Radio>
-                                <br/>
                             </div>
                             <div className='mt-5'>
                                 <FormattedMessage
@@ -356,7 +352,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                                     defaultMessage='Scroll position when viewing an unread channel'
                                 />
                             </legend>
-                            <div className='radio no-padding'>
+                            <div className='settings-radio-group'>
                                 <Radio
                                     id='unreadPositionStartFromLeftOff'
                                     name='unreadScrollPosition'
@@ -368,9 +364,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                                         defaultMessage='Start me where I left off'
                                     />
                                 </Radio>
-                                <br/>
-                            </div>
-                            <div className='radio no-padding'>
                                 <Radio
                                     id='unreadPositionStartFromNewest'
                                     name='unreadScrollPosition'
@@ -382,7 +375,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                                         defaultMessage='Start me at the newest message'
                                     />
                                 </Radio>
-                                <br/>
                             </div>
                             <div className='mt-5'>
                                 <FormattedMessage
@@ -438,7 +430,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                                     defaultMessage='Allow message drafts to sync with the server'
                                 />
                             </legend>
-                            <div className='radio no-padding'>
+                            <div className='settings-radio-group'>
                                 <Radio
                                     id='syncDraftsOn'
                                     name='syncDrafts'
@@ -450,9 +442,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                                         defaultMessage='On'
                                     />
                                 </Radio>
-                                <br/>
-                            </div>
-                            <div className='radio no-padding'>
                                 <Radio
                                     id='syncDraftsOff'
                                     name='syncDrafts'
@@ -464,7 +453,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                                         defaultMessage='Off'
                                     />
                                 </Radio>
-                                <br/>
                             </div>
                             <div className='mt-5'>
                                 <FormattedMessage
@@ -518,7 +506,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                     <legend className='form-legend hidden-label'>
                         <FormattedMessage {...ctrlSendTitle}/>
                     </legend>
-                    <div className='radio no-padding'>
+                    <div className='settings-radio-group'>
                         <Radio
                             id='ctrlSendOn'
                             name='sendOnCtrlEnter'
@@ -534,9 +522,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                                 defaultMessage='On for all messages'
                             />
                         </Radio>
-                        <br/>
-                    </div>
-                    <div className='radio no-padding'>
                         <Radio
                             id='ctrlSendOnForCode'
                             name='sendOnCtrlEnter'
@@ -552,9 +537,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                                 defaultMessage='On only for code blocks starting with ```'
                             />
                         </Radio>
-                        <br/>
-                    </div>
-                    <div className='radio no-padding'>
                         <Radio
                             id='ctrlSendOff'
                             name='sendOnCtrlEnter'
@@ -570,7 +552,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                                 defaultMessage='Off'
                             />
                         </Radio>
-                        <br/>
                     </div>
                     <div>
                         <br/>

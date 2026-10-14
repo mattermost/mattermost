@@ -514,7 +514,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                     defaultMessage='Auto-follow threads on channel-wide mentions'
                                 />
                             </legend>
-                            <div className='radio no-padding'>
+                            <div className='settings-radio-group'>
                                 <Radio
                                     id='channelMentionAutoFollowOn'
                                     name='channelMentionAutoFollow'
@@ -526,9 +526,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                         defaultMessage='On'
                                     />
                                 </Radio>
-                                <br/>
-                            </div>
-                            <div className='radio no-padding'>
                                 <Radio
                                     id='channelMentionAutoFollowOff'
                                     name='channelMentionAutoFollow'
@@ -919,7 +916,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             defaultMessage='Reply notifications'
                         />
                     </legend>
-                    <div className='radio no-padding'>
+                    <div className='settings-radio-group'>
                         <Radio
                             id='notificationCommentsAny'
                             name='commentsNotificationLevel'
@@ -931,9 +928,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                 defaultMessage='Trigger notifications on messages in reply threads that I start or participate in'
                             />
                         </Radio>
-                        <br/>
-                    </div>
-                    <div className='radio no-padding'>
                         <Radio
                             id='notificationCommentsRoot'
                             name='commentsNotificationLevel'
@@ -945,9 +939,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                 defaultMessage='Trigger notifications on messages in threads that I start'
                             />
                         </Radio>
-                        <br/>
-                    </div>
-                    <div className='radio no-padding'>
                         <Radio
                             id='notificationCommentsNever'
                             name='commentsNotificationLevel'

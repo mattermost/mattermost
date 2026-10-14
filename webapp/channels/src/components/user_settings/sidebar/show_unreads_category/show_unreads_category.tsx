@@ -148,7 +148,7 @@ export default class ShowUnreadsCategory extends React.PureComponent<Props, Stat
                         <legend className='form-legend hidden-label'>
                             {title}
                         </legend>
-                        <div className='radio no-padding'>
+                        <div className='settings-radio-group'>
                             <Radio
                                 data-testid='showUnreadsCategoryOn'
                                 name='showUnreadsCategory'
@@ -160,9 +160,6 @@ export default class ShowUnreadsCategory extends React.PureComponent<Props, Stat
                                     defaultMessage='On'
                                 />
                             </Radio>
-                            <br/>
-                        </div>
-                        <div className='radio no-padding'>
                             <Radio
                                 data-testid='showUnreadsCategoryOff'
                                 name='showUnreadsCategory'
@@ -174,7 +171,6 @@ export default class ShowUnreadsCategory extends React.PureComponent<Props, Stat
                                     defaultMessage='Off'
                                 />
                             </Radio>
-                            <br/>
                         </div>
                         <div className='mt-5'>
                             <FormattedMessage

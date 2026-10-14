@@ -782,21 +782,27 @@
     resize: none;
 }
 
-.user-settings__radio-group-inline {
+// Stack Compass Radio options without Bootstrap .radio wrappers
+.settings-radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.settings-radio-group-inline {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 16px;
 
-    .radio {
-        margin-top: 0;
-        margin-bottom: 0;
-    }
-
     // Compass Radio defaults to width: 100%; keep Premade / Custom side-by-side
     label {
         width: auto;
     }
+}
+
+.settings-radio-option-help {
+    padding-top: 5px;
 }
 
 .user-settings__submit-checkbox {

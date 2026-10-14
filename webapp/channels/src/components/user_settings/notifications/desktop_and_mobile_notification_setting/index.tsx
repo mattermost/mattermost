@@ -118,12 +118,10 @@ function DesktopAndMobileNotificationSettings({
                         defaultMessage='Send notifications for:'
                     />
                 </legend>
-                {optionsOfSendNotifications.map((optionOfSendNotifications) => (
-                    <div
-                        key={optionOfSendNotifications.value}
-                        className='radio no-padding'
-                    >
+                <div className='settings-radio-group'>
+                    {optionsOfSendNotifications.map((optionOfSendNotifications) => (
                         <Radio
+                            key={optionOfSendNotifications.value}
                             name='desktopActivity'
                             checked={desktopActivity === optionOfSendNotifications.value}
                             value={optionOfSendNotifications.value}
@@ -131,8 +129,8 @@ function DesktopAndMobileNotificationSettings({
                         >
                             {formatAsComponent(optionOfSendNotifications.label)}
                         </Radio>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </fieldset>
         );
         maximizedSettingInputs.push(sendDesktopNotificationsSection);

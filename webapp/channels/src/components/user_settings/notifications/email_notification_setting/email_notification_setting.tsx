@@ -303,7 +303,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
         if (this.props.enableEmailBatching) {
             emailOptions = (
                 <fieldset>
-                    <div className='radio no-padding'>
+                    <div className='settings-radio-group'>
                         <Radio
                             id='emailNotificationImmediately'
                             name='emailNotifications'
@@ -317,8 +317,6 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                                 defaultMessage='As soon as you’re away for 5 minutes'
                             />
                         </Radio>
-                    </div>
-                    <div className='radio no-padding'>
                         <Radio
                             id='emailNotificationMinutes'
                             name='emailNotifications'
@@ -333,8 +331,6 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                                 values={{count: Preferences.INTERVAL_FIFTEEN_MINUTES / SECONDS_PER_MINUTE}}
                             />
                         </Radio>
-                    </div>
-                    <div className='radio no-padding'>
                         <Radio
                             id='emailNotificationHour'
                             name='emailNotifications'
@@ -348,8 +344,6 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                                 defaultMessage='Every hour'
                             />
                         </Radio>
-                    </div>
-                    <div className='radio no-padding'>
                         <Radio
                             id='emailNotificationNever'
                             name='emailNotifications'
@@ -385,7 +379,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
         } else {
             emailOptions = (
                 <fieldset>
-                    <div className='radio no-padding'>
+                    <div className='settings-radio-group'>
                         <Radio
                             id='emailNotificationImmediately'
                             name='emailNotifications'
@@ -399,8 +393,6 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                                 defaultMessage='On'
                             />
                         </Radio>
-                    </div>
-                    <div className='radio no-padding'>
                         <Radio
                             id='emailNotificationNever'
                             name='emailNotifications'

@@ -491,17 +491,14 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 };
 
                 thirdSection = (
-                    <div className='radio no-padding'>
-                        <Radio
-                            id={name + 'C'}
-                            name={name}
-                            checked={format[2]}
-                            onChange={(e) => this.handleOnChange(e, thirdDisplay)}
-                        >
-                            {thirdMessage}
-                        </Radio>
-                        <br/>
-                    </div>
+                    <Radio
+                        id={name + 'C'}
+                        name={name}
+                        checked={format[2]}
+                        onChange={(e) => this.handleOnChange(e, thirdDisplay)}
+                    >
+                        {thirdMessage}
+                    </Radio>
                 );
             }
 
@@ -543,7 +540,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     <legend className='form-legend hidden-label'>
                         {messageTitle}
                     </legend>
-                    <div className='radio no-padding'>
+                    <div className='settings-radio-group'>
                         <Radio
                             id={name + 'A'}
                             name={name}
@@ -554,9 +551,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                             {moreColon}
                             {firstMessageMore}
                         </Radio>
-                        <br/>
-                    </div>
-                    <div className='radio no-padding'>
                         <Radio
                             id={name + 'B'}
                             name={name}
@@ -567,9 +561,8 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                             {moreColon}
                             {secondMessageMore}
                         </Radio>
-                        <br/>
+                        {thirdSection}
                     </div>
-                    {thirdSection}
                     <div>
                         <br/>
                         {messageDesc}

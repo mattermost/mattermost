@@ -188,36 +188,32 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                 inputs.push(
                     <div
                         key='premadeCustom'
-                        className='user-settings__radio-group-inline'
+                        className='settings-radio-group-inline'
                     >
-                        <div className='radio no-padding'>
-                            <Radio
-                                id='standardThemes'
-                                name='theme'
-                                value='premade'
-                                checked={!displayCustom}
-                                onChange={() => this.updateType('premade')}
-                            >
-                                <FormattedMessage
-                                    id='user.settings.display.theme.premadeThemes'
-                                    defaultMessage='Premade Themes'
-                                />
-                            </Radio>
-                        </div>
-                        <div className='radio no-padding'>
-                            <Radio
-                                id='customThemes'
-                                name='theme'
-                                value='custom'
-                                checked={displayCustom}
-                                onChange={() => this.updateType('custom')}
-                            >
-                                <FormattedMessage
-                                    id='user.settings.display.theme.customTheme'
-                                    defaultMessage='Custom Theme'
-                                />
-                            </Radio>
-                        </div>
+                        <Radio
+                            id='standardThemes'
+                            name='theme'
+                            value='premade'
+                            checked={!displayCustom}
+                            onChange={() => this.updateType('premade')}
+                        >
+                            <FormattedMessage
+                                id='user.settings.display.theme.premadeThemes'
+                                defaultMessage='Premade Themes'
+                            />
+                        </Radio>
+                        <Radio
+                            id='customThemes'
+                            name='theme'
+                            value='custom'
+                            checked={displayCustom}
+                            onChange={() => this.updateType('custom')}
+                        >
+                            <FormattedMessage
+                                id='user.settings.display.theme.customTheme'
+                                defaultMessage='Custom Theme'
+                            />
+                        </Radio>
                     </div>,
                 );
 

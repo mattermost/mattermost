@@ -79,28 +79,23 @@ const RenderEmoticonsAsEmoji: React.FC<Props> = ({user, renderEmoticonsAsEmoji, 
                     defaultMessage='Render emoticons as emojis'
                 />
             </legend>
-            {options.map(({option, inputId, messageId, defaultMessage}) => {
-                return (
-                    <div
-                        className='radio no-padding'
+            <div className='settings-radio-group'>
+                {options.map(({option, inputId, messageId, defaultMessage}) => (
+                    <Radio
                         key={option}
+                        id={inputId}
+                        name='renderEmoticonsAsEmoji'
+                        value={option}
+                        checked={value === option}
+                        onChange={handleChange}
                     >
-                        <Radio
-                            id={inputId}
-                            name='renderEmoticonsAsEmoji'
-                            value={option}
-                            checked={value === option}
-                            onChange={handleChange}
-                        >
-                            <FormattedMessage
-                                id={messageId}
-                                defaultMessage={defaultMessage}
-                            />
-                        </Radio>
-                        <br/>
-                    </div>
-                );
-            })}
+                        <FormattedMessage
+                            id={messageId}
+                            defaultMessage={defaultMessage}
+                        />
+                    </Radio>
+                ))}
+            </div>
             <div className='mt-5'>
                 <FormattedMessage
                     id='user.settings.display.renderEmoticonsAsEmojiDesc'
