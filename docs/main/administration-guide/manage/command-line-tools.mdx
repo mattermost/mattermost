@@ -16,7 +16,7 @@ From Mattermost v6.0, the majority of these CLI commands have been replaced with
 
 These `mattermost` commands include the following functionality:
 
-**Compliance Export**
+**Compliance export**
 
 - Export data
 - Schedule an export job
@@ -29,7 +29,11 @@ These `mattermost` commands include the following functionality:
 - Return the most recently applied version number
 - Roll back database migrations
 
-**Server Operations**
+**Documentation**
+
+- Serve the offline documentation bundle on localhost
+
+**Server operations**
 
 - Start the Mattermost job server
 - Run the Mattermost server
@@ -44,7 +48,7 @@ To run the CLI commands, you must be in the Mattermost root directory. On a defa
 
 For example, to get the Mattermost version on a default installation of Mattermost:
 
-``` sh
+```sh
 cd /opt/mattermost/
 sudo -u mattermost bin/mattermost version
 ```
@@ -55,7 +59,7 @@ sudo -u mattermost bin/mattermost version
 
 - When running CLI commands on a Mattermost installation that has the configuration stored in the database, you might need to pass the database connection string as:
 
-  ``` sh
+  ```sh
   bin/mattermost --config="postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable\u0026connect_timeout=10"
   ```
 
@@ -68,7 +72,7 @@ On GitLab Omnibus, you must be in the following directory when you run CLI comma
 
 For example, to get the Mattermost version on GitLab Omnibus:
 
-``` sh
+```sh
 cd /opt/gitlab/embedded/service/mattermost
 sudo /opt/gitlab/embedded/bin/chpst -e /opt/gitlab/etc/mattermost/env -P -U mattermost:mattermost -u mattermost:mattermost /opt/gitlab/embedded/bin/mattermost version
 ```
@@ -86,7 +90,7 @@ On Docker install, the `/mattermost/bin` directory was added to `PATH`, so you c
 
 For example, to get the Mattermost version on a Docker Install:
 
-``` sh
+```sh
 docker exec -it <your-mattermost-container-name> mattermost version
 ```
 
@@ -111,13 +115,14 @@ Description
 Commands for configuring and managing your Mattermost instance and users.
 
 Options  
-``` text
+```text
 -c, --config {string}           Configuration file to use. (default "config.json")
 --disableconfigwatch {boolean}  When true, the config.json file will not be reloaded automatically when another process changes it (default "false")
 ```
 
-Child Commands  
+Child commands  
 - [mattermost db](#mattermost-db) - Database commands
+- [mattermost docs](#mattermost-docs) - Serve the offline documentation bundle
 - [mattermost export](#mattermost-export) - Compliance export commands
 - [mattermost help](#mattermost-help) - Generate full documentation for the CLI
 - [mattermost import](#mattermost-import) - Legacy import command
@@ -130,7 +135,7 @@ Child Commands
 Description  
 Commands related to the database
 
-Child Commands  
+Child commands  
 - [mattermost db downgrade](#mattermost-db-downgrade) - Roll back database migrations. Requires either an update plan to roll back to, or comma-separated version numbers to be rolled back.
 - [mattermost db init](#mattermost-db-init) - Initialize the database, execute migrations, and load custom defaults
 - [mattermost db migrate](/administration-guide/manage/command-line-tools#mattermost-db-migrate) - Migrate the database schema for unapplied migrations
@@ -138,7 +143,7 @@ Child Commands
 - [mattermost db version](#mattermost-db-version) - Return the most recently applied version number
 
 Options  
-``` text
+```text
 -h, --help   help for db
 -c, --config string   Configuration file to use
 ```
@@ -149,17 +154,17 @@ Description
 Rolls back database migrations. Requires either an update plan to roll back to, or comma-separated version numbers to be rolled back.
 
 Format  
-``` sh
+```sh
 mattermost db downgrade
 ```
 
 Example  
-``` sh
+```sh
 mattermost db downgrade 99,100,101
 ```
 
 Options  
-``` text
+```text
 --<plan-file> string      Runs the rollback migrations defined in the plan file.
 ```
 
@@ -169,26 +174,26 @@ Description
 Initializes the database for a given data source name (DSN), executes migrations, and loads custom defaults when specified.
 
 Format  
-``` sh
+```sh
 mattermost db init
 ```
 
 Examples  
 Use the `config` flag to pass the DSN:
 
-``` sh
+```sh
 mattermost db init --config postgres://localhost/mattermost
 ```
 
 Run this command to use the `MM_CONFIG` environment variable:
 
-``` sh
+```sh
 MM_CONFIG=postgres://localhost/mattermost mattermost db init
 ```
 
 Run this command to set a custom defaults file to be loaded into the database:
 
-``` sh
+```sh
 MM_CUSTOM_DEFAULTS_PATH=custom.json MM_CONFIG=postgres://localhost/mattermost mattermost db init
 ```
 
@@ -197,21 +202,21 @@ MM_CUSTOM_DEFAULTS_PATH=custom.json MM_CONFIG=postgres://localhost/mattermost ma
 Description  
 Migrates the database schema if there are any unapplied migrations.
 
-Child Commands  
+Child commands  
 - [mattermost db downgrade](#mattermost-db-downgrade) - Roll back database migrations.
 
 Format  
-``` sh
+```sh
 mattermost db migrate
 ```
 
 Example  
-``` sh
+```sh
 mattermost db migrate
 ```
 
 Options  
-``` text
+```text
 --auto-recover bool     If the migration plan receives an error during migrations, this command will try to rollback migrations already applied within the plan. Not recommended without reviewing migration plan by combining --save-plan and --dry-run options.
 --save-plan bool        Saves the plan for the migration into the file store so that it can be used for reviewing the plan or for downgrading.
 --dry-run bool          Does not apply the migrations, but it validates how the migration would run based on the given conditions.
@@ -223,12 +228,12 @@ Description
 Resets the database to its initial state. Doesn't start the application server. Only starts the store layer and truncates the tables, excluding the `migrations` table.
 
 Format  
-``` sh
+```sh
 mattermost db reset
 ```
 
 Example  
-``` sh
+```sh
 bin/mattermost db reset
 ```
 
@@ -238,11 +243,75 @@ Description
 Returns the most recently applied version number.
 
 Format  
-``` sh
+```sh
 mattermost db version
 ```
 
-------------------------------------------------------------------------------------------------------------------------
+---
+
+## mattermost docs
+
+From Mattermost v12.1, the `mattermost docs` command serves the offline documentation bundle over HTTP on localhost. It requires no config, database, or running server, and is intended for reading install and troubleshooting docs when the server is down.
+
+<Note>
+
+Official Mattermost release tarballs from v12.1 include the documentation bundle. If you built from source without setting the `DOCS_BUNDLE` environment variable during `make package`, the bundle will be absent and the command exits with an error similar to:
+
+```text
+documentation bundle not found at <path>/client/_documentation (this install may have been packaged without docs)
+```
+
+Use `--dir` to point at a Docusaurus build directory as a workaround. There is no supported way to add the bundle to an existing install after packaging.
+
+</Note>
+
+<Important>
+
+Installs where `SiteURL` is set to a subpath (for example, `https://example.com/mattermost`) should use `mattermost docs` rather than the server-hosted `/_documentation/` route. The bundle's asset paths are built for the root-path prefix `/_documentation/`, so CSS and images return 404 when accessed through the server route on subpath installs.
+
+</Important>
+
+Description  
+Serve the offline product documentation bundle over HTTP on localhost.
+
+The command binds to `127.0.0.1` only — it is not reachable from other hosts on the network and requires no firewall rules. If port 8066 is already in use, the command exits immediately with a bind error; use `--port` to select a free port.
+
+Format  
+```sh
+mattermost docs [flags]
+```
+
+Examples  
+
+Serve the bundle included in the packaged release (default port 8066):
+
+```sh
+bin/mattermost docs
+```
+
+Serve on a different port:
+
+```sh
+bin/mattermost docs --port 9090
+```
+
+Serve a local Docusaurus build directory instead of the packaged bundle:
+
+```sh
+bin/mattermost docs --dir /path/to/docs/site/build
+```
+
+Options  
+```text
+--port int    Local TCP port to listen on (default 8066)
+--dir string  Serve this bundle directory instead of the one in the release (e.g. docs/site/build)
+```
+
+Once running, the documentation is available at `http://127.0.0.1:<port>/_documentation/`. Requests to `/` redirect there automatically. Press **Ctrl-C** to stop.
+
+The running Mattermost server also exposes the same bundle at `/_documentation/` (for example, `http://localhost:8065/_documentation/`) when the release was packaged with a docs bundle. If the bundle is absent, requests to `/_documentation/` return 404. Note that port 8066 (the default for `mattermost docs`) and port 8065 (the default server port) are distinct — running both on the same host does not cause a conflict.
+
+---
 
 ## mattermost export
 
@@ -251,7 +320,7 @@ mattermost db version
 Description  
 Commands for exporting data for compliance and for merging multiple Mattermost instances.
 
-Child Commands  
+Child commands  
 - [mattermost export actiance](#mattermost-export-actiance) - Deprecated from Mattermost v10.5 in favor of [mattermost export schedule](#mattermost-export-schedule).
 - [mattermost export csv](#mattermost-export-csv) - Deprecated from Mattermost v10.5.
 - [mattermost export global-relay-zip](#mattermost-export-global-relay-zip) - Deprecated from Mattermost v10.5.
@@ -276,17 +345,17 @@ Description
 Schedule an export job in a format suitable for importing into a third-party archive system.
 
 Format  
-``` sh
+```sh
 mattermost export schedule
 ```
 
 Example  
-``` sh
+```sh
 bin/mattermost export schedule --exportFrom=1513102632
 ```
 
 Options  
-``` text
+```text
 --exportFrom string     Unix timestamp (seconds since epoch, UTC) to export data from.
 --timeoutSeconds string Set how long the export should run for before timing out.
 ```
@@ -295,7 +364,7 @@ Options
 
 From Mattermost v6.0, this command has been deprecated in favor of [mmctl export commands](/administration-guide/manage/mmctl-command-line-tool#mmctl-export) as the supported way to export data out of Mattermost.
 
-------------------------------------------------------------------------------------------------------------------------
+---
 
 ## mattermost help
 
@@ -303,13 +372,13 @@ Description
 Generate full documentation in Markdown format for the Mattermost command line tools.
 
 Format  
-``` sh
+```sh
 mattermost help {outputdir}
 ```
 
 <div id="command-line-tools-mattermost-jobserver">
 
-------------------------------------------------------------------------------------------------------------------------
+---
 
 </div>
 
@@ -318,14 +387,14 @@ mattermost help {outputdir}
 Description  
 Import data into Mattermost.
 
-Child Command  
+Child command  
 - [mattermost import bulk](#mattermost-import-bulk) - Import a Mattermost bulk import file. Deprecated in favor of [mmctl import commands](/administration-guide/manage/mmctl-command-line-tool#mmctl-import).
 
 ### mattermost import bulk
 
 From Mattermost v6.0, this command has been deprecated in favor of [mmctl import commands](/administration-guide/manage/mmctl-command-line-tool#mmctl-import) as the supported way to import data into Mattermost.
 
-------------------------------------------------------------------------------------------------------------------------
+---
 
 ## mattermost jobserver
 
@@ -333,16 +402,16 @@ Description
 Start the Mattermost job server.
 
 Format  
-``` sh
+```sh
 mattermost jobserver
 ```
 
 Example  
-``` sh
+```sh
 bin/mattermost jobserver
 ```
 
-------------------------------------------------------------------------------------------------------------------------
+---
 
 ## mattermost server
 
@@ -350,11 +419,11 @@ Description
 Runs the Mattermost server.
 
 Format  
-``` sh
+```sh
 mattermost server
 ```
 
-------------------------------------------------------------------------------------------------------------------------
+---
 
 ## mattermost version
 
@@ -364,15 +433,15 @@ From Mattermost v6.5, this CLI command no longer interacts with the database. Th
 
 </Note>
 
-Desription  
+Description  
 Displays Mattermost version information.
 
 Format  
-``` sh
+```sh
 mattermost version
 ```
 
-------------------------------------------------------------------------------------------------------------------------
+---
 
 ## Troubleshooting
 
@@ -380,6 +449,6 @@ mattermost version
 
 If you have Bleve search indexing enabled, temporarily disable it in **System Console \> Experimental \> Bleve** and run the command again. You can also optionally use the new [mmctl Command Line Tool](/administration-guide/manage/mmctl-command-line-tool).
 
-Bleve does not support multiple processes opening and manipulating the same index. Therefore, if the Mattermost server is running, an attempt to run the CLI will lock when trying to open the indeces.
+Bleve does not support multiple processes opening and manipulating the same index. Therefore, if the Mattermost server is running, an attempt to run the CLI will lock when trying to open the indices.
 
 If you aren't using the Bleve search indexing, feel free to post in our [Troubleshooting forum](https://forum.mattermost.com/c/trouble-shoot/16) to get help.
