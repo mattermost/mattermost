@@ -7,7 +7,6 @@ import {
     disableChannelAutotranslation,
     enableAutotranslationConfig,
     enableChannelAutotranslation,
-    ensureAutotranslationPermissions,
     getAdminClient,
     hasAutotranslationLicense,
     setMockSourceLanguage,
@@ -137,7 +136,7 @@ test(
             mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
-        await ensureAutotranslationPermissions(adminClient);
+        await pw.resetRoles();
 
         const channelName = `autotranslation-admin-${pw.random.id()}`;
         const created = await adminClient.createChannel({
@@ -194,7 +193,7 @@ test(
             mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
-        await ensureAutotranslationPermissions(adminClient);
+        await pw.resetRoles();
 
         const channelName = `autotranslation-system-msg-${pw.random.id()}`;
         const created = await adminClient.createChannel({
@@ -1236,10 +1235,10 @@ test(
         await channelsPage.centerView.header.openChannelMenu();
         const channelMenu = page
             .getByRole('menu')
-            .filter({has: page.getByRole('menuitem', {name: /Auto-translation|Channel Settings/})});
-        await expect(channelMenu.getByText('Auto-translation', {exact: true})).toBeVisible();
-        await expect(channelMenu.getByText('Your language is not supported')).toBeVisible();
-        const autotranslationItem = page.getByRole('menuitem', {name: /Auto-translation/});
+            .filter({has: page.getByRole('menuitem', {name: /Traduction automatique|Paramètres du canal/})});
+        await expect(channelMenu.getByText('Traduction automatique', {exact: true})).toBeVisible();
+        await expect(channelMenu.getByText("Votre langue n'est pas prise en charge")).toBeVisible();
+        const autotranslationItem = page.getByRole('menuitem', {name: /Traduction automatique/});
         await expect(autotranslationItem).toBeDisabled();
     },
 );
