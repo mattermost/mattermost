@@ -3671,11 +3671,6 @@ func TestLinkedFieldSelfWritableHoldings(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		// The stored row, not the create's return: its PermissionValues still
-		// holds the pre-store default, a column change that rebuilds
-		// Permissions from the legacy keys and drops the raise below.
-		linked, err = th.service.fieldStore.Get(th.Context, th.CPAGroupID, linked.ID)
-		require.NoError(t, err)
 		linked.Permissions.Restrictions.Value.Write = model.PermissionLevelMember
 		_, _, err = th.service.UpdatePropertyField(rctxPlugin, th.CPAGroupID, linked)
 		require.Error(t, err)
@@ -3723,14 +3718,6 @@ func TestLinkedFieldSelfWritableHoldings(t *testing.T) {
 					Grants: fieldWriteGrant,
 				},
 			})
-			require.NoError(t, err)
-
-			// The stored rows, not the creates' returns: a return still holds the
-			// legacy columns as submitted, and an update carrying a column change
-			// keeps the stored permissions object, dropping any masking added to it.
-			template, err = th.service.fieldStore.Get(th.Context, th.CPAGroupID, template.ID)
-			require.NoError(t, err)
-			linked, err = th.service.fieldStore.Get(th.Context, th.CPAGroupID, linked.ID)
 			require.NoError(t, err)
 			return template, linked
 		}
@@ -3839,15 +3826,10 @@ func TestMaskHoldingsFieldStaysLinked(t *testing.T) {
 		// Straight to the store: naming the holdings field is the template's own
 		// update, which is not what these tests are about.
 		template.Permissions.Masking = &model.Masking{MaskByFieldID: holdings.ID}
-		_, err = th.dbStore.PropertyField().Update(th.CPAGroupID, []*model.PropertyField{template}, nil)
+		updated, err := th.dbStore.PropertyField().Update(th.CPAGroupID, []*model.PropertyField{template}, nil)
 		require.NoError(t, err)
 
-		// The stored row, not the update's return, for the reason given in
-		// TestLinkedFieldSelfWritableHoldings.
-		template, err = th.service.fieldStore.Get(th.Context, th.CPAGroupID, template.ID)
-		require.NoError(t, err)
-
-		return template, holdings, sibling
+		return updated[0], holdings, sibling
 	}
 
 	unlinked := func(t *testing.T, id string) *model.PropertyField {
@@ -4141,5 +4123,72 @@ func TestOptionsChanged(t *testing.T) {
 			},
 		}
 		assert.True(t, optionsChanged(dbForm, nonCanonical))
+	})
+}
+
+// TestUpdatingTheFieldACreateReturned covers a caller that keeps the field a
+// create handed back and later sends it back changed, as a plugin does. That
+// copy must carry the legacy columns as stored: the hook defaults a column the
+// caller's own permissions object then overrides, and sending that default
+// back would read as a deliberate column edit.
+func TestUpdatingTheFieldACreateReturned(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "test-plugin" })
+	t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
+	rctxPlugin := RequestContextWithCallerID(th.Context, "test-plugin")
+
+	// A field only its plugin may set values on, which the legacy columns alone
+	// can't say: the hook defaults a user field's PermissionValues to member.
+	create := func(t *testing.T) *model.PropertyField {
+		t.Helper()
+		created, err := th.service.CreatePropertyField(rctxPlugin, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "PluginSet-" + model.NewId(),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+					Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelNone},
+					Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelSysadmin},
+				},
+				Grants: []model.Grant{{
+					Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "test-plugin"},
+					Allow:    []string{model.PropertyActionFieldWrite, model.PropertyActionValueWrite},
+				}},
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, created.PermissionValues)
+		require.Equal(t, model.PermissionLevelNone, *created.PermissionValues, "the create must return the column as stored")
+		return created
+	}
+
+	t.Run("a rename keeps value writes closed to members", func(t *testing.T) {
+		created := create(t)
+
+		created.Name += "-renamed"
+		_, _, err := th.service.UpdatePropertyField(rctxPlugin, th.CPAGroupID, created)
+		require.NoError(t, err)
+
+		stored, err := th.service.fieldStore.Get(th.Context, th.CPAGroupID, created.ID)
+		require.NoError(t, err)
+		assert.Equal(t, created.Name, stored.Name)
+		assert.Equal(t, model.PermissionLevelNone, stored.Permissions.Restrictions.TierFor(model.PropertyActionValueWrite))
+	})
+
+	t.Run("a permissions edit is applied", func(t *testing.T) {
+		created := create(t)
+
+		created.Permissions.Restrictions.Option.Read = model.PermissionLevelNone
+		updated, _, err := th.service.UpdatePropertyField(rctxPlugin, th.CPAGroupID, created)
+		require.NoError(t, err)
+		require.NotNil(t, updated.PermissionValues)
+		assert.Equal(t, model.PermissionLevelNone, *updated.PermissionValues, "the update must return the column as stored")
+
+		stored, err := th.service.fieldStore.Get(th.Context, th.CPAGroupID, created.ID)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelNone, stored.Permissions.Restrictions.TierFor(model.PropertyActionOptionRead))
 	})
 }
