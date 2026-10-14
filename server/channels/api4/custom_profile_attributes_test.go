@@ -2583,13 +2583,17 @@ func TestSysadminManagesCPAFieldOwners(t *testing.T) {
 		})
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
-		owners = model.GetPropertyFieldOwners(patched)
-		assert.Nil(t, findOwner(owners, "com.mattermost.scim"), "the explicit owner must be gone")
 		// A public, unprotected field with no explicit owner is ambiently
-		// writable by any plugin under the legacy model; removing the last
-		// declared owner surfaces that access as a "*" owner instead of
-		// reporting none at all.
-		assert.NotNil(t, findOwner(owners, "*"), "the field's real ambient access must stay visible")
+		// writable by any plugin under the legacy model. That access is kept
+		// as a stored wildcard grant, but a v2 reader sees no owners, as it
+		// would for any field nobody owns; a "*" owner would lock the field
+		// for people.
+		assert.Empty(t, model.GetPropertyFieldOwners(patched), "the field must read as unowned")
+		stored, storeErr := th.App.Srv().Store().PropertyField().Get(th.Context, "", created.ID)
+		require.NoError(t, storeErr)
+		require.Len(t, stored.Permissions.Grants, 1)
+		assert.Equal(t, model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "*"}, stored.Permissions.Grants[0].Identity,
+			"the field's ambient plugin access must be kept")
 	})
 
 	t.Run("member cannot patch owners on a field", func(t *testing.T) {
