@@ -4,12 +4,15 @@
 package slashcommands
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func TestRemoteProviderDoStatus(t *testing.T) {
@@ -102,5 +105,63 @@ func TestRemoteProviderDoStatus(t *testing.T) {
 			require.Greater(t, idx, lastIdx, "expected %q to appear after the previous row", name)
 			lastIdx = idx
 		}
+	})
+}
+
+type failingDeleteRemoteClusterStore struct {
+	store.RemoteClusterStore
+}
+
+func (s *failingDeleteRemoteClusterStore) Delete(string) (bool, error) {
+	return false, assert.AnError
+}
+
+// failingDeleteStoreWrapper fails only RemoteCluster().Delete; all other calls use the real store.
+type failingDeleteStoreWrapper struct {
+	store.Store
+}
+
+func (w *failingDeleteStoreWrapper) RemoteCluster() store.RemoteClusterStore {
+	return &failingDeleteRemoteClusterStore{RemoteClusterStore: w.Store.RemoteCluster()}
+}
+
+func TestRemoteProviderDoRemove(t *testing.T) {
+	th := setupForSharedChannels(t).initBasic(t)
+	th.addPermissionToRole(t, model.PermissionManageSecureConnections.Id, th.BasicUser.Roles)
+
+	rc, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+		RemoteId:    model.NewId(),
+		Name:        "remote-" + model.NewId(),
+		DisplayName: "Remote",
+		SiteURL:     "https://" + model.NewId() + ".example.com",
+		Token:       model.NewId(),
+		CreatorId:   th.BasicUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	t.Run("reports the delete error instead of not found", func(t *testing.T) {
+		originalStore := th.App.Srv().Store()
+		th.App.Srv().SetStore(&failingDeleteStoreWrapper{Store: originalStore})
+		t.Cleanup(func() { th.App.Srv().SetStore(originalStore) })
+
+		args := &model.CommandArgs{
+			// Include params so the test can see whether the underlying error reaches the reply.
+			T: func(s string, params ...any) string {
+				if len(params) == 0 {
+					return s
+				}
+				return fmt.Sprintf("%s %v", s, params[0])
+			},
+			UserId:    th.BasicUser.Id,
+			TeamId:    th.BasicTeam.Id,
+			ChannelId: th.BasicChannel.Id,
+			Command:   "/secure-connection remove --connectionID " + rc.RemoteId,
+		}
+
+		resp := (&RemoteProvider{}).DoCommand(th.App, th.Context, args, "")
+		require.NotNil(t, resp)
+		require.True(t, strings.HasPrefix(resp.Text, "api.command_remote.remove_remote.error"), "unexpected response: %s", resp.Text)
+		assert.Contains(t, resp.Text, assert.AnError.Error())
+		assert.NotContains(t, resp.Text, "NOT FOUND")
 	})
 }

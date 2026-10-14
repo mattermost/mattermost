@@ -209,7 +209,7 @@ func (rp *RemoteProvider) doRemove(a *app.App, args *model.CommandArgs, margs ma
 
 	deleted, err := a.DeleteRemoteCluster(id)
 	if err != nil {
-		response(args.T("api.command_remote.remove_remote.error", map[string]any{"Error": err.Error()}))
+		return response(args.T("api.command_remote.remove_remote.error", map[string]any{"Error": err.Error()}))
 	}
 
 	result := "removed"
