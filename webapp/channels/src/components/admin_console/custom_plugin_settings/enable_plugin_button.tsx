@@ -201,7 +201,6 @@ export function PluginEnableButton({actions, disabled, homepageUrl, id, saveNeed
                         toggled={pluginEnabled}
                         id={id}
                         ariaLabel={toggleAriaLabel}
-                        toggleClassName='btn-toggle-primary'
                         onToggle={handleTogglePlugin}
                     />
                 </div>

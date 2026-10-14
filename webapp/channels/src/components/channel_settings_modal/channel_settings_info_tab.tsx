@@ -603,7 +603,6 @@ function ChannelSettingsInfoTab({
                                 onToggle={handleDiscoverableToggle}
                                 toggled={discoverable}
                                 tabIndex={0}
-                                toggleClassName='btn-toggle-primary'
                             />
                         </div>
                     </div>

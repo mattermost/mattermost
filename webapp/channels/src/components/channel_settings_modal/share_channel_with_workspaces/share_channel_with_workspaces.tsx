@@ -148,7 +148,6 @@ export default function ShareChannelWithWorkspaces({
                             toggled={enabled && hasAvailableWorkspaces}
                             disabled={!hasAvailableWorkspaces}
                             tabIndex={hasAvailableWorkspaces ? 0 : -1}
-                            toggleClassName='btn-toggle-primary'
                         />
                     </div>
                 </WithTooltip>

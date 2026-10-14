@@ -14,7 +14,6 @@ type Props = {
     id?: string;
     overrideTestId?: boolean;
     size?: 'btn-lg' | 'btn-md' | 'btn-sm';
-    toggleClassName?: string;
     ariaLabel?: string;
     tabIndex?: number;
 };
@@ -47,7 +46,6 @@ const Toggle: React.FC<Props> = (props: Props) => {
         overrideTestId,
         ariaLabel,
         size = 'btn-lg',
-        toggleClassName,
         tabIndex = 0,
     } = props;
 
@@ -65,7 +63,6 @@ const Toggle: React.FC<Props> = (props: Props) => {
     return (
         <Switch
             id={id}
-            className={toggleClassName}
             size={SIZE_MAP[size]}
             checked={toggled}
             disabled={disabled}

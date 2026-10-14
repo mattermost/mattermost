@@ -46,7 +46,6 @@ const EnableSectionContent: React.FC<Props> = ({filterToggle, setFilterToggle}) 
                         disabled={false}
                         onToggle={() => setFilterToggle(!filterToggle)}
                         toggled={filterToggle}
-                        toggleClassName='btn-toggle-primary'
                     />
                 </div>
             </div>

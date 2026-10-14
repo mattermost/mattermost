@@ -406,7 +406,6 @@ const DotMenu = ({
                         disabled={isManagedExternally}
                         onToggle={handleEditableByUsersToggle}
                         toggled={isEditableByUsers}
-                        toggleClassName='btn-toggle-primary'
                         tabIndex={-1}
                     />
                 )}

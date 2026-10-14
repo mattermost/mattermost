@@ -22,6 +22,7 @@ describe('components/Toggle', () => {
         const control = screen.getByRole('switch', {name: 'Test switch'});
         expect(control).toBeChecked();
         expect(control).toHaveAttribute('data-testid', 'test-toggle-button');
+        expect(control.className).not.toMatch(/btn-toggle/);
     });
 
     it('calls onToggle when changed', async () => {

@@ -179,7 +179,6 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                             toggled={autoTranslationSettings.Enable}
                             id={'Enable'}
                             tabIndex={-1}
-                            toggleClassName='btn-toggle-primary'
                             onToggle={handleToggle}
                         />
                     </div>

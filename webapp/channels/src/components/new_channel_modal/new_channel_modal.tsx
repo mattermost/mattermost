@@ -626,7 +626,6 @@ const NewChannelModal = () => {
                                     toggled={discoverable}
                                     onToggle={() => setDiscoverable((v) => !v)}
                                     tabIndex={0}
-                                    toggleClassName='btn-toggle-primary'
                                 />
                             </div>
                         </div>
@@ -705,7 +704,6 @@ const NewChannelModal = () => {
                                 id='channelClassificationToggle'
                                 toggled={classificationEnabled}
                                 onToggle={() => setClassificationEnabled(!classificationEnabled)}
-                                toggleClassName='btn-toggle-primary'
                                 size='btn-md'
                                 ariaLabel={formatMessage({id: 'channel_modal.classification.toggle_label', defaultMessage: 'Channel classification'})}
                             />

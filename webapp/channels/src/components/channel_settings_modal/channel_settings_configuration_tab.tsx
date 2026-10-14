@@ -925,7 +925,6 @@ function ChannelSettingsConfigurationTab({
                                 onToggle={handleClassificationToggle}
                                 toggled={classificationEnabled}
                                 tabIndex={0}
-                                toggleClassName='btn-toggle-primary'
                             />
                         </div>
                     </div>
@@ -1002,7 +1001,6 @@ function ChannelSettingsConfigurationTab({
                                 onToggle={handleBannerToggle}
                                 toggled={bannerSectionOn}
                                 tabIndex={0}
-                                toggleClassName='btn-toggle-primary'
                             />
                         </div>
                     </div>
@@ -1132,7 +1130,6 @@ function ChannelSettingsConfigurationTab({
                             onToggle={handleJoinLeaveMessagesToggle}
                             toggled={!disableJoinLeaveMessages}
                             tabIndex={0}
-                            toggleClassName='btn-toggle-primary'
                         />
                     </div>
                 </div>
@@ -1168,7 +1165,6 @@ function ChannelSettingsConfigurationTab({
                             onToggle={handleAutoTranslationToggle}
                             toggled={isChannelAutotranslated}
                             tabIndex={0}
-                            toggleClassName='btn-toggle-primary'
                         />
                     </div>
                 </div>
