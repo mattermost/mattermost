@@ -1,0 +1,138 @@
+---
+title: "Site health"
+---
+
+<PlanAvailability slug="ent-plus" />
+
+From Mattermost v12.1, the **Site health** page in System Console gives system administrators a consolidated view of health findings reported by the built-in health dashboard. It surfaces configuration problems, service degradation, and other conditions that affect the reliability or security of your deployment, together with remediation guidance and direct links to the relevant settings.
+
+## Prerequisites
+
+- Enterprise or Enterprise Advanced license.
+- `HealthDashboard` feature flag enabled on the server.
+- System administrator role (`Manage System` permission).
+
+All three conditions must hold. If any is absent, the page is not listed in the System Console sidebar.
+
+## Access the page
+
+In System Console, go to **Reporting \> Site health**.
+
+The page fetches findings once on load. It does not poll or refresh automatically. Reload the page to get the latest results.
+
+## Page layout
+
+### Header
+
+The header shows **Site health** and the timestamp of the last evaluation run: **Last evaluated \<relative time\>**. If no evaluation has run yet, the header shows **Not evaluated yet**.
+
+### Tabs
+
+A tab bar filters the finding list. Each tab shows a count badge.
+
+| Tab | What it shows |
+| --- | --- |
+| **Open** | All firing findings plus any unknown findings |
+| **Critical** | Firing findings of critical severity |
+| **Warning** | Firing findings of warning severity |
+| **Info** | Firing findings of info severity |
+| **Recently resolved** | Findings whose state changed to resolved within the last 7 days |
+| **Unknown** | Findings the health check could not evaluate |
+
+Unknown findings are never counted under a severity tab. The recently resolved window is computed client-side against the current time.
+
+### Group by
+
+Use the **Group by** control to switch between two views:
+
+- **Severity** (default) — findings are grouped into sections: Critical, Warning, Info, Could not be evaluated, and Recently resolved. Only sections relevant to the active tab appear. Each row shows the finding's area tag.
+- **Category** — one collapsible accordion per area. Areas with a firing critical finding start expanded. Per-severity count chips appear on each accordion header. Rows omit the area tag.
+
+Within each group, rows are sorted by severity, then by `state_since` descending (newest first).
+
+### Finding rows
+
+Each row shows:
+
+- **Title** and, for node-scoped findings, the node name.
+- **Message** — the finding-specific detail or, for unknown findings, why the check could not run.
+- **Severity badge** — Critical, Warning, Info, or Unknown (with the expected severity when firing).
+- **Trend** — for example, *Firing for 3d 4h*, *Unevaluated for 5h*, or *Resolved 2 hours ago*.
+
+Only one row can be expanded at a time.
+
+### Expanded detail
+
+Expanding a row reveals:
+
+- **How to fix it** — the remediation text for the finding, when the rule provides one.
+- **Resolve here** — link cards that appear only when the rule sets them:
+  - **Open this setting in the System Console** — navigates in-app to the relevant setting page.
+  - **Read the documentation** — opens the rule's documentation URL in a new tab.
+- **Details** — a table of state, first detected, last checked, node (for node-scoped findings), and any structured detail values from the finding.
+
+Firing and unknown findings that have a linked System Console path also show a **Go to setting** primary button.
+
+### Empty states
+
+Each tab has a distinct empty state:
+
+| Tab | Empty state message |
+| --- | --- |
+| Open | All clear — nothing is firing and every check could be evaluated |
+| Critical / Warning / Info | Nothing at this severity is firing |
+| Recently resolved | Nothing resolved in the last 7 days |
+| Unknown | Every check could be evaluated |
+
+## Finding states
+
+| State | Meaning |
+| --- | --- |
+| **Firing** | The rule evaluated and found a problem. |
+| **Resolved** | The rule evaluated and the problem is no longer present. |
+| **Unknown** | The rule could not run. Unknown does not mean healthy; the cause is shown in the finding's message. |
+
+## Areas
+
+Findings are grouped by area. The following areas are recognized:
+
+| Area | Label |
+| --- | --- |
+| `auth` | Authentication |
+| `cluster` | High availability |
+| `compliance` | Compliance |
+| `database` | Database |
+| `jobs` | Jobs |
+| `license` | Licensing |
+| `notifications` | Notifications |
+| `platform` | Platform |
+| `search` | Search |
+| `version` | Updates |
+
+Findings from unrecognized areas are listed under their raw area value.
+
+<Note>
+
+From Mattermost v12.1, the `SITE_URL_EMPTY` and `SITE_URL_HTTP` findings are reported under the **Platform** area. In earlier releases they appeared under **High availability**. Stored findings update to the new area on the next evaluation run.
+
+</Note>
+
+## API fields
+
+The `GET /api/v4/health/findings` response includes two fields on each rendered finding that the page uses to build its link cards:
+
+| Field | Description |
+| --- | --- |
+| `docs_url` | URL of the documentation page for the rule. Omitted when the rule has none. |
+| `console_path` | System Console path of the setting that resolves the finding, for example `/admin_console/environment/web_server`. Omitted when the rule has none. |
+
+Both fields are populated only at the API boundary from the rule definition. They are always empty in a store result.
+
+## Current limitations
+
+The following capabilities are not yet available in this release:
+
+- Muting findings.
+- Re-running checks on demand.
+- A health score or sidebar badge.
+- Automatic page refresh.
