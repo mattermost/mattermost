@@ -14,7 +14,8 @@ type LegacyConversionOpts struct {
 	// ConvertAttrs is true only for the access_control group. Only there were
 	// the protected flag and access_mode attrs ever enforced, so only there is
 	// there anything to preserve when converting them; everywhere else those
-	// settings have never gated anything.
+	// settings have never gated anything, and a wildcard plugin grant keeps the
+	// access every plugin had.
 	ConvertAttrs bool
 	// Template is the linked field's template, when the field being converted
 	// is linked to one. Its option.read tier caps the converted field's own,
@@ -93,11 +94,19 @@ func PermissionsFromLegacy(field *PropertyField, opts LegacyConversionOpts) *Per
 
 	masking := maskingFromLegacy(field, restrictions, opts)
 
-	grants := []Grant{}
+	var grants []Grant
 	if opts.ConvertAttrs {
 		// Owners, the source plugin ID and the sync lock are all read from Attrs,
 		// so they convert only where Attrs were ever enforced.
 		grants = grantsFromLegacy(field)
+	} else {
+		// No access check ever ran between a plugin and a field outside
+		// access_control, so any plugin could act on it. The wildcard keeps that
+		// access, now visible on the field and revocable.
+		grants = []Grant{{
+			Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "*"},
+			Allow:    unguardedGroupPluginAllow(field),
+		}}
 	}
 	if opts.Template != nil {
 		// A linked field's grant over option.read is read access to the template's
@@ -414,6 +423,18 @@ func ambientMachineGrantAllow(field *PropertyField) []string {
 // operational cleanup), so field.write travels with value.write. Reads stay
 // off: a source_only synced field is still unreadable to the sync caller.
 var syncLockGrantAllow = []string{PropertyActionFieldWrite, PropertyActionValueWrite}
+
+// unguardedGroupPluginAllow returns what any plugin could do on a field
+// outside access_control: every action except a definition write on a
+// protected field, which the app layer's protected check refuses to plugins.
+// Option writes stay granted, because the options endpoints never checked
+// protected.
+func unguardedGroupPluginAllow(field *PropertyField) []string {
+	if field.Protected {
+		return removeAction(validPropertyActions, PropertyActionFieldWrite)
+	}
+	return slices.Clone(validPropertyActions)
+}
 
 // syncLockSource returns the sync source whose lock applies to field's own
 // values. A template holds no values, so its ldap/saml attrs lock nothing on
