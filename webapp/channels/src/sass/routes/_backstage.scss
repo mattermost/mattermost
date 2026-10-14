@@ -290,6 +290,18 @@
         }
     }
 
+    // Compass Radio defaults to width: 100%; keep Yes/No pairs side-by-side
+    .backstage-form__radio-group-inline {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+
+        > label {
+            width: auto;
+        }
+    }
+
     .form-control {
         background: variables.$white;
 
