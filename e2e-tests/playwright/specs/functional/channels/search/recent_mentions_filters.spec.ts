@@ -87,8 +87,9 @@ test('removing a filter chip restores the excluded mentions', {tag: '@search'}, 
     await page.getByRole('button', {name: 'Done'}).click();
     await expect(channelsPage.searchResultsPanel.getResultByText(townSquareMention)).toHaveCount(0);
 
-    // # Remove the channel chip
-    await page.getByRole('button', {name: `Remove ${otherChannel.display_name} filter`}).click();
+    // # Remove the channel chip. The team selector is left on all teams, so the chip names the
+    // channel's team alongside it and the accessible name is wider than the channel name alone.
+    await page.getByRole('button', {name: `Remove ${otherChannel.display_name}`, exact: false}).click();
 
     // * Verify both mentions are listed again
     await expect(channelsPage.searchResultsPanel.getResultByText(townSquareMention)).toHaveCount(1);

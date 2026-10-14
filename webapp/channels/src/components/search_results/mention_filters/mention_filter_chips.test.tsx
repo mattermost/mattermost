@@ -68,6 +68,23 @@ describe('MentionFilterChips', () => {
         expect(screen.getByText('Today')).toBeInTheDocument();
     });
 
+    test('names the channel\'s team when the search spans every team', async () => {
+        renderWithContext(
+            <MentionFilterChips/>,
+            baseState({...defaultMentionFilters, channelIds: ['channel1']}, null),
+        );
+
+        expect(screen.getByText('Release Coordination (Product)')).toBeInTheDocument();
+
+        await userEvent.click(screen.getByLabelText('Remove Release Coordination (Product) filter'));
+
+        expect(mockDispatch).toHaveBeenCalledWith({
+            type: 'MOCK_UPDATE_MENTION_FILTERS',
+            filters: defaultMentionFilters,
+            teamId: null,
+        });
+    });
+
     test('removing a chip re-runs the search without that one filter', async () => {
         renderWithContext(
             <MentionFilterChips/>,
