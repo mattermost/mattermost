@@ -712,8 +712,11 @@ func TestOwnersWithAdminManaged(t *testing.T) {
 		require.NoError(t, upErr)
 		require.True(t, model.HasPropertyFieldOwners(updated))
 		assert.Equal(t, "admin", updated.Attrs[model.PropertyFieldAttrManaged])
+		// The hook pins the column to sysadmin, but an owner-managed field
+		// converts to value.write none, left to the owner's grant, and that is
+		// what is stored.
 		require.NotNil(t, updated.PermissionValues)
-		assert.Equal(t, model.PermissionLevelSysadmin, *updated.PermissionValues)
+		assert.Equal(t, model.PermissionLevelNone, *updated.PermissionValues)
 	})
 
 	t.Run("denies a system admin writing a value", func(t *testing.T) {
