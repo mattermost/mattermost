@@ -108,6 +108,12 @@ function ToggleItem({
     text,
     toggled,
 }: ToggleProps) {
+    // Compass Switch fires onChange on its own click; without stopping
+    // propagation the MenuItem onClick also runs and the toggle nets out.
+    const handleSwitchClick = (event: React.MouseEvent) => {
+        event.stopPropagation();
+    };
+
     return (
         <Wrapper
             onClick={disabled ? undefined : onClick}
@@ -117,16 +123,18 @@ function ToggleItem({
             role='menuitemcheckbox'
             aria-checked={toggled}
             aria-label={ariaLabel}
-            trailingElements={<>
-                <Toggle
-                    ariaLabel={ariaLabel}
-                    size='btn-sm'
-                    disabled={disabled}
-                    onToggle={onClick}
-                    toggled={toggled}
-                    tabIndex={-1}
-                />
-            </>}
+            trailingElements={
+                <span onClick={disabled ? undefined : handleSwitchClick}>
+                    <Toggle
+                        ariaLabel={ariaLabel}
+                        size='btn-sm'
+                        disabled={disabled}
+                        onToggle={onClick}
+                        toggled={toggled}
+                        tabIndex={-1}
+                    />
+                </span>
+            }
             labels={<>
                 <div>
                     {text}
