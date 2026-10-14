@@ -453,6 +453,13 @@ func (scs *Service) getOrCreateUser(userID string, participantsMap map[string]*m
 	}
 
 	var rctx request.CTX = request.EmptyContext(scs.server.Log())
+	// Preserve the original email before assigning the sender's RemoteId.
+	// Forwarded users may have synthetic local email identifiers.
+	if inviteUser.GetRemoteID() == "" {
+		if remoteEmail, ok := inviteUser.GetProp(model.UserPropsKeyRemoteEmail); !ok || remoteEmail == "" {
+			inviteUser.SetProp(model.UserPropsKeyRemoteEmail, inviteUser.Email)
+		}
+	}
 	inviteUser.RemoteId = new(rc.RemoteId)
 	user, iErr := scs.insertSyncUser(rctx, inviteUser, nil, rc)
 	if iErr != nil {

@@ -219,3 +219,73 @@ func TestUpsertSyncUserInsertRemoteEmail(t *testing.T) {
 		})
 	}
 }
+
+func TestGetOrCreateUserPreservesRemoteEmailFromInvite(t *testing.T) {
+	cases := []struct {
+		name          string
+		existingEmail string
+		wantEmail     string
+	}{
+		{
+			name:      "direct invitation stores original email",
+			wantEmail: "alice@allowed.example",
+		},
+		{
+			name:          "existing RemoteEmail is preserved",
+			existingEmail: "alice@original.example",
+			wantEmail:     "alice@original.example",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			remoteID := model.NewId()
+			userID := model.NewId()
+
+			inviteUser := &model.User{
+				Id:       userID,
+				Username: "alice",
+				Email:    "alice@allowed.example",
+			}
+			if tc.existingEmail != "" {
+				inviteUser.SetProp(model.UserPropsKeyRemoteEmail, tc.existingEmail)
+			}
+
+			userStore := &mocks.UserStore{}
+			userStore.On("Get", mock.Anything, userID).
+				Return(nil, store.NewErrNotFound("User", userID))
+			userStore.On("Save", mock.Anything, mock.Anything).
+				Return(inviteUser, nil)
+
+			mockStore := &mocks.Store{}
+			mockStore.On("User").Return(userStore)
+
+			mockServer := &MockServerIface{}
+			mockServer.On("GetStore").Return(mockStore)
+			mockServer.On("Log").Return(mlog.CreateConsoleTestLogger(t))
+
+			mockApp := &MockAppIface{}
+			mockApp.On("NotifySharedChannelUserUpdate", mock.Anything).Return()
+
+			scs := &Service{
+				server: mockServer,
+				app:    mockApp,
+			}
+
+			rc := &model.RemoteCluster{
+				RemoteId: remoteID,
+				Name:     "origin",
+			}
+
+			saved, err := scs.getOrCreateUser(
+				userID,
+				map[string]*model.User{userID: inviteUser},
+				rc,
+			)
+			require.NoError(t, err)
+
+			actual, _ := saved.GetProp(model.UserPropsKeyRemoteEmail)
+			require.Equal(t, tc.wantEmail, actual)
+		})
+	}
+}
