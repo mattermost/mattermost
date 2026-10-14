@@ -212,9 +212,9 @@ export const findFirstAvailableAttributeFromList = (
 
 // Returns the operator a freshly-selected attribute of the given type should
 // default to. Ranked attributes default to "is at least" (the canonical
-// "Secret or above" clearance comparison); graph attributes to "covers all of",
-// the hierarchy test the type exists for — the holder is at or above every
-// option the rule names.
+// "Secret or above" clearance comparison); graph attributes to "has each of or
+// a parent of", the hierarchy test the type exists for — the holder is at or
+// above every option the rule names.
 const defaultOperatorForType = (type?: string): OperatorLabel => {
     if (type === 'multiselect') {
         return OperatorLabel.HAS_ANY_OF;
