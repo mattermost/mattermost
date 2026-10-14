@@ -513,36 +513,6 @@ func (_m *Hooks) OnActivate() error {
 	return r0
 }
 
-// OnAutomationAction provides a mock function with given fields: c, req
-func (_m *Hooks) OnAutomationAction(c *plugin.Context, req *model.AutomationActionRequest) (*model.AutomationActionResponse, string) {
-	ret := _m.Called(c, req)
-
-	if len(ret) == 0 {
-		panic("no return value specified for OnAutomationAction")
-	}
-
-	var r0 *model.AutomationActionResponse
-	var r1 string
-	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.AutomationActionRequest) (*model.AutomationActionResponse, string)); ok {
-		return rf(c, req)
-	}
-	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.AutomationActionRequest) *model.AutomationActionResponse); ok {
-		r0 = rf(c, req)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AutomationActionResponse)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(*plugin.Context, *model.AutomationActionRequest) string); ok {
-		r1 = rf(c, req)
-	} else {
-		r1 = ret.Get(1).(string)
-	}
-
-	return r0, r1
-}
-
 // OnAutomationSignal provides a mock function with given fields: c, event
 func (_m *Hooks) OnAutomationSignal(c *plugin.Context, event *model.AutomationSignalEvent) {
 	_m.Called(c, event)

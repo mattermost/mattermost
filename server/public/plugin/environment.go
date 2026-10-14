@@ -487,7 +487,6 @@ func (env *Environment) deactivateAndTeardown(rp registeredPlugin) bool {
 	return true
 }
 
-// Deactivate the plugin with the given id.
 // PluginImplements reports whether the active plugin implements the hook.
 func (env *Environment) PluginImplements(id string, hookID int) bool {
 	p, ok := env.registeredPlugins.Load(id)
@@ -498,6 +497,7 @@ func (env *Environment) PluginImplements(id string, hookID int) bool {
 	return rp.supervisor != nil && rp.supervisor.Implements(hookID) && env.IsActive(id)
 }
 
+// Deactivate the plugin with the given id.
 func (env *Environment) Deactivate(id string) bool {
 	p, ok := env.registeredPlugins.Load(id)
 	if !ok {

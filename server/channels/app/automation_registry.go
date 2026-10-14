@@ -121,6 +121,11 @@ func (r *automationRegistry) registerAction(pluginID string, action model.Automa
 	if strings.TrimSpace(action.Type) == "" {
 		return errors.New("automation action requires a type")
 	}
+	method, err := automationMethod(action.Method)
+	if err != nil {
+		return err
+	}
+	action.Method = method
 	if !strings.HasPrefix(action.Path, "/") {
 		return errors.New("automation action path must start with /")
 	}
@@ -498,62 +503,42 @@ func (api *PluginAPI) ExecuteAutomationAction(req *model.AutomationActionRequest
 	if req == nil || req.PluginID == "" || req.Action == "" {
 		return nil, errors.New("automation action requires a plugin and an action")
 	}
+	if strings.TrimSpace(req.ActingUserID) == "" {
+		return nil, errors.New("automation action requires an acting user")
+	}
 	registry := api.app.ch.getAutomationRegistry()
 	action, ok := registry.actionDescriptor(req.PluginID, req.Action)
 	if !ok {
 		return nil, errors.Errorf("plugin %s has not registered action %s", req.PluginID, req.Action)
 	}
-	if !env.PluginImplements(req.PluginID, plugin.OnAutomationActionID) {
-		return nil, errors.Errorf("plugin %s does not implement OnAutomationAction", req.PluginID)
-	}
 	fields, err := filterDeclaredValues(action.Fields, req.Fields, model.AutomationActionTextMaxRunes, true)
 	if err != nil {
 		return nil, err
 	}
-	prepared := *req
-	prepared.CallerPluginID = api.id
-	prepared.Fields = fields
-	encoded, err := json.Marshal(prepared)
+	method, route, body, err := renderAutomationRequest(action, fields)
 	if err != nil {
 		return nil, err
 	}
-	if len(encoded) > model.AutomationActionMaxBytes {
+	if len(body) > model.AutomationActionMaxBytes {
 		return nil, errors.New("automation action request exceeds 1 MiB")
 	}
-	hooks, err := env.HooksForPluginWithRPCErr(req.PluginID)
+	if req.TraceToken != "" {
+		registry.bindTrace(req.TraceToken, api.id, req.PluginID)
+	}
+	status, respBody, err := api.callAutomationHTTP(req, method, route, body)
 	if err != nil {
 		return nil, err
 	}
-	resp, appErr, rpcErr := hooks.OnAutomationActionWithRPCErr(&plugin.Context{}, &prepared)
-	if rpcErr != nil {
-		return nil, rpcErr
-	}
-	if appErr != "" {
-		return nil, errors.New(appErr)
-	}
-	var returned map[string]model.AutomationValue
-	if resp != nil {
-		returned = resp.Fields
+	returned, err := projectAutomationResults(action.Results, status, respBody)
+	if err != nil {
+		return nil, err
 	}
 	filtered, err := filterDeclaredValues(action.Results, returned, model.AutomationActionTextMaxRunes, true)
 	if err != nil {
 		return nil, err
 	}
-	// A result whose type does not match was already rejected. Drop nothing else:
-	// filterDeclaredValues keeps only declared keys. A missing declared key stays absent.
-	if len(action.Results) > 0 {
-		for key, value := range returned {
-			field, declared := fieldByKey(action.Results, key)
-			if !declared {
-				continue
-			}
-			if value.Type.Normalize() != field.Type.Normalize() {
-				return nil, errors.Errorf("automation result %s has type %s", key, value.Type)
-			}
-		}
-	}
 	out := &model.AutomationActionResponse{Fields: filtered}
-	encoded, err = json.Marshal(out)
+	encoded, err := json.Marshal(out)
 	if err != nil {
 		return nil, err
 	}
@@ -561,15 +546,6 @@ func (api *PluginAPI) ExecuteAutomationAction(req *model.AutomationActionRequest
 		return nil, errors.New("automation action result exceeds 1 MiB")
 	}
 	return out, nil
-}
-
-func fieldByKey(fields []model.AutomationField, key string) (model.AutomationField, bool) {
-	for _, field := range fields {
-		if field.Key == key {
-			return field, true
-		}
-	}
-	return model.AutomationField{}, false
 }
 
 func (api *PluginAPI) ListAutomationContributions() ([]model.AutomationGroupDescriptor, []model.AutomationSignalDescriptor, []model.AutomationActionDescriptor, error) {

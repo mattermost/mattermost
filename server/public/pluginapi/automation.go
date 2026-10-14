@@ -26,7 +26,8 @@ func (c *Client) EmitAutomationSignal(name string, payload map[string]model.Auto
 	return c.api.EmitAutomationSignal(name, payload, traceToken)
 }
 
-// ExecuteAutomationAction runs a registered action. Only Weave may call it.
+// ExecuteAutomationAction calls the registered HTTP route for an action.
+// Only a plugin that implements OnAutomationSignal may call it.
 func (c *Client) ExecuteAutomationAction(req *model.AutomationActionRequest) (*model.AutomationActionResponse, error) {
 	return c.api.ExecuteAutomationAction(req)
 }

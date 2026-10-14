@@ -1859,9 +1859,8 @@ type API interface {
 	// Minimum server version: 11.11
 	RegisterAutomationSignal(signal model.AutomationSignalDescriptor) error
 
-	// RegisterAutomationAction publishes a palette action. Weave runs it through
-	// OnAutomationAction. Method and Path are recorded and not used for execution.
-	// The plugin id is taken from the RPC context.
+	// RegisterAutomationAction publishes a palette action. Execution calls the
+	// registered Method and Path on this plugin. The plugin id is taken from the RPC context.
 	//
 	// Minimum server version: 11.11
 	RegisterAutomationAction(action model.AutomationActionDescriptor) error
@@ -1873,9 +1872,9 @@ type API interface {
 	// Minimum server version: 11.11
 	EmitAutomationSignal(name string, payload map[string]model.AutomationValue, traceToken string) error
 
-	// ExecuteAutomationAction runs a registered action on the plugin that declared it.
-	// Only a plugin that implements OnAutomationSignal may call it. The server stamps
-	// CallerPluginID from that caller.
+	// ExecuteAutomationAction calls the registered HTTP route on the plugin that
+	// declared the action. Only a plugin that implements OnAutomationSignal may call
+	// it. The server sets Mattermost-Plugin-ID from that caller.
 	//
 	// Minimum server version: 11.11
 	ExecuteAutomationAction(req *model.AutomationActionRequest) (*model.AutomationActionResponse, error)

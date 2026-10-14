@@ -169,8 +169,8 @@ type AutomationSignalDescriptor struct {
 	Fields      []AutomationField `json:"fields,omitempty"`
 }
 
-// AutomationActionDescriptor is a palette action Weave runs through OnAutomationAction.
-// Method and Path stay so registration still accepts them. Execution ignores them.
+// AutomationActionDescriptor is a palette action. Execution calls Method and Path
+// on the plugin that registered it. Path may contain {{.field_key}} placeholders.
 type AutomationActionDescriptor struct {
 	PluginID    string            `json:"plugin_id,omitempty"`
 	Type        string            `json:"type"`
@@ -197,8 +197,11 @@ type AutomationSignalEvent struct {
 	TraceID string `json:"trace_id,omitempty"`
 }
 
-// AutomationActionRequest is the call Weave makes. The server overwrites CallerPluginID.
-// PluginID is the plugin that registered the action.
+// AutomationActionRequest is the call that runs one registered action over plugin HTTP.
+// PluginID is the plugin that registered the action. The server sets Mattermost-Plugin-ID
+// from the RPC caller and does not trust CallerPluginID.
+// TraceToken continues a chain the server already issued. The target reads
+// Mattermost-Weave-Trace-Token and passes that value to EmitAutomationSignal.
 type AutomationActionRequest struct {
 	PluginID       string                     `json:"plugin_id"`
 	Action         string                     `json:"action"`
@@ -209,9 +212,10 @@ type AutomationActionRequest struct {
 	InvokerUserID  string                     `json:"invoker_user_id"`
 	ActingUserID   string                     `json:"acting_user_id"`
 	CallerPluginID string                     `json:"caller_plugin_id"`
+	TraceToken     string                     `json:"trace_token,omitempty"`
 }
 
-// AutomationActionResponse is the declared result fields from OnAutomationAction.
+// AutomationActionResponse is the declared result fields taken from the HTTP JSON body.
 type AutomationActionResponse struct {
 	Fields map[string]AutomationValue `json:"fields,omitempty"`
 }

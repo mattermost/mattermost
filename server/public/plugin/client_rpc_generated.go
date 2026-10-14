@@ -2292,60 +2292,6 @@ func (s *hooksRPCServer) OnAutomationSignal(args *Z_OnAutomationSignalArgs, retu
 	return nil
 }
 
-func init() {
-	hookNameToId["OnAutomationAction"] = OnAutomationActionID
-}
-
-type Z_OnAutomationActionArgs struct {
-	A *Context
-	B *model.AutomationActionRequest
-}
-
-type Z_OnAutomationActionReturns struct {
-	A *model.AutomationActionResponse
-	B string
-}
-
-func (g *hooksRPCClient) OnAutomationAction(c *Context, req *model.AutomationActionRequest) (*model.AutomationActionResponse, string) {
-	_args := &Z_OnAutomationActionArgs{c, req}
-	_returns := &Z_OnAutomationActionReturns{}
-	if g.implemented[OnAutomationActionID] {
-		if err := g.client.Call("Plugin.OnAutomationAction", _args, _returns); err != nil {
-			g.log.Error("RPC call OnAutomationAction to plugin failed.", mlog.Err(err))
-		}
-	}
-	return _returns.A, _returns.B
-}
-
-// OnAutomationActionWithRPCErr returns the same values as OnAutomationAction, with an additional trailing error
-// for the RPC transport — always the LAST return slot.
-func (g *hooksRPCClient) OnAutomationActionWithRPCErr(c *Context, req *model.AutomationActionRequest) (*model.AutomationActionResponse, string, error) {
-	_args := &Z_OnAutomationActionArgs{c, req}
-	_returns := &Z_OnAutomationActionReturns{}
-	var _err error
-	if g.implemented[OnAutomationActionID] {
-		_err = g.client.Call("Plugin.OnAutomationAction", _args, _returns)
-		if _err != nil {
-			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErrGenerated contract).
-			_returns = &Z_OnAutomationActionReturns{}
-			g.log.Debug("RPC call OnAutomationAction to plugin failed.", mlog.Err(_err))
-		}
-	}
-	return _returns.A, _returns.B, _err
-}
-
-func (s *hooksRPCServer) OnAutomationAction(args *Z_OnAutomationActionArgs, returns *Z_OnAutomationActionReturns) error {
-	if hook, ok := s.impl.(interface {
-		OnAutomationAction(c *Context, req *model.AutomationActionRequest) (*model.AutomationActionResponse, string)
-	}); ok {
-		returns.A, returns.B = hook.OnAutomationAction(args.A, args.B)
-	} else {
-		return encodableError(fmt.Errorf("Hook OnAutomationAction called but not implemented."))
-	}
-	return nil
-}
-
 // HooksWithRPCErrGenerated provides a WithRPCErr variant for every generated hook. The last error return
 // is always the RPC transport error — if non-nil, the plugin's other return values are zero. For
 // hooks whose base signature already returns error, the tuple is (originalReturns..., rpcErr)
@@ -2442,8 +2388,6 @@ type HooksWithRPCErrGenerated interface {
 	DraftWillBeUpsertedWithRPCErr(c *Context, draft *model.Draft) (*model.Draft, string, error)
 
 	OnAutomationSignalWithRPCErr(c *Context, event *model.AutomationSignalEvent) error
-
-	OnAutomationActionWithRPCErr(c *Context, req *model.AutomationActionRequest) (*model.AutomationActionResponse, string, error)
 }
 
 type Z_RegisterCommandArgs struct {

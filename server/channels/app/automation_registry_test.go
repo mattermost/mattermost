@@ -34,14 +34,7 @@ func TestAutomationTraceAdvancesAndStops(t *testing.T) {
 }
 
 func TestAutomationPayloadRejectsMessageText(t *testing.T) {
-	fields := []model.AutomationField{{Key: "summary", Type: model.AutomationValueText}, {Key: "run_id", Type: model.AutomationValueText}, {Key: "action", Type: model.AutomationValueText}}
 	err := validateSignalFields([]model.AutomationField{{Key: "summary", Type: model.AutomationValueText}})
-	require.Error(t, err)
-
-	err = validateAutomationPayload(fields, map[string]model.AutomationValue{
-		"run_id": model.AutomationText("r1"),
-		"action": model.AutomationText("check"),
-	})
 	require.Error(t, err)
 
 	declared := []model.AutomationField{{Key: "run_id", Type: model.AutomationValueText}, {Key: "action", Type: model.AutomationValueText}}
