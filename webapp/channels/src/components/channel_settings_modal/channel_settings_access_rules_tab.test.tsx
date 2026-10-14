@@ -699,6 +699,42 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             });
         });
 
+        test('should not auto-disable sync when policy has imports even if systemPolicies failed to resolve', async () => {
+            // Parent policy ids are kept on the loaded channel policy even when
+            // useChannelSystemPolicies cannot resolve them. That is still not
+            // an empty rules state, so auto-sync must stay on.
+            mockActions.getChannelPolicy.mockResolvedValue({
+                data: {
+                    id: 'channel_id',
+                    name: 'Test Channel',
+                    type: 'channel',
+                    rules: [{actions: ['membership'], expression: '', metadata: {auto_add: 'always'}}],
+                    imports: ['parent-policy-id'],
+                },
+            });
+
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [],
+                loading: false,
+                error: null,
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            await waitFor(() => {
+                const checkbox = screen.getByRole('checkbox');
+                expect(checkbox).toBeChecked();
+                expect(checkbox).not.toBeDisabled();
+            });
+        });
+
         test('should auto-disable sync when loading with empty state and autoSyncMembers is true', async () => {
             // Mock loading a policy with autoSyncMembers=true but no rules
             mockActions.getChannelPolicy.mockResolvedValue({
@@ -2530,6 +2566,69 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             });
 
             expect(screen.queryByTestId('access-rules-load-error')).not.toBeInTheDocument();
+        });
+
+        test('does not render TableEditor or Save while getChannelPolicy is pending even after attributes load', async () => {
+            mockActions.getChannelPolicy.mockReturnValue(new Promise(() => {}));
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(mockActions.getAccessControlFields).toHaveBeenCalledWith('', 100);
+            });
+
+            // Attributes resolve immediately; the editor must still wait for the policy.
+            await act(async () => {
+                await Promise.resolve();
+            });
+
+            expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
+            expect(document.querySelector('.ChannelSettingsModal__accessRulesEditor')).not.toBeInTheDocument();
+            expect(screen.queryByText('Save')).not.toBeInTheDocument();
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
+        });
+
+        test('renders TableEditor after a delayed getChannelPolicy success', async () => {
+            let resolvePolicy: (value: unknown) => void = () => {};
+            mockActions.getChannelPolicy.mockReturnValue(new Promise((resolve) => {
+                resolvePolicy = resolve;
+            }));
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(mockActions.getAccessControlFields).toHaveBeenCalledWith('', 100);
+            });
+
+            await act(async () => {
+                await Promise.resolve();
+            });
+
+            expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
+
+            await act(async () => {
+                resolvePolicy({
+                    data: {
+                        id: 'channel_id',
+                        name: 'Test Channel',
+                        type: 'channel',
+                        rules: [{actions: ['membership'], expression: 'user.attributes.department == "Engineering"'}],
+                    },
+                });
+            });
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            const lastCall = MockedTableEditor.mock.calls[MockedTableEditor.mock.calls.length - 1][0];
+            expect(lastCall.value).toBe('user.attributes.department == "Engineering"');
         });
     });
 });

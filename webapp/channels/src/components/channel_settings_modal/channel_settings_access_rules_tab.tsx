@@ -79,6 +79,11 @@ function ChannelSettingsAccessRulesTab({
     const [userAttributes, setUserAttributes] = useState<UserPropertyField[]>([]);
     const [attributesLoaded, setAttributesLoaded] = useState(false);
 
+    // True only after getChannelPolicy succeeds or returns a confirmed 404
+    // (first-time create). Stays false while the request is in flight so the
+    // editor can't save the empty initial state over an existing policy.
+    const [policyLoaded, setPolicyLoaded] = useState(false);
+
     // Set when the initial policy load fails for a non-404 reason. Blocks the
     // editor so the author can't save over a policy that merely failed to load.
     const [loadError, setLoadError] = useState('');
@@ -142,6 +147,7 @@ function ChannelSettingsAccessRulesTab({
     // falling through to defaults, so a save can't overwrite an unloaded policy.
     useEffect(() => {
         let cancelled = false;
+        setPolicyLoaded(false);
 
         const loadChannelPolicy = async () => {
             const result = await actions.getChannelPolicy(channel.id);
@@ -160,6 +166,7 @@ function ChannelSettingsAccessRulesTab({
                 setAutoSyncMembers(existingAutoSync);
                 setOriginalAutoSyncMembers(existingAutoSync);
                 setLoadError('');
+                setPolicyLoaded(true);
                 return;
             }
 
@@ -171,6 +178,7 @@ function ChannelSettingsAccessRulesTab({
                 setExistingRules([]);
                 setExistingImports([]);
                 setLoadError('');
+                setPolicyLoaded(true);
                 return;
             }
 
@@ -222,14 +230,16 @@ function ChannelSettingsAccessRulesTab({
     const isEmptyRulesState = useMemo((): boolean => {
         const hasChannelRules = expression && expression.trim().length > 0;
         const hasSystemPolicies = systemPolicies && systemPolicies.length > 0;
+        const hasExistingImports = existingImports.length > 0;
 
-        // Return true if there are no channel rules or system policies
-        return !(hasChannelRules || hasSystemPolicies);
-    }, [expression, systemPolicies]);
+        // Unresolved imports still count: systemPolicies can be empty while
+        // existingImports holds parent ids that failed to fetch.
+        return !(hasChannelRules || hasSystemPolicies || hasExistingImports);
+    }, [expression, systemPolicies, existingImports]);
 
     // Auto-disable auto-sync when there are no system policies and no rules
     useEffect(() => {
-        if (policiesLoading) {
+        if (policiesLoading || !policyLoaded) {
             return;
         }
 
@@ -237,7 +247,7 @@ function ChannelSettingsAccessRulesTab({
         if (isEmptyRulesState && autoSyncMembers) {
             setAutoSyncMembers(false);
         }
-    }, [isEmptyRulesState, autoSyncMembers]);
+    }, [isEmptyRulesState, autoSyncMembers, policiesLoading, policyLoaded]);
 
     const handleAutoSyncToggle = useCallback(() => {
         // Don't allow toggling if in empty rules state
@@ -515,6 +525,10 @@ function ChannelSettingsAccessRulesTab({
 
     // Handle save action
     const handleSave = useCallback(async (): Promise<SaveResult> => {
+        if (!policyLoaded) {
+            return SAVE_RESULT_ERROR;
+        }
+
         try {
             // Check if we're removing all rules (special case that requires warning)
             const hasChannelHistory = (channelMessageCount?.total ?? 0) > 0;
@@ -627,7 +641,7 @@ function ChannelSettingsAccessRulesTab({
             }));
             return SAVE_RESULT_ERROR;
         }
-    }, [expression, originalExpression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave, isEmptyRulesState, channelMessageCount, isBecomingLessRestrictive, channel.type]);
+    }, [policyLoaded, expression, originalExpression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave, isEmptyRulesState, channelMessageCount, isBecomingLessRestrictive, channel.type]);
 
     // Prevent duplicate saves with immediate response
     const saveInProgressRef = useRef(false);
@@ -666,6 +680,10 @@ function ChannelSettingsAccessRulesTab({
 
     // Handle save changes panel actions - immediate response, no debounce
     const handleSaveChanges = useCallback(async () => {
+        if (!policyLoaded) {
+            return;
+        }
+
         // Prevent duplicate clicks - immediate response
         if (saveInProgressRef.current) {
             return;
@@ -687,7 +705,7 @@ function ChannelSettingsAccessRulesTab({
         } finally {
             saveInProgressRef.current = false;
         }
-    }, [handleSave]);
+    }, [handleSave, policyLoaded]);
 
     const handleCancel = useCallback(() => {
         // Reset to original values
@@ -731,12 +749,16 @@ function ChannelSettingsAccessRulesTab({
 
     // Calculate whether to show the save changes panel
     const shouldShowPanel = useMemo(() => {
+        if (!policyLoaded) {
+            return false;
+        }
+
         const unsavedChanges =
             expression !== originalExpression ||
             autoSyncMembers !== originalAutoSyncMembers;
 
         return unsavedChanges || saveChangesPanelState === SAVE_RESULT_SAVED;
-    }, [expression, originalExpression, autoSyncMembers, originalAutoSyncMembers, saveChangesPanelState]);
+    }, [policyLoaded, expression, originalExpression, autoSyncMembers, originalAutoSyncMembers, saveChangesPanelState]);
 
     // Block all editing when the initial policy load failed (non-404), so an
     // author can't save an empty membership rule over a policy that couldn't be
@@ -793,7 +815,7 @@ function ChannelSettingsAccessRulesTab({
             </div>
 
             {/* TableEditor for creating access rules */}
-            {attributesLoaded && (
+            {attributesLoaded && policyLoaded && (
                 <div className='ChannelSettingsModal__accessRulesEditor'>
                     <TableEditor
                         value={expression}
