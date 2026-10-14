@@ -1078,11 +1078,15 @@ func (s *SqlPostStore) permanentDelete(postIds []string) (err error) {
 	return nil
 }
 
-// PermanentDeleteAssociatedData deletes the following data items associated with the given post IDs:
+// PermanentDeleteAssociatedData deletes the following data items associated with the given post IDs
+// and with every reply to them:
 // - Threads
 // - Reactions
 // - Temporary Posts
 // - Read Receipts
+// - Acknowledgements
+// - Priority and persistent notifications
+// - Reminders
 // - Thread replies if post is a root post
 func (s *SqlPostStore) PermanentDeleteAssociatedData(postIds []string) error {
 	transaction, err := s.GetMaster().Begin()
@@ -1108,16 +1112,27 @@ func (s *SqlPostStore) permanentDeleteAssociatedData(transaction *sqlxTxWrapper,
 		return err
 	}
 
-	if err = s.permanentDeleteReactions(transaction, postIds); err != nil {
-		return err
-	}
-
-	if err = s.permanentDeleteTemporaryPosts(transaction, postIds); err != nil {
-		return err
-	}
-
-	if err = s.permanentDeleteReadReceipts(transaction, postIds); err != nil {
-		return err
+	// Replies are matched with a subquery rather than an ID list, since a single root post
+	// can have more replies than fit in one statement.
+	replyIds := sq.Select("Id").From("Posts").Where(sq.Eq{"RootId": postIds})
+	for _, table := range []string{
+		"Reactions",
+		"TemporaryPosts",
+		"ReadReceipts",
+		"PostAcknowledgements",
+		"PostsPriority",
+		"PersistentNotifications",
+		"PostReminders",
+	} {
+		query := s.getQueryBuilder().
+			Delete(table).
+			Where(sq.Or{
+				sq.Eq{"PostId": postIds},
+				sq.Expr("PostId IN (?)", replyIds),
+			})
+		if _, err = transaction.ExecBuilder(query); err != nil {
+			return errors.Wrapf(err, "failed to delete %s", table)
+		}
 	}
 
 	query := s.getQueryBuilder().
@@ -1137,43 +1152,53 @@ type postIds struct {
 	UserId string
 }
 
-func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) (err error) {
-	results := []postIds{}
+const permanentDeleteByUserBatchSize = 1000
+
+// nextPermanentDeleteBatchForUser returns up to permanentDeleteByUserBatchSize of the user's
+// posts, replies before root posts.
+func (s *SqlPostStore) nextPermanentDeleteBatchForUser(userId string) ([]postIds, error) {
+	batch := []postIds{}
+	if err := s.GetMaster().Select(&batch, "SELECT Id, RootId FROM Posts WHERE UserId = ? AND RootId != '' LIMIT ?", userId, permanentDeleteByUserBatchSize); err != nil {
+		return nil, errors.Wrapf(err, "failed to find replies with userId=%s", userId)
+	}
+	if len(batch) > 0 {
+		return batch, nil
+	}
+
+	if err := s.GetMaster().Select(&batch, "SELECT Id, RootId FROM Posts WHERE UserId = ? LIMIT ?", userId, permanentDeleteByUserBatchSize); err != nil {
+		return nil, errors.Wrapf(err, "failed to find Posts with userId=%s", userId)
+	}
+	return batch, nil
+}
+
+func (s *SqlPostStore) permanentDeleteBatchForUser(userId string, batch []postIds) (err error) {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	err = transaction.Select(&results, "Select Id, RootId FROM Posts WHERE UserId = ? AND RootId != ''", userId)
-	if err != nil {
-		return errors.Wrapf(err, "failed to fetch Posts with userId=%s", userId)
+	ids := make([]string, 0, len(batch))
+	threadIds := map[string]bool{}
+	for _, post := range batch {
+		ids = append(ids, post.Id)
+		if post.RootId != "" {
+			threadIds[post.RootId] = true
+		}
 	}
 
-	_, err = transaction.Exec("DELETE FROM Posts WHERE UserId = ? AND RootId != ''", userId)
-	if err != nil {
-		return errors.Wrapf(err, "failed to delete Posts with userId=%s", userId)
+	if err = s.permanentDeleteAssociatedData(transaction, ids); err != nil {
+		return err
 	}
 
-	postIds := []string{}
-	for _, ids := range results {
-		if err = s.updateThreadAfterReplyDeletion(transaction, ids.RootId, userId); err != nil {
+	if _, err = transaction.ExecBuilder(s.getQueryBuilder().Delete("Posts").Where(sq.Eq{"Id": ids})); err != nil {
+		return errors.Wrap(err, "failed to delete Posts")
+	}
+
+	for rootId := range threadIds {
+		if err = s.updateThreadAfterReplyDeletion(transaction, rootId, userId); err != nil {
 			return err
 		}
-		postIds = append(postIds, ids.Id)
-	}
-
-	// Delete all the reactions on the comments
-	if err = s.permanentDeleteReactions(transaction, postIds); err != nil {
-		return err
-	}
-
-	if err = s.permanentDeleteTemporaryPosts(transaction, postIds); err != nil {
-		return err
-	}
-
-	if err = s.permanentDeleteReadReceipts(transaction, postIds); err != nil {
-		return err
 	}
 
 	if err = transaction.Commit(); err != nil {
@@ -1183,46 +1208,35 @@ func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) (err error
 	return nil
 }
 
-// Permanently deletes all comments by user,
-// cleans up threads (removes said user from participants and decreases reply count),
-// permanent delete all root posts by user,
-// and delete threads and thread memberships for those root posts
+// PermanentDeleteByUser permanently deletes the user's posts, replies first and then root posts
+// together with every reply to them, cleaning up threads and post-keyed data along the way.
+// File infos are left for the caller, who must remove the files from storage first.
+//
+// Each batch of posts is deleted in its own transaction, so a call that stops partway can simply
+// be repeated. At most store.MaxPostsPerUserPermanentDelete of the user's posts are deleted per
+// call; if any remain after that, ErrLimitExceeded is returned and the caller should call again.
 func (s *SqlPostStore) PermanentDeleteByUser(rctx request.CTX, userId string) error {
-	// First attempt to delete all the comments for a user
-	if err := s.permanentDeleteAllCommentByUser(userId); err != nil {
-		return err
-	}
-
-	// Now attempt to delete all the root posts for a user. This will also
-	// delete all the comments for each post
-	const postsPerLoop = 1000
-	const maxLoops = store.MaxPostsPerUserPermanentDelete / postsPerLoop
-	count := 0
+	deleted := 0
 	for {
-		var ids []string
-		err := s.GetMaster().Select(&ids, "SELECT Id FROM Posts WHERE UserId = ? LIMIT ?", userId, postsPerLoop)
+		batch, err := s.nextPermanentDeleteBatchForUser(userId)
 		if err != nil {
-			return errors.Wrapf(err, "failed to find Posts with userId=%s", userId)
-		}
-
-		if len(ids) == 0 {
-			break
-		}
-
-		// This is a fail safe, callers are expected to reject users over the cap before
-		// deleting anything.
-		if count >= maxLoops {
-			return store.NewErrLimitExceeded("permanently deleting posts for user", store.MaxPostsPerUserPermanentDelete, "userId="+userId)
-		}
-
-		if err = s.permanentDelete(ids); err != nil {
 			return err
 		}
 
-		count++
-	}
+		if len(batch) == 0 {
+			return nil
+		}
 
-	return nil
+		if deleted >= store.MaxPostsPerUserPermanentDelete {
+			return store.NewErrLimitExceeded("permanently deleting posts for user", store.MaxPostsPerUserPermanentDelete, "userId="+userId)
+		}
+
+		batch = batch[:min(len(batch), store.MaxPostsPerUserPermanentDelete-deleted)]
+		if err := s.permanentDeleteBatchForUser(userId, batch); err != nil {
+			return err
+		}
+		deleted += len(batch)
+	}
 }
 
 // Permanent deletes all channel root posts and comments,
@@ -2573,10 +2587,6 @@ func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int6
 			Where(sq.Eq{"c.TeamId": options.TeamId})
 	}
 
-	if options.UserId != "" {
-		query = query.Where(sq.Eq{"p.UserId": options.UserId})
-	}
-
 	if options.UsersPostsOnly {
 		query = query.Where(sq.And{
 			sq.Eq{"p.Type": ""},
@@ -2614,13 +2624,8 @@ func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int6
 		query = query.Where(sq.LtOrEq{"p.UpdateAt": options.UntilUpdateAt})
 	}
 
-	db := s.GetReplica()
-	if options.UseMaster {
-		db = s.GetMaster()
-	}
-
 	var v int64
-	err := db.GetBuilder(&v, query)
+	err := s.GetReplica().GetBuilder(&v, query)
 	if err != nil {
 		return 0, fmt.Errorf("failed to count Posts: %w", err)
 	}

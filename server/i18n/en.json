@@ -7451,7 +7451,8 @@
   },
   {
     "id": "app.channel.permanent_delete_sidebar_by_user.app_error",
-    "translation": "Unable to delete sidebar categories for user."
+    "translation": "Unable to delete sidebar categories for user.",
+    "description": "Internal error when deleting a user's sidebar categories fails during permanent account deletion."
   },
   {
     "id": "app.channel.pinned_posts.app_error",
@@ -7640,7 +7641,8 @@
   },
   {
     "id": "app.channel_member_history.permanent_delete_by_user.app_error",
-    "translation": "Unable to delete channel member history for user."
+    "translation": "Unable to delete channel member history for user.",
+    "description": "Internal error when deleting a user's channel membership history fails during permanent account deletion."
   },
   {
     "id": "app.cloud.preview_modal_bucket_url_not_configured",
@@ -7769,7 +7771,8 @@
   },
   {
     "id": "app.command_webhooks.permanent_delete_by_user.app_error",
-    "translation": "Unable to delete command webhooks for user."
+    "translation": "Unable to delete command webhooks for user.",
+    "description": "Internal error when deleting a user's pending slash command response webhooks fails during permanent account deletion."
   },
   {
     "id": "app.compile_csv_chunks.header_error",
@@ -8464,7 +8467,8 @@
   },
   {
     "id": "app.desktop_tokens.delete_by_user.app_error",
-    "translation": "Unable to delete desktop tokens for user."
+    "translation": "Unable to delete desktop tokens for user.",
+    "description": "Internal error when deleting a user's desktop app login tokens fails during permanent account deletion."
   },
   {
     "id": "app.draft.delete.app_error",
@@ -9993,7 +9997,8 @@
   },
   {
     "id": "app.notify_admin.permanent_delete_by_user.app_error",
-    "translation": "Unable to delete admin notification requests for user."
+    "translation": "Unable to delete admin notification requests for user.",
+    "description": "Internal error when deleting a user's requests to notify the system admin fails during permanent account deletion."
   },
   {
     "id": "app.notify_admin.save.app_error",
@@ -10686,10 +10691,6 @@
     "description": "API error when writing a plugin's key-value entry fails."
   },
   {
-    "id": "app.post.analytics_post_count.app_error",
-    "translation": "Unable to count the posts for the user."
-  },
-  {
     "id": "app.post.analytics_posts_count.app_error",
     "translation": "Unable to get post counts.",
     "description": "Internal API error when the statistics query counting posts (messages) fails; surfaces in admin analytics/usage endpoints."
@@ -10871,7 +10872,8 @@
   },
   {
     "id": "app.post.permanent_delete_post_reminders_by_user.app_error",
-    "translation": "Unable to delete post reminders for user."
+    "translation": "Unable to delete post reminders for user.",
+    "description": "Internal error when deleting a user's message reminders fails during permanent account deletion."
   },
   {
     "id": "app.post.property_values.field_bound_exceeded.app_error",
@@ -10950,7 +10952,8 @@
   },
   {
     "id": "app.post_acknowledgement.permanent_delete_by_user.app_error",
-    "translation": "Unable to delete post acknowledgements for user."
+    "translation": "Unable to delete post acknowledgements for user.",
+    "description": "Internal error when deleting a user's message acknowledgements fails during permanent account deletion."
   },
   {
     "id": "app.post_persistent_notification.delete_by_channel.app_error",
@@ -11024,7 +11027,8 @@
   },
   {
     "id": "app.product_notices.permanent_delete_by_user.app_error",
-    "translation": "Unable to delete product notice view state for user."
+    "translation": "Unable to delete product notice view state for user.",
+    "description": "Internal error when deleting which product notices a user has seen fails during permanent account deletion."
   },
   {
     "id": "app.property.access_denied.app_error",
@@ -11488,7 +11492,8 @@
   },
   {
     "id": "app.read_receipt.permanent_delete_by_user.app_error",
-    "translation": "Unable to delete read receipts for user."
+    "translation": "Unable to delete read receipts for user.",
+    "description": "Internal error when deleting a user's read receipts fails during permanent account deletion."
   },
   {
     "id": "app.recap.cooldown_active.app_error",
@@ -12073,7 +12078,8 @@
   },
   {
     "id": "app.shared_channel.permanent_delete_users_by_user.app_error",
-    "translation": "Unable to delete shared channel users for user."
+    "translation": "Unable to delete shared channel users for user.",
+    "description": "Internal error when deleting a user's shared channel sync records fails during permanent account deletion."
   },
   {
     "id": "app.status.get.app_error",
@@ -12087,7 +12093,8 @@
   },
   {
     "id": "app.status.permanent_delete_by_user.app_error",
-    "translation": "Unable to delete the status for user."
+    "translation": "Unable to delete the status for user.",
+    "description": "Internal error when deleting a user's online status fails during permanent account deletion."
   },
   {
     "id": "app.submit_interactive_dialog.decode_json_error",
@@ -12471,7 +12478,8 @@
   },
   {
     "id": "app.thread.permanent_delete_memberships_by_user.app_error",
-    "translation": "Unable to delete thread memberships for user."
+    "translation": "Unable to delete thread memberships for user.",
+    "description": "Internal error when deleting the threads a user follows fails during permanent account deletion."
   },
   {
     "id": "app.toast.send_toast_message.message.app_error",
@@ -12600,7 +12608,8 @@
   },
   {
     "id": "app.upload_session.permanent_delete_by_user.app_error",
-    "translation": "Unable to delete upload sessions for user."
+    "translation": "Unable to delete upload sessions for user.",
+    "description": "Internal error when deleting a user's unfinished file uploads fails during permanent account deletion."
   },
   {
     "id": "app.usage.get_storage_usage.app_error",
@@ -12753,8 +12762,24 @@
     "description": "Internal error when permanently deleting a user account from the database fails; admin-facing."
   },
   {
-    "id": "app.user.permanent_delete.too_many_posts.app_error",
-    "translation": "This user has {{.Count}} posts, which is more than the {{.Max}} post limit for permanently deleting a user. Delete some of the user's posts and try again."
+    "id": "app.user.permanent_delete.incomplete.app_error",
+    "translation": "The account has been deactivated and partly deleted. Running the delete again is safe and will finish it.",
+    "description": "Admin-facing error returned when permanently deleting a user fails partway through, after the account was already deactivated."
+  },
+  {
+    "id": "app.user.permanent_delete.post_limit.app_error",
+    "translation": "This pass deleted the maximum of {{.Max}} posts. The account has been deactivated and partly deleted. Run the delete again to continue.",
+    "description": "Admin-facing error returned when permanently deleting a user stops after removing the per-run post limit; the admin is told to run the same delete again. {{.Max}} is the number of posts deleted per run."
+  },
+  {
+    "id": "app.user.permanent_delete.profile_image.app_error",
+    "translation": "Unable to delete the profile image of the user.",
+    "description": "Internal error when the user's profile image cannot be removed from file storage while permanently deleting the user; admin-facing."
+  },
+  {
+    "id": "app.user.permanent_delete_all.incomplete.app_error",
+    "translation": "Unable to finish deleting {{.Count}} users: {{.Usernames}}. Run the command again to continue.",
+    "description": "Admin-facing error returned by the delete-all-users command when some users could not be fully deleted. {{.Count}} is the number of users and {{.Usernames}} is a comma-separated list of their usernames."
   },
   {
     "id": "app.user.permanentdeleteuser.internal_error",
@@ -13013,7 +13038,8 @@
   },
   {
     "id": "app.user_terms_of_service.permanent_delete_by_user.app_error",
-    "translation": "Unable to delete the terms of service record for user."
+    "translation": "Unable to delete the terms of service record for user.",
+    "description": "Internal error when deleting a user's terms of service acceptance fails during permanent account deletion."
   },
   {
     "id": "app.user_terms_of_service.save.app_error",

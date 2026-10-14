@@ -2141,206 +2141,285 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.App
 		rctx.Logger().Warn("You are deleting a user that is a system administrator.  You may need to set another account as the system administrator using the command line tools.", mlog.String("user_email", user.Email))
 	}
 
-	// Reject the account up front rather than leaving it half-deleted.
-	// Count on master so replica lag cannot pass the gate and then fail
-	// inside PermanentDeleteByUser after other rows were already deleted.
-	postCount, nErr := a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{UserId: user.Id, UseMaster: true})
-	if nErr != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.post.analytics_post_count.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
-	}
-
-	if postCount > store.MaxPostsPerUserPermanentDelete {
-		return model.NewAppError("PermanentDeleteUser", "app.user.permanent_delete.too_many_posts.app_error", map[string]any{
-			"Count": postCount,
-			"Max":   store.MaxPostsPerUserPermanentDelete,
-		}, "", http.StatusUnprocessableEntity)
-	}
-
 	if _, err := a.UpdateActive(rctx, user, false); err != nil {
 		return err
 	}
 
-	if err := a.Srv().Store().Session().PermanentDeleteSessionsByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.session.permanent_delete_sessions_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().UserAccessToken().DeleteAllForUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.user_access_token.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().OAuth().PermanentDeleteAuthDataByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.oauth.permanent_delete_auth_data_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().OAuth().RemoveAuthDataByUserId(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.oauth.permanent_delete_auth_data_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().DesktopTokens().DeleteByUserId(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.desktop_tokens.delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().CommandWebhook().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.command_webhooks.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Webhook().PermanentDeleteIncomingByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.webhooks.permanent_delete_incoming_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Webhook().PermanentDeleteOutgoingByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.webhooks.permanent_delete_outgoing_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Command().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.user.permanentdeleteuser.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Preference().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.preference.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Channel().PermanentDeleteMembersByUser(rctx, user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.channel.permanent_delete_members_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Channel().PermanentDeleteSidebarByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.channel.permanent_delete_sidebar_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().ChannelMemberHistory().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.channel_member_history.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Group().PermanentDeleteMembersByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.group.permanent_delete_members_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Post().PermanentDeleteByUser(rctx, user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Post().PermanentDeletePostRemindersByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.post.permanent_delete_post_reminders_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Thread().PermanentDeleteMembershipsByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.thread.permanent_delete_memberships_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().PostAcknowledgement().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.post_acknowledgement.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().ReadReceipt().PermanentDeleteByUser(rctx, user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.read_receipt.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Reaction().PermanentDeleteByUser(rctx, user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.reaction.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().ScheduledPost().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.scheduled_post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Draft().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.drafts.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Status().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.status.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().ProductNotices().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.product_notices.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().UserTermsOfService().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.user_terms_of_service.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().NotifyAdmin().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.notify_admin.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().UploadSession().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.upload_session.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().SharedChannel().PermanentDeleteUsersByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.shared_channel.permanent_delete_users_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Bot().PermanentDelete(user.Id); err != nil {
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(err, &invErr):
-			return model.NewAppError("PermanentDeleteUser", "app.bot.permenent_delete.bad_id", map[string]any{"user_id": invErr.Value}, "", http.StatusBadRequest).Wrap(err)
-		default: // last fallback in case it doesn't map to an existing app error.
-			return model.NewAppError("PermanentDeleteUser", "app.bot.permanent_delete.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	for _, step := range a.permanentDeleteUserSteps(rctx, user) {
+		if appErr := step(); appErr != nil {
+			var limitErr *store.ErrLimitExceeded
+			if errors.As(appErr, &limitErr) {
+				return appErr
+			}
+			return model.NewAppError("PermanentDeleteUser", "app.user.permanent_delete.incomplete.app_error", nil, "", appErr.StatusCode).Wrap(appErr)
 		}
-	}
-
-	infos, err := a.Srv().Store().FileInfo().GetForUser(user.Id)
-	if err != nil {
-		rctx.Logger().Warn("Error getting file list for user from FileInfoStore", mlog.Err(err))
-	}
-
-	a.RemoveFilesFromFileStore(rctx, infos)
-
-	// delete directory containing user's profile image
-	profileImageDirectory := getProfileImageDirectory(user.Id)
-	profileImagePath := getProfileImagePath(user.Id)
-	resProfileImageExists, errProfileImageExists := a.FileExists(profileImagePath)
-
-	fileHandlingErrorsFound := false
-
-	if errProfileImageExists != nil {
-		fileHandlingErrorsFound = true
-		rctx.Logger().Warn(
-			"Error checking existence of profile image.",
-			mlog.String("path", profileImagePath),
-			mlog.Err(errProfileImageExists),
-		)
-	}
-
-	if resProfileImageExists {
-		errRemoveDirectory := a.RemoveDirectory(profileImageDirectory)
-
-		if errRemoveDirectory != nil {
-			fileHandlingErrorsFound = true
-			rctx.Logger().Warn(
-				"Unable to remove profile image directory",
-				mlog.String("path", profileImageDirectory),
-				mlog.Err(errRemoveDirectory),
-			)
-		}
-	}
-
-	if _, err := a.Srv().Store().FileInfo().PermanentDeleteByUser(rctx, user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().User().PermanentDelete(rctx, user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.user.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Audit().PermanentDeleteByUser(user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.audit.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if err := a.Srv().Store().Team().RemoveAllMembersByUser(rctx, user.Id); err != nil {
-		return model.NewAppError("PermanentDeleteUser", "app.team.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.InvalidateCacheForUser(user.Id)
 
-	if fileHandlingErrorsFound {
-		return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, "Couldn't delete profile image of the user.", http.StatusAccepted)
+	rctx.Logger().Warn("Permanently deleted account", mlog.String("user_email", user.Email), mlog.String("user_id", user.Id))
+
+	return nil
+}
+
+// permanentDeleteUserSteps returns the steps that delete a deactivated user's data, in order.
+// Every step must be safe to repeat, and none may remove data a later step needs to find, so that
+// running the delete again after any failure finishes the job. The Users row therefore goes last.
+func (a *App) permanentDeleteUserSteps(rctx request.CTX, user *model.User) []func() *model.AppError {
+	ss := a.Srv().Store()
+	return []func() *model.AppError{
+		func() *model.AppError {
+			if err := ss.Session().PermanentDeleteSessionsByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.session.permanent_delete_sessions_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.UserAccessToken().DeleteAllForUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.user_access_token.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.OAuth().PermanentDeleteAuthDataByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.oauth.permanent_delete_auth_data_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.OAuth().RemoveAuthDataByUserId(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.oauth.permanent_delete_auth_data_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.DesktopTokens().DeleteByUserId(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.desktop_tokens.delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.CommandWebhook().PermanentDeleteByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.command_webhooks.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.Webhook().PermanentDeleteIncomingByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.webhooks.permanent_delete_incoming_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.Webhook().PermanentDeleteOutgoingByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.webhooks.permanent_delete_outgoing_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.Command().PermanentDeleteByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.user.permanentdeleteuser.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.Preference().PermanentDeleteByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.preference.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.Channel().PermanentDeleteMembersByUser(rctx, user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.channel.permanent_delete_members_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.Channel().PermanentDeleteSidebarByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.channel.permanent_delete_sidebar_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.ChannelMemberHistory().PermanentDeleteByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.channel_member_history.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.Group().PermanentDeleteMembersByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.group.permanent_delete_members_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.Team().RemoveAllMembersByUser(rctx, user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.team.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		// Files go before posts: once a post is gone, nothing leads back to the files attached to it.
+		func() *model.AppError { return a.permanentDeleteUserFiles(rctx, user.Id) },
+		func() *model.AppError {
+			err := ss.Post().PermanentDeleteByUser(rctx, user.Id)
+			var limitErr *store.ErrLimitExceeded
+			switch {
+			case err == nil:
+				return nil
+			case errors.As(err, &limitErr):
+				return model.NewAppError("PermanentDeleteUser", "app.user.permanent_delete.post_limit.app_error", map[string]any{"Max": store.MaxPostsPerUserPermanentDelete}, "", http.StatusUnprocessableEntity).Wrap(err)
+			default:
+				return model.NewAppError("PermanentDeleteUser", "app.post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+		},
+		func() *model.AppError {
+			if err := ss.Post().PermanentDeletePostRemindersByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.post.permanent_delete_post_reminders_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.Thread().PermanentDeleteMembershipsByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.thread.permanent_delete_memberships_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.PostAcknowledgement().PermanentDeleteByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.post_acknowledgement.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.ReadReceipt().PermanentDeleteByUser(rctx, user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.read_receipt.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.Reaction().PermanentDeleteByUser(rctx, user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.reaction.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.ScheduledPost().PermanentDeleteByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.scheduled_post.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.Draft().PermanentDeleteByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.drafts.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.Status().PermanentDeleteByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.status.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.ProductNotices().PermanentDeleteByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.product_notices.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.UserTermsOfService().PermanentDeleteByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.user_terms_of_service.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.NotifyAdmin().PermanentDeleteByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.notify_admin.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.UploadSession().PermanentDeleteByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.upload_session.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.SharedChannel().PermanentDeleteUsersByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.shared_channel.permanent_delete_users_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.Audit().PermanentDeleteByUser(user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.audit.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError {
+			if err := ss.Bot().PermanentDelete(user.Id); err != nil {
+				var invErr *store.ErrInvalidInput
+				if errors.As(err, &invErr) {
+					return model.NewAppError("PermanentDeleteUser", "app.bot.permenent_delete.bad_id", map[string]any{"user_id": invErr.Value}, "", http.StatusBadRequest).Wrap(err)
+				}
+				return model.NewAppError("PermanentDeleteUser", "app.bot.permanent_delete.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+		func() *model.AppError { return a.permanentDeleteUserProfileImage(user.Id) },
+		func() *model.AppError {
+			if err := ss.User().PermanentDelete(rctx, user.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.user.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		},
+	}
+}
+
+// permanentDeleteUserFiles removes every file that deleting the user would orphan from storage,
+// deleting each file info only once its files are gone so a failure leaves it to be retried.
+func (a *App) permanentDeleteUserFiles(rctx request.CTX, userID string) *model.AppError {
+	const batchSize = 1000
+	for {
+		infos, err := a.Srv().Store().FileInfo().GetForPermanentDeleteByUser(userID, batchSize)
+		if err != nil {
+			return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		if len(infos) == 0 {
+			return nil
+		}
+
+		for _, info := range infos {
+			for _, path := range []string{info.Path, info.PreviewPath, info.ThumbnailPath} {
+				if path == "" {
+					continue
+				}
+				if appErr := a.RemoveFileFromFileStore(rctx, path); appErr != nil && appErr.StatusCode != http.StatusNotFound {
+					return model.NewAppError("PermanentDeleteUser", "app.file_info.remove_file.app_error", map[string]any{"FileInfoID": info.Id}, "", http.StatusInternalServerError).Wrap(appErr)
+				}
+			}
+
+			if err := a.Srv().Store().FileInfo().PermanentDelete(rctx, info.Id); err != nil {
+				return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+		}
+	}
+}
+
+func (a *App) permanentDeleteUserProfileImage(userID string) *model.AppError {
+	exists, appErr := a.FileExists(getProfileImagePath(userID))
+	if appErr != nil {
+		return model.NewAppError("PermanentDeleteUser", "app.user.permanent_delete.profile_image.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
-	rctx.Logger().Warn("Permanently deleted account", mlog.String("user_email", user.Email), mlog.String("user_id", user.Id))
+	if !exists {
+		return nil
+	}
+
+	if appErr := a.RemoveDirectory(getProfileImageDirectory(userID)); appErr != nil {
+		return model.NewAppError("PermanentDeleteUser", "app.user.permanent_delete.profile_image.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
 
 	return nil
 }
@@ -2350,10 +2429,20 @@ func (a *App) PermanentDeleteAllUsers(rctx request.CTX) *model.AppError {
 	if err != nil {
 		return model.NewAppError("PermanentDeleteAllUsers", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	var failed []string
 	for _, user := range users {
 		if appErr := a.PermanentDeleteUser(rctx, user); appErr != nil {
-			rctx.Logger().Warn("Error while deleting user", mlog.Err(appErr))
+			rctx.Logger().Warn("Error while deleting user", mlog.String("user_id", user.Id), mlog.Err(appErr))
+			failed = append(failed, user.Username)
 		}
+	}
+
+	if len(failed) > 0 {
+		return model.NewAppError("PermanentDeleteAllUsers", "app.user.permanent_delete_all.incomplete.app_error", map[string]any{
+			"Count":     len(failed),
+			"Usernames": strings.Join(failed, ", "),
+		}, "", http.StatusInternalServerError)
 	}
 
 	return nil

@@ -402,6 +402,31 @@ func (fs SqlFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, error) 
 	return infos, nil
 }
 
+func (fs SqlFileInfoStore) GetForPermanentDeleteByUser(userId string, limit int) ([]*model.FileInfo, error) {
+	userPosts := sq.Select("Id").From("Posts").Where(sq.Eq{"UserId": userId})
+	repliesToUserPosts := sq.Select("Replies.Id").
+		From("Posts AS Replies").
+		Join("Posts AS Roots ON Replies.RootId = Roots.Id").
+		Where(sq.Eq{"Roots.UserId": userId})
+
+	query := fs.getQueryBuilder().
+		Select(fs.queryFields...).
+		From("FileInfo").
+		Where(sq.Or{
+			sq.Eq{"CreatorId": userId},
+			sq.Expr("PostId IN (?)", userPosts),
+			sq.Expr("PostId IN (?)", repliesToUserPosts),
+		}).
+		OrderBy("Id").
+		Limit(uint64(limit))
+
+	infos := []*model.FileInfo{}
+	if err := fs.GetMaster().SelectBuilder(&infos, query); err != nil {
+		return nil, errors.Wrapf(err, "failed to find FileInfos to permanently delete for userId=%s", userId)
+	}
+	return infos, nil
+}
+
 func (fs SqlFileInfoStore) AttachToPost(rctx request.CTX, fileId, postId, channelId, creatorId string) error {
 	query := fs.getQueryBuilder().
 		Update("FileInfo").

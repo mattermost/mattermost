@@ -14,9 +14,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// MaxPostsPerUserPermanentDelete is the largest number of posts a single user may own for
-// their account to be permanently deleted. Deleting posts is not incremental, so an account
-// above this cap is rejected up front rather than left half-deleted.
+// MaxPostsPerUserPermanentDelete is the most posts PostStore.PermanentDeleteByUser deletes for a
+// user in a single call. Users with more posts are deleted over several calls.
 const MaxPostsPerUserPermanentDelete = 10000
 
 type StoreResult[T any] struct {
@@ -803,6 +802,10 @@ type FileInfoStore interface {
 	GetByPath(path string) (*model.FileInfo, error)
 	GetForPost(postID string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error)
 	GetForUser(userID string) ([]*model.FileInfo, error)
+	// GetForPermanentDeleteByUser returns, from master and including soft-deleted files, up to
+	// limit of the files that permanently deleting the user would orphan: those the user created,
+	// those attached to the user's posts, and those attached to replies to the user's root posts.
+	GetForPermanentDeleteByUser(userID string, limit int) ([]*model.FileInfo, error)
 	GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error)
 	InvalidateFileInfosForPostCache(postID string, deleted bool)
 	AttachToPost(rctx request.CTX, fileID string, postID string, channelID, creatorID string) error

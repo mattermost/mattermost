@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	_ "image/jpeg"
 	_ "image/png"
 	"net/http"
@@ -22,6 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	oauthgitlab "github.com/mattermost/mattermost/server/v8/channels/app/oauthproviders/gitlab"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
@@ -1813,54 +1815,211 @@ func TestPermanentDeleteUserRemovesUserMetadata(t *testing.T) {
 	}
 }
 
-func TestPermanentDeleteUserTooManyPosts(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+// insertPosts writes count posts by userID straight to the database, as saving them one at a
+// time is far too slow at the volumes needed to reach the per-run post limit.
+func insertPosts(t *testing.T, th *TestHelper, userID, channelID, rootID string, count int) {
+	t.Helper()
 
-	user := th.BasicUser
-
-	// Saving posts one at a time is far too slow at this volume, so they are written in a
-	// single statement.
 	now := model.GetMillis()
 	_, err := th.SQLStore.GetMaster().Exec(`
 		INSERT INTO Posts (Id, CreateAt, UpdateAt, EditAt, DeleteAt, IsPinned, UserId, ChannelId, RootId, OriginalId, Message, Type, Props, Hashtags, Filenames, FileIds, HasReactions)
-		SELECT SUBSTR(MD5(RANDOM()::TEXT || g::TEXT), 1, 26), ?, ?, 0, 0, FALSE, ?, ?, '', '', 'bulk post', '', '{}'::jsonb, '', '[]'::jsonb, '[]'::jsonb, FALSE
+		SELECT SUBSTR(MD5(RANDOM()::TEXT || g::TEXT), 1, 26), ?, ?, 0, 0, FALSE, ?, ?, ?, '', 'bulk post', '', '{}'::jsonb, '', '[]'::jsonb, '[]'::jsonb, FALSE
 		FROM GENERATE_SERIES(1, ?) g`,
-		now, now, user.Id, th.BasicChannel.Id, store.MaxPostsPerUserPermanentDelete+1)
+		now, now, userID, channelID, rootID, count)
+	require.NoError(t, err)
+}
+
+func countRows(t *testing.T, th *TestHelper, query string, args ...any) int {
+	t.Helper()
+
+	var count int
+	require.NoError(t, th.SQLStore.GetMaster().Get(&count, query, args...))
+
+	return count
+}
+
+// permanentDeleteFixture is a user with data in every table PermanentDeleteUser cleans up,
+// including data other users attached to the user's posts.
+type permanentDeleteFixture struct {
+	user      *model.User
+	rootPost  *model.Post
+	fileInfos []*model.FileInfo
+}
+
+func newPermanentDeleteFixture(t *testing.T, th *TestHelper, otherRootPost *model.Post, termsOfServiceID string) permanentDeleteFixture {
+	t.Helper()
+
+	ss := th.App.Srv().Store()
+	user := th.CreateUser(t)
+	th.LinkUserToTeam(t, user, th.BasicTeam)
+	th.AddUserToChannel(t, user, th.BasicChannel)
+	require.Nil(t, th.App.SetDefaultProfileImage(th.Context, user))
+
+	rootPost, err := ss.Post().Save(th.Context, &model.Post{UserId: user.Id, ChannelId: th.BasicChannel.Id, Message: "root"})
+	require.NoError(t, err)
+	_, err = ss.Post().Save(th.Context, &model.Post{UserId: user.Id, ChannelId: th.BasicChannel.Id, RootId: otherRootPost.Id, Message: "reply"})
+	require.NoError(t, err)
+	otherReply, err := ss.Post().Save(th.Context, &model.Post{UserId: th.BasicUser2.Id, ChannelId: th.BasicChannel.Id, RootId: rootPost.Id, Message: "reply by someone else"})
 	require.NoError(t, err)
 
+	for _, postID := range []string{rootPost.Id, otherReply.Id} {
+		_, err = ss.Reaction().Save(&model.Reaction{UserId: th.BasicUser2.Id, PostId: postID, EmojiName: "smile", ChannelId: th.BasicChannel.Id})
+		require.NoError(t, err)
+	}
+
+	// A file the user already deleted, and one someone else attached to a reply to the user's post.
+	ownFile, appErr := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, user.Id, "own.txt", []byte("own"), true)
+	require.Nil(t, appErr)
+	require.NoError(t, ss.FileInfo().AttachToPost(th.Context, ownFile.Id, rootPost.Id, th.BasicChannel.Id, user.Id))
+	_, err = ss.FileInfo().DeleteForPost(th.Context, rootPost.Id)
+	require.NoError(t, err)
+
+	otherFile, appErr := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser2.Id, "other.txt", []byte("other"), true)
+	require.Nil(t, appErr)
+	require.NoError(t, ss.FileInfo().AttachToPost(th.Context, otherFile.Id, otherReply.Id, th.BasicChannel.Id, th.BasicUser2.Id))
+
+	seedUserMetadata(t, th, user.Id, otherRootPost.Id, termsOfServiceID)
+
+	return permanentDeleteFixture{user: user, rootPost: rootPost, fileInfos: []*model.FileInfo{ownFile, otherFile}}
+}
+
+func (f permanentDeleteFixture) requireFullyDeleted(t *testing.T, th *TestHelper) {
+	t.Helper()
+
+	userID := f.user.Id
+	for _, table := range append([]string{"Posts", "Preferences", "ChannelMembers", "TeamMembers", "Sessions", "Reactions", "Audits"}, userMetadataTables...) {
+		require.Zero(t, countRowsForUser(t, th, table, "UserId", userID), "%s still holds rows for the deleted user", table)
+	}
+	require.Zero(t, countRowsForUser(t, th, "Users", "Id", userID))
+	require.Zero(t, countRowsForUser(t, th, "FileInfo", "CreatorId", userID))
+	require.Zero(t, countRowsForUser(t, th, "Posts", "RootId", f.rootPost.Id), "replies to the user's posts were left behind")
+	for _, table := range []string{"Reactions", "ReadReceipts", "PostAcknowledgements", "PostReminders", "PostsPriority", "PersistentNotifications", "TemporaryPosts", "Threads", "ThreadMemberships", "FileInfo"} {
+		require.Zero(t, countRows(t, th, "SELECT COUNT(*) FROM "+table+" t WHERE t.PostId != '' AND NOT EXISTS (SELECT 1 FROM Posts p WHERE p.Id = t.PostId)"),
+			"%s still holds rows for deleted posts", table)
+	}
+
+	for _, info := range f.fileInfos {
+		require.Zero(t, countRowsForUser(t, th, "FileInfo", "Id", info.Id))
+		exists, appErr := th.App.FileExists(info.Path)
+		require.Nil(t, appErr)
+		require.False(t, exists, "file %s was left in storage", info.Path)
+	}
+
+	exists, appErr := th.App.FileExists(getProfileImagePath(userID))
+	require.Nil(t, appErr)
+	require.False(t, exists, "profile image was left in storage")
+}
+
+func TestPermanentDeleteUserCanBeResumedAfterAnyStep(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	ss := th.App.Srv().Store()
+	otherRootPost, err := ss.Post().Save(th.Context, &model.Post{UserId: th.SystemAdminUser.Id, ChannelId: th.BasicChannel.Id, Message: "root by someone else"})
+	require.NoError(t, err)
+	tos, err := ss.TermsOfService().Save(&model.TermsOfService{Text: "the terms", UserId: th.SystemAdminUser.Id})
+	require.NoError(t, err)
+
+	stepCount := len(th.App.permanentDeleteUserSteps(th.Context, &model.User{}))
+	for stop := range stepCount {
+		t.Run(fmt.Sprintf("stopped before step %d of %d", stop+1, stepCount), func(t *testing.T) {
+			fixture := newPermanentDeleteFixture(t, th, otherRootPost, tos.Id)
+
+			// Leave the account the way an error at this step would.
+			_, appErr := th.App.UpdateActive(th.Context, fixture.user, false)
+			require.Nil(t, appErr)
+			for _, step := range th.App.permanentDeleteUserSteps(th.Context, fixture.user)[:stop] {
+				require.Nil(t, step())
+			}
+
+			user, appErr := th.App.GetUser(th.Context, fixture.user.Id)
+			require.Nil(t, appErr, "the user must still be found so the delete can be run again")
+
+			require.Nil(t, th.App.PermanentDeleteUser(th.Context, user))
+			fixture.requireFullyDeleted(t, th)
+		})
+	}
+}
+
+func TestPermanentDeleteUserFailureCanBeRetried(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	ss := th.App.Srv().Store()
+	otherRootPost, err := ss.Post().Save(th.Context, &model.Post{UserId: th.SystemAdminUser.Id, ChannelId: th.BasicChannel.Id, Message: "root by someone else"})
+	require.NoError(t, err)
+	tos, err := ss.TermsOfService().Save(&model.TermsOfService{Text: "the terms", UserId: th.SystemAdminUser.Id})
+	require.NoError(t, err)
+	fixture := newPermanentDeleteFixture(t, th, otherRootPost, tos.Id)
+
+	// A non-empty directory cannot be removed as a file, so removing this file fails.
+	blockedPath := "blocked/" + model.NewId()
+	_, appErr := th.App.WriteFile(strings.NewReader("x"), blockedPath+"/inner.txt")
+	require.Nil(t, appErr)
+	blocked, err := ss.FileInfo().Save(th.Context, &model.FileInfo{CreatorId: fixture.user.Id, Path: blockedPath, Name: "blocked.txt"})
+	require.NoError(t, err)
+
+	appErr = th.App.PermanentDeleteUser(th.Context, fixture.user)
+	require.NotNil(t, appErr)
+	require.Equal(t, "app.user.permanent_delete.incomplete.app_error", appErr.Id)
+
+	user, appErr := th.App.GetUser(th.Context, fixture.user.Id)
+	require.Nil(t, appErr)
+	require.NotZero(t, user.DeleteAt)
+	require.Equal(t, 1, countRowsForUser(t, th, "FileInfo", "Id", blocked.Id), "a file info must only be deleted once its file is gone")
+
+	require.Nil(t, th.App.RemoveFile(blockedPath+"/inner.txt"))
+
+	require.Nil(t, th.App.PermanentDeleteUser(th.Context, user))
+	fixture.fileInfos = append(fixture.fileInfos, blocked)
+	fixture.requireFullyDeleted(t, th)
+}
+
+func TestPermanentDeleteUserOverPostLimit(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	ss := th.App.Srv().Store()
+	otherRootPost, err := ss.Post().Save(th.Context, &model.Post{UserId: th.SystemAdminUser.Id, ChannelId: th.BasicChannel.Id, Message: "root by someone else"})
+	require.NoError(t, err)
+	tos, err := ss.TermsOfService().Save(&model.TermsOfService{Text: "the terms", UserId: th.SystemAdminUser.Id})
+	require.NoError(t, err)
+	fixture := newPermanentDeleteFixture(t, th, otherRootPost, tos.Id)
+	user := fixture.user
+
+	insertPosts(t, th, user.Id, th.BasicChannel.Id, "", store.MaxPostsPerUserPermanentDelete+500)
+	insertPosts(t, th, user.Id, th.BasicChannel.Id, otherRootPost.Id, 1500)
+	insertPosts(t, th, th.BasicUser2.Id, th.BasicChannel.Id, fixture.rootPost.Id, 1500)
 	postCount := countRowsForUser(t, th, "Posts", "UserId", user.Id)
-	preferenceCount := countRowsForUser(t, th, "Preferences", "UserId", user.Id)
-	channelMemberCount := countRowsForUser(t, th, "ChannelMembers", "UserId", user.Id)
-	require.Greater(t, postCount, store.MaxPostsPerUserPermanentDelete)
-	require.NotZero(t, preferenceCount)
-	require.NotZero(t, channelMemberCount)
 
 	appErr := th.App.PermanentDeleteUser(th.Context, user)
 	require.NotNil(t, appErr)
-	assert.Equal(t, "app.user.permanent_delete.too_many_posts.app_error", appErr.Id)
-	assert.Equal(t, http.StatusUnprocessableEntity, appErr.StatusCode)
+	require.Equal(t, "app.user.permanent_delete.post_limit.app_error", appErr.Id)
+	require.Equal(t, postCount-store.MaxPostsPerUserPermanentDelete, countRowsForUser(t, th, "Posts", "UserId", user.Id))
 
-	// The account is left exactly as it was: no partial deletion, and the user is still active.
-	assert.Equal(t, postCount, countRowsForUser(t, th, "Posts", "UserId", user.Id))
-	assert.Equal(t, preferenceCount, countRowsForUser(t, th, "Preferences", "UserId", user.Id))
-	assert.Equal(t, channelMemberCount, countRowsForUser(t, th, "ChannelMembers", "UserId", user.Id))
-
-	stillThere, appErr := th.App.GetUser(th.Context, user.Id)
+	user, appErr = th.App.GetUser(th.Context, user.Id)
 	require.Nil(t, appErr)
-	assert.Zero(t, stillThere.DeleteAt)
+	require.NotZero(t, user.DeleteAt)
 
-	// Trimming the account down to exactly the cap is enough for the delete to go through.
-	_, err = th.SQLStore.GetMaster().Exec(
-		"DELETE FROM Posts WHERE Id IN (SELECT Id FROM Posts WHERE UserId = ? LIMIT ?)",
-		user.Id, postCount-store.MaxPostsPerUserPermanentDelete)
-	require.NoError(t, err)
-	require.Equal(t, store.MaxPostsPerUserPermanentDelete, countRowsForUser(t, th, "Posts", "UserId", user.Id))
+	require.Nil(t, th.App.PermanentDeleteUser(th.Context, user))
+	fixture.requireFullyDeleted(t, th)
+}
 
-	appErr = th.App.PermanentDeleteUser(th.Context, user)
-	require.Nil(t, appErr)
-	assert.Zero(t, countRowsForUser(t, th, "Posts", "UserId", user.Id))
-	assert.Zero(t, countRowsForUser(t, th, "Users", "Id", user.Id))
+func TestPermanentDeleteAllUsersReportsIncompleteUsers(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	insertPosts(t, th, th.BasicUser.Id, th.BasicChannel.Id, "", store.MaxPostsPerUserPermanentDelete+1)
+
+	appErr := th.App.PermanentDeleteAllUsers(th.Context)
+	require.NotNil(t, appErr)
+	require.Equal(t, "app.user.permanent_delete_all.incomplete.app_error", appErr.Id)
+	appErr.Translate(i18n.GetUserTranslations("en"))
+	require.Contains(t, appErr.Message, "Unable to finish deleting 1 users: "+th.BasicUser.Username+".")
+	require.Equal(t, 1, countRows(t, th, "SELECT COUNT(*) FROM Users"))
+
+	require.Nil(t, th.App.PermanentDeleteAllUsers(th.Context))
+	require.Zero(t, countRows(t, th, "SELECT COUNT(*) FROM Users"))
 }
 
 func TestPasswordRecovery(t *testing.T) {

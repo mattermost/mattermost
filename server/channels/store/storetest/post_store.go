@@ -32,6 +32,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("PermDelete1Level", func(t *testing.T) { testPostStorePermDelete1Level(t, rctx, ss) })
 	t.Run("PermDelete1Level2", func(t *testing.T) { testPostStorePermDelete1Level2(t, rctx, ss) })
 	t.Run("PermDeleteLimitExceeded", func(t *testing.T) { testPostStorePermDeleteLimitExceeded(t, rctx, ss, s) })
+	t.Run("PermDeleteByUserAssociatedData", func(t *testing.T) { testPostStorePermDeleteByUserAssociatedData(t, rctx, ss, s) })
 	t.Run("GetWithChildren", func(t *testing.T) { testPostStoreGetWithChildren(t, rctx, ss) })
 	t.Run("GetPostsWithDetails", func(t *testing.T) { testPostStoreGetPostsWithDetails(t, rctx, ss) })
 	t.Run("GetPostsBeforeAfter", func(t *testing.T) { testPostStoreGetPostsBeforeAfter(t, rctx, ss) })
@@ -1840,15 +1841,15 @@ func testPostStorePermDeleteLimitExceeded(t *testing.T, rctx request.CTX, ss sto
 
 	// Saving posts one at a time is far too slow at this volume, so they are written in a
 	// single statement.
-	savePosts := func(t *testing.T, userID string, count int) {
+	savePosts := func(t *testing.T, userID, rootID string, count int) {
 		t.Helper()
 
 		now := model.GetMillis()
 		_, err := s.GetMaster().Exec(`
 			INSERT INTO Posts (Id, CreateAt, UpdateAt, EditAt, DeleteAt, IsPinned, UserId, ChannelId, RootId, OriginalId, Message, Type, Props, Hashtags, Filenames, FileIds, HasReactions)
-			SELECT SUBSTR(MD5(RANDOM()::TEXT || g::TEXT), 1, 26), ?, ?, 0, 0, FALSE, ?, ?, '', '', 'bulk post', '', '{}'::jsonb, '', '[]'::jsonb, '[]'::jsonb, FALSE
+			SELECT SUBSTR(MD5(RANDOM()::TEXT || g::TEXT), 1, 26), ?, ?, 0, 0, FALSE, ?, ?, ?, '', 'bulk post', '', '{}'::jsonb, '', '[]'::jsonb, '[]'::jsonb, FALSE
 			FROM GENERATE_SERIES(1, ?) g`,
-			now, now, userID, channel.Id, count)
+			now, now, userID, channel.Id, rootID, count)
 		require.NoError(t, err)
 	}
 
@@ -1861,22 +1862,113 @@ func testPostStorePermDeleteLimitExceeded(t *testing.T, rctx request.CTX, ss sto
 		return count
 	}
 
+	requireLimitExceeded := func(t *testing.T, userID string) {
+		t.Helper()
+
+		err := ss.Post().PermanentDeleteByUser(rctx, userID)
+		var errLimitExceeded *store.ErrLimitExceeded
+		require.ErrorAs(t, err, &errLimitExceeded)
+	}
+
 	t.Run("a user exactly at the limit is deleted", func(t *testing.T) {
 		userID := model.NewId()
-		savePosts(t, userID, store.MaxPostsPerUserPermanentDelete)
+		savePosts(t, userID, "", store.MaxPostsPerUserPermanentDelete)
 
 		require.NoError(t, ss.Post().PermanentDeleteByUser(rctx, userID))
 		require.Zero(t, countPosts(t, userID))
 	})
 
-	t.Run("a user over the limit is rejected", func(t *testing.T) {
+	t.Run("a user over the limit is deleted over several calls", func(t *testing.T) {
 		userID := model.NewId()
-		savePosts(t, userID, store.MaxPostsPerUserPermanentDelete+1)
+		savePosts(t, userID, "", 2*store.MaxPostsPerUserPermanentDelete+1)
 
-		err := ss.Post().PermanentDeleteByUser(rctx, userID)
-		var errLimitExceeded *store.ErrLimitExceeded
-		require.ErrorAs(t, err, &errLimitExceeded)
+		requireLimitExceeded(t, userID)
+		require.Equal(t, store.MaxPostsPerUserPermanentDelete+1, countPosts(t, userID))
+
+		requireLimitExceeded(t, userID)
+		require.Equal(t, 1, countPosts(t, userID))
+
+		require.NoError(t, ss.Post().PermanentDeleteByUser(rctx, userID))
+		require.Zero(t, countPosts(t, userID))
 	})
+
+	t.Run("replies count towards the limit", func(t *testing.T) {
+		userID := model.NewId()
+		root, err := ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: model.NewId(), Message: "root"})
+		require.NoError(t, err)
+		savePosts(t, userID, "", store.MaxPostsPerUserPermanentDelete/2)
+		savePosts(t, userID, root.Id, store.MaxPostsPerUserPermanentDelete/2+1)
+
+		requireLimitExceeded(t, userID)
+		require.Equal(t, 1, countPosts(t, userID))
+
+		require.NoError(t, ss.Post().PermanentDeleteByUser(rctx, userID))
+		require.Zero(t, countPosts(t, userID))
+	})
+}
+
+func testPostStorePermDeleteByUserAssociatedData(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Associated data",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	userID := model.NewId()
+	otherUserID := model.NewId()
+	withPriority := func(post *model.Post) *model.Post {
+		post.Metadata = &model.PostMetadata{Priority: &model.PostPriority{
+			Priority:                model.NewPointer(model.PostPriorityUrgent),
+			RequestedAck:            model.NewPointer(true),
+			PersistentNotifications: model.NewPointer(true),
+		}}
+		return post
+	}
+
+	root, err := ss.Post().Save(rctx, withPriority(&model.Post{ChannelId: channel.Id, UserId: userID, Message: "root"}))
+	require.NoError(t, err)
+	otherReply, err := ss.Post().Save(rctx, withPriority(&model.Post{ChannelId: channel.Id, UserId: otherUserID, RootId: root.Id, Message: "reply by someone else"}))
+	require.NoError(t, err)
+	otherRoot, err := ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: otherUserID, Message: "root by someone else"})
+	require.NoError(t, err)
+	reply, err := ss.Post().Save(rctx, withPriority(&model.Post{ChannelId: channel.Id, UserId: userID, RootId: otherRoot.Id, Message: "reply"}))
+	require.NoError(t, err)
+
+	deletedPostIDs := []string{root.Id, otherReply.Id, reply.Id}
+	for _, postID := range deletedPostIDs {
+		_, err = ss.Reaction().Save(&model.Reaction{UserId: otherUserID, PostId: postID, EmojiName: "smile", ChannelId: channel.Id})
+		require.NoError(t, err)
+		_, err = ss.PostAcknowledgement().SaveWithModel(&model.PostAcknowledgement{UserId: otherUserID, PostId: postID, ChannelId: channel.Id, AcknowledgedAt: model.GetMillis()})
+		require.NoError(t, err)
+		_, err = ss.ReadReceipt().Save(rctx, &model.ReadReceipt{UserID: otherUserID, PostID: postID, ExpireAt: model.GetMillis() + 100000})
+		require.NoError(t, err)
+		require.NoError(t, ss.Post().SetPostReminder(&model.PostReminder{UserId: otherUserID, PostId: postID, TargetTime: model.GetMillis()/1000 + 1000}))
+	}
+
+	tables := []string{"Reactions", "PostAcknowledgements", "ReadReceipts", "PostReminders", "PostsPriority", "PersistentNotifications"}
+	countForPosts := func(t *testing.T, table string) int {
+		t.Helper()
+
+		var count int
+		require.NoError(t, s.GetMaster().Get(&count, "SELECT COUNT(*) FROM "+table+" WHERE PostId IN (?, ?, ?)", root.Id, otherReply.Id, reply.Id))
+		return count
+	}
+	for _, table := range tables {
+		require.Equal(t, len(deletedPostIDs), countForPosts(t, table), "test setup should have left rows in %s", table)
+	}
+
+	require.NoError(t, ss.Post().PermanentDeleteByUser(rctx, userID))
+
+	for _, table := range tables {
+		assert.Zero(t, countForPosts(t, table), "%s still holds rows for deleted posts", table)
+	}
+
+	_, err = ss.Post().GetSingle(rctx, otherReply.Id, true)
+	require.Error(t, err, "replies to the user's root posts should be deleted")
+	_, err = ss.Post().GetSingle(rctx, otherRoot.Id, true)
+	require.NoError(t, err, "posts the user replied to should not be deleted")
 }
 
 func testPostStoreGetWithChildren(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -3255,43 +3347,9 @@ func testPostCounts(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	assert.Equal(t, int64(2), c)
 
-	// for a single author, across all teams
-	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{UserId: p4.UserId})
-	require.NoError(t, err)
-	assert.Equal(t, int64(2), c)
-
-	// UseMaster is a routing flag; the count itself is unchanged
-	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{UserId: p4.UserId, UseMaster: true})
-	require.NoError(t, err)
-	assert.Equal(t, int64(2), c)
-
-	// for a single author within a team
-	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id, UserId: p4.UserId})
-	require.NoError(t, err)
-	assert.Equal(t, int64(2), c)
-
-	// the same author, scoped to a team they have not posted in
-	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: model.NewId(), UserId: p4.UserId})
-	require.NoError(t, err)
-	assert.Equal(t, int64(0), c)
-
-	// an author with no posts
-	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{UserId: model.NewId()})
-	require.NoError(t, err)
-	assert.Equal(t, int64(0), c)
-
 	// delete 1 post
 	err = ss.Post().Delete(rctx, p2.Id, 1, p2.UserId)
 	require.NoError(t, err)
-
-	// a soft deleted post still counts towards its author unless it is excluded
-	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{UserId: p2.UserId})
-	require.NoError(t, err)
-	assert.Equal(t, int64(1), c)
-
-	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{UserId: p2.UserId, ExcludeDeleted: true})
-	require.NoError(t, err)
-	assert.Equal(t, int64(0), c)
 
 	// total for single team with the deleted post excluded
 	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id, ExcludeDeleted: true})
