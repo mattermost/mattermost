@@ -357,7 +357,7 @@ export function toCELEditorAttributes(
 // contain double quotes and escaped single quotes). This mirrors what the CEL
 // parser accepts and what celStringLiteral emits, so a value such as
 // "Matt's Department" is still recognized as a simple expression.
-const CEL_STRING = String.raw`(?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')`;
+export const CEL_STRING = String.raw`(?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')`;
 
 // Empty list or comma-separated CEL string literals. Rejects unterminated /
 // unescaped quotes that the previous `\[.*?\]` matcher would accept.
