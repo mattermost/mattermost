@@ -5,6 +5,7 @@ import React, {useCallback, useState, useEffect, useMemo, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {Switch} from '@mattermost/compass-ui/components/switch';
 import type {Channel, ChannelType} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
@@ -30,7 +31,6 @@ import ChannelInfoAttributes from 'components/channel_attributes/channel_info_at
 import type {ChannelInfoAttributesHandle} from 'components/channel_attributes/channel_info_attributes';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import type {TextboxElement} from 'components/textbox';
-import Toggle from 'components/toggle';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
@@ -578,34 +578,19 @@ function ChannelSettingsInfoTab({
                 still visible (transparency) but not editable. */}
             {showDiscoverableToggle && (
                 <div className='ChannelSettingsModal__discoverableSection'>
-                    <div className='channel_banner_header'>
-                        <div className='channel_banner_header__text'>
-                            <label
-                                className='Input_legend'
-                                aria-label={discoverableTitle}
-                            >
-                                {discoverableTitle}
-                            </label>
-                            <label
-                                className='Input_subheading'
-                                aria-label={discoverableDescription}
-                            >
-                                {discoverableDescription}
-                            </label>
-                        </div>
-                        <div className='channel_banner_header__toggle'>
-                            <Toggle
-                                id='channel-settings-discoverable-toggle'
-                                overrideTestId={true}
-                                ariaLabel={discoverableTitle}
-                                size='btn-md'
-                                disabled={!canManageDiscoverability}
-                                onToggle={handleDiscoverableToggle}
-                                toggled={discoverable}
-                                tabIndex={0}
-                            />
-                        </div>
-                    </div>
+                    <Switch
+                        id='channel-settings-discoverable-toggle'
+                        size='medium'
+                        checked={discoverable}
+                        disabled={!canManageDiscoverability}
+                        onChange={handleDiscoverableToggle}
+                        data-testid='channel-settings-discoverable-toggle'
+                        tabIndex={0}
+                        semiBold={true}
+                        secondaryLabel={discoverableDescription}
+                    >
+                        {discoverableTitle}
+                    </Switch>
                     {!canManageDiscoverability && (
                         <p className='ChannelSettingsModal__discoverableReadOnly'>
                             {formatMessage({
