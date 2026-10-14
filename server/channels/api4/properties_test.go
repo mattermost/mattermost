@@ -1210,7 +1210,13 @@ func TestCreatePropertyField(t *testing.T) {
 			created, resp, err := th.Client.CreatePropertyField(context.Background(), v3Group.Name, "post", field)
 			require.NoError(t, err)
 			CheckCreatedStatus(t, resp)
-			require.Nil(t, created.Permissions)
+			// Every new field gets an object converted from the default levels,
+			// so none of the refused locking object reaches the store.
+			require.NotNil(t, created.Permissions)
+			require.NotEqual(t, model.PermissionLevelNone, created.Permissions.Restrictions.TierFor(model.PropertyActionFieldWrite))
+			for _, grant := range created.Permissions.Grants {
+				require.NotEqual(t, model.PropertyOwnerTypeUser, grant.Type)
+			}
 		})
 
 		t.Run("a channel admin may submit one", func(t *testing.T) {
