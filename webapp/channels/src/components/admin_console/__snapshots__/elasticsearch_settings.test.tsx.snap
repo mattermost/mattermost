@@ -733,6 +733,54 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               </div>
             </div>
           </fieldset>
+          <fieldset
+            class="form-group"
+            data-testid="enableFileIndexing"
+            id="enableFileIndexing"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable file indexing:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="Label-eJcoMl kxVoZJ"
+              >
+                <input
+                  checked=""
+                  data-testid="enableFileIndexingtrue"
+                  disabled=""
+                  id="enableFileIndexingtrue"
+                  name="enableFileIndexing"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="Label-eJcoMl kxVoZJ"
+              >
+                <input
+                  data-testid="enableFileIndexingfalse"
+                  disabled=""
+                  id="enableFileIndexingfalse"
+                  name="enableFileIndexing"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="enableFileIndexinghelp-text"
+              >
+                When false, new or updated file attachments are not indexed. File search continues to return previously indexed files, but files uploaded while this setting is false are not searchable until a bulk index is run after re-enabling it.
+              </div>
+            </div>
+          </fieldset>
         </div>
       </div>
       <div
@@ -1466,6 +1514,52 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                 data-testid="enableSearchPublicChannelsWithoutMembershiphelp-text"
               >
                 When enabled, users can find messages in public channels they have not joined. When enabled for the first time, existing posts will be updated in the background. This process is throttled to avoid impacting search performance. This setting has no effect when Compliance Mode is enabled.
+              </div>
+            </div>
+          </fieldset>
+          <fieldset
+            class="form-group"
+            data-testid="enableFileIndexing"
+            id="enableFileIndexing"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable file indexing:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="Label-eJcoMl iShgPr"
+              >
+                <input
+                  checked=""
+                  data-testid="enableFileIndexingtrue"
+                  id="enableFileIndexingtrue"
+                  name="enableFileIndexing"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="Label-eJcoMl iShgPr"
+              >
+                <input
+                  data-testid="enableFileIndexingfalse"
+                  id="enableFileIndexingfalse"
+                  name="enableFileIndexing"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="enableFileIndexinghelp-text"
+              >
+                When false, new or updated file attachments are not indexed. File search continues to return previously indexed files, but files uploaded while this setting is false are not searchable until a bulk index is run after re-enabling it.
               </div>
             </div>
           </fieldset>
@@ -2211,6 +2305,52 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                 data-testid="enableSearchPublicChannelsWithoutMembershiphelp-text"
               >
                 When enabled, users can find messages in public channels they have not joined. When enabled for the first time, existing posts will be updated in the background. This process is throttled to avoid impacting search performance. This setting has no effect when Compliance Mode is enabled.
+              </div>
+            </div>
+          </fieldset>
+          <fieldset
+            class="form-group"
+            data-testid="enableFileIndexing"
+            id="enableFileIndexing"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable file indexing:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="Label-eJcoMl iShgPr"
+              >
+                <input
+                  checked=""
+                  data-testid="enableFileIndexingtrue"
+                  id="enableFileIndexingtrue"
+                  name="enableFileIndexing"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="Label-eJcoMl iShgPr"
+              >
+                <input
+                  data-testid="enableFileIndexingfalse"
+                  id="enableFileIndexingfalse"
+                  name="enableFileIndexing"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="enableFileIndexinghelp-text"
+              >
+                When false, new or updated file attachments are not indexed. File search continues to return previously indexed files, but files uploaded while this setting is false are not searchable until a bulk index is run after re-enabling it.
               </div>
             </div>
           </fieldset>
