@@ -133,6 +133,14 @@
         gap: 12px;
         line-height: 20px;
 
+        // Compass Switch root is a <label>. Bootstrap form labels add
+        // margin-bottom, and Switch defaults to width: 100%, which throws off
+        // vertical alignment next to the actions menu button.
+        > label {
+            width: auto;
+            margin-bottom: 0;
+        }
+
         .LoadingSpinner .spinner {
             color: rgba(var(--center-channel-color-rgb), 0.64);
         }
