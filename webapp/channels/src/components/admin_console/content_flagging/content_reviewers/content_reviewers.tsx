@@ -4,9 +4,9 @@
 import React, {useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
 import type {ContentFlaggingReviewerSetting, TeamReviewerSetting} from '@mattermost/types/config';
 
-import {Label} from 'components/admin_console/boolean_setting';
 import CheckboxSetting from 'components/admin_console/checkbox_setting';
 import TeamReviewers
     from 'components/admin_console/content_flagging/content_reviewers/team_reviewers_section/team_reviewers_section';
@@ -112,37 +112,35 @@ export default function ContentFlaggingContentReviewers({id, onChange, value, di
                         </div>
 
                         <div className='setting-content'>
-                            <Label $isDisabled={disabled}>
-                                <input
-                                    data-testid='sameReviewersForAllTeams_true'
-                                    id='sameReviewersForAllTeams_true'
-                                    type='radio'
-                                    value='true'
-                                    checked={reviewerSetting.CommonReviewers}
-                                    onChange={handleSameReviewersForAllTeamsChange}
-                                    disabled={disabled}
-                                />
+                            <Radio
+                                data-testid='sameReviewersForAllTeams_true'
+                                id='sameReviewersForAllTeams_true'
+                                name='sameReviewersForAllTeams'
+                                value='true'
+                                checked={reviewerSetting.CommonReviewers}
+                                onChange={handleSameReviewersForAllTeamsChange}
+                                disabled={disabled}
+                            >
                                 <FormattedMessage
                                     id='admin.true'
                                     defaultMessage='True'
                                 />
-                            </Label>
+                            </Radio>
 
-                            <Label $isDisabled={disabled}>
-                                <input
-                                    data-testid='sameReviewersForAllTeams_false'
-                                    id='sameReviewersForAllTeams_false'
-                                    type='radio'
-                                    value='false'
-                                    checked={!reviewerSetting.CommonReviewers}
-                                    onChange={handleSameReviewersForAllTeamsChange}
-                                    disabled={disabled}
-                                />
+                            <Radio
+                                data-testid='sameReviewersForAllTeams_false'
+                                id='sameReviewersForAllTeams_false'
+                                name='sameReviewersForAllTeams'
+                                value='false'
+                                checked={!reviewerSetting.CommonReviewers}
+                                onChange={handleSameReviewersForAllTeamsChange}
+                                disabled={disabled}
+                            >
                                 <FormattedMessage
                                     id='admin.false'
                                     defaultMessage='False'
                                 />
-                            </Label>
+                            </Radio>
                         </div>
                     </div>
 

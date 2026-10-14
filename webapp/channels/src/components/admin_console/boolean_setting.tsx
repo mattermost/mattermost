@@ -11,74 +11,18 @@ import * as Utils from 'utils/utils';
 
 import SettingSet from './setting_set';
 
-export const Label = styled.label<{$isDisabled: boolean}>`
-    display: inline-flex;
-    opacity: ${({$isDisabled}) => ($isDisabled ? 0.5 : 1)};
-    margin-top: 8px;
-    margin-right: 24px;
-    width: fit-content;
-    flex-direction: row;
+// Layout only — Compass Radio owns radio/label visuals. Offset matches
+// Bootstrap control-label padding-top; width:auto overrides Radio's width:100%.
+const BooleanRadioGroup = styled.div`
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    margin-bottom: 0;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 400;
-    gap: 8px;
-    line-height: 20px;
-
-    span {
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 400;
-        line-height: 20px;
-    }
-
-    input {
-        display: grid;
-        width: 1.6rem;
-        height: 1.6rem;
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
-        border-radius: 50%;
-        margin: 0;
-        -webkit-appearance: none;
-        appearance: none;
-        background-color: white;
-        color: rgba(var(--center-channel-color-rgb), 0.24);
-        cursor: pointer;
-        font: inherit;
-        place-content: center;
-
-        &:checked {
-            border-color: var(--button-bg);
-        }
-
-        &:checked::before {
-            transform: scale(1);
-        }
-
-        &::before {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--button-bg);
-            content: "";
-            transform: scale(0);
-            transform-origin: center center;
-            transition: 200ms transform ease-in-out;
-        }
-    }
-`;
-
-const BooleanRadioOption = styled(Radio)<{$isDisabled: boolean}>`
-    display: inline-flex;
-    opacity: ${({$isDisabled}) => ($isDisabled ? 0.5 : 1)};
     margin-top: 8px;
-    margin-right: 24px;
-    width: fit-content;
-    margin-bottom: 0;
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 20px;
+    gap: 24px;
+
+    > label {
+        width: auto;
+    }
 `;
 
 type Props = {
@@ -143,30 +87,30 @@ const BooleanSetting = ({
             label={label}
             setByEnv={setByEnv}
         >
-            <BooleanRadioOption
-                $isDisabled={isDisabled}
-                data-testid={id + 'true'}
-                value='true'
-                id={Utils.createSafeId(id) + 'true'}
-                name={id}
-                checked={value}
-                onChange={handleChange}
-                disabled={isDisabled}
-            >
-                {trueText}
-            </BooleanRadioOption>
-            <BooleanRadioOption
-                $isDisabled={isDisabled}
-                data-testid={id + 'false'}
-                value='false'
-                id={Utils.createSafeId(id) + 'false'}
-                name={id}
-                checked={!value}
-                onChange={handleChange}
-                disabled={isDisabled}
-            >
-                {falseText}
-            </BooleanRadioOption>
+            <BooleanRadioGroup>
+                <Radio
+                    data-testid={id + 'true'}
+                    value='true'
+                    id={Utils.createSafeId(id) + 'true'}
+                    name={id}
+                    checked={value}
+                    onChange={handleChange}
+                    disabled={isDisabled}
+                >
+                    {trueText}
+                </Radio>
+                <Radio
+                    data-testid={id + 'false'}
+                    value='false'
+                    id={Utils.createSafeId(id) + 'false'}
+                    name={id}
+                    checked={!value}
+                    onChange={handleChange}
+                    disabled={isDisabled}
+                >
+                    {falseText}
+                </Radio>
+            </BooleanRadioGroup>
         </SettingSet>
     );
 };

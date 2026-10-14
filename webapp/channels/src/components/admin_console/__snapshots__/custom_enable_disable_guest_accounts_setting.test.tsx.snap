@@ -15,59 +15,63 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
     <div
       class="col-sm-8"
     >
-      <label
-        class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
-        for="MySettingtrue"
+      <div
+        class="BooleanRadioGroup-gkBvtd joVEQU"
       >
-        <input
-          class="_radio__input_11lrl_13"
-          data-testid="MySettingtrue"
-          id="MySettingtrue"
-          name="MySetting"
-          type="radio"
-          value="true"
-        />
-        <span
-          class="_radio__circle_11lrl_33"
+        <label
+          class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+          for="MySettingtrue"
         >
-          <span
-            aria-hidden="true"
-            class="_radio__dot_11lrl_59"
+          <input
+            class="_radio__input_11lrl_13"
+            data-testid="MySettingtrue"
+            id="MySettingtrue"
+            name="MySetting"
+            type="radio"
+            value="true"
           />
-        </span>
-        <span
-          class="_radio__label_11lrl_116"
-        >
-          True
-        </span>
-      </label>
-      <label
-        class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
-        for="MySettingfalse"
-      >
-        <input
-          checked=""
-          class="_radio__input_11lrl_13"
-          data-testid="MySettingfalse"
-          id="MySettingfalse"
-          name="MySetting"
-          type="radio"
-          value="false"
-        />
-        <span
-          class="_radio__circle_11lrl_33"
-        >
           <span
-            aria-hidden="true"
-            class="_radio__dot_11lrl_59"
-          />
-        </span>
-        <span
-          class="_radio__label_11lrl_116"
+            class="_radio__circle_11lrl_33"
+          >
+            <span
+              aria-hidden="true"
+              class="_radio__dot_11lrl_59"
+            />
+          </span>
+          <span
+            class="_radio__label_11lrl_116"
+          >
+            True
+          </span>
+        </label>
+        <label
+          class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+          for="MySettingfalse"
         >
-          False
-        </span>
-      </label>
+          <input
+            checked=""
+            class="_radio__input_11lrl_13"
+            data-testid="MySettingfalse"
+            id="MySettingfalse"
+            name="MySetting"
+            type="radio"
+            value="false"
+          />
+          <span
+            class="_radio__circle_11lrl_33"
+          >
+            <span
+              aria-hidden="true"
+              class="_radio__dot_11lrl_59"
+            />
+          </span>
+          <span
+            class="_radio__label_11lrl_116"
+          >
+            False
+          </span>
+        </label>
+      </div>
       <div
         class="help-text"
         data-testid="MySettinghelp-text"
@@ -100,59 +104,63 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
     <div
       class="col-sm-8"
     >
-      <label
-        class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
-        for="MySettingtrue"
+      <div
+        class="BooleanRadioGroup-gkBvtd joVEQU"
       >
-        <input
-          checked=""
-          class="_radio__input_11lrl_13"
-          data-testid="MySettingtrue"
-          id="MySettingtrue"
-          name="MySetting"
-          type="radio"
-          value="true"
-        />
-        <span
-          class="_radio__circle_11lrl_33"
+        <label
+          class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+          for="MySettingtrue"
         >
-          <span
-            aria-hidden="true"
-            class="_radio__dot_11lrl_59"
+          <input
+            checked=""
+            class="_radio__input_11lrl_13"
+            data-testid="MySettingtrue"
+            id="MySettingtrue"
+            name="MySetting"
+            type="radio"
+            value="true"
           />
-        </span>
-        <span
-          class="_radio__label_11lrl_116"
-        >
-          True
-        </span>
-      </label>
-      <label
-        class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
-        for="MySettingfalse"
-      >
-        <input
-          class="_radio__input_11lrl_13"
-          data-testid="MySettingfalse"
-          id="MySettingfalse"
-          name="MySetting"
-          type="radio"
-          value="false"
-        />
-        <span
-          class="_radio__circle_11lrl_33"
-        >
           <span
-            aria-hidden="true"
-            class="_radio__dot_11lrl_59"
-          />
-        </span>
-        <span
-          class="_radio__label_11lrl_116"
+            class="_radio__circle_11lrl_33"
+          >
+            <span
+              aria-hidden="true"
+              class="_radio__dot_11lrl_59"
+            />
+          </span>
+          <span
+            class="_radio__label_11lrl_116"
+          >
+            True
+          </span>
+        </label>
+        <label
+          class="_radio_11lrl_2 _radio--size-medium_11lrl_138"
+          for="MySettingfalse"
         >
-          False
-        </span>
-      </label>
+          <input
+            class="_radio__input_11lrl_13"
+            data-testid="MySettingfalse"
+            id="MySettingfalse"
+            name="MySetting"
+            type="radio"
+            value="false"
+          />
+          <span
+            class="_radio__circle_11lrl_33"
+          >
+            <span
+              aria-hidden="true"
+              class="_radio__dot_11lrl_59"
+            />
+          </span>
+          <span
+            class="_radio__label_11lrl_116"
+          >
+            False
+          </span>
+        </label>
+      </div>
       <div
         class="help-text"
         data-testid="MySettinghelp-text"

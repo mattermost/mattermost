@@ -254,6 +254,14 @@
         background-color: #f1f1f1;
     }
 
+    // SettingSet uses legend.form-legend (often outside .form-horizontal).
+    // Match Bootstrap label.control-label padding-top so it lines up with
+    // BooleanSetting / RadioSetting radio group offset (margin-top: 8px).
+    fieldset.form-group > .form-legend.control-label {
+        margin-bottom: 0;
+        padding-top: 7px;
+    }
+
     .form-horizontal {
         height: 100%;
 
