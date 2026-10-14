@@ -45,11 +45,12 @@ describe('Notifications', () => {
             cy.get('#emailEdit').click();
 
             if (shouldBeClicked) {
-                // * Ensure that 'Send email notifications' is set to 'Immediately'
-                cy.get('#emailNotificationImmediately').should('be.visible').and('be.checked');
+                // * Ensure email notifications default to On/Immediately
+                // Compass Radio hides the native input (opacity:0).
+                cy.get('#emailNotificationImmediately').should('exist').and('be.checked');
 
-                // # Check that 'Never' is not currently checked, and click it
-                cy.get('#emailNotificationNever').should('be.visible').and('not.be.checked').click();
+                // # Check that 'Never'/Off is not currently checked, and select it
+                cy.get('#emailNotificationNever').should('exist').and('not.be.checked').check({force: true});
 
                 // # Wait for half a second just to be sure the setting was correctly checked
                 cy.wait(TIMEOUTS.HALF_SEC);
@@ -57,11 +58,11 @@ describe('Notifications', () => {
                 // # Close the modal
                 cy.uiClose();
             } else {
-                // * Ensure that 'Send email notifications' is set to 'Immediately'
-                cy.get('#emailNotificationImmediately').should('be.visible').and('be.checked');
+                // * Ensure email notifications default to On/Immediately (unsaved change discarded)
+                cy.get('#emailNotificationImmediately').should('exist').and('be.checked');
 
-                // * Ensure that 'Send email notifications' is not set to 'Never'
-                cy.get('#emailNotificationNever').should('be.visible').and('not.be.checked');
+                // * Ensure email notifications is not set to Never/Off
+                cy.get('#emailNotificationNever').should('exist').and('not.be.checked');
             }
         });
     }

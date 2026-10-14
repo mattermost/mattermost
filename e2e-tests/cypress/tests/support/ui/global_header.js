@@ -129,8 +129,13 @@ Cypress.Commands.add('uiGetSettingsModal', () => {
 });
 
 Cypress.Commands.add('uiOpenSettingsModal', (section = '') => {
-    // # Open settings modal
-    cy.uiGetSettingsButton().click();
+    // # Open settings modal if it is not already open. When a prior test left
+    // the dialog open, the header Settings button is covered/hidden.
+    cy.get('body').then(($body) => {
+        if ($body.find('#accountSettingsModal:visible').length === 0) {
+            cy.uiGetSettingsButton().click();
+        }
+    });
 
     if (!section) {
         return cy.uiGetSettingsModal();
