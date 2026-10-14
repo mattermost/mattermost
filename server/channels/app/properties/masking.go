@@ -580,9 +580,12 @@ func (h *AccessControlHook) checkValueWriteVisibility(rctx request.CTX, mc maski
 	if err != nil {
 		return err
 	}
-	if existing == nil {
+	if existing == nil || model.IsEmptyPropertyValue(existing.Value) {
 		// Nothing stored yet to hide any of -- this is what lets a caller tag
-		// an object they cannot fully see.
+		// an object they cannot fully see. A cleared value leaves an empty row
+		// behind rather than none, and masks to nothing just as a hidden one
+		// does, so it has to be let through here too or a cleared value could
+		// only ever be set again by a caller exempt from masking.
 		return nil
 	}
 
