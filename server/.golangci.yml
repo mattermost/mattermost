@@ -90,6 +90,67 @@ linters:
       disable:
         - fieldalignment
       enable-all: true
+      settings:
+        unusedresult:
+          # Setting funcs replaces the analyzer's defaults, so they are repeated here.
+          funcs:
+            - context.WithCancel
+            - context.WithDeadline
+            - context.WithTimeout
+            - context.WithValue
+            - errors.New
+            - fmt.Append
+            - fmt.Appendf
+            - fmt.Appendln
+            - fmt.Errorf
+            - fmt.Sprint
+            - fmt.Sprintf
+            - fmt.Sprintln
+            - maps.All
+            - maps.Clone
+            - maps.Collect
+            - maps.Equal
+            - maps.EqualFunc
+            - maps.Keys
+            - maps.Values
+            - slices.All
+            - slices.AppendSeq
+            - slices.Backward
+            - slices.BinarySearch
+            - slices.BinarySearchFunc
+            - slices.Chunk
+            - slices.Clip
+            - slices.Clone
+            - slices.Collect
+            - slices.Compact
+            - slices.CompactFunc
+            - slices.Compare
+            - slices.CompareFunc
+            - slices.Concat
+            - slices.Contains
+            - slices.ContainsFunc
+            - slices.Delete
+            - slices.DeleteFunc
+            - slices.Equal
+            - slices.EqualFunc
+            - slices.Grow
+            - slices.Index
+            - slices.IndexFunc
+            - slices.Insert
+            - slices.IsSorted
+            - slices.IsSortedFunc
+            - slices.Max
+            - slices.MaxFunc
+            - slices.Min
+            - slices.MinFunc
+            - slices.Repeat
+            - slices.Replace
+            - slices.Sorted
+            - slices.SortedFunc
+            - slices.SortedStableFunc
+            - slices.Values
+            - sort.Reverse
+            - github.com/mattermost/mattermost/server/v8/channels/app/slashcommands.response
     unqueryvet:
       check-sql-builders: true
   exclusions:
