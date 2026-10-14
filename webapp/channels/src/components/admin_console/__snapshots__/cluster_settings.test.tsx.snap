@@ -62,29 +62,57 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="Enabletrue"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="Enabletrue"
                   id="Enabletrue"
                   name="Enable"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="Enablefalse"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="Enablefalse"
                   id="Enablefalse"
                   name="Enable"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -179,29 +207,57 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="UseIPAddresstrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="UseIPAddresstrue"
                   id="UseIPAddresstrue"
                   name="UseIPAddress"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="UseIPAddressfalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="UseIPAddressfalse"
                   id="UseIPAddressfalse"
                   name="UseIPAddress"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -225,29 +281,57 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="EnableGossipEncryptiontrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="EnableGossipEncryptiontrue"
                   id="EnableGossipEncryptiontrue"
                   name="EnableGossipEncryption"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="EnableGossipEncryptionfalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="EnableGossipEncryptionfalse"
                   id="EnableGossipEncryptionfalse"
                   name="EnableGossipEncryption"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -271,29 +355,57 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="EnableGossipCompressiontrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="EnableGossipCompressiontrue"
                   id="EnableGossipCompressiontrue"
                   name="EnableGossipCompression"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="EnableGossipCompressionfalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="EnableGossipCompressionfalse"
                   id="EnableGossipCompressionfalse"
                   name="EnableGossipCompression"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -421,29 +533,57 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="Enabletrue"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="Enabletrue"
                   id="Enabletrue"
                   name="Enable"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="Enablefalse"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="Enablefalse"
                   id="Enablefalse"
                   name="Enable"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -538,29 +678,57 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="UseIPAddresstrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="UseIPAddresstrue"
                   id="UseIPAddresstrue"
                   name="UseIPAddress"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="UseIPAddressfalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="UseIPAddressfalse"
                   id="UseIPAddressfalse"
                   name="UseIPAddress"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -584,29 +752,57 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="EnableGossipEncryptiontrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="EnableGossipEncryptiontrue"
                   id="EnableGossipEncryptiontrue"
                   name="EnableGossipEncryption"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="EnableGossipEncryptionfalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="EnableGossipEncryptionfalse"
                   id="EnableGossipEncryptionfalse"
                   name="EnableGossipEncryption"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -630,29 +826,57 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="EnableGossipCompressiontrue"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="EnableGossipCompressiontrue"
                   id="EnableGossipCompressiontrue"
                   name="EnableGossipCompression"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="EnableGossipCompressionfalse"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="EnableGossipCompressionfalse"
                   id="EnableGossipCompressionfalse"
                   name="EnableGossipCompression"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -780,29 +1004,57 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="Enabletrue"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="Enabletrue"
                   id="Enabletrue"
                   name="Enable"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="Enablefalse"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="Enablefalse"
                   id="Enablefalse"
                   name="Enable"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -897,29 +1149,57 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="UseIPAddresstrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="UseIPAddresstrue"
                   id="UseIPAddresstrue"
                   name="UseIPAddress"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="UseIPAddressfalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="UseIPAddressfalse"
                   id="UseIPAddressfalse"
                   name="UseIPAddress"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -943,29 +1223,57 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="EnableGossipEncryptiontrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="EnableGossipEncryptiontrue"
                   id="EnableGossipEncryptiontrue"
                   name="EnableGossipEncryption"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="EnableGossipEncryptionfalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="EnableGossipEncryptionfalse"
                   id="EnableGossipEncryptionfalse"
                   name="EnableGossipEncryption"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -989,29 +1297,57 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="EnableGossipCompressiontrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="EnableGossipCompressiontrue"
                   id="EnableGossipCompressiontrue"
                   name="EnableGossipCompression"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="EnableGossipCompressionfalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="EnableGossipCompressionfalse"
                   id="EnableGossipCompressionfalse"
                   name="EnableGossipCompression"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -1139,29 +1475,57 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="Enabletrue"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="Enabletrue"
                   id="Enabletrue"
                   name="Enable"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="Enablefalse"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="Enablefalse"
                   id="Enablefalse"
                   name="Enable"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -1256,29 +1620,57 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="UseIPAddresstrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="UseIPAddresstrue"
                   id="UseIPAddresstrue"
                   name="UseIPAddress"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="UseIPAddressfalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="UseIPAddressfalse"
                   id="UseIPAddressfalse"
                   name="UseIPAddress"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -1302,29 +1694,57 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="EnableGossipEncryptiontrue"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="EnableGossipEncryptiontrue"
                   id="EnableGossipEncryptiontrue"
                   name="EnableGossipEncryption"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="EnableGossipEncryptionfalse"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="EnableGossipEncryptionfalse"
                   id="EnableGossipEncryptionfalse"
                   name="EnableGossipEncryption"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -1348,29 +1768,57 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="EnableGossipCompressiontrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="EnableGossipCompressiontrue"
                   id="EnableGossipCompressiontrue"
                   name="EnableGossipCompression"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="EnableGossipCompressionfalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="EnableGossipCompressionfalse"
                   id="EnableGossipCompressionfalse"
                   name="EnableGossipCompression"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"

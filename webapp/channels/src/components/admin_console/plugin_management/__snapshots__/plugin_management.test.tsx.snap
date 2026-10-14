@@ -41,29 +41,57 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enabletrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enabletrue"
                       id="enabletrue"
                       name="enable"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enablefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enablefalse"
                       id="enablefalse"
                       name="enable"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -96,29 +124,57 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturetrue"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturetrue"
                       id="requirePluginSignaturetrue"
                       name="requirePluginSignature"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturefalse"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturefalse"
                       id="requirePluginSignaturefalse"
                       name="requirePluginSignature"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -151,29 +207,57 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginstrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginstrue"
                       id="automaticPrepackagedPluginstrue"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginsfalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginsfalse"
                       id="automaticPrepackagedPluginsfalse"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -248,29 +332,57 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacetrue"
                       id="enableMarketplacetrue"
                       name="enableMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacefalse"
                       id="enableMarketplacefalse"
                       name="enableMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -303,29 +415,57 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableRemoteMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacetrue"
                       id="enableRemoteMarketplacetrue"
                       name="enableRemoteMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableRemoteMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacefalse"
                       id="enableRemoteMarketplacefalse"
                       name="enableRemoteMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -454,29 +594,57 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enabletrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enabletrue"
                       id="enabletrue"
                       name="enable"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enablefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enablefalse"
                       id="enablefalse"
                       name="enable"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -509,29 +677,57 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturetrue"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturetrue"
                       id="requirePluginSignaturetrue"
                       name="requirePluginSignature"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturefalse"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturefalse"
                       id="requirePluginSignaturefalse"
                       name="requirePluginSignature"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -564,29 +760,57 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginstrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginstrue"
                       id="automaticPrepackagedPluginstrue"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginsfalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginsfalse"
                       id="automaticPrepackagedPluginsfalse"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -661,29 +885,57 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacetrue"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacetrue"
                       id="enableMarketplacetrue"
                       name="enableMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacefalse"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacefalse"
                       id="enableMarketplacefalse"
                       name="enableMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -716,10 +968,12 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl kxVoZJ"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF gEJoWP"
+                    for="enableRemoteMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacetrue"
                       disabled=""
                       id="enableRemoteMarketplacetrue"
@@ -727,12 +981,26 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl kxVoZJ"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF gEJoWP"
+                    for="enableRemoteMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacefalse"
                       disabled=""
                       id="enableRemoteMarketplacefalse"
@@ -740,7 +1008,19 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -943,29 +1223,57 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enabletrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enabletrue"
                       id="enabletrue"
                       name="enable"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enablefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enablefalse"
                       id="enablefalse"
                       name="enable"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -998,29 +1306,57 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturetrue"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturetrue"
                       id="requirePluginSignaturetrue"
                       name="requirePluginSignature"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturefalse"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturefalse"
                       id="requirePluginSignaturefalse"
                       name="requirePluginSignature"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -1053,29 +1389,57 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginstrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginstrue"
                       id="automaticPrepackagedPluginstrue"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginsfalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginsfalse"
                       id="automaticPrepackagedPluginsfalse"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -1150,29 +1514,57 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacetrue"
                       id="enableMarketplacetrue"
                       name="enableMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacefalse"
                       id="enableMarketplacefalse"
                       name="enableMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -1205,29 +1597,57 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableRemoteMarketplacetrue"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacetrue"
                       id="enableRemoteMarketplacetrue"
                       name="enableRemoteMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableRemoteMarketplacefalse"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacefalse"
                       id="enableRemoteMarketplacefalse"
                       name="enableRemoteMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -1357,29 +1777,57 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enabletrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enabletrue"
                       id="enabletrue"
                       name="enable"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enablefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enablefalse"
                       id="enablefalse"
                       name="enable"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -1412,29 +1860,57 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturetrue"
                       id="requirePluginSignaturetrue"
                       name="requirePluginSignature"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturefalse"
                       id="requirePluginSignaturefalse"
                       name="requirePluginSignature"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -1467,29 +1943,57 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginstrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginstrue"
                       id="automaticPrepackagedPluginstrue"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginsfalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginsfalse"
                       id="automaticPrepackagedPluginsfalse"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -1573,29 +2077,57 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacetrue"
                       id="enableMarketplacetrue"
                       name="enableMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacefalse"
                       id="enableMarketplacefalse"
                       name="enableMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -1628,29 +2160,57 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableRemoteMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacetrue"
                       id="enableRemoteMarketplacetrue"
                       name="enableRemoteMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableRemoteMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacefalse"
                       id="enableRemoteMarketplacefalse"
                       name="enableRemoteMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -1779,29 +2339,57 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enabletrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enabletrue"
                       id="enabletrue"
                       name="enable"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enablefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enablefalse"
                       id="enablefalse"
                       name="enable"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -1834,29 +2422,57 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturetrue"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturetrue"
                       id="requirePluginSignaturetrue"
                       name="requirePluginSignature"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturefalse"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturefalse"
                       id="requirePluginSignaturefalse"
                       name="requirePluginSignature"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -1889,29 +2505,57 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginstrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginstrue"
                       id="automaticPrepackagedPluginstrue"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginsfalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginsfalse"
                       id="automaticPrepackagedPluginsfalse"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -1986,29 +2630,57 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacetrue"
                       id="enableMarketplacetrue"
                       name="enableMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacefalse"
                       id="enableMarketplacefalse"
                       name="enableMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -2041,29 +2713,57 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableRemoteMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacetrue"
                       id="enableRemoteMarketplacetrue"
                       name="enableRemoteMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableRemoteMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacefalse"
                       id="enableRemoteMarketplacefalse"
                       name="enableRemoteMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -2193,29 +2893,57 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enabletrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enabletrue"
                       id="enabletrue"
                       name="enable"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enablefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enablefalse"
                       id="enablefalse"
                       name="enable"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -2248,29 +2976,57 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturetrue"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturetrue"
                       id="requirePluginSignaturetrue"
                       name="requirePluginSignature"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturefalse"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturefalse"
                       id="requirePluginSignaturefalse"
                       name="requirePluginSignature"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -2303,29 +3059,57 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginstrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginstrue"
                       id="automaticPrepackagedPluginstrue"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginsfalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginsfalse"
                       id="automaticPrepackagedPluginsfalse"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -2400,29 +3184,57 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacetrue"
                       id="enableMarketplacetrue"
                       name="enableMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacefalse"
                       id="enableMarketplacefalse"
                       name="enableMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -2455,29 +3267,57 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableRemoteMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacetrue"
                       id="enableRemoteMarketplacetrue"
                       name="enableRemoteMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableRemoteMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacefalse"
                       id="enableRemoteMarketplacefalse"
                       name="enableRemoteMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -2606,29 +3446,57 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enabletrue"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enabletrue"
                       id="enabletrue"
                       name="enable"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enablefalse"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enablefalse"
                       id="enablefalse"
                       name="enable"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -2661,9 +3529,11 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl kxVoZJ"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF gEJoWP"
+                    for="requirePluginSignaturetrue"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturetrue"
                       disabled=""
                       id="requirePluginSignaturetrue"
@@ -2671,13 +3541,27 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl kxVoZJ"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF gEJoWP"
+                    for="requirePluginSignaturefalse"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturefalse"
                       disabled=""
                       id="requirePluginSignaturefalse"
@@ -2685,7 +3569,19 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -2718,10 +3614,12 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl kxVoZJ"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF gEJoWP"
+                    for="automaticPrepackagedPluginstrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginstrue"
                       disabled=""
                       id="automaticPrepackagedPluginstrue"
@@ -2729,12 +3627,26 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl kxVoZJ"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF gEJoWP"
+                    for="automaticPrepackagedPluginsfalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginsfalse"
                       disabled=""
                       id="automaticPrepackagedPluginsfalse"
@@ -2742,7 +3654,19 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -2830,10 +3754,12 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl kxVoZJ"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF gEJoWP"
+                    for="enableMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacetrue"
                       disabled=""
                       id="enableMarketplacetrue"
@@ -2841,12 +3767,26 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl kxVoZJ"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF gEJoWP"
+                    for="enableMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacefalse"
                       disabled=""
                       id="enableMarketplacefalse"
@@ -2854,7 +3794,19 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -2887,10 +3839,12 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl kxVoZJ"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF gEJoWP"
+                    for="enableRemoteMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacetrue"
                       disabled=""
                       id="enableRemoteMarketplacetrue"
@@ -2898,12 +3852,26 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl kxVoZJ"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF gEJoWP"
+                    for="enableRemoteMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacefalse"
                       disabled=""
                       id="enableRemoteMarketplacefalse"
@@ -2911,7 +3879,19 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -3022,29 +4002,57 @@ exports[`components/PluginManagement should match snapshot, text entered into th
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enabletrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enabletrue"
                       id="enabletrue"
                       name="enable"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enablefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enablefalse"
                       id="enablefalse"
                       name="enable"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -3077,29 +4085,57 @@ exports[`components/PluginManagement should match snapshot, text entered into th
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturetrue"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturetrue"
                       id="requirePluginSignaturetrue"
                       name="requirePluginSignature"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturefalse"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturefalse"
                       id="requirePluginSignaturefalse"
                       name="requirePluginSignature"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -3132,29 +4168,57 @@ exports[`components/PluginManagement should match snapshot, text entered into th
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginstrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginstrue"
                       id="automaticPrepackagedPluginstrue"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginsfalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginsfalse"
                       id="automaticPrepackagedPluginsfalse"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -3229,29 +4293,57 @@ exports[`components/PluginManagement should match snapshot, text entered into th
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacetrue"
                       id="enableMarketplacetrue"
                       name="enableMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacefalse"
                       id="enableMarketplacefalse"
                       name="enableMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -3284,29 +4376,57 @@ exports[`components/PluginManagement should match snapshot, text entered into th
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableRemoteMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacetrue"
                       id="enableRemoteMarketplacetrue"
                       name="enableRemoteMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableRemoteMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacefalse"
                       id="enableRemoteMarketplacefalse"
                       name="enableRemoteMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -3435,29 +4555,57 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enabletrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enabletrue"
                       id="enabletrue"
                       name="enable"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enablefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enablefalse"
                       id="enablefalse"
                       name="enable"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -3490,29 +4638,57 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturetrue"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturetrue"
                       id="requirePluginSignaturetrue"
                       name="requirePluginSignature"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturefalse"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturefalse"
                       id="requirePluginSignaturefalse"
                       name="requirePluginSignature"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -3545,29 +4721,57 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginstrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginstrue"
                       id="automaticPrepackagedPluginstrue"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginsfalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginsfalse"
                       id="automaticPrepackagedPluginsfalse"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -3651,29 +4855,57 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacetrue"
                       id="enableMarketplacetrue"
                       name="enableMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacefalse"
                       id="enableMarketplacefalse"
                       name="enableMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -3706,10 +4938,12 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl kxVoZJ"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF gEJoWP"
+                    for="enableRemoteMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacetrue"
                       disabled=""
                       id="enableRemoteMarketplacetrue"
@@ -3717,12 +4951,26 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl kxVoZJ"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF gEJoWP"
+                    for="enableRemoteMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacefalse"
                       disabled=""
                       id="enableRemoteMarketplacefalse"
@@ -3730,7 +4978,19 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -3869,29 +5129,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enabletrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enabletrue"
                       id="enabletrue"
                       name="enable"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enablefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enablefalse"
                       id="enablefalse"
                       name="enable"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -3924,29 +5212,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturetrue"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturetrue"
                       id="requirePluginSignaturetrue"
                       name="requirePluginSignature"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturefalse"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturefalse"
                       id="requirePluginSignaturefalse"
                       name="requirePluginSignature"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -3979,29 +5295,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginstrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginstrue"
                       id="automaticPrepackagedPluginstrue"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginsfalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginsfalse"
                       id="automaticPrepackagedPluginsfalse"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -4076,29 +5420,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacetrue"
                       id="enableMarketplacetrue"
                       name="enableMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacefalse"
                       id="enableMarketplacefalse"
                       name="enableMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -4131,29 +5503,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableRemoteMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacetrue"
                       id="enableRemoteMarketplacetrue"
                       name="enableRemoteMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableRemoteMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacefalse"
                       id="enableRemoteMarketplacefalse"
                       name="enableRemoteMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -4565,29 +5965,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enabletrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enabletrue"
                       id="enabletrue"
                       name="enable"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enablefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enablefalse"
                       id="enablefalse"
                       name="enable"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -4620,29 +6048,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturetrue"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturetrue"
                       id="requirePluginSignaturetrue"
                       name="requirePluginSignature"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturefalse"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturefalse"
                       id="requirePluginSignaturefalse"
                       name="requirePluginSignature"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -4675,29 +6131,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginstrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginstrue"
                       id="automaticPrepackagedPluginstrue"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginsfalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginsfalse"
                       id="automaticPrepackagedPluginsfalse"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -4772,29 +6256,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacetrue"
                       id="enableMarketplacetrue"
                       name="enableMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacefalse"
                       id="enableMarketplacefalse"
                       name="enableMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -4827,29 +6339,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableRemoteMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacetrue"
                       id="enableRemoteMarketplacetrue"
                       name="enableRemoteMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableRemoteMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacefalse"
                       id="enableRemoteMarketplacefalse"
                       name="enableRemoteMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -5059,29 +6599,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enabletrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enabletrue"
                       id="enabletrue"
                       name="enable"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enablefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enablefalse"
                       id="enablefalse"
                       name="enable"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -5114,29 +6682,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturetrue"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturetrue"
                       id="requirePluginSignaturetrue"
                       name="requirePluginSignature"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturefalse"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturefalse"
                       id="requirePluginSignaturefalse"
                       name="requirePluginSignature"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -5169,29 +6765,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginstrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginstrue"
                       id="automaticPrepackagedPluginstrue"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginsfalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginsfalse"
                       id="automaticPrepackagedPluginsfalse"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -5266,29 +6890,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacetrue"
                       id="enableMarketplacetrue"
                       name="enableMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacefalse"
                       id="enableMarketplacefalse"
                       name="enableMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -5321,29 +6973,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableRemoteMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacetrue"
                       id="enableRemoteMarketplacetrue"
                       name="enableRemoteMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableRemoteMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacefalse"
                       id="enableRemoteMarketplacefalse"
                       name="enableRemoteMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -5553,29 +7233,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enabletrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enabletrue"
                       id="enabletrue"
                       name="enable"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enablefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enablefalse"
                       id="enablefalse"
                       name="enable"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -5608,29 +7316,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturetrue"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturetrue"
                       id="requirePluginSignaturetrue"
                       name="requirePluginSignature"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturefalse"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturefalse"
                       id="requirePluginSignaturefalse"
                       name="requirePluginSignature"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -5663,29 +7399,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginstrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginstrue"
                       id="automaticPrepackagedPluginstrue"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginsfalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginsfalse"
                       id="automaticPrepackagedPluginsfalse"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -5760,29 +7524,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacetrue"
                       id="enableMarketplacetrue"
                       name="enableMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacefalse"
                       id="enableMarketplacefalse"
                       name="enableMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -5815,29 +7607,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableRemoteMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacetrue"
                       id="enableRemoteMarketplacetrue"
                       name="enableRemoteMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableRemoteMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacefalse"
                       id="enableRemoteMarketplacefalse"
                       name="enableRemoteMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -6047,29 +7867,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enabletrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enabletrue"
                       id="enabletrue"
                       name="enable"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enablefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enablefalse"
                       id="enablefalse"
                       name="enable"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -6102,29 +7950,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturetrue"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturetrue"
                       id="requirePluginSignaturetrue"
                       name="requirePluginSignature"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="requirePluginSignaturefalse"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="requirePluginSignaturefalse"
                       id="requirePluginSignaturefalse"
                       name="requirePluginSignature"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -6157,29 +8033,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginstrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginstrue"
                       id="automaticPrepackagedPluginstrue"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="automaticPrepackagedPluginsfalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="automaticPrepackagedPluginsfalse"
                       id="automaticPrepackagedPluginsfalse"
                       name="automaticPrepackagedPlugins"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -6254,29 +8158,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacetrue"
                       id="enableMarketplacetrue"
                       name="enableMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableMarketplacefalse"
                       id="enableMarketplacefalse"
                       name="enableMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"
@@ -6309,29 +8241,57 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableRemoteMarketplacetrue"
                   >
                     <input
                       checked=""
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacetrue"
                       id="enableRemoteMarketplacetrue"
                       name="enableRemoteMarketplace"
                       type="radio"
                       value="true"
                     />
-                    True
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      True
+                    </span>
                   </label>
                   <label
-                    class="Label-eJcoMl iShgPr"
+                    class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                    for="enableRemoteMarketplacefalse"
                   >
                     <input
+                      class="_radio__input_11lrl_13"
                       data-testid="enableRemoteMarketplacefalse"
                       id="enableRemoteMarketplacefalse"
                       name="enableRemoteMarketplace"
                       type="radio"
                       value="false"
                     />
-                    False
+                    <span
+                      class="_radio__circle_11lrl_33"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_radio__dot_11lrl_59"
+                      />
+                    </span>
+                    <span
+                      class="_radio__label_11lrl_116"
+                    >
+                      False
+                    </span>
                   </label>
                   <div
                     class="help-text"

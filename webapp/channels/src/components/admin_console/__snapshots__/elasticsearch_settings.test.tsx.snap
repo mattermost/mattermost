@@ -35,29 +35,57 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="enableIndexingtrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="enableIndexingtrue"
                   id="enableIndexingtrue"
                   name="enableIndexing"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="enableIndexingfalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="enableIndexingfalse"
                   id="enableIndexingfalse"
                   name="enableIndexing"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -257,9 +285,11 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl kxVoZJ"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF gEJoWP"
+                for="skipTLSVerificationtrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="skipTLSVerificationtrue"
                   disabled=""
                   id="skipTLSVerificationtrue"
@@ -267,13 +297,27 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl kxVoZJ"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF gEJoWP"
+                for="skipTLSVerificationfalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="skipTLSVerificationfalse"
                   disabled=""
                   id="skipTLSVerificationfalse"
@@ -281,7 +325,19 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -369,9 +425,11 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl kxVoZJ"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF gEJoWP"
+                for="snifftrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="snifftrue"
                   disabled=""
                   id="snifftrue"
@@ -379,13 +437,27 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl kxVoZJ"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF gEJoWP"
+                for="snifffalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="snifffalse"
                   disabled=""
                   id="snifffalse"
@@ -393,7 +465,19 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -603,9 +687,11 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl kxVoZJ"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF gEJoWP"
+                for="enableSearchingtrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="enableSearchingtrue"
                   disabled=""
                   id="enableSearchingtrue"
@@ -613,13 +699,27 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl kxVoZJ"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF gEJoWP"
+                for="enableSearchingfalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="enableSearchingfalse"
                   disabled=""
                   id="enableSearchingfalse"
@@ -627,7 +727,19 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -651,9 +763,11 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl kxVoZJ"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF gEJoWP"
+                for="enableAutocompletetrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="enableAutocompletetrue"
                   disabled=""
                   id="enableAutocompletetrue"
@@ -661,13 +775,27 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl kxVoZJ"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF gEJoWP"
+                for="enableAutocompletefalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="enableAutocompletefalse"
                   disabled=""
                   id="enableAutocompletefalse"
@@ -675,7 +803,19 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -699,9 +839,11 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl kxVoZJ"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF gEJoWP"
+                for="enableSearchPublicChannelsWithoutMembershiptrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="enableSearchPublicChannelsWithoutMembershiptrue"
                   disabled=""
                   id="enableSearchPublicChannelsWithoutMembershiptrue"
@@ -709,13 +851,27 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl kxVoZJ"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF gEJoWP"
+                for="enableSearchPublicChannelsWithoutMembershipfalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="enableSearchPublicChannelsWithoutMembershipfalse"
                   disabled=""
                   id="enableSearchPublicChannelsWithoutMembershipfalse"
@@ -723,7 +879,19 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -793,29 +961,57 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="enableIndexingtrue"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="enableIndexingtrue"
                   id="enableIndexingtrue"
                   name="enableIndexing"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="enableIndexingfalse"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="enableIndexingfalse"
                   id="enableIndexingfalse"
                   name="enableIndexing"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -1010,29 +1206,57 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="skipTLSVerificationtrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="skipTLSVerificationtrue"
                   id="skipTLSVerificationtrue"
                   name="skipTLSVerification"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="skipTLSVerificationfalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="skipTLSVerificationfalse"
                   id="skipTLSVerificationfalse"
                   name="skipTLSVerification"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -1118,29 +1342,57 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="snifftrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="snifftrue"
                   id="snifftrue"
                   name="sniff"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="snifffalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="snifffalse"
                   id="snifffalse"
                   name="sniff"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -1345,29 +1597,57 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="enableSearchingtrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="enableSearchingtrue"
                   id="enableSearchingtrue"
                   name="enableSearching"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="enableSearchingfalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="enableSearchingfalse"
                   id="enableSearchingfalse"
                   name="enableSearching"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -1391,29 +1671,57 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="enableAutocompletetrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="enableAutocompletetrue"
                   id="enableAutocompletetrue"
                   name="enableAutocomplete"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="enableAutocompletefalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="enableAutocompletefalse"
                   id="enableAutocompletefalse"
                   name="enableAutocomplete"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -1437,29 +1745,57 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="enableSearchPublicChannelsWithoutMembershiptrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="enableSearchPublicChannelsWithoutMembershiptrue"
                   id="enableSearchPublicChannelsWithoutMembershiptrue"
                   name="enableSearchPublicChannelsWithoutMembership"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="enableSearchPublicChannelsWithoutMembershipfalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="enableSearchPublicChannelsWithoutMembershipfalse"
                   id="enableSearchPublicChannelsWithoutMembershipfalse"
                   name="enableSearchPublicChannelsWithoutMembership"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -1529,29 +1865,57 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="enableIndexingtrue"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="enableIndexingtrue"
                   id="enableIndexingtrue"
                   name="enableIndexing"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="enableIndexingfalse"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="enableIndexingfalse"
                   id="enableIndexingfalse"
                   name="enableIndexing"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -1746,29 +2110,57 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="skipTLSVerificationtrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="skipTLSVerificationtrue"
                   id="skipTLSVerificationtrue"
                   name="skipTLSVerification"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="skipTLSVerificationfalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="skipTLSVerificationfalse"
                   id="skipTLSVerificationfalse"
                   name="skipTLSVerification"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -1854,29 +2246,57 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="snifftrue"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="snifftrue"
                   id="snifftrue"
                   name="sniff"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="snifffalse"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="snifffalse"
                   id="snifffalse"
                   name="sniff"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -2090,29 +2510,57 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="enableSearchingtrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="enableSearchingtrue"
                   id="enableSearchingtrue"
                   name="enableSearching"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="enableSearchingfalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="enableSearchingfalse"
                   id="enableSearchingfalse"
                   name="enableSearching"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -2136,29 +2584,57 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="enableAutocompletetrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="enableAutocompletetrue"
                   id="enableAutocompletetrue"
                   name="enableAutocomplete"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="enableAutocompletefalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="enableAutocompletefalse"
                   id="enableAutocompletefalse"
                   name="enableAutocomplete"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
@@ -2182,29 +2658,57 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="enableSearchPublicChannelsWithoutMembershiptrue"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="enableSearchPublicChannelsWithoutMembershiptrue"
                   id="enableSearchPublicChannelsWithoutMembershiptrue"
                   name="enableSearchPublicChannelsWithoutMembership"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="enableSearchPublicChannelsWithoutMembershipfalse"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="enableSearchPublicChannelsWithoutMembershipfalse"
                   id="enableSearchPublicChannelsWithoutMembershipfalse"
                   name="enableSearchPublicChannelsWithoutMembership"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"

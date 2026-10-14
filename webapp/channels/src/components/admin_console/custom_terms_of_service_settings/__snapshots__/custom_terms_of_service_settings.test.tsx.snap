@@ -35,29 +35,57 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="SupportSettings.CustomTermsOfServiceEnabledtrue"
               >
                 <input
                   checked=""
+                  class="_radio__input_11lrl_13"
                   data-testid="SupportSettings.CustomTermsOfServiceEnabledtrue"
                   id="SupportSettings.CustomTermsOfServiceEnabledtrue"
                   name="SupportSettings.CustomTermsOfServiceEnabled"
                   type="radio"
                   value="true"
                 />
-                True
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  True
+                </span>
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="_radio_11lrl_2 _radio--size-medium_11lrl_138 BooleanRadioOption-eExkPF bFTbiJ"
+                for="SupportSettings.CustomTermsOfServiceEnabledfalse"
               >
                 <input
+                  class="_radio__input_11lrl_13"
                   data-testid="SupportSettings.CustomTermsOfServiceEnabledfalse"
                   id="SupportSettings.CustomTermsOfServiceEnabledfalse"
                   name="SupportSettings.CustomTermsOfServiceEnabled"
                   type="radio"
                   value="false"
                 />
-                False
+                <span
+                  class="_radio__circle_11lrl_33"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_11lrl_59"
+                  />
+                </span>
+                <span
+                  class="_radio__label_11lrl_116"
+                >
+                  False
+                </span>
               </label>
               <div
                 class="help-text"
