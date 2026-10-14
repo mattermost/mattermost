@@ -87,8 +87,8 @@
         // Keep the button in layout flow when unused so showing/hiding it
         // does not shift the section title/description below.
         &--hidden {
-            visibility: hidden;
             pointer-events: none;
+            visibility: hidden;
         }
     }
 
