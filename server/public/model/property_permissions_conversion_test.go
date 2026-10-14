@@ -913,29 +913,53 @@ func TestPermissionsFromLegacyGrantsTemplateWildcardFieldWrite(t *testing.T) {
 	assert.Contains(t, p.Grants[0].Allow, PropertyActionFieldWrite)
 }
 
-func TestProjectLegacyPermissionsWildcardGrantBecomesOwner(t *testing.T) {
-	// A converted field's wildcard plugin grant projects into Attrs as an
-	// owner named "*" -- the model's spelling of a wildcard for a v2 caller.
-	// That flips HasPropertyFieldOwners from false to true on the projected
-	// copy, but grantsFromLegacy preserves an owner's Allow verbatim once it
-	// carries one, so converting the projected field back reproduces the same
-	// grant instead of losing or duplicating it.
-	field := &PropertyField{
-		Attrs: StringInterface{
-			PropertyAttrsAccessMode: PropertyAccessModePublic,
-		},
+func TestProjectLegacyPermissionsOmitsWildcardGrant(t *testing.T) {
+	// A converted field's wildcard plugin grant must not project as an owner:
+	// a v2 reader takes any owner to mean no person may set the values, so an
+	// ordinary field would read as locked. Converting the projection back
+	// mints the same wildcard again.
+	for name, convertAttrs := range map[string]bool{"access_control": true, "another group": false} {
+		t.Run(name, func(t *testing.T) {
+			opts := LegacyConversionOpts{ConvertAttrs: convertAttrs}
+			field := &PropertyField{
+				PermissionField:   new(PermissionLevelSysadmin),
+				PermissionOptions: new(PermissionLevelSysadmin),
+				PermissionValues:  new(PermissionLevelMember),
+				Attrs: StringInterface{
+					PropertyAttrsAccessMode: PropertyAccessModePublic,
+				},
+			}
+			field.Permissions = PermissionsFromLegacy(field, opts)
+			require.Len(t, field.Permissions.Grants, 1)
+			require.Equal(t, "*", field.Permissions.Grants[0].ID)
+
+			projected := ProjectLegacyPermissions(field)
+
+			assert.False(t, HasPropertyFieldOwners(projected))
+			assert.NotContains(t, projected.Attrs, PropertyAttrsOwners)
+			assert.Equal(t, PermissionLevelMember, *projected.PermissionValues)
+
+			reconverted := PermissionsFromLegacy(projected, opts)
+			assert.Equal(t, field.Permissions, reconverted)
+		})
 	}
-	field.Permissions = PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
-	require.False(t, HasPropertyFieldOwners(field))
 
-	projected := ProjectLegacyPermissions(field)
+	t.Run("an owned field projects only its named owner", func(t *testing.T) {
+		field := &PropertyField{
+			Attrs: StringInterface{
+				PropertyAttrsOwners: []PropertyOwner{
+					{Type: PropertyOwnerTypePlugin, ID: "plugin1"},
+				},
+			},
+		}
+		field.Permissions = PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+		// The owner blocks ambient writes but not ambient reads, so a
+		// read-only wildcard sits next to the owner's grant.
+		require.Len(t, field.Permissions.Grants, 2)
 
-	assert.True(t, HasPropertyFieldOwners(projected))
-	owners := GetPropertyFieldOwners(projected)
-	require.Len(t, owners, 1)
-	assert.Equal(t, "*", owners[0].ID)
-	assert.Equal(t, PropertyOwnerTypePlugin, owners[0].Type)
+		owners := GetPropertyFieldOwners(ProjectLegacyPermissions(field))
 
-	reconverted := PermissionsFromLegacy(projected, LegacyConversionOpts{ConvertAttrs: true})
-	assert.Equal(t, field.Permissions, reconverted)
+		require.Len(t, owners, 1)
+		assert.Equal(t, "plugin1", owners[0].ID)
+	})
 }
