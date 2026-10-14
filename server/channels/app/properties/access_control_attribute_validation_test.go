@@ -2269,7 +2269,7 @@ func TestAccessControlAttributeValidationHook_Owners(t *testing.T) {
 		assert.Contains(t, createErr.Error(), "owner id")
 	})
 
-	t.Run("rejects owners combined with managed=admin", func(t *testing.T) {
+	t.Run("allows owners combined with managed=admin for an admin caller", func(t *testing.T) {
 		field := &model.PropertyField{
 			GroupID:    group.ID,
 			Name:       "field_" + model.NewId(),
@@ -2283,9 +2283,15 @@ func TestAccessControlAttributeValidationHook_Owners(t *testing.T) {
 				},
 			},
 		}
-		_, createErr := th.service.CreatePropertyField(th.Context, field)
-		require.Error(t, createErr)
-		assert.Contains(t, createErr.Error(), "managed=admin")
+		created, createErr := th.service.CreatePropertyField(RequestContextWithCallerID(th.Context, "admin-user"), field)
+		require.NoError(t, createErr)
+		assert.Equal(t, "admin", created.Attrs[model.PropertyFieldAttrManaged])
+		owners := model.GetPropertyFieldOwners(created)
+		require.Len(t, owners, 1)
+		assert.Equal(t, "com.mattermost.scim", owners[0].ID)
+		assert.Equal(t, []string{"entra"}, owners[0].Scopes)
+		require.NotNil(t, created.PermissionValues)
+		assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionValues)
 	})
 
 	t.Run("allows owners combined with saml sync attr", func(t *testing.T) {

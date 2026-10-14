@@ -1,0 +1,472 @@
+{
+  "Mattermost": {
+    "target": "Mattermost",
+    "note": "Brand name; keep uninflected in all cases (v Mattermost, do Mattermost). A few legacy strings decline it ('Mattermostu') — avoid."
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition",
+    "note": "Keep in English. Existing catalog once renders it as 'Enterprise edice' (about dialog); do not translate the edition name."
+  },
+  "Team Edition": {
+    "target": "Team Edition",
+    "note": "Keep in English. Existing catalog once renders it as 'Týmová edice' (about dialog) — do not follow."
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels",
+    "note": "Product name; keep in English. The common noun 'channel' is 'kanál'."
+  },
+  "Playbooks": {
+    "target": "Playbooks",
+    "note": "Product name; keep in English. The common noun 'playbook' appears as 'příručka' in permission strings."
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls",
+    "note": "Product name; keep in English. The common noun 'call' is 'hovor'."
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth",
+    "note": "'OAuth 2.0 application' → 'aplikace OAuth 2.0'."
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP",
+    "note": "Keep the 'AD/LDAP' compound as-is."
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA",
+    "note": "Spelled-out form in the catalog is 'vícefaktorové ověřování'."
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Gossip": {
+    "target": "Gossip",
+    "note": "Protocol name; catalog writes 'gossip protokol'. Never translate literally."
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay"
+  },
+  "System Console": {
+    "target": "Systémová konzole",
+    "note": "Feminine. Locative 'v Systémové konzoli'; genitive 'Systémové konzole'. Capitalization of the adjective varies mid-sentence in the catalog; both are accepted."
+  },
+  "marketplace": {
+    "target": "Marketplace",
+    "note": "Catalog majority keeps 'Marketplace' as a name (admin plugin settings, 'App Marketplace'); 'tržiště' appears in a few server/plugin strings. Prefer 'Marketplace' (indeclinable) for the feature name."
+  },
+  "channel": {
+    "target": "kanál",
+    "note": "Masculine inanimate. Plural 'kanály'; locative 'v kanálu'; genitive 'kanálu'."
+  },
+  "team": {
+    "target": "tým",
+    "note": "Masculine. Plural 'týmy'; genitive 'týmu'; locative 'v týmu'."
+  },
+  "post": {
+    "target": "příspěvek",
+    "note": "Masculine ('příspěvky', 'příspěvku'). The catalog frequently uses 'zpráva' for 'post' in user-facing strings ('Připnuté zprávy'); 'příspěvek' is used where the distinction matters (scheduled posts, moderation). Either is acceptable where English says 'post' meaning a message."
+  },
+  "message": {
+    "target": "zpráva",
+    "note": "Feminine. Plural 'zprávy'; genitive plural 'zpráv'."
+  },
+  "thread": {
+    "target": "vlákno",
+    "note": "Neuter. Plural 'vlákna'; locative 've vláknu'; genitive 'vlákna'."
+  },
+  "reply": {
+    "target": "odpověď",
+    "note": "Noun 'odpověď' (feminine, plural 'odpovědi'). Verb/button 'Odpovědět'."
+  },
+  "direct message": {
+    "target": "přímá zpráva",
+    "note": "Established rendering; plural 'přímé zprávy', genitive plural 'přímých zpráv'. Do not translate the 'DM' abbreviation. One legacy string uses 'soukromá zpráva' — avoid."
+  },
+  "group message": {
+    "target": "skupinová zpráva",
+    "note": "Plural 'skupinové zprávy'."
+  },
+  "mention": {
+    "target": "zmínka",
+    "note": "Noun 'zmínka' (feminine, plural 'zmínky'). Verb 'zmínit'. '@mention' → 'zmínka @'. 'Recent mentions' → 'Nedávné zmínky'."
+  },
+  "notification": {
+    "target": "oznámení",
+    "note": "Neuter, same form in plural. The catalog is split roughly 50/50 between 'oznámení' (admin console, 'Nastavení oznámení') and 'upozornění' (settings menu 'Upozornění', 'Předvolby upozornění'). Prefer 'oznámení' for new strings; 'upozornění' is acceptable where neighboring existing strings use it."
+  },
+  "pin": {
+    "target": "připnout",
+    "note": "Button 'Připnout'; 'pinned messages' → 'připnuté zprávy'; 'unpin' → 'odepnout'."
+  },
+  "bookmark": {
+    "target": "záložka",
+    "note": "Feminine; plural 'záložky', genitive plural 'záložek'. Verb: 'přidat záložku'."
+  },
+  "saved messages": {
+    "target": "uložené zprávy",
+    "note": "'save' → 'uložit'; 'unsave' → 'odebrat z uložených'."
+  },
+  "draft": {
+    "target": "koncept",
+    "note": "Masculine; plural 'koncepty'. Majority in the Drafts view. Older scheduled-post strings use 'návrh' — avoid, 'návrh' is reserved for 'suggestion'."
+  },
+  "scheduled post": {
+    "target": "naplánovaný příspěvek",
+    "note": "Established in scheduled_post.* strings. 'scheduled message' → 'naplánovaná zpráva'; label 'Scheduled' → 'Naplánováno'."
+  },
+  "emoji": {
+    "target": "emodži",
+    "note": "Indeclinable neuter; same form singular and plural ('toto emodži', 'tato emodži'). Catalog majority is the Czech spelling 'emodži'; avoid 'emoji'."
+  },
+  "custom emoji": {
+    "target": "vlastní emodži",
+    "note": "One legacy string uses 'uživatelské emodži' — avoid."
+  },
+  "reaction": {
+    "target": "reakce",
+    "note": "Feminine; same form in plural. Verb 'reagovat'; 'Add reaction' → 'Přidat reakci'."
+  },
+  "status": {
+    "target": "status",
+    "note": "Masculine ('statusu'). The catalog mixes 'status' (manual-status modals) and 'stav' (custom status). Use 'status' for availability; see 'custom status'."
+  },
+  "custom status": {
+    "target": "vlastní stav",
+    "note": "Established rendering in user menu and onboarding ('Nastavit vlastní stav', 'Smazat vlastní stav'); a few strings use 'vlastní status' — prefer 'vlastní stav'."
+  },
+  "do not disturb": {
+    "target": "Nerušit",
+    "note": "Established status name; as a mode: 'režim Nerušit'. Do not translate the DND abbreviation."
+  },
+  "away": {
+    "target": "Pryč",
+    "note": "Established status name in user menu and mobile strings."
+  },
+  "online": {
+    "target": "Online",
+    "note": "Loanword kept indeclinable ('Naposledy online')."
+  },
+  "offline": {
+    "target": "Offline",
+    "note": "Loanword kept indeclinable ('Pryč nebo offline')."
+  },
+  "out of office": {
+    "target": "Mimo kancelář"
+  },
+  "guest": {
+    "target": "host",
+    "note": "Masculine animate; plural 'hosté', genitive plural 'hostů', accusative plural 'hosty'. 'Guest access' → 'přístup hostů'. A few strings use 'návštěvník' — avoid."
+  },
+  "member": {
+    "target": "člen",
+    "note": "Masculine animate; plural 'členové', genitive plural 'členů'. 'channel member' → 'člen kanálu'."
+  },
+  "user": {
+    "target": "uživatel",
+    "note": "Plural 'uživatelé'; genitive plural 'uživatelů'."
+  },
+  "system admin": {
+    "target": "správce systému",
+    "note": "Plural 'správci systému'. Use for 'System Administrator' as well. Avoid 'systémový správce' and the loanword 'administrátor' seen sporadically."
+  },
+  "team admin": {
+    "target": "správce týmu",
+    "note": "Plural 'správci týmu'."
+  },
+  "channel admin": {
+    "target": "správce kanálu",
+    "note": "Plural 'správci kanálu'. Avoid 'admin kanálu' seen once."
+  },
+  "session": {
+    "target": "relace",
+    "note": "Feminine; same form in plural. 'Active sessions' → 'Aktivní relace'."
+  },
+  "sign in": {
+    "target": "přihlásit se",
+    "note": "Button 'Přihlásit se'. Translate 'log in' and 'sign in' identically. Noun 'login' → 'přihlášení'."
+  },
+  "sign out": {
+    "target": "odhlásit se",
+    "note": "Button 'Odhlásit se'. Translate 'log out' and 'sign out' identically."
+  },
+  "join": {
+    "target": "připojit se",
+    "note": "Button 'Připojit se'. 'joined the channel' → 'se připojil ke kanálu'. 'Join team' → 'Připojit se k týmu'."
+  },
+  "leave": {
+    "target": "opustit",
+    "note": "Button 'Opustit'. 'left the channel' → 'opustil kanál'."
+  },
+  "archive": {
+    "target": "archivovat",
+    "note": "Button 'Archivovat'; 'archived' → 'archivovaný' / 'archivován'."
+  },
+  "unarchive": {
+    "target": "zrušit archivaci",
+    "note": "Catalog is inconsistent ('Zrušit archivaci kanálu', 'Obnovit', 'odarchivovat', and one wrong 'Archivovat kanál' for channel_header.unarchive). Prefer 'zrušit archivaci' (button 'Zrušit archivaci'); 'obnovit' only when restoring a team."
+  },
+  "mute": {
+    "target": "ztlumit",
+    "note": "Button 'Ztlumit'; 'muted' → 'ztlumený'; 'unmute' → 'zrušit ztlumení'. Same verb is used for microphone muting in Calls."
+  },
+  "follow": {
+    "target": "sledovat",
+    "note": "Button 'Sledovat'; 'following' → 'Sledováno' / 'sledujete'. Avoid 'následovat' seen in two legacy threading strings."
+  },
+  "unfollow": {
+    "target": "přestat sledovat",
+    "note": "Button 'Přestat sledovat'."
+  },
+  "favorite": {
+    "target": "oblíbený",
+    "note": "Sidebar category 'Oblíbené'; verb → 'přidat do oblíbených'; 'unfavorite' → 'odebrat z oblíbených'."
+  },
+  "search": {
+    "target": "vyhledávání",
+    "note": "Noun 'vyhledávání'; button/verb 'Vyhledat' (also 'Hledat')."
+  },
+  "integration": {
+    "target": "integrace",
+    "note": "Feminine; same form in plural."
+  },
+  "slash command": {
+    "target": "lomítkový příkaz",
+    "note": "Majority rendering; 'příkaz za lomítkem' appears once. Plural 'lomítkové příkazy'."
+  },
+  "webhook": {
+    "target": "webhook",
+    "note": "Kept in English by convention; declined as masculine ('webhooku', 'webhooky', 'webhooků')."
+  },
+  "incoming webhook": {
+    "target": "příchozí webhook",
+    "note": "Plural 'příchozí webhooky'."
+  },
+  "outgoing webhook": {
+    "target": "odchozí webhook",
+    "note": "Plural 'odchozí webhooky'."
+  },
+  "trigger word": {
+    "target": "spouštěcí slovo",
+    "note": "Plural 'spouštěcí slova'."
+  },
+  "plugin": {
+    "target": "plugin",
+    "note": "Catalog majority is the loanword 'plugin' (masculine: 'pluginu', 'pluginy'); 'zásuvný modul' appears in a minority of admin strings and the admin sidebar. Prefer 'plugin' for consistency."
+  },
+  "bot": {
+    "target": "bot",
+    "note": "Masculine animate; plural 'boti' (nominative) / 'boty' (accusative), genitive 'bota', genitive plural 'botů'. 'bot account' → 'účet bota'."
+  },
+  "role": {
+    "target": "role",
+    "note": "Feminine; same form in plural."
+  },
+  "permission": {
+    "target": "oprávnění",
+    "note": "Neuter; same form in plural."
+  },
+  "scheme": {
+    "target": "schéma",
+    "note": "Neuter ('schémata'); 'permission scheme' → 'schéma oprávnění'."
+  },
+  "license": {
+    "target": "licence",
+    "note": "Feminine; plural 'licence', genitive 'licence'."
+  },
+  "seat": {
+    "target": "místo",
+    "note": "Licensed seat → 'místo' (plural 'místa', genitive plural 'míst')."
+  },
+  "trial": {
+    "target": "zkušební verze",
+    "note": "Majority rendering for the free trial ('bezplatná zkušební verze'); use 'zkušební období' for the time period and 'zkušební licence' for the license."
+  },
+  "workspace": {
+    "target": "pracovní prostor",
+    "note": "Masculine; locative 'v pracovním prostoru'. One string uses 'pracovní prostředí' — avoid."
+  },
+  "subscription": {
+    "target": "předplatné",
+    "note": "Neuter; genitive 'předplatného'."
+  },
+  "deactivate": {
+    "target": "deaktivovat",
+    "note": "Button 'Deaktivovat'; 'deactivated' → 'deaktivovaný' / 'Neaktivní' as a user state label."
+  },
+  "invite": {
+    "target": "pozvat",
+    "note": "Button 'Pozvat'; noun uses 'pozvánka'."
+  },
+  "invitation": {
+    "target": "pozvánka",
+    "note": "Feminine; plural 'pozvánky', genitive plural 'pozvánek'."
+  },
+  "sidebar": {
+    "target": "postranní panel",
+    "note": "Locative 'v postranním panelu'. Avoid 'postranní lišta' seen twice."
+  },
+  "unread": {
+    "target": "nepřečtené",
+    "note": "Adjective; agrees in gender/number ('nepřečtená zpráva', 'nepřečtené kanály'). Category 'Unreads' → 'Nepřečtené'."
+  },
+  "attachment": {
+    "target": "příloha",
+    "note": "Feminine; plural 'přílohy', genitive plural 'příloh'."
+  },
+  "public channel": {
+    "target": "veřejný kanál"
+  },
+  "private channel": {
+    "target": "soukromý kanál"
+  },
+  "shared channel": {
+    "target": "sdílený kanál",
+    "note": "Plural 'sdílené kanály'."
+  },
+  "channel header": {
+    "target": "záhlaví kanálu",
+    "note": "Majority rendering; 'hlavička kanálu' also appears — prefer 'záhlaví'. Standalone 'Header' → 'Záhlaví'."
+  },
+  "channel purpose": {
+    "target": "účel kanálu",
+    "note": "Standalone 'Purpose' → 'Účel'."
+  },
+  "system message": {
+    "target": "systémová zpráva"
+  },
+  "persistent notification": {
+    "target": "trvalé oznámení",
+    "note": "Established admin title 'Trvalá oznámení'; a few strings use 'trvalá upozornění' — prefer 'oznámení'."
+  },
+  "message priority": {
+    "target": "priorita zprávy",
+    "note": "Priority levels: Standard → 'Standardní', Important → 'Důležité', Urgent → 'Naléhavé'."
+  },
+  "urgent": {
+    "target": "naléhavé",
+    "note": "Label 'NALÉHAVÉ' when uppercased. Agrees with the noun: 'naléhavá zpráva', 'naléhavá zmínka'."
+  },
+  "recap": {
+    "target": "rekapitulace",
+    "note": "Feminine; same form in plural. Not yet rendered in the catalog; use 'rekapitulace' rather than 'shrnutí' so it does not clash with 'summary' = 'shrnutí'."
+  },
+  "agent": {
+    "target": "agent",
+    "note": "AI assistant. Masculine animate: plural 'agenti', genitive plural 'agentů'. 'AI agents' → 'agenti AI'. Product name 'Mattermost Agents' stays in English."
+  },
+  "burn-on-read": {
+    "target": "zničit po přečtení",
+    "note": "Not yet rendered in the catalog. Use as attribute 'zpráva zničená po přečtení' / 'zpráva se zničením po přečtení'; uppercase label 'ZNIČIT PO PŘEČTENÍ'. Do not keep English."
+  },
+  "magic link": {
+    "target": "magický odkaz",
+    "note": "Genitive 'magického odkazu'; plural 'magické odkazy'."
+  },
+  "personal access token": {
+    "target": "osobní přístupový token",
+    "note": "Plural 'osobní přístupové tokeny'."
+  },
+  "announcement banner": {
+    "target": "banner s oznámením",
+    "note": "Established in feature-discovery strings ('bannery s oznámením'). Plain 'banner' is masculine ('banneru')."
+  },
+  "channel banner": {
+    "target": "banner kanálu"
+  },
+  "keyword": {
+    "target": "klíčové slovo",
+    "note": "Plural 'klíčová slova'."
+  },
+  "user group": {
+    "target": "uživatelská skupina",
+    "note": "Established in admin strings; 'skupina uživatelů' also appears. Plain 'group' → 'skupina'."
+  },
+  "permalink": {
+    "target": "trvalý odkaz",
+    "note": "Established rendering in permalink.* strings."
+  },
+  "profile": {
+    "target": "profil",
+    "note": "'Profile picture' → 'profilový obrázek'."
+  },
+  "username": {
+    "target": "uživatelské jméno"
+  },
+  "nickname": {
+    "target": "přezdívka"
+  },
+  "display name": {
+    "target": "zobrazované jméno",
+    "note": "For people: 'zobrazované jméno'; for channels, teams, apps: 'zobrazovaný název'."
+  },
+  "collapsed reply threads": {
+    "target": "diskuze ve vláknech",
+    "note": "Established feature name in admin settings ('Diskuze ve vláknech'). A literal rendering 'sbalená vlákna odpovědí' may be used where the structure is being described."
+  },
+  "auto-translation": {
+    "target": "automatický překlad",
+    "note": "'auto-translated' → 'automaticky přeloženo'; label 'AUTO-TRANSLATED' → 'AUTOMATICKY PŘELOŽENO'."
+  },
+  "data retention": {
+    "target": "uchovávání dat",
+    "note": "Established ('zásady uchovávání dat'). Avoid 'retence'."
+  },
+  "compliance export": {
+    "target": "export souladu s předpisy",
+    "note": "Catalog uses 'Export souladu s pravidly' in two admin strings and keeps 'compliance' in one. Prefer 'export souladu s předpisy' (the standard Czech term for compliance); plural 'exporty souladu s předpisy'."
+  },
+  "access control": {
+    "target": "řízení přístupu",
+    "note": "'attribute-based access control' → 'řízení přístupu založené na atributech'; policy → 'zásada řízení přístupu'."
+  },
+  "attribute": {
+    "target": "atribut",
+    "note": "Masculine; plural 'atributy'. 'custom profile attribute' → 'vlastní atribut profilu' / 'uživatelský atribut'."
+  },
+  "onboarding": {
+    "target": "onboarding",
+    "note": "Loanword kept in the catalog (masculine: 'onboardingu'). Descriptive alternative 'zaškolení' only where the loanword reads badly."
+  },
+  "Town Square": {
+    "target": "Náměstí",
+    "note": "Server default-channel name. One webapp string lowercases it ('na náměstí') — use capitalized 'Náměstí'."
+  },
+  "Off-Topic": {
+    "target": "Mimo téma",
+    "note": "Server default-channel name."
+  },
+  "read-only": {
+    "target": "pouze pro čtení",
+    "note": "One string uses 'pouze ke čtení' — prefer 'pouze pro čtení'."
+  },
+  "server": {
+    "target": "server",
+    "note": "Masculine; locative 'na serveru'; genitive 'serveru'."
+  }
+}

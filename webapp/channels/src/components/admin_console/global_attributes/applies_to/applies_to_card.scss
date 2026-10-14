@@ -52,6 +52,33 @@
     gap: 6px;
 }
 
+// Rows this card only reports on, so they sit flat above the editable Channels
+// row rather than inside its bordered container.
+.AppliesToCard__readOnlyResources {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    margin: 0 0 12px;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-size: 14px;
+    gap: 8px;
+    line-height: 20px;
+    list-style: none;
+
+    li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    code {
+        padding: 0 4px;
+        border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+    }
+}
+
 .AppliesToCard__empty {
     margin: 0;
     color: rgba(var(--center-channel-color-rgb), 0.75);

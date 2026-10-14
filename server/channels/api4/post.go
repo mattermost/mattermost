@@ -331,7 +331,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if since > 0 {
 		list, err = c.App.GetPostsSince(c.AppContext, model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
 	} else if afterPost != "" {
-		etag = c.App.GetPostsEtag(channel, c.AppContext.Session().UserId, collapsedThreads)
+		etag = c.App.GetPostsEtag(c.AppContext, channel, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts After", w, r) {
 			return
@@ -339,7 +339,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		list, err = c.App.GetPostsAfterPost(c.AppContext, model.GetPostsOptions{ChannelId: channelId, PostId: afterPost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	} else if beforePost != "" {
-		etag = c.App.GetPostsEtag(channel, c.AppContext.Session().UserId, collapsedThreads)
+		etag = c.App.GetPostsEtag(c.AppContext, channel, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts Before", w, r) {
 			return
@@ -347,7 +347,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		list, err = c.App.GetPostsBeforePost(c.AppContext, model.GetPostsOptions{ChannelId: channelId, PostId: beforePost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	} else {
-		etag = c.App.GetPostsEtag(channel, c.AppContext.Session().UserId, collapsedThreads)
+		etag = c.App.GetPostsEtag(c.AppContext, channel, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts", w, r) {
 			return
@@ -440,7 +440,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 
 	etag := ""
 	if len(postList.Order) == 0 {
-		etag = c.App.GetPostsEtag(channel, c.AppContext.Session().UserId, collapsedThreads)
+		etag = c.App.GetPostsEtag(c.AppContext, channel, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts", w, r) {
 			return
@@ -631,7 +631,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postEtag := c.App.AppendABACEtag(post.Etag(), c.AppContext.Session().UserId, post.ChannelId)
+	postEtag := c.App.AppendABACEtag(c.AppContext, post.Etag(), post.ChannelId)
 	if c.HandleEtag(postEtag, "Get Post", w, r) {
 		return
 	}
@@ -697,6 +697,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var posts = []*model.Post{}
 	isMemberForAllPosts := true
+	isMemberForAllPreviews := true
 	for _, post := range postsList {
 		channel, ok := channelMap[post.ChannelId]
 		if !ok {
@@ -711,6 +712,15 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		isMemberForAllPosts = isMemberForAllPosts && isMemberForCurrentPost
 
 		post = c.App.PreparePostForClient(c.AppContext, post, &model.PreparePostForClientOpts{IncludePriority: true})
+
+		sanitizedPost, isMemberForCurrentPreview, sanitizeErr := c.App.SanitizePostMetadataForUser(c.AppContext, post, c.AppContext.Session().UserId)
+		if sanitizeErr != nil {
+			c.Err = sanitizeErr
+			return
+		}
+		post = sanitizedPost
+		isMemberForAllPreviews = isMemberForAllPreviews && isMemberForCurrentPreview
+
 		post.StripActionIntegrations()
 		posts = append(posts, post)
 	}
@@ -727,8 +737,11 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "post_ids", postIDs)
 
-	if !isMemberForAllPosts {
+	if !isMemberForAllPosts || !isMemberForAllPreviews {
 		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+		if !isMemberForAllPreviews {
+			model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access_on_previews", true)
+		}
 	}
 }
 
@@ -961,7 +974,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	threadEtag := c.App.AppendABACEtag(list.Etag(), c.AppContext.Session().UserId, post.ChannelId)
+	threadEtag := c.App.AppendABACEtag(c.AppContext, list.Etag(), post.ChannelId)
 	if c.HandleEtag(threadEtag, "Get Post Thread", w, r) {
 		return
 	}
@@ -1636,7 +1649,7 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = filePostErr
 			return
 		}
-		if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, filePost.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+		if !c.App.HasPermissionToChannelAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, filePost.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
 			c.Err = model.NewAppError("getFileInfosForPost", "api.file.get_file.abac_denied.app_error", nil, "", http.StatusForbidden)
 			return
 		}

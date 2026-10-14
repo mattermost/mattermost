@@ -9,12 +9,11 @@ import {samplePlugin1, samplePlugin2} from 'tests/helpers/admin_console_plugin_i
 
 import {generateIndex} from './admin_console_index';
 
-const enMessages = require('../i18n/en');
 const esMessages = require('../i18n/es');
 
 describe('AdminConsoleIndex.generateIndex', () => {
     it('should generate an index where I can search', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const idx = generateIndex(AdminDefinition, intl, {});
         expect(idx.search('ldap')).toEqual([
@@ -97,7 +96,7 @@ describe('AdminConsoleIndex.generateIndex', () => {
     });
 
     it('should generate a index including the plugin settings', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const idx = generateIndex(AdminDefinition, intl, {[samplePlugin1.id]: samplePlugin1, [samplePlugin2.id]: samplePlugin2});
 

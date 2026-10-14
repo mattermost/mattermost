@@ -4,7 +4,7 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-import {getDayPickerDayCell} from '../day_picker';
+import {getDayPickerDayCell, goToDisplayedMonth} from '../day_picker';
 
 export default class ScheduledDraftModal {
     readonly container: Locator;
@@ -35,24 +35,14 @@ export default class ScheduledDraftModal {
         await this.dateInput.click();
 
         const pacificDate = this.getPacificDate();
-        const originDate = new Date(pacificDate.getTime());
 
         // If dayFromToday is provided, add days to the current date
         if (dayFromToday) {
             pacificDate.setDate(pacificDate.getDate() + dayFromToday);
         }
 
-        const day = pacificDate.getDate();
-
-        const dl = this.dateLocator(day);
-
-        // Past days in the current month stay visible but disabled. Advance
-        // whenever the target month differs; do not gate on isVisible().
-        if (pacificDate.getMonth() !== originDate.getMonth() || pacificDate.getFullYear() !== originDate.getFullYear()) {
-            await this.container.locator('button[aria-label="Go to next month"]').click();
-        }
-        await expect(dl).toBeEnabled();
-        await dl.click();
+        await goToDisplayedMonth(this.container, pacificDate);
+        await this.dateLocator(pacificDate.getDate()).click();
     }
 
     async confirm() {

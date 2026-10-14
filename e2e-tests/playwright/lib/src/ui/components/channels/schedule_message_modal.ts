@@ -4,7 +4,7 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-import {getDayPickerDayCell} from '../day_picker';
+import {getDayPickerDayCell, goToDisplayedMonth} from '../day_picker';
 
 export default class ScheduleMessageModal {
     readonly container: Locator;
@@ -38,27 +38,17 @@ export default class ScheduleMessageModal {
     async selectDate(dayFromToday: number = 0) {
         await this.dateButton.click();
 
-        const originDate = new Date();
-        const targetDate = new Date();
+        const pacificDate = new Date();
 
         if (dayFromToday) {
-            targetDate.setDate(targetDate.getDate() + dayFromToday);
+            pacificDate.setDate(pacificDate.getDate() + dayFromToday);
         }
 
-        const day = targetDate.getDate();
-        const month = targetDate.toLocaleString('default', {month: 'long'});
+        const day = pacificDate.getDate();
+        const month = pacificDate.toLocaleString('default', {month: 'long'});
 
-        // Past days in the current month stay visible but disabled. When the
-        // target is in the next month, day N of this month is still in the
-        // calendar (e.g. Sep 1 when targeting Oct 1), so isVisible() is not
-        // enough to decide whether to advance.
-        if (targetDate.getMonth() !== originDate.getMonth() || targetDate.getFullYear() !== originDate.getFullYear()) {
-            await this.container.getByLabel('Go to next month').click();
-        }
-
-        const dateLocator = this.dateLocator(day);
-        await expect(dateLocator).toBeEnabled();
-        await dateLocator.click();
+        await goToDisplayedMonth(this.container, pacificDate);
+        await this.dateLocator(day).click();
 
         // Wait for the date-picker calendar to fully close before returning.
         const calendarPopper = this.container.getByTestId('date-picker-popper');
