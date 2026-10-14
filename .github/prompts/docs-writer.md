@@ -30,7 +30,7 @@ write only what that sentence requires.
   `From Mattermost vX.Y` for new or changed capability. When absent, write
   `From Mattermost [NOT PRESENT — REQUIRES HUMAN JUDGMENT]` — never guess a version.
 - Do not hand-author `docs/api/reference/**`, `docs/site/**`, `docs/styles/**`,
-  `docs/pdf/**`, `docs/vendor/**`, or `docs/main/agents/docs/**`.
+  `docs/vendor/**`, or `docs/main/agents/docs/**`.
 - Do not edit changelogs, important upgrade notes, or version-archive pages unless the
   brief explicitly requires it.
 - Follow `conventions.md` for frontmatter, plan availability, callouts, links, MDX

@@ -139,7 +139,7 @@ func (m MutedFilter) Matches(f *HealthFinding) bool {
 // HealthFindingList is the findings API response.
 type HealthFindingList struct {
 	// EvaluatedAt is when the server last evaluated its health rules, taken across every stored
-	// finding whatever the filter; 0 means nothing has been evaluated yet.
+	// finding whatever the filter; 0 means nothing has been evaluated yet or no check has fired yet.
 	EvaluatedAt int64            `json:"evaluated_at"`
 	Findings    []*HealthFinding `json:"findings"`
 }

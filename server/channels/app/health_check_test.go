@@ -121,12 +121,9 @@ func TestRunHealthCheckStableAcrossCycles(t *testing.T) {
 
 	require.NoError(t, th.App.runHealthCheck(th.Context, svc))
 	first := listHealthFindings(t, th)
-	require.Len(t, first, 2)
-	for _, finding := range first {
-		if finding.Code == "TEST_LATEST_VERSION" {
-			assert.Equal(t, string(healthcheck.StateFiring), finding.State)
-		}
-	}
+	require.Len(t, first, 1)
+	assert.Equal(t, "TEST_LATEST_VERSION", first[0].Code)
+	assert.Equal(t, string(healthcheck.StateFiring), first[0].State)
 
 	require.NoError(t, th.TestLogger.Flush())
 	testlib.AssertLog(t, th.LogBuffer, mlog.LvlDebug.Name, "Health finding changed state")
