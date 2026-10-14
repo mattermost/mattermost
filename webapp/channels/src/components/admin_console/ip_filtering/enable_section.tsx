@@ -4,8 +4,9 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Switch} from '@mattermost/compass-ui/components/switch';
+
 import ExternalLink from 'components/external_link';
-import Toggle from 'components/toggle';
 
 type Props = {
     filterToggle: boolean;
@@ -40,12 +41,14 @@ const EnableSectionContent: React.FC<Props> = ({filterToggle, setFilterToggle}) 
                     </div>
                 </div>
                 <div className='SwitchSelector'>
-                    <Toggle
-                        size={'btn-md'}
-                        id={'filterToggle'}
+                    <Switch
+                        id='filterToggle'
+                        size='medium'
                         disabled={false}
-                        onToggle={() => setFilterToggle(!filterToggle)}
-                        toggled={filterToggle}
+                        onChange={() => setFilterToggle(!filterToggle)}
+                        checked={filterToggle}
+                        data-testid='filterToggle-button'
+                        tabIndex={0}
                     />
                 </div>
             </div>

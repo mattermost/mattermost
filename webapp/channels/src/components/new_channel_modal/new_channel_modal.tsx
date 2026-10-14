@@ -45,7 +45,6 @@ import useClassificationMarkings from 'components/common/hooks/useClassification
 import DropdownInput from 'components/dropdown_input';
 import type {ValueType} from 'components/dropdown_input';
 import type {TextboxElement} from 'components/textbox';
-import Toggle from 'components/toggle';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import Input from 'components/widgets/inputs/input/input';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
@@ -686,12 +685,14 @@ const NewChannelModal = () => {
                                     />
                                 </h4>
                             </div>
-                            <Toggle
+                            <Switch
                                 id='channelClassificationToggle'
-                                toggled={classificationEnabled}
-                                onToggle={() => setClassificationEnabled(!classificationEnabled)}
-                                size='btn-md'
-                                ariaLabel={formatMessage({id: 'channel_modal.classification.toggle_label', defaultMessage: 'Channel classification'})}
+                                size='medium'
+                                checked={classificationEnabled}
+                                onChange={() => setClassificationEnabled(!classificationEnabled)}
+                                data-testid='channelClassificationToggle-button'
+                                tabIndex={0}
+                                aria-label={formatMessage({id: 'channel_modal.classification.toggle_label', defaultMessage: 'Channel classification'})}
                             />
                         </div>
                         <p className='new-channel-modal-classification__description'>

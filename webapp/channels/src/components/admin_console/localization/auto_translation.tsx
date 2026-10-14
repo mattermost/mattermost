@@ -5,6 +5,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {defineMessage, defineMessages, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Switch} from '@mattermost/compass-ui/components/switch';
 import type {AutoTranslationSettings} from '@mattermost/types/config';
 
 import BooleanSetting from 'components/admin_console/boolean_setting';
@@ -17,7 +18,6 @@ import {
 } from 'components/admin_console/system_properties/controls';
 import TextSetting from 'components/admin_console/text_setting';
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
-import Toggle from 'components/toggle';
 import BetaTag from 'components/widgets/tag/beta_tag';
 
 import * as I18n from 'i18n/i18n';
@@ -173,13 +173,14 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                         <span style={{marginRight: '12px'}}>
                             {autoTranslationSettings.Enable ? on : off}
                         </span>
-                        <Toggle
-                            size='btn-md'
+                        <Switch
+                            id='Enable'
+                            size='medium'
                             disabled={props.disabled || props.setByEnv}
-                            toggled={autoTranslationSettings.Enable}
-                            id={'Enable'}
+                            checked={autoTranslationSettings.Enable}
+                            onChange={handleToggle}
+                            data-testid='Enable-button'
                             tabIndex={-1}
-                            onToggle={handleToggle}
                         />
                     </div>
                 </div>

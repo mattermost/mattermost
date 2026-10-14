@@ -6,9 +6,9 @@ import React from 'react';
 import styled from 'styled-components';
 
 import {CheckIcon, AlertOutlineIcon, AlertCircleOutlineIcon, MessageTextOutlineIcon, CheckCircleOutlineIcon, BellRingOutlineIcon} from '@mattermost/compass-icons/components';
+import {Switch} from '@mattermost/compass-ui/components/switch';
 
 import {MenuItem} from 'components/menu/menu_item';
-import Toggle from 'components/toggle';
 
 type ToggleProps = {
     ariaLabel?: string;
@@ -125,13 +125,13 @@ function ToggleItem({
             aria-label={ariaLabel}
             trailingElements={
                 <span onClick={disabled ? undefined : handleSwitchClick}>
-                    <Toggle
-                        ariaLabel={ariaLabel}
-                        size='btn-sm'
+                    <Switch
+                        size='small'
                         disabled={disabled}
-                        onToggle={onClick}
-                        toggled={toggled}
+                        onChange={onClick}
+                        checked={toggled}
                         tabIndex={-1}
+                        aria-label={ariaLabel}
                     />
                 </span>
             }
