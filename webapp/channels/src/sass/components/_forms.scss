@@ -34,12 +34,12 @@
 
 .radio-option-list {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
     min-width: 0;
+    flex-direction: column;
     padding: 0;
     border: 0;
     margin: 0;
+    gap: 10px;
 }
 
 .radio-option {
