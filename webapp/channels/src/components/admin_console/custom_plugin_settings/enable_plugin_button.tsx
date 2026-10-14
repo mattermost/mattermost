@@ -196,7 +196,7 @@ export function PluginEnableButton({actions, disabled, homepageUrl, id, saveNeed
                         />
                     )}
                     <Toggle
-                        size='btn-sm'
+                        size='btn-md'
                         disabled={actionsDisabled}
                         toggled={pluginEnabled}
                         id={id}

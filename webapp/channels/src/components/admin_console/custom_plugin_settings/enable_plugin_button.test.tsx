@@ -28,7 +28,9 @@ describe('components/admin_console/custom_plugin_settings/PluginEnableButton', (
         );
 
         expect(screen.getByText('Disabled')).toBeInTheDocument();
-        await userEvent.click(screen.getByRole('switch', {name: 'Enable plugin'}));
+        const enableSwitch = screen.getByRole('switch', {name: 'Enable plugin'});
+        expect(enableSwitch.closest('label')?.className).toMatch(/switch--size-medium/);
+        await userEvent.click(enableSwitch);
 
         expect(enablePlugin).toHaveBeenCalledWith('com.mattermost.calls');
         expect(disablePlugin).not.toHaveBeenCalled();
