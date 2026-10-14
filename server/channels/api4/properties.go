@@ -260,6 +260,17 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// The access_control group's hook pins field.write and option.write to
+	// sysadmin on every create, but a submitted permissions object is stored
+	// as sent and decides alone, so it would slip past that pin. Hold it to
+	// the same bar here: only a system administrator may submit one. Plugins
+	// reach this group through the plugin API, not this handler.
+	if field.Permissions != nil && group.Name == model.AccessControlPropertyGroupName &&
+		!c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.Err = model.NewAppError("createPropertyField", "api.property_field.create.permissions_require_system_admin.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	// Set before the permission levels are resolved.
 	field.CreatedBy = c.AppContext.Session().UserId
 	field.UpdatedBy = c.AppContext.Session().UserId

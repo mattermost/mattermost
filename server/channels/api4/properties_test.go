@@ -8868,3 +8868,103 @@ func TestDeleteOrphanedProtectedField(t *testing.T) {
 		})
 	}
 }
+
+func TestCreateAccessControlFieldWithPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PropertyFieldPermissionsV3 = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+	require.True(t, group.IsPSAv3())
+
+	// field.write none with a grant naming only the creator: stored, it would
+	// leave no administrator able to edit or delete the field.
+	lockingField := func(creatorID string) *model.PropertyField {
+		return &model.PropertyField{
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: string(model.PropertyFieldTargetLevelChannel),
+			TargetID:   th.BasicChannel.Id,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field: model.WriteOnly{Write: model.PermissionLevelNone},
+				},
+				Grants: []model.Grant{{
+					Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: creatorID},
+					Allow:    []string{model.PropertyActionFieldWrite},
+				}},
+			},
+		}
+	}
+
+	requireNotStored := func(t *testing.T, name string) {
+		t.Helper()
+		stored, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{
+			ObjectTypes: []string{model.PropertyFieldObjectTypeUser},
+			TargetIDs:   []string{th.BasicChannel.Id},
+			PerPage:     100,
+		})
+		require.Nil(t, appErr)
+		for _, f := range stored {
+			require.NotEqual(t, name, f.Name)
+		}
+	}
+
+	t.Run("a plain channel member is refused and nothing is stored", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		field := lockingField(th.BasicUser.Id)
+		_, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeUser, field)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		requireNotStored(t, field.Name)
+	})
+
+	t.Run("a channel admin is refused too, since the group's fields are sysadmin-edited", func(t *testing.T) {
+		channelAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+		_, appErr := th.App.AddUserToChannel(th.Context, channelAdmin, th.BasicChannel, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, channelAdmin.Id,
+			model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+		require.Nil(t, appErr)
+
+		client := th.CreateClient()
+		_, _, err := client.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
+		require.NoError(t, err)
+
+		field := lockingField(channelAdmin.Id)
+		_, resp, err := client.CreatePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeUser, field)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		requireNotStored(t, field.Name)
+	})
+
+	t.Run("a member can still create the field without one", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		field := lockingField(th.BasicUser.Id)
+		field.Permissions = nil
+		created, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeUser, field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		// The default the hook pins: only a system administrator edits it.
+		stored, appErr := th.App.GetPropertyField(th.Context, group.ID, created.ID)
+		require.Nil(t, appErr)
+		require.Equal(t, model.PermissionLevelSysadmin, stored.Permissions.Restrictions.Field.Write)
+	})
+
+	t.Run("a system admin may submit one, and it is stored as sent", func(t *testing.T) {
+		created, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeUser, lockingField(th.SystemAdminUser.Id))
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		stored, appErr := th.App.GetPropertyField(th.Context, group.ID, created.ID)
+		require.Nil(t, appErr)
+		require.Equal(t, model.PermissionLevelNone, stored.Permissions.Restrictions.Field.Write)
+	})
+}
