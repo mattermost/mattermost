@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
@@ -141,13 +142,17 @@ func (rp *RemoteProvider) doCreate(a *app.App, args *model.CommandArgs, margs ma
 
 	rcSaved, appErr := a.AddRemoteCluster(rc)
 	if appErr != nil {
-		return response(args.T("api.command_remote.add_remote.error", map[string]any{"Error": appErr.Error()}))
+		a.Log().Warn("Failed to add secure connection", mlog.String("name", name), mlog.Err(appErr))
+		appErr.Translate(args.T)
+		return response(args.T("api.command_remote.add_remote.error", map[string]any{"Error": appErr.Message}))
 	}
 
 	// Display the encrypted invitation
 	inviteCode, err := a.CreateRemoteClusterInvite(rcSaved.RemoteId, url, rcSaved.Token, password)
 	if err != nil {
-		return response(args.T("api.command_remote.encrypt_invitation.error", map[string]any{"Error": err.Error()}))
+		a.Log().Warn("Failed to create secure connection invitation", mlog.String("remote_id", rcSaved.RemoteId), mlog.Err(err))
+		err.Translate(args.T)
+		return response(args.T("api.command_remote.encrypt_invitation.error", map[string]any{"Error": err.Message}))
 	}
 
 	return response("##### " + args.T("api.command_remote.invitation_created") + "\n" +

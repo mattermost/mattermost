@@ -104,3 +104,42 @@ func TestRemoteProviderDoStatus(t *testing.T) {
 		}
 	})
 }
+
+func TestRemoteProviderDoCreate(t *testing.T) {
+	th := setupConfig(t, func(cfg *model.Config) {
+		*cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService = true
+		*cfg.ConnectedWorkspacesSettings.EnableSharedChannels = true
+		*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+	}).initBasic(t)
+	th.addPermissionToRole(t, model.PermissionManageSecureConnections.Id, th.BasicUser.Roles)
+
+	t.Run("add failure replies with the error translated for the user, without internal detail", func(t *testing.T) {
+		// Stands in for the user's locale so the reply can be told apart from the
+		// server-locale text that AppError.Error() would render.
+		userT := func(id string, args ...any) string {
+			switch id {
+			case "api.remote_cluster.save.app_error":
+				return "user-locale save error"
+			case "api.command_remote.add_remote.error":
+				return "add failed: " + args[0].(map[string]any)["Error"].(string)
+			}
+			return id
+		}
+
+		args := &model.CommandArgs{
+			T:         userT,
+			UserId:    th.BasicUser.Id,
+			TeamId:    th.BasicTeam.Id,
+			ChannelId: th.BasicChannel.Id,
+			Command:   "/secure-connection create --name bad!name --password secret",
+		}
+
+		resp := (&RemoteProvider{}).DoCommand(th.App, th.Context, args, "")
+		require.NotNil(t, resp)
+		require.Equal(t, "add failed: user-locale save error", resp.Text)
+
+		list, appErr := th.App.GetAllRemoteClusters(0, 10, model.RemoteClusterQueryFilter{IncludeDeleted: true})
+		require.Nil(t, appErr)
+		require.Empty(t, list, "no secure connection should be saved for an invalid name")
+	})
+}
