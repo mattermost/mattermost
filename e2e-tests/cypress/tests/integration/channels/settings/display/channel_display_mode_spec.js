@@ -23,6 +23,16 @@ describe('Settings > Display > Channel Display Mode', () => {
         cy.viewport(1500, 660);
     });
 
+    function openChannelDisplayEdit() {
+        // # Go to Settings modal - Display section and edit Channel Display
+        // Each test opens fresh: viewport beforeEach can drop modal state.
+        cy.uiOpenSettingsModal('Display');
+        cy.get('#displayButton').should('be.visible').click();
+        cy.get('#channel_display_modeTitle').scrollIntoView();
+        cy.get('#channel_display_modeEdit').click();
+        cy.get('.section-max').scrollIntoView();
+    }
+
     it('should render in min setting view', () => {
         // # Go to Settings modal - Display section
         cy.uiOpenSettingsModal('Display');
@@ -43,19 +53,13 @@ describe('Settings > Display > Channel Display Mode', () => {
         cy.get('#channel_display_modeTitle').should('contain', 'Channel Display');
         cy.get('#channel_display_modeDesc').should('contain', 'Full width');
         cy.get('#channel_display_modeEdit').should('contain', 'Edit');
+
+        // # Close so later tests can reopen Settings
+        cy.uiClose();
     });
 
     it('should render in max setting view', () => {
-        // # Re-open Display settings (viewport beforeEach can drop modal state)
-        cy.uiOpenSettingsModal('Display');
-        cy.get('#displayButton').should('be.visible').click();
-        cy.get('#channel_display_modeTitle').scrollIntoView();
-
-        // # Click "Edit" to the right of "Channel Display"
-        cy.get('#channel_display_modeEdit').click();
-
-        // # Scroll a bit to show the "Save" button
-        cy.get('.section-max').scrollIntoView();
+        openChannelDisplayEdit();
 
         // * Check that it changed into the Channel Display section
         // Compass Radio hides the native input; assert the visible labels.
@@ -63,9 +67,14 @@ describe('Settings > Display > Channel Display Mode', () => {
         cy.get('#channel_display_modeFormatB').closest('label').should('be.visible');
         cy.get('#saveSetting').should('contain', 'Save');
         cy.get('#cancelSetting').should('contain', 'Cancel');
+
+        // # Close so later tests can reopen Settings
+        cy.uiClose();
     });
 
     it('MM-T296 change channel display mode setting to "Full width"', () => {
+        openChannelDisplayEdit();
+
         // # Click the radio button for "Full width"
         cy.get('#channel_display_modeFormatA').check({force: true});
 
@@ -91,20 +100,7 @@ describe('Settings > Display > Channel Display Mode', () => {
     });
 
     it('MM-T295 Channel display mode setting to "Fixed width, centered"', () => {
-        // # Go to Settings modal - Display section
-        cy.uiOpenSettingsModal('Display');
-
-        // * Check that the Sidebar tab is loaded
-        cy.get('#displayButton').should('be.visible');
-
-        // # Click the display tab
-        cy.get('#displayButton').click();
-
-        // # Click "Edit" to the right of "Channel Display"
-        cy.get('#channel_display_modeEdit').click();
-
-        // # Scroll a bit to show the "Save" button
-        cy.get('.section-max').scrollIntoView();
+        openChannelDisplayEdit();
 
         // # Click the radio button for "Fixed width, centered"
         cy.get('#channel_display_modeFormatB').check({force: true});
