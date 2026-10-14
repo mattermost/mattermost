@@ -185,8 +185,6 @@ describe('CELEditor', () => {
             );
 
             await waitFor(() => expect(testButton()).toBeEnabled());
-            await userEvent.hover(testButton());
-            expect(screen.queryByText(PARENT_TOOLTIP)).not.toBeInTheDocument();
         });
 
         test('disables a valid expression\'s button and shows the parent tooltip when testButtonDisabled is set', async () => {

@@ -30,17 +30,20 @@ import TextSetting from 'components/widgets/settings/text_setting';
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {useEnabledSessionAttributeFields} from 'hooks/useEnabledSessionAttributeFields';
 import {getHistory} from 'utils/browser_history';
+import {getUserPropertyFieldLabel} from 'utils/properties';
 
 import {
+    getSyncedAttributeReferences,
     getTableEditorValue,
     hasBalancedParens,
+    isBotScopeExpression,
     isBotScopePolicy,
     isMaskingFailureExpression,
     unwrapBotExpression,
     wrapBotExpression,
 } from '../../access_control/editors/bot_scope';
 import CELEditor from '../../access_control/editors/cel_editor/editor';
-import {hasUsableAttributes, mergeSessionAttributes, toCELEditorAttributes} from '../../access_control/editors/shared';
+import {hasUsableAttributes, isNativeField, mergeSessionAttributes, toCELEditorAttributes} from '../../access_control/editors/shared';
 import TableEditor from '../../access_control/editors/table_editor/table_editor';
 import {AVAILABLE_ROLES, BOT_ROLE_KEY, roleMessages, toServerRole} from '../roles';
 
@@ -73,6 +76,20 @@ const botScopeErrorMessages = defineMessages({
         defaultMessage: 'The saved policy no longer applies only to bot accounts. Review the expression and save again.',
     },
 });
+
+const syncedBotMessages = defineMessages({
+    title: {
+        id: 'admin.permission_policies.edit.notice.synced_bot.title',
+        defaultMessage: 'Bots can\'t hold synced attributes',
+    },
+    text: {
+        id: 'admin.permission_policies.edit.notice.synced_bot.text',
+        defaultMessage: '{attributes} {count, plural, one {is} other {are}} synced from LDAP or SAML, and bots can\'t hold synced values. This policy will deny every bot.',
+    },
+});
+
+// Native built-ins every bot either lacks or shares, so they can't scope a bot policy.
+const BOT_SCOPE_HIDDEN_NATIVE: string[] = ['email', 'verified', 'isbot'];
 
 const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
     {
@@ -167,7 +184,7 @@ function PermissionPolicyDetails({
 
     const tableEditorValue = useMemo(() => getTableEditorValue(expression), [expression]);
 
-    const {formatMessage} = useIntl();
+    const {formatMessage, formatList} = useIntl();
     const abacActions = useChannelAccessControlActions();
 
     // Gate the "Simulate rules" button + modal. The
@@ -211,6 +228,18 @@ function PermissionPolicyDetails({
         () => mergeSessionAttributes(autocompleteResult, sessionFields),
         [autocompleteResult, sessionFields],
     );
+
+    const celUserAttributes = useMemo(() => {
+        const fields = isBotScope ? userFields.filter((f) => !(isNativeField(f) && BOT_SCOPE_HIDDEN_NATIVE.includes(f.name))) : userFields;
+        return toCELEditorAttributes(mergeSessionAttributes(fields, sessionFields), accessControlSettings.EnableUserManagedAttributes);
+    }, [isBotScope, userFields, sessionFields, accessControlSettings.EnableUserManagedAttributes]);
+
+    const syncedRefs = useMemo(
+        () => (isBotScope ? getSyncedAttributeReferences(expression, userFields) : []),
+        [isBotScope, expression, userFields],
+    );
+
+    const showMembersBotHint = selectedRole === 'system_user' && isBotScopeExpression(expression.trim());
 
     useEffect(() => {
         loadPage().finally(() => setPageLoaded(true));
@@ -634,6 +663,19 @@ function PermissionPolicyDetails({
                                 </Card.Body>
                             </Card>
 
+                            {syncedRefs.length > 0 && (
+                                <div className='admin-console__warning-notice'>
+                                    <SectionNotice
+                                        type='warning'
+                                        title={formatMessage(syncedBotMessages.title)}
+                                        text={formatMessage(syncedBotMessages.text, {
+                                            attributes: formatList(syncedRefs.map((f) => `\`${getUserPropertyFieldLabel(f).replace(/`/g, '')}\``), {type: 'conjunction'}),
+                                            count: syncedRefs.length,
+                                        })}
+                                    />
+                                </div>
+                            )}
+
                             {/* Attribute-based access rules */}
                             <Card
                                 expanded={true}
@@ -717,7 +759,7 @@ function PermissionPolicyDetails({
                                             }}
                                             onValidate={() => {}}
                                             disabled={noUsableAttributes || saving}
-                                            userAttributes={toCELEditorAttributes(mergeSessionAttributes(userFields, sessionFields), accessControlSettings.EnableUserManagedAttributes)}
+                                            userAttributes={celUserAttributes}
                                             resourceAttributes={resourceFields.map((attr) => ({
                                                 attribute: attr.name,
                                             }))}
@@ -757,7 +799,7 @@ function PermissionPolicyDetails({
                                             // that case lets the legacy
                                             // expression-only test path stay usable
                                             // until the author picks an action.
-                                            testButtonDisabled={legacyTestBlocked || undefined}
+                                            testButtonDisabled={legacyTestBlocked}
                                             testButtonTooltip={legacyTestTooltip}
                                             onTestClick={policySimulationEnabled && selectedPermissions.length > 0 ? handleTestClick : undefined}
                                             testButtonLabel={policySimulationEnabled && selectedPermissions.length > 0 ? (
@@ -786,7 +828,8 @@ function PermissionPolicyDetails({
                                                 id: 'admin.permission_policies.edit.table_help_text_bot',
                                                 defaultMessage: 'Each row is a single condition that must be met for a bot to comply with the policy. All rules are combined with logical AND operator (`&&`).',
                                             }) : undefined}
-                                            testButtonDisabled={legacyTestBlocked || undefined}
+                                            hiddenPickerAttributeNames={isBotScope ? BOT_SCOPE_HIDDEN_NATIVE : undefined}
+                                            testButtonDisabled={legacyTestBlocked}
                                             testButtonTooltip={legacyTestTooltip}
                                             onTestClick={policySimulationEnabled && selectedPermissions.length > 0 ? handleTestClick : undefined}
                                             testButtonLabel={policySimulationEnabled && selectedPermissions.length > 0 ? (
@@ -796,6 +839,14 @@ function PermissionPolicyDetails({
                                                 />
                                             ) : undefined}
                                         />
+                                    )}
+                                    {showMembersBotHint && (
+                                        <div className='help-text pp-members-bot-hint'>
+                                            <FormattedMessage
+                                                id='admin.permission_policies.edit.members_bot_hint'
+                                                defaultMessage='This policy will be treated as a Bot accounts policy.'
+                                            />
+                                        </div>
                                     )}
                                 </Card.Body>
                             </Card>

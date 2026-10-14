@@ -572,6 +572,38 @@ describe('referencedUserAttributeNames', () => {
     it('finds no names in the ID-encoded search form', () => {
         expect(referencedUserAttributeNames(fixture('a masking on search').unwrapped)).toEqual([]);
     });
+
+    describe('comments', () => {
+        it.each([
+            ['a comment-only reference', 'user.attributes.A == "x" // was user.attributes.B', ['A']],
+            ['a whole-line comment', '// user.attributes.B == "x"\nuser.attributes.A == "y"', ['A']],
+            ['a trailing comment with no newline', 'user.attributes.A == "x" //user.attributes.B', ['A']],
+            ['an apostrophe in a comment before a real reference', '// don\'t use teams\nuser.attributes.B == "x" && user.attributes.C == \'y\'', ['B', 'C']],
+            ['a quote in a comment after a reference', 'user.attributes.A == "x" // the "B" one\n&& user.attributes.C == "y"', ['A', 'C']],
+            ['// inside a string literal', 'user.attributes.A == "http://x" && user.attributes.B == "y"', ['A', 'B']],
+            ['a comment marker inside a literal next to a reference', 'user.attributes.A.startsWith("//") && user.attributes.B == "y"', ['A', 'B']],
+        ])('%s', (_label, input, expected) => {
+            expect(referencedUserAttributeNames(input)).toEqual(expected);
+        });
+    });
+
+    describe('bracket access', () => {
+        it.each([
+            ['double-quoted', 'user.attributes["teams"] == "x"', ['teams']],
+            ['single-quoted', "user.attributes['teams'] == 'x'", ['teams']],
+            ['with whitespace', 'user.attributes [ "Sales Region" ] == "x"', ['Sales Region']],
+            ['mixed with dot access, in order and deduped', 'user.attributes.A == "x" && user.attributes["B"] == "y" && user.attributes["A"] != "z"', ['A', 'B']],
+            ['inside a comment', 'user.attributes.A == "x" // user.attributes["B"]', ['A']],
+            ['inside a string literal', 'user.attributes.A == "user.attributes[\'B\']"', ['A']],
+            ['a non-literal index', 'user.attributes[user.attributes.A] == "x"', ['A']],
+        ])('%s', (_label, input, expected) => {
+            expect(referencedUserAttributeNames(input)).toEqual(expected);
+        });
+    });
+
+    it('still ignores names that appear only in string literals', () => {
+        expect(referencedUserAttributeNames('user.attributes.A == "user.attributes.B" && user.attributes.C in [\'user.attributes.D\']')).toEqual(['A', 'C']);
+    });
 });
 
 describe('getSyncedAttributeReferences', () => {
@@ -605,6 +637,18 @@ describe('getSyncedAttributeReferences', () => {
 
     it('returns each field once even when referenced repeatedly', () => {
         expect(getSyncedAttributeReferences('user.attributes.Clearance == "a" || user.attributes.Clearance == "b"', fields)).toEqual([clearance]);
+    });
+
+    it('ignores a synced name that is only commented out', () => {
+        expect(getSyncedAttributeReferences('user.attributes.Tags == "a" // was user.attributes.Clearance', fields)).toEqual([]);
+    });
+
+    it('finds a synced name after a comment with an apostrophe', () => {
+        expect(getSyncedAttributeReferences('// don\'t drop this\nuser.attributes.Tags == \'a\' && user.attributes.Clearance == "b"', fields)).toEqual([clearance]);
+    });
+
+    it('finds a synced name used with bracket access', () => {
+        expect(getSyncedAttributeReferences('user.attributes["Program"] == "x"', fields)).toEqual([program]);
     });
 
     it('works on a fixture with newlines', () => {

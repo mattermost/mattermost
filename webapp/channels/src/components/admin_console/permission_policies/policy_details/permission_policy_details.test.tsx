@@ -1076,5 +1076,357 @@ describe('components/admin_console/permission_policies/policy_details/Permission
                 expect(lastTableProps().helpText).toBe(BOT_HELP_TEXT);
             });
         });
+
+        describe('Bot accounts guidance', () => {
+            const nativeField = (name: string, displayName: string): UserPropertyField => ({
+                id: `native_user_attribute_${name}`,
+                name,
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: 'system',
+                object_type: 'user',
+                attrs: {sort_order: 0, visibility: 'always', value_type: '', native: true, display_name: displayName},
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+            } as UserPropertyField);
+
+            const customField = (id: string, name: string, attrs: Partial<UserPropertyField['attrs']>): UserPropertyField => ({
+                ...nativeField(name, ''),
+                id,
+                attrs: {sort_order: 0, visibility: 'always', value_type: '', ...attrs},
+            } as UserPropertyField);
+
+            const NATIVE_FIELDS = [
+                nativeField('email', 'Email'),
+                nativeField('verified', 'Email verified'),
+                nativeField('isbot', 'Bot account'),
+                nativeField('createat', 'Account created'),
+            ];
+            const HIDDEN = ['email', 'verified', 'isbot'];
+            const CPA_EMAIL = customField('cpa-email', 'email', {managed: 'admin', display_name: 'Work email'});
+            const LDAP_TEAMS = customField('u-teams', 'teams', {ldap: 'memberOf'});
+            const SAML_REGION = customField('u-region', 'region', {saml: 'Region', display_name: 'Sales region'});
+            const PLAIN_DEPT = customField('u-dept', 'department', {managed: 'admin'});
+
+            const useFields = (fields: UserPropertyField[]) => mockGetAccessControlFields.mockResolvedValue({data: fields});
+            const wrap = (e: string) => `!user.isbot || (${e}\n)`;
+
+            const SYNCED_TITLE = 'Bots can\'t hold synced attributes';
+            const HINT = 'This policy will be treated as a Bot accounts policy.';
+            const syncedNotice = () => screen.queryByText(SYNCED_TITLE)?.closest('.sectionNoticeContainer') ?? null;
+            const editorStandIn = () => screen.queryByTestId('table-editor') ?? screen.getByTestId('cel-editor');
+            const nativeCELNames = () => lastCELProps().userAttributes.filter((a) => a.isNative).map((a) => a.attribute);
+            const switchToAdvanced = async () => {
+                await userEvent.click(screen.getByText('Switch to Advanced Mode'));
+                await screen.findByTestId('cel-editor');
+            };
+            const follows = (a: Element, b: Element) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+
+            describe('built-ins', () => {
+                test('the table editor gets the hidden names in Bot accounts with unfiltered attributes', async () => {
+                    useFields([...NATIVE_FIELDS, CPA_EMAIL, LDAP_TEAMS]);
+                    renderWithPolicy({expressions: [WRAPPED_E]});
+                    await screen.findByTestId('table-editor');
+
+                    expect(lastTableProps().hiddenPickerAttributeNames).toEqual(HIDDEN);
+                    const ids = lastTableProps().userAttributes.map((a) => a.id);
+                    expect(ids).toEqual(expect.arrayContaining(['native_user_attribute_email', 'native_user_attribute_isbot', 'native_user_attribute_verified', 'cpa-email']));
+                });
+
+                test('Members passes no hidden names', async () => {
+                    useFields([...NATIVE_FIELDS]);
+                    renderWithExpression(E);
+                    await screen.findByTestId('table-editor');
+
+                    expect(lastTableProps().hiddenPickerAttributeNames).toBeUndefined();
+                });
+
+                // TableEditor's picker memo is keyed on this array's reference.
+                test('switching scope toggles the prop and keeps one reference across edits and round trips', async () => {
+                    useFields([...NATIVE_FIELDS]);
+                    renderWithExpression(E);
+                    await screen.findByTestId('table-editor');
+
+                    await selectScope('pp-role-option-bot');
+                    await editTable('user.attributes.teams == "other"');
+                    await selectScope('pp-role-option-system_user');
+                    expect(lastTableProps().hiddenPickerAttributeNames).toBeUndefined();
+                    await selectScope('pp-role-option-bot');
+
+                    expect(lastTableProps().hiddenPickerAttributeNames).toEqual(HIDDEN);
+                    const refs = new Set(MockedTableEditor.mock.calls.map(([p]) => p.hiddenPickerAttributeNames).filter(Boolean));
+                    expect(refs.size).toBe(1);
+                });
+
+                test('CEL autocomplete drops the native built-ins in Bot accounts but keeps the custom email and session fields', async () => {
+                    useFields([...NATIVE_FIELDS, CPA_EMAIL, LDAP_TEAMS]);
+                    renderWithPolicy({expressions: [WRAPPED_E]});
+                    await screen.findByTestId('table-editor');
+                    await switchToAdvanced();
+
+                    const attrs = lastCELProps().userAttributes;
+                    expect(nativeCELNames()).toEqual(['createat']);
+                    expect(attrs.filter((a) => a.attribute === 'email')).toEqual([expect.objectContaining({attribute: 'email', isNative: false})]);
+                    expect(attrs.map((a) => a.attribute)).toEqual(expect.arrayContaining(['teams', 'network_name']));
+                    expect(attrs.find((a) => a.attribute === 'network_name')?.objectType).toBe('session');
+                });
+
+                test('CEL autocomplete keeps every built-in in Members', async () => {
+                    useFields([...NATIVE_FIELDS, CPA_EMAIL, LDAP_TEAMS]);
+                    renderWithExpression(E);
+                    await screen.findByTestId('table-editor');
+                    await switchToAdvanced();
+
+                    expect(nativeCELNames()).toEqual(['email', 'verified', 'isbot', 'createat']);
+                });
+
+                test('a scope switch while in CEL mode re-filters in both directions', async () => {
+                    useFields([...NATIVE_FIELDS, CPA_EMAIL, LDAP_TEAMS]);
+                    renderWithExpression(E);
+                    await screen.findByTestId('table-editor');
+                    await switchToAdvanced();
+
+                    await selectScope('pp-role-option-bot');
+                    expect(nativeCELNames()).toEqual(['createat']);
+
+                    await selectScope('pp-role-option-system_user');
+                    expect(nativeCELNames()).toEqual(['email', 'verified', 'isbot', 'createat']);
+                });
+
+                test('the simulator keeps the unfiltered fields', async () => {
+                    useFields([...NATIVE_FIELDS]);
+                    renderWithPolicy({expressions: [WRAPPED_E]}, SIM_STATE);
+                    await screen.findByTestId('table-editor');
+
+                    await triggerTest();
+
+                    expect(await screen.findByTestId('simulate-modal')).toBeInTheDocument();
+                    expect(lastModalProps().accessControlFields?.map((f) => f.name)).toEqual(expect.arrayContaining(['isbot', 'email', 'verified']));
+                });
+            });
+
+            describe('synced warning', () => {
+                beforeEach(() => {
+                    useFields([LDAP_TEAMS, SAML_REGION, PLAIN_DEPT]);
+                });
+
+                test('an LDAP-synced reference shows the warning with the label in a code span', async () => {
+                    renderWithPolicy({expressions: [wrap('user.attributes.teams == "engineering"')]});
+
+                    expect(await screen.findByText(SYNCED_TITLE)).toBeInTheDocument();
+                    expect(syncedNotice()).toHaveTextContent('teams is synced from LDAP or SAML, and bots can\'t hold synced values. This policy will deny every bot.');
+                    expect(syncedNotice()!.querySelector('code')).toHaveTextContent('teams');
+                });
+
+                test('a SAML-synced reference uses the display label', async () => {
+                    renderWithPolicy({expressions: [wrap('user.attributes.region == "EMEA"')]});
+
+                    await screen.findByText(SYNCED_TITLE);
+                    expect(syncedNotice()).toHaveTextContent('Sales region is synced from LDAP or SAML');
+                    expect(syncedNotice()!.querySelector('code')!.textContent).toBe('Sales region');
+                });
+
+                test('a plain admin-managed attribute shows no warning', async () => {
+                    renderWithPolicy({expressions: [wrap('user.attributes.department == "eng"')]});
+                    await screen.findByTestId('table-editor');
+
+                    expect(screen.queryByText(SYNCED_TITLE)).not.toBeInTheDocument();
+                });
+
+                test('a synced name only inside a string literal shows no warning', async () => {
+                    renderWithPolicy({expressions: [wrap('user.attributes.department == "user.attributes.teams"')]});
+                    expect(await screen.findByText('Bot attribute requirements')).toBeInTheDocument();
+                    expect(editorStandIn()).toBeInTheDocument();
+
+                    expect(screen.queryByText(SYNCED_TITLE)).not.toBeInTheDocument();
+                });
+
+                test('it updates as the expression changes and pluralizes in field order', async () => {
+                    renderWithPolicy({expressions: [wrap('user.attributes.department == "eng"')]});
+                    await screen.findByTestId('table-editor');
+                    expect(screen.queryByText(SYNCED_TITLE)).not.toBeInTheDocument();
+
+                    await editTable('user.attributes.region == "b" && user.attributes.teams == "a"');
+
+                    await screen.findByText(SYNCED_TITLE);
+                    expect(syncedNotice()).toHaveTextContent('teams and Sales region are synced from LDAP or SAML');
+                    expect(Array.from(syncedNotice()!.querySelectorAll('code')).map((c) => c.textContent)).toEqual(['teams', 'Sales region']);
+
+                    await editTable('user.attributes.department == "eng"');
+                    await waitFor(() => expect(screen.queryByText(SYNCED_TITLE)).not.toBeInTheDocument());
+                });
+
+                test('three synced attributes are joined as a localized list', async () => {
+                    const ldapLevel = customField('u-level', 'level', {ldap: 'title', display_name: 'Level'});
+                    useFields([LDAP_TEAMS, SAML_REGION, ldapLevel, PLAIN_DEPT]);
+                    renderWithPolicy({expressions: [wrap('user.attributes.level == "x" && user.attributes.region == "y" && user.attributes.teams == "z"')]});
+
+                    await screen.findByText(SYNCED_TITLE);
+                    expect(syncedNotice()).toHaveTextContent('teams, Sales region, and Level are synced from LDAP or SAML');
+                });
+
+                test('a duplicate reference is listed once and stays singular', async () => {
+                    renderWithPolicy({expressions: [wrap('user.attributes.department == "eng"')]});
+                    await screen.findByTestId('table-editor');
+
+                    await editTable('user.attributes.teams == "a" && user.attributes.teams != "b"');
+
+                    await screen.findByText(SYNCED_TITLE);
+                    expect(syncedNotice()).toHaveTextContent('teams is synced');
+                    expect(syncedNotice()!.querySelectorAll('code')).toHaveLength(1);
+                });
+
+                test('it never shows in Members and appears after switching to Bot accounts', async () => {
+                    useFields([LDAP_TEAMS]);
+                    renderWithExpression('user.attributes.teams == "engineering"');
+                    await screen.findByTestId('table-editor');
+                    expect(screen.queryByText(SYNCED_TITLE)).not.toBeInTheDocument();
+
+                    await selectScope('pp-role-option-bot');
+                    expect(await screen.findByText(SYNCED_TITLE)).toBeInTheDocument();
+
+                    await selectScope('pp-role-option-system_user');
+                    await waitFor(() => expect(screen.queryByText(SYNCED_TITLE)).not.toBeInTheDocument());
+                });
+
+                test('it sits above the editor card', async () => {
+                    renderWithPolicy({expressions: [wrap('user.attributes.teams == "engineering"')]});
+                    await screen.findByText(SYNCED_TITLE);
+
+                    expect(follows(syncedNotice()!, screen.getByTestId('table-editor'))).toBe(true);
+                    expect(follows(screen.getByText('Who this policy applies to'), syncedNotice()!)).toBe(true);
+                    expect(follows(syncedNotice()!, screen.getByText('Bot attribute requirements'))).toBe(true);
+                });
+
+                test('it updates from CEL-mode edits', async () => {
+                    renderWithPolicy({expressions: [wrap('user.attributes.department == "eng"')]});
+                    await screen.findByTestId('table-editor');
+                    await switchToAdvanced();
+
+                    await act(() => lastCELProps().onChange('user.attributes.region == "a" || user.attributes.department == "b"'));
+
+                    await screen.findByText(SYNCED_TITLE);
+                    expect(syncedNotice()).toHaveTextContent('Sales region is synced');
+                });
+
+                test('a markdown-unsafe display label renders literally with backticks stripped', async () => {
+                    const odd = customField('u-odd', 'cost', {ldap: 'cc', display_name: '*Cost_center* `x`'});
+                    useFields([odd]);
+                    renderWithPolicy({expressions: [wrap('user.attributes.cost == "1"')]});
+
+                    await screen.findByText(SYNCED_TITLE);
+                    const codes = syncedNotice()!.querySelectorAll('code');
+                    expect(codes).toHaveLength(1);
+                    expect(codes[0].textContent).toBe('*Cost_center* x');
+                    expect(syncedNotice()!.querySelector('em, strong')).toBeNull();
+                });
+
+                test('a native field never triggers it, but a synced custom field with the same name does', async () => {
+                    const syncedEmail = customField('cpa-email', 'email', {saml: 'mail', display_name: 'Work email'});
+                    useFields([...NATIVE_FIELDS]);
+                    const {unmount} = renderWithPolicy({expressions: [wrap('user.attributes.email == "a@b.c"')]});
+                    await screen.findByTestId('table-editor');
+                    expect(screen.queryByText(SYNCED_TITLE)).not.toBeInTheDocument();
+                    unmount();
+
+                    useFields([...NATIVE_FIELDS, syncedEmail]);
+                    renderWithPolicy({expressions: [wrap('user.attributes.email == "a@b.c"')]});
+                    await screen.findByText(SYNCED_TITLE);
+                    expect(syncedNotice()).toHaveTextContent('Work email is synced');
+                });
+
+                test('it is advisory and does not block saving', async () => {
+                    mockCreatePolicy.mockResolvedValue(savedBotPolicy(wrap('user.attributes.teams == "x"')));
+                    renderWithPolicy({expressions: [wrap('user.attributes.department == "eng"')]});
+                    await screen.findByTestId('table-editor');
+                    await editTable('user.attributes.teams == "x"');
+                    await screen.findByText(SYNCED_TITLE);
+
+                    await clickSave();
+
+                    await waitFor(() => expect(mockCreatePolicy).toHaveBeenCalledTimes(1));
+                    expect(savedPayload().rules[0].expression).toBe(wrap('user.attributes.teams == "x"'));
+                    await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith(POLICIES_PATH));
+                });
+            });
+
+            describe('Members hint', () => {
+                test('shows in Members for a prefixed expression loaded from mixed rules, under the editor', async () => {
+                    renderWithPolicy({expressions: [WRAPPED_E, E]});
+
+                    const hint = await screen.findByText(HINT);
+                    expect(selectorText()).toContain('Members');
+                    expect(follows(editorStandIn(), hint)).toBe(true);
+                    expect(hint.closest('.pp-members-bot-hint')).toHaveClass('help-text');
+                });
+
+                test('shows after typing the prefix, including with leading whitespace, and hides when removed', async () => {
+                    renderWithExpression(E);
+                    await screen.findByTestId('table-editor');
+                    expect(screen.queryByText(HINT)).not.toBeInTheDocument();
+
+                    await editTable('  \n' + WRAPPED_E);
+                    expect(await screen.findByText(HINT)).toBeInTheDocument();
+
+                    await editTable(E);
+                    await waitFor(() => expect(screen.queryByText(HINT)).not.toBeInTheDocument());
+                });
+
+                test('shows from CEL-mode edits', async () => {
+                    renderWithExpression(E);
+                    await screen.findByTestId('table-editor');
+                    await switchToAdvanced();
+
+                    await act(() => lastCELProps().onChange(WRAPPED_E));
+
+                    const hint = await screen.findByText(HINT);
+                    expect(follows(screen.getByTestId('cel-editor'), hint)).toBe(true);
+                });
+
+                test('needs the exact prefix', async () => {
+                    renderWithExpression(E);
+                    await screen.findByTestId('table-editor');
+
+                    await editTable(`!user.isbot||(${E})`);
+                    expect(screen.queryByText(HINT)).not.toBeInTheDocument();
+
+                    await editTable(`user.attributes.teams == "x" && !user.isbot || ${E}`);
+                    expect(screen.queryByText(HINT)).not.toBeInTheDocument();
+                });
+
+                test('never shows in Bot accounts, even for a prefixed draft', async () => {
+                    renderWithPolicy({expressions: [WRAPPED_E]});
+                    await screen.findByTestId('table-editor');
+                    expect(screen.queryByText(HINT)).not.toBeInTheDocument();
+
+                    await editTable(WRAPPED_E);
+                    expect(lastTableProps().value).toBe(WRAPPED_E);
+                    expect(screen.queryByText(HINT)).not.toBeInTheDocument();
+                });
+
+                test('disappears when switching from Members to Bot accounts', async () => {
+                    renderWithPolicy({expressions: [WRAPPED_E, E]});
+                    await screen.findByText(HINT);
+
+                    await selectScope('pp-role-option-bot');
+
+                    await waitFor(() => expect(screen.queryByText(HINT)).not.toBeInTheDocument());
+                });
+
+                test.each([
+                    ['Guest users', ['system_guest']],
+                    ['System admins', ['system_admin']],
+                ])('never shows for %s', async (_label, roles) => {
+                    renderWithPolicy({roles, expressions: [WRAPPED_E]});
+                    await screen.findByTestId('cel-editor');
+
+                    expect(screen.queryByText(HINT)).not.toBeInTheDocument();
+                });
+            });
+        });
     });
 });

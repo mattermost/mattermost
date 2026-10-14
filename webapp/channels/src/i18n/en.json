@@ -10373,7 +10373,7 @@
   },
   "admin.permission_policies.edit.bot_test_unavailable_tooltip": {
     "defaultMessage": "Testing the rule alone isn't available for bot account policies.",
-    "description": "Tooltip on the disabled 'Test access rule' button in the permission policy table editor when the Bot accounts scope is selected and rule simulation isn't available."
+    "description": "Tooltip on the disabled 'Test access rule' button in the permission policy table and advanced (CEL) editors when the Bot accounts scope is selected and rule simulation isn't available."
   },
   "admin.permission_policies.edit.cancel": {
     "defaultMessage": "Cancel",
@@ -10459,6 +10459,10 @@
     "defaultMessage": "The permissions defined in this policy override the {link} when its conditions are met",
     "description": "Info banner title on the permission policy edit page; {link} is replaced with the 'system permission schemes' link text."
   },
+  "admin.permission_policies.edit.members_bot_hint": {
+    "defaultMessage": "This policy will be treated as a Bot accounts policy.",
+    "description": "Help text under the rule editor on a Members permission policy whose expression starts with the bot-only condition, so it will be saved as a Bot accounts policy."
+  },
   "admin.permission_policies.edit.name_exists": {
     "defaultMessage": "A policy with this name already exists. Please choose a different name.",
     "description": "Error on the permission policy edit page when the chosen name duplicates an existing policy."
@@ -10478,6 +10482,14 @@
   "admin.permission_policies.edit.notice.false_rule.title": {
     "defaultMessage": "This policy's rule couldn't be read",
     "description": "Warning title on the permission policy editor when a loaded rule is the literal `false` (the server could not read it)."
+  },
+  "admin.permission_policies.edit.notice.synced_bot.text": {
+    "defaultMessage": "{attributes} {count, plural, one {is} other {are}} synced from LDAP or SAML, and bots can't hold synced values. This policy will deny every bot.",
+    "description": "Warning text (markdown) for a Bot accounts policy that references synced attributes; {attributes} is a localized list of attribute labels (each in backticks) and {count} is how many there are."
+  },
+  "admin.permission_policies.edit.notice.synced_bot.title": {
+    "defaultMessage": "Bots can't hold synced attributes",
+    "description": "Warning title on the permission policy editor when a Bot accounts policy references attributes synced from LDAP or SAML, which bots cannot have."
   },
   "admin.permission_policies.edit.notice.text": {
     "defaultMessage": "You haven't configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server.",

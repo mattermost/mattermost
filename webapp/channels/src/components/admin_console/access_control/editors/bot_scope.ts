@@ -4,7 +4,7 @@
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {CEL_STRING, isSimpleExpression, USER_ATTRIBUTE_CEL_PREFIX} from './shared';
+import {isSimpleExpression} from './shared';
 
 // A Bot accounts policy is a system_user policy whose every rule is stored as
 // `!user.isbot || (<E>\n)`. The server re-serializes on read but keeps this
@@ -152,10 +152,57 @@ export function isMaskingFailureExpression(expr: string): boolean {
     return expr.trim() === 'false';
 }
 
+type MaskedExpression = {
+    code: string;
+    literals: string[];
+};
+
+// Drops // comments and replaces each '…' / "…" literal with a "#<index>"
+// placeholder, so an apostrophe inside a comment can't open a fake literal.
+function maskLiteralsAndComments(s: string): MaskedExpression {
+    const literals: string[] = [];
+    let code = '';
+    let i = 0;
+
+    while (i < s.length) {
+        const ch = s[i];
+
+        if (ch === '"' || ch === "'") {
+            let j = i + 1;
+            while (j < s.length && s[j] !== ch && s[j] !== '\n' && s[j] !== '\r') {
+                j += s[j] === '\\' && s[j + 1] !== '\n' && s[j + 1] !== '\r' ? 2 : 1;
+            }
+            literals.push(s.slice(i + 1, Math.min(j, s.length)));
+            code += `"#${literals.length - 1}"`;
+            i = j + 1;
+            continue;
+        }
+
+        if (ch === '/' && s[i + 1] === '/') {
+            const newline = s.indexOf('\n', i + 2);
+            if (newline === -1) {
+                break;
+            }
+            i = newline;
+            continue;
+        }
+
+        code += ch;
+        i++;
+    }
+
+    return {code, literals};
+}
+
+const USER_ATTRIBUTE_REFERENCE = /user\.attributes(?:\.(\w+)|\s*\[\s*"#(\d+)"\s*\])/g;
+
 export function referencedUserAttributeNames(expr: string): string[] {
-    const stripped = expr.replace(new RegExp(CEL_STRING, 'g'), '""');
-    const matches = stripped.match(/user\.attributes\.\w+/g) ?? [];
-    return Array.from(new Set(matches.map((match) => match.slice(USER_ATTRIBUTE_CEL_PREFIX.length))));
+    const {code, literals} = maskLiteralsAndComments(expr);
+    const names: string[] = [];
+    for (const match of code.matchAll(USER_ATTRIBUTE_REFERENCE)) {
+        names.push(match[1] ?? literals[Number(match[2])]);
+    }
+    return Array.from(new Set(names));
 }
 
 export function getSyncedAttributeReferences(expr: string, userFields: UserPropertyField[]): UserPropertyField[] {
