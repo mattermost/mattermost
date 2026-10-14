@@ -63,8 +63,11 @@ func TestPermissionsFromLegacyColumns(t *testing.T) {
 			// A group whose Attrs were never enforced keeps its reads open.
 			assert.Equal(t, PermissionLevelEveryone, p.Restrictions.TierFor(PropertyActionValueRead))
 			assert.Equal(t, PermissionLevelEveryone, p.Restrictions.TierFor(PropertyActionOptionRead))
-			assert.NotNil(t, p.Grants)
-			assert.Empty(t, p.Grants)
+			// Any plugin could act on such a field, so the wildcard keeps that access.
+			assert.Equal(t, []Grant{{
+				Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "*"},
+				Allow:    validPropertyActions,
+			}}, p.Grants)
 			assert.Nil(t, p.Masking)
 		})
 	}
@@ -82,6 +85,12 @@ func TestPermissionsFromLegacyProtectedColumn(t *testing.T) {
 
 	assert.Equal(t, PermissionLevelNone, p.Restrictions.TierFor(PropertyActionFieldWrite))
 	assert.Equal(t, PermissionLevelMember, p.Restrictions.TierFor(PropertyActionValueWrite))
+	// The app layer refused plugins a protected field's definition, but never
+	// its options or values.
+	assert.Equal(t, []Grant{{
+		Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "*"},
+		Allow:    []string{PropertyActionOptionRead, PropertyActionOptionWrite, PropertyActionValueRead, PropertyActionValueWrite},
+	}}, p.Grants)
 }
 
 func TestPermissionsFromLegacyProtectedAttr(t *testing.T) {
@@ -754,8 +763,9 @@ func TestProjectLegacyPermissionsDoesNotMutateArgument(t *testing.T) {
 }
 
 func TestPermissionsFromLegacyGrantsConvertAttrsFalse(t *testing.T) {
-	// Owners in the attrs convert to nothing when ConvertAttrs is false —
-	// outside access_control, Attrs were never enforced.
+	// Owners and the source plugin in the attrs convert to nothing when
+	// ConvertAttrs is false — outside access_control, Attrs were never
+	// enforced. Only the wildcard every such field gets remains.
 	field := &PropertyField{
 		Attrs: StringInterface{
 			PropertyAttrsOwners: []PropertyOwner{
@@ -767,7 +777,22 @@ func TestPermissionsFromLegacyGrantsConvertAttrsFalse(t *testing.T) {
 
 	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: false})
 
-	assert.Empty(t, p.Grants)
+	assert.Equal(t, []Grant{{
+		Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "*"},
+		Allow:    validPropertyActions,
+	}}, p.Grants)
+}
+
+func TestPermissionsFromLegacyConvertAttrsFalseLinkedFieldDropsOptionRead(t *testing.T) {
+	// A linked field may not hold an option.read grant, so the wildcard loses it.
+	field := &PropertyField{}
+
+	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: false, Template: &Permissions{}})
+
+	assert.Equal(t, []Grant{{
+		Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "*"},
+		Allow:    []string{PropertyActionFieldWrite, PropertyActionOptionWrite, PropertyActionValueRead, PropertyActionValueWrite},
+	}}, p.Grants)
 }
 
 func TestAmbientMachineGrantAllow(t *testing.T) {
