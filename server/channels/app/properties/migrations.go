@@ -591,8 +591,10 @@ func newPermissionsBackfill(service *PropertyService, accessControlGroupID strin
 // flagging group's fields) is left alone too: PropertyField.IsValid refuses a
 // Permissions object on that schema, so there is nothing for this conversion
 // to give it.
-func (b *permissionsBackfill) convertBatch(rctx request.CTX, fields []*model.PropertyField) ([]*model.PropertyField, error) {
-	var converted []*model.PropertyField
+//
+// A linked field whose template can't be resolved is logged and left out, and
+// counted in failed; see logUnconvertedField.
+func (b *permissionsBackfill) convertBatch(rctx request.CTX, fields []*model.PropertyField) (converted []*model.PropertyField, failed int) {
 	for _, field := range fields {
 		if field.Permissions != nil || field.IsPSAv1() {
 			continue
@@ -608,7 +610,9 @@ func (b *permissionsBackfill) convertBatch(rctx request.CTX, fields []*model.Pro
 		if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
 			template, err := b.resolveTemplate(rctx, field.GroupID, *field.LinkedFieldID, opts.ConvertAttrs)
 			if err != nil {
-				return nil, err
+				logUnconvertedField(rctx, field, err)
+				failed++
+				continue
 			}
 			opts.Template = template
 
@@ -628,7 +632,20 @@ func (b *permissionsBackfill) convertBatch(rctx request.CTX, fields []*model.Pro
 		field.Permissions = model.PermissionsFromLegacy(field, opts)
 		converted = append(converted, field)
 	}
-	return converted, nil
+	return converted, failed
+}
+
+// logUnconvertedField reports a field the backfill could not give a
+// Permissions object. It stays without one, which the access control hook
+// already treats as refusing everyone, so skipping it fails closed, and the
+// backfill tries it again on the next startup. Stopping the server instead
+// would make one bad row cost the whole deployment.
+func logUnconvertedField(rctx request.CTX, field *model.PropertyField, err error) {
+	rctx.Logger().Error("Could not convert a property field's permissions; it stays inaccessible until it converts, which is retried on every startup",
+		mlog.String("field_id", field.ID),
+		mlog.String("group_id", field.GroupID),
+		mlog.Err(err),
+	)
 }
 
 // propertyPermissionsBackfillPageSize bounds how many fields one page of
@@ -654,14 +671,17 @@ var propertyPermissionsBackfillPageSize = 200
 // updatePropertyFields, one call per group per page, since that method takes
 // a single group ID.
 //
-// Returns the number of fields given a Permissions object and the number left
+// Returns the number of fields given a Permissions object; the number left
 // alone, either because they already carried one or because they are PSAv1
 // (the content flagging group's fields, which cannot carry Permissions at
-// all).
-func (ps *PropertyService) MigrateBackfillPropertyPermissions(rctx request.CTX) (converted int, skipped int, err error) {
+// all); and the number that could not be converted. A field that fails is
+// logged and left without an object rather than failing the run (see
+// logUnconvertedField). err is only for a failure that stops the run as a
+// whole, such as reading a page of fields.
+func (ps *PropertyService) MigrateBackfillPropertyPermissions(rctx request.CTX) (converted, skipped, failed int, err error) {
 	accessControlGroup, err := ps.Group(model.AccessControlPropertyGroupName)
 	if err != nil {
-		return 0, 0, fmt.Errorf("MigrateBackfillPropertyPermissions: failed to get access control property group: %w", err)
+		return 0, 0, 0, fmt.Errorf("MigrateBackfillPropertyPermissions: failed to get access control property group: %w", err)
 	}
 
 	backfill := newPermissionsBackfill(ps, accessControlGroup.ID)
@@ -673,7 +693,7 @@ func (ps *PropertyService) MigrateBackfillPropertyPermissions(rctx request.CTX) 
 			Cursor:  cursor,
 		})
 		if searchErr != nil {
-			return converted, skipped, fmt.Errorf("MigrateBackfillPropertyPermissions: failed to search property fields: %w", searchErr)
+			return converted, skipped, failed, fmt.Errorf("MigrateBackfillPropertyPermissions: failed to search property fields: %w", searchErr)
 		}
 		if len(fields) == 0 {
 			break
@@ -682,11 +702,9 @@ func (ps *PropertyService) MigrateBackfillPropertyPermissions(rctx request.CTX) 
 		last := fields[len(fields)-1]
 		cursor = model.PropertyFieldSearchCursor{PropertyFieldID: last.ID, CreateAt: last.CreateAt}
 
-		convertedFields, convertErr := backfill.convertBatch(rctx, fields)
-		if convertErr != nil {
-			return converted, skipped, fmt.Errorf("MigrateBackfillPropertyPermissions: failed to convert fields: %w", convertErr)
-		}
-		skipped += len(fields) - len(convertedFields)
+		convertedFields, convertFailed := backfill.convertBatch(rctx, fields)
+		failed += convertFailed
+		skipped += len(fields) - len(convertedFields) - convertFailed
 
 		// updatePropertyFields takes one group ID, so a page spanning several
 		// groups needs one call per group.
@@ -695,18 +713,28 @@ func (ps *PropertyService) MigrateBackfillPropertyPermissions(rctx request.CTX) 
 			byGroup[field.GroupID] = append(byGroup[field.GroupID], field)
 		}
 		for groupID, groupFields := range byGroup {
-			if _, _, _, updateErr := ps.updatePropertyFields(rctx, groupID, groupFields); updateErr != nil {
-				return converted, skipped, fmt.Errorf("MigrateBackfillPropertyPermissions: failed to update fields for group %q: %w", groupID, updateErr)
+			if _, _, _, updateErr := ps.updatePropertyFields(rctx, groupID, groupFields); updateErr == nil {
+				converted += len(groupFields)
+				continue
+			}
+			// The batch is written all or nothing, so one field the update
+			// refuses holds back the rest. Write them one at a time to find it.
+			for _, field := range groupFields {
+				if _, _, _, updateErr := ps.updatePropertyFields(rctx, groupID, []*model.PropertyField{field}); updateErr != nil {
+					logUnconvertedField(rctx, field, updateErr)
+					failed++
+					continue
+				}
+				converted++
 			}
 		}
-		converted += len(convertedFields)
 
 		if len(fields) < propertyPermissionsBackfillPageSize {
 			break
 		}
 	}
 
-	return converted, skipped, nil
+	return converted, skipped, failed, nil
 }
 
 // resolveTemplate returns templateID's converted Permissions, memoized so a

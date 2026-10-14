@@ -1263,8 +1263,11 @@ func (s *Server) doSetupCPAToGlobalAttributesMigration(rctx request.CTX) error {
 // hook refuses such a field to everyone. Only fields still missing an object
 // are written, so a startup with nothing to convert reads the fields and
 // writes nothing.
+//
+// A field that fails to convert doesn't stop the server: it is logged by ID
+// and stays inaccessible until a later startup converts it.
 func (s *Server) doSetupPropertyPermissionsBackfill(rctx request.CTX) error {
-	converted, skipped, err := s.propertyService.MigrateBackfillPropertyPermissions(rctx)
+	converted, skipped, failed, err := s.propertyService.MigrateBackfillPropertyPermissions(rctx)
 	if err != nil {
 		return fmt.Errorf("failed to backfill property permissions: %w", err)
 	}
@@ -1273,6 +1276,11 @@ func (s *Server) doSetupPropertyPermissionsBackfill(rctx request.CTX) error {
 		mlog.Info("Property permissions backfill converted fields with no permissions object",
 			mlog.Int("converted", converted),
 			mlog.Int("skipped", skipped),
+		)
+	}
+	if failed > 0 {
+		mlog.Error("Property permissions backfill left fields without a permissions object; each is logged by ID, stays inaccessible, and is retried on the next startup",
+			mlog.Int("failed", failed),
 		)
 	}
 
