@@ -3724,6 +3724,14 @@ func TestLinkedFieldSelfWritableHoldings(t *testing.T) {
 				},
 			})
 			require.NoError(t, err)
+
+			// The stored rows, not the creates' returns: a return still holds the
+			// legacy columns as submitted, and an update carrying a column change
+			// keeps the stored permissions object, dropping any masking added to it.
+			template, err = th.service.fieldStore.Get(th.Context, th.CPAGroupID, template.ID)
+			require.NoError(t, err)
+			linked, err = th.service.fieldStore.Get(th.Context, th.CPAGroupID, linked.ID)
+			require.NoError(t, err)
 			return template, linked
 		}
 
@@ -3831,10 +3839,15 @@ func TestMaskHoldingsFieldStaysLinked(t *testing.T) {
 		// Straight to the store: naming the holdings field is the template's own
 		// update, which is not what these tests are about.
 		template.Permissions.Masking = &model.Masking{MaskByFieldID: holdings.ID}
-		updated, err := th.dbStore.PropertyField().Update(th.CPAGroupID, []*model.PropertyField{template}, nil)
+		_, err = th.dbStore.PropertyField().Update(th.CPAGroupID, []*model.PropertyField{template}, nil)
 		require.NoError(t, err)
 
-		return updated[0], holdings, sibling
+		// The stored row, not the update's return, for the reason given in
+		// TestLinkedFieldSelfWritableHoldings.
+		template, err = th.service.fieldStore.Get(th.Context, th.CPAGroupID, template.ID)
+		require.NoError(t, err)
+
+		return template, holdings, sibling
 	}
 
 	unlinked := func(t *testing.T, id string) *model.PropertyField {
